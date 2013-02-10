@@ -1,5 +1,7 @@
 Thumbs.db
 *.obj
+*.sdf
+*.opensdf
 *.exe
 *.pdb
 *.user
