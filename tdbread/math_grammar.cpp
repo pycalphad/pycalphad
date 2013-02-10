@@ -117,12 +117,12 @@ calculator::calculator(const qi::symbols<char, spirit::utree>& functions, const 
 			term =
 				factor                          [_val = _1]
 			>> *(   ('*' >> !lit('*') >> factor          [times(_val, _1)])
-				|   ("**" >> factor         [power(_val, _1)])
 				|   ('/' >> factor          [divide(_val, _1)])
 				)
 				;
 
 			factor =
+				(
 				double_                           [_val = _1]
 				|   (functions [_val = _1]  >> -lit('#'))
 				|   variables                     [_val = _1]
@@ -132,6 +132,8 @@ calculator::calculator(const qi::symbols<char, spirit::utree>& functions, const 
 				|   (no_case["ln"] >> factor           [natlog(_val, _1)])
 				|   (no_case["log"] >> factor          [natlog(_val, _1)]) // Thermo-Calc says log() is the same as ln()
 				|   (no_case["exp"] >> factor          [expn(_val, _1)])
+				)
+				>>   *("**" >> factor                    [power(_val, _1)])
 				;
 
 			BOOST_SPIRIT_DEBUG_NODE(expression);

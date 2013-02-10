@@ -116,14 +116,16 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51\lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>
-      </AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib_x64;$(ProjectDir)arma\lib_x64;C:\Program Files (x86)\Common Files\Intel\Shared Files\fortran\Lib\Intel64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>IpOpt-vc10.lib</AdditionalDependencies>
       <ForceFileOutput>
       </ForceFileOutput>
       <IgnoreAllDefaultLibraries>
       </IgnoreAllDefaultLibraries>
       <ShowProgress>NotSet</ShowProgress>
+      <TargetMachine>MachineX64</TargetMachine>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -135,11 +137,19 @@
     <ClCompile Include="evaluate.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="function_grammar.cpp" />
+    <ClCompile Include="hessian.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="math_expr.cpp" />
     <ClCompile Include="math_grammar.cpp" />
+    <ClCompile Include="opt_Gibbs.cpp" />
     <ClCompile Include="opt_helpers.cpp" />
-    <ClCompile Include="opt_init_vars.cpp" />
-    <ClCompile Include="update_gradient.cpp" />
+    <ClCompile Include="opt_init_vars.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
+    <ClCompile Include="update_gradient.cpp">
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
+    </ClCompile>
     <ClCompile Include="parameter.cpp" />
     <ClCompile Include="param_grammar.cpp" />
     <ClCompile Include="parser.cpp" />
@@ -158,6 +168,7 @@
     <ClInclude Include="math_expr.h" />
     <ClInclude Include="math_grammar.h" />
     <ClInclude Include="optimizer.h" />
+    <ClInclude Include="opt_Gibbs.h" />
     <ClInclude Include="structure.h" />
     <ClInclude Include="param_grammar.h" />
     <ClInclude Include="periodic_table.h" />

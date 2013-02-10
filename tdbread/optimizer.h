@@ -3,9 +3,9 @@
 #define INCLUDED_OPTIMIZER
 
 #include "database_tdb.h"
+#include <vector>
 #include "conditions.h"
 #include <algorithm>
-#include <boost/numeric/ublas/vector.hpp>
 #include <boost/tuple/tuple.hpp>
 
 //      vector(sitefraction[speciesname])
@@ -37,21 +37,30 @@ struct vector_map {
 	index_pairs tau2p_iters;
 };
 
-boost::numeric::ublas::vector<double> initialize_variables(
+std::vector<double> initialize_variables(
 	const Phase_Collection::const_iterator phase_iter,
 	const Phase_Collection::const_iterator phase_end,
 	const evalconditions &conditions,
 	vector_map &retmap
 	);
 
-void update_gradient(
+/*void update_gradient(
 	const Phase_Collection::const_iterator phase_iter,
 	const Phase_Collection::const_iterator phase_end,
 	const vector_map &var_map,
-	boost::numeric::ublas::vector<long double> &variables,
-	boost::numeric::ublas::vector<long double> &gradient,
+	std::vector &variables,
+	std::vector &gradient,
 	const evalconditions &conditions
-	);
+	);*/
+
+/*void calculate_hessian(
+	const Phase_Collection::const_iterator phase_iter,
+	const Phase_Collection::const_iterator phase_end,
+	const vector_map &var_map,
+	const std::vector &variables,
+	arma::matrix &Hessian,
+	const evalconditions &conditions
+	);*/
 
 double mole_fraction(
 	const std::string &spec_name,

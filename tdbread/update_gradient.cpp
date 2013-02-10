@@ -1,15 +1,16 @@
 // update_gradient.cpp -- definition for the Gibbs energy optimizer gradient update procedure
 
 #include "optimizer.h"
-#include <boost/numeric/ublas/vector.hpp>
+
+using namespace std;
 
 
 void update_gradient(
 	const Phase_Collection::const_iterator phase_iter,
 	const Phase_Collection::const_iterator phase_end,
 	const vector_map &var_map,
-	boost::numeric::ublas::vector<long double> &variables,
-	boost::numeric::ublas::vector<long double> &gradient,
+	vector &variables,
+	vector &gradient,
 	const evalconditions &conditions
 	) {
 			// Build a sitefracs object so that we can calculate the Gibbs energy

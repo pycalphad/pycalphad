@@ -9,6 +9,4 @@
 
 boost::spirit::utree const process_utree(boost::spirit::utree const&, evalconditions const&);
 
-#define SI_GAS_CONSTANT 8.3144621 // J/mol-K
-
 #endif

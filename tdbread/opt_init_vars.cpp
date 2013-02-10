@@ -1,16 +1,18 @@
 // opt_init_vars.cpp -- definition of initialize_variables() for the Gibbs energy optimizer
 
 #include "optimizer.h"
-#include <boost/numeric/ublas/vector.hpp>
+#include <vector>
 
-boost::numeric::ublas::vector<double> initialize_variables(
+using namespace std;
+
+vector initialize_variables(
 	const Phase_Collection::const_iterator phase_iter,
 	const Phase_Collection::const_iterator phase_end,
 	const evalconditions &conditions,
 	vector_map &retmap
 	) {
 		vector_map mymap;
-		boost::numeric::ublas::vector<double> retvec(1);
+		vector retvec(1);
 		for (auto i = retvec.begin(); i != retvec.end(); ++i) {
 			(*i) = double(0);
 		}

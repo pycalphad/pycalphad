@@ -26,10 +26,14 @@ double mole_fraction(
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
 			double stoi_coef = (*ref_iter).stoi_coef;
 			//std::cout << "stoi_coef: " << stoi_coef << std::endl;
-			numerator += stoi_coef * (*(*i).find(spec_name)).second;
-			denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
-			std::cout << "mole_fraction numerator += " << stoi_coef << " * " << (*(*i).find(spec_name)).second << std::endl;
-			std::cout << "mole_fraction denominator += " << stoi_coef << " * " << (1 - (*(*i).find("VA")).second) << std::endl;
+			auto sitefrac_iter = (*i).find(spec_name);
+			double num = 0;
+			if (sitefrac_iter != (*i).end()) num = stoi_coef * sitefrac_iter->second;
+			double den = stoi_coef;
+			numerator += num;
+			denominator += den; //* (1 - (*(*i).find("VA")).second);
+			std::cout << "mole_fraction[" << spec_name << "] numerator += " << stoi_coef << " * " << num << " = " << numerator << std::endl;
+			std::cout << "mole_fraction[" << spec_name << "] denominator += " << stoi_coef << " = " << denominator << std::endl;
 			++ref_iter;
 		}
 		if (denominator == 0) {
@@ -37,6 +41,7 @@ double mole_fraction(
 			std::cout << "DIVIDE BY ZERO" << std::endl;
 			return 0;
 		}
+		std::cout << "mole_fraction = " << numerator << " / " << denominator << " = " << (numerator / denominator) << std::endl;
 		return (numerator / denominator);
 }
 
@@ -67,7 +72,9 @@ double mole_fraction_deriv(
 			if (std::distance(subl_iter_start,i) == deriv_subl_index) {
 			numerator = stoi_coef;
 			}
-			denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
+			denominator += stoi_coef; //* (1 - (*(*i).find("VA")).second);
+			std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
+			std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
 			++ref_iter;
 		}
 		if (denominator == 0) {
@@ -110,7 +117,19 @@ double get_parameter
 			}
 			++array_iter;
 		}
-		if (isvalid) return process_utree((*i).ast,conditions).get<double>();
+		if (isvalid) { 
+			double result = process_utree((*i).ast,conditions).get<double>();
+			std::string subl_string;
+			for (auto i = subl_config.begin(); i != subl_config.end(); ++i) {
+				for (auto j = (*i).begin(); j != (*i).end(); ++j) {
+					subl_string += *j + ",";
+				}
+				subl_string += ";";
+			}
+			subl_string = "[" + subl_string + "]";
+			std::cout << "get_parameter[" << phase_iter->first << "]" << subl_string << " = " << result << std::endl;
+			return result;
+		}
 	}
 	// TODO: We couldn't find a parameter. We should probably throw an exception here
 	return 0;
@@ -138,8 +157,8 @@ double get_Gibbs
 		for (auto j = (*i).begin(); j != (*i).end(); ++j) {
 			if (j->second > 0) {
 				mixing += j->second * log(j->second);
-				std::cout << "get_Gibbs(" << std::distance(subl_start,i) << ")(" << std::distance((*i).begin(),j) << "): mixing += " << j->second << " * " << log(j->second) << std::endl;
 			}
+			std::cout << "get_Gibbs(" << std::distance(subl_start,i) << ")(" << std::distance((*i).begin(),j) << "): mixing += " << j->second << " * " << log(j->second) << std::endl;
 		}
 	}
 	std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
@@ -257,12 +276,13 @@ double multiply_site_fractions_deriv
 	sublattice_vector::const_iterator subl_next = subl_start;
 	++subl_next;
 	double result = 0;
+	std::cout << "multiply_site_fractions_deriv[" << specname << "]: sublindex = " << sublindex << std::endl;
 	if (subl_start == subl_end) {
 		// We are at the bottom of the recursive loop
 		// No sublattices left
 		// return the corresponding Gibbs parameter
 		result = get_parameter(phase_iter, conditions, species);
-		//std::cout << "multiply_site_fractions_deriv: parameter = " << result << std::endl;
+		std::cout << "multiply_site_fractions_deriv: parameter = " << result << std::endl;
 		return result;
 	}
 
@@ -271,7 +291,7 @@ double multiply_site_fractions_deriv
 	// Iterate through each species
 	for (auto i = (*subl_start).cbegin(); i != (*subl_start).cend(); ++i) {
 		// Add the current species to the sublattice configuration: e.g. NI:AL:VA
-		// get_Gibbs needs this information to retrieve the correct parameter
+		// get_parameter needs this information to retrieve the correct parameter
 		std::vector<std::vector<std::string>> tempspecies = species;
 		// We use the specieswrapper construction because interaction parameters
 		//    can have multiple species in one sublattice
@@ -281,17 +301,20 @@ double multiply_site_fractions_deriv
 		tempspecies.push_back(specieswrapper);
 
 		// If we are currently on the differential sublattice
-		if ((species.size() - 1) == sublindex) {
+		std::cout << "species.size(): " << species.size() << std::endl;
+		if (species.size() == sublindex) {
 			// If we are currently on the differential species in the differential sublattice
+			std::cout << "multiply_site_fractions_deriv: i->first = " << i->first << " ; specname = " << specname << std::endl;
 			if (i->first == specname) {
 				return multiply_site_fractions_deriv
 					(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
 			}
-			else return 0; // wrong species on the differential sublattice, it is differentiated away
+			else continue; // wrong species on the differential sublattice, it is differentiated away
 		}
 		// Multiply over all combinations of the remaining site fractions
 		result += i->second * multiply_site_fractions_deriv
 			(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
+		std::cout << "multiply_site_fractions_deriv result += " << i->second << " * " << (result / i->second) << std::endl;
 	}
 	return result;
 }

@@ -14,6 +14,7 @@ int main(int argc, char* argv[])
   mainconditions.statevars['P'] = 101325;
   mainconditions.xfrac["NI"] = 0.6;
   mainconditions.xfrac["AL"] = 0.4;
+  //mainconditions.xfrac["VA"] = 0;
   mainconditions.elements.push_back("NI");
   mainconditions.elements.push_back("AL");
   mainconditions.elements.push_back("VA");
