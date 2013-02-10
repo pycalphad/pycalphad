@@ -23,7 +23,7 @@ GibbsOpt::GibbsOpt(
 			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
 				// Check if this species in this sublattice is on our list of elements to investigate
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					subl_map[*k] = 0;
+					subl_map[*k] = 1;
 					//var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k]
 				}
 			}
@@ -84,6 +84,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   n = sitefraccount + phasecount;
    // one phase fraction balance equality constraint, plus all the sublattice fraction balance constraints
    // plus all the mass balance constraints
+  std::cout << "n = " << sitefraccount << " + " << phasecount << std::endl;
   std::cout << "m = 1 + " << sublcount << " + " << speccount << std::endl;
   m = 1 + sublcount + speccount;
 
@@ -98,37 +99,37 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 }
 
 bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
-                            Index m, Number* g_l, Number* g_u)
+                            Index m_num, Number* g_l, Number* g_u)
 {
 	// site and phase fractions have a lower bound of 0 and an upper bound of 1
 	for (Index i = 0; i < n; ++i) {
 		x_l[i] = 0;
 		x_u[i] = 1;
 	}
-	Index cons_index = 1;
+
+	Index cons_index = 0;
+	// Phase fraction balance constraint
+	g_l[cons_index] = -1;
+	//g_u[cons_index] = 100;
+	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
 			g_l[cons_index] = -1;
-			g_u[cons_index] = 0;
+			//g_u[cons_index] = 100;
 			++cons_index;
 		}
 	}
-	// Phase fraction balance constraint
-	g_l[0] = -1;
-	g_u[0] = 0;
 
 	// Mass balance constraint
 	for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
-		// Mass balance
-		if (m->first != "VA")  { 
-			g_l[cons_index] = -m->second;
-			g_u[cons_index] = 1 - m->second;
+			//g_l[cons_index] = -100;
+			//g_u[cons_index] = 100;
 			++cons_index;
-		}
 	}
+	assert(m_num == cons_index); // TODO: rewrite as exception
 	return true;
 }
 
@@ -138,7 +139,7 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Number* lambda)
 {
 	for (Index i = 0; i < n; ++i) {
-		x[i] = 0;
+		x[i] = 0.5;
 	}
 	return true;
 }
@@ -305,7 +306,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 			sumterm += x[(*i).get<0>()] * molefrac;
 		}
 		// Mass balance
-		//std::cout << "g[" << cons_index << "] = " << sumterm << " - " << conditions.xfrac[*m] << " = " << sumterm - conditions.xfrac[*m] << std::endl;
+		std::cout << "g[" << cons_index << "] = " << sumterm << " - " << m->second << " = " << (sumterm - m->second) << std::endl;
 		if (m->first != "VA")  { 
 			g[cons_index] = sumterm - m->second;
 			++cons_index;
@@ -474,7 +475,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				// Mass balance constraint, w.r.t phase fraction
 				//iRow[jac_index] = cons_index;
 				//jCol[jac_index] = phaseindex;
-				std::cout << "jac_g values[" << jac_index << "] = " << molefrac << std::endl;
+				std::cout << "jac_g values[" << jac_index << "] = " << -molefrac << std::endl;
 				values[jac_index] = molefrac;
 				++jac_index;
 			}
@@ -530,12 +531,12 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 	  values[i] = 0;
   }
 
-  return true;
+  return false;
 }
 
 void GibbsOpt::finalize_solution(SolverReturn status,
                               Index n, const Number* x, const Number* z_L, const Number* z_U,
-                              Index m, const Number* g, const Number* lambda,
+                              Index m_num, const Number* g, const Number* lambda,
                               Number obj_value,
 			      const IpoptData* ip_data,
 			      IpoptCalculatedQuantities* ip_cq)
@@ -556,13 +557,14 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
 					sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
 					subl_map[*k] = x[sitefracindex];
+					std::cout << "y(" << cur_phase->first << "," << *k << ") = " << x[sitefracindex] << std::endl;
 				}
 			}
 			subls_vec.push_back(subl_map);
 		}
 		thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
 	}
-	for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
+	for (auto m = conditions.elements.cbegin(); m != conditions.elements.cend(); ++m) {
 		for (auto i = var_map.phasefrac_iters.begin(); i != var_map.phasefrac_iters.end(); ++i) {
 			const Phase_Collection::const_iterator myphase = (*i).get<2>();
 			sublattice_vector::const_iterator subls_start = (thesitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cbegin();
@@ -570,13 +572,16 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 			const Index phaseindex = (*i).get<0>();
 			const double fL = x[phaseindex];
 			double molefrac = mole_fraction(
-				m->first,
+				(*m),
 				(*myphase).second.get_sublattice_iterator(),
 				(*myphase).second.get_sublattice_iterator_end(),
 				subls_start,
 				subls_end
 				);
-			std::cout << "x(" << myphase->first << "," << m->first << ") = " << molefrac << " ; X = " << fL*molefrac << std::endl;
+			std::cout << "x(" << myphase->first << "," << *m << ") = " << molefrac << " ; X = " << fL*molefrac << std::endl;
 		}
+	}
+	for (Index i = 0; i < m_num; ++i) {
+		std::cout << "g[" << i << "] = " << g[i] << std::endl;
 	}
 }

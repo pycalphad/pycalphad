@@ -12,8 +12,8 @@ int main(int argc, char* argv[])
   evalconditions mainconditions;
   mainconditions.statevars['T'] = 298.15;
   mainconditions.statevars['P'] = 101325;
-  mainconditions.xfrac["NI"] = 0.6;
-  mainconditions.xfrac["AL"] = 0.4;
+  mainconditions.xfrac["NI"] = 0.8;
+  mainconditions.xfrac["AL"] = 0.2;
   //mainconditions.xfrac["VA"] = 0;
   mainconditions.elements.push_back("NI");
   mainconditions.elements.push_back("AL");

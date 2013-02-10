@@ -2,7 +2,7 @@
 #ifndef INCLUDED_OPTIMIZER
 #define INCLUDED_OPTIMIZER
 
-#include "database_tdb.h"
+#include "structure.h"
 #include <vector>
 #include "conditions.h"
 #include <algorithm>

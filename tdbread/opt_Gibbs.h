@@ -5,7 +5,7 @@
 #define INCLUDED_OPT_GIBBS
 
 #include "coin/IpTNLP.hpp"
-#include "database_tdb.h"
+#include "structure.h"
 #include "optimizer.h"
 
 using namespace Ipopt;
