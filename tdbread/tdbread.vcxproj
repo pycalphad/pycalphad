@@ -65,6 +65,9 @@
     <LinkIncremental>
     </LinkIncremental>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(ProjectDir)coin;$(IncludePath)</IncludePath>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
@@ -83,6 +86,8 @@
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>$(ProjectDir)lib_x64_debug</AdditionalLibraryDirectories>
+      <AdditionalDependencies>IpOpt-vc10-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -137,19 +142,10 @@
     <ClCompile Include="evaluate.cpp" />
     <ClCompile Include="function.cpp" />
     <ClCompile Include="function_grammar.cpp" />
-    <ClCompile Include="hessian.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="math_expr.cpp" />
     <ClCompile Include="math_grammar.cpp" />
     <ClCompile Include="opt_Gibbs.cpp" />
     <ClCompile Include="opt_helpers.cpp" />
-    <ClCompile Include="opt_init_vars.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
-    <ClCompile Include="update_gradient.cpp">
-      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release|x64'">true</ExcludedFromBuild>
-    </ClCompile>
     <ClCompile Include="parameter.cpp" />
     <ClCompile Include="param_grammar.cpp" />
     <ClCompile Include="parser.cpp" />

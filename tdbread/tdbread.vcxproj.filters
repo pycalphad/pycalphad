@@ -93,15 +93,6 @@
     <ClCompile Include="evaluate.cpp">
       <Filter>Source Files\optimizer</Filter>
     </ClCompile>
-    <ClCompile Include="opt_init_vars.cpp">
-      <Filter>Source Files\optimizer\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="update_gradient.cpp">
-      <Filter>Source Files\optimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="hessian.cpp">
-      <Filter>Source Files\optimizer</Filter>
-    </ClCompile>
     <ClCompile Include="opt_Gibbs.cpp">
       <Filter>Source Files\optimizer</Filter>
     </ClCompile>

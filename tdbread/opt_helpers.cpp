@@ -32,7 +32,10 @@ double mole_fraction(
 				num = stoi_coef * sitefrac_iter->second;
 				double den = stoi_coef;
 				numerator += num;
-				denominator += den * (1 - (*(*i).find("VA")).second);
+				if ((*i).find("VA") != (*i).end()) {
+					denominator += den * (1 - (*(*i).find("VA")).second);
+				}
+				else denominator += den;
 				std::cout << "mole_fraction[" << spec_name << "] numerator += " << stoi_coef << " * " << num << " = " << numerator << std::endl;
 				std::cout << "mole_fraction[" << spec_name << "] denominator += " << stoi_coef * (1 - (*(*i).find("VA")).second) << " = " << denominator << std::endl;
 			}
@@ -65,7 +68,7 @@ double mole_fraction_deriv(
 			std::cout << "ref size: " << std::distance(ref_subl_iter_start,ref_subl_iter_end) << std::endl;
 			std::cout << "subl size: " << std::distance(subl_iter_start,subl_iter_end) << std::endl;
 		}
-		if (spec_name == "VA") {
+		if (spec_name == "VA" || deriv_spec_name == "VA") {
 			return 0; // mole fraction of vacancies are always zero
 		}
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
@@ -75,9 +78,16 @@ double mole_fraction_deriv(
 				if (std::distance(subl_iter_start,i) == deriv_subl_index && ((*i).find(deriv_spec_name) != (*i).end())) {
 					numerator = stoi_coef;
 				}
-				denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
-				std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
-				std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
+				if ((*i).find("VA") != (*i).end()) {
+					denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
+					std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
+					std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
+				}
+				else {
+					denominator += stoi_coef;
+					std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
+					std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
+				}
 			}
 			++ref_iter;
 		}

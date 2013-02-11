@@ -16,7 +16,7 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 	Phase_Collection phase_col;
 	// TODO: temporary code for suspending all phases but FCC and liquid
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
-		if (i->first == "FCC_A1") {
+		if (i->first == "LIQUID") {
 			phase_col[i->first] = i->second;
 		}
 	}
@@ -49,10 +49,10 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 		// example with an Ipopt Windows DLL
 		SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
 
-		//app->Options()->SetStringValue("derivative_test","first-order");
+		app->Options()->SetStringValue("derivative_test","first-order");
 		app->Options()->SetStringValue("hessian_approximation","limited-memory");
 		app->Options()->SetIntegerValue("print_level",12);
-		//app->Options()->SetStringValue("derivative_test_print_all","yes");
+		app->Options()->SetStringValue("derivative_test_print_all","yes");
 
 		// Initialize the IpoptApplication and process the options
 		ApplicationReturnStatus status;

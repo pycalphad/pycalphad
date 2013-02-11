@@ -33,6 +33,7 @@ GibbsOpt::GibbsOpt(
 	}
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
+		std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
 		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
 		++varcount;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
@@ -42,6 +43,7 @@ GibbsOpt::GibbsOpt(
 					// This site matches one of our elements under investigation
 					// Add it to the list of sitefracs
 					// +1 for a sitefraction
+					std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
 					var_map.sitefrac_iters.resize(std::distance(phase_iter,i)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)].resize(std::distance(i->second.get_sublattice_iterator(),j)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k] =
@@ -118,7 +120,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
 			g_l[cons_index] = -1;
-			//g_u[cons_index] = 100;
+			//g_u[cons_index] = 0;
 			++cons_index;
 		}
 	}
@@ -184,7 +186,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 	// calculate dF/dy(l,s,j)
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-
+	int varcheck = 0;
 	// all phases
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
@@ -207,8 +209,8 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 		// calculate dF/dfL
 		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
-		//std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
-		grad_f[phaseindex] = Gibbs;
+		std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
+		grad_f[phaseindex] = Gibbs; ++varcheck;
 
 		// each sublattice
 		auto subl_begin = (*i).begin();
@@ -229,12 +231,12 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 					k->first
 					);
 				// k->second.first = index
-				grad_f[k->second.first] = fL * dGdy;
-				//std::cout << "grad_f[" << k->second.first << "] = " << fL << " * " << dGdy << " = " << fL * dGdy << std::endl;
+				grad_f[k->second.first] = fL * dGdy; ++varcheck;
+				std::cout << "grad_f[" << k->second.first << "] = " << fL << " * " << dGdy << " = " << fL * dGdy << std::endl;
 			}
 		}
 	}
-
+	assert (varcheck == n);
 	// calculate dF/dfL
 	/*for (auto i = var_map.phasefrac_iters.begin(); i != var_map.phasefrac_iters.end(); ++i) {
 		sublattice_vector::const_iterator subls_start = (mysitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cbegin();
@@ -248,6 +250,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
+	std::cout << "entering eval_g" << std::endl;
   // return the value of the constraints: g(x)
 	double sum_phase_fracs = 0;
 	Index cons_index = 1;
@@ -307,11 +310,10 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		}
 		// Mass balance
 		std::cout << "g[" << cons_index << "] = " << sumterm << " - " << m->second << " = " << (sumterm - m->second) << std::endl;
-		if (m->first != "VA")  { 
-			g[cons_index] = sumterm - m->second;
-			++cons_index;
-		}
+		g[cons_index] = sumterm - m->second;
+		++cons_index;
 	}
+	std::cout << "exiting eval_g" << std::endl;
   return true;
 }
 
@@ -320,6 +322,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Number* values)
 {
 	if (values == NULL) {
+		std::cout << "entering eval_jac_g values == NULL" << std::endl;
 		Index cons_index = 0;
 		Index jac_index = 0;
 		auto sitefrac_begin = var_map.sitefrac_iters.begin();
@@ -329,7 +332,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 
 			// Phase fraction balance constraint
-			//std::cout << "iRow[" << jac_index << "] = 0; jCol[" << jac_index << "] = " << phaseindex << std::endl;
+			std::cout << "iRow[" << jac_index << "] = 0; jCol[" << jac_index << "] = " << phaseindex << std::endl;
 			iRow[jac_index] = 0;
 			jCol[jac_index] = phaseindex;
 			//values[jac_index] = 1;
@@ -349,7 +352,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 						//subl_map[*k] = x[sitefracindex];
 						//sum_site_fracs  += subl_map[*k];
 						// Site fraction balance constraint
-						//std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << sitefracindex << std::endl;
+						std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << sitefracindex << std::endl;
 						iRow[jac_index] = cons_index; 
 						jCol[jac_index] = sitefracindex;
 						//values[jac_index] = 1;
@@ -378,7 +381,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 					subls_end
 					);*/
 				// Mass balance constraint, w.r.t phase fraction
-				//std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << phaseindex << std::endl;
+				std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << phaseindex << std::endl;
 				iRow[jac_index] = cons_index;
 				jCol[jac_index] = phaseindex;
 				//values[jac_index] = molefrac;
@@ -399,7 +402,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 						if ((*k) == (*m).first) {
 							Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][sublindex][*k].first;
 							//subl_map[*k] = x[sitefracindex];
-							//std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << sitefracindex << std::endl;
+							std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << sitefracindex << std::endl;
 							iRow[jac_index] = cons_index;
 							jCol[jac_index] = sitefracindex;
 							// values[jac_index] = fL * molefrac_deriv;
@@ -416,6 +419,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		std::cout << "assertion succeeded" << std::endl;
 	}
 	else {
+		std::cout << "entering eval_jac_g with values" << std::endl;
 		Index cons_index = 0;
 		Index jac_index = 0;
 		auto sitefrac_begin = var_map.sitefrac_iters.begin();
@@ -423,12 +427,12 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 			const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 			const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-			const double fL = x[phaseindex]; // phase fraction
+			double fL = x[phaseindex]; // phase fraction
 
 			// Phase fraction balance constraint
 			//iRow[jac_index] = 0;
 			//jCol[jac_index] = phaseindex;
-			//std::cout << "jac_g values[" << jac_index << "] = 1" << std::endl;
+			std::cout << "jac_g values[" << jac_index << "] = 1" << std::endl;
 			values[jac_index] = 1;
 			++jac_index;
 
@@ -446,7 +450,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 						// Site fraction balance constraint
 						//iRow[jac_index] = cons_index; 
 						//jCol[jac_index] = sitefracindex;
-						//std::cout << "jac_g values[" << jac_index << "] = 1" << std::endl;
+						std::cout << "jac_g values[" << jac_index << "] = 1" << std::endl;
 						values[jac_index] = 1;
 						++jac_index;
 					}
@@ -464,7 +468,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				sublattice_vector::const_iterator subls_start = (thesitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cbegin();
 				sublattice_vector::const_iterator subls_end = (thesitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cend();
 				const Index phaseindex = (*i).get<0>();
-				const double fL = x[phaseindex];
+				double fL = x[phaseindex];
 				double molefrac = mole_fraction(
 					m->first,
 					(*myphase).second.get_sublattice_iterator(),
@@ -475,7 +479,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				// Mass balance constraint, w.r.t phase fraction
 				//iRow[jac_index] = cons_index;
 				//jCol[jac_index] = phaseindex;
-				std::cout << "jac_g values[" << jac_index << "] = " << -molefrac << std::endl;
+				std::cout << "jac_g values[" << jac_index << "] = " << molefrac << std::endl;
 				values[jac_index] = molefrac;
 				++jac_index;
 			}
@@ -483,10 +487,10 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 				const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 				const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-				const Phase_Collection::const_iterator myphase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
+				//const Phase_Collection::const_iterator myphase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 				sublattice_vector::const_iterator subls_start = (thesitefracs[std::distance(sitefrac_begin,i)].second).cbegin();
 				sublattice_vector::const_iterator subls_end = (thesitefracs[std::distance(sitefrac_begin,i)].second).cend();
-				const double fL = x[phaseindex]; // phase fraction
+				double fL = x[phaseindex]; // phase fraction
 
 				sublattice_vector subls_vec;
 				for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
@@ -503,21 +507,24 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 								(*m).first,
 								(*k),
 								sublindex,
-								(*myphase).second.get_sublattice_iterator(),
-								(*myphase).second.get_sublattice_iterator_end(),
+								cur_phase->second.get_sublattice_iterator(),
+								cur_phase->second.get_sublattice_iterator_end(),
 								subls_start,
 								subls_end
 								);
+							std::cout << "jac_g values[" << jac_index << "] = " << fL*molefrac_deriv << std::endl;
 							values[jac_index] = fL * molefrac_deriv;
 							++jac_index;
 						}
 					}
 				}
-				// Mass balance
-				++cons_index;
 			}
+			// Mass balance
+			++cons_index;
+			std::cout << "eval_jac_g: cons_index is now " << cons_index << std::endl;
 		}
 	}
+	std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
 	}
 
