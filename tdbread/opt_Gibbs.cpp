@@ -111,7 +111,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 	Index cons_index = 0;
 	// Phase fraction balance constraint
-	g_l[cons_index] = -1;
+	//g_l[cons_index] = -100;
 	//g_u[cons_index] = 100;
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
@@ -119,7 +119,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
-			g_l[cons_index] = -1;
+			//g_l[cons_index] = -1;
 			//g_u[cons_index] = 0;
 			++cons_index;
 		}
@@ -127,7 +127,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 	// Mass balance constraint
 	for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
-			//g_l[cons_index] = -100;
+			//g_l[cons_index] = -1;
 			//g_u[cons_index] = 100;
 			++cons_index;
 	}
@@ -141,7 +141,7 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Number* lambda)
 {
 	for (Index i = 0; i < n; ++i) {
-		x[i] = 0.5;
+		x[i] = .5;
 	}
 	return true;
 }
