@@ -72,7 +72,7 @@ double mole_fraction_deriv(
 			return 0; // mole fraction of vacancies are always zero
 		}
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
-			//if ((*i).find(spec_name) != (*i).end()) {
+			if ((*i).find(spec_name) != (*i).end()) {
 				double stoi_coef = (*ref_iter).stoi_coef;
 				//std::cout << "stoi_coef: " << stoi_coef << std::endl;
 				if (std::distance(subl_iter_start,i) == deriv_subl_index && ((*i).find(deriv_spec_name) != (*i).end())) {
@@ -88,7 +88,7 @@ double mole_fraction_deriv(
 					std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
 					std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
 				}
-			//}
+			}
 			++ref_iter;
 		}
 		if (denominator == 0) {

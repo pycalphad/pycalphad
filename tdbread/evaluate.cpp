@@ -16,7 +16,7 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 	Phase_Collection phase_col;
 	// TODO: temporary code for suspending all phases but FCC and liquid
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
-		if (i->first == "LIQUID") {
+		if (i->first == "FCC_A1") {
 			phase_col[i->first] = i->second;
 		}
 	}

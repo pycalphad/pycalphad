@@ -111,25 +111,31 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 	Index cons_index = 0;
 	// Phase fraction balance constraint
-	//g_l[cons_index] = -100;
-	//g_u[cons_index] = 100;
+	if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+		g_l[cons_index] = -1;
+		g_u[cons_index] = 10;
+	}
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
-			//g_l[cons_index] = -1;
-			//g_u[cons_index] = 0;
+			if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+				g_l[cons_index] = -1;
+				g_u[cons_index] = 10;
+			}
 			++cons_index;
 		}
 	}
 
 	// Mass balance constraint
 	for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
-			//g_l[cons_index] = -1;
-			//g_u[cons_index] = 100;
-			++cons_index;
+		if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+			g_l[cons_index] = -1;
+			g_u[cons_index] = 10;
+		}
+		++cons_index;
 	}
 	assert(m_num == cons_index); // TODO: rewrite as exception
 	return true;
