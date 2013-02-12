@@ -103,6 +103,8 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
                             Index m_num, Number* g_l, Number* g_u)
 {
+	// We initialize the bounds but, once the solver is running,
+	// we only reset the bounds to fix inconsistencies.
 	// site and phase fractions have a lower bound of 0 and an upper bound of 1
 	for (Index i = 0; i < n; ++i) {
 		x_l[i] = 0;
@@ -130,13 +132,15 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	}
 
 	// Mass balance constraint
-	for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
+
+	for (auto i = 0; i < conditions.xfrac.size(); ++i) {
 		if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 			g_l[cons_index] = -1;
 			g_u[cons_index] = 10;
 		}
 		++cons_index;
 	}
+
 	assert(m_num == cons_index); // TODO: rewrite as exception
 	return true;
 }
@@ -319,6 +323,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		g[cons_index] = sumterm - m->second;
 		++cons_index;
 	}
+	assert(cons_index == m_num);
 	std::cout << "exiting eval_g" << std::endl;
   return true;
 }
@@ -464,8 +469,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				subls_vec.push_back(subl_map);
 			}
 			thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
-			++cons_index;
 		}
+		++cons_index;
 
 		// Mass balance constraint
 		for (auto m = conditions.xfrac.cbegin(); m != conditions.xfrac.cend(); ++m) {
@@ -529,6 +534,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			++cons_index;
 			std::cout << "eval_jac_g: cons_index is now " << cons_index << std::endl;
 		}
+		assert(cons_index == m_num);
 	}
 	std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
