@@ -91,7 +91,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   m = 1 + sublcount + speccount;
 
   // nonzeros in the jacobian of the lagrangian
-  nnz_jac_g = phasecount + speccount + 2 * sitefraccount;
+  nnz_jac_g = phasecount + speccount*phasecount + 2 * sitefraccount; // this is potentially an overestimate
 
   // nonzeros in the hessian of the lagrangian
   //nnz_h_lag = (phasecount * sitefraccount) + phasecount * (1 + speccount) + sitefraccount * (1 + sublcount + speccount);
@@ -115,7 +115,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	// Phase fraction balance constraint
 	if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 		g_l[cons_index] = -1;
-		g_u[cons_index] = 10;
+		g_u[cons_index] = 0;
 	}
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
@@ -125,7 +125,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 			// Site fraction balance constraint
 			if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 				g_l[cons_index] = -1;
-				g_u[cons_index] = 10;
+				g_u[cons_index] = 0;
 			}
 			++cons_index;
 		}
@@ -136,7 +136,7 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	for (auto i = 0; i < conditions.xfrac.size(); ++i) {
 		if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 			g_l[cons_index] = -1;
-			g_u[cons_index] = 10;
+			g_u[cons_index] = 0;
 		}
 		++cons_index;
 	}
@@ -534,6 +534,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			++cons_index;
 			std::cout << "eval_jac_g: cons_index is now " << cons_index << std::endl;
 		}
+		std::cout << "complete jac_index: " << jac_index << std::endl;
 		assert(cons_index == m_num);
 	}
 	std::cout << "exiting eval_jac_g" << std::endl;
