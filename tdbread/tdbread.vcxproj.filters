@@ -13,20 +13,8 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\parsers">
-      <UniqueIdentifier>{34ff91a9-f872-4a98-aa15-4ac899b31774}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Source Files\utils">
       <UniqueIdentifier>{2f356f27-cee3-4441-9b9f-d407e1f45390}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\utils">
-      <UniqueIdentifier>{f5c8d472-3bab-4f36-9913-56cc8fbd8a03}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\grammars">
-      <UniqueIdentifier>{7424fba1-2658-43b4-828e-9583eec5ddf9}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\grammars">
-      <UniqueIdentifier>{b44a0e36-5313-424f-bb74-57d331647f9e}</UniqueIdentifier>
     </Filter>
     <Filter Include="Source Files\optimizer">
       <UniqueIdentifier>{0ff2a919-97fa-466b-abf8-4ae5fc131da3}</UniqueIdentifier>
@@ -34,28 +22,10 @@
     <Filter Include="Source Files\optimizer\utils">
       <UniqueIdentifier>{66bfb7e5-6b8e-44f6-93b0-3275d8c62523}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Header Files\optimizer">
-      <UniqueIdentifier>{05b4ee3f-d03a-48cc-9571-f20abd3f8184}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tdbread.cpp">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database_tdb.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="database_info.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="element.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="species.cpp">
-      <Filter>Source Files\parsers</Filter>
     </ClCompile>
     <ClCompile Include="chemical_formula.cpp">
       <Filter>Source Files\utils</Filter>
@@ -63,29 +33,8 @@
     <ClCompile Include="periodic_table.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
-    <ClCompile Include="phase.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="constituent.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="function.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
     <ClCompile Include="math_expr.cpp">
       <Filter>Source Files\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="math_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
-    </ClCompile>
-    <ClCompile Include="function_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
-    </ClCompile>
-    <ClCompile Include="parameter.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="param_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
     </ClCompile>
     <ClCompile Include="opt_helpers.cpp">
       <Filter>Source Files\optimizer\utils</Filter>
@@ -98,47 +47,11 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="database_tdb.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="chemical_formula.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="periodic_table.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="exceptions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="math_expr.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="function_grammar.h">
-      <Filter>Header Files\grammars</Filter>
-    </ClInclude>
     <ClInclude Include="conditions.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="math_grammar.h">
-      <Filter>Header Files\grammars</Filter>
-    </ClInclude>
-    <ClInclude Include="param_grammar.h">
-      <Filter>Header Files\grammars</Filter>
-    </ClInclude>
-    <ClInclude Include="structure.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="warning_disable.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
     <ClInclude Include="evaluate.h">
       <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer.h">
-      <Filter>Header Files\optimizer</Filter>
-    </ClInclude>
-    <ClInclude Include="opt_Gibbs.h">
-      <Filter>Header Files\optimizer</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

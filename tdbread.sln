@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual Studio 2010
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tdbread", "tdbread\tdbread.vcxproj", "{6F475E36-E8F1-4D08-9BD4-2ABE96D44140}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtdb", "libtdb\libtdb.vcxproj", "{8296268D-172D-48D5-949E-CE1F6D721B57}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -19,6 +21,13 @@ Global
 		{6F475E36-E8F1-4D08-9BD4-2ABE96D44140}.Release|Win32.Build.0 = Release|Win32
 		{6F475E36-E8F1-4D08-9BD4-2ABE96D44140}.Release|x64.ActiveCfg = Release|x64
 		{6F475E36-E8F1-4D08-9BD4-2ABE96D44140}.Release|x64.Build.0 = Release|x64
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Debug|Win32.Build.0 = Debug|Win32
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Debug|x64.ActiveCfg = Debug|Win32
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|Win32.ActiveCfg = Release|Win32
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|Win32.Build.0 = Release|Win32
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|x64.ActiveCfg = Release|x64
+		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

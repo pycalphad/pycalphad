@@ -1,0 +1,108 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hpp;hxx;hm;inl;inc;xsd</Extensions>
+    </Filter>
+    <Filter Include="Resource Files">
+      <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="Header Files\optimizer">
+      <UniqueIdentifier>{29fc1791-5086-4796-a08c-ceea9da46dba}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{2bed7767-f47a-4088-b2f9-6810bd7a66d1}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\grammars">
+      <UniqueIdentifier>{66ef9d61-8f44-425d-b36e-ffb9ef249a72}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\grammars">
+      <UniqueIdentifier>{afb19b75-ffe1-4965-8775-7a067e0ab792}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\parsers">
+      <UniqueIdentifier>{3ee6c0df-2ce4-45aa-83d1-e1725f68d51b}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\tdbread\optimizer.h">
+      <Filter>Header Files\optimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\opt_Gibbs.h">
+      <Filter>Header Files\optimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\math_expr.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\periodic_table.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\warning_disable.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\chemical_formula.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\function_grammar.h">
+      <Filter>Header Files\grammars</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\math_grammar.h">
+      <Filter>Header Files\grammars</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\param_grammar.h">
+      <Filter>Header Files\grammars</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\database_tdb.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\structure.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="..\tdbread\exceptions.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\tdbread\function_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\math_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\param_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\constituent.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\database_info.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\element.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\function.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\parameter.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\phase.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\species.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\database_tdb.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\tdbread\parser.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

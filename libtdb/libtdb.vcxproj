@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{6F475E36-E8F1-4D08-9BD4-2ABE96D44140}</ProjectGuid>
-    <RootNamespace>tdbread</RootNamespace>
+    <ProjectGuid>{8296268D-172D-48D5-949E-CE1F6D721B57}</ProjectGuid>
+    <RootNamespace>libtdb</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -34,13 +34,13 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
     <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>MultiByte</CharacterSet>
@@ -61,18 +61,11 @@
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <LinkIncremental>
-    </LinkIncremental>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)coin;$(IncludePath)</IncludePath>
-  </PropertyGroup>
+  <PropertyGroup />
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -82,12 +75,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib_x64_debug</AdditionalLibraryDirectories>
-      <AdditionalDependencies>IpOpt-vc10-debug.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
@@ -97,14 +87,11 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51\lib\</AdditionalLibraryDirectories>
-      <AdditionalDependencies>kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -114,42 +101,43 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
-      <TreatWChar_tAsBuiltInType>true</TreatWChar_tAsBuiltInType>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib_x64;C:\Program Files (x86)\Common Files\Intel\Shared Files\fortran\Lib\Intel64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>IpOpt-vc10.lib</AdditionalDependencies>
-      <ForceFileOutput>
-      </ForceFileOutput>
-      <IgnoreAllDefaultLibraries>
-      </IgnoreAllDefaultLibraries>
-      <ShowProgress>NotSet</ShowProgress>
-      <TargetMachine>MachineX64</TargetMachine>
-      <IgnoreSpecificDefaultLibraries>
-      </IgnoreSpecificDefaultLibraries>
     </Link>
+    <Lib>
+      <TargetMachine>MachineX64</TargetMachine>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chemical_formula.cpp" />
-    <ClCompile Include="evaluate.cpp" />
-    <ClCompile Include="math_expr.cpp" />
-    <ClCompile Include="opt_Gibbs.cpp" />
-    <ClCompile Include="opt_helpers.cpp" />
-    <ClCompile Include="periodic_table.cpp" />
-    <ClCompile Include="tdbread.cpp" />
+    <ClInclude Include="..\tdbread\chemical_formula.h" />
+    <ClInclude Include="..\tdbread\database_tdb.h" />
+    <ClInclude Include="..\tdbread\exceptions.h" />
+    <ClInclude Include="..\tdbread\function_grammar.h" />
+    <ClInclude Include="..\tdbread\math_expr.h" />
+    <ClInclude Include="..\tdbread\math_grammar.h" />
+    <ClInclude Include="..\tdbread\optimizer.h" />
+    <ClInclude Include="..\tdbread\opt_Gibbs.h" />
+    <ClInclude Include="..\tdbread\param_grammar.h" />
+    <ClInclude Include="..\tdbread\periodic_table.h" />
+    <ClInclude Include="..\tdbread\structure.h" />
+    <ClInclude Include="..\tdbread\warning_disable.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="conditions.h" />
-    <ClInclude Include="evaluate.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\libtdb\libtdb.vcxproj">
-      <Project>{8296268d-172d-48d5-949e-ce1f6d721b57}</Project>
-    </ProjectReference>
+    <ClCompile Include="..\tdbread\constituent.cpp" />
+    <ClCompile Include="..\tdbread\database_info.cpp" />
+    <ClCompile Include="..\tdbread\database_tdb.cpp" />
+    <ClCompile Include="..\tdbread\element.cpp" />
+    <ClCompile Include="..\tdbread\function.cpp" />
+    <ClCompile Include="..\tdbread\function_grammar.cpp" />
+    <ClCompile Include="..\tdbread\math_grammar.cpp" />
+    <ClCompile Include="..\tdbread\parameter.cpp" />
+    <ClCompile Include="..\tdbread\param_grammar.cpp" />
+    <ClCompile Include="..\tdbread\parser.cpp" />
+    <ClCompile Include="..\tdbread\phase.cpp" />
+    <ClCompile Include="..\tdbread\species.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
