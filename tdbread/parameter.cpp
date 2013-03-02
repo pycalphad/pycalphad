@@ -7,7 +7,7 @@ namespace qi = boost::spirit::qi;
 namespace ascii = boost::spirit::ascii;
 namespace spirit = boost::spirit;
 
-void Database::Parameter(std::string &argstr) {
+void Database::DatabaseTDB::Parameter(std::string &argstr) {
     using boost::spirit::ascii::space;
 
     typedef std::string::const_iterator iterator_type;

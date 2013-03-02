@@ -13,7 +13,7 @@ namespace ascii = boost::spirit::ascii;
 namespace spirit = boost::spirit;
 
 
-void Database::Function(std::string &argstr) {
+void Database::DatabaseTDB::Function(std::string &argstr) {
     using boost::spirit::ascii::space;
     using boost::spirit::utree;
     typedef std::string::const_iterator iterator_type;

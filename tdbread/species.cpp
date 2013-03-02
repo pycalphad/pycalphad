@@ -2,7 +2,7 @@
 #include "database_tdb.h"
 #include <boost/lexical_cast.hpp>
 
-void Database::Species(std::string &argstr) {
+void Database::DatabaseTDB::Species(std::string &argstr) {
 	std::vector<std::string> splitargs;
 	boost::split(splitargs, argstr, boost::is_any_of(" "));
 
@@ -38,7 +38,7 @@ Species::Species(std::string s, std::string spec_formstr) {
 	formula = ::make_chemical_formula(spec_formstr);
 }
 
-bool Database::check_formula_validity (chemical_formula check_formula) {
+bool Database::DatabaseTDB::check_formula_validity (chemical_formula check_formula) {
 	for (chemical_formula::const_iterator j = check_formula.begin(); j != check_formula.end(); ++j) {
 		::Element cur_ele = get_element((*j).first);
 		if (cur_ele.get_name().empty()) { 

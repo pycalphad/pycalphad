@@ -1,5 +1,6 @@
-#include "database_tdb.h"
+#include "conditions.h"
 #include "evaluate.h"
+#include <iostream>
 
 int main(int argc, char* argv[])
 {

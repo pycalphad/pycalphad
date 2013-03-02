@@ -1,7 +1,7 @@
 #include "database_tdb.h"
 
 
-void Database::proc_command(std::string &cmdstring) {
+void Database::DatabaseTDB::proc_command(std::string &cmdstring) {
 	auto cmdrange = boost::find_first(cmdstring," ");
 	std::string cmd(cmdstring.begin(),cmdrange.end()); // current command name
 	boost::trim_right(cmd); // remove the trailing space from the command name

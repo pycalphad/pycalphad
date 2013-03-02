@@ -4,7 +4,7 @@
 #include <boost/lexical_cast.hpp>
 
 // TODO: add support for the optional auxillary info string (comes after last sublattice argument)
-void Database::Phase(std::string &argstr) {
+void Database::DatabaseTDB::Phase(std::string &argstr) {
 	std::string name; // phase name
 	std::string codes, phase_code; // character codes for the phase
 	int num_subl; // number of sublattices

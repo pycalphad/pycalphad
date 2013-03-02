@@ -118,8 +118,6 @@
     <ClInclude Include="..\tdbread\function_grammar.h" />
     <ClInclude Include="..\tdbread\math_expr.h" />
     <ClInclude Include="..\tdbread\math_grammar.h" />
-    <ClInclude Include="..\tdbread\optimizer.h" />
-    <ClInclude Include="..\tdbread\opt_Gibbs.h" />
     <ClInclude Include="..\tdbread\param_grammar.h" />
     <ClInclude Include="..\tdbread\periodic_table.h" />
     <ClInclude Include="..\tdbread\structure.h" />

@@ -9,10 +9,11 @@
 #include <boost/spirit/home/support/utree.hpp>
 #include <boost/spirit/include/qi_symbols.hpp>
 
+#include "database.h"
 #include "structure.h"
 #include "exceptions.h"
 
-class Database {
+class Database::DatabaseTDB {
 private:
 	std::string name;
 	std::string info;
@@ -23,7 +24,7 @@ private:
 	boost::spirit::qi::symbols<char, boost::spirit::utree> statevars; // all valid state variables
 	std::map<std::string,std::string> reserved_phase_keywords; // reserved phase suffixes: L12, A2, LAVES, etc.
 
-	typedef void (Database:: *ParserCallback)(std::string &);
+	typedef void (DatabaseTDB:: *ParserCallback)(std::string &);
 	std::map<std::string, ParserCallback>  parser_map; // maps commands from input database to a parser function
 
 	void proc_command(std::string &); // internal parser function
@@ -31,21 +32,21 @@ private:
 	void RegisterCallbacks() { // initialize the parser map
 			// Parser callback functions get a string containing everything after the first command name
 			// spaces and '!' trimmed
-			RegisterParserCallback("DATABASE_INFO", &Database::Database_Info);
-			RegisterParserCallback("ELEMENT", &Database::Element);
-			RegisterParserCallback("SPECIES", &Database::Species);
-			RegisterParserCallback("PHASE", &Database::Phase);
-			RegisterParserCallback("CONSTITUENT", &Database::Constituent);
-			RegisterParserCallback("ADD_CONSTITUENT", &Database::Constituent);
-			RegisterParserCallback("FUNCTION", &Database::Function);
-			RegisterParserCallback("FUN", &Database::Function);
-			RegisterParserCallback("PARAMETER", &Database::Parameter);
-			RegisterParserCallback("PARA", &Database::Parameter);
+			RegisterParserCallback("DATABASE_INFO", &DatabaseTDB::Database_Info);
+			RegisterParserCallback("ELEMENT", &DatabaseTDB::Element);
+			RegisterParserCallback("SPECIES", &DatabaseTDB::Species);
+			RegisterParserCallback("PHASE", &DatabaseTDB::Phase);
+			RegisterParserCallback("CONSTITUENT", &DatabaseTDB::Constituent);
+			RegisterParserCallback("ADD_CONSTITUENT", &DatabaseTDB::Constituent);
+			RegisterParserCallback("FUNCTION", &DatabaseTDB::Function);
+			RegisterParserCallback("FUN", &DatabaseTDB::Function);
+			RegisterParserCallback("PARAMETER", &DatabaseTDB::Parameter);
+			RegisterParserCallback("PARA", &DatabaseTDB::Parameter);
 
-			RegisterParserCallback("TYPE_DEFINITION", &Database::Unsupported_Command);
-			RegisterParserCallback("TYPE_DEF", &Database::Unsupported_Command);
-			RegisterParserCallback("DEFINE_SYSTEM_DEFAULT", &Database::Unsupported_Command);
-			RegisterParserCallback("DEFAULT_COMMAND", &Database::Unsupported_Command);
+			RegisterParserCallback("TYPE_DEFINITION", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("TYPE_DEF", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("DEFINE_SYSTEM_DEFAULT", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("DEFAULT_COMMAND", &DatabaseTDB::Unsupported_Command);
 	};
 	bool check_formula_validity(chemical_formula); // checks that chemical formula has all defined Elements
 
@@ -61,8 +62,8 @@ private:
 
 	void Species(::Element); // non-callback, internal version for pure elements
 public:
-	Database() { RegisterCallbacks(); };
-	Database(std::string);
+	DatabaseTDB() { RegisterCallbacks(); };
+	DatabaseTDB(std::string);
 
 	void set_info(std::string &infostring) { info = infostring; }; // set infostring for the database
 	std::string get_info() { return info; } // get infostring for database

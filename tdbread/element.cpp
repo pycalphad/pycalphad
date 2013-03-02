@@ -2,7 +2,7 @@
 #include "database_tdb.h"
 #include <boost/lexical_cast.hpp>
 
-void Database::Element(std::string &argstr) {
+void Database::DatabaseTDB::Element(std::string &argstr) {
 	std::vector<std::string> splitargs;
 	boost::split(splitargs, argstr, boost::is_any_of(" "));
 	if (splitargs.size() != 5) { // we have the wrong number of arguments

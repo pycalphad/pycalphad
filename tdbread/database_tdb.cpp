@@ -2,7 +2,7 @@
 #include <iostream>
 #include <fstream>
 
-Database::Database(std::string path) {
+Database::DatabaseTDB::DatabaseTDB(std::string path) {
 	int linecount = 0; // linecount will keep track of which line we are reading for debugging purposes
 	std::fstream tdbfile;
 	std::string line; // buffer for the current line
@@ -104,4 +104,9 @@ Database::Database(std::string path) {
 		}
 		std::cerr << "Cannot read from \"" << fname << "\"" << std::endl;
 	}
+}
+
+// initialize the opaque pointer pImpl with the implementation DatabaseTDB
+Database::Database(std::string s): pImpl (new DatabaseTDB(s))
+{
 }

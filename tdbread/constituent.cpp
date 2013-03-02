@@ -5,7 +5,7 @@
 #include <boost/lexical_cast.hpp>
 #include <boost/algorithm/string/finder.hpp>
 
-void Database::Constituent(std::string &argstr) {
+void Database::DatabaseTDB::Constituent(std::string &argstr) {
 	std::string phase_name, suffix;
 	// get phase name
 	// need to know if there's a colon in the phase name to strip away

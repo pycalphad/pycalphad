@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\optimizer">
-      <UniqueIdentifier>{29fc1791-5086-4796-a08c-ceea9da46dba}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\utils">
       <UniqueIdentifier>{2bed7767-f47a-4088-b2f9-6810bd7a66d1}</UniqueIdentifier>
     </Filter>
@@ -30,12 +27,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\tdbread\optimizer.h">
-      <Filter>Header Files\optimizer</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tdbread\opt_Gibbs.h">
-      <Filter>Header Files\optimizer</Filter>
-    </ClInclude>
     <ClInclude Include="..\tdbread\math_expr.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>

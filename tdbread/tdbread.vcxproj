@@ -144,7 +144,10 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="conditions.h" />
+    <ClInclude Include="database.h" />
     <ClInclude Include="evaluate.h" />
+    <ClInclude Include="optimizer.h" />
+    <ClInclude Include="opt_Gibbs.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtdb\libtdb.vcxproj">
