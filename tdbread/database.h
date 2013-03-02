@@ -12,15 +12,15 @@
 
 class Database {
 	class DatabaseTDB;
-	std::unique_ptr<DatabaseTDB> pImpl;
+	std::shared_ptr<DatabaseTDB> pImpl;
 public:
 	Database(std::string);
 	void set_info(std::string &infostring); // set infostring for the database
-	std::string get_info(); // get infostring for database
-	(::Element) get_element(std::string s);
-	Species_Collection get_all_species();
-	Phase_Collection::const_iterator get_phase_iterator();
-	Phase_Collection::const_iterator get_phase_iterator_end();
+	std::string get_info() const; // get infostring for database
+	(::Element) get_element(std::string s) const;
+	Species_Collection get_all_species() const;
+	Phase_Collection::const_iterator get_phase_iterator() const;
+	Phase_Collection::const_iterator get_phase_iterator_end() const;
 };
 
 #endif

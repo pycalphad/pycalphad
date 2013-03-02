@@ -1,3 +1,4 @@
+#include "database.h"
 #include "conditions.h"
 #include "evaluate.h"
 #include <iostream>

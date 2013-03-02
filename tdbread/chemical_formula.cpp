@@ -1,8 +1,8 @@
 // chemical_formula.cpp -- utils for building chemical_formula objects
 // TODO: rewrite this using Spirit so I can handle the case of NIHF, NI5HF correctly
 
-#include "database_tdb.h"
 #include "chemical_formula.h"
+#include "exceptions.h"
 #include <boost/lexical_cast.hpp>
 
 // formstr is a formula string of form, e.g., AL1O1H1CL2H6O3

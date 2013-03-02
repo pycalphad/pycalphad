@@ -106,7 +106,30 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 	}
 }
 
+//
+// Forwarding functions for Database class 
+//
+
 // initialize the opaque pointer pImpl with the implementation DatabaseTDB
 Database::Database(std::string s): pImpl (new DatabaseTDB(s))
 {
+}
+
+void Database::set_info(std::string &infostring) {
+	pImpl->set_info(infostring);
+}
+std::string Database::get_info() const {
+	return pImpl->get_info();
+}
+Element Database::get_element(std::string s) const {
+	return pImpl->get_element(s);
+}
+Species_Collection Database::get_all_species() const {
+	return pImpl->get_all_species();
+}
+Phase_Collection::const_iterator Database::get_phase_iterator() const {
+	return pImpl->get_phase_iterator();
+}
+Phase_Collection::const_iterator Database::get_phase_iterator_end() const {
+	return pImpl->get_phase_iterator_end();
 }
