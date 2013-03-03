@@ -25,6 +25,9 @@
     <Filter Include="Header Files\optimizer">
       <UniqueIdentifier>{6836987b-597b-4114-97f9-906dc006c098}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Header Files\utils">
+      <UniqueIdentifier>{220747cd-f8b5-4df1-9044-7949d75046ca}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="tdbread.cpp">
@@ -64,6 +67,18 @@
     </ClInclude>
     <ClInclude Include="opt_Gibbs.h">
       <Filter>Header Files\optimizer</Filter>
+    </ClInclude>
+    <ClInclude Include="chemical_formula.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="math_expr.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="periodic_table.h">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="warning_disable.h">
+      <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

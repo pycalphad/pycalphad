@@ -101,6 +101,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -112,16 +113,12 @@
     </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\tdbread\chemical_formula.h" />
     <ClInclude Include="..\tdbread\database_tdb.h" />
     <ClInclude Include="..\tdbread\exceptions.h" />
     <ClInclude Include="..\tdbread\function_grammar.h" />
-    <ClInclude Include="..\tdbread\math_expr.h" />
     <ClInclude Include="..\tdbread\math_grammar.h" />
     <ClInclude Include="..\tdbread\param_grammar.h" />
-    <ClInclude Include="..\tdbread\periodic_table.h" />
     <ClInclude Include="..\tdbread\structure.h" />
-    <ClInclude Include="..\tdbread\warning_disable.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\tdbread\constituent.cpp" />

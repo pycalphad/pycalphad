@@ -13,9 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Header Files\utils">
-      <UniqueIdentifier>{2bed7767-f47a-4088-b2f9-6810bd7a66d1}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Header Files\grammars">
       <UniqueIdentifier>{66ef9d61-8f44-425d-b36e-ffb9ef249a72}</UniqueIdentifier>
     </Filter>
@@ -27,18 +24,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\tdbread\math_expr.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tdbread\periodic_table.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tdbread\warning_disable.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="..\tdbread\chemical_formula.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
     <ClInclude Include="..\tdbread\function_grammar.h">
       <Filter>Header Files\grammars</Filter>
     </ClInclude>

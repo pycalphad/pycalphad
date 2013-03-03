@@ -143,11 +143,15 @@
     <ClCompile Include="tdbread.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="chemical_formula.h" />
     <ClInclude Include="conditions.h" />
     <ClInclude Include="database.h" />
     <ClInclude Include="evaluate.h" />
+    <ClInclude Include="math_expr.h" />
     <ClInclude Include="optimizer.h" />
     <ClInclude Include="opt_Gibbs.h" />
+    <ClInclude Include="periodic_table.h" />
+    <ClInclude Include="warning_disable.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtdb\libtdb.vcxproj">
