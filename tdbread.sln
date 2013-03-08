@@ -5,6 +5,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tdbread", "tdbread\tdbread.
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libtdb", "libtdb\libtdb.vcxproj", "{8296268D-172D-48D5-949E-CE1F6D721B57}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "test", "test\test.vcxproj", "{11E894B8-A511-4938-96D1-C8939B2820BC}"
+	ProjectSection(ProjectDependencies) = postProject
+		{8296268D-172D-48D5-949E-CE1F6D721B57} = {8296268D-172D-48D5-949E-CE1F6D721B57}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -28,6 +33,13 @@ Global
 		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|Win32.Build.0 = Release|Win32
 		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|x64.ActiveCfg = Release|x64
 		{8296268D-172D-48D5-949E-CE1F6D721B57}.Release|x64.Build.0 = Release|x64
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Debug|Win32.ActiveCfg = Debug|Win32
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Debug|Win32.Build.0 = Debug|Win32
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Debug|x64.ActiveCfg = Debug|Win32
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Release|Win32.ActiveCfg = Release|Win32
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Release|Win32.Build.0 = Release|Win32
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Release|x64.ActiveCfg = Release|x64
+		{11E894B8-A511-4938-96D1-C8939B2820BC}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
