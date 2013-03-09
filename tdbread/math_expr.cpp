@@ -101,7 +101,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {
 				// throw an exception (bad symbol/state variable)
-				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (internal) operators or state variables can only be a single character") << specific_errinfo(op));
+				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (e.g., @) operators or state variables can only be a single character") << specific_errinfo(op));
 			}
 			if (conditions.statevars.find(*op) != conditions.statevars.end()) {
 				//std::cout << "T executed" << std::endl;
