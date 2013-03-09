@@ -1,5 +1,6 @@
 // math_expr.cpp -- evaluator for FORTRAN-like mathematical expressions
 
+#include "stdafx.h"
 #include "warning_disable.h"
 #include "conditions.h"
 #include <boost/spirit/include/support_utree.hpp>

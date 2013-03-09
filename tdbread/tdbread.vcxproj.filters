@@ -39,9 +39,6 @@
     <ClCompile Include="periodic_table.cpp">
       <Filter>Source Files\utils</Filter>
     </ClCompile>
-    <ClCompile Include="math_expr.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
     <ClCompile Include="opt_helpers.cpp">
       <Filter>Source Files\optimizer\utils</Filter>
     </ClCompile>
@@ -69,9 +66,6 @@
       <Filter>Header Files\optimizer</Filter>
     </ClInclude>
     <ClInclude Include="chemical_formula.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="math_expr.h">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
     <ClInclude Include="periodic_table.h">
