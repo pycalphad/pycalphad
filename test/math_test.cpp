@@ -35,14 +35,9 @@ struct MathParserFixture
 
 		if (r && iter == end)
 		{
-			try {
-				// Walk the abstract syntax tree and determine the value
-				double ret_val = process_utree(ret_tree, conditions).get<double>();
-				return ret_val;
-			}
-			catch (std::exception &e) {
-				throw e; // push the exception up the callstack for the test framework
-			}
+			// Walk the abstract syntax tree and determine the value
+			double ret_val = process_utree(ret_tree, conditions).get<double>();
+			return ret_val;
 		}
 		else
 		{
@@ -60,13 +55,42 @@ struct MathParserFixture
 
 BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 
-BOOST_AUTO_TEST_CASE(SimpleAddition)
+BOOST_AUTO_TEST_CASE(Addition)
 {
 	BOOST_REQUIRE_EQUAL(calculate("2+6"), 8);
 }
-BOOST_AUTO_TEST_CASE(SimpleAdditionOfNegatives)
+BOOST_AUTO_TEST_CASE(AdditionWithNegation)
 {
-	BOOST_REQUIRE_EQUAL(calculate("-2+6"), 4);
+	BOOST_REQUIRE_EQUAL(calculate("-21+6"), -15);
+}
+BOOST_AUTO_TEST_CASE(Subtraction)
+{
+	BOOST_REQUIRE_EQUAL(calculate("4-30"), -26);
+}
+BOOST_AUTO_TEST_CASE(Multiplication)
+{
+	BOOST_REQUIRE_EQUAL(calculate("7*3"), 21);
+}
+BOOST_AUTO_TEST_CASE(Division)
+{
+	BOOST_REQUIRE_EQUAL(calculate("400/2"), 200);
+}
+BOOST_AUTO_TEST_CASE(Exponentiation)
+{
+	BOOST_REQUIRE_EQUAL(calculate("EXP(1)"), 0);
+}
+BOOST_AUTO_TEST_CASE(ExponentiationCaseInsensitive)
+{
+	BOOST_REQUIRE_EQUAL(calculate("exp(1)"), 0);
+}
+
+BOOST_AUTO_TEST_CASE(DivisionByZero)
+{
+	BOOST_REQUIRE_THROW(calculate("1/0"), divide_by_zero_error);
+}
+BOOST_AUTO_TEST_CASE(MultiplicationWithParentheses)
+{
+	BOOST_REQUIRE_EQUAL(calculate("(6+4)*(30/5)"), 60);
 }
 
 BOOST_AUTO_TEST_SUITE_END()

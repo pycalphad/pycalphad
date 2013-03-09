@@ -3,6 +3,7 @@
 #include "stdafx.h"
 #include "warning_disable.h"
 #include "conditions.h"
+#include "exceptions.h"
 #include <boost/spirit/include/support_utree.hpp>
 
 #include <math.h>
@@ -64,8 +65,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 					else if (op == "*") res += (lhs * rhs); 
 					else if (op == "/") { 
 						if (rhs == 0) {
-							// TODO: throw a divide by zero exception here
-							++it;
+							BOOST_THROW_EXCEPTION(divide_by_zero_error());
 						}
 						else res += (lhs / rhs);
 					}
@@ -73,8 +73,8 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 					else if (op == "ln") res += log(lhs);
 					else if (op == "exp") res += exp(lhs);
 					else {
-						// TODO: exception handling
 						// a bad symbol made it into our AST
+						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op));
 					}
 					//std::cout << "LHS: " << lhs << std::endl;
 					//std::cout << "RHS: " << rhs << std::endl;
@@ -98,16 +98,18 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 		}
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
-			if ((rt.end() - rt.begin()) != 1) {
-				// TODO: throw an exception (bad symbol/state variable)
-			}
 			const char* op(rt.begin());
+			if ((rt.end() - rt.begin()) != 1) {
+				// throw an exception (bad symbol/state variable)
+				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (internal) operators or state variables can only be a single character") << specific_errinfo(op));
+			}
 			if (conditions.statevars.find(*op) != conditions.statevars.end()) {
 				//std::cout << "T executed" << std::endl;
 				return conditions.statevars.find(*op)->second; // return current value of state variable (T, P, etc)
 			}
 			else {
-				// TODO: throw an exception: undefined state variable
+				// throw an exception: undefined state variable
+				BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << specific_errinfo(op));
 			}
 			//std::cout << "<operator>:" << op << std::endl;
 			break;
