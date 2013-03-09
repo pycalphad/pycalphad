@@ -104,7 +104,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Create</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
       <AdditionalOptions>/Zm196 %(AdditionalOptions)</AdditionalOptions>
       <FavorSizeOrSpeed>Size</FavorSizeOrSpeed>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
@@ -128,6 +128,7 @@
     <ClInclude Include="..\tdbread\database_tdb.h" />
     <ClInclude Include="..\tdbread\exceptions.h" />
     <ClInclude Include="..\tdbread\function_grammar.h" />
+    <ClInclude Include="..\tdbread\math_expr.h" />
     <ClInclude Include="..\tdbread\math_grammar.h" />
     <ClInclude Include="..\tdbread\param_grammar.h" />
     <ClInclude Include="..\tdbread\stdafx.h" />
@@ -140,13 +141,16 @@
     <ClCompile Include="..\tdbread\element.cpp" />
     <ClCompile Include="..\tdbread\function.cpp" />
     <ClCompile Include="..\tdbread\function_grammar.cpp" />
+    <ClCompile Include="..\tdbread\math_expr.cpp" />
     <ClCompile Include="..\tdbread\math_grammar.cpp" />
     <ClCompile Include="..\tdbread\parameter.cpp" />
     <ClCompile Include="..\tdbread\param_grammar.cpp" />
     <ClCompile Include="..\tdbread\parser.cpp" />
     <ClCompile Include="..\tdbread\phase.cpp" />
     <ClCompile Include="..\tdbread\species.cpp" />
-    <ClCompile Include="..\tdbread\stdafx.cpp" />
+    <ClCompile Include="..\tdbread\stdafx.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
+    </ClCompile>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
