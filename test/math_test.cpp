@@ -24,6 +24,20 @@ struct MathParserFixture
 		// can happen in production, so we'll leave it for now.
 		macros.clear();
 		statevars.clear();
+
+		conditions.statevars.clear();
+	}
+	void add_state_variable(const std::string &s) {
+		statevars.add(s,boost::spirit::utree(s.c_str()));
+	}
+	void clear_conditions() {
+		macros.clear();
+		statevars.clear();
+		conditions.statevars.clear();
+	}
+	void set_conditions(const std::string &var, const double val) {
+		add_state_variable(var);
+		conditions.statevars[var.c_str()[0]] = val;
 	}
 	double calculate(const std::string &mathexpr)
 	{
@@ -69,7 +83,6 @@ struct MathParserFixture
 BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 
 	BOOST_AUTO_TEST_SUITE(MathParserSimpleOperations)
-
 		BOOST_AUTO_TEST_CASE(Addition)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("2+6"), 8);
@@ -90,24 +103,47 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("400/2"), 200);
 		}
-		BOOST_AUTO_TEST_CASE(Exponentiation)
+		BOOST_AUTO_TEST_CASE(ExponentialFunction)
 		{
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("EXP(1)"), 2.7182818284590451, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("eXp(1)"), 2.7182818284590451, 1e-15);
+		}
+		BOOST_AUTO_TEST_CASE(NaturalLogarithm)
+		{
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LN(2.7182818284590451)"), 1, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("lN(2.7182818284590451)"), 1, 1e-15);
+		}
+		BOOST_AUTO_TEST_CASE(Exponentiation)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("13**7"), 62748517);
+		}
+		BOOST_AUTO_TEST_CASE(ExponentiationRespectsOrderOfOperations)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("5*3**7"), 10935);
+			BOOST_REQUIRE_EQUAL(calculate("(5*3)**7"), 170859375);
+			BOOST_REQUIRE_EQUAL(calculate("(5*3)**7/2"), 85429687.5);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("(5*3)**(7/2)"), 13071.318793450031, 1e-15);
+		}
+		BOOST_AUTO_TEST_CASE(StateVariables)
+		{
+			clear_conditions();
+			set_conditions("T",298.15);
+			BOOST_REQUIRE_EQUAL(calculate("T"), 298.15);
 		}
 	BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_CASE(ExponentiationCaseInsensitive)
-{
-	BOOST_REQUIRE_CLOSE_FRACTION(calculate("exp(1)"), 2.7182818284590451, 1e-15);
-}
+	BOOST_AUTO_TEST_SUITE(MathParserComplexOperations)
+		BOOST_AUTO_TEST_CASE(MultiplicationWithParentheses)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("(6+4)*(30/5)"), 60);
+		}
+	BOOST_AUTO_TEST_SUITE_END()
 
-BOOST_AUTO_TEST_CASE(DivisionByZero)
-{
-	BOOST_REQUIRE_THROW(calculate("1/0"), divide_by_zero_error);
-}
-BOOST_AUTO_TEST_CASE(MultiplicationWithParentheses)
-{
-	BOOST_REQUIRE_EQUAL(calculate("(6+4)*(30/5)"), 60);
-}
+	BOOST_AUTO_TEST_SUITE(MathParserExceptionHandling)
+		BOOST_AUTO_TEST_CASE(DivisionByZero)
+		{
+			BOOST_REQUIRE_THROW(calculate("1/0"), divide_by_zero_error);
+		}
+	BOOST_AUTO_TEST_SUITE_END()
 
 BOOST_AUTO_TEST_SUITE_END()
