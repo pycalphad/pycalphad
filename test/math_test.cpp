@@ -17,11 +17,19 @@ struct MathParserFixture
 	MathParserFixture()
 		: calc_parser(macros,statevars)
 	{
+		// Without these calls, there are "access violation"
+		// runtime errors whenever calc_parser tries to match
+		// a rule that involves these qi::symbols objects.
+		// I don't *think* this case (due to initialization order)
+		// can happen in production, so we'll leave it for now.
+		macros.clear();
+		statevars.clear();
 	}
 	double calculate(const std::string &mathexpr)
 	{
 		using boost::spirit::ascii::space;
 		using boost::spirit::utree;
+		typedef boost::spirit::utree_type utree_type;
 		typedef std::string::const_iterator iterator_type;
 
 		utree ret_tree; // abstract syntax tree for math expressions
@@ -35,9 +43,14 @@ struct MathParserFixture
 
 		if (r && iter == end)
 		{
-			// Walk the abstract syntax tree and determine the value
-			double ret_val = process_utree(ret_tree, conditions).get<double>();
-			return ret_val;
+			// Get the processed abstract syntax tree and determine the value
+			utree final_tree = process_utree(ret_tree, conditions);
+			if (final_tree.which() == utree_type::double_type) {
+				return final_tree.get<double>();
+			}
+			else {
+				BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
+			}
 		}
 		else
 		{
@@ -47,41 +60,45 @@ struct MathParserFixture
 			BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo(errmsg));
 		}
 	}
-	calculator calc_parser;
 	boost::spirit::qi::symbols<char, boost::spirit::utree> macros; // all of the macros (FUNCTIONs in Thermo-Calc lingo)
 	boost::spirit::qi::symbols<char, boost::spirit::utree> statevars; // all valid state variables
+	calculator calc_parser;
 	evalconditions conditions;
 };
 
 BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 
-BOOST_AUTO_TEST_CASE(Addition)
-{
-	BOOST_REQUIRE_EQUAL(calculate("2+6"), 8);
-}
-BOOST_AUTO_TEST_CASE(AdditionWithNegation)
-{
-	BOOST_REQUIRE_EQUAL(calculate("-21+6"), -15);
-}
-BOOST_AUTO_TEST_CASE(Subtraction)
-{
-	BOOST_REQUIRE_EQUAL(calculate("4-30"), -26);
-}
-BOOST_AUTO_TEST_CASE(Multiplication)
-{
-	BOOST_REQUIRE_EQUAL(calculate("7*3"), 21);
-}
-BOOST_AUTO_TEST_CASE(Division)
-{
-	BOOST_REQUIRE_EQUAL(calculate("400/2"), 200);
-}
-BOOST_AUTO_TEST_CASE(Exponentiation)
-{
-	BOOST_REQUIRE_EQUAL(calculate("EXP(1)"), 0);
-}
+	BOOST_AUTO_TEST_SUITE(MathParserSimpleOperations)
+
+		BOOST_AUTO_TEST_CASE(Addition)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("2+6"), 8);
+		}
+		BOOST_AUTO_TEST_CASE(AdditionWithNegation)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("-21+6"), -15);
+		}
+		BOOST_AUTO_TEST_CASE(Subtraction)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("4-30"), -26);
+		}
+		BOOST_AUTO_TEST_CASE(Multiplication)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("7*3"), 21);
+		}
+		BOOST_AUTO_TEST_CASE(Division)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("400/2"), 200);
+		}
+		BOOST_AUTO_TEST_CASE(Exponentiation)
+		{
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("EXP(1)"), 2.7182818284590451, 1e-15);
+		}
+	BOOST_AUTO_TEST_SUITE_END()
+
 BOOST_AUTO_TEST_CASE(ExponentiationCaseInsensitive)
 {
-	BOOST_REQUIRE_EQUAL(calculate("exp(1)"), 0);
+	BOOST_REQUIRE_CLOSE_FRACTION(calculate("exp(1)"), 2.7182818284590451, 1e-15);
 }
 
 BOOST_AUTO_TEST_CASE(DivisionByZero)
