@@ -103,6 +103,11 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("400/2"), 200);
 		}
+		BOOST_AUTO_TEST_CASE(ScientificNotation)
+		{
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("1.56E-34"), 1.56e-34, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("1.56e-34"), 1.56e-34, 1e-15);
+		}
 		BOOST_AUTO_TEST_CASE(ExponentialFunction)
 		{
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("EXP(1)"), 2.7182818284590451, 1e-15);
@@ -112,6 +117,11 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		{
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LN(2.7182818284590451)"), 1, 1e-15);
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("lN(2.7182818284590451)"), 1, 1e-15);
+		}
+		BOOST_AUTO_TEST_CASE(LogBehavesLikeNaturalLog)
+		{
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LOG(2.7182818284590451)"), 1, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LoG(2.7182818284590451)"), 1, 1e-15);
 		}
 		BOOST_AUTO_TEST_CASE(Exponentiation)
 		{
@@ -129,6 +139,25 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 			clear_conditions();
 			set_conditions("T",298.15);
 			BOOST_REQUIRE_EQUAL(calculate("T"), 298.15);
+			BOOST_REQUIRE_THROW(calculate("t"), syntax_error);
+			set_conditions("P",101325);
+			BOOST_REQUIRE_EQUAL(calculate("P"), 101325);
+			BOOST_REQUIRE_THROW(calculate("p"), syntax_error);
+		}
+		BOOST_AUTO_TEST_CASE(StateVariableOperations)
+		{
+			clear_conditions();
+			set_conditions("T",300);
+			BOOST_REQUIRE_EQUAL(calculate("T+20"), 320);
+			BOOST_REQUIRE_EQUAL(calculate("T-10"), 290);
+			BOOST_REQUIRE_EQUAL(calculate("20+T"), 320);
+			BOOST_REQUIRE_EQUAL(calculate("-10+T"), 290);
+			BOOST_REQUIRE_EQUAL(calculate("-T+400"), 100);
+			BOOST_REQUIRE_EQUAL(calculate("T/5"), 60);
+			BOOST_REQUIRE_EQUAL(calculate("T*2"), 600);
+			BOOST_REQUIRE_EQUAL(calculate("(T/100)**2"), 9);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("exp(T/100)"), 20.085536923187668, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("ln(T)"), 5.7037824746562009, 1e-15);
 		}
 	BOOST_AUTO_TEST_SUITE_END()
 
@@ -143,6 +172,9 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		BOOST_AUTO_TEST_CASE(DivisionByZero)
 		{
 			BOOST_REQUIRE_THROW(calculate("1/0"), divide_by_zero_error);
+			clear_conditions();
+			set_conditions("T",0);
+			BOOST_REQUIRE_THROW(calculate("1/T"), divide_by_zero_error);
 		}
 	BOOST_AUTO_TEST_SUITE_END()
 
