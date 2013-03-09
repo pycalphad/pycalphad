@@ -1,5 +1,6 @@
 // constituent.cpp -- parser for CONSTITUENT command
 
+#include "stdafx.h"
 #include "database_tdb.h"
 #include <algorithm>
 #include <boost/lexical_cast.hpp>

@@ -1,5 +1,6 @@
 // function.cpp -- parser for FUNCTION command
 
+#include "stdafx.h"
 #define BOOST_SPIRIT_DEBUG
 #include "database_tdb.h"
 #include "function_grammar.h"

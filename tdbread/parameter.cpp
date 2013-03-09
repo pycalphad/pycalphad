@@ -1,5 +1,6 @@
 // parameter.cpp -- parser for PARAMETER command
 
+#include "stdafx.h"
 #include "database_tdb.h"
 #include "param_grammar.h"
 

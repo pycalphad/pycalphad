@@ -1,4 +1,5 @@
 // species.cpp -- parser for SPECIES command
+#include "stdafx.h"
 #include "database_tdb.h"
 #include <boost/lexical_cast.hpp>
 

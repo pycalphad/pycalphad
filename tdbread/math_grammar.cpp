@@ -11,6 +11,7 @@
 =============================================================================*/
 
 //#define BOOST_SPIRIT_DEBUG
+#include "stdafx.h"
 #include "math_grammar.h"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>

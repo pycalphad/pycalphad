@@ -1,4 +1,5 @@
 // element.cpp -- parser for ELEMENT command
+#include "stdafx.h"
 #include "database_tdb.h"
 #include <boost/lexical_cast.hpp>
 

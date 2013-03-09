@@ -1,3 +1,4 @@
+#include "stdafx.h"
 #include "database_tdb.h"
 #include <iostream>
 #include <fstream>

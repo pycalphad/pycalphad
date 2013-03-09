@@ -2,6 +2,7 @@
 
 //#define BOOST_SPIRIT_DEBUG
 
+#include "stdafx.h"
 #include "param_grammar.h"
 
 #include <boost/spirit/include/support_utree.hpp>
