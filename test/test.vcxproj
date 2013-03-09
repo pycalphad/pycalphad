@@ -123,7 +123,7 @@
       <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51\lib</AdditionalLibraryDirectories>
     </Link>
     <PostBuildEvent>
-      <Command>"$(TargetPath)" --result_code=no --report_level=no</Command>
+      <Command>"$(TargetPath)" --result_code=no --report_level=no --log_level=test_suite</Command>
     </PostBuildEvent>
     <PostBuildEvent>
       <Message>Running unit tests...</Message>
