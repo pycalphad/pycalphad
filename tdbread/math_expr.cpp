@@ -5,9 +5,24 @@
 #include "conditions.h"
 #include "exceptions.h"
 #include <boost/spirit/include/support_utree.hpp>
+#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <math.h>
 #include <string>
+
+// Determine if the given floating-point value is allowed in our calculation
+template <typename T>
+bool is_allowed_value(T &val) {
+	int fpclass = boost::math::fpclassify(val);
+	// FP_NORMAL means we have a non-zero, finite, non-subnormal number
+	// FP_ZERO means we have zero
+	if (fpclass == (int)FP_NORMAL || fpclass == (int)FP_ZERO) {
+		return true;
+	}
+	else {
+		return false;
+	}
+}
 
 boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalconditions const& conditions) {
 	typedef boost::spirit::utree utree;
@@ -57,7 +72,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 					++it; // get right-hand side
 					if (it != end) rhs = process_utree(*it, conditions).get<double>();
 
-					if (op == "+") res += (lhs + rhs);  // acculumate the result
+					if (op == "+") res += (lhs + rhs);  // accumulate the result
 					else if (op == "-") {
 						if (ut.size() == 2) lhs = -lhs; // case of negation (unary operator)
 						res += (lhs - rhs);
@@ -83,6 +98,9 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 				}
 				++it;
 			}
+			if (!is_allowed_value<double>(res)) {
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+			}
 			//std::cout << "process_utree returning: " << res << std::endl;
 			return utree(res);
 			//std::cout << ") ";
@@ -92,9 +110,11 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 			break;
 		}
 		case utree_type::double_type: {
-			return ut.get<double>();
-			//std::cout << "<double>:" << val;
-			break;
+			double retval = ut.get<double>();
+			if (!is_allowed_value<double>(retval)) {
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+			}
+			return retval;
 		}
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();

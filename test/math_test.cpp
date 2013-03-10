@@ -98,6 +98,7 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		BOOST_AUTO_TEST_CASE(Multiplication)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("7*3"), 21);
+			BOOST_REQUIRE_EQUAL(calculate("7*-3"), -21);
 		}
 		BOOST_AUTO_TEST_CASE(Division)
 		{
@@ -118,7 +119,7 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LN(2.7182818284590451)"), 1, 1e-15);
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("lN(2.7182818284590451)"), 1, 1e-15);
 		}
-		BOOST_AUTO_TEST_CASE(LogBehavesLikeNaturalLog)
+		BOOST_AUTO_TEST_CASE(LogLabelBehavesLikeNaturalLog)
 		{
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LOG(2.7182818284590451)"), 1, 1e-15);
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("LoG(2.7182818284590451)"), 1, 1e-15);
@@ -175,6 +176,15 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 			clear_conditions();
 			set_conditions("T",0);
 			BOOST_REQUIRE_THROW(calculate("1/T"), divide_by_zero_error);
+		}
+		BOOST_AUTO_TEST_CASE(FloatingPointClassification)
+		{
+			BOOST_REQUIRE_THROW(calculate("10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("-10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("-10**10**10*0"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("(-10**10**10)**0"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("0*-10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("0**-10**10**10"), floating_point_error);
 		}
 	BOOST_AUTO_TEST_SUITE_END()
 

@@ -12,6 +12,7 @@ struct syntax_error: virtual parse_error { };
 
 struct math_error: virtual exception_base { };
 struct divide_by_zero_error: virtual math_error { };
+struct floating_point_error: virtual math_error { };
 struct domain_error: virtual math_error { };
 struct unknown_symbol_error: virtual math_error, parse_error { };
 struct bad_symbol_error: virtual math_error, parse_error { };
