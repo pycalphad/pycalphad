@@ -113,7 +113,7 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
       <PrecompiledHeader>Use</PrecompiledHeader>
-      <PrecompiledHeaderFile>test_pch.h</PrecompiledHeaderFile>
+      <PrecompiledHeaderFile>test/include/test_pch.hpp</PrecompiledHeaderFile>
       <AdditionalOptions>/Zm198 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
@@ -130,14 +130,14 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="math_test.cpp" />
-    <ClCompile Include="test.cpp" />
-    <ClCompile Include="test_pch.cpp">
+    <ClCompile Include="source\parsers\math_test.cpp" />
+    <ClCompile Include="source\test.cpp" />
+    <ClCompile Include="source\test_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="test_pch.h" />
+    <ClInclude Include="include\test_pch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\libtdb\libtdb.vcxproj">

@@ -30,73 +30,94 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\tdbread\function_grammar.h">
+    <ClInclude Include="include\grammars\function_grammar.hpp">
       <Filter>Header Files\grammars</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\math_grammar.h">
+    <ClInclude Include="include\grammars\math_grammar.hpp">
       <Filter>Header Files\grammars</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\param_grammar.h">
+    <ClInclude Include="include\grammars\param_grammar.hpp">
       <Filter>Header Files\grammars</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\database_tdb.h">
+    <ClInclude Include="include\utils\math_expr.hpp">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\database_tdb.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\structure.h">
+    <ClInclude Include="include\exceptions.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\exceptions.h">
+    <ClInclude Include="include\libtdb_pch.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\stdafx.h">
+    <ClInclude Include="include\structure.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\tdbread\math_expr.h">
+    <ClInclude Include="include\warning_disable.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\database.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\conditions.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils\chemical_formula.hpp">
+      <Filter>Header Files\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="include\utils\periodic_table.hpp">
       <Filter>Header Files\utils</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\tdbread\function_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\math_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\param_grammar.cpp">
-      <Filter>Source Files\grammars</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\constituent.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\database_info.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\element.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\function.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\parameter.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\phase.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\species.cpp">
-      <Filter>Source Files\parsers</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\database_tdb.cpp">
+    <ClCompile Include="source\database_tdb.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\tdbread\parser.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\stdafx.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\tdbread\math_expr.cpp">
+    <ClCompile Include="source\utils\math_expr.cpp">
       <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\grammars\function_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="source\grammars\param_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="source\grammars\math_grammar.cpp">
+      <Filter>Source Files\grammars</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\database_info.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\constituent.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\element.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\species.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\function.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\parameter.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parser.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\parsers\phase.cpp">
+      <Filter>Source Files\parsers</Filter>
+    </ClCompile>
+    <ClCompile Include="source\utils\chemical_formula.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\utils\periodic_table.cpp">
+      <Filter>Source Files\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="source\libtdb_pch.cpp">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

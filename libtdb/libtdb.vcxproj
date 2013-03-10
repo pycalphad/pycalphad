@@ -62,7 +62,8 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(SolutionDir)tdbread;$(IncludePath)</IncludePath>
+    <IncludePath>$(IncludePath);$(SolutionDir);$(ProjectDir)include;</IncludePath>
+    <SourcePath>$(ProjectDir)source;$(VCInstallDir)atlmfc\src\mfc;$(VCInstallDir)atlmfc\src\mfcm;$(VCInstallDir)atlmfc\src\atl;$(VCInstallDir)crt\src;</SourcePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -110,6 +111,7 @@
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <MultiProcessorCompilation>false</MultiProcessorCompilation>
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
+      <PrecompiledHeaderFile>libtdb/include/libtdb_pch.hpp</PrecompiledHeaderFile>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -125,32 +127,39 @@
     </CustomBuildStep>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\tdbread\database_tdb.h" />
-    <ClInclude Include="..\tdbread\exceptions.h" />
-    <ClInclude Include="..\tdbread\function_grammar.h" />
-    <ClInclude Include="..\tdbread\math_expr.h" />
-    <ClInclude Include="..\tdbread\math_grammar.h" />
-    <ClInclude Include="..\tdbread\param_grammar.h" />
-    <ClInclude Include="..\tdbread\stdafx.h" />
-    <ClInclude Include="..\tdbread\structure.h" />
+    <ClInclude Include="include\conditions.hpp" />
+    <ClInclude Include="include\database.hpp" />
+    <ClInclude Include="include\database_tdb.hpp" />
+    <ClInclude Include="include\exceptions.hpp" />
+    <ClInclude Include="include\grammars\function_grammar.hpp" />
+    <ClInclude Include="include\grammars\math_grammar.hpp" />
+    <ClInclude Include="include\grammars\param_grammar.hpp" />
+    <ClInclude Include="include\libtdb_pch.hpp" />
+    <ClInclude Include="include\structure.hpp" />
+    <ClInclude Include="include\utils\chemical_formula.hpp" />
+    <ClInclude Include="include\utils\math_expr.hpp" />
+    <ClInclude Include="include\utils\periodic_table.hpp" />
+    <ClInclude Include="include\warning_disable.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="..\tdbread\constituent.cpp" />
-    <ClCompile Include="..\tdbread\database_info.cpp" />
-    <ClCompile Include="..\tdbread\database_tdb.cpp" />
-    <ClCompile Include="..\tdbread\element.cpp" />
-    <ClCompile Include="..\tdbread\function.cpp" />
-    <ClCompile Include="..\tdbread\function_grammar.cpp" />
-    <ClCompile Include="..\tdbread\math_expr.cpp" />
-    <ClCompile Include="..\tdbread\math_grammar.cpp" />
-    <ClCompile Include="..\tdbread\parameter.cpp" />
-    <ClCompile Include="..\tdbread\param_grammar.cpp" />
-    <ClCompile Include="..\tdbread\parser.cpp" />
-    <ClCompile Include="..\tdbread\phase.cpp" />
-    <ClCompile Include="..\tdbread\species.cpp" />
-    <ClCompile Include="..\tdbread\stdafx.cpp">
+    <ClCompile Include="source\database_tdb.cpp" />
+    <ClCompile Include="source\grammars\function_grammar.cpp" />
+    <ClCompile Include="source\grammars\math_grammar.cpp" />
+    <ClCompile Include="source\grammars\param_grammar.cpp" />
+    <ClCompile Include="source\parser.cpp" />
+    <ClCompile Include="source\parsers\constituent.cpp" />
+    <ClCompile Include="source\parsers\database_info.cpp" />
+    <ClCompile Include="source\parsers\element.cpp" />
+    <ClCompile Include="source\parsers\function.cpp" />
+    <ClCompile Include="source\parsers\parameter.cpp" />
+    <ClCompile Include="source\parsers\phase.cpp" />
+    <ClCompile Include="source\parsers\species.cpp" />
+    <ClCompile Include="source\libtdb_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
+    <ClCompile Include="source\utils\chemical_formula.cpp" />
+    <ClCompile Include="source\utils\math_expr.cpp" />
+    <ClCompile Include="source\utils\periodic_table.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
