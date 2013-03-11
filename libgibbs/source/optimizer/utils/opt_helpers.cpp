@@ -1,7 +1,10 @@
 // opt_helpers.cpp -- helper functions for the Gibbs energy optimizer
-#include "optimizer.h"
-#include "math_expr.h"
+
+#include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/optimizer/optimizer.hpp"
+#include "libtdb/include/utils/math_expr.hpp"
 #include <math.h>
+#include <iostream>
 
 
 double mole_fraction(

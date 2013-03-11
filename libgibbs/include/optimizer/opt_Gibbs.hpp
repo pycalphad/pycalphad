@@ -4,9 +4,9 @@
 #ifndef INCLUDED_OPT_GIBBS
 #define INCLUDED_OPT_GIBBS
 
-#include "coin/IpTNLP.hpp"
-#include "structure.h"
-#include "optimizer.h"
+#include "external/coin/IpTNLP.hpp"
+#include "libtdb/include/structure.hpp"
+#include "libgibbs/include/optimizer/optimizer.hpp"
 
 using namespace Ipopt;
 class GibbsOpt : public TNLP {

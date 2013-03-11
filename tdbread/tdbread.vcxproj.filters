@@ -13,66 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
-    <Filter Include="Source Files\utils">
-      <UniqueIdentifier>{2f356f27-cee3-4441-9b9f-d407e1f45390}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\optimizer">
-      <UniqueIdentifier>{0ff2a919-97fa-466b-abf8-4ae5fc131da3}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Source Files\optimizer\utils">
-      <UniqueIdentifier>{66bfb7e5-6b8e-44f6-93b0-3275d8c62523}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\optimizer">
-      <UniqueIdentifier>{6836987b-597b-4114-97f9-906dc006c098}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Header Files\utils">
-      <UniqueIdentifier>{220747cd-f8b5-4df1-9044-7949d75046ca}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="tdbread.cpp">
+    <ClCompile Include="source\tdbread.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="chemical_formula.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="periodic_table.cpp">
-      <Filter>Source Files\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="opt_helpers.cpp">
-      <Filter>Source Files\optimizer\utils</Filter>
-    </ClCompile>
-    <ClCompile Include="evaluate.cpp">
-      <Filter>Source Files\optimizer</Filter>
-    </ClCompile>
-    <ClCompile Include="opt_Gibbs.cpp">
-      <Filter>Source Files\optimizer</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="conditions.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="evaluate.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="database.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="optimizer.h">
-      <Filter>Header Files\optimizer</Filter>
-    </ClInclude>
-    <ClInclude Include="opt_Gibbs.h">
-      <Filter>Header Files\optimizer</Filter>
-    </ClInclude>
-    <ClInclude Include="chemical_formula.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="periodic_table.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
-    <ClInclude Include="warning_disable.h">
-      <Filter>Header Files\utils</Filter>
-    </ClInclude>
   </ItemGroup>
 </Project>

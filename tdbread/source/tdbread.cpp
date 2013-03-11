@@ -1,6 +1,6 @@
-#include "database.h"
-#include "conditions.h"
-#include "evaluate.h"
+#include "libtdb/include/database.hpp"
+#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/evaluate.hpp"
 #include <iostream>
 
 int main(int argc, char* argv[])

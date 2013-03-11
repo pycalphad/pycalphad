@@ -64,6 +64,8 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <LinkIncremental>
     </LinkIncremental>
+    <IncludePath>$(SolutionDir);$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
+    <LibraryPath>$(SolutionDir)lib;$(VCInstallDir)lib\amd64;$(VCInstallDir)atlmfc\lib\amd64;$(WindowsSdkDir)lib\x64;</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <IncludePath>$(ProjectDir)coin;$(IncludePath)</IncludePath>
@@ -121,8 +123,8 @@
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>$(ProjectDir)lib_x64;C:\Program Files (x86)\Common Files\Intel\Shared Files\fortran\Lib\Intel64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
-      <AdditionalDependencies>IpOpt-vc10.lib</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(TargetDir);C:\Program Files (x86)\Common Files\Intel\Shared Files\fortran\Lib\Intel64;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>libgibbs.lib</AdditionalDependencies>
       <ForceFileOutput>
       </ForceFileOutput>
       <IgnoreAllDefaultLibraries>
@@ -134,27 +136,12 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClCompile Include="chemical_formula.cpp" />
-    <ClCompile Include="evaluate.cpp" />
-    <ClCompile Include="opt_Gibbs.cpp" />
-    <ClCompile Include="opt_helpers.cpp" />
-    <ClCompile Include="periodic_table.cpp" />
-    <ClCompile Include="tdbread.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="chemical_formula.h" />
-    <ClInclude Include="conditions.h" />
-    <ClInclude Include="database.h" />
-    <ClInclude Include="evaluate.h" />
-    <ClInclude Include="optimizer.h" />
-    <ClInclude Include="opt_Gibbs.h" />
-    <ClInclude Include="periodic_table.h" />
-    <ClInclude Include="warning_disable.h" />
-  </ItemGroup>
-  <ItemGroup>
     <ProjectReference Include="..\libtdb\libtdb.vcxproj">
       <Project>{8296268d-172d-48d5-949e-ce1f6d721b57}</Project>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\tdbread.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

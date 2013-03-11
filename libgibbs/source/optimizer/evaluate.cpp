@@ -1,11 +1,12 @@
 // evaluate.cpp -- evaluate energies from a Database
 
-#include "database.h"
-#include "structure.h"
-#include "optimizer.h"
-#include "coin/IpIpoptApplication.hpp"
-#include "coin/IpSolveStatistics.hpp"
-#include "opt_Gibbs.h"
+#include "libgibbs/include/libgibbs_pch.hpp"
+#include "libtdb/include/database.hpp"
+#include "libtdb/include/structure.hpp"
+#include "libgibbs/include/optimizer/optimizer.hpp"
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "external/coin/IpIpoptApplication.hpp"
+#include "external/coin/IpSolveStatistics.hpp"
 #include <iostream>
 #include <fstream>
 

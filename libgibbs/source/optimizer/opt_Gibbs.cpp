@@ -1,8 +1,10 @@
 // opt_Gibbs.cpp -- definition for Gibbs energy optimizer
 // TODO: adapted from EPL-licensed example code
 
-#include "opt_Gibbs.h"
-#include "optimizer.h"
+#include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/optimizer/optimizer.hpp"
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "external/coin/IpTNLP.hpp"
 
 using namespace Ipopt;
 

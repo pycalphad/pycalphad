@@ -2,9 +2,9 @@
 #ifndef INCLUDED_OPTIMIZER
 #define INCLUDED_OPTIMIZER
 
-#include "structure.h"
+#include "libtdb/include/structure.hpp"
+#include "libtdb/include/conditions.hpp"
 #include <vector>
-#include "conditions.h"
 #include <algorithm>
 #include <boost/tuple/tuple.hpp>
 

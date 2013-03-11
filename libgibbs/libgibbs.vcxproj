@@ -19,8 +19,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8296268D-172D-48D5-949E-CE1F6D721B57}</ProjectGuid>
-    <RootNamespace>libtdb</RootNamespace>
+    <ProjectGuid>{1F08B65B-963B-4BFC-9615-319D9AF92BCD}</ProjectGuid>
+    <RootNamespace>libgibbs</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -29,7 +29,7 @@
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
+    <ConfigurationType>StaticLibrary</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
     <CharacterSet>MultiByte</CharacterSet>
   </PropertyGroup>
@@ -62,8 +62,10 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <IncludePath>$(IncludePath);$(SolutionDir);$(ProjectDir)include;</IncludePath>
-    <SourcePath>$(ProjectDir)source;$(VCInstallDir)atlmfc\src\mfc;$(VCInstallDir)atlmfc\src\mfcm;$(VCInstallDir)atlmfc\src\atl;$(VCInstallDir)crt\src;</SourcePath>
+    <IncludePath>C:\Program Files\boost\boost_1_51;$(SolutionDir);$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include</IncludePath>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <IncludePath>$(SolutionDir);$(VCInstallDir)include;$(VCInstallDir)atlmfc\include;$(WindowsSdkDir)include;$(FrameworkSDKDir)\include;</IncludePath>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -78,11 +80,14 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
-      <AdditionalOptions>/Zm196 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;C:\Program Files\boost\boost_1_51</AdditionalLibraryDirectories>
+      <AdditionalDependencies>IpOpt-vc10.lib</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
     <ClCompile>
@@ -90,28 +95,6 @@
       <Optimization>MaxSpeed</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
-    </ClCompile>
-    <Link>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <Optimization>MaxSpeed</Optimization>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <AdditionalIncludeDirectories>C:\Program Files\boost\boost_1_51</AdditionalIncludeDirectories>
-      <PrecompiledHeader>Use</PrecompiledHeader>
-      <FavorSizeOrSpeed>Neither</FavorSizeOrSpeed>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
-      <MultiProcessorCompilation>false</MultiProcessorCompilation>
-      <InlineFunctionExpansion>Default</InlineFunctionExpansion>
-      <PrecompiledHeaderFile>libtdb/include/libtdb_pch.hpp</PrecompiledHeaderFile>
-      <AdditionalOptions>/Zm196 %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -119,47 +102,48 @@
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
     <Lib>
-      <TargetMachine>MachineX64</TargetMachine>
+      <AdditionalLibraryDirectories>C:\Program Files\boost\boost_1_51</AdditionalLibraryDirectories>
     </Lib>
-    <CustomBuildStep>
-      <Message>
-      </Message>
-    </CustomBuildStep>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <ClCompile>
+      <WarningLevel>Level3</WarningLevel>
+      <Optimization>MaxSpeed</Optimization>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>libgibbs/include/libgibbs_pch.hpp</PrecompiledHeaderFile>
+      <AdditionalOptions>/Zm151 %(AdditionalOptions)</AdditionalOptions>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <OptimizeReferences>true</OptimizeReferences>
+    </Link>
+    <Lib>
+      <AdditionalLibraryDirectories>$(SolutionDir)lib;C:\Program Files\boost\boost_1_51</AdditionalLibraryDirectories>
+      <AdditionalDependencies>IpOpt-vc10.lib</AdditionalDependencies>
+      <AdditionalOptions>/Zm151 %(AdditionalOptions)</AdditionalOptions>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\conditions.hpp" />
-    <ClInclude Include="include\database.hpp" />
-    <ClInclude Include="include\database_tdb.hpp" />
-    <ClInclude Include="include\exceptions.hpp" />
-    <ClInclude Include="include\grammars\function_grammar.hpp" />
-    <ClInclude Include="include\grammars\math_grammar.hpp" />
-    <ClInclude Include="include\grammars\param_grammar.hpp" />
-    <ClInclude Include="include\libtdb_pch.hpp" />
-    <ClInclude Include="include\structure.hpp" />
-    <ClInclude Include="include\utils\chemical_formula.hpp" />
-    <ClInclude Include="include\utils\math_expr.hpp" />
-    <ClInclude Include="include\utils\periodic_table.hpp" />
-    <ClInclude Include="include\warning_disable.hpp" />
+    <ClInclude Include="include\evaluate.hpp" />
+    <ClInclude Include="include\optimizer\optimizer.hpp" />
+    <ClInclude Include="include\optimizer\opt_Gibbs.hpp" />
+    <ClInclude Include="include\libgibbs_pch.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="source\database_tdb.cpp" />
-    <ClCompile Include="source\grammars\function_grammar.cpp" />
-    <ClCompile Include="source\grammars\math_grammar.cpp" />
-    <ClCompile Include="source\grammars\param_grammar.cpp" />
-    <ClCompile Include="source\parser.cpp" />
-    <ClCompile Include="source\parsers\constituent.cpp" />
-    <ClCompile Include="source\parsers\database_info.cpp" />
-    <ClCompile Include="source\parsers\element.cpp" />
-    <ClCompile Include="source\parsers\function.cpp" />
-    <ClCompile Include="source\parsers\parameter.cpp" />
-    <ClCompile Include="source\parsers\phase.cpp" />
-    <ClCompile Include="source\parsers\species.cpp" />
-    <ClCompile Include="source\libtdb_pch.cpp">
+    <ProjectReference Include="..\libtdb\libtdb.vcxproj">
+      <Project>{8296268d-172d-48d5-949e-ce1f6d721b57}</Project>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="source\libgibbs_pch.cpp">
       <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">Create</PrecompiledHeader>
     </ClCompile>
-    <ClCompile Include="source\utils\chemical_formula.cpp" />
-    <ClCompile Include="source\utils\math_expr.cpp" />
-    <ClCompile Include="source\utils\periodic_table.cpp" />
+    <ClCompile Include="source\optimizer\evaluate.cpp" />
+    <ClCompile Include="source\optimizer\opt_Gibbs.cpp" />
+    <ClCompile Include="source\optimizer\utils\opt_helpers.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
