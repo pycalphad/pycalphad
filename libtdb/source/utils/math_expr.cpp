@@ -84,8 +84,21 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						}
 						else res += (lhs / rhs);
 					}
-					else if (op == "**") res += pow(lhs, rhs);
-					else if (op == "ln") res += log(lhs);
+					else if (op == "**") {
+						if (lhs < 0 && (abs(rhs) < 1 && abs(rhs) > 0)) {
+							// the result is complex
+							// we do not support this (for now)
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values must be real"));
+						}
+						res += pow(lhs, rhs);
+					}
+					else if (op == "ln") {
+						if (lhs <= 0) {
+							// outside the domain of ln
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
+						}
+						res += log(lhs);
+					}
 					else if (op == "exp") res += exp(lhs);
 					else {
 						// a bad symbol made it into our AST

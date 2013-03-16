@@ -2,83 +2,11 @@
 
 #include "test/include/test_pch.hpp"
 #include "libtdb/include/warning_disable.hpp"
-#include "libtdb/include/exceptions.hpp"
-#include "libtdb/include/grammars/math_grammar.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
-#include "libtdb/include/conditions.hpp"
+#include "test/include/fixtures/fixture_math.hpp"
 #include <string>
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
-#include <boost/spirit/include/support_utree.hpp>
-#include <boost/spirit/include/qi.hpp>
 
-struct MathParserFixture
-{
-	MathParserFixture()
-		: calc_parser(macros,statevars)
-	{
-		// Without these calls, there are "access violation"
-		// runtime errors whenever calc_parser tries to match
-		// a rule that involves these qi::symbols objects.
-		// I don't *think* this case (due to initialization order)
-		// can happen in production, so we'll leave it for now.
-		macros.clear();
-		statevars.clear();
-
-		conditions.statevars.clear();
-	}
-	void add_state_variable(const std::string &s) {
-		statevars.add(s,boost::spirit::utree(s.c_str()));
-	}
-	void clear_conditions() {
-		macros.clear();
-		statevars.clear();
-		conditions.statevars.clear();
-	}
-	void set_conditions(const std::string &var, const double val) {
-		add_state_variable(var);
-		conditions.statevars[var.c_str()[0]] = val;
-	}
-	double calculate(const std::string &mathexpr)
-	{
-		using boost::spirit::ascii::space;
-		using boost::spirit::utree;
-		typedef boost::spirit::utree_type utree_type;
-		typedef std::string::const_iterator iterator_type;
-
-		utree ret_tree; // abstract syntax tree for math expressions
-
-		// Initialize the iterators for the string
-		iterator_type iter = mathexpr.begin();
-		iterator_type end = mathexpr.end();
-
-		// Parse the string and put the abstract syntax tree in ret_tree
-		bool r = phrase_parse(iter, end, calc_parser, space, ret_tree);
-
-		if (r && iter == end)
-		{
-			// Get the processed abstract syntax tree and determine the value
-			utree final_tree = process_utree(ret_tree, conditions);
-			if (final_tree.which() == utree_type::double_type) {
-				return final_tree.get<double>();
-			}
-			else {
-				BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
-			}
-		}
-		else
-		{
-			std::string::const_iterator some = iter+30;
-			std::string context(iter, (some>end)?end:some);
-			std::string errmsg("Syntax error: " + context + "...");
-			BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo(errmsg));
-		}
-	}
-	boost::spirit::qi::symbols<char, boost::spirit::utree> macros; // all of the macros (FUNCTIONs in Thermo-Calc lingo)
-	boost::spirit::qi::symbols<char, boost::spirit::utree> statevars; // all valid state variables
-	calculator calc_parser;
-	evalconditions conditions;
-};
 
 BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 
@@ -127,6 +55,7 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		BOOST_AUTO_TEST_CASE(Exponentiation)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("13**7"), 62748517);
+			BOOST_REQUIRE_EQUAL(calculate("4**0.5"), 2);
 		}
 		BOOST_AUTO_TEST_CASE(ExponentiationRespectsOrderOfOperations)
 		{
@@ -160,6 +89,23 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("exp(T/100)"), 20.085536923187668, 1e-15);
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("ln(T)"), 5.7037824746562009, 1e-15);
 		}
+		BOOST_AUTO_TEST_CASE(WhiteSpaceHandling)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("23                +               3"), 26);
+			BOOST_REQUIRE_THROW(calculate("2 3           + 7"), syntax_error);
+			BOOST_REQUIRE_EQUAL(calculate("       50       **        0"), 1);
+			BOOST_REQUIRE_THROW(calculate("3 * * 2"), syntax_error);
+		}
+		BOOST_AUTO_TEST_CASE(TabHandling)
+		{
+			BOOST_REQUIRE_EQUAL(calculate("\t4\t+\t    5"), 9);
+		}
+		BOOST_AUTO_TEST_CASE(MathParserNegationAfterNewline)
+		{
+			clear_conditions();
+			set_conditions("T", 2);
+			BOOST_REQUIRE_EQUAL(calculate("100\n-100*T"), -100);
+		}
 	BOOST_AUTO_TEST_SUITE_END()
 
 	BOOST_AUTO_TEST_SUITE(MathParserComplexOperations)
@@ -167,9 +113,20 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		{
 			BOOST_REQUIRE_EQUAL(calculate("(6+4)*(30/5)"), 60);
 		}
+		BOOST_AUTO_TEST_CASE(NestedOperations)
+		{
+			clear_conditions();
+			set_conditions("T", 300);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("(2*6*ln(4*T**2))"), 153.5263117251875, 1e-15);
+			BOOST_REQUIRE_CLOSE_FRACTION(
+					calculate("-7285.889+119.139857*T-23.7592624*T*LN(T)      -.002623033*T**2+1.70109E-07*T**3-3293*T**(-1)"),
+					-12441.68794003007589412,
+					1e-15
+					);
+		}
 	BOOST_AUTO_TEST_SUITE_END()
 
-	BOOST_AUTO_TEST_SUITE(MathParserExceptionHandling)
+	BOOST_AUTO_TEST_SUITE(MathParserThrows)
 		BOOST_AUTO_TEST_CASE(DivisionByZero)
 		{
 			BOOST_REQUIRE_THROW(calculate("1/0"), divide_by_zero_error);
@@ -179,12 +136,18 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 		}
 		BOOST_AUTO_TEST_CASE(FloatingPointClassification)
 		{
-			BOOST_REQUIRE_THROW(calculate("10**10**10"), floating_point_error);
-			BOOST_REQUIRE_THROW(calculate("-10**10**10"), floating_point_error);
-			BOOST_REQUIRE_THROW(calculate("-10**10**10*0"), floating_point_error);
-			BOOST_REQUIRE_THROW(calculate("(-10**10**10)**0"), floating_point_error);
-			BOOST_REQUIRE_THROW(calculate("0*-10**10**10"), floating_point_error);
-			BOOST_REQUIRE_THROW(calculate("0**-10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("10**10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("-10**10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("-10**10**10**10*0"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("(-10**10**10**10)**0"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("0*-10**10**10**10"), floating_point_error);
+			BOOST_REQUIRE_THROW(calculate("0**-10**10**10**10"), floating_point_error);
+		}
+		BOOST_AUTO_TEST_CASE(OutsideFunctionDomain)
+		{
+			BOOST_REQUIRE_THROW(calculate("ln(-1)"), domain_error);
+			BOOST_REQUIRE_THROW(calculate("(-4)**0.5"), domain_error);
+			BOOST_REQUIRE_THROW(calculate("-4**0.5"), domain_error);
 		}
 	BOOST_AUTO_TEST_SUITE_END()
 
