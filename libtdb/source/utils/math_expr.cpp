@@ -27,7 +27,7 @@ bool is_allowed_value(T &val) {
 boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalconditions const& conditions) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
-	//std::cout << "type: " << ut.which() << std::endl;
+	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
 			break;
@@ -61,10 +61,24 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						//std::cout << "highlimit:" << highlimit << std::endl;
 						if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
 						++it;
-						if ((curT >= lowlimit) && (curT < highlimit)) res += process_utree(*it, conditions).get<double>();
-						else res += 0;
+						if ((curT >= lowlimit) && (curT < highlimit)) {
+							// Range check satisfied
+							// Process the tree and return the result
+							return process_utree(*it, conditions).get<double>();
+						}
+						else {
+							// Range check not satisfied
+							++it; // Advance to the next token (if any)
+							continue; // Go back to the start of the loop
+						}
 						//std::cout << "RESULT: " << res << std::endl;
-						break;
+					}
+					// This could just be a lone symbol by itself; handle this case
+					if ((rt.end() - rt.begin()) == 1) {
+						const char* lonesym(rt.begin());
+						if (conditions.statevars.find(*lonesym) != conditions.statevars.end()) {
+							return conditions.statevars.find(*lonesym)->second; // return current value of state variable (T, P, etc)
+						}
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
