@@ -4,6 +4,7 @@
 #include "libtdb/include/warning_disable.hpp"
 #include "test/include/fixtures/fixture_func.hpp"
 #include <string>
+#include <limits>
 #define BOOST_TEST_DYN_LINK
 #include <boost/test/unit_test.hpp>
 
@@ -17,10 +18,49 @@ BOOST_AUTO_TEST_CASE(TRangeFunctionLoneSymbol) {
 BOOST_AUTO_TEST_CASE(OutsideTRange) {
 	// Check if system T falls outside of prescribed range for function
 	// Should throw
+	const std::string funcstr = "298.15 1; 500 Y 2; 600 Y T-4; 800 N REF: 0 !";
+	clear_conditions();
+	set_conditions("T",100);
+	BOOST_REQUIRE_THROW(func_eval(funcstr), range_check_error);
+	set_conditions("T",1000);
+	BOOST_REQUIRE_THROW(func_eval(funcstr), range_check_error);
+	set_conditions("T",550);
+	BOOST_REQUIRE_EQUAL(func_eval(funcstr), 2);
 }
-BOOST_AUTO_TEST_CASE(StateVariableOutOfBounds) {
-	// Check if system T is infinite, subnormal or zero
+BOOST_AUTO_TEST_CASE(ConditionStateVariableOutOfBounds) {
+	// If system T is infinite or subnormal
 	// Should throw
+	const std::string funcstr = "298.15 1; 500 Y 2; 600 Y T-4; 800 N REF: 0 !";
+	clear_conditions();
+	if (std::numeric_limits<double>::has_infinity) {
+		set_conditions("T", std::numeric_limits<double>::infinity());
+		BOOST_REQUIRE_THROW(func_eval(funcstr), floating_point_error);
+		set_conditions("T", -std::numeric_limits<double>::infinity());
+		BOOST_REQUIRE_THROW(func_eval(funcstr), floating_point_error);
+	}
+	if (std::numeric_limits<double>::has_quiet_NaN) {
+		set_conditions("T", std::numeric_limits<double>::quiet_NaN());
+		BOOST_REQUIRE_THROW(func_eval(funcstr), floating_point_error);
+	}
+	if (std::numeric_limits<double>::has_signaling_NaN) {
+		set_conditions("T", -std::numeric_limits<double>::signaling_NaN());
+		BOOST_REQUIRE_THROW(func_eval(funcstr), floating_point_error);
+	}
+	if (std::numeric_limits<double>::has_denorm) {
+		set_conditions("T", std::numeric_limits<double>::denorm_min());
+		BOOST_REQUIRE_THROW(func_eval(funcstr), floating_point_error);
+	}
+}
+BOOST_AUTO_TEST_CASE(FunctionRangeCriteriaOutOfBounds) {
+	// If function range criteria are infinite or subnormal
+	// Should throw
+		clear_conditions();
+		set_conditions("T", 300);
+		BOOST_REQUIRE_THROW(func_eval("298.15 1; 1e10000 N REF: 0 !"), floating_point_error);
+		BOOST_REQUIRE_THROW(func_eval("-1e10000 1; 298.15 N REF: 0 !"), floating_point_error);
+		BOOST_REQUIRE_THROW(func_eval("-1e10000 1; 400 N REF: 0 !"), floating_point_error);
+		BOOST_REQUIRE_THROW(func_eval("298.15 1; 1e10000 N REF: 0 !"), floating_point_error);
+		BOOST_REQUIRE_THROW(func_eval("298.15 1; 400 Y 2; 500 Y 3; 1e10000 N REF: 0 !"), floating_point_error);
 }
 BOOST_AUTO_TEST_CASE(InconsistentRangeBounds) {
 	// Check if highlimit <= lowlimit for T range

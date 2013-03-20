@@ -44,7 +44,17 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 			std::string op;
 			//std::cout << "<list>(";
 			while (it != end) {
-				if ((*it).which() == utree_type::string_type) { // operator/function
+				if ((*it).which() == utree_type::double_type && std::distance(it,end) == 1) {
+					// only one element in utree list, and it's a double
+					// return its value
+					double retval = (*it).get<double>();
+					if (!is_allowed_value<double>(retval)) {
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+					}
+					return retval;
+				}
+				if ((*it).which() == utree_type::string_type) {
+					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
 					op = std::string(rt.begin(), rt.end()); // set the symbol
 					//std::cout << "OPERATOR: " << op << std::endl;
@@ -58,17 +68,31 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 						++it;
 						double highlimit = process_utree(*it, conditions).get<double>();
+
+						if (!is_allowed_value(curT)) {
+							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable is infinite, subnormal, or not a number"));
+						}
+						if (!is_allowed_value(lowlimit) || !is_allowed_value(highlimit)) {
+							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable limits are infinite, subnormal, or not a number"));
+						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
 						if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
 						++it;
 						if ((curT >= lowlimit) && (curT < highlimit)) {
 							// Range check satisfied
 							// Process the tree and return the result
+							// Note: by design we only return the first result to satisfy the criterion
 							return process_utree(*it, conditions).get<double>();
 						}
 						else {
 							// Range check not satisfied
 							++it; // Advance to the next token (if any)
+							if (it == end) {
+								// We are at the end and we failed all range checks
+								// The upstream system may decide this is not a problem
+								// and use a value of 0, but we want them to have a choice
+								BOOST_THROW_EXCEPTION(range_check_error() << str_errinfo("Ranges specified by parameter do not satisfy current system conditions"));
+							}
 							continue; // Go back to the start of the loop
 						}
 						//std::cout << "RESULT: " << res << std::endl;
@@ -102,7 +126,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						if (lhs < 0 && (abs(rhs) < 1 && abs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values must be real"));
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
 						}
 						res += pow(lhs, rhs);
 					}
