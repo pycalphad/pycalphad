@@ -30,7 +30,7 @@ struct constraint
 		spirit::utree buildtree;
 		for (auto i = vec.begin(); i != vec.end(); ++i) {
 			//std::cout << "vec element type: " << (*i).which() << std::endl;
-			if ((lowlimit < 0) && ((*i).type() == typeid(double))) {
+			if ((lowlimit == -1) && ((*i).type() == typeid(double))) {
 				// lowlimit is not yet set, we should see that first
 				//std::cout << "setting lowlimit ";
 				lowlimit = boost::get<double>(*i);

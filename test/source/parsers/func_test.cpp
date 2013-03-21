@@ -54,17 +54,28 @@ BOOST_AUTO_TEST_CASE(ConditionStateVariableOutOfBounds) {
 BOOST_AUTO_TEST_CASE(FunctionRangeCriteriaOutOfBounds) {
 	// If function range criteria are infinite or subnormal
 	// Should throw
-		clear_conditions();
-		set_conditions("T", 300);
-		BOOST_REQUIRE_THROW(func_eval("298.15 1; 1e10000 N REF: 0 !"), floating_point_error);
-		BOOST_REQUIRE_THROW(func_eval("-1e10000 1; 298.15 N REF: 0 !"), floating_point_error);
-		BOOST_REQUIRE_THROW(func_eval("-1e10000 1; 400 N REF: 0 !"), floating_point_error);
-		BOOST_REQUIRE_THROW(func_eval("298.15 1; 1e10000 N REF: 0 !"), floating_point_error);
-		BOOST_REQUIRE_THROW(func_eval("298.15 1; 400 Y 2; 500 Y 3; 1e10000 N REF: 0 !"), floating_point_error);
+	clear_conditions();
+	set_conditions("T", 300);
+	BOOST_REQUIRE_THROW(func_eval("298.15 1; 2e400 N REF: 0 !"), floating_point_error);
+	BOOST_REQUIRE_THROW(func_eval("-2e400 1; 298.15 N REF: 0 !"), floating_point_error);
+	BOOST_REQUIRE_THROW(func_eval("-2e400 1; 400 N REF: 0 !"), floating_point_error);
+	BOOST_REQUIRE_THROW(func_eval("298.15 1; 2e400 N REF: 0 !"), floating_point_error);
+	// Do not throw if it's a condition we don't reach
+	// Perhaps this behavior could change in the future
+	// For now, we don't do bounds checking of unparsed parts of the abstract syntax tree
+	BOOST_REQUIRE_EQUAL(func_eval("298.15 1; 400 Y 2; 500 Y 3; 2e400 N REF: 0 !"), 1);
+	set_conditions("T", 550);
+	// Now we will throw
+	BOOST_REQUIRE_THROW(func_eval("298.15 1; 400 Y 2; 500 Y 3; 2e400 N REF: 0 !"), floating_point_error);
 }
 BOOST_AUTO_TEST_CASE(InconsistentRangeBounds) {
 	// Check if highlimit <= lowlimit for T range
 	// Should throw
+	clear_conditions();
+	set_conditions("T", 300);
+	BOOST_REQUIRE_THROW(func_eval("400 1; 300 N REF: 0 !"), bounds_error);
+	BOOST_REQUIRE_THROW(func_eval("200 1; 300 Y 2; 200 N REF: 0 !"), bounds_error);
+	BOOST_REQUIRE_THROW(func_eval("200 1; 200 N REF: 0 !"), bounds_error);
 }
 // TODO: Lots of test cases to write
 // Other grammar things...

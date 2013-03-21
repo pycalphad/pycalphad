@@ -77,6 +77,9 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
 						if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
+						if (highlimit <= lowlimit) {
+							BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Inconsistent bounds on state variable specified. The upper limit <= the lower limit."));
+						}
 						++it;
 						if ((curT >= lowlimit) && (curT < highlimit)) {
 							// Range check satisfied

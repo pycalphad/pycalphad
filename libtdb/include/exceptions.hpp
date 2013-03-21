@@ -9,6 +9,7 @@ struct exception_base: virtual std::exception, virtual boost::exception { };
 
 struct parse_error: virtual exception_base { };
 struct syntax_error: virtual parse_error { };
+struct bounds_error: virtual syntax_error { };
 
 struct math_error: virtual exception_base { };
 struct divide_by_zero_error: virtual math_error { };
