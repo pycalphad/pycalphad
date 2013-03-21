@@ -1,4 +1,11 @@
-// param_grammar.h -- grammar declaration for PARAMETER commands
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
+// param_grammar.hpp -- grammar declaration for PARAMETER commands
 
 #ifndef INCLUDED_PARAM_GRAMMAR
 #define INCLUDED_PARAM_GRAMMAR

@@ -1,4 +1,11 @@
-// database.h -- header file for pImpl-style encapsulation
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
+// database.hpp -- header file for pImpl-style encapsulation
 //               of the Database class
 // The actual Database class is defined in libTDB (or elsewhere)
 // but has lots of dependencies. This saves us lots of compile time.

@@ -1,3 +1,10 @@
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
 // chemical_formula.cpp -- utils for building chemical_formula objects
 // TODO: rewrite this using Spirit so I can handle the case of NIHF, NI5HF correctly
 

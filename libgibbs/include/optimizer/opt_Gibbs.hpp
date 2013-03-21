@@ -1,5 +1,11 @@
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
 // opt_Gibbs.h -- declaration for Gibbs optimizer class
-// TODO: adapted from EPL-licensed example code
 
 #ifndef INCLUDED_OPT_GIBBS
 #define INCLUDED_OPT_GIBBS

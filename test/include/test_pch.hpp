@@ -1,6 +1,11 @@
-// test_pch.h -- precompiled header files for the test suite
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
 
-// test_pch.h -- precompiled headers for test suite
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
+// test_pch.hpp -- precompiled header files for the test suite
 
 #include "libtdb/include/warning_disable.hpp"
 #include <boost/spirit/include/support_utree.hpp>

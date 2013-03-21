@@ -1,6 +1,3 @@
-// math_grammar.cpp -- grammar construction for arithmetic expressions
-// Based on http://www.boost.org/doc/libs/1_51_0/libs/spirit/example/qi/calc_utree_ast.cpp
-
 /*=============================================================================
     Copyright (c) 2001-2011 Hartmut Kaiser
     Copyright (c) 2001-2011 Joel de Guzman
@@ -9,6 +6,9 @@
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
+
+// math_grammar.cpp -- grammar construction for arithmetic expressions
+// Based on http://www.boost.org/doc/libs/1_51_0/libs/spirit/example/qi/calc_utree_ast.cpp
 
 //#define BOOST_SPIRIT_DEBUG
 #include "libtdb/include/libtdb_pch.hpp"
