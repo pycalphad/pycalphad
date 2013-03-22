@@ -84,7 +84,6 @@ BOOST_AUTO_TEST_CASE(InconsistentRangeBounds) {
 	BOOST_REQUIRE_THROW(func_eval("200 1; 300 Y 2; 200 N REF: 0 !"), bounds_error);
 	BOOST_REQUIRE_THROW(func_eval("200 1; 200 N REF: 0 !"), bounds_error);
 }
-// TODO: Lots of test cases to write
 BOOST_AUTO_TEST_CASE(FunctionMacroParsing) {
     clear_conditions();
     set_conditions("T", 500);
