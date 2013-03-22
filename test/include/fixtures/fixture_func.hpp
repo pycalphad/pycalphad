@@ -57,6 +57,35 @@ struct FuncParserFixture : public MathParserFixture
 		}
 		return 0; // impossible
 	}
+	double add_macro(const std::string &macroname, const std::string &funcexpr)
+	{
+		using boost::spirit::ascii::space;
+		using boost::spirit::utree;
+		typedef boost::spirit::utree_type utree_type;
+		typedef std::string::const_iterator iterator_type;
+
+		utree ret_tree; // return storage for abstract syntax tree
+
+		// Initialize the iterators for the string
+		iterator_type iter = funcexpr.begin();
+		iterator_type end = funcexpr.end();
+
+		// Parse the string and put the abstract syntax tree in ret_tree
+		bool r = phrase_parse(iter, end, func_parser, space, ret_tree);
+
+		if (r && iter == end)
+		{
+			macros.add(macroname, ret_tree);
+		}
+		else
+		{
+			std::string::const_iterator some = iter+30;
+			std::string context(iter, (some>end)?end:some);
+			std::string errmsg("Syntax error: " + context + "...");
+			BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo(errmsg));
+		}
+		return 0; // impossible
+	}
 	function_grammar func_parser;
 };
 

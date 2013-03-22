@@ -85,16 +85,16 @@ BOOST_AUTO_TEST_CASE(InconsistentRangeBounds) {
 	BOOST_REQUIRE_THROW(func_eval("200 1; 200 N REF: 0 !"), bounds_error);
 }
 // TODO: Lots of test cases to write
-// Other grammar things...
-// Really long input
-// Malformed input (weird symbols, carriage returns, commas, semi-colons where they shouldn't be)
-// Malformed REF commands
-// Missing ! at the end
-// ALSO: things related to macros
-// need to augment the test fixture to handle this
-// throw on infinite loops between macros (cyclic references)
-// make sure macros work
-// limitations on macro names?
+BOOST_AUTO_TEST_CASE(FunctionMacroParsing) {
+    clear_conditions();
+    set_conditions("T", 500);
+    add_macro("mytest","200 2+T; 400 Y -4+T/100; 600 N REF: 0 !");
+    add_macro("mynested","200 mytest*2; 6000 N REF: 0 !");
+    BOOST_REQUIRE_EQUAL(func_eval("200 5*ln(mytest)+mytest; 6000 N RF: 0 !"), 1);
+    BOOST_REQUIRE_EQUAL(func_eval("200 5*ln(mytest#)+mytest; 6000 N RF: 0 !"), 1);
+    // Note: macro names are case sensitive
+    BOOST_REQUIRE_THROW(func_eval("200 5*ln(MYTEST#)+MYTEST; 6000 N RF: 0 !"), syntax_error);
+}
 BOOST_AUTO_TEST_CASE(TRangeFunction)
 {
 	const std::string funcstr = "298.15  -7285.889+119.139857*T-23.7592624*T*LN(T) \
