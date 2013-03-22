@@ -12,7 +12,7 @@ int main(int argc, char* argv[])
   }
   // init the database by reading from the .TDB specified on the command line
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 298.15;
+  mainconditions.statevars['T'] = 5000;
   mainconditions.statevars['P'] = 101325;
   mainconditions.xfrac["NI"] = 0.8;
   mainconditions.xfrac["AL"] = 0.2;
