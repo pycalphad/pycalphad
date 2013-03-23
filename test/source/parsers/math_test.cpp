@@ -103,6 +103,9 @@ BOOST_FIXTURE_TEST_SUITE(MathParserSuite, MathParserFixture)
 			set_conditions("P",101325);
 			BOOST_REQUIRE_EQUAL(calculate("0.5*T**2","T"), 300);
 			BOOST_REQUIRE_EQUAL(calculate("4*P","T"), 0);
+			BOOST_REQUIRE_EQUAL(calculate("4*P","P"), 4);
+			BOOST_REQUIRE_EQUAL(calculate("4*P*T/101325","T"), 4);
+			BOOST_REQUIRE_CLOSE_FRACTION(calculate("4*ln(P)*T/101325","P"), 1.1688210412624875e-007, 1e-15);
 			BOOST_REQUIRE_CLOSE_FRACTION(calculate("ln(0.5*T**(-5+T/100))","T"), 0.050371158079895346, 1e-15);
 		}
 		BOOST_AUTO_TEST_CASE(WhiteSpaceHandling)
