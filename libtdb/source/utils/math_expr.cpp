@@ -11,6 +11,7 @@
 #include "libtdb/include/warning_disable.hpp"
 #include "libtdb/include/conditions.hpp"
 #include "libtdb/include/exceptions.hpp"
+#include "libtdb/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 

@@ -44,7 +44,7 @@ struct MathParserFixture
 		add_state_variable(var);
 		conditions.statevars[var.c_str()[0]] = val;
 	}
-	double calculate(const std::string &mathexpr)
+	double calculate(const std::string &mathexpr, const std::string &diffvar)
 	{
 		using boost::spirit::ascii::space;
 		using boost::spirit::utree;
@@ -63,7 +63,12 @@ struct MathParserFixture
 		if (r && iter == end)
 		{
 			// Get the processed abstract syntax tree and determine the value
-			utree final_tree = process_utree(ret_tree, conditions);
+			// non-empty diffvar means we differentiate
+			utree final_tree;
+			if (diffvar == "") {
+				final_tree = process_utree(ret_tree, conditions);
+			}
+			else final_tree = differentiate_utree(ret_tree, conditions, diffvar);
 			if (final_tree.which() == utree_type::double_type) {
 				return final_tree.get<double>();
 			}
@@ -79,6 +84,9 @@ struct MathParserFixture
 			BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo(errmsg));
 		}
 		return 0; // impossible
+	}
+	double calculate(const std::string &mathexpr) {
+		return calculate(mathexpr, "");
 	}
 	boost::spirit::qi::symbols<char, boost::spirit::utree> macros; // all of the macros (FUNCTIONs in Thermo-Calc lingo)
 	boost::spirit::qi::symbols<char, boost::spirit::utree> statevars; // all valid state variables

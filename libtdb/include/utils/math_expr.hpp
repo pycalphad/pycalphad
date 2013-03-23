@@ -12,8 +12,11 @@
 
 #include "libtdb/include/warning_disable.hpp"
 #include "libtdb/include/conditions.hpp"
+#include <string>
 #include <boost/spirit/include/support_utree.hpp>
 
 boost::spirit::utree const process_utree(boost::spirit::utree const&, evalconditions const&);
+boost::spirit::utree const differentiate_utree(boost::spirit::utree const&, evalconditions const&, std::string const&);
+template <typename T> bool is_allowed_value(T &);
 
 #endif
