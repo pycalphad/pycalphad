@@ -23,17 +23,21 @@
  * stuff will be happening in the ctor.
  *
  * Equilibrium objects will contain:
- * 1) the Phase::const_iterator for each phase
- * 2) the corresponding phase fractions
+ * 1) the name of the database used (for compatibility checking)
+ * 2) the value of the minimum Gibbs energy (J/mol)
+ * 3) the evalconditions object used for minimization
  * 3) For each phase:
- * 		a) The stoichiometric coefficient of each sublattice (fixed by database)
- * 		b) For each sublattice: the site fraction of each species
+ * 		a) name of phase
+ * 		b) fraction of phase
+ * 		c) For each sublattice: the stoichiometric coefficient
+ * 		d) For each sublattice: the site fraction of each species
  *
  * Equilibrium objects will have:
  * 1) Gibbs minimization for m species and n phases
  * 2) Convenience function for converting site fraction to mole fraction (phase and overall)
  * 3) prettyprint functionality by overloading insertion operator
- * 4) (FUTURE) the ability to be constructed from experimental data
+ * 4) getter functions for the conditions of the equilibrium
+ * 4) (FUTURE) the ability to be constructed from arbitrary (e.g. experimental) data
  */
 class Equilibrium {
 
