@@ -7,6 +7,9 @@
 
 // equilibrium.hpp -- declaration for Equilibrium object
 
+#include <string>
+#include "libtdb/include/conditions.hpp"
+
 /*
  * What this class needs to do:
  * This class will be the foundational piece of how TDBread interacts with
@@ -21,6 +24,8 @@
  * objects prettyprint in a Thermo-Calc style way.
  * Exception handling will have to be done carefully since a lot of numerical
  * stuff will be happening in the ctor.
+ *
+ * THOUGHT: Is Boost MultiIndex my salvation here?
  *
  * Equilibrium objects will contain:
  * 1) the name of the database used (for compatibility checking)
@@ -39,6 +44,17 @@
  * 4) getter functions for the conditions of the equilibrium
  * 4) (FUTURE) the ability to be constructed from arbitrary (e.g. experimental) data
  */
-class Equilibrium {
 
+class Equilibrium {
+private:
+	const std::string dbname;
+	const double mingibbs;
+	const evalconditions conditions;
+	struct sitefraction_entry {
+		std::string phase_name;
+		double phase_frac;
+		double subl_stoicoef;
+		std::string spec_name;
+		double spec_sitefrac;
+	};
 };
