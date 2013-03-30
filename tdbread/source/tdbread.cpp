@@ -1,6 +1,6 @@
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/conditions.hpp"
-#include "libgibbs/include/evaluate.hpp"
+#include "libgibbs/include/equilibrium.hpp"
 #include <iostream>
 
 int main(int argc, char* argv[])
@@ -10,9 +10,8 @@ int main(int argc, char* argv[])
     std::cout << "Usage: tdbread path\n";
     return 1;
   }
-  // init the database by reading from the .TDB specified on the command line
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 5000;
+  mainconditions.statevars['T'] = 1000;
   mainconditions.statevars['P'] = 101325;
   mainconditions.xfrac["NI"] = 0.8;
   mainconditions.xfrac["AL"] = 0.2;
@@ -20,11 +19,17 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("NI");
   mainconditions.elements.push_back("AL");
   mainconditions.elements.push_back("VA");
+  mainconditions.phases["FCC_A1"] = true;
+  mainconditions.phases["LIQUID"] = true;
+
+  // init the database by reading from the .TDB specified on the command line
   Database maindb(argv[1]);
-  //return 0;
   std::cout << maindb.get_info() << std::endl; // read out database infostring
-  // calculate the minimum Gibbs energy
-  evaluate(maindb,mainconditions);
+  // calculate the minimum Gibbs energy by constructing an equilibrium
+  Equilibrium myeq(maindb,mainconditions);
+
+  // print the resulting equilibrium
+  std::cout << "EQUILIBRIUM RESULT: " << std::endl << myeq << std::endl;
   return 0;
 
   // to test, enumerate all phases in database

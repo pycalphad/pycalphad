@@ -13,6 +13,9 @@
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
+#include <string>
+#include <unordered_map>
+#include <utility>
 
 using namespace Ipopt;
 class GibbsOpt : public TNLP {
@@ -77,6 +80,14 @@ public:
 		IpoptCalculatedQuantities* ip_cq);
 	//@}
 
+	typedef std::unordered_map<std::string, double> speclist; // species name + site fraction
+	typedef std::pair<double, speclist> sublattice; // stoichiometric coefficient + species list
+	typedef std::vector<sublattice> constitution; // collection of sublattices
+	typedef std::pair<double, constitution> phase; // phase fraction + constitution
+	typedef std::unordered_map<std::string,phase> phasemap;
+
+	phasemap get_phase_map() { return ph_map; };
+
 private:
 	/**@name Methods to block default compiler methods.
 	* The compiler automatically generates the following three methods.
@@ -98,6 +109,9 @@ private:
 	evalconditions conditions;
 	Phase_Collection::const_iterator phase_iter;
 	Phase_Collection::const_iterator phase_end;
+
+	// data structure for final result
+	phasemap ph_map; // maps phase name to its object (final result)
 };
 
 #endif

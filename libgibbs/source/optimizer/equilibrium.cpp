@@ -8,22 +8,25 @@
 // evaluate.cpp -- evaluate energies from a Database
 
 #include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/equilibrium.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
+#include "libtdb/include/exceptions.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
 #include <iostream>
 #include <fstream>
+#include <algorithm>
 
 using namespace Ipopt;
 
-void evaluate(const Database &DB, const evalconditions &conditions) {
+Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
+: sourcename(DB.get_info()), conditions(conds) {
 	Phase_Collection phase_col;
-	// TODO: temporary code for suspending all phases but FCC and liquid
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
-		if (i->first == "FCC_A1" || i->first == "LIQUID") {
+		if (conds.phases.find(i->first) != conds.phases.end()) {
 			phase_col[i->first] = i->second;
 		}
 	}
@@ -34,7 +37,7 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 	// TODO: check validity of conditions
 
 	// Create an instance of your nlp...
-	SmartPtr<TNLP> mynlp = new GibbsOpt(phase_iter, phase_end, conditions);
+	SmartPtr<TNLP> mynlp = new GibbsOpt(phase_iter, phase_end, conds);
 
 	// Create an instance of the IpoptApplication
 	//
@@ -52,7 +55,7 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 	status = app->Initialize();
 	if (status != Solve_Succeeded) {
 		std::cout << std::endl << std::endl << "*** Error during initialization!" << std::endl;
-		return;
+		BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception to correct type
 	}
 
 	status = app->OptimizeTNLP(mynlp);
@@ -63,6 +66,18 @@ void evaluate(const Database &DB, const evalconditions &conditions) {
 		std::cout << std::endl << std::endl << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
 
 		Number final_obj = app->Statistics()->FinalObjective();
-		std::cout << std::endl << std::endl << "*** The final value of the objective function is " << final_obj << '.' << std::endl;
+		mingibbs = final_obj;
+		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
+		if (!opt_ptr) BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception type, some kind of nasty memory error
+		ph_map = opt_ptr->get_phase_map();
+		//std::cout << std::endl << std::endl << "*** The final value of the objective function is " << final_obj << '.' << std::endl;
 	}
+	else {
+		BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception to correct type
+	}
+}
+
+std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
+	stream << "test" << std::endl;
+	return stream;
 }

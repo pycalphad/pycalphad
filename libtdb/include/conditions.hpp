@@ -15,6 +15,7 @@
 struct evalconditions { 
 std::map<char,double> statevars; // state variable values
 std::vector<std::string> elements; // elements under consideration
+std::map<std::string,bool> phases; // phases under consideration
 std::map<std::string,double> xfrac; // system mole fractions
 };
 

@@ -5,10 +5,15 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// equilibrium.hpp -- declaration for Equilibrium object
+// declaration for Equilibrium object
 
+#include <iostream>
 #include <string>
+#include <unordered_map>
+#include <vector>
+#include <utility>
 #include "libtdb/include/conditions.hpp"
+#include "libtdb/include/database.hpp"
 
 /*
  * What this class needs to do:
@@ -41,20 +46,24 @@
  * 1) Gibbs minimization for m species and n phases
  * 2) Convenience function for converting site fraction to mole fraction (phase and overall)
  * 3) prettyprint functionality by overloading insertion operator
- * 4) getter functions for the conditions of the equilibrium
+ * 4) getter functions for the conditions of the equilibrium (should overload evalconditions insertion operator too)
  * 4) (FUTURE) the ability to be constructed from arbitrary (e.g. experimental) data
  */
 
 class Equilibrium {
 private:
-	const std::string dbname;
-	const double mingibbs;
-	const evalconditions conditions;
-	struct sitefraction_entry {
-		std::string phase_name;
-		double phase_frac;
-		double subl_stoicoef;
-		std::string spec_name;
-		double spec_sitefrac;
-	};
+	const std::string sourcename; // descriptor for the source of the equilibrium data
+	const evalconditions conditions; // thermodynamic conditions of the equilibrium
+	double mingibbs; // Gibbs energy for the equilibrium (must use common reference state)
+	typedef std::unordered_map<std::string, double> speclist; // species name + site fraction
+	typedef std::pair<double, speclist> sublattice; // stoichiometric coefficient + species list
+	typedef std::vector<sublattice> constitution; // collection of sublattices
+	typedef std::pair<double, constitution> phase; // phase fraction + constitution
+	typedef std::unordered_map<std::string,phase> phasemap;
+	phasemap ph_map; // maps phase name to its object
+public:
+	Equilibrium(const Database &DB, const evalconditions &conds);
+	double mole_fraction(const std::string &specname);
+	double mole_fraction(const std::string &specname, const std::string &phasename);
+	friend std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq);
 };
