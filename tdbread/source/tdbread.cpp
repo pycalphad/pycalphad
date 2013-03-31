@@ -18,7 +18,6 @@ int main(int argc, char* argv[])
   mainconditions.xfrac["AL"] = 0.2;
   mainconditions.xfrac["CR"] = 0.05;
   mainconditions.xfrac["CO"] = 0.05;
-  //mainconditions.xfrac["VA"] = 0;
   mainconditions.elements.push_back("NI");
   mainconditions.elements.push_back("AL");
   mainconditions.elements.push_back("CR");
