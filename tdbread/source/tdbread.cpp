@@ -11,14 +11,18 @@ int main(int argc, char* argv[])
     return 1;
   }
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 1000;
+  mainconditions.statevars['T'] = 1500;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NI"] = 0.8;
+  mainconditions.xfrac["NI"] = 0.7;
   mainconditions.xfrac["AL"] = 0.2;
+  mainconditions.xfrac["CR"] = 0.05;
+  mainconditions.xfrac["CO"] = 0.05;
   //mainconditions.xfrac["VA"] = 0;
   mainconditions.elements.push_back("NI");
   mainconditions.elements.push_back("AL");
+  mainconditions.elements.push_back("CR");
+  mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
   mainconditions.phases["FCC_A1"] = true;
   mainconditions.phases["LIQUID"] = true;
@@ -30,7 +34,7 @@ int main(int argc, char* argv[])
   Equilibrium myeq(maindb,mainconditions);
 
   // print the resulting equilibrium
-  std::cout << "EQUILIBRIUM RESULT: " << std::endl << myeq << std::endl;
+  std::cout << std::endl << myeq << std::endl;
   return 0;
 
   // to test, enumerate all phases in database

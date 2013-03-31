@@ -19,6 +19,7 @@
 #include <iostream>
 #include <fstream>
 #include <algorithm>
+#include <sstream>
 
 using namespace Ipopt;
 
@@ -60,7 +61,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 
 	status = app->OptimizeTNLP(mynlp);
 
-	if (status == Solve_Succeeded) {
+	if (status == Solve_Succeeded || status == Solved_To_Acceptable_Level) {
 		// Retrieve some statistics about the solve
 		Index iter_count = app->Statistics()->IterationCount();
 		std::cout << std::endl << std::endl << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
@@ -80,6 +81,14 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
 	stream << "Conditions:" << std::endl;
+
+	// We want the individual phase information to appear AFTER
+	// the global system data, but the most efficient ordering
+	// requires us to iterate through all phases first.
+	// The simple solution is to save the output to a temporary
+	// buffer, and then flush it to the output stream later.
+	std::stringstream temp_buf;
+
 	const auto sv_end = eq.conditions.statevars.cend();
 	const auto xf_end = eq.conditions.xfrac.cend();
 	for (auto i = eq.conditions.xfrac.cbegin(); i !=xf_end; ++i) {
@@ -108,15 +117,14 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 
     stream << std::endl;
 
-    stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
-
     const auto ph_end = eq.ph_map.cend();
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
     for (auto i = eq.ph_map.cbegin(); i != ph_end; ++i) {
-    	stream << i->first << "\tStatus ENTERED  Driving force 0" << std::endl; // phase name
-    	stream << "Number of moles " << i->second.first * N << ", Mass ???? ";
-    	stream << "Mole fractions:" << std::endl;
+    	temp_buf << i->first << "\tStatus ENTERED  Driving force 0" << std::endl; // phase name
+    	double phasefrac = i->second.first;
+    	temp_buf << "Number of moles " << i->second.first * N << ", Mass ???? ";
+    	temp_buf << "Mole fractions:" << std::endl;
     	std::map<std::string,std::pair<double,double>> phase_comp;
     	const auto subl_begin = i->second.second.cbegin();
     	const auto subl_end = i->second.second.cend();
@@ -129,22 +137,37 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
                 double num = k->second * stoi_coef;
                 double den = stoi_coef;
                 phase_comp[k->first].first += num;
+                global_comp[k->first].first += phasefrac * num;
 				if ((j->second).find("VA") != spec_end) {
 					phase_comp[k->first].second += den * (1 - (*(j->second).find("VA")).second);
+					global_comp[k->first].second += phasefrac * den * (1 - (*(j->second).find("VA")).second);
 				}
-				else phase_comp[k->first].second += den;
+				else {
+					phase_comp[k->first].second += den;
+					global_comp[k->first].second += phasefrac * den;
+				}
     		}
     	}
     	const auto cmp_begin = phase_comp.cbegin();
     	const auto cmp_end = phase_comp.cend();
     	for (auto g = cmp_begin; g != cmp_end; ++g) {
-    		stream << g->first << " " << (g->second.first / g->second.second) << "  ";
+    		temp_buf << g->first << " " << (g->second.first / g->second.second) << "  ";
     	}
-    	stream << std::endl;
+    	temp_buf << std::endl;
 
-    	// if this isn't the last phase, add an extra newline to space out the phases
-    	if (std::distance(i,ph_end) != 1) stream << std::endl;
+    	// if we're at the last phase, don't add an extra newline
+    	if (std::distance(i,ph_end) != 1) temp_buf << std::endl;
     }
+
+    stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
+    const auto glob_begin = global_comp.cbegin();
+    const auto glob_end = global_comp.cend();
+    for (auto h = glob_begin; h != glob_end; ++h) {
+    	stream << h->first << " " << (h->second.first / h->second.second) * N << " ???? ???? ???? ????" << std::endl;
+    }
+    stream << std::endl;
+
+    stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
 
 	return stream;
 }
