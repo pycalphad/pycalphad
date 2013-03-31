@@ -20,6 +20,7 @@
 #include <fstream>
 #include <algorithm>
 #include <sstream>
+#include <boost/io/ios_state.hpp>
 
 using namespace Ipopt;
 
@@ -79,6 +80,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 }
 
 std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
+	boost::io::ios_flags_saver  ifs( stream ); // preserve original state of the stream once we leave scope
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
 	stream << "Conditions:" << std::endl;
 
@@ -88,6 +90,7 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 	// The simple solution is to save the output to a temporary
 	// buffer, and then flush it to the output stream later.
 	std::stringstream temp_buf;
+    temp_buf << std::scientific;
 
 	const auto sv_end = eq.conditions.statevars.cend();
 	const auto xf_end = eq.conditions.xfrac.cend();
@@ -110,8 +113,9 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 	T = eq.conditions.statevars.find('T')->second;
 	P = eq.conditions.statevars.find('P')->second;
 	N = eq.conditions.statevars.find('N')->second;
-	stream << "Temperature " << T << ", " << "Pressure " << P << std::endl;
+	stream << "Temperature " << T << " K (" << (T-273.15) << " C), " << "Pressure " << P << " Pa" << std::endl;
 
+	stream << std::scientific; // switch to scientific notation for doubles
     stream << "Number of moles of components " << N << ", Mass ????" << std::endl;
     stream << "Total Gibbs energy " << eq.mingibbs << " Enthalpy ???? " << "Volume ????" << std::endl;
 
