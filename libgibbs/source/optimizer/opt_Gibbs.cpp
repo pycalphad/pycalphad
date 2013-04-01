@@ -115,26 +115,28 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	// we only reset the bounds to fix inconsistencies.
 	// site and phase fractions have a lower bound of 0 and an upper bound of 1
 	for (Index i = 0; i < n; ++i) {
-		x_l[i] = 0;
-		x_u[i] = 1;
+		//if (x_u[i] < x_l[i] || x_l[i] == NULL || x_u[i] == NULL) {
+			x_l[i] = 0;
+			x_u[i] = 1;
+		//}
 	}
 
 	Index cons_index = 0;
 	// Phase fraction balance constraint
-	if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+	//if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 		g_l[cons_index] = -1;
 		g_u[cons_index] = 0;
-	}
+	//}
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
-			if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+			//if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 				g_l[cons_index] = -1;
 				g_u[cons_index] = 0;
-			}
+			//}
 			++cons_index;
 		}
 	}
@@ -159,7 +161,7 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Number* lambda)
 {
 	for (Index i = 0; i < n; ++i) {
-		x[i] = .5;
+		x[i] = 0;
 	}
 	return true;
 }

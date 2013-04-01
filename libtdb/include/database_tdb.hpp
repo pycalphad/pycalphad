@@ -46,15 +46,20 @@ private:
 			RegisterParserCallback("PHASE", &DatabaseTDB::Phase);
 			RegisterParserCallback("CONSTITUENT", &DatabaseTDB::Constituent);
 			RegisterParserCallback("ADD_CONSTITUENT", &DatabaseTDB::Constituent);
+			RegisterParserCallback("CONST", &DatabaseTDB::Constituent);
 			RegisterParserCallback("FUNCTION", &DatabaseTDB::Function);
+			RegisterParserCallback("FUNCT", &DatabaseTDB::Function);
 			RegisterParserCallback("FUN", &DatabaseTDB::Function);
 			RegisterParserCallback("PARAMETER", &DatabaseTDB::Parameter);
 			RegisterParserCallback("PARA", &DatabaseTDB::Parameter);
+			RegisterParserCallback("PARAM", &DatabaseTDB::Parameter);
 
 			RegisterParserCallback("TYPE_DEFINITION", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("TYPE_DEF", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("DEFINE_SYSTEM_DEFAULT", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("DEFAULT_COMMAND", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("VERSION_DATE", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("REFERENCE_FILE", &DatabaseTDB::Unsupported_Command);
 	};
 	bool check_formula_validity(chemical_formula); // checks that chemical formula has all defined Elements
 

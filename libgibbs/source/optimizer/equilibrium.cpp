@@ -29,7 +29,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conds.phases.find(i->first) != conds.phases.end()) {
-			phase_col[i->first] = i->second;
+			if (conds.phases.at(i->first) == true) phase_col[i->first] = i->second;
 		}
 	}
 
@@ -49,6 +49,8 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 
 	//app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
+	app->Options()->SetNumericValue("tol",1e-12);
+	app->Options()->SetNumericValue("acceptable_tol",1e-9);
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
 

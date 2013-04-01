@@ -116,7 +116,8 @@ qi::grammar<std::string::const_iterator, spirit::utree(), ascii::space_type>::ba
 
 	expressions = (firstexpression >> *(lit('Y') >> expression) >> -(lit('Y') >> lastexpnomax))
 		| firstexpnomax
-		| (firstexpression >> lit('Y') >> lastexpnomax);
+		| (firstexpression >> lit('Y') >> lastexpnomax)
+		| firstexpression;
 
 	expressiontree = expressions[Trange(_val, _1)];
 

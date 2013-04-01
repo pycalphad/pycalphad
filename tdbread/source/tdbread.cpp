@@ -11,19 +11,22 @@ int main(int argc, char* argv[])
     return 1;
   }
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 1500;
+  mainconditions.statevars['T'] = 1300;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NI"] = 0.7;
-  mainconditions.xfrac["AL"] = 0.2;
-  mainconditions.xfrac["CR"] = 0.05;
-  mainconditions.xfrac["CO"] = 0.05;
-  mainconditions.elements.push_back("NI");
-  mainconditions.elements.push_back("AL");
-  mainconditions.elements.push_back("CR");
-  mainconditions.elements.push_back("CO");
+  mainconditions.xfrac["NB"] = 0.7;
+  mainconditions.xfrac["RE"] = 0.3;
+  //mainconditions.xfrac["CR"] = 0.05;
+  //mainconditions.xfrac["CO"] = 0.05;
+  mainconditions.elements.push_back("NB");
+  mainconditions.elements.push_back("RE");
+  //mainconditions.elements.push_back("CR");
+  //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
-  mainconditions.phases["FCC_A1"] = true;
+  mainconditions.phases["HCP_A3"] = true;
+  mainconditions.phases["BCC_A2"] = true;
+  mainconditions.phases["CHI"] = true;
+  mainconditions.phases["SIGMA1"] = false;
   mainconditions.phases["LIQUID"] = true;
 
   // init the database by reading from the .TDB specified on the command line
