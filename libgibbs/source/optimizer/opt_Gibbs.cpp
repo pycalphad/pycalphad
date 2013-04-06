@@ -41,7 +41,7 @@ GibbsOpt::GibbsOpt(
 	}
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
-		////std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
+		//std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
 		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
 		++varcount;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
@@ -111,22 +111,15 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
                             Index m_num, Number* g_l, Number* g_u)
 {
-	// We initialize the bounds but, once the solver is running,
-	// we only reset the bounds to fix inconsistencies.
-	// site and phase fractions have a lower bound of 0 and an upper bound of 1
 	for (Index i = 0; i < n; ++i) {
-		//if (x_u[i] < x_l[i] || x_l[i] == NULL || x_u[i] == NULL) {
-			x_l[i] = 0;
-			x_u[i] = 1;
-		//}
+		x_l[i] = 0;
+		x_u[i] = 1;
 	}
 
 	Index cons_index = 0;
 	// Phase fraction balance constraint
-	//if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
-		g_l[cons_index] = -1;
-		g_u[cons_index] = 0;
-	//}
+	g_l[cons_index] = -1e-6;
+	g_u[cons_index] = 1e-6;
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
@@ -134,9 +127,28 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
 			//if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
-				g_l[cons_index] = -1;
-				g_u[cons_index] = 0;
+				g_l[cons_index] = -1e-6;
+				g_u[cons_index] = 1e-6;
 			//}
+				Index speccount = 0;
+				// Iterating through the sublattice twice is not very efficient,
+				// but we only set bounds once and this is simpler to read
+				for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
+					// Check if this species in this sublattice is on our list of elements to investigate
+					if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
+						speccount = speccount + 1;
+					}
+				}
+				for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
+					// Check if this species in this sublattice is on our list of elements to investigate
+					if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
+						if (speccount != 1) break;
+						// Only one species in this sublattice, fix it constant
+						Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
+						x_l[sitefracindex] = x_u[sitefracindex] = 1;
+						g_l[cons_index] = g_u[cons_index] = 0;
+					}
+				}
 			++cons_index;
 		}
 	}
@@ -144,10 +156,10 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	// Mass balance constraint
 
 	for (auto i = 0; i < conditions.xfrac.size(); ++i) {
-		if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
+		//if (g_u[cons_index] < g_l[cons_index] || g_l[cons_index] == NULL || g_u[cons_index] == NULL) {
 			g_l[cons_index] = -1;
 			g_u[cons_index] = 0;
-		}
+		//}
 		++cons_index;
 	}
 
@@ -160,9 +172,39 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Index m, bool init_lambda,
 	Number* lambda)
 {
-	for (Index i = 0; i < n; ++i) {
-		x[i] = 0;
+	auto sitefrac_begin = var_map.sitefrac_iters.begin();
+	double result = 0;
+	int varcount = 0;
+	// all phases
+	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
+		const int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
+		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
+		double numphases = var_map.phasefrac_iters.size();
+		x[phaseindex] = 1 / numphases; // phase fraction
+		//std::cout << "x[" << phaseindex << "] = " << x[phaseindex] << std::endl;
+		++varcount;
+		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
+			double speccount = 0;
+			// Iterating through the sublattice twice is not very efficient,
+			// but we only set the starting values once and this is far simpler to read
+			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
+				// Check if this species in this sublattice is on our list of elements to investigate
+				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
+					speccount = speccount + 1;
+				}
+			}
+			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
+				// Check if this species in this sublattice is on our list of elements to investigate
+				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
+					int sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
+					x[sitefracindex] = 1 / speccount;
+					//std::cout << "x[" << sitefracindex << "] = " << x[sitefracindex] << std::endl;
+					++varcount;
+				}
+			}
+		}
 	}
+	assert(varcount == m);
 	return true;
 }
 
@@ -298,7 +340,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 				}
 			}
 			// Site fraction balance constraint
-			//std::cout << "g[" << cons_index << "] = " << sum_site_fracs << " - " << "1 = " << sum_site_fracs - 1 << std::endl;
+		    //std::cout << "g[" << cons_index << "] = " << sum_site_fracs << " - " << "1 = " << sum_site_fracs - 1 << std::endl;
 			g[cons_index] = sum_site_fracs - 1;
 			++cons_index;
 			subls_vec.push_back(subl_map);

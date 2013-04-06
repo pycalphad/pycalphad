@@ -11,7 +11,7 @@ int main(int argc, char* argv[])
     return 1;
   }
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 1300;
+  mainconditions.statevars['T'] = 800;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
   mainconditions.xfrac["NB"] = 0.7;
@@ -23,9 +23,10 @@ int main(int argc, char* argv[])
   //mainconditions.elements.push_back("CR");
   //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
-  mainconditions.phases["HCP_A3"] = true;
-  mainconditions.phases["BCC_A2"] = true;
+  mainconditions.phases["HCP_A3"] = false;
+  mainconditions.phases["BCC_A2"] = false;
   mainconditions.phases["CHI"] = false;
+  mainconditions.phases["FCC_A1"] = false;
   mainconditions.phases["SIGMA1"] = false;
   mainconditions.phases["LIQUID"] = true;
 

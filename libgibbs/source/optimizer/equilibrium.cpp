@@ -47,10 +47,11 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	// example with an Ipopt Windows DLL
 	SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
 
-	//app->Options()->SetStringValue("derivative_test","first-order");
+	app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
-	app->Options()->SetNumericValue("tol",1e-12);
-	app->Options()->SetNumericValue("acceptable_tol",1e-9);
+	app->Options()->SetNumericValue("tol",1e-9);
+	app->Options()->SetNumericValue("acceptable_tol",1e-6);
+	app->Options()->SetNumericValue("bound_relax_factor",1e-8);
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
 
@@ -64,7 +65,9 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 
 	status = app->OptimizeTNLP(mynlp);
 
-	if (status == Solve_Succeeded || status == Solved_To_Acceptable_Level) {
+	if (status == Solve_Succeeded ||
+			status == Solved_To_Acceptable_Level ||
+			status == Search_Direction_Becomes_Too_Small) {
 		// Retrieve some statistics about the solve
 		Index iter_count = app->Statistics()->IterationCount();
 		std::cout << std::endl << std::endl << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
@@ -159,7 +162,18 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     	for (auto g = cmp_begin; g != cmp_end; ++g) {
     		temp_buf << g->first << " " << (g->second.first / g->second.second) << "  ";
     	}
-    	temp_buf << std::endl;
+    	temp_buf << std::endl << "Constitution:" << std::endl;
+
+    	for (auto j = subl_begin; j != subl_end; ++j) {
+    		double stoi_coef = j->first;
+    		temp_buf << "Sublattice " << std::distance(subl_begin,j)+1 << ", Number of sites " << stoi_coef << std::endl;
+    		const auto spec_begin = j->second.cbegin();
+    		const auto spec_end = j->second.cend();
+    		for (auto k = spec_begin; k != spec_end; ++k) {
+                temp_buf << k->first << " " << k->second << " ";
+    		}
+    		temp_buf << std::endl;
+    	}
 
     	// if we're at the last phase, don't add an extra newline
     	if (std::distance(i,ph_end) != 1) temp_buf << std::endl;

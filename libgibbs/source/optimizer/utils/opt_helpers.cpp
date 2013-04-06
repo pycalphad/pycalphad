@@ -224,7 +224,7 @@ double get_Gibbs_deriv
 	result += SI_GAS_CONSTANT * conditions.statevars.at('T') * (1 + log(subl_find->at(specname))); 
 	}
 
-	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-H polynomials)
+	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-K polynomials)
 	result += 0;
 	////std::cout << "dGdy(" << phase_iter->first << ")(" << sublindex << ")(" << specname << "): " << result << std::endl;
 	return result;
