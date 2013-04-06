@@ -73,7 +73,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 		std::cout << std::endl << std::endl << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
 
 		Number final_obj = app->Statistics()->FinalObjective();
-		mingibbs = final_obj * conds.statevars.find('T')->second;
+		mingibbs = final_obj * conds.statevars.find('N')->second;
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
 		if (!opt_ptr) BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception type, some kind of nasty memory error
 		ph_map = opt_ptr->get_phase_map();

@@ -23,10 +23,10 @@ int main(int argc, char* argv[])
   //mainconditions.elements.push_back("CR");
   //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
-  mainconditions.phases["HCP_A3"] = false;
-  mainconditions.phases["BCC_A2"] = false;
+  mainconditions.phases["HCP_A3"] = true;
+  mainconditions.phases["BCC_A2"] = true;
   mainconditions.phases["CHI"] = false;
-  mainconditions.phases["FCC_A1"] = false;
+  mainconditions.phases["FCC_A1"] = true;
   mainconditions.phases["SIGMA1"] = false;
   mainconditions.phases["LIQUID"] = true;
 

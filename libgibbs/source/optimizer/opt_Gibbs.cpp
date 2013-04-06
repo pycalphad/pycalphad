@@ -235,7 +235,7 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 
 		double temp = get_Gibbs(subls_start, subls_end, cur_phase, conditions);
-		////std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
+		//std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
 		result += fL * temp;
 	}
 	obj_value = result;
