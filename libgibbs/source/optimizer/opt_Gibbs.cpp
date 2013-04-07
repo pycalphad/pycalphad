@@ -118,14 +118,16 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 	Index cons_index = 0;
 	// Phase fraction balance constraint
-	g_l[cons_index] = g_u[cons_index] = 0;
+	g_l[cons_index] = 0;
+	g_u[cons_index] = 0;
 	++cons_index;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 			// Site fraction balance constraint
-			g_l[cons_index] = g_u[cons_index] = 0;
+			g_l[cons_index] = 0;
+			g_u[cons_index] = 0;
 			Index speccount = 0;
 			// Iterating through the sublattice twice is not very efficient,
 			// but we only set bounds once and this is simpler to read
@@ -149,7 +151,8 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 
 	// Mass balance constraint
 	for (auto i = 0; i < conditions.xfrac.size(); ++i) {
-		g_l[cons_index] = g_u[cons_index] = 0;
+		g_l[cons_index] = -1e-15;
+		g_u[cons_index] = 1e-15;
 		++cons_index;
 	}
 

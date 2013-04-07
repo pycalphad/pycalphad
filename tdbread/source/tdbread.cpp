@@ -25,7 +25,7 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = true;
   mainconditions.phases["BCC_A2"] = true;
-  mainconditions.phases["CHI"] = false;
+  mainconditions.phases["CHI"] = true;
   mainconditions.phases["FCC_A1"] = true;
   mainconditions.phases["SIGMA1"] = true;
   mainconditions.phases["LIQUID"] = true;
