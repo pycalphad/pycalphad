@@ -47,7 +47,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	// example with an Ipopt Windows DLL
 	SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
 
-	app->Options()->SetStringValue("derivative_test","first-order");
+	//app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
 	app->Options()->SetNumericValue("tol",1e-9);
 	app->Options()->SetNumericValue("acceptable_tol",1e-6);
@@ -60,7 +60,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	status = app->Initialize();
 	if (status != Solve_Succeeded) {
 		std::cout << std::endl << std::endl << "*** Error during initialization!" << std::endl;
-		BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception to correct type
+		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Error initializing solver"));
 	}
 
 	status = app->OptimizeTNLP(mynlp);
@@ -75,12 +75,12 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 		Number final_obj = app->Statistics()->FinalObjective();
 		mingibbs = final_obj * conds.statevars.find('N')->second;
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
-		if (!opt_ptr) BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception type, some kind of nasty memory error
+		if (!opt_ptr)
+			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
 		ph_map = opt_ptr->get_phase_map();
-		//std::cout << std::endl << std::endl << "*** The final value of the objective function is " << final_obj << '.' << std::endl;
 	}
 	else {
-		BOOST_THROW_EXCEPTION(math_error()); // TODO: fix exception to correct type
+		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Solver failed to find equilibrium"));
 	}
 }
 
@@ -138,23 +138,40 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     	const auto subl_begin = i->second.second.cbegin();
     	const auto subl_end = i->second.second.cend();
     	for (auto j = subl_begin; j != subl_end; ++j) {
-    		double stoi_coef = j->first;
+    		const double stoi_coef = j->first;
+    		const double den = stoi_coef;
+    		const auto cond_spec_begin = eq.conditions.elements.cbegin();
+    		const auto cond_spec_end = eq.conditions.elements.cend();
     		const auto spec_begin = j->second.cbegin();
     		const auto spec_end = j->second.cend();
+    		const auto vacancy_iterator = (j->second).find("VA"); // this may point to spec_end
+    		/*
+    		 * To make sure all mole fractions sum to 1,
+    		 * we have to normalize everything using the same
+    		 * sublattices. That means even species which don't
+    		 * appear in a given sublattice need to have that
+    		 * sublattice's coefficient appear in its denominator.
+    		 * To accomplish this task, we perform two loops in each sublattice:
+    		 * 1) all species (except VA), to add to the denominator
+    		 * 2) only species in that sublattice, to add to the numerator
+    		 * With this method, all mole fractions will sum properly.
+    		 */
+    		for (auto k = cond_spec_begin; k != cond_spec_end; ++k) {
+    			if (*k == "VA") continue; // vacancies don't contribute to mole fractions
+				if (vacancy_iterator != spec_end) {
+					phase_comp[*k].second += den * (1 - vacancy_iterator->second);
+					global_comp[*k].second += phasefrac * den * (1 - vacancy_iterator->second);
+				}
+				else {
+					phase_comp[*k].second += den;
+					global_comp[*k].second += phasefrac * den;
+				}
+    		}
     		for (auto k = spec_begin; k != spec_end; ++k) {
     			if (k->first == "VA") continue; // vacancies don't contribute to mole fractions
                 double num = k->second * stoi_coef;
-                double den = stoi_coef;
                 phase_comp[k->first].first += num;
                 global_comp[k->first].first += phasefrac * num;
-				if ((j->second).find("VA") != spec_end) {
-					phase_comp[k->first].second += den * (1 - (*(j->second).find("VA")).second);
-					global_comp[k->first].second += phasefrac * den * (1 - (*(j->second).find("VA")).second);
-				}
-				else {
-					phase_comp[k->first].second += den;
-					global_comp[k->first].second += phasefrac * den;
-				}
     		}
     	}
     	const auto cmp_begin = phase_comp.cbegin();

@@ -27,6 +27,8 @@ struct bad_symbol_error: virtual math_error, parse_error { };
 
 struct range_check_error: virtual exception_base { };
 
+struct equilibrium_error: virtual exception_base { };
+
 struct io_error: virtual exception_base { };
 struct file_error: virtual io_error { };
 struct read_error: virtual io_error { };
