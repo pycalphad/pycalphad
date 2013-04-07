@@ -17,7 +17,7 @@ private:
 	std::string fullname; // name of the element
 	int atomic_number;
 public:
-	element_data() { };
+	element_data() : ele_sym(), fullname(), atomic_number() { };
 	element_data(std::string sym, std::string name, int atno) {
 		ele_sym = sym;
 		fullname = name;

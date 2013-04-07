@@ -51,7 +51,7 @@ struct Sublattice {
 	double stoi_coef; // site stoichiometric coefficient
 	std::vector<std::string> constituents; // list of constituents (must all be unique)
 	Sublattice(double o) { stoi_coef = o; }
-	Sublattice(std::vector<std::string> c) { constituents = c; }
+	Sublattice(std::vector<std::string> c) { constituents = c; stoi_coef = 0; }
 	Sublattice(double o, std::vector<std::string> c) { stoi_coef = o; constituents = c; }
 	std::vector<std::string>::const_iterator get_species_iterator() const { return constituents.cbegin(); }
 	std::vector<std::string>::const_iterator get_species_iterator_end() const { return constituents.cend(); }
