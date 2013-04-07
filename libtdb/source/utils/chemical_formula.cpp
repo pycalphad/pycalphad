@@ -32,7 +32,7 @@ chemical_formula make_chemical_formula (std::string formstr) {
 					try {
 						stoi_coef = boost::lexical_cast<double>(std::string(lastpos,pos));
 					}
-					catch (boost::bad_lexical_cast e) {
+					catch (boost::bad_lexical_cast &e) {
 						std::string err_msg ("Invalid stoichiometric coefficient: " + std::string(lastpos,pos));
 						BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 					}
@@ -94,7 +94,7 @@ chemical_formula make_chemical_formula (std::string formstr) {
 			try {
 				stoi_coef = boost::lexical_cast<double>(std::string(lastpos,pos));
 			}
-			catch (boost::bad_lexical_cast e) {
+			catch (boost::bad_lexical_cast &e) {
 				std::string err_msg ("Invalid stoichiometric coefficient: " + std::string(lastpos,pos));
 				BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 			}
