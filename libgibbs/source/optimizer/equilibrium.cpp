@@ -47,10 +47,10 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	// example with an Ipopt Windows DLL
 	SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
 
-	//app->Options()->SetStringValue("derivative_test","first-order");
+	app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
 	app->Options()->SetNumericValue("tol",1e-9);
-	app->Options()->SetNumericValue("acceptable_tol",1e-6);
+	app->Options()->SetNumericValue("acceptable_tol",1e-7);
 	app->Options()->SetNumericValue("bound_relax_factor",1e-8);
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
@@ -130,13 +130,13 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
     for (auto i = eq.ph_map.cbegin(); i != ph_end; ++i) {
-    	temp_buf << i->first << "\tStatus ENTERED  Driving force 0" << std::endl; // phase name
-    	double phasefrac = i->second.first;
-    	temp_buf << "Number of moles " << i->second.first * N << ", Mass ???? ";
-    	temp_buf << "Mole fractions:" << std::endl;
-    	std::map<std::string,std::pair<double,double>> phase_comp;
     	const auto subl_begin = i->second.second.cbegin();
     	const auto subl_end = i->second.second.cend();
+    	const double phasefrac = i->second.first;
+    	std::map<std::string,std::pair<double,double>> phase_comp;
+    	temp_buf << i->first << "\tStatus ENTERED  Driving force 0" << std::endl; // phase name
+    	temp_buf << "Number of moles " << i->second.first * N << ", Mass ???? ";
+    	temp_buf << "Mole fractions:" << std::endl;
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		const double stoi_coef = j->first;
     		const double den = stoi_coef;
@@ -195,10 +195,9 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     	// if we're at the last phase, don't add an extra newline
     	if (std::distance(i,ph_end) != 1) temp_buf << std::endl;
     }
-
-    stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     const auto glob_begin = global_comp.cbegin();
     const auto glob_end = global_comp.cend();
+    stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     for (auto h = glob_begin; h != glob_end; ++h) {
     	stream << h->first << " " << (h->second.first / h->second.second) * N << " ???? ???? ???? ????" << std::endl;
     }
