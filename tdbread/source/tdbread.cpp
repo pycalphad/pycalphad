@@ -25,19 +25,50 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = true;
   mainconditions.phases["BCC_A2"] = true;
-  mainconditions.phases["CHI"] = false;
+  mainconditions.phases["CHI"] = true;
   mainconditions.phases["FCC_A1"] = true;
-  mainconditions.phases["SIGMA1"] = false;
+  mainconditions.phases["SIGMA1"] = true;
   mainconditions.phases["LIQUID"] = true;
 
   // init the database by reading from the .TDB specified on the command line
   Database maindb(argv[1]);
   std::cout << maindb.get_info() << std::endl; // read out database infostring
-  // calculate the minimum Gibbs energy by constructing an equilibrium
-  Equilibrium myeq(maindb,mainconditions);
-
-  // print the resulting equilibrium
-  std::cout << std::endl << myeq << std::endl;
+  // try to calculate the minimum Gibbs energy by constructing an equilibrium
+  try {
+	  Equilibrium myeq(maindb,mainconditions);
+	  // print the resulting equilibrium
+	  std::cout << std::endl << myeq << std::endl;
+  }
+  catch (equilibrium_error &e) {
+		std::string specific_info, err_msg; // error message strings
+		if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+			specific_info = *mi;
+		}
+		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+			err_msg = *mi;
+		}
+		std::cerr << "Failed to construct equilibrium" << std::endl;
+		std::cerr << "Exception: " << err_msg << std::endl;
+		std::cerr << "Reason: " << specific_info << std::endl;
+		std::cerr << std::endl << std::endl << boost::diagnostic_information(e);
+  }
+  catch (boost::exception &e) {
+	  // catch any other uncaught Boost-enabled exceptions here
+	  std::string specific_info, err_msg; // error message strings
+	  if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+		  specific_info = *mi;
+	  }
+	  if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+		  err_msg = *mi;
+	  }
+	  std::cerr << "Exception: " << err_msg << std::endl;
+	  std::cerr << "Reason: " << specific_info << std::endl;
+	  std::cerr << std::endl << std::endl << boost::diagnostic_information(e);
+  }
+  catch (std::exception &e) {
+	  // last ditch effort to prevent the crash
+	  std::cerr << "Exception: " << e.what() << std::endl;
+  }
   return 0;
 
   // to test, enumerate all phases in database
