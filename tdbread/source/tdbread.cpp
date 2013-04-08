@@ -24,11 +24,11 @@ int main(int argc, char* argv[])
   //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = true;
-  mainconditions.phases["BCC_A2"] = true;
-  mainconditions.phases["CHI"] = true;
-  mainconditions.phases["FCC_A1"] = true;
-  mainconditions.phases["SIGMA1"] = true;
-  mainconditions.phases["LIQUID"] = true;
+  mainconditions.phases["BCC_A2"] = false;
+  mainconditions.phases["CHI"] = false;
+  mainconditions.phases["FCC_A1"] = false;
+  mainconditions.phases["SIGMA1"] = false;
+  mainconditions.phases["LIQUID"] = false;
 
   // init the database by reading from the .TDB specified on the command line
   Database maindb(argv[1]);
