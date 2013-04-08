@@ -23,22 +23,22 @@ double mole_fraction(
 			//std::cout << "ref size: " << std::distance(ref_subl_iter_start,ref_subl_iter_end) << std::endl;
 			//std::cout << "subl size: " << std::distance(subl_iter_start,subl_iter_end) << std::endl;
 		}
-		if (spec_name == "VA") {
-			return 0; // mole fraction of vacancies are always zero
-		}
+		//if (spec_name == "VA") {
+		//	return 0; // mole fraction of vacancies are always zero (for mass balancing purposes)
+		//}
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
-			double stoi_coef = (*ref_iter).stoi_coef;
-			////std::cout << "stoi_coef: " << stoi_coef << std::endl;
-			auto sitefrac_iter = (*i).find(spec_name);
-			if (sitefrac_iter != (*i).end()) {
-				double num = 0;
-				num = stoi_coef * sitefrac_iter->second;
-				double den = stoi_coef;
+			const double stoi_coef = (*ref_iter).stoi_coef;
+			const auto sitefrac_iter = (*i).find(spec_name);
+			const auto sitefrac_end = (*i).cend();
+			/*const auto vacancy_iterator = (*i).find("VA");
+			if (vacancy_iterator != sitefrac_end) {
+				denominator += stoi_coef * (1 - vacancy_iterator->second);
+			}
+			else denominator += stoi_coef;*/
+			denominator += stoi_coef;
+			if (sitefrac_iter != sitefrac_end) {
+				const double num = stoi_coef * sitefrac_iter->second;
 				numerator += num;
-				if ((*i).find("VA") != (*i).end()) {
-					denominator += den * (1 - (*(*i).find("VA")).second);
-				}
-				else denominator += den;
 				//std::cout << "mole_fraction[" << spec_name << "] numerator += " << stoi_coef << " * " << num << " = " << numerator << std::endl;
 				//std::cout << "mole_fraction[" << spec_name << "] denominator += " << stoi_coef * (1 - (*(*i).find("VA")).second) << " = " << denominator << std::endl;
 			}
@@ -71,17 +71,18 @@ double mole_fraction_deriv(
 			//std::cout << "ref size: " << std::distance(ref_subl_iter_start,ref_subl_iter_end) << std::endl;
 			//std::cout << "subl size: " << std::distance(subl_iter_start,subl_iter_end) << std::endl;
 		}
-		if (spec_name == "VA" || deriv_spec_name == "VA") {
-			return 0; // mole fraction of vacancies are always zero
-		}
-		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
+		/*if (spec_name == "VA" || deriv_spec_name == "VA") {
+			return 0; // mole fraction of vacancies are always zero (for mass balancing purposes)
+		}*/
+		for (auto i = subl_iter_start; i != subl_iter_end; ++i, ++ref_iter) {
+			const double stoi_coef = (*ref_iter).stoi_coef;
+			denominator += stoi_coef;
 			if ((*i).find(spec_name) != (*i).end()) {
-				double stoi_coef = (*ref_iter).stoi_coef;
 				////std::cout << "stoi_coef: " << stoi_coef << std::endl;
 				if (std::distance(subl_iter_start,i) == deriv_subl_index && ((*i).find(deriv_spec_name) != (*i).end())) {
 					numerator = stoi_coef;
 				}
-				if ((*i).find("VA") != (*i).end()) {
+				/*if ((*i).find("VA") != (*i).end()) {
 					denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
 					//std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
 					//std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
@@ -90,9 +91,8 @@ double mole_fraction_deriv(
 					denominator += stoi_coef;
 					//std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
 					//std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
-				}
+				}*/
 			}
-			++ref_iter;
 		}
 		if (denominator == 0) {
 			// TODO: throw an exception here
@@ -170,13 +170,19 @@ double get_Gibbs
 	// add energy contribution due to ideal mixing
 	// + RT*y(i,s)*ln(y(i,s))
 	double mixing = 0;
-	for (auto i = subl_start; i != subl_end; ++i) {
+	// This little hack to get the number of sites in this sublattice
+	// is indicative of the fact that the entire data structure for GibbsOpt
+	// needs to be rewritten to conform to the way Equilibrium does it.
+	auto subl_database_iter = phase_iter->second.get_sublattice_iterator();
+	for (auto i = subl_start; i != subl_end; ++i, ++subl_database_iter) {
+		const double num_sites = (*subl_database_iter).stoi_coef;
+		double sublmix = 0;
 		for (auto j = (*i).begin(); j != (*i).end(); ++j) {
 			if (j->second > 0) {
-				mixing += j->second * log(j->second);
+				sublmix += j->second * log(j->second);
 			}
-			//std::cout << "get_Gibbs(" << std::distance(subl_start,i) << ")(" << std::distance((*i).begin(),j) << "): mixing += " << j->second << " * " << log(j->second) << std::endl;
 		}
+		mixing += num_sites * sublmix;
 	}
 	//std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
 	mixing = SI_GAS_CONSTANT * conditions.statevars.at('T') * mixing;
@@ -207,26 +213,30 @@ double get_Gibbs_deriv
 	result += multiply_site_fractions_deriv(subl_start, subl_end, phase_iter, conditions, sublindex, specname);
 	//std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
 
-	// add energy constribution due to ideal mixing
+	// add energy contribution due to ideal mixing
 	auto subl_find = subl_start;
+	auto subl_database_iter = phase_iter->second.get_sublattice_iterator();
 	while (subl_find != subl_end) {
 		if (std::distance(subl_start,subl_find) == sublindex) break;
 		++subl_find;
+		++subl_database_iter;
 	}
 	if (subl_find == subl_end) {
 		// TODO: throw an exception
 		// we didn't find our sublattice
 		//std::cout << "get_Gibbs_deriv: couldn't find the corresponding sublattice for mixing parameter" << std::endl;
 	}
-	// + RT * (1 + ln(y(specindex,sublindex)))
+	// number of sites for this sublattice
+	const double num_sites = (*subl_database_iter).stoi_coef;
+	// + RT * num_sites * (1 + ln(y(specindex,sublindex)))
 	if (subl_find->at(specname) > 0) { 
-	//std::cout << "get_Gibbs_deriv: mixing result += " << SI_GAS_CONSTANT << "*" << conditions.statevars.at('T') << "*" << "(1 + log(" << subl_find->at(specname) << "))" << std::endl;
-	result += SI_GAS_CONSTANT * conditions.statevars.at('T') * (1 + log(subl_find->at(specname))); 
+	//std::cout << "get_Gibbs_deriv: mixing result += " << SI_GAS_CONSTANT << "*" << conditions.statevars.at('T') << "*" << num_sites << "*" << "(1 + log(" << subl_find->at(specname) << "))" << std::endl;
+	result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
 	}
 
 	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-K polynomials)
 	result += 0;
-	////std::cout << "dGdy(" << phase_iter->first << ")(" << sublindex << ")(" << specname << "): " << result << std::endl;
+	//std::cout << "dGdy(" << phase_iter->first << ")(" << sublindex << ")(" << specname << "): " << result << std::endl;
 	return result;
 	// + RT*y(i,s)*ln(y(i,s))
 }
