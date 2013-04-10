@@ -14,8 +14,8 @@ int main(int argc, char* argv[])
   mainconditions.statevars['T'] = 800;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NB"] = 0.2;
-  mainconditions.xfrac["RE"] = 0.8;
+  mainconditions.xfrac["NB"] = 0.5;
+  //mainconditions.xfrac["RE"] = 0.9;
   //mainconditions.xfrac["CR"] = 0.05;
   //mainconditions.xfrac["CO"] = 0.05;
   mainconditions.elements.push_back("NB");
@@ -24,7 +24,7 @@ int main(int argc, char* argv[])
   //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = true;
-  mainconditions.phases["BCC_A2"] = false;
+  mainconditions.phases["BCC_A2"] = true;
   mainconditions.phases["CHI"] = false;
   mainconditions.phases["FCC_A1"] = false;
   mainconditions.phases["SIGMA1"] = false;

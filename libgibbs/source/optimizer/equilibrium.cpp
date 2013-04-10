@@ -109,7 +109,7 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 	}
 	stream << std::endl;
 	// should be c + 2 - conditions, where c is the number of components
-	size_t dof = eq.conditions.elements.size() + 2 - eq.conditions.xfrac.size() - eq.conditions.statevars.size();
+	size_t dof = eq.conditions.elements.size() + 2 - (eq.conditions.xfrac.size()+1) - eq.conditions.statevars.size();
 	stream << "DEGREES OF FREEDOM " << dof << std::endl;
 
 	stream << std::endl;

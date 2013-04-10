@@ -26,30 +26,34 @@ double mole_fraction(
 		//if (spec_name == "VA") {
 		//	return 0; // mole fraction of vacancies are always zero (for mass balancing purposes)
 		//}
-		for (auto i = subl_iter_start; i != subl_iter_end; ++i) {
+		for (auto i = subl_iter_start; i != subl_iter_end; ++i, ++ref_iter) {
 			const double stoi_coef = (*ref_iter).stoi_coef;
 			const auto sitefrac_iter = (*i).find(spec_name);
+			const auto sitefrac_begin = (*i).cbegin();
 			const auto sitefrac_end = (*i).cend();
-			/*const auto vacancy_iterator = (*i).find("VA");
-			if (vacancy_iterator != sitefrac_end) {
+			const auto vacancy_iterator = (*i).find("VA");
+			/*if (vacancy_iterator != sitefrac_end) {
 				denominator += stoi_coef * (1 - vacancy_iterator->second);
 			}
 			else denominator += stoi_coef;*/
-			denominator += stoi_coef;
+			const bool pure_vacancies =
+					(std::distance(sitefrac_begin,sitefrac_end) == 1 && sitefrac_begin==vacancy_iterator);
+			// if the sublattice is pure vacancies, don't include it in the denominator
+			// unless we're calculating mole fraction of VA for some reason
+			if (!(pure_vacancies && spec_name != "VA")) denominator += stoi_coef;
 			if (sitefrac_iter != sitefrac_end) {
 				const double num = stoi_coef * sitefrac_iter->second;
 				numerator += num;
 				//std::cout << "mole_fraction[" << spec_name << "] numerator += " << stoi_coef << " * " << num << " = " << numerator << std::endl;
 				//std::cout << "mole_fraction[" << spec_name << "] denominator += " << stoi_coef * (1 - (*(*i).find("VA")).second) << " = " << denominator << std::endl;
 			}
-			++ref_iter;
 		}
 		if (denominator == 0) {
 			// TODO: throw an exception here
 			//std::cout << "DIVIDE BY ZERO" << std::endl;
 			return 0;
 		}
-		//std::cout << "mole_fraction = " << numerator << " / " << denominator << " = " << (numerator / denominator) << std::endl;
+		std::cout << "mole_fraction = " << numerator << " / " << denominator << " = " << (numerator / denominator) << std::endl;
 		return (numerator / denominator);
 }
 
@@ -76,7 +80,14 @@ double mole_fraction_deriv(
 		}*/
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i, ++ref_iter) {
 			const double stoi_coef = (*ref_iter).stoi_coef;
-			denominator += stoi_coef;
+			const auto sitefrac_begin = (*i).cbegin();
+			const auto sitefrac_end = (*i).cend();
+			const auto vacancy_iterator = (*i).find("VA");
+			const bool pure_vacancies =
+					(std::distance(sitefrac_begin,sitefrac_end) == 1 && sitefrac_begin==vacancy_iterator);
+			// if the sublattice is pure vacancies, don't include it in the denominator
+			// unless we're calculating mole fraction of VA for some reason
+			if (!(pure_vacancies && spec_name != "VA")) denominator += stoi_coef;
 			if ((*i).find(spec_name) != (*i).end()) {
 				////std::cout << "stoi_coef: " << stoi_coef << std::endl;
 				if (std::distance(subl_iter_start,i) == deriv_subl_index && ((*i).find(deriv_spec_name) != (*i).end())) {
