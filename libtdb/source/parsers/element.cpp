@@ -34,7 +34,7 @@ void Database::DatabaseTDB::Element(std::string &argstr) {
 		H298 = boost::lexical_cast<double>(splitargs[3]);
 		S298 = boost::lexical_cast<double>(splitargs[4]);
 	}
-	catch (boost::bad_lexical_cast &e) {
+	catch (boost::bad_lexical_cast &) {
 		std::string err_msg ("Non-numeric input for numeric parameter");
 		BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 	}

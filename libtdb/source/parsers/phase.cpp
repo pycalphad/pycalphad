@@ -54,7 +54,7 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 		++i;
 		// now at first site stoi_coef argument
 	}
-	catch (boost::bad_lexical_cast &e) {
+	catch (boost::bad_lexical_cast &) {
 		std::string err_msg ("Non-integer input for integer parameter");
 		BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 	}
@@ -75,7 +75,7 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 			++i;
 		}
 	}
-	catch (boost::bad_lexical_cast &e) {
+	catch (boost::bad_lexical_cast &) {
 		std::string err_msg ("Non-numeric input for numeric parameter");
 		BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 	}
