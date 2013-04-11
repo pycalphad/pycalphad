@@ -29,6 +29,9 @@ struct range_check_error: virtual exception_base { };
 
 struct equilibrium_error: virtual exception_base { };
 
+struct internal_error: virtual exception_base { };
+struct malformed_object_error: virtual internal_error { };
+
 struct io_error: virtual exception_base { };
 struct file_error: virtual io_error { };
 struct read_error: virtual io_error { };

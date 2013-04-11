@@ -18,29 +18,32 @@ double mole_fraction(
 		double numerator = 0;
 		double denominator = 0;
 		if (std::distance(ref_subl_iter_start,ref_subl_iter_end) != std::distance(subl_iter_start,subl_iter_end)) {
-			// these iterators should have ranges of the same size
-			// TODO: throw an exception here
+			// these iterator ranges should be the same size
+			BOOST_THROW_EXCEPTION(internal_error()
+					<< str_errinfo("Sublattice iterator ranges from database are a different size from the minimizer's internal map")
+					<< specific_errinfo("std::distance(ref_subl_iter_start,ref_subl_iter_end) != std::distance(subl_iter_start,subl_iter_end)")
+			);
 			//std::cout << "ref size: " << std::distance(ref_subl_iter_start,ref_subl_iter_end) << std::endl;
 			//std::cout << "subl size: " << std::distance(subl_iter_start,subl_iter_end) << std::endl;
 		}
-		//if (spec_name == "VA") {
-		//	return 0; // mole fraction of vacancies are always zero (for mass balancing purposes)
-		//}
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i, ++ref_iter) {
-			const double stoi_coef = (*ref_iter).stoi_coef;
-			const auto sitefrac_iter = (*i).find(spec_name);
+			//std::cout << "sublattice " << std::distance(subl_iter_start,i) << std::endl;
 			const auto sitefrac_begin = (*i).cbegin();
 			const auto sitefrac_end = (*i).cend();
-			const auto vacancy_iterator = (*i).find("VA");
-			/*if (vacancy_iterator != sitefrac_end) {
-				denominator += stoi_coef * (1 - vacancy_iterator->second);
+			if (std::distance(sitefrac_begin,sitefrac_end) == 0) {
+				// empty sublattice?!
+				BOOST_THROW_EXCEPTION(malformed_object_error() << str_errinfo("Sublattices cannot be empty"));
 			}
-			else denominator += stoi_coef;*/
+			const double stoi_coef = (*ref_iter).stoi_coef;
+			const auto sitefrac_iter = (*i).find(spec_name);
+			const auto vacancy_iterator = (*i).find("VA");
 			const bool pure_vacancies =
 					(std::distance(sitefrac_begin,sitefrac_end) == 1 && sitefrac_begin==vacancy_iterator);
+			//std::cout << sitefrac_iter->first << " stoi_coef: " << stoi_coef << std::endl;
+			//std::cout << "std::distance(sitefrac_begin,sitefrac_end) == " << std::distance(sitefrac_begin,sitefrac_end) << std::endl;
 			// if the sublattice is pure vacancies, don't include it in the denominator
 			// unless we're calculating mole fraction of VA for some reason
-			if (!(pure_vacancies && spec_name != "VA")) denominator += stoi_coef;
+			if (!pure_vacancies || spec_name == "VA") denominator += stoi_coef;
 			if (sitefrac_iter != sitefrac_end) {
 				const double num = stoi_coef * sitefrac_iter->second;
 				numerator += num;
@@ -53,7 +56,7 @@ double mole_fraction(
 			//std::cout << "DIVIDE BY ZERO" << std::endl;
 			return 0;
 		}
-		std::cout << "mole_fraction = " << numerator << " / " << denominator << " = " << (numerator / denominator) << std::endl;
+		//std::cout << "mole_fraction = " << numerator << " / " << denominator << " = " << (numerator / denominator) << std::endl;
 		return (numerator / denominator);
 }
 
@@ -70,39 +73,33 @@ double mole_fraction_deriv(
 		double numerator = 0;
 		double denominator = 0;
 		if (std::distance(ref_subl_iter_start,ref_subl_iter_end) != std::distance(subl_iter_start,subl_iter_end)) {
-			// these iterators should have ranges of the same size
-			// TODO: throw an exception here
+			// these iterator ranges should be the same size
+			BOOST_THROW_EXCEPTION(internal_error()
+					<< str_errinfo("Sublattice iterator ranges from database are a different size from the minimizer's internal map")
+					<< specific_errinfo("std::distance(ref_subl_iter_start,ref_subl_iter_end) != std::distance(subl_iter_start,subl_iter_end)")
+			);
 			//std::cout << "ref size: " << std::distance(ref_subl_iter_start,ref_subl_iter_end) << std::endl;
 			//std::cout << "subl size: " << std::distance(subl_iter_start,subl_iter_end) << std::endl;
 		}
-		/*if (spec_name == "VA" || deriv_spec_name == "VA") {
-			return 0; // mole fraction of vacancies are always zero (for mass balancing purposes)
-		}*/
 		for (auto i = subl_iter_start; i != subl_iter_end; ++i, ++ref_iter) {
 			const double stoi_coef = (*ref_iter).stoi_coef;
 			const auto sitefrac_begin = (*i).cbegin();
 			const auto sitefrac_end = (*i).cend();
+			if (std::distance(sitefrac_begin,sitefrac_end) == 0) {
+				// empty sublattice?!
+				BOOST_THROW_EXCEPTION(malformed_object_error() << str_errinfo("Sublattices cannot be empty"));
+			}
 			const auto vacancy_iterator = (*i).find("VA");
 			const bool pure_vacancies =
 					(std::distance(sitefrac_begin,sitefrac_end) == 1 && sitefrac_begin==vacancy_iterator);
 			// if the sublattice is pure vacancies, don't include it in the denominator
 			// unless we're calculating mole fraction of VA for some reason
-			if (!(pure_vacancies && spec_name != "VA")) denominator += stoi_coef;
+			if (!pure_vacancies || spec_name == "VA") denominator += stoi_coef;
 			if ((*i).find(spec_name) != (*i).end()) {
 				////std::cout << "stoi_coef: " << stoi_coef << std::endl;
 				if (std::distance(subl_iter_start,i) == deriv_subl_index && ((*i).find(deriv_spec_name) != (*i).end())) {
 					numerator = stoi_coef;
 				}
-				/*if ((*i).find("VA") != (*i).end()) {
-					denominator += stoi_coef * (1 - (*(*i).find("VA")).second);
-					//std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
-					//std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
-				}
-				else {
-					denominator += stoi_coef;
-					//std::cout << "mole_fraction_deriv numerator += " << numerator << std::endl;
-					//std::cout << "mole_fraction_deriv denominator += " << denominator << std::endl;
-				}*/
 			}
 		}
 		if (denominator == 0) {

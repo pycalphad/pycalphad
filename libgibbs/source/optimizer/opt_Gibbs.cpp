@@ -73,7 +73,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   Index phasecount = 0;
   Index sitefraccount = 0;
   Index sitebalances = 0;
-  Index speccount = (Index) conditions.xfrac.size();
+  Index speccount = (Index) conditions.xfrac.size() + 1;
   auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
   for (auto i = var_map.sitefrac_iters.cbegin(); i != var_map.sitefrac_iters.cend(); ++i) {
 	  const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
@@ -99,12 +99,13 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   // one phase fraction balance equality constraint (for multi-phase)
   // plus all the sublattice fraction balance constraints
   // plus all the mass balance constraints
-  if (phasecount > 1) m = 1 + sitebalances + speccount;
-  else m = sitebalances + speccount;
+  if (phasecount > 1) m = 1 + sitebalances + (speccount-1);
+  else m = sitebalances + (speccount-1);
 
   // nonzeros in the jacobian of the lagrangian
-  nnz_jac_g = phasecount + speccount*phasecount + 2 * sitefraccount; // this is potentially an overestimate
-
+  // TODO: Adding an extra factor of 2 shouldn't fix anything, and yet it makes the heap errors disappear
+  nnz_jac_g = 2*(phasecount + speccount*phasecount + 2 * sitefraccount); // this is potentially an overestimate
+  std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
   // nonzeros in the hessian of the lagrangian
   //nnz_h_lag = (phasecount * sitefraccount) + phasecount * (1 + speccount) + sitefraccount * (1 + sublcount + speccount);
 
@@ -362,7 +363,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
 				// Check if this species in this sublattice is on our list of elements to investigate
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					int sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
+					Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
 					subl_map[*k] = x[sitefracindex];
 					////std::cout << "Sublattice " << std::distance(cur_phase->second.get_sublattice_iterator(),j) << std::endl;
 					////std::cout << "subl_map[" << *k << "] = x[" << sitefracindex << "] = " << x[sitefracindex] << std::endl;
@@ -408,7 +409,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 			sumterm += x[(*i).get<0>()] * molefrac;
 		}
 		// Mass balance constraint
-		std::cout << "g[" << cons_index << "] = " << sumterm << " - " << m->second << " = " << (sumterm - m->second) << std::endl;
+		//std::cout << "g[" << cons_index << "] = " << sumterm << " - " << m->second << " = " << (sumterm - m->second) << std::endl;
 		g[cons_index] = sumterm - m->second;
 		++cons_index;
 	}
@@ -427,7 +428,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		Index jac_index = 0;
 		const auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
 		const auto sitefrac_end = var_map.sitefrac_iters.cend();
-		sitefracs thesitefracs;
+		//sitefracs thesitefracs;
 		for (auto i = sitefrac_begin; i != sitefrac_end; ++i) {
 			const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 			const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
@@ -439,20 +440,24 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				jCol[jac_index] = phaseindex;
 				//values[jac_index] = 1;
 				++jac_index;
+				if (cons_index == 0) ++cons_index;
 			}
 
-			double sum_site_fracs = 0;
-			sublattice_vector subls_vec;
+			//double sum_site_fracs = 0;
+			//sublattice_vector subls_vec;
 			for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
 				const auto spec_begin = (*j).get_species_iterator();
 				const auto spec_end = (*j).get_species_iterator_end();
 				int speccount = 0;
-				std::map<std::string,double> subl_map;
+				//std::map<std::string,double> subl_map;
 
 				for (auto k = spec_begin; k != spec_end; ++k) {
 					// Check if this species in this sublattice is on our list of elements to investigate
 					if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
 						++speccount;
+						Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
+						//subl_map[*k] = x[sitefracindex];
+						//sum_site_fracs += subl_map[*k];
 					}
 				}
 				if (speccount > 1) {
@@ -461,12 +466,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 					for (auto k = spec_begin; k != spec_end; ++k) {
 						// Check if this species in this sublattice is on our list of elements to investigate
 						if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-							Index sitefracindex;
-							sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
-							////std::cout << "sitefracindex = " << sitefracindex << std::endl;
-							//subl_map[*k] = x[sitefracindex];
-							//sum_site_fracs  += subl_map[*k];
 							// Site fraction balance constraint
+							Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
 							//std::cout << "iRow[" << jac_index << "] = " << cons_index << "; jCol[" << jac_index << "] = " << sitefracindex << std::endl;
 							iRow[jac_index] = cons_index;
 							jCol[jac_index] = sitefracindex;
@@ -476,9 +477,9 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 					}
 					++cons_index;
 				}
-				subls_vec.push_back(subl_map);
+				//subls_vec.push_back(subl_map);
 			}
-			thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
+			//thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
 		}
 
 		// Mass balance constraint
@@ -509,9 +510,9 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 				//const double fL = x[phaseindex]; // phase fraction
 
-				sublattice_vector subls_vec;
+				//sublattice_vector subls_vec;
 				for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-					std::map<std::string,double> subl_map;
+					//std::map<std::string,double> subl_map;
 					int sublindex = std::distance(cur_phase->second.get_sublattice_iterator(),j);
 					for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
 						// Check if this species in this sublattice is on our list of elements to investigate
@@ -525,7 +526,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 							++jac_index;
 						}
 					}
-					subls_vec.push_back(subl_map);
+					//subls_vec.push_back(subl_map);
 				}
 			}
 			// Mass balance
@@ -533,6 +534,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		}
 		assert (cons_index == m_num);
 		//std::cout << "assertion succeeded" << std::endl;
+		//std::cout << "exit eval_jac_g values==NULL" << std::endl;
+		std::cout << "jac_index: " << jac_index << std::endl;
 	}
 	else {
 		//std::cout << "entering eval_jac_g with values" << std::endl;
@@ -552,6 +555,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				//std::cout << "jac_g values[" << jac_index << "] = 1" << std::endl;
 				values[jac_index] = 1;
 				++jac_index;
+				if (cons_index == 0) ++cons_index;
 			}
 
 			sublattice_vector subls_vec;
@@ -564,6 +568,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 					// Check if this species in this sublattice is on our list of elements to investigate
 					if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
 						++speccount;
+						Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
+						subl_map[*k] = x[sitefracindex];
 					}
 				}
 				if (speccount > 1) {
@@ -571,11 +577,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 					// Handle the site fraction balance constraints
 					for (auto k = spec_begin; k != spec_end; ++k) {
 						// Check if this species in this sublattice is on our list of elements to investigate
-						Index sitefracindex;
 						if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-							sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
-							subl_map[*k] = x[sitefracindex];
-							////std::cout << "subl_map[" << *k << "] = x[" << sitefracindex << "] = " << x[sitefracindex] << std::endl;
 							// Site fraction balance constraint
 							//iRow[jac_index] = cons_index;
 							//jCol[jac_index] = sitefracindex;
@@ -622,15 +624,12 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				sublattice_vector::const_iterator subls_end = (thesitefracs[std::distance(sitefrac_begin,i)].second).cend();
 				double fL = x[phaseindex]; // phase fraction
 
-				sublattice_vector subls_vec;
 				for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-					std::map<std::string,double> subl_map;
 					int sublindex = std::distance(cur_phase->second.get_sublattice_iterator(),j);
 					for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
 						// Check if this species in this sublattice is on our list of elements to investigate
 						if ((*k) == (*m).first) {
 							Index sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][sublindex][*k].first;
-							subl_map[*k] = x[sitefracindex];
 							//iRow[jac_index] = cons_index;
 							//jCol[jac_index] = sitefracindex;
 							double molefrac_deriv = mole_fraction_deriv(
@@ -655,22 +654,19 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		}
 		//std::cout << "complete jac_index: " << jac_index << std::endl;
 		assert(cons_index == m_num);
+		//std::cout << "exit eval_jac_g with values" << std::endl;
 	}
 	//std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
-	}
+}
 
 bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
                    Number obj_factor, Index m, const Number* lambda,
                    bool new_lambda, Index nele_hess, Index* iRow,
                    Index* jCol, Number* values)
 {
-	// TODO: fix
-  for (Index i = 0; i < n; ++i) {
-	  values[i] = 0;
-  }
-
-  return false;
+	// No explicit evaluation of the Hessian
+	return false;
 }
 
 void GibbsOpt::finalize_solution(SolverReturn status,
