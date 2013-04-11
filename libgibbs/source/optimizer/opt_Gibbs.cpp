@@ -96,7 +96,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 
   // number of variables
   n = sitefraccount + phasecount;
-  // one phase fraction balance equality constraint (for multi-phase)
+  // one phase fraction balance constraint (for multi-phase)
   // plus all the sublattice fraction balance constraints
   // plus all the mass balance constraints
   if (phasecount > 1) m = 1 + sitebalances + (speccount-1);
@@ -104,7 +104,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 
   // nonzeros in the jacobian of the lagrangian
   // TODO: Adding an extra factor of 2 shouldn't fix anything, and yet it makes the heap errors disappear
-  nnz_jac_g = 2*(phasecount + speccount*phasecount + 2 * sitefraccount); // this is potentially an overestimate
+  nnz_jac_g = (phasecount + speccount*phasecount + 2 * sitefraccount); // this is potentially an overestimate
   std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
   // nonzeros in the hessian of the lagrangian
   //nnz_h_lag = (phasecount * sitefraccount) + phasecount * (1 + speccount) + sitefraccount * (1 + sublcount + speccount);
@@ -263,8 +263,8 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
-  // return the gradient of the objective function grad_{x} f(x)
-
+	// return the gradient of the objective function grad_{x} f(x)
+	std::cout << "enter eval_grad_f" << std::endl;
 	// calculate dF/dy(l,s,j)
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	int varcheck = 0;
@@ -290,7 +290,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 		// calculate dF/dfL
 		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
-		//std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
+		std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
 		grad_f[phaseindex] = Gibbs; ++varcheck;
 
 		// each sublattice
@@ -313,7 +313,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 					);
 				// k->second.first = index
 				grad_f[k->second.first] = fL * dGdy; ++varcheck;
-				//std::cout << "grad_f[" << k->second.first << "] = " << fL << " * " << dGdy << " = " << fL * dGdy << std::endl;
+				std::cout << "grad_f[" << k->second.first << "] = " << fL << " * " << dGdy << " = " << fL * dGdy << std::endl;
 			}
 		}
 	}
@@ -325,8 +325,8 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 		double Gibbs = get_Gibbs(subls_start, subls_end, (*i).get<2>(),conditions);
 		grad_f[(*i).get<0>()] = Gibbs;
 	}*/
-
-  return true;
+	std::cout << "exit eval_grad_f" << std::endl;
+	return true;
 }
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
@@ -534,8 +534,11 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		}
 		assert (cons_index == m_num);
 		//std::cout << "assertion succeeded" << std::endl;
-		//std::cout << "exit eval_jac_g values==NULL" << std::endl;
-		std::cout << "jac_index: " << jac_index << std::endl;
+		std::cout << "exit eval_jac_g values==NULL" << std::endl;
+		for (Index i = 0; i < jac_index; ++i) {
+			std::cout << "jac_index " << i << ": " << iRow[i] << " " << jCol[i] << std::endl;
+		}
+		std::cout << "n = " << n << std::endl;
 	}
 	else {
 		//std::cout << "entering eval_jac_g with values" << std::endl;
