@@ -49,8 +49,8 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 
 	app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
-	//app->Options()->SetNumericValue("tol",1e-9);
-	//app->Options()->SetNumericValue("acceptable_tol",1e-7);
+	//app->Options()->SetNumericValue("tol",1e-12);
+	//app->Options()->SetNumericValue("acceptable_tol",1e-9);
 	//app->Options()->SetNumericValue("bound_relax_factor",1e-7);
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
