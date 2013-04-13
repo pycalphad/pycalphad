@@ -31,6 +31,7 @@ bool is_allowed_value(T &val) {
 		return false;
 	}
 }
+template bool is_allowed_value(double&); // explicit instantiation
 
 boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalconditions const& conditions) {
 	typedef boost::spirit::utree utree;
@@ -77,10 +78,10 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						++it;
 						double highlimit = process_utree(*it, conditions).get<double>();
 
-						if (!is_allowed_value(curT)) {
+						if (!is_allowed_value<double>(curT)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable is infinite, subnormal, or not a number"));
 						}
-						if (!is_allowed_value(lowlimit) || !is_allowed_value(highlimit)) {
+						if (!is_allowed_value<double>(lowlimit) || !is_allowed_value<double>(highlimit)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable limits are infinite, subnormal, or not a number"));
 						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
@@ -134,7 +135,8 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 						else res += (lhs / rhs);
 					}
 					else if (op == "**") {
-						if (lhs < 0 && (abs(rhs) < 1 && abs(rhs) > 0)) {
+						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
+							std::cout << "throwing domain_error" << std::endl;
 							// the result is complex
 							// we do not support this (for now)
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));

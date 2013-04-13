@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// derivative.cpp -- support for automatic differentiation
+// derivative.cpp -- support for a differentiation
 
 #include "libtdb/include/libtdb_pch.hpp"
 #include "libtdb/include/warning_disable.hpp"
@@ -60,10 +60,10 @@ boost::spirit::utree const differentiate_utree
 						++it;
 						double highlimit = process_utree(*it, conditions).get<double>();
 
-						if (!is_allowed_value(curT)) {
+						if (!is_allowed_value<double>(curT)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable is infinite, subnormal, or not a number"));
 						}
-						if (!is_allowed_value(lowlimit) || !is_allowed_value(highlimit)) {
+						if (!is_allowed_value<double>(lowlimit) || !is_allowed_value<double>(highlimit)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable limits are infinite, subnormal, or not a number"));
 						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
