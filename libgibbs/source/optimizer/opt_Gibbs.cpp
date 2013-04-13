@@ -120,9 +120,6 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	  // single-phase case
 	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
   }
-  std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
-  std::cout << "balanced_species_in_each_sublattice = " << balanced_species_in_each_sublattice << std::endl;
-  std::cout << "balancedsitefraccount = " << balancedsitefraccount << std::endl;
 
   index_style = C_STYLE;
   return true;
@@ -279,7 +276,6 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// return the gradient of the objective function grad_{x} f(x)
-	std::cout << "enter eval_grad_f" << std::endl;
 	// calculate dF/dy(l,s,j)
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	int varcheck = 0;
@@ -305,7 +301,6 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 		// calculate dF/dfL
 		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
-		std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
 		grad_f[phaseindex] = Gibbs; ++varcheck;
 
 		// each sublattice
@@ -328,19 +323,10 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 					);
 				// k->second.first = index
 				grad_f[k->second.first] = fL * dGdy; ++varcheck;
-				std::cout << "grad_f[" << k->second.first << "] = " << fL << " * " << dGdy << " = " << fL * dGdy << std::endl;
 			}
 		}
 	}
 	assert (varcheck == n);
-	// calculate dF/dfL
-	/*for (auto i = var_map.phasefrac_iters.begin(); i != var_map.phasefrac_iters.end(); ++i) {
-		sublattice_vector::const_iterator subls_start = (mysitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cbegin();
-		sublattice_vector::const_iterator subls_end = (mysitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cend();
-		double Gibbs = get_Gibbs(subls_start, subls_end, (*i).get<2>(),conditions);
-		grad_f[(*i).get<0>()] = Gibbs;
-	}*/
-	std::cout << "exit eval_grad_f" << std::endl;
 	return true;
 }
 
@@ -548,15 +534,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			++cons_index;
 		}
 		assert (cons_index == m_num);
-		//std::cout << "assertion succeeded" << std::endl;
-		std::cout << "exit eval_jac_g values==NULL" << std::endl;
-		for (Index i = 0; i < jac_index; ++i) {
-			std::cout << "jac_index " << i << ": " << iRow[i] << " " << jCol[i] << std::endl;
-		}
-		std::cout << "n = " << n << std::endl;
 	}
 	else {
-		//std::cout << "entering eval_jac_g with values" << std::endl;
 		Index cons_index = 0;
 		Index jac_index = 0;
 		const auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
