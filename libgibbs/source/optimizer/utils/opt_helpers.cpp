@@ -234,12 +234,11 @@ double get_Gibbs_deriv
 		// we didn't find our sublattice
 		//std::cout << "get_Gibbs_deriv: couldn't find the corresponding sublattice for mixing parameter" << std::endl;
 	}
-	// number of sites for this sublattice
-	const double num_sites = (*subl_database_iter).stoi_coef;
-	// + RT * num_sites * (1 + ln(y(specindex,sublindex)))
 	if (subl_find->at(specname) > 0) { 
-	//std::cout << "get_Gibbs_deriv: mixing result += " << SI_GAS_CONSTANT << "*" << conditions.statevars.at('T') << "*" << num_sites << "*" << "(1 + log(" << subl_find->at(specname) << "))" << std::endl;
-	result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
+		// number of sites for this sublattice
+		// + RT * num_sites * (1 + ln(y(specindex,sublindex)))
+		const double num_sites = (*subl_database_iter).stoi_coef;
+		result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
 	}
 
 	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-K polynomials)
