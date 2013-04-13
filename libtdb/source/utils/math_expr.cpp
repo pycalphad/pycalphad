@@ -136,7 +136,6 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 					}
 					else if (op == "**") {
 						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
-							std::cout << "throwing domain_error" << std::endl;
 							// the result is complex
 							// we do not support this (for now)
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
