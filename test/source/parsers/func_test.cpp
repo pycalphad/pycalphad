@@ -12,7 +12,7 @@
 #include "test/include/fixtures/fixture_func.hpp"
 #include <string>
 #include <limits>
-#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_STATIC_LINK
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(FuncParserSuite, FuncParserFixture)

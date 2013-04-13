@@ -80,7 +80,7 @@ public:
 
 	void set_info(std::string &infostring) { info = infostring; }; // set infostring for the database
 	std::string get_info() { return info; } // get infostring for database
-	(::Element) get_element(std::string s) { return elements[s]; }
+	::Element get_element(std::string s) { return elements[s]; }
 	Species_Collection get_all_species() { return myspecies; }
 	Phase_Collection::const_iterator get_phase_iterator() const { return phases.cbegin(); }
 	Phase_Collection::const_iterator get_phase_iterator_end() const { return phases.cend(); }

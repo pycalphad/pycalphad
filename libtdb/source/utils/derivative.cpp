@@ -5,7 +5,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// derivative.cpp -- support for symbolic differentiation
+// derivative.cpp -- support for automatic differentiation
 
 #include "libtdb/include/libtdb_pch.hpp"
 #include "libtdb/include/warning_disable.hpp"
@@ -13,7 +13,6 @@
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
-#include <boost/math/special_functions/fpclassify.hpp>
 
 #include <math.h>
 #include <string>

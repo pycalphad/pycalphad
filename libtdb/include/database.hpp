@@ -24,7 +24,7 @@ public:
 	Database(std::string);
 	void set_info(std::string &infostring); // set infostring for the database
 	std::string get_info() const; // get infostring for database
-	(::Element) get_element(std::string s) const;
+	::Element get_element(std::string s) const;
 	Species_Collection get_all_species() const;
 	Phase_Collection::const_iterator get_phase_iterator() const;
 	Phase_Collection::const_iterator get_phase_iterator_end() const;

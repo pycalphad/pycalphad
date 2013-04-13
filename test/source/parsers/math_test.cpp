@@ -11,7 +11,7 @@
 #include "libtdb/include/warning_disable.hpp"
 #include "test/include/fixtures/fixture_math.hpp"
 #include <string>
-#define BOOST_TEST_DYN_LINK
+#define BOOST_TEST_STATIC_LINK
 #include <boost/test/unit_test.hpp>
 
 
