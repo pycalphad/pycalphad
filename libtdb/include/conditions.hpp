@@ -19,6 +19,6 @@ std::map<std::string,bool> phases; // phases under consideration
 std::map<std::string,double> xfrac; // system mole fractions
 };
 
-#define SI_GAS_CONSTANT 8.3144621 // J/mol-K
+#define SI_GAS_CONSTANT 8.3144621 // J/mol-K; the 2010 CODATA recommended value for molar gas constant
 
 #endif
