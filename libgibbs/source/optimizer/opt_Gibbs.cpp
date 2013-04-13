@@ -69,11 +69,13 @@ GibbsOpt::~GibbsOpt()
 bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
                          Index& nnz_h_lag, IndexStyleEnum& index_style)
 {
-  Index sublcount = 0;
-  Index phasecount = 0;
-  Index sitefraccount = 0;
-  Index sitebalances = 0;
-  Index speccount = (Index) conditions.xfrac.size() + 1;
+  Index sublcount = 0; // total number of sublattices across all phases under consideration
+  Index phasecount = 0; // total number of phases under consideration
+  Index sitefraccount = 0; // total number of site fractions
+  Index balancedsitefraccount = 0; // number of site fractions in sublattices with more than one species
+  Index balanced_species_in_each_sublattice = 0; // number of site fractions subject to a mass balance constraint
+  Index sitebalances = 0; // number of site fraction balance constraints
+  Index speccount = (Index) conditions.xfrac.size() + 1; // total number of species for which mass must balance
   auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
   for (auto i = var_map.sitefrac_iters.cbegin(); i != var_map.sitefrac_iters.cend(); ++i) {
 	  const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
@@ -88,8 +90,16 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 				  ++sitefraccount;
 				  ++sublspeccount;
 			  }
+			  const auto balanced_spec_find = conditions.xfrac.find(*k);
+			  const auto balanced_spec_end = conditions.xfrac.cend();
+			  if (balanced_spec_find != balanced_spec_end) {
+				  ++balanced_species_in_each_sublattice;
+			  }
 		  }
-		  if (sublspeccount > 1) ++sitebalances;
+		  if (sublspeccount > 1) {
+			  ++sitebalances;
+			  balancedsitefraccount += sublspeccount;
+		  }
 	  }
 	  ++phasecount;
   }
@@ -103,11 +113,16 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   else m = sitebalances + (speccount-1);
 
   // nonzeros in the jacobian of the lagrangian
-  // TODO: Adding an extra factor of 2 shouldn't fix anything, and yet it makes the heap errors disappear
-  nnz_jac_g = (phasecount + speccount*phasecount + 2 * sitefraccount); // this is potentially an overestimate
+  if (phasecount > 1) {
+	  nnz_jac_g = phasecount + (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
+  }
+  else {
+	  // single-phase case
+	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
+  }
   std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
-  // nonzeros in the hessian of the lagrangian
-  //nnz_h_lag = (phasecount * sitefraccount) + phasecount * (1 + speccount) + sitefraccount * (1 + sublcount + speccount);
+  std::cout << "balanced_species_in_each_sublattice = " << balanced_species_in_each_sublattice << std::endl;
+  std::cout << "balancedsitefraccount = " << balancedsitefraccount << std::endl;
 
   index_style = C_STYLE;
   return true;
