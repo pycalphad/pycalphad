@@ -15,26 +15,22 @@ int main(int argc, char* argv[])
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
   mainconditions.xfrac["NB"] = 0.2;
-  //mainconditions.xfrac["RE"] = 0.9;
-  //mainconditions.xfrac["CR"] = 0.05;
-  //mainconditions.xfrac["CO"] = 0.05;
   mainconditions.elements.push_back("NB");
   mainconditions.elements.push_back("RE");
-  //mainconditions.elements.push_back("CR");
-  //mainconditions.elements.push_back("CO");
   mainconditions.elements.push_back("VA");
-  mainconditions.phases["HCP_A3"] = false;
-  mainconditions.phases["BCC_A2"] = false;
+  mainconditions.phases["HCP_A3"] = true;
+  mainconditions.phases["BCC_A2"] = true;
   mainconditions.phases["CHI"] = true;
-  mainconditions.phases["FCC_A1"] = false;
-  mainconditions.phases["SIGMA1"] = false;
-  mainconditions.phases["LIQUID"] = false;
+  mainconditions.phases["FCC_A1"] = true;
+  mainconditions.phases["SIGMA1"] = true;
+  mainconditions.phases["LIQUID"] = true;
 
-  // init the database by reading from the .TDB specified on the command line
-  Database maindb(argv[1]);
-  std::cout << maindb.get_info() << std::endl; // read out database infostring
-  // try to calculate the minimum Gibbs energy by constructing an equilibrium
   try {
+	  // init the database by reading from the .TDB specified on the command line
+	  Database maindb(argv[1]);
+	  std::cout << maindb.get_info() << std::endl; // read out database infostring
+
+	  // try to calculate the minimum Gibbs energy by constructing an equilibrium
 	  Equilibrium myeq(maindb,mainconditions);
 	  // print the resulting equilibrium
 	  std::cout << std::endl << myeq << std::endl;

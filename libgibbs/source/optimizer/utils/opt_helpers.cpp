@@ -5,6 +5,7 @@
 #include "libtdb/include/utils/math_expr.hpp"
 #include <math.h>
 #include <iostream>
+#include <boost/current_function.hpp>
 
 
 double mole_fraction(
@@ -156,7 +157,7 @@ double get_parameter
 			return result;
 		}
 	}
-	// TODO: We couldn't find a parameter. We should probably throw an exception here
+	// We couldn't find a parameter
 	return 0;
 }
 
@@ -182,6 +183,7 @@ double get_Gibbs
 	// is indicative of the fact that the entire data structure for GibbsOpt
 	// needs to be rewritten to conform to the way Equilibrium does it.
 	auto subl_database_iter = phase_iter->second.get_sublattice_iterator();
+	double total_sites = 0;
 	for (auto i = subl_start; i != subl_end; ++i, ++subl_database_iter) {
 		const double num_sites = (*subl_database_iter).stoi_coef;
 		double sublmix = 0;
@@ -191,6 +193,16 @@ double get_Gibbs
 			}
 		}
 		mixing += num_sites * sublmix;
+		total_sites += num_sites;
+	}
+	if (total_sites <= 0) {
+		BOOST_THROW_EXCEPTION(
+				internal_error()
+				<< str_errinfo(
+						"Total number of sublattice sites is less than or equal to zero"
+				)
+				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+		);
 	}
 	//std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
 	mixing = SI_GAS_CONSTANT * conditions.statevars.at('T') * mixing;
@@ -199,6 +211,8 @@ double get_Gibbs
 	// TODO: add energy contribution due to excess Gibbs energy
 	result += 0;
 
+	// Normalize result by the total number of sublattice sites
+	result = (result / total_sites);
 	return result;
 }
 
@@ -212,11 +226,18 @@ double get_Gibbs_deriv
 	const int &sublindex,
 	const std::string &specname
 	) {
-		if (std::distance(subl_start,subl_end) < sublindex) {
-			// out of bounds index
-			// TODO: throw an exception
-		}
+	if (std::distance(subl_start,subl_end) < sublindex) {
+		// out of bounds index
+		BOOST_THROW_EXCEPTION(
+				internal_error()
+				<< str_errinfo(
+						"Couldn't find sublattice in current phase"
+				)
+				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+		);
+	}
 	double result = 0;
+	double total_sites = 0;
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions_deriv(subl_start, subl_end, phase_iter, conditions, sublindex, specname);
 	//std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
@@ -224,28 +245,40 @@ double get_Gibbs_deriv
 	// add energy contribution due to ideal mixing
 	auto subl_find = subl_start;
 	auto subl_database_iter = phase_iter->second.get_sublattice_iterator();
+	const auto subl_database_iter_end = phase_iter->second.get_sublattice_iterator_end();
 	while (subl_find != subl_end) {
 		if (std::distance(subl_start,subl_find) == sublindex) break;
 		++subl_find;
 		++subl_database_iter;
+		total_sites += (*subl_database_iter).stoi_coef;
+	}
+	// We may have broken out of the loop before we finished summing up all the sites
+	// This loop finishes the summation
+	for (auto i = subl_database_iter; i != subl_database_iter_end; ++i) {
+		total_sites += (*i).stoi_coef;
 	}
 	if (subl_find == subl_end) {
-		// TODO: throw an exception
 		// we didn't find our sublattice
-		//std::cout << "get_Gibbs_deriv: couldn't find the corresponding sublattice for mixing parameter" << std::endl;
+		BOOST_THROW_EXCEPTION(
+				internal_error()
+				<< str_errinfo(
+						"Couldn't find sublattice in current phase"
+				)
+				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+		);
 	}
 	if (subl_find->at(specname) > 0) { 
 		// number of sites for this sublattice
-		// + RT * num_sites * (1 + ln(y(specindex,sublindex)))
+		// + RT * num_sites/total_sites * (1 + ln(y(specindex,sublindex)))
 		const double num_sites = (*subl_database_iter).stoi_coef;
 		result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
 	}
 
 	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-K polynomials)
 	result += 0;
-	//std::cout << "dGdy(" << phase_iter->first << ")(" << sublindex << ")(" << specname << "): " << result << std::endl;
-	return result;
-	// + RT*y(i,s)*ln(y(i,s))
+
+	// Normalize result by the total number of sublattice sites
+	return (result / total_sites);
 }
 
 // recursive function to handle arbitrary permutations of site fractions
