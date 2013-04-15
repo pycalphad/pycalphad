@@ -267,7 +267,7 @@ double get_Gibbs_deriv
 				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
 		);
 	}
-	if (subl_find->at(specname) > 0) { 
+	if (subl_find->at(specname) > 0) {
 		// number of sites for this sublattice
 		// + RT * num_sites/total_sites * (1 + ln(y(specindex,sublindex)))
 		const double num_sites = (*subl_database_iter).stoi_coef;
