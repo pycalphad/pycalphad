@@ -49,7 +49,6 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 
 	app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
-	//app->Options()->SetNumericValue("bound_relax_factor",1e-7);
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
 
@@ -64,8 +63,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	status = app->OptimizeTNLP(mynlp);
 
 	if (status == Solve_Succeeded ||
-			status == Solved_To_Acceptable_Level ||
-			status == Search_Direction_Becomes_Too_Small) {
+			status == Solved_To_Acceptable_Level) {
 		// Retrieve some statistics about the solve
 		Index iter_count = app->Statistics()->IterationCount();
 		std::cout << std::endl << std::endl << "*** The problem solved in " << iter_count << " iterations!" << std::endl;
