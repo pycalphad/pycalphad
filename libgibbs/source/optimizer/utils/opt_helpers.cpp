@@ -5,7 +5,6 @@
 #include "libtdb/include/utils/math_expr.hpp"
 #include <math.h>
 #include <iostream>
-#include <boost/current_function.hpp>
 
 
 double mole_fraction(
@@ -153,7 +152,7 @@ double get_parameter
 				subl_string += ";";
 			}
 			subl_string = "[" + subl_string + "]";
-			//std::cout << "get_parameter[" << phase_iter->first << "]" << subl_string << " = " << result << std::endl;
+		    //std::cout << "get_parameter[" << phase_iter->first << "]" << subl_string << " = " << result << std::endl;
 			return result;
 		}
 	}
@@ -198,10 +197,9 @@ double get_Gibbs
 	if (total_sites <= 0) {
 		BOOST_THROW_EXCEPTION(
 				internal_error()
-				<< str_errinfo(
-						"Total number of sublattice sites is less than or equal to zero"
-				)
-				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+				<< str_errinfo("Reached impossible condition")
+				<< specific_errinfo
+				("Total number of sublattice sites is less than or equal to zero")
 		);
 	}
 	//std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
@@ -230,10 +228,8 @@ double get_Gibbs_deriv
 		// out of bounds index
 		BOOST_THROW_EXCEPTION(
 				internal_error()
-				<< str_errinfo(
-						"Couldn't find sublattice in current phase"
-				)
-				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+				<< str_errinfo("Couldn't find sublattice in current phase")
+				<< specific_errinfo("Sublattice index is out of bounds")
 		);
 	}
 	double result = 0;
@@ -264,7 +260,7 @@ double get_Gibbs_deriv
 				<< str_errinfo(
 						"Couldn't find sublattice in current phase"
 				)
-				<< specific_errinfo(BOOST_CURRENT_FUNCTION)
+				<< specific_errinfo("Sublattice index out of bounds")
 		);
 	}
 	if (subl_find->at(specname) > 0) {
@@ -369,7 +365,6 @@ double multiply_site_fractions_deriv
 
 		// If we are currently on the differential sublattice
 		//std::cout << "species.size(): " << species.size() << std::endl;
-		bool test = false;
 		if (species.size() == sublindex) {
 			// If we are currently on the differential species in the differential sublattice
 			//std::cout << "multiply_site_fractions_deriv: i->first = " << i->first << " ; specname = " << specname << std::endl;
@@ -377,9 +372,8 @@ double multiply_site_fractions_deriv
 				return multiply_site_fractions_deriv
 					(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
 			}
-			else {test=true;continue;} // wrong species on the differential sublattice, it is differentiated away
+			else continue; // wrong species on the differential sublattice, it is differentiated away
 		}
-		assert(test==false);
 		// Multiply over all combinations of the remaining site fractions
 		result += i->second * multiply_site_fractions_deriv
 			(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
