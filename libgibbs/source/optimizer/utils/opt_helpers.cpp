@@ -248,9 +248,9 @@ double get_Gibbs_deriv
 	const auto subl_database_iter_end = phase_iter->second.get_sublattice_iterator_end();
 	while (subl_find != subl_end) {
 		if (std::distance(subl_start,subl_find) == sublindex) break;
+		total_sites += (*subl_database_iter).stoi_coef;
 		++subl_find;
 		++subl_database_iter;
-		total_sites += (*subl_database_iter).stoi_coef;
 	}
 	// We may have broken out of the loop before we finished summing up all the sites
 	// This loop finishes the summation
@@ -369,6 +369,7 @@ double multiply_site_fractions_deriv
 
 		// If we are currently on the differential sublattice
 		//std::cout << "species.size(): " << species.size() << std::endl;
+		bool test = false;
 		if (species.size() == sublindex) {
 			// If we are currently on the differential species in the differential sublattice
 			//std::cout << "multiply_site_fractions_deriv: i->first = " << i->first << " ; specname = " << specname << std::endl;
@@ -376,8 +377,9 @@ double multiply_site_fractions_deriv
 				return multiply_site_fractions_deriv
 					(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
 			}
-			else continue; // wrong species on the differential sublattice, it is differentiated away
+			else {test=true;continue;} // wrong species on the differential sublattice, it is differentiated away
 		}
+		assert(test==false);
 		// Multiply over all combinations of the remaining site fractions
 		result += i->second * multiply_site_fractions_deriv
 			(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
