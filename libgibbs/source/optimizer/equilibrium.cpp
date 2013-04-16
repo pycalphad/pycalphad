@@ -125,6 +125,8 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     stream << std::endl;
 
     const auto ph_end = eq.ph_map.cend();
+	const auto cond_spec_begin = eq.conditions.elements.cbegin();
+	const auto cond_spec_end = eq.conditions.elements.cend();
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
     for (auto i = eq.ph_map.cbegin(); i != ph_end; ++i) {
@@ -138,8 +140,6 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		const double stoi_coef = j->first;
     		const double den = stoi_coef;
-    		const auto cond_spec_begin = eq.conditions.elements.cbegin();
-    		const auto cond_spec_end = eq.conditions.elements.cend();
     		const auto spec_begin = j->second.cbegin();
     		const auto spec_end = j->second.cend();
     		const auto vacancy_iterator = (j->second).find("VA"); // this may point to spec_end
@@ -158,20 +158,26 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     			if (*k == "VA") continue; // vacancies don't contribute to mole fractions
 				if (vacancy_iterator != spec_end) {
 					phase_comp[*k].second += den * (1 - vacancy_iterator->second);
-					global_comp[*k].second += phasefrac * den * (1 - vacancy_iterator->second);
 				}
 				else {
 					phase_comp[*k].second += den;
-					global_comp[*k].second += phasefrac * den;
 				}
     		}
     		for (auto k = spec_begin; k != spec_end; ++k) {
     			if (k->first == "VA") continue; // vacancies don't contribute to mole fractions
                 double num = k->second * stoi_coef;
                 phase_comp[k->first].first += num;
-                global_comp[k->first].first += phasefrac * num;
     		}
     	}
+    	/* We've summed up over all sublattices in this phase.
+    	 * Now add this phase's contribution to the overall composition.
+    	 */
+    	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
+    		if (*j == "VA") continue; // vacancies don't contribute to mole fractions
+    		global_comp[*j].first += phasefrac * (phase_comp[*j].first / phase_comp[*j].second);
+    		global_comp[*j].second += phasefrac;
+    	}
+
     	const auto cmp_begin = phase_comp.cbegin();
     	const auto cmp_end = phase_comp.cend();
     	for (auto g = cmp_begin; g != cmp_end; ++g) {
