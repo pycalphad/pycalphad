@@ -236,7 +236,7 @@ double get_Gibbs_deriv
 	double total_sites = 0;
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions_deriv(subl_start, subl_end, phase_iter, conditions, sublindex, specname);
-	//std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
+	if (phase_iter->first == "BCC_A2") std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
 
 	// add energy contribution due to ideal mixing
 	auto subl_find = subl_start;
@@ -319,7 +319,6 @@ double multiply_site_fractions
 		tempspecies.push_back(specieswrapper);
 		// Multiply over all combinations of the remaining site fractions
 		double temp = multiply_site_fractions(subl_start+1, subl_end, phase_iter, conditions, tempspecies);
-		//std::cout << "multiply_site_fractions: result += " << i->second << " * " << temp << std::endl;
 		result += i->second * temp;
 	}
 	return result;
@@ -339,8 +338,8 @@ double multiply_site_fractions_deriv
 	sublattice_vector::const_iterator subl_next = subl_start;
 	++subl_next;
 	double result = 0;
-	//std::cout << "multiply_site_fractions_deriv[" << specname << "]: sublindex = " << sublindex << std::endl;
 	if (subl_start == subl_end) {
+		//std::cout << "multiply_site_fractions_deriv[" << specname << "]: sublindex = " << sublindex << std::endl;
 		// We are at the bottom of the recursive loop
 		// No sublattices left
 		// return the corresponding Gibbs parameter
@@ -375,9 +374,10 @@ double multiply_site_fractions_deriv
 			else continue; // wrong species on the differential sublattice, it is differentiated away
 		}
 		// Multiply over all combinations of the remaining site fractions
-		result += i->second * multiply_site_fractions_deriv
-			(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
-		//std::cout << "multiply_site_fractions_deriv result += " << i->second << " * " << (result / i->second) << std::endl;
+		double temp = multiply_site_fractions_deriv
+				(subl_next, subl_end, phase_iter, conditions, sublindex, specname, tempspecies);
+		result += i->second * temp;
+		//std::cout << "multiply_site_fractions_deriv result += " << i->second << " * " << temp << std::endl;
 	}
 	return result;
 }

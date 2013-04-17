@@ -41,7 +41,7 @@ GibbsOpt::GibbsOpt(
 	}
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
-		//std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
+		std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
 		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
 		++varcount;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
@@ -51,7 +51,7 @@ GibbsOpt::GibbsOpt(
 					// This site matches one of our elements under investigation
 					// Add it to the list of sitefracs
 					// +1 for a sitefraction
-					//std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
+					std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
 					var_map.sitefrac_iters.resize(std::distance(phase_iter,i)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)].resize(std::distance(i->second.get_sublattice_iterator(),j)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k] =
