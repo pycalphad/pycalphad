@@ -48,6 +48,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds)
 	SmartPtr<IpoptApplication> app = IpoptApplicationFactory();
 
 	app->Options()->SetStringValue("derivative_test","first-order");
+	app->Options()->SetNumericValue("derivative_test_perturbation",1e-6);
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
 	//app->Options()->SetIntegerValue("print_level",12);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
