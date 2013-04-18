@@ -266,9 +266,12 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 
 		double temp = get_Gibbs(subls_start, subls_end, cur_phase, conditions);
-		//std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
+		std::cout.precision(24);
+		if (cur_phase->first == "BCC_A2") std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
 		result += fL * temp;
 	}
+	std::cout.precision(24);
+	std::cout << "final eval_f result = " << result << std::endl;
 	obj_value = result;
 	return true;
 }
@@ -301,6 +304,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 		// calculate dF/dfL
 		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
+		std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
 		grad_f[phaseindex] = Gibbs; ++varcheck;
 
 		// each sublattice
@@ -323,6 +327,8 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 					);
 				// k->second.first = index
 				grad_f[k->second.first] = fL * dGdy; ++varcheck;
+				std::cout.precision(16);
+				std::cout << "grad_f[" << k->second.first << "] = " << grad_f[k->second.first] << std::endl;
 			}
 		}
 	}
