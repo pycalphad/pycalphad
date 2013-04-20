@@ -5,6 +5,9 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#ifndef EQUILIBRIUM_INCLUDED
+#define EQUILIBRIUM_INCLUDED
+
 // declaration for Equilibrium object
 
 #include <iostream>
@@ -12,8 +15,10 @@
 #include <unordered_map>
 #include <vector>
 #include <utility>
+#include <boost/timer/timer.hpp>
 #include "libtdb/include/conditions.hpp"
 #include "libtdb/include/database.hpp"
+#include "external/coin/IpIpoptApplication.hpp"
 
 /*
  * What this class needs to do:
@@ -55,6 +60,8 @@ private:
 	const std::string sourcename; // descriptor for the source of the equilibrium data
 	const evalconditions conditions; // thermodynamic conditions of the equilibrium
 	double mingibbs; // Gibbs energy for the equilibrium (must use common reference state)
+	int iter_count; // number of iterations required for the solve
+	boost::timer::cpu_timer timer; // time tracking for the solve
 	typedef std::unordered_map<std::string, double> speclist; // species name + site fraction
 	typedef std::pair<double, speclist> sublattice; // stoichiometric coefficient + species list
 	typedef std::vector<sublattice> constitution; // collection of sublattices
@@ -62,8 +69,18 @@ private:
 	typedef std::unordered_map<std::string,phase> phasemap;
 	phasemap ph_map; // maps phase name to its object
 public:
-	Equilibrium(const Database &DB, const evalconditions &conds);
+	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);
 	friend std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq);
 };
+
+class EquilibriumFactory {
+private:
+	const Ipopt::SmartPtr<Ipopt::IpoptApplication> app; // pointer to Ipopt
+	// collection of Equilibrium objects
+public:
+	EquilibriumFactory();
+};
+
+#endif

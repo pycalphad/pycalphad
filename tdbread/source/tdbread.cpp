@@ -31,9 +31,10 @@ int main(int argc, char* argv[])
 	  std::cout << maindb.get_info() << std::endl; // read out database infostring
 
 	  // try to calculate the minimum Gibbs energy by constructing an equilibrium
-	  Equilibrium myeq(maindb,mainconditions);
+	  // TODO: disable while EquilibriumFactory interface is being written
+	  //Equilibrium myeq(maindb,mainconditions);
 	  // print the resulting equilibrium
-	  std::cout << std::endl << myeq << std::endl;
+	  //std::cout << std::endl << myeq << std::endl;
   }
   catch (equilibrium_error &e) {
 		std::string specific_info, err_msg; // error message strings
