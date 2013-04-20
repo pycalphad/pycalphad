@@ -19,8 +19,9 @@ EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 	app->Options()->SetStringValue("derivative_test","first-order");
 	app->Options()->SetNumericValue("derivative_test_perturbation",1e-6);
 	app->Options()->SetStringValue("hessian_approximation","limited-memory");
-	//app->Options()->SetIntegerValue("print_level",12);
+	app->Options()->SetIntegerValue("print_level",0);
 	//app->Options()->SetStringValue("derivative_test_print_all","yes");
+	app->Options()->SetStringValue("sb","yes"); // we handle copyright printing for Ipopt
 
 
 	ApplicationReturnStatus status;
@@ -29,3 +30,5 @@ EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Error initializing solver"));
 	}
 }
+
+SmartPtr<IpoptApplication> EquilibriumFactory::GetIpopt() { return app; }

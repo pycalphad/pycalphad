@@ -18,12 +18,12 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("NB");
   mainconditions.elements.push_back("RE");
   mainconditions.elements.push_back("VA");
-  mainconditions.phases["HCP_A3"] = true;
-  mainconditions.phases["BCC_A2"] = true;
-  mainconditions.phases["CHI"] = true;
-  mainconditions.phases["FCC_A1"] = true;
-  mainconditions.phases["SIGMA1"] = true;
-  mainconditions.phases["LIQUID"] = true;
+  mainconditions.phases["HCP_A3"] = PhaseStatus::ENTERED;
+  mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
+  mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
+  mainconditions.phases["FCC_A1"] = PhaseStatus::ENTERED;
+  mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
+  mainconditions.phases["LIQUID"] = PhaseStatus::ENTERED;
 
   try {
 	  // init the database by reading from the .TDB specified on the command line
@@ -31,10 +31,10 @@ int main(int argc, char* argv[])
 	  std::cout << maindb.get_info() << std::endl; // read out database infostring
 
 	  // try to calculate the minimum Gibbs energy by constructing an equilibrium
-	  // TODO: disable while EquilibriumFactory interface is being written
-	  //Equilibrium myeq(maindb,mainconditions);
+	  EquilibriumFactory eqfact = EquilibriumFactory();
+	  Equilibrium myeq(maindb, mainconditions, eqfact.GetIpopt());
 	  // print the resulting equilibrium
-	  //std::cout << std::endl << myeq << std::endl;
+	  std::cout << std::endl << myeq << std::endl;
   }
   catch (equilibrium_error &e) {
 		std::string specific_info, err_msg; // error message strings

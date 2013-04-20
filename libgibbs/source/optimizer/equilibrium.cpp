@@ -12,6 +12,7 @@
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
+#include "libtdb/include/conditions.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
@@ -24,12 +25,12 @@
 
 using namespace Ipopt;
 
-Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const SmartPtr<IpoptApplication> &solver)
+Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartPtr<IpoptApplication> solver)
 : sourcename(DB.get_info()), conditions(conds) {
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conds.phases.find(i->first) != conds.phases.end()) {
-			if (conds.phases.at(i->first) == true) phase_col[i->first] = i->second;
+			if (conds.phases.at(i->first) != PhaseStatus::SUSPENDED) phase_col[i->first] = i->second;
 		}
 	}
 
@@ -61,6 +62,10 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 	else {
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Solver failed to find equilibrium"));
 	}
+}
+
+double Equilibrium::GibbsEnergy() {
+	return mingibbs;
 }
 
 std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
@@ -125,7 +130,7 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     		const double den = stoi_coef;
     		const auto spec_begin = j->second.cbegin();
     		const auto spec_end = j->second.cend();
-    		const auto vacancy_iterator = (j->second).find("VA"); // this may point to spec_end
+    		const auto vacancy_iterator = (j->second).find("VA"); // this may equal spec_end
     		/*
     		 * To make sure all mole fractions sum to 1,
     		 * we have to normalize everything using the same

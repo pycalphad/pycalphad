@@ -69,7 +69,8 @@ private:
 	typedef std::unordered_map<std::string,phase> phasemap;
 	phasemap ph_map; // maps phase name to its object
 public:
-	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
+	Equilibrium(const Database &DB, const evalconditions &conds, Ipopt::SmartPtr<Ipopt::IpoptApplication> solver);
+	double GibbsEnergy();
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);
 	friend std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq);
@@ -77,10 +78,11 @@ public:
 
 class EquilibriumFactory {
 private:
-	const Ipopt::SmartPtr<Ipopt::IpoptApplication> app; // pointer to Ipopt
+	Ipopt::SmartPtr<Ipopt::IpoptApplication> app; // pointer to Ipopt
 	// collection of Equilibrium objects
 public:
 	EquilibriumFactory();
+	Ipopt::SmartPtr<Ipopt::IpoptApplication> GetIpopt();
 };
 
 #endif

@@ -5,17 +5,22 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// conditions.hpp -- header file for thermodynamic state variable declaration
+// header file for thermodynamic state variable declaration
 
 #ifndef INCLUDED_CONDITIONS
 #define INCLUDED_CONDITIONS
 #include <map>
 #include <vector>
+#include <cstdint>
+
+enum class PhaseStatus : unsigned char {
+	ENTERED = 1, DORMANT = 2, FIXED = 3, SUSPENDED = 4
+};
 
 struct evalconditions { 
 std::map<char,double> statevars; // state variable values
 std::vector<std::string> elements; // elements under consideration
-std::map<std::string,bool> phases; // phases under consideration
+std::map<std::string,PhaseStatus> phases; // phases under consideration
 std::map<std::string,double> xfrac; // system mole fractions
 };
 
