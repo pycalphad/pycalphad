@@ -21,6 +21,7 @@ class Database {
 	class DatabaseTDB;
 	std::shared_ptr<DatabaseTDB> pImpl;
 public:
+	Database();
 	Database(std::string);
 	void set_info(std::string &infostring); // set infostring for the database
 	std::string get_info() const; // get infostring for database

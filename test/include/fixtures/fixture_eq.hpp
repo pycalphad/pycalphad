@@ -20,13 +20,22 @@ struct EquilibriumFixture {
 	void clear_conditions() {
 		conditions = evalconditions();
 	}
-	double calculate(const Database &curdb) {
+	double calculate() {
 		// TODO: go beyond naive checking of the objective function
 		Equilibrium testeq = Equilibrium(curdb, conditions, eqfact.GetIpopt());
 		return testeq.GibbsEnergy();
 	}
+	void LoadDatabase(const std::string &filename) {
+		if (filename != dbname) {
+			// if this is a different database, load it
+			curdb = Database(filename);
+			dbname = filename;
+		}
+	}
 	EquilibriumFactory eqfact;
 	evalconditions conditions;
+	Database curdb;
+	std::string dbname;
 };
 
 #endif

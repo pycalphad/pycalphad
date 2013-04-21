@@ -173,7 +173,7 @@ double get_Gibbs
 	
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions(subl_start, subl_end, phase_iter, conditions);
-	if(phase_iter->first == "BCC_A2") std::cout << "get_Gibbs: formation result += " << result << std::endl;
+	//std::cout << "get_Gibbs: formation result += " << result << std::endl;
 
 	// add energy contribution due to ideal mixing
 	// + RT*y(i,s)*ln(y(i,s))
@@ -236,7 +236,7 @@ double get_Gibbs_deriv
 	double total_sites = 0;
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions_deriv(subl_start, subl_end, phase_iter, conditions, sublindex, specname);
-	if (phase_iter->first == "BCC_A2") std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
+	//std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
 
 	// add energy contribution due to ideal mixing
 	auto subl_find = subl_start;
@@ -268,7 +268,7 @@ double get_Gibbs_deriv
 		// + RT * num_sites/total_sites * (1 + ln(y(specindex,sublindex)))
 		const double num_sites = (*subl_database_iter).stoi_coef;
 		std::cout.precision(10);
-		if (phase_iter->first == "BCC_A2") std::cout << "y(" << specname << ") = " << subl_find->at(specname) << std::endl;
+		//std::cout << "y(" << specname << ") = " << subl_find->at(specname) << std::endl;
 		result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
 	}
 

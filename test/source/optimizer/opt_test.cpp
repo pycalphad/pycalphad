@@ -16,8 +16,8 @@
 #include <boost/test/unit_test.hpp>
 
 BOOST_FIXTURE_TEST_SUITE(EquilibriumSuite, EquilibriumFixture)
-Database curdb = Database("idealbin.tdb");
 BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
+	LoadDatabase("idealbin.tdb");
 	conditions.statevars['T'] = 1500;
 	conditions.statevars['P'] = 101325;
 	conditions.statevars['N'] = 1;
@@ -31,6 +31,14 @@ BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
 	conditions.phases["FCC_A1"] = PhaseStatus::ENTERED;
 	conditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
 	conditions.phases["LIQUID"] = PhaseStatus::ENTERED;
-	BOOST_CHECK_CLOSE_FRACTION(calculate(curdb),0,1e-8);
+	/* It's possible for the Gibbs energy to be close but the phase compositions to be wrong.
+	 * Checking that site fraction, phase fraction and mass balance constraints are satisfied
+	 * along with the value of the Gibbs energy should be sufficient for most cases.
+	 * This negates the need to develop an elaborate scripting system for checking every
+	 * site and phase fraction on a case-by-case basis.
+	 */
+	double result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -1.00891e5, 1e-5); // from Thermo-Calc
+	BOOST_CHECK_CLOSE_FRACTION(result, -1.0089063594e5, 1e-8); // from previous run of code
 }
 BOOST_AUTO_TEST_SUITE_END()

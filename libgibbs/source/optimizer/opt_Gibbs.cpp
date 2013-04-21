@@ -41,7 +41,7 @@ GibbsOpt::GibbsOpt(
 	}
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
-		std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
+		//std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
 		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
 		++varcount;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
@@ -51,7 +51,7 @@ GibbsOpt::GibbsOpt(
 					// This site matches one of our elements under investigation
 					// Add it to the list of sitefracs
 					// +1 for a sitefraction
-					std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
+					//std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
 					var_map.sitefrac_iters.resize(std::distance(phase_iter,i)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)].resize(std::distance(i->second.get_sublattice_iterator(),j)+1);
 					var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k] =
@@ -266,12 +266,12 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 
 		double temp = get_Gibbs(subls_start, subls_end, cur_phase, conditions);
-		std::cout.precision(24);
-		if (cur_phase->first == "BCC_A2") std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
+		//std::cout.precision(24);
+		//std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
 		result += fL * temp;
 	}
-	std::cout.precision(24);
-	std::cout << "final eval_f result = " << result << std::endl;
+	//std::cout.precision(24);
+	//std::cout << "final eval_f result = " << result << std::endl;
 	obj_value = result;
 	return true;
 }
@@ -304,7 +304,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 		// calculate dF/dfL
 		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
-		std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
+		//std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
 		grad_f[phaseindex] = Gibbs; ++varcheck;
 
 		// each sublattice
@@ -327,8 +327,8 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 					);
 				// k->second.first = index
 				grad_f[k->second.first] = fL * dGdy; ++varcheck;
-				std::cout.precision(16);
-				std::cout << "grad_f[" << k->second.first << "] = " << grad_f[k->second.first] << std::endl;
+				//std::cout.precision(16);
+				//std::cout << "grad_f[" << k->second.first << "] = " << grad_f[k->second.first] << std::endl;
 			}
 		}
 	}

@@ -125,6 +125,8 @@ Database::Database(std::string s): pImpl (new DatabaseTDB(s))
 {
 }
 
+Database::Database() { }
+
 void Database::set_info(std::string &infostring) {
 	pImpl->set_info(infostring);
 }
