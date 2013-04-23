@@ -18,6 +18,7 @@
 BOOST_FIXTURE_TEST_SUITE(EquilibriumSuite, EquilibriumFixture)
 BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
 	LoadDatabase("idealbin.tdb");
+	double result = 0;
 	conditions.statevars['T'] = 1500;
 	conditions.statevars['P'] = 101325;
 	conditions.statevars['N'] = 1;
@@ -37,8 +38,34 @@ BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
 	 * This negates the need to develop an elaborate scripting system for checking every
 	 * site and phase fraction on a case-by-case basis.
 	 */
-	double result = calculate();
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
 	BOOST_CHECK_CLOSE_FRACTION(result, -1.00891e5, 1e-5); // from Thermo-Calc
 	BOOST_CHECK_CLOSE_FRACTION(result, -1.0089063594e5, 1e-8); // from previous run of code
+
+	conditions.xfrac["NB"] = 0.6;
+	conditions.statevars['T'] = 1400;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -9.29237e4, 1e-5); // from Thermo-Calc
+
+	conditions.xfrac["NB"] = 0.6;
+	conditions.statevars['T'] = 1000;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -6.33328e4, 1e-5); // from Thermo-Calc
+
+	conditions.xfrac["NB"] = 0.01;
+	conditions.statevars['T'] = 1000;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -5.05885e4, 1e-5); // from Thermo-Calc
+
+	conditions.xfrac["NB"] = 0.01;
+	conditions.statevars['T'] = 1200;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -6.48604e4, 1e-5); // from Thermo-Calc
+
 }
 BOOST_AUTO_TEST_SUITE_END()

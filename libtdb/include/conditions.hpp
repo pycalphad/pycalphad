@@ -14,7 +14,7 @@
 #include <cstdint>
 
 enum class PhaseStatus : unsigned char {
-	ENTERED = 1, DORMANT = 2, FIXED = 3, SUSPENDED = 4
+	ENTERED = 'E', DORMANT = 'D', FIXED = 'F', SUSPENDED = 'S'
 };
 
 struct evalconditions { 

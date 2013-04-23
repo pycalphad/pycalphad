@@ -11,10 +11,10 @@ int main(int argc, char* argv[])
     return 1;
   }
   evalconditions mainconditions;
-  mainconditions.statevars['T'] = 1500;
+  mainconditions.statevars['T'] = 1200;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NB"] = 0.6;
+  mainconditions.xfrac["NB"] = 0.01;
   mainconditions.elements.push_back("NB");
   mainconditions.elements.push_back("RE");
   mainconditions.elements.push_back("VA");
