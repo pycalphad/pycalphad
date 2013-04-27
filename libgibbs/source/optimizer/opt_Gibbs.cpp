@@ -203,6 +203,7 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Index m, bool init_lambda,
 	Number* lambda)
 {
+	const double numphases = var_map.phasefrac_iters.size();
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	double result = 0;
 	int varcount = 0;
@@ -210,8 +211,8 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-		double numphases = var_map.phasefrac_iters.size();
 		x[phaseindex] = 1 / numphases; // phase fraction
+		if (numphases >= 3) x[phaseindex] = 0.5; // TODO: dirty tweak to help the solver for some multi-phase problems
 		//std::cout << "x[" << phaseindex << "] = " << x[phaseindex] << std::endl;
 		++varcount;
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
