@@ -182,16 +182,23 @@ double get_Gibbs
 	// is indicative of the fact that the entire data structure for GibbsOpt
 	// needs to be rewritten to conform to the way Equilibrium does it.
 	auto subl_database_iter = phase_iter->second.get_sublattice_iterator();
+	double total_mixing_sites = 0;
 	double total_sites = 0;
 	for (auto i = subl_start; i != subl_end; ++i, ++subl_database_iter) {
 		const double num_sites = (*subl_database_iter).stoi_coef;
+		const auto spec_begin = i->begin();
+		const auto spec_end = i->end();
+		int speccount = 0;
 		double sublmix = 0;
-		for (auto j = (*i).begin(); j != (*i).end(); ++j) {
+		for (auto j = spec_begin; j != spec_end; ++j) {
 			if (j->second > 0) {
 				sublmix += j->second * log(j->second);
 			}
+			++speccount;
 		}
 		mixing += num_sites * sublmix;
+		// don't include sublattices with only vacancies in them
+		if (!(speccount == 1 && spec_begin->first == "VA")) total_mixing_sites += num_sites;
 		total_sites += num_sites;
 	}
 	if (total_sites <= 0) {
@@ -202,15 +209,17 @@ double get_Gibbs
 				("Total number of sublattice sites is less than or equal to zero")
 		);
 	}
+	result = result/total_mixing_sites;
 	//std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
-	mixing = SI_GAS_CONSTANT * conditions.statevars.at('T') * mixing;
+	//if (phase_iter->first == "BCC_A2") std::cout << "total_mixing_sites: " << total_mixing_sites << std::endl;
+	mixing = SI_GAS_CONSTANT * conditions.statevars.at('T') * mixing / total_mixing_sites;
 	result += mixing;
 
 	// TODO: add energy contribution due to excess Gibbs energy
 	result += 0;
 
 	// Normalize result by the total number of sublattice sites
-	result = (result / total_sites);
+	result = (result / 1);
 	return result;
 }
 
@@ -234,6 +243,7 @@ double get_Gibbs_deriv
 	}
 	double result = 0;
 	double total_sites = 0;
+	double total_mixing_sites = 0;
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions_deriv(subl_start, subl_end, phase_iter, conditions, sublindex, specname);
 	//std::cout << "get_Gibbs_deriv: formation result +=" << result << std::endl;
@@ -244,14 +254,24 @@ double get_Gibbs_deriv
 	const auto subl_database_iter_end = phase_iter->second.get_sublattice_iterator_end();
 	while (subl_find != subl_end) {
 		if (std::distance(subl_start,subl_find) == sublindex) break;
+		int speccount = 0;
 		total_sites += (*subl_database_iter).stoi_coef;
+		const auto spec_begin = subl_database_iter->get_species_iterator();
+		const auto spec_end = subl_database_iter->get_species_iterator_end();
+		for (auto i = spec_begin; i != spec_end; ++i) ++speccount;
+		if (!(speccount ==  1 && (*spec_begin) == "VA")) total_mixing_sites += (*subl_database_iter).stoi_coef;
 		++subl_find;
 		++subl_database_iter;
 	}
 	// We may have broken out of the loop before we finished summing up all the sites
 	// This loop finishes the summation
 	for (auto i = subl_database_iter; i != subl_database_iter_end; ++i) {
+		int speccount = 0;
 		total_sites += (*i).stoi_coef;
+		const auto spec_begin = i->get_species_iterator();
+		const auto spec_end = i->get_species_iterator_end();
+		for (auto j = spec_begin; j != spec_end; ++j) ++speccount;
+		if (!(speccount ==  1 && (*spec_begin) == "VA")) total_mixing_sites += (*i).stoi_coef;
 	}
 	if (subl_find == subl_end) {
 		// we didn't find our sublattice
@@ -263,20 +283,21 @@ double get_Gibbs_deriv
 				<< specific_errinfo("Sublattice index out of bounds")
 		);
 	}
+	result = result/total_mixing_sites; // normalize
 	if (subl_find->at(specname) > 0) {
 		// number of sites for this sublattice
 		// + RT * num_sites/total_sites * (1 + ln(y(specindex,sublindex)))
 		const double num_sites = (*subl_database_iter).stoi_coef;
 		std::cout.precision(10);
 		//std::cout << "y(" << specname << ") = " << subl_find->at(specname) << std::endl;
-		result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites * (1 + log(subl_find->at(specname)));
+		result += SI_GAS_CONSTANT * conditions.statevars.at('T') * num_sites/total_mixing_sites * (1 + log(subl_find->at(specname)));
 	}
 
 	// TODO: add excess Gibbs energy term (dGex/dy is nonzero for R-K polynomials)
 	result += 0;
 
 	// Normalize result by the total number of sublattice sites
-	return (result / total_sites);
+	return (result / 1);
 }
 
 // recursive function to handle arbitrary permutations of site fractions

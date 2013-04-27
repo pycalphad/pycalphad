@@ -41,7 +41,6 @@ BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
 	BOOST_TEST_MESSAGE(PrintConditions());
 	result = calculate();
 	BOOST_CHECK_CLOSE_FRACTION(result, -1.00891e5, 1e-5); // from Thermo-Calc
-	BOOST_CHECK_CLOSE_FRACTION(result, -1.0089063594e5, 1e-8); // from previous run of code
 
 	conditions.xfrac["NB"] = 0.6;
 	conditions.statevars['T'] = 1400;
@@ -67,5 +66,16 @@ BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {
 	result = calculate();
 	BOOST_CHECK_CLOSE_FRACTION(result, -6.48604e4, 1e-5); // from Thermo-Calc
 
+	conditions.xfrac["NB"] = 0.99;
+	conditions.statevars['T'] = 1000;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -4.97989e4, 1e-5); // from Thermo-Calc
+
+	conditions.xfrac["NB"] = 0.99;
+	conditions.statevars['T'] = 1200;
+	BOOST_TEST_MESSAGE(PrintConditions());
+	result = calculate();
+	BOOST_CHECK_CLOSE_FRACTION(result, -6.39707e4, 1e-5); // from Thermo-Calc
 }
 BOOST_AUTO_TEST_SUITE_END()
