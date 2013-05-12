@@ -14,15 +14,17 @@ int main(int argc, char* argv[])
   mainconditions.statevars['T'] = 2200;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NB"] = 0.63;
-  mainconditions.elements.push_back("NB");
-  mainconditions.elements.push_back("RE");
+  mainconditions.xfrac["AL"] = 0.33;
+  mainconditions.xfrac["CR"] = 0.08;
+  mainconditions.elements.push_back("NI");
+  mainconditions.elements.push_back("AL");
+  mainconditions.elements.push_back("CR");
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = PhaseStatus::ENTERED;
-  mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
-  mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
+  //mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
+  //mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
   mainconditions.phases["FCC_A1"] = PhaseStatus::ENTERED;
-  mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
+  //mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
   mainconditions.phases["LIQUID"] = PhaseStatus::ENTERED;
 
   try {
