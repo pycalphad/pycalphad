@@ -18,13 +18,14 @@ point_list point_sample (
 		const unsigned int numpts
 		) {
 	// TODO: add the shuffling part
-	point_list points(boost::extents[varcount][numpts]);
+	point_list points(boost::extents[varcount][numpts-1]);
 	for (auto i = 0; i < varcount; ++i) {
 		double result = 0;
 		double f = 1 / (double)primes[i];
 		for (auto sequence_pos = 1; sequence_pos <= numpts; ++sequence_pos) {
 			result = result + f * (sequence_pos % primes[i]);
-			points[sequence_pos-1][varcount] = result;
+			points[sequence_pos-1][i] = result;
+			points[sequence_pos-1][varcount] = 0; // extra user-defined value associated with pt
 			f = f / (double)primes[i];
 		}
 	}
