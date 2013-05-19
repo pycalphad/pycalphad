@@ -10,6 +10,8 @@
 #ifndef INCLUDED_HALTON
 #define INCLUDED_HALTON
 
+#include <boost/multi_array.hpp>
+
 typedef boost::multi_array<double, 2> point_list;
 point_list point_sample (const unsigned int varcount, const unsigned int numpts);
 

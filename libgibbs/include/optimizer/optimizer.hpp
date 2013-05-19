@@ -133,4 +133,14 @@ double multiply_site_fractions_deriv
 	std::vector<std::vector<std::string>> species = std::vector<std::vector<std::string>>()
 	);
 
+double hessian_approx
+(
+		const sublattice_vector::const_iterator subl_start,
+		const sublattice_vector::const_iterator subl_end,
+		const Phase_Collection::const_iterator phase_iter,
+		const evalconditions &conditions,
+		const int &sublindex,
+		const std::string &specname
+);
+
 #endif

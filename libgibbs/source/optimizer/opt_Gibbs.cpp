@@ -10,6 +10,7 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/optimizer/halton.hpp"
 #include "external/coin/IpTNLP.hpp"
 
 using namespace Ipopt;

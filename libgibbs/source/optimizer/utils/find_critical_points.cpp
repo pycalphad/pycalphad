@@ -71,7 +71,7 @@ point_list find_critical_points (
 				}
 				sublattice_vector::const_iterator subls_start = subls_vec.cbegin();
 				sublattice_vector::const_iterator subls_end = subls_vec.cend();
-				samples[vars][p] = get_Gibbs_deriv(subls_start,subls_end,phase_iter,conditions);
+				//samples[vars][p] = get_Gibbs_deriv(subls_start,subls_end,phase_iter,conditions);
 			}
 			// find regions of positive concavity around each sample (G''>0)
 			// perform recursive search on those regions
