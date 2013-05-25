@@ -13,3 +13,4 @@
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
+#include <boost/spirit/include/support_utree.hpp>

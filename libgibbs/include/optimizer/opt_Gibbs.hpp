@@ -13,6 +13,7 @@
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
+#include <boost/spirit/include/support_utree.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
