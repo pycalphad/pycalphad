@@ -64,27 +64,27 @@ utree build_Gibbs_ref(
 
 	// Get all the sublattices for this phase
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
-	boost::tuple::tie(ic0,ic1)=get<phases>(subl_set).equal_range(phasename);
+	boost::tuples::tie(ic0,ic1)=get<phases>(subl_set).equal_range(phasename);
 
 	// Construct a view from the iterators
 	while (ic0 != ic1) {
-		ssv.insert(&*ic0);
+		ssv.insert(*ic0);
 		++ic0;
 	}
-	return permute_site_fractions(ssv, sublattice_set_view(), 0);
+	return permute_site_fractions(ssv, sublattice_set_view(), (int)0);
 }
 
 utree permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
-		const int &sublindex,
+		const int &sublindex
 		) {
 
 	utree ret_tree;
 
 	// Construct a view of just the current sublattice
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
-	boost::tuple::tie(ic0,ic1)=get<myindex>(total_view).equal_range(sublindex);
+	boost::tuples::tie(ic0,ic1)=get<myindex>(total_view).equal_range(sublindex);
 
 	if (ic0 == ic1) {
 		/* We are at the bottom of the recursive loop
@@ -99,14 +99,14 @@ utree permute_site_fractions (
 		sublattice_set_view temp_view = subl_view;
 		utree current_product;
 		utree buildtree;
-		const sublattice_entry *cur = temp_view.insert(&*i); // add ptr to current species to the view
+		temp_view.insert((*i)); // add ptr to current species to the view
 
 		/* Construct the expression tree.
 		 * Start by building the recursive product of site fractions.
 		 */
 		current_product.push_back("*");
-		// The variable will be represented as a tuple
-		current_product.push_back(boost::make_tuple(cur->phase, cur->index, cur->species));
+		// The variable will be represented as a pointer
+		current_product.push_back(utree(&*i));
 		current_product.push_back(
 				permute_site_fractions(total_view, temp_view, sublindex+1)
 				);

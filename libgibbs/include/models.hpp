@@ -18,20 +18,27 @@
 
 namespace models {
 
-using boost::spirit::utree;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
 struct sublattice_entry {
 	int index; // sublattice index
+	int opt_index; // variable index (for optimizer)
 	double num_sites; // number of sites
+	double sitefrac; // value of site fraction (for optimizer)
 	std::string phase;
 	std::string species; // species name
 	sublattice_entry (
 			int index_, double num_sites_, std::string phase_, std::string species_) :
-				index(index_), num_sites(num_sites_), phase(phase_), species(species_) {}
+				index(index_),
+				num_sites(num_sites_),
+				phase(phase_),
+				species(species_),
+				opt_index(-1),
+				sitefrac(-1) {}
 };
 
+/* Tags for multi-indexing */
 struct myindex{};
 struct phases{};
 
@@ -73,7 +80,7 @@ BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
 > sublattice_set;
 
 typedef multi_index_container<
-		const sublattice_entry*,
+		sublattice_entry,
 		indexed_by<
 		ordered_non_unique<
 		subl_sort_key
@@ -92,9 +99,18 @@ BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
 >
 > sublattice_set_view;
 
-utree build_Gibbs_ref(const std::string &phasename, const sublattice_set &subl_set);
-
-
 }
+
+// pull important objects into the global namespace
+using models::sublattice_set;
+using models::sublattice_set_view;
+using models::sublattice_entry;
+
+boost::spirit::utree build_Gibbs_ref(const std::string &phasename, const sublattice_set &subl_set);
+boost::spirit::utree permute_site_fractions (
+		const sublattice_set_view &total_view, // all sublattices
+		const sublattice_set_view &subl_view, // the active sublattice permutation
+		const int &sublindex
+		);
 
 #endif
