@@ -20,16 +20,19 @@ using namespace Ipopt;
 GibbsOpt::GibbsOpt(
 	const Phase_Collection::const_iterator p_begin, 
 	const Phase_Collection::const_iterator p_end, 
-	const evalconditions &sysstate) {
-	conditions = sysstate;
-	phase_iter = p_begin;
-	phase_end = p_end;
+	const evalconditions &sysstate) :
+			conditions(sysstate),
+			phase_iter(p_begin),
+			phase_end(p_end)
+{
 	int varcount = 0;
 	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions);
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		// build an AST for the given phase
-		boost::spirit::utree curphase = build_Gibbs_ref(i->first, main_ss);
-		std::cout << i->first << std::endl << curphase << std::endl;
+		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss);
+		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
+		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
+		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
 	}
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {

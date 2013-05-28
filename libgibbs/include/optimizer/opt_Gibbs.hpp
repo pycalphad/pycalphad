@@ -12,6 +12,7 @@
 
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
+#include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <string>
@@ -105,6 +106,7 @@ private:
 	GibbsOpt(const GibbsOpt&);
 	GibbsOpt& operator=(const GibbsOpt&);
 	//@}
+	sublattice_set main_ss;
 	vector_map var_map;
 	sitefracs mysitefracs;
 	evalconditions conditions;

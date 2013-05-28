@@ -23,9 +23,9 @@
 #include <boost/tuple/tuple.hpp>
 
 using boost::spirit::utree;
+using namespace models;
 using boost::multi_index_container;
 using namespace boost::multi_index;
-using namespace models;
 
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
@@ -34,10 +34,16 @@ sublattice_set build_variable_map(
 		) {
 	sublattice_set ret_set;
 
+	int indexcount = 0; // counter for variable indices (for optimizer)
+
 	// All phases
 	for (auto i = p_begin; i != p_end; ++i) {
 		auto subl_start = i->second.get_sublattice_iterator();
 		auto subl_end = i->second.get_sublattice_iterator_end();
+		std::string phasename = i->first;
+
+		// insert fake record for the phase fraction variable at -1 sublattice index
+		ret_set.insert(sublattice_entry(-1, indexcount++, 0, phasename, ""));
 		// All sublattices
 		for (auto j = subl_start; j != subl_end;++j) {
 			// All species
@@ -47,8 +53,7 @@ sublattice_set build_variable_map(
 					int sublindex = std::distance(subl_start,j);
 					double sitecount = (*j).stoi_coef;
 					std::string spec = (*k);
-					std::string phasename = i->first;
-					ret_set.insert(sublattice_entry(sublindex, sitecount, phasename, spec));
+					ret_set.insert(sublattice_entry(sublindex, indexcount++, sitecount, phasename, spec));
 				}
 			}
 		}
@@ -106,13 +111,9 @@ utree permute_site_fractions (
 		 * Start by building the recursive product of site fractions.
 		 */
 		current_product.push_back("*");
-
-		// std::to_string exists in C++11 but some compilers are buggy
-		std::stringstream ss;
-		ss << i->phase << "_" << i->index << "_" << i->species;
-
 		// The variable will be represented as a string
-		current_product.push_back(utree(ss.str()));
+		const std::string varname = (*i).name();
+		current_product.push_back(utree(varname));
 		current_product.push_back(
 				permute_site_fractions(total_view, temp_view, sublindex+1)
 				);
