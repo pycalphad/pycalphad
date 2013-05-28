@@ -15,6 +15,7 @@
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/models.hpp"
 #include <string>
+#include <sstream>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
@@ -80,8 +81,9 @@ utree permute_site_fractions (
 		const int &sublindex
 		) {
 
+	// TODO: optimizations to eliminate products containing 0
+	// and remove sums with 0 and products with 1
 	utree ret_tree;
-
 	// Construct a view of just the current sublattice
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
 	boost::tuples::tie(ic0,ic1)=get<myindex>(total_view).equal_range(sublindex);
@@ -95,26 +97,32 @@ utree permute_site_fractions (
 		return utree(1);
 	}
 
-	for (auto i = ic0; ic0 != ic1; ++i) {
+	for (auto i = ic0; i != ic1; ++i) {
 		sublattice_set_view temp_view = subl_view;
 		utree current_product;
 		utree buildtree;
-		temp_view.insert((*i)); // add ptr to current species to the view
-
+		temp_view.insert((*i)); // add current species to the view
 		/* Construct the expression tree.
 		 * Start by building the recursive product of site fractions.
 		 */
 		current_product.push_back("*");
-		// The variable will be represented as a pointer
-		current_product.push_back(utree(&*i));
+
+		// std::to_string exists in C++11 but some compilers are buggy
+		std::stringstream ss;
+		ss << i->phase << "_" << i->index << "_" << i->species;
+
+		// The variable will be represented as a string
+		current_product.push_back(utree(ss.str()));
 		current_product.push_back(
 				permute_site_fractions(total_view, temp_view, sublindex+1)
 				);
-
 		// Contribute this product to the sum
-		buildtree.push_back("+");
+		// Check if we are on the first (or only) term in the sum
+		if (i != ic0) {
+			buildtree.push_back("+");
+			buildtree.push_back(ret_tree);
+		}
 		buildtree.push_back(current_product);
-		buildtree.push_back(ret_tree);
 		ret_tree.swap(buildtree);
 	}
 	return ret_tree;

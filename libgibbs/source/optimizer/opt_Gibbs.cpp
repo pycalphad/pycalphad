@@ -8,6 +8,7 @@
 // opt_Gibbs.cpp -- definition for Gibbs energy optimizer
 
 #include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
@@ -24,6 +25,12 @@ GibbsOpt::GibbsOpt(
 	phase_iter = p_begin;
 	phase_end = p_end;
 	int varcount = 0;
+	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions);
+	for (auto i = phase_iter; i != phase_end; ++i) {
+		// build an AST for the given phase
+		boost::spirit::utree curphase = build_Gibbs_ref(i->first, main_ss);
+		std::cout << i->first << std::endl << curphase << std::endl;
+	}
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		sublattice_vector subls_vec;

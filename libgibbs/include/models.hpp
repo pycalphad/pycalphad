@@ -9,6 +9,7 @@
 #ifndef INCLUDED_MODELS_HPP
 #define INCLUDED_MODELS_HPP
 
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include <string>
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
@@ -79,6 +80,8 @@ BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
 >
 > sublattice_set;
 
+
+// TODO: fix the view object to work on pointers, not the actual object
 typedef multi_index_container<
 		sublattice_entry,
 		indexed_by<
@@ -111,6 +114,11 @@ boost::spirit::utree permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const int &sublindex
+		);
+sublattice_set build_variable_map(
+		const Phase_Collection::const_iterator p_begin,
+		const Phase_Collection::const_iterator p_end,
+		const evalconditions &conditions
 		);
 
 #endif
