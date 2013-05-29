@@ -132,6 +132,7 @@ boost::spirit::utree permute_site_fractions (
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const int &sublindex
 		);
+boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const std::string &type);
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,

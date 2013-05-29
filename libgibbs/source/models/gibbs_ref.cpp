@@ -12,10 +12,11 @@
 // Model for reference Gibbs energy (from pure elements)
 
 #include "libgibbs/include/libgibbs_pch.hpp"
-#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include <string>
 #include <sstream>
+#include <set>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
@@ -99,7 +100,7 @@ utree permute_site_fractions (
 		 * Use the sublattice permutation to find a matching
 		 * parameter, if it exists.
 		 */
-		return utree(1);
+		return find_parameter_ast(subl_view,"G");
 	}
 
 	for (auto i = ic0; i != ic1; ++i) {
@@ -125,6 +126,23 @@ utree permute_site_fractions (
 		}
 		buildtree.push_back(current_product);
 		ret_tree.swap(buildtree);
+	}
+	return ret_tree;
+}
+
+utree find_parameter_ast(const sublattice_set_view &subl_view, const std::string &type) {
+	utree ret_tree;
+	// build search configuration
+	std::vector<std::set<std::string>> search_config;
+
+	auto subl_start = get<myindex>(subl_view).begin();
+	auto subl_end = get<myindex>(subl_view).end();
+
+	search_config.reserve(std::distance(subl_start,subl_end));
+
+	while (subl_start != subl_end) {
+		search_config[subl_start->index].insert(subl_start->species);
+		++subl_start;
 	}
 	return ret_tree;
 }
