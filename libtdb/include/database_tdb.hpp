@@ -28,6 +28,7 @@ private:
 	Element_Collection elements; // all pure elements from this database
 	Phase_Collection phases; // all phases
 	Species_Collection myspecies; // all species
+	parameter_set paramset; // structure for holding parameters
 	boost::spirit::qi::symbols<char, boost::spirit::utree> macros; // all of the macros (FUNCTIONs in Thermo-Calc lingo)
 	boost::spirit::qi::symbols<char, boost::spirit::utree> statevars; // all valid state variables
 	std::map<std::string,std::string> reserved_phase_keywords; // reserved phase suffixes: L12, A2, LAVES, etc.
@@ -84,6 +85,7 @@ public:
 	Species_Collection get_all_species() { return myspecies; }
 	Phase_Collection::const_iterator get_phase_iterator() const { return phases.cbegin(); }
 	Phase_Collection::const_iterator get_phase_iterator_end() const { return phases.cend(); }
+	parameter_set get_parameter_set() const { return paramset; }
 };
 
 #endif

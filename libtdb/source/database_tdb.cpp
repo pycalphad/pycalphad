@@ -145,3 +145,7 @@ Phase_Collection::const_iterator Database::get_phase_iterator() const {
 Phase_Collection::const_iterator Database::get_phase_iterator_end() const {
 	return pImpl->get_phase_iterator_end();
 }
+
+parameter_set Database::get_parameter_set() const {
+	return pImpl->get_parameter_set();
+}

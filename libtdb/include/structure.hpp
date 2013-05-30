@@ -17,6 +17,10 @@
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/warning_disable.hpp"
 #include <boost/spirit/home/support/utree.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
 struct Element {
@@ -79,6 +83,37 @@ BOOST_FUSION_ADAPT_STRUCT
     (spirit::utree, ast)
 	)
 typedef std::vector<Parameter> Parameters;
+
+struct type_index {};
+struct phase_index {};
+
+typedef boost::multi_index_container<
+		Parameter,
+		boost::multi_index::indexed_by<
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phase_index>,
+		BOOST_MULTI_INDEX_MEMBER(Parameter,std::string,phase)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<type_index>,
+		BOOST_MULTI_INDEX_MEMBER(Parameter,std::string,type)
+		>
+>
+> parameter_set;
+
+typedef boost::multi_index_container<
+		const Parameter*,
+		boost::multi_index::indexed_by<
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phase_index>,
+		BOOST_MULTI_INDEX_MEMBER(Parameter,const std::string,phase)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<type_index>,
+		BOOST_MULTI_INDEX_MEMBER(Parameter,const std::string,type)
+		>
+>
+> parameter_set_view;
 
 class Phase {
 private:

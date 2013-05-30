@@ -23,8 +23,7 @@ using namespace Ipopt;
 class GibbsOpt : public TNLP {
 public:
 	GibbsOpt(
-		const Phase_Collection::const_iterator phase_iter, 
-		const Phase_Collection::const_iterator phase_end, 
+		const Database &DB,
 		const evalconditions &sysstate);
 	virtual ~GibbsOpt();
 	/**@name Overloaded from TNLP */

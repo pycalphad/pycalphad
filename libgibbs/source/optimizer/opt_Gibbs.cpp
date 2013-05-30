@@ -18,18 +18,19 @@ using namespace Ipopt;
 
 /* Constructor. */
 GibbsOpt::GibbsOpt(
-	const Phase_Collection::const_iterator p_begin, 
-	const Phase_Collection::const_iterator p_end, 
-	const evalconditions &sysstate) :
+		const Database &DB,
+		const evalconditions &sysstate) :
 			conditions(sysstate),
-			phase_iter(p_begin),
-			phase_end(p_end)
+			phase_iter(DB.get_phase_iterator()),
+			phase_end(DB.get_phase_iterator_end())
 {
 	int varcount = 0;
 	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions);
+	parameter_set pset = DB.get_parameter_set();
 	for (auto i = phase_iter; i != phase_end; ++i) {
+		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		// build an AST for the given phase
-		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss);
+		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss, pset);
 		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
 		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;

@@ -1,6 +1,10 @@
 /*=============================================================================
 	Copyright (c) 2012-2013 Richard Otis
 
+	Based on example code from Boost MultiIndex.
+	Copyright (c) 2003-2008 Joaquin M Lopez Munoz.
+	See http://www.boost.org/libs/multi_index for library home page.
+
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
@@ -18,10 +22,6 @@
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 
-namespace models {
-
-using boost::multi_index_container;
-using namespace boost::multi_index;
 
 struct sublattice_entry {
 	int index; // sublattice index
@@ -56,7 +56,7 @@ struct phases{};
  * Compiler specifics: type hiding.
  */
 
-struct subl_sort_key:composite_key<
+struct subl_sort_key : boost::multi_index::composite_key<
 sublattice_entry,
 BOOST_MULTI_INDEX_MEMBER(sublattice_entry, std::string,phase),
 BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index),
@@ -68,71 +68,58 @@ BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,species)
  * template specialization, for info on composite_key_result_less
  */
 
-typedef multi_index_container<
+typedef boost::multi_index::multi_index_container<
 		sublattice_entry,
-		indexed_by<
-		ordered_non_unique<
-		subl_sort_key
-#if defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
-		,composite_key_result_less<size_key::result_type>
-#endif
->,
-ordered_non_unique<
-tag<myindex>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
->,
-ordered_non_unique<
-tag<optimizer_index>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,opt_index)
->,
-ordered_non_unique<
-tag<phases>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
->
+		boost::multi_index::indexed_by<
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<myindex>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<optimizer_index>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,opt_index)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phases>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
+		>
 >
 > sublattice_set;
 
 
 // TODO: fix the view object to work on pointers, not the actual object
-typedef multi_index_container<
+typedef boost::multi_index::multi_index_container<
 		sublattice_entry,
-		indexed_by<
-		ordered_non_unique<
-		subl_sort_key
-#if defined(BOOST_NO_TEMPLATE_PARTIAL_SPECIALIZATION)
-		,composite_key_result_less<size_key::result_type>
-#endif
->,
-ordered_non_unique<
-tag<myindex>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
->,
-ordered_non_unique<
-tag<optimizer_index>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,opt_index)
->,
-ordered_non_unique<
-tag<phases>,
-BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
->
+		boost::multi_index::indexed_by<
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<myindex>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<optimizer_index>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,opt_index)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phases>,
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
+		>
 >
 > sublattice_set_view;
 
-}
 
-// pull important objects into the global namespace
-using models::sublattice_set;
-using models::sublattice_set_view;
-using models::sublattice_entry;
-
-boost::spirit::utree build_Gibbs_ref(const std::string &phasename, const sublattice_set &subl_set);
+boost::spirit::utree build_Gibbs_ref(
+		const std::string &phasename,
+		const sublattice_set &subl_set,
+		const parameter_set &param_set
+		);
 boost::spirit::utree build_ideal_mixing_entropy(const std::string &phasename,const sublattice_set &subl_set);
 boost::spirit::utree permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
+		const parameter_set_view &param_view, // contains the parameters
 		const int &sublindex
 		);
-boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const std::string &type);
+boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view);
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,

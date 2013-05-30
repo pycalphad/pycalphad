@@ -24,7 +24,6 @@
 #include <boost/tuple/tuple.hpp>
 
 using boost::spirit::utree;
-using namespace models;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
@@ -64,10 +63,13 @@ sublattice_set build_variable_map(
 
 utree build_Gibbs_ref(
 		const std::string &phasename,
-		const sublattice_set &subl_set
+		const sublattice_set &subl_set,
+		const parameter_set &param_set
 		) {
 	utree ret_tree;
 	sublattice_set_view ssv;
+	parameter_set_view psv;
+	parameter_set_view psv_subview;
 
 	// Get all the sublattices for this phase
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
@@ -78,12 +80,35 @@ utree build_Gibbs_ref(
 		ssv.insert(*ic0);
 		++ic0;
 	}
-	return permute_site_fractions(ssv, sublattice_set_view(), (int)0);
+
+	// Get all the parameters for this phase
+	boost::multi_index::index<parameter_set,phase_index>::type::iterator pa_start,pa_end;
+	//boost::tuples::tie(pa_start,pa_end)=get<phase_index>(param_set).equal_range(phasename);
+
+	// Construct a view from the iterators
+	/*while (pa_start != pa_end) {
+		//psv.insert(&*pa_start);
+		++pa_start;
+	}*/
+
+	// build a subview to the parameters that we are interested in
+	parameter_set_view::iterator it0, it1;
+	std::string scantype = "G";
+	boost::tuples::tie(it0,it1)=psv.equal_range(scantype);
+
+	// Construct a subview from the view
+	while (it0 != it1) {
+		psv_subview.insert(*it0);
+		++it0;
+	}
+
+	return permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
 }
 
 utree permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
+		const parameter_set_view &param_view,
 		const int &sublindex
 		) {
 
@@ -100,7 +125,8 @@ utree permute_site_fractions (
 		 * Use the sublattice permutation to find a matching
 		 * parameter, if it exists.
 		 */
-		return find_parameter_ast(subl_view,"G");
+
+		return find_parameter_ast(subl_view,param_view);
 	}
 
 	for (auto i = ic0; i != ic1; ++i) {
@@ -116,7 +142,7 @@ utree permute_site_fractions (
 		const std::string varname = (*i).name();
 		current_product.push_back(utree(varname));
 		current_product.push_back(
-				permute_site_fractions(total_view, temp_view, sublindex+1)
+				permute_site_fractions(total_view, temp_view, param_view, sublindex+1)
 				);
 		// Contribute this product to the sum
 		// Check if we are on the first (or only) term in the sum
@@ -130,7 +156,7 @@ utree permute_site_fractions (
 	return ret_tree;
 }
 
-utree find_parameter_ast(const sublattice_set_view &subl_view, const std::string &type) {
+utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
 	utree ret_tree;
 	// build search configuration
 	std::vector<std::set<std::string>> search_config;

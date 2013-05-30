@@ -19,7 +19,6 @@
 #include <boost/tuple/tuple.hpp>
 
 using boost::spirit::utree;
-using namespace models;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 

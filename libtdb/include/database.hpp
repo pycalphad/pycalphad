@@ -29,6 +29,7 @@ public:
 	Species_Collection get_all_species() const;
 	Phase_Collection::const_iterator get_phase_iterator() const;
 	Phase_Collection::const_iterator get_phase_iterator_end() const;
+	parameter_set get_parameter_set() const;
 };
 
 #endif

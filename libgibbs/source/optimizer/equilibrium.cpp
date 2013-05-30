@@ -41,7 +41,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartP
 
 	timer.start();
 	// Create NLP
-	SmartPtr<TNLP> mynlp = new GibbsOpt(phase_iter, phase_end, conds);
+	SmartPtr<TNLP> mynlp = new GibbsOpt(DB, conds);
 	ApplicationReturnStatus status;
 	status = solver->OptimizeTNLP(mynlp);
 	timer.stop();

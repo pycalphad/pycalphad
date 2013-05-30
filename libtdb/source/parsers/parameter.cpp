@@ -106,6 +106,7 @@ void Database::DatabaseTDB::Parameter(std::string &argstr) {
 				BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(errmsg));
 			}
 			(phase_iter->second).params.push_back(ret_param); // add the parameter to the phase
+			paramset.insert(ret_param); // add the parameter to the database (NEW METHOD)
 		}
 		else {
 			BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Unknown phase: " + ret_param.phase));
