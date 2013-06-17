@@ -77,28 +77,28 @@ utree build_Gibbs_ref(
 
 	// Construct a view from the iterators
 	while (ic0 != ic1) {
-		ssv.insert(*ic0);
+		ssv.insert(&*ic0);
 		++ic0;
 	}
 
 	// Get all the parameters for this phase
 	boost::multi_index::index<parameter_set,phase_index>::type::iterator pa_start,pa_end;
-	//boost::tuples::tie(pa_start,pa_end)=get<phase_index>(param_set).equal_range(phasename);
+	boost::tuples::tie(pa_start,pa_end)=get<phase_index>(param_set).equal_range(phasename);
 
 	// Construct a view from the iterators
-	/*while (pa_start != pa_end) {
-		//psv.insert(&*pa_start);
+	while (pa_start != pa_end) {
+		//psv.insert(*pa_start);
 		++pa_start;
-	}*/
+	}
 
 	// build a subview to the parameters that we are interested in
-	parameter_set_view::iterator it0, it1;
+	boost::multi_index::index<parameter_set_view,type_index>::type::iterator it0, it1;
 	std::string scantype = "G";
-	boost::tuples::tie(it0,it1)=psv.equal_range(scantype);
+	boost::tuples::tie(it0,it1)=get<type_index>(psv).equal_range(scantype);
 
 	// Construct a subview from the view
 	while (it0 != it1) {
-		psv_subview.insert(*it0);
+		//psv_subview.insert(*it0);
 		++it0;
 	}
 
@@ -139,7 +139,7 @@ utree permute_site_fractions (
 		 */
 		current_product.push_back("*");
 		// The variable will be represented as a string
-		const std::string varname = (*i).name();
+		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 		current_product.push_back(
 				permute_site_fractions(total_view, temp_view, param_view, sublindex+1)
@@ -164,11 +164,19 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 	auto subl_start = get<myindex>(subl_view).begin();
 	auto subl_end = get<myindex>(subl_view).end();
 
-	search_config.reserve(std::distance(subl_start,subl_end));
+	std::cout << "length: " << std::distance(subl_start,subl_end) << std::endl;
+	search_config.reserve(std::distance(subl_start,subl_end)); // TODO: we actually want to resize to sublcount elements
 
 	while (subl_start != subl_end) {
-		search_config[subl_start->index].insert(subl_start->species);
+		std::cout << "index: " << (*subl_start)->index << std::endl;
+		std::set<std::string> tempset;
+		tempset.insert("test");
+		search_config.push_back(tempset);
+		std::cout << "spec: " << (*subl_start)->species << std::endl;
+		search_config[(*subl_start)->index].insert((*subl_start)->species);
+		std::cout << "before incr" << std::endl;
 		++subl_start;
+		std::cout << "after incr" << std::endl;
 	}
 	return ret_tree;
 }

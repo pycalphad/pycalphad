@@ -49,7 +49,7 @@ utree build_ideal_mixing_entropy(
 
 	// Generate a subview which excludes the "-1" fake sublattice index
 	while (ic0 != ic1) {
-		ssv.insert(*ic0);
+		ssv.insert(&*ic0);
 		++ic0;
 	}
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_start = get<myindex>(ssv).lower_bound(0);
@@ -61,7 +61,7 @@ utree build_ideal_mixing_entropy(
 		current_product.push_back("*");
 		current_product.push_back(ret_tree);
 		}
-		current_product.push_back(make_xlnx(i->name()));
+		current_product.push_back(make_xlnx((*i)->name()));
 		ret_tree.swap(current_product);
 	}
 	return ret_tree;

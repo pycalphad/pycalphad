@@ -89,19 +89,19 @@ typedef boost::multi_index::multi_index_container<
 
 // TODO: fix the view object to work on pointers, not the actual object
 typedef boost::multi_index::multi_index_container<
-		sublattice_entry,
+		const sublattice_entry*,
 		boost::multi_index::indexed_by<
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<myindex>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const int,index)
 		>,
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<optimizer_index>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,opt_index)
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const int,opt_index)
 		>,
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<phases>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
+		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const std::string,phase)
 		>
 >
 > sublattice_set_view;
