@@ -158,25 +158,31 @@ utree permute_site_fractions (
 
 utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
 	utree ret_tree;
-	// build search configuration
+	int sublcount = 0;
 	std::vector<std::set<std::string>> search_config;
-
 	auto subl_start = get<myindex>(subl_view).begin();
 	auto subl_end = get<myindex>(subl_view).end();
 
-	std::cout << "length: " << std::distance(subl_start,subl_end) << std::endl;
-	search_config.reserve(std::distance(subl_start,subl_end)); // TODO: we actually want to resize to sublcount elements
 
+	// Build search configuration
 	while (subl_start != subl_end) {
-		std::cout << "index: " << (*subl_start)->index << std::endl;
-		std::set<std::string> tempset;
-		tempset.insert("test");
-		search_config.push_back(tempset);
-		std::cout << "spec: " << (*subl_start)->species << std::endl;
+		int index = (*subl_start)->index;
+
+		// check if the current index exceeds the known sublattice count
+		// expand the size of the vector of sets by an amount equal to the difference
+		// NOTE: if we don't do this, we will crash when we attempt to insert()
+		for (auto i = sublcount; i < (index+1); ++i) {
+			std::set<std::string> tempset;
+			search_config.push_back(tempset);
+		}
+
+		// Add species to the parameter search configuration
 		search_config[(*subl_start)->index].insert((*subl_start)->species);
-		std::cout << "before incr" << std::endl;
+
+
 		++subl_start;
-		std::cout << "after incr" << std::endl;
 	}
+
+
 	return ret_tree;
 }
