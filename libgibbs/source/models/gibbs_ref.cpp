@@ -87,7 +87,7 @@ utree build_Gibbs_ref(
 
 	// Construct a view from the iterators
 	while (pa_start != pa_end) {
-		//psv.insert(*pa_start);
+		psv.insert(&*pa_start);
 		++pa_start;
 	}
 
@@ -98,7 +98,7 @@ utree build_Gibbs_ref(
 
 	// Construct a subview from the view
 	while (it0 != it1) {
-		//psv_subview.insert(*it0);
+		psv_subview.insert(*it0);
 		++it0;
 	}
 
@@ -162,11 +162,17 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 	std::vector<std::set<std::string>> search_config;
 	auto subl_start = get<myindex>(subl_view).begin();
 	auto subl_end = get<myindex>(subl_view).end();
+	// TODO: this would be better with a new index that was a derived key of the sublattice count
+	// By the time we get here, we've already been filtered to the correct phase and parameter type
+	auto param_start = get<phase_index>(param_view).begin();
+	auto param_end = get<phase_index>(param_view).end();
 
 
 	// Build search configuration
 	while (subl_start != subl_end) {
 		int index = (*subl_start)->index;
+
+		if (index < 0) continue; // skip "fake" negative indices
 
 		// check if the current index exceeds the known sublattice count
 		// expand the size of the vector of sets by an amount equal to the difference
@@ -183,6 +189,8 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 		++subl_start;
 	}
 
+
+	// Now that we have a search configuration, search through the parameters in param_view
 
 	return ret_tree;
 }
