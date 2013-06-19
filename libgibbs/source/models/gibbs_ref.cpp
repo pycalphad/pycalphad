@@ -24,6 +24,7 @@
 #include <boost/tuple/tuple.hpp>
 
 using boost::spirit::utree;
+typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
@@ -141,9 +142,13 @@ utree permute_site_fractions (
 		// The variable will be represented as a string
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
-		current_product.push_back(
-				permute_site_fractions(total_view, temp_view, param_view, sublindex+1)
-				);
+
+		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1);
+		if (recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) continue;
+		if (recursive_term.which() == utree_type::invalid_type) continue;
+
+		// we only get here for non-zero terms
+		current_product.push_back(recursive_term);
 		// Contribute this product to the sum
 		// Check if we are on the first (or only) term in the sum
 		if (i != ic0) {
@@ -153,37 +158,49 @@ utree permute_site_fractions (
 		buildtree.push_back(current_product);
 		ret_tree.swap(buildtree);
 	}
+
+	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
 	return ret_tree;
 }
 
 utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
+	// TODO: check degree of parameters (for interaction parameters)
+	// TODO: poorly defined behavior for multiple matching parameters
+	// one idea: keep a vector of matching parameters; at the end, return the one with fewest *'s
+	// if "*" count is equal, throw an exception or choose the first one
 	utree ret_tree;
 	int sublcount = 0;
-	std::vector<std::set<std::string>> search_config;
+	std::vector<std::vector<std::string>> search_config;
 	auto subl_start = get<myindex>(subl_view).begin();
 	auto subl_end = get<myindex>(subl_view).end();
-	// TODO: this would be better with a new index that was a derived key of the sublattice count
+	// TODO: parameter search would be better with a new index that was a derived key of the sublattice count
 	// By the time we get here, we've already been filtered to the correct phase and parameter type
-	auto param_start = get<phase_index>(param_view).begin();
+	auto param_iter = get<phase_index>(param_view).begin();
 	auto param_end = get<phase_index>(param_view).end();
-
 
 	// Build search configuration
 	while (subl_start != subl_end) {
 		int index = (*subl_start)->index;
 
-		if (index < 0) continue; // skip "fake" negative indices
+		if (index < 0) {
+			++subl_start;
+			continue; // skip "fake" negative indices
+		}
 
 		// check if the current index exceeds the known sublattice count
-		// expand the size of the vector of sets by an amount equal to the difference
-		// NOTE: if we don't do this, we will crash when we attempt to insert()
+		// expand the size of the vector of vectors by an amount equal to the difference
+		// NOTE: if we don't do this, we will crash when we attempt to push_back()
 		for (auto i = sublcount; i < (index+1); ++i) {
-			std::set<std::string> tempset;
-			search_config.push_back(tempset);
+			std::vector<std::string> tempvec;
+			search_config.push_back(tempvec);
+			sublcount = index+1;
 		}
 
 		// Add species to the parameter search configuration
-		search_config[(*subl_start)->index].insert((*subl_start)->species);
+		search_config[(*subl_start)->index].push_back((*subl_start)->species);
+
+		// Sort the sublattice with the newly added element
+		std::sort(search_config[(*subl_start)->index].begin(), search_config[(*subl_start)->index].end());
 
 
 		++subl_start;
@@ -191,6 +208,50 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 
 
 	// Now that we have a search configuration, search through the parameters in param_view
+
+	while (param_iter != param_end) {
+		if (search_config.size() != (*param_iter)->constituent_array.size()) {
+			// skip if sublattice counts do not match
+			std::cout << "paramskip for sublattice mismatch: " << search_config.size() << " != " << (*param_iter)->constituent_array.size() << std::endl;
+			std::cout << "search_config: ";
+			for (auto i = search_config.begin(); i != search_config.end(); ++i) {
+				for (auto j = (*i).begin(); j != (*i).end(); ++j) {
+					std::cout << (*j) << ",";
+				}
+				std::cout << ":";
+			}
+			std::cout << std::endl;
+			++param_iter;
+			continue;
+		}
+		// We cannot do a direct comparison of the nested vectors because
+		//    we must check the case where the wildcard '*' is used in some sublattices in the parameter
+		bool isvalid = true;
+		auto array_begin = (*param_iter)->constituent_array.begin();
+		auto array_iter = array_begin;
+		auto array_end = (*param_iter)->constituent_array.end();
+
+		// Now perform a sublattice comparison
+		while (array_iter != array_end) {
+			const std::string firstelement = *(*array_iter).cbegin();
+			// if the parameter sublattices don't match, or the parameter isn't using a wildcard, do not match
+			if (!(
+				(*array_iter) == search_config[std::distance(array_begin,array_iter)])
+				|| (firstelement == "*")
+				) {
+				isvalid = false;
+				break;
+			}
+			++array_iter;
+		}
+		if (isvalid) {
+			// We found a valid parameter, return its abstract syntax tree
+			ret_tree = (*param_iter)->ast;
+			break;
+		}
+
+		++param_iter;
+	}
 
 	return ret_tree;
 }

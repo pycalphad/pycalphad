@@ -27,6 +27,7 @@ GibbsOpt::GibbsOpt(
 	int varcount = 0;
 	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions);
 	parameter_set pset = DB.get_parameter_set();
+
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		// build an AST for the given phase

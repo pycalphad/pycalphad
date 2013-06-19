@@ -20,6 +20,7 @@
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 #include <boost/multi_index/ordered_index.hpp>
 #include <boost/fusion/include/adapt_struct.hpp>
 
@@ -71,6 +72,14 @@ struct Parameter {
 	int degree;			// degree of Redlich-Kister term (if applicable)
 	boost::spirit::utree ast; // abstract syntax tree associated with parameter (arithmetic expression with limits)
 	//std::string data_ref; // scientific reference for the parameter
+
+	std::string phasename() const {
+		if (!suffix.empty()) {
+			std::string str = phase + "_" + suffix;
+			return str;
+		}
+		else return phase;
+	}
 };
 BOOST_FUSION_ADAPT_STRUCT
 (
@@ -92,7 +101,7 @@ typedef boost::multi_index_container<
 		boost::multi_index::indexed_by<
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<phase_index>,
-		BOOST_MULTI_INDEX_MEMBER(Parameter,std::string,phase)
+		BOOST_MULTI_INDEX_CONST_MEM_FUN(Parameter,std::string,phasename)
 		>,
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<type_index>,

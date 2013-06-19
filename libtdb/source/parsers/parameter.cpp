@@ -107,11 +107,11 @@ void Database::DatabaseTDB::Parameter(std::string &argstr) {
 			}
 			(phase_iter->second).params.push_back(ret_param); // add the parameter to the phase
 			paramset.insert(ret_param); // add the parameter to the database (NEW METHOD)
+			//std::cout << "ADDED PARAMETER TO PHASE " << ret_param.phase << std::endl;
 		}
 		else {
 			BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Unknown phase: " + ret_param.phase));
 		}
-		//std::cout << "ADDED PARAMETER TO PHASE " << ret_param.phase << std::endl;
 	}
 	else
 	{
