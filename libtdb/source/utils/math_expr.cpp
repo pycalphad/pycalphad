@@ -33,7 +33,11 @@ bool is_allowed_value(T &val) {
 }
 template bool is_allowed_value(double&); // explicit instantiation
 
-boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalconditions const& conditions) {
+boost::spirit::utree const process_utree(
+		boost::spirit::utree const& ut,
+		evalconditions const& conditions,
+		std::map<std::string, int> const &modelvar_indices,
+		double* const &modelvars) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
@@ -181,6 +185,14 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 		}
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
+			std::string varname(rt.begin(),rt.end());
+			// pass a map of indices and the Number*s by reference to process_utree
+			const auto varindex = modelvar_indices.find(varname); // attempt to find this variable
+			if (varindex != modelvar_indices.end()) {
+				// we found the variable
+				// use the index to return the current value
+				return modelvars[varindex->second];
+			}
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {
 				// throw an exception (bad symbol/state variable)
@@ -199,4 +211,14 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut, evalcon
 		}
 	}
 	return utree(utree_type::invalid_type);
+}
+
+// TODO: transitional code for backwards compatibility
+boost::spirit::utree const process_utree(
+		boost::spirit::utree const& ut,
+		evalconditions const& conditions
+		) {
+	std::map<std::string,int> placeholder;
+	double placeholder2[0];
+	return process_utree(ut, conditions, placeholder, placeholder2);
 }

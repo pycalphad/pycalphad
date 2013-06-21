@@ -17,8 +17,13 @@
 #include <math.h>
 #include <string>
 
-boost::spirit::utree const differentiate_utree
-(boost::spirit::utree const& ut, evalconditions const& conditions, std::string const& diffvar) {
+boost::spirit::utree const differentiate_utree(
+		boost::spirit::utree const& ut,
+		evalconditions const& conditions,
+		std::string const& diffvar,
+		std::map<std::string, int> const& modelvar_indices,
+		double* const& modelvars
+	) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	//std::cout << "deriv_processing " << ut.which() << " tree: " << ut << std::endl;
@@ -197,13 +202,21 @@ boost::spirit::utree const differentiate_utree
 		}
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
+			std::string varname(rt.begin(),rt.end());
+			// check if it's a model variable
+			const auto varindex = modelvar_indices.find(varname); // attempt to find this variable
+			if (varindex != modelvar_indices.end()) {
+				// we found the variable
+				if (diffvar == varname) return 1;
+				else return 0;
+			}
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {
 				// throw an exception (bad symbol/state variable)
 				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (e.g., @) operators or state variables can only be a single character") << specific_errinfo(op));
 			}
 			if (conditions.statevars.find(*op) != conditions.statevars.end()) {
-				if (diffvar == std::string(rt.begin(),rt.end())) return 1;
+				if (diffvar == varname) return 1;
 				else return 0;
 			}
 			else {
@@ -215,4 +228,16 @@ boost::spirit::utree const differentiate_utree
 		}
 	}
 	return utree(utree_type::invalid_type);
+}
+
+// TODO: transitional code for backwards compatibility
+
+boost::spirit::utree const differentiate_utree(
+		boost::spirit::utree const& ut,
+		evalconditions const& conditions,
+		std::string const& diffvar
+	) {
+	std::map<std::string,int> placeholder;
+	double placeholder2[0];
+	return differentiate_utree(ut, conditions, diffvar, placeholder, placeholder2);
 }

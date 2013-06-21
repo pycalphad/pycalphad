@@ -113,8 +113,6 @@ utree permute_site_fractions (
 		const int &sublindex
 		) {
 
-	// TODO: optimizations to eliminate products containing 0
-	// and remove sums with 0 and products with 1
 	utree ret_tree;
 	// Construct a view of just the current sublattice
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
