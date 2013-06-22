@@ -317,11 +317,8 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 	}
 	//std::cout.precision(24);
 	//std::cout << "final eval_f result = " << result << std::endl;*/
-	std::cout << "main_indices.size() = " << main_indices.size() << std::endl;
-	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		std::cout << "main_indices[" << i->first << "] = " << i->second << std::endl;
-	}
 	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
+	std::cout << "eval_f = " << obj_value << std::endl;
 	return true;
 }
 

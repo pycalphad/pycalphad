@@ -170,7 +170,7 @@ boost::spirit::utree const differentiate_utree(
 						}
 						res += (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
 					}
-					else if (op == "ln") {
+					else if (op == "LN") {
 						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						if (lhs <= 0) {
 							// outside the domain of ln
@@ -179,7 +179,7 @@ boost::spirit::utree const differentiate_utree(
 						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += lhs_deriv / lhs;
 					}
-					else if (op == "exp") {
+					else if (op == "EXP") {
 						lhs = process_utree(*lhsiter, conditions).get<double>();
 						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += exp(lhs) * lhs_deriv;
