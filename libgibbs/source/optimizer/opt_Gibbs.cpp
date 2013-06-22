@@ -326,7 +326,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
+	/*auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	int varcheck = 0;
 	// all phases
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
@@ -378,7 +378,12 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 			}
 		}
 	}
-	assert (varcheck == n);
+	assert (varcheck == n);*/
+
+	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+		grad_f[i->second] = differentiate_utree(master_tree, conditions, i->first, main_indices, (double*) x).get<double>();
+	}
+
 	return true;
 }
 
