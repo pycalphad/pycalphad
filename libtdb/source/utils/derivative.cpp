@@ -13,6 +13,7 @@
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <math.h>
 #include <string>
@@ -53,17 +54,25 @@ boost::spirit::utree const differentiate_utree(
 					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
 					op = std::string(rt.begin(), rt.end()); // set the symbol
+					boost::algorithm::to_upper(op);
+					const auto varindex = modelvar_indices.find(op); // attempt to find this symbol as a model variable
+					if (varindex != modelvar_indices.end()) {
+						// we found the variable
+						// use the index to return the current value
+						//std::cout << "variable " << op << " found in list string_type" << std::endl;
+						return modelvars[varindex->second];
+					}
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
 						++it;
-						double curT = process_utree(*it, conditions).get<double>();
+						double curT = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						//std::cout << "curT: " << curT << std::endl;
 						++it;
-						double lowlimit = process_utree(*it, conditions).get<double>();
+						double lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						//std::cout << "lowlimit:" << lowlimit << std::endl;
 						if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 						++it;
-						double highlimit = process_utree(*it, conditions).get<double>();
+						double highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 
 						if (!is_allowed_value<double>(curT)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable is infinite, subnormal, or not a number"));
@@ -81,7 +90,7 @@ boost::spirit::utree const differentiate_utree(
 							// Range check satisfied
 							// Differentiate the tree and return the result
 							// Note: by design we only return the first result to satisfy the criterion
-							return differentiate_utree(*it, conditions, diffvar).get<double>();
+							return differentiate_utree(*it, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						}
 						else {
 							// Range check not satisfied
@@ -115,31 +124,31 @@ boost::spirit::utree const differentiate_utree(
 					// And many more things before this will actually work...
 					if (op == "+") {
 						// derivative of sum is sum of derivatives
-						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
-						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, conditions, diffvar).get<double>();
+						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += (lhs + rhs);  // accumulate the result
 					}
 					else if (op == "-") {
 						// derivative of difference is difference of derivatives
-						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
+						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						if (ut.size() == 2) lhs = -lhs; // case of negation (unary operator)
-						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, conditions, diffvar).get<double>();
+						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += (lhs - rhs);
 					}
 					else if (op == "*") {
 						// derivative of product is lhs'rhs + rhs'lhs (product rule)
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
-						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar).get<double>();
-						lhs = process_utree(*lhsiter, conditions).get<double>();
-						rhs = process_utree(*rhsiter, conditions).get<double>();
+						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						res += (lhs_deriv * rhs + rhs_deriv * lhs);
 					}
 					else if (op == "/") {
 						// derivative of quotient is (lhs'rhs - rhs'lhs)/(rhs^2) (quotient rule)
-						lhs = process_utree(*lhsiter, conditions).get<double>();
-						rhs = process_utree(*rhsiter, conditions).get<double>();
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
-						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar).get<double>();
+						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
+						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						if (rhs == 0) {
 							BOOST_THROW_EXCEPTION(divide_by_zero_error());
 						}
@@ -150,10 +159,10 @@ boost::spirit::utree const differentiate_utree(
 					else if (op == "**") {
 						// generalized power rule
 						// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
-						lhs = process_utree(*lhsiter, conditions).get<double>();
-						rhs = process_utree(*rhsiter, conditions).get<double>();
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
-						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar).get<double>();
+						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
+						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						if (lhs < 0 && (abs(rhs) < 1 && abs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
@@ -162,17 +171,17 @@ boost::spirit::utree const differentiate_utree(
 						res += (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
 					}
 					else if (op == "ln") {
-						lhs = process_utree(*lhsiter, conditions).get<double>();
+						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						if (lhs <= 0) {
 							// outside the domain of ln
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
+						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += lhs_deriv / lhs;
 					}
 					else if (op == "exp") {
 						lhs = process_utree(*lhsiter, conditions).get<double>();
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar).get<double>();
+						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						res += exp(lhs) * lhs_deriv;
 					}
 					else {

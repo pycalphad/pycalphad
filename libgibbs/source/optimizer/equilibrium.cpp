@@ -56,10 +56,14 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartP
 		 */
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
 		if (!opt_ptr)
+		{
+			std::cout << "internal mem error" << std::endl;
 			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
+		}
 		ph_map = opt_ptr->get_phase_map();
 	}
 	else {
+		std::cout << "solve failed" << std::endl;
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Solver failed to find equilibrium"));
 	}
 }

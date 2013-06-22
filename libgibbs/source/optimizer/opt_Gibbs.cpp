@@ -27,17 +27,46 @@ GibbsOpt::GibbsOpt(
 	int varcount = 0;
 
 	// build_variable_map() will fill main_indices
-	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
+	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
+
 	parameter_set pset = DB.get_parameter_set();
 
+	// this is the part where we look up the models enabled for each phase and call their AST builders
+	// then we build a master Gibbs AST for the objective function
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
+		boost::spirit::utree phase_ast;
+		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss, pset);
-		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
+		//std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
-		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
+		//std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
+
+		// sum the contributions
+		phase_ast.push_back("+");
+		phase_ast.push_back(curphaseref);
+		phase_ast.push_back(idealmix);
+
+		// multiply by phase fraction variable
+		temptree.push_back("*");
+		temptree.push_back(i->first + "_FRAC");
+		temptree.push_back(phase_ast);
+		phase_ast.swap(temptree);
+		temptree.clear();
+
+		// add phase AST to master AST (if this isn't the first phase)
+		if (i != phase_iter) {
+			temptree.push_back("+");
+			temptree.push_back(master_tree);
+			temptree.push_back(phase_ast);
+			master_tree.swap(temptree);
+		}
+		else master_tree.swap(phase_ast);
 	}
+
+	std::cout << master_tree << std::endl;
+
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		sublattice_vector subls_vec;
@@ -84,6 +113,7 @@ GibbsOpt::~GibbsOpt()
 bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
                          Index& nnz_h_lag, IndexStyleEnum& index_style)
 {
+	// TODO: fix this to use Boost multi_index (will probably require modification of sublattice_set)
   Index sublcount = 0; // total number of sublattices across all phases under consideration
   Index phasecount = 0; // total number of phases under consideration
   Index sitefraccount = 0; // total number of site fractions
@@ -120,7 +150,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   }
 
   // number of variables
-  n = sitefraccount + phasecount;
+  n = main_indices.size();
   // one phase fraction balance constraint (for multi-phase)
   // plus all the sublattice fraction balance constraints
   // plus all the mass balance constraints
@@ -257,7 +287,7 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
 	// return the value of the objective function
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
+	/*auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	double result = 0;
 	// all phases
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
@@ -286,8 +316,12 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 		result += fL * temp;
 	}
 	//std::cout.precision(24);
-	//std::cout << "final eval_f result = " << result << std::endl;
-	obj_value = result;
+	//std::cout << "final eval_f result = " << result << std::endl;*/
+	std::cout << "main_indices.size() = " << main_indices.size() << std::endl;
+	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+		std::cout << "main_indices[" << i->first << "] = " << i->second << std::endl;
+	}
+	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
 	return true;
 }
 

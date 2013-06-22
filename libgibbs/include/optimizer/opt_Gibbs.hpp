@@ -12,6 +12,7 @@
 
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
+#include "libtdb/include/utils/math_expr.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include <boost/spirit/include/support_utree.hpp>
@@ -112,6 +113,7 @@ private:
 	index_table main_indices;
 	sitefracs mysitefracs;
 	evalconditions conditions;
+	boost::spirit::utree master_tree; // abstract syntax tree (AST) for the objective function
 	Phase_Collection::const_iterator phase_iter;
 	Phase_Collection::const_iterator phase_end;
 

@@ -14,6 +14,7 @@
 #include "libtdb/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
+#include <boost/algorithm/string.hpp>
 
 #include <math.h>
 #include <string>
@@ -70,17 +71,25 @@ boost::spirit::utree const process_utree(
 					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
 					op = std::string(rt.begin(), rt.end()); // set the symbol
+					boost::algorithm::to_upper(op);
+					const auto varindex = modelvar_indices.find(op); // attempt to find this symbol as a model variable
+					if (varindex != modelvar_indices.end()) {
+						// we found the variable
+						// use the index to return the current value
+						//std::cout << "variable " << op << " found in list string_type" << std::endl;
+						return modelvars[varindex->second];
+					}
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
 						++it;
-						double curT = process_utree(*it, conditions).get<double>();
+						double curT = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						//std::cout << "curT: " << curT << std::endl;
 						++it;
-						double lowlimit = process_utree(*it, conditions).get<double>();
+						double lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						//std::cout << "lowlimit:" << lowlimit << std::endl;
 						if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 						++it;
-						double highlimit = process_utree(*it, conditions).get<double>();
+						double highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 
 						if (!is_allowed_value<double>(curT)) {
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable is infinite, subnormal, or not a number"));
@@ -98,7 +107,7 @@ boost::spirit::utree const process_utree(
 							// Range check satisfied
 							// Process the tree and return the result
 							// Note: by design we only return the first result to satisfy the criterion
-							return process_utree(*it, conditions).get<double>();
+							return process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						}
 						else {
 							// Range check not satisfied
@@ -122,9 +131,12 @@ boost::spirit::utree const process_utree(
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
-					if (it != end) lhs = process_utree(*it, conditions).get<double>();
+					if (it != end) lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 					++it; // get right-hand side
-					if (it != end) rhs = process_utree(*it, conditions).get<double>();
+					if (it != end) rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+
+					//std::cout << "LHS: " << lhs << std::endl;
+					//std::cout << "RHS: " << rhs << std::endl;
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
 					else if (op == "-") {
@@ -146,14 +158,14 @@ boost::spirit::utree const process_utree(
 						}
 						res += pow(lhs, rhs);
 					}
-					else if (op == "ln") {
+					else if (op == "LN") {
 						if (lhs <= 0) {
 							// outside the domain of ln
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
 						res += log(lhs);
 					}
-					else if (op == "exp") res += exp(lhs);
+					else if (op == "EXP") res += exp(lhs);
 					else {
 						// a bad symbol made it into our AST
 						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op));
@@ -186,11 +198,12 @@ boost::spirit::utree const process_utree(
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
 			std::string varname(rt.begin(),rt.end());
-			// pass a map of indices and the Number*s by reference to process_utree
+
 			const auto varindex = modelvar_indices.find(varname); // attempt to find this variable
 			if (varindex != modelvar_indices.end()) {
 				// we found the variable
 				// use the index to return the current value
+				//std::cout << "var found in string_type = " << modelvars[varindex->second] << std::endl;
 				return modelvars[varindex->second];
 			}
 			const char* op(rt.begin());
