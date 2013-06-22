@@ -31,7 +31,8 @@ using namespace boost::multi_index;
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,
-		const evalconditions &conditions
+		const evalconditions &conditions,
+		std::map<std::string, int> &indices
 		) {
 	sublattice_set ret_set;
 
@@ -43,8 +44,11 @@ sublattice_set build_variable_map(
 		auto subl_end = i->second.get_sublattice_iterator_end();
 		std::string phasename = i->first;
 
+		indices[phasename + "_FRAC"] = indexcount; // save index of phase fraction
 		// insert fake record for the phase fraction variable at -1 sublattice index
+
 		ret_set.insert(sublattice_entry(-1, indexcount++, 0, phasename, ""));
+
 		// All sublattices
 		for (auto j = subl_start; j != subl_end;++j) {
 			// All species
@@ -54,6 +58,10 @@ sublattice_set build_variable_map(
 					int sublindex = std::distance(subl_start,j);
 					double sitecount = (*j).stoi_coef;
 					std::string spec = (*k);
+					std::stringstream varname;
+					varname << phasename << "_" << sublindex << "_" << spec; // build variable name
+					indices[varname.str()] = indexcount; // save index of variable
+
 					ret_set.insert(sublattice_entry(sublindex, indexcount++, sitecount, phasename, spec));
 				}
 			}

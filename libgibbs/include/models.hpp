@@ -123,7 +123,8 @@ boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, co
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,
-		const evalconditions &conditions
+		const evalconditions &conditions,
+		std::map<std::string, int> &indices
 		);
 
 #endif

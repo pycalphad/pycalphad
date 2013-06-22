@@ -22,7 +22,7 @@ boost::spirit::utree const differentiate_utree(
 		evalconditions const& conditions,
 		std::string const& diffvar,
 		std::map<std::string, int> const& modelvar_indices,
-		double* const& modelvars
+		double* const modelvars
 	) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;

@@ -25,7 +25,9 @@ GibbsOpt::GibbsOpt(
 			phase_end(DB.get_phase_iterator_end())
 {
 	int varcount = 0;
-	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions);
+
+	// build_variable_map() will fill main_indices
+	sublattice_set main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
 	parameter_set pset = DB.get_parameter_set();
 
 	for (auto i = phase_iter; i != phase_end; ++i) {

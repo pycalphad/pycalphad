@@ -20,6 +20,8 @@
 #include <utility>
 
 using namespace Ipopt;
+typedef std::map<std::string, int> index_table; // matches variable names to Ipopt indices
+
 class GibbsOpt : public TNLP {
 public:
 	GibbsOpt(
@@ -107,6 +109,7 @@ private:
 	//@}
 	sublattice_set main_ss;
 	vector_map var_map;
+	index_table main_indices;
 	sitefracs mysitefracs;
 	evalconditions conditions;
 	Phase_Collection::const_iterator phase_iter;

@@ -37,7 +37,7 @@ boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions,
 		std::map<std::string, int> const &modelvar_indices,
-		double* const &modelvars) {
+		double* const modelvars) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
