@@ -162,9 +162,10 @@ utree permute_site_fractions (
 		if (i != ic0) {
 			buildtree.push_back("+");
 			buildtree.push_back(ret_tree);
+			buildtree.push_back(current_product);
+			ret_tree.swap(buildtree);
 		}
-		buildtree.push_back(current_product);
-		ret_tree.swap(buildtree);
+		else ret_tree.swap(current_product);
 	}
 
 	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
