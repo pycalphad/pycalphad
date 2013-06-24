@@ -173,7 +173,7 @@ double get_Gibbs
 	
 	// add energy contribution due to Gibbs energy of formation (pure compounds)
 	result += multiply_site_fractions(subl_start, subl_end, phase_iter, conditions);
-	//std::cout << "get_Gibbs: formation result += " << result << std::endl;
+	std::cout << "get_Gibbs: formation result += " << result << std::endl;
 
 	// add energy contribution due to ideal mixing
 	// + RT*y(i,s)*ln(y(i,s))
@@ -210,7 +210,7 @@ double get_Gibbs
 		);
 	}
 	result = result/total_mixing_sites;
-	//std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
+	std::cout << "get_Gibbs: mixing total = " << SI_GAS_CONSTANT << " * " << conditions.statevars.at('T') << " * " << mixing << std::endl;
 	//if (phase_iter->first == "BCC_A2") std::cout << "total_mixing_sites: " << total_mixing_sites << std::endl;
 	mixing = SI_GAS_CONSTANT * conditions.statevars.at('T') * mixing / total_mixing_sites;
 	result += mixing;

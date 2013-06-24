@@ -116,6 +116,7 @@ private:
 	boost::spirit::utree master_tree; // abstract syntax tree (AST) for the objective function
 	Phase_Collection::const_iterator phase_iter;
 	Phase_Collection::const_iterator phase_end;
+	Phase_Collection phase_col;
 
 	// data structure for final result
 	phasemap ph_map; // maps phase name to its object (final result)

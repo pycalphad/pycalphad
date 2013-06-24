@@ -40,7 +40,7 @@ utree build_ideal_mixing_entropy(
 		const sublattice_set &subl_set
 		) {
 	// TODO: add intelligence to detect single-species sublattices (no mixing contribution)
-	utree ret_tree;
+	utree ret_tree, temptree, gas_const_product;
 	sublattice_set_view ssv;
 
 	// Get all the sublattices for this phase
@@ -58,11 +58,21 @@ utree build_ideal_mixing_entropy(
 	for (auto i = s_start; i != s_end; ++i) {
 		utree current_product;
 		if (i != s_start) {
-		current_product.push_back("*");
-		current_product.push_back(ret_tree);
+			current_product.push_back("+");
+			current_product.push_back(ret_tree);
+			current_product.push_back(make_xlnx((*i)->name()));
+			ret_tree.swap(current_product);
 		}
-		current_product.push_back(make_xlnx((*i)->name()));
-		ret_tree.swap(current_product);
+		else ret_tree = make_xlnx((*i)->name());
 	}
-	return ret_tree;
+
+	// add R*T as a product in front
+	temptree.push_back("*");
+	temptree.push_back("T");
+	gas_const_product.push_back("*");
+	gas_const_product.push_back(SI_GAS_CONSTANT);
+	gas_const_product.push_back(ret_tree);
+	temptree.push_back(gas_const_product);
+
+	return temptree;
 }

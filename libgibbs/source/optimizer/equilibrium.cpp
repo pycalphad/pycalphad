@@ -30,7 +30,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartP
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conds.phases.find(i->first) != conds.phases.end()) {
-			if (conds.phases.at(i->first) != PhaseStatus::SUSPENDED) phase_col[i->first] = i->second;
+			if (conds.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
 		}
 	}
 

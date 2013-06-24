@@ -40,6 +40,8 @@ sublattice_set build_variable_map(
 
 	// All phases
 	for (auto i = p_begin; i != p_end; ++i) {
+		auto const cond_find = conditions.phases.find(i->first);
+		if (cond_find->second != PhaseStatus::ENTERED) continue;
 		auto subl_start = i->second.get_sublattice_iterator();
 		auto subl_end = i->second.get_sublattice_iterator_end();
 		std::string phasename = i->first;

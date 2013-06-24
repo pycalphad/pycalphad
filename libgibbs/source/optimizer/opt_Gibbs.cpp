@@ -25,6 +25,16 @@ GibbsOpt::GibbsOpt(
 			phase_end(DB.get_phase_iterator_end())
 {
 	int varcount = 0;
+	int activephases = 0;
+
+	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
+		if (conditions.phases.find(i->first) != conditions.phases.end()) {
+			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
+		}
+	}
+
+	phase_iter = phase_col.cbegin();
+	phase_end = phase_col.cend();
 
 	// build_variable_map() will fill main_indices
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
@@ -35,13 +45,14 @@ GibbsOpt::GibbsOpt(
 	// then we build a master Gibbs AST for the objective function
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
+		++activephases;
 		boost::spirit::utree phase_ast;
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss, pset);
-		//std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
+		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
-		//std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
+		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
 
 		// sum the contributions
 		phase_ast.push_back("+");
@@ -55,8 +66,9 @@ GibbsOpt::GibbsOpt(
 		phase_ast.swap(temptree);
 		temptree.clear();
 
-		// add phase AST to master AST (if this isn't the first phase)
-		if (i != phase_iter) {
+		// add phase AST to master AST
+		if (activephases != 1) {
+			// this is not the only / first phase
 			temptree.push_back("+");
 			temptree.push_back(master_tree);
 			temptree.push_back(phase_ast);
@@ -69,6 +81,7 @@ GibbsOpt::GibbsOpt(
 
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {
+		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		sublattice_vector subls_vec;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
 			std::map<std::string,double> subl_map;
@@ -85,6 +98,7 @@ GibbsOpt::GibbsOpt(
 	}
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
+		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		//std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
 		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
 		++varcount;
@@ -122,6 +136,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   Index sitebalances = 0; // number of site fraction balance constraints
   Index speccount = (Index) conditions.xfrac.size() + 1; // total number of species for which mass must balance
   auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
+
   for (auto i = var_map.sitefrac_iters.cbegin(); i != var_map.sitefrac_iters.cend(); ++i) {
 	  const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 	  const Sublattice_Collection::const_iterator subls_start = cur_phase->second.get_sublattice_iterator();
@@ -148,14 +163,15 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	  }
 	  ++phasecount;
   }
-
   // number of variables
   n = main_indices.size();
+  //std::cout << "n = " << n << std::endl;
   // one phase fraction balance constraint (for multi-phase)
   // plus all the sublattice fraction balance constraints
   // plus all the mass balance constraints
   if (phasecount > 1) m = 1 + sitebalances + (speccount-1);
   else m = sitebalances + (speccount-1);
+  //std::cout << "m = " << m << std::endl;
 
   // nonzeros in the jacobian of the lagrangian
   if (phasecount > 1) {
@@ -165,6 +181,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	  // single-phase case
 	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
   }
+  //std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
 
   index_style = C_STYLE;
   return true;
@@ -287,13 +304,14 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
 	// return the value of the objective function
-	/*auto sitefrac_begin = var_map.sitefrac_iters.begin();
+	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	double result = 0;
 	// all phases
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
 		const double fL = x[phaseindex]; // phase fraction
+		std::cout << "looking at phase " << cur_phase->first << std::endl;
 
 		sublattice_vector subls_vec;
 		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
@@ -312,13 +330,12 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 		double temp = get_Gibbs(subls_start, subls_end, cur_phase, conditions);
 		//std::cout.precision(24);
-		//std::cout << "eval_f: result = " << fL << " * " << temp << " = " << fL * temp << std::endl;
 		result += fL * temp;
 	}
 	//std::cout.precision(24);
-	//std::cout << "final eval_f result = " << result << std::endl;*/
+	//std::cout << "final eval_f result = " << result << std::endl;
 	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
-	std::cout << "eval_f = " << obj_value << std::endl;
+	std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
 	return true;
 }
 
@@ -326,7 +343,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
-	/*auto sitefrac_begin = var_map.sitefrac_iters.begin();
+	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	int varcheck = 0;
 	// all phases
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
@@ -378,10 +395,11 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 			}
 		}
 	}
-	assert (varcheck == n);*/
-
+	assert (varcheck == n);
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		grad_f[i->second] = differentiate_utree(master_tree, conditions, i->first, main_indices, (double*) x).get<double>();
+		double newgrad = differentiate_utree(master_tree, conditions, i->first, main_indices, (double*) x).get<double>();
+		std::cout << "grad_f[" << i->second << "]: " << newgrad <<  "(new) == " << grad_f[i->second] << std::endl;
+		grad_f[i->second] = newgrad;
 	}
 
 	return true;

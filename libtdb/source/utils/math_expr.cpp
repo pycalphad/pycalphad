@@ -41,7 +41,7 @@ boost::spirit::utree const process_utree(
 		double* const modelvars) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
-	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
+	std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
 			break;
@@ -67,6 +67,15 @@ boost::spirit::utree const process_utree(
 					}
 					return retval;
 				}
+				if ((*it).which() == utree_type::int_type && std::distance(it,end) == 1) {
+					// only one element in utree list, and it's an int
+					// return its value
+					double retval = (*it).get<double>();
+					if (!is_allowed_value<double>(retval)) {
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+					}
+					return retval;
+				}
 				if ((*it).which() == utree_type::string_type) {
 					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
@@ -77,6 +86,7 @@ boost::spirit::utree const process_utree(
 						// we found the variable
 						// use the index to return the current value
 						//std::cout << "variable " << op << " found in list string_type" << std::endl;
+						std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 						return modelvars[varindex->second];
 					}
 					//std::cout << "OPERATOR: " << op << std::endl;
@@ -180,7 +190,7 @@ boost::spirit::utree const process_utree(
 			if (!is_allowed_value<double>(res)) {
 				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
 			}
-			//std::cout << "process_utree returning: " << res << std::endl;
+			std::cout << "process_utree " << ut << " = " << res << std::endl;
 			return utree(res);
 			//std::cout << ") ";
 			break;
@@ -189,6 +199,13 @@ boost::spirit::utree const process_utree(
 			break;
 		}
 		case utree_type::double_type: {
+			double retval = ut.get<double>();
+			if (!is_allowed_value<double>(retval)) {
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+			}
+			return retval;
+		}
+		case utree_type::int_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
 				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
@@ -204,6 +221,7 @@ boost::spirit::utree const process_utree(
 				// we found the variable
 				// use the index to return the current value
 				//std::cout << "var found in string_type = " << modelvars[varindex->second] << std::endl;
+				std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 				return modelvars[varindex->second];
 			}
 			const char* op(rt.begin());
@@ -213,6 +231,7 @@ boost::spirit::utree const process_utree(
 			}
 			if (conditions.statevars.find(*op) != conditions.statevars.end()) {
 				//std::cout << "T executed" << std::endl;
+				std::cout << "process_utree returning: " << conditions.statevars.find(*op)->second << std::endl;
 				return conditions.statevars.find(*op)->second; // return current value of state variable (T, P, etc)
 			}
 			else {
