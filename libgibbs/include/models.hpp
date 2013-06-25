@@ -126,5 +126,7 @@ sublattice_set build_variable_map(
 		const evalconditions &conditions,
 		std::map<std::string, int> &indices
 		);
+double count_mixing_sites(const sublattice_set_view &ssv);
+void normalize_utree(boost::spirit::utree &input_tree, const sublattice_set_view &ssv);
 
 #endif

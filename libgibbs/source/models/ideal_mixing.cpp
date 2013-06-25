@@ -42,6 +42,7 @@ utree build_ideal_mixing_entropy(
 	// TODO: add intelligence to detect single-species sublattices (no mixing contribution)
 	utree ret_tree, temptree, gas_const_product;
 	sublattice_set_view ssv;
+	int curindex = 0;
 
 	// Get all the sublattices for this phase
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
@@ -52,27 +53,57 @@ utree build_ideal_mixing_entropy(
 		ssv.insert(&*ic0);
 		++ic0;
 	}
-	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_start = get<myindex>(ssv).lower_bound(0);
-	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_end = get<myindex>(ssv).end();
+	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_start = get<myindex>(ssv).lower_bound(curindex);
+	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_end = get<myindex>(ssv).upper_bound(curindex);
+	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_final_end = get<myindex>(ssv).end();
 
-	for (auto i = s_start; i != s_end; ++i) {
-		utree current_product;
-		if (i != s_start) {
-			current_product.push_back("+");
-			current_product.push_back(ret_tree);
-			current_product.push_back(make_xlnx((*i)->name()));
-			ret_tree.swap(current_product);
+	while (s_start != s_final_end) {
+		utree subl_tree, temptree_loop;
+
+		// Loop through all species in current sublattice
+		for (auto i = s_start; i != s_end; ++i) {
+			utree current_product;
+			if (i != s_start) {
+				current_product.push_back("+");
+				current_product.push_back(subl_tree);
+				current_product.push_back(make_xlnx((*i)->name()));
+				subl_tree.swap(current_product);
+			}
+			else subl_tree = make_xlnx((*i)->name());
 		}
-		else ret_tree = make_xlnx((*i)->name());
+
+		// Multiply subl_tree by the number of sites in this sublattice
+
+		temptree_loop.push_back("*");
+		temptree_loop.push_back((*s_start)->num_sites);
+		temptree_loop.push_back(subl_tree);
+		subl_tree.swap(temptree_loop);
+		temptree_loop.clear();
+
+
+		if (curindex > 0) {
+			// This is not the first sublattice
+			temptree_loop.push_back("+");
+			temptree_loop.push_back(ret_tree);
+			temptree_loop.push_back(subl_tree);
+			ret_tree.swap(temptree_loop);
+		}
+		else ret_tree.swap(subl_tree);
+
+		// Advance to next sublattice
+		++curindex;
+		s_start = get<myindex>(ssv).lower_bound(curindex);
+		s_end = get<myindex>(ssv).upper_bound(curindex);
 	}
 
-	// add R*T as a product in front
+	// add R*T as a product in front and normalize by the number of sites
 	temptree.push_back("*");
 	temptree.push_back("T");
 	gas_const_product.push_back("*");
 	gas_const_product.push_back(SI_GAS_CONSTANT);
 	gas_const_product.push_back(ret_tree);
 	temptree.push_back(gas_const_product);
+	normalize_utree(temptree, ssv);
 
 	return temptree;
 }

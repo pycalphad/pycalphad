@@ -72,6 +72,38 @@ sublattice_set build_variable_map(
 	return ret_set;
 }
 
+// count the total number of "mixing" sites in a sublattice set
+// non-mixing sites are sublattices with only vacancies in them
+double count_mixing_sites(const sublattice_set_view &ssv) {
+	int curindex = 0;
+	int sitecount = 0;
+	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
+	ic0 = get<myindex>(ssv).lower_bound(curindex);
+	ic1 = get<myindex>(ssv).upper_bound(curindex);
+
+	// build subview to only "real" sublattices (exclude fake -1 index)
+	while (ic0 != ic1) {
+		int speccount = std::distance(ic0,ic1);
+		if (!(speccount == 1 && (*ic0)->species == "VA")) {
+			// only count non-pure vacancy sites
+			sitecount += (*ic0)->num_sites;
+		}
+		++curindex;
+		ic0 = get<myindex>(ssv).lower_bound(curindex);
+		ic1 = get<myindex>(ssv).upper_bound(curindex);
+	}
+	return sitecount;
+}
+
+// Normalize by the total number of mixing sites
+void normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
+	utree temp;
+	temp.push_back("/");
+	temp.push_back(input_tree);
+	temp.push_back(count_mixing_sites(ssv));
+	input_tree.swap(temp);
+}
+
 utree build_Gibbs_ref(
 		const std::string &phasename,
 		const sublattice_set &subl_set,
@@ -113,7 +145,12 @@ utree build_Gibbs_ref(
 		++it0;
 	}
 
-	return permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
+	// Get the reference energy by permuting the site fractions and finding parameters
+	ret_tree = permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
+	// Normalize the reference Gibbs energy by the total number of mixing sites in this phase
+	normalize_utree(ret_tree, ssv);
+
+	return ret_tree;
 }
 
 utree permute_site_fractions (
