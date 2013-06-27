@@ -334,7 +334,9 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 	}
 	//std::cout.precision(24);
 	//std::cout << "final eval_f result = " << result << std::endl;
+	std::cout << "enter process_utree" << std::endl;
 	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
+	std::cout << "exit process_utree" << std::endl;
 	std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
 	return true;
 }
@@ -343,6 +345,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
+	std::cout << "eval_grad_f entered" << std::endl;
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	int varcheck = 0;
 	// all phases
@@ -401,13 +404,13 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 		std::cout << "grad_f[" << i->second << "]: " << newgrad <<  "(new) == " << grad_f[i->second] << std::endl;
 		grad_f[i->second] = newgrad;
 	}
-
+std::cout << "eval_grad_f exit" << std::endl;
 	return true;
 }
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
-	//std::cout << "entering eval_g" << std::endl;
+	std::cout << "entering eval_g" << std::endl;
 	// return the value of the constraints: g(x)
 	double sum_phase_fracs = 0;
 	Index cons_index = 0;
@@ -490,7 +493,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		++cons_index;
 	}
 	assert(cons_index == m_num);
-	//std::cout << "exiting eval_g" << std::endl;
+	std::cout << "exiting eval_g" << std::endl;
   return true;
 }
 
@@ -499,7 +502,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Number* values)
 {
 	if (values == NULL) {
-		//std::cout << "entering eval_jac_g values == NULL" << std::endl;
+		std::cout << "entering eval_jac_g values == NULL" << std::endl;
 		Index cons_index = 0;
 		Index jac_index = 0;
 		const auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
@@ -726,9 +729,9 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		}
 		//std::cout << "complete jac_index: " << jac_index << std::endl;
 		assert(cons_index == m_num);
-		//std::cout << "exit eval_jac_g with values" << std::endl;
+		std::cout << "exit eval_jac_g with values" << std::endl;
 	}
-	//std::cout << "exiting eval_jac_g" << std::endl;
+	std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
 }
 
