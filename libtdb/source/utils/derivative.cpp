@@ -70,7 +70,7 @@ boost::spirit::utree const differentiate_utree(
 						++it;
 						double lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						//std::cout << "lowlimit:" << lowlimit << std::endl;
-						if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
+						//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 						++it;
 						double highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 
@@ -81,7 +81,7 @@ boost::spirit::utree const differentiate_utree(
 							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("State variable limits are infinite, subnormal, or not a number"));
 						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
-						if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
+						//if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
 						if (highlimit <= lowlimit) {
 							BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Inconsistent bounds on state variable specified. The upper limit <= the lower limit."));
 						}
