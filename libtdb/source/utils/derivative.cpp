@@ -96,10 +96,9 @@ boost::spirit::utree const differentiate_utree(
 							// Range check not satisfied
 							++it; // Advance to the next token (if any)
 							if (it == end) {
+								return utree(0);
 								// We are at the end and we failed all range checks
-								// The upstream system may decide this is not a problem
-								// and use a value of 0, but we want them to have a choice
-								BOOST_THROW_EXCEPTION(range_check_error() << str_errinfo("Ranges specified by parameter do not satisfy current system conditions"));
+								//BOOST_THROW_EXCEPTION(range_check_error() << str_errinfo("Ranges specified by parameter do not satisfy current system conditions"));
 							}
 							continue; // Go back to the start of the loop
 						}

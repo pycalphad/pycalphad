@@ -22,7 +22,7 @@ BOOST_AUTO_TEST_CASE(TRangeFunctionLoneSymbol) {
 	set_conditions("T",1400);
 	BOOST_REQUIRE_CLOSE_FRACTION(func_eval("298.15 1; 1000 Y T;,,N REF: 0 !"), 1400, 1e-15);
 }
-BOOST_AUTO_TEST_CASE(OutsideTRange) {
+/*BOOST_AUTO_TEST_CASE(OutsideTRange) {
 	// Check if system T falls outside of prescribed range for function
 	// Should throw
 	const std::string funcstr = "298.15 1; 500 Y 2; 600 Y T-4; 800 N REF: 0 !";
@@ -33,7 +33,7 @@ BOOST_AUTO_TEST_CASE(OutsideTRange) {
 	BOOST_REQUIRE_THROW(func_eval(funcstr), range_check_error);
 	set_conditions("T",550);
 	BOOST_REQUIRE_EQUAL(func_eval(funcstr), 2);
-}
+}*/
 BOOST_AUTO_TEST_CASE(ConditionStateVariableOutOfBounds) {
 	// If system T is infinite or subnormal
 	// Should throw

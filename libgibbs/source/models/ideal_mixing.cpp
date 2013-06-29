@@ -11,6 +11,7 @@
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/models.hpp"
 #include <string>
+#include <limits>
 #include <sstream>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
@@ -22,6 +23,23 @@ using boost::spirit::utree;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
+// helper function to help x*ln(x) avoid domain errors when x <= 0
+
+void protect_domain(const std::string &varname, utree &input_tree) {
+	utree temp_tree;
+	temp_tree.push_back("@"); // constraint operator
+	temp_tree.push_back(varname); // constrained variable
+	temp_tree.push_back(-std::numeric_limits<double>::max()); // low limit
+	temp_tree.push_back(1e-20); // high limit
+	temp_tree.push_back(0); // log(x) ~ x for small x
+	temp_tree.push_back("@"); // constraint operator
+	temp_tree.push_back(varname);
+	temp_tree.push_back(1e-20); // low limit
+	temp_tree.push_back(std::numeric_limits<double>::max()); // maximum value
+	temp_tree.push_back(input_tree);
+	input_tree.swap(temp_tree);
+}
+
 // helper function to produce utrees of form x*ln(x)
 utree make_xlnx(const std::string &varname) {
 	utree ln_tree, ret_tree;
@@ -32,6 +50,7 @@ utree make_xlnx(const std::string &varname) {
 	ret_tree.push_back("*");
 	ret_tree.push_back(varname);
 	ret_tree.push_back(ln_tree);
+	protect_domain(varname, ret_tree);
 	return ret_tree;
 }
 

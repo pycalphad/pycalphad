@@ -12,6 +12,7 @@
 #include "libtdb/include/libtdb_pch.hpp"
 #include "libtdb/include/grammars/function_grammar.hpp"
 
+#include <limits>
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>
 #include <boost/spirit/include/phoenix_operator.hpp>
@@ -32,12 +33,12 @@ struct constraint
 	void operator()(spirit::utree &output, std::vector<boost::variant<double,spirit::utree>> &vec) const
 	{
 		//std::cout << "constraint in" << std::endl;
-		double lowlimit = -1;
-		double highlimit = -1;
+		double lowlimit = -std::numeric_limits<double>::max();
+		double highlimit = std::numeric_limits<double>::max();
 		spirit::utree buildtree;
 		for (auto i = vec.begin(); i != vec.end(); ++i) {
 			//std::cout << "vec element type: " << (*i).which() << std::endl;
-			if ((lowlimit == -1) && ((*i).type() == typeid(double))) {
+			if ((lowlimit == -std::numeric_limits<double>::max()) && ((*i).type() == typeid(double))) {
 				// lowlimit is not yet set, we should see that first
 				//std::cout << "setting lowlimit ";
 				lowlimit = boost::get<double>(*i);
@@ -61,8 +62,8 @@ struct constraint
 					buildtree.push_back(highlimit);
 					buildtree.push_back(ast);
 					lowlimit = highlimit; // the old highlimit is the next element's lowlimit
-					if (highlimit == -1) break; // we're at the end of the sequence (final highlimit not set)
-					else highlimit = -1;
+					if (highlimit == std::numeric_limits<double>::max()) break; // we're at the end of the sequence (final highlimit not set)
+					else highlimit = std::numeric_limits<double>::max();
 				}
 				else if ((*i).type() == typeid(double)) {
 				}
@@ -108,7 +109,7 @@ qi::grammar<std::string::const_iterator, spirit::utree(), ascii::space_type>::ba
 
 	mathexpr = ((mycalc - char_(';')) >> lit(';')); // could just be a constant (double)
 
-	firstexpression = (lexeme[double_ >> lit(' ')] >> mathexpr >> (double_ | attr(double(-1))));
+	firstexpression = (lexeme[double_ >> lit(' ')] >> mathexpr >> (double_ | attr(std::numeric_limits<double>::max())));
 	firstexpnomax = (lexeme[double_ >> lit(' ')] >> mathexpr);
 
 	expression = (mathexpr >> double_);

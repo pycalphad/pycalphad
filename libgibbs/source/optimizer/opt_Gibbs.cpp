@@ -77,7 +77,7 @@ GibbsOpt::GibbsOpt(
 		else master_tree.swap(phase_ast);
 	}
 
-	std::cout << master_tree << std::endl;
+	//std::cout << master_tree << std::endl;
 
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {
@@ -304,40 +304,10 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
 	// return the value of the objective function
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	double result = 0;
-	// all phases
-	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
-		const int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
-		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-		const double fL = x[phaseindex]; // phase fraction
-		std::cout << "looking at phase " << cur_phase->first << std::endl;
-
-		sublattice_vector subls_vec;
-		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-			std::map<std::string,double> subl_map;
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					subl_map[*k] = x[var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first];
-				}
-			}
-			subls_vec.push_back(subl_map);
-		}
-		sublattice_vector::const_iterator subls_start = subls_vec.cbegin();
-		sublattice_vector::const_iterator subls_end = subls_vec.cend();
-
-
-		double temp = get_Gibbs(subls_start, subls_end, cur_phase, conditions);
-		//std::cout.precision(24);
-		result += fL * temp;
-	}
-	//std::cout.precision(24);
-	//std::cout << "final eval_f result = " << result << std::endl;
-	std::cout << "enter process_utree" << std::endl;
+	//std::cout << "enter process_utree" << std::endl;
 	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
-	std::cout << "exit process_utree" << std::endl;
-	std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
+	//std::cout << "exit process_utree" << std::endl;
+	//std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
 	return true;
 }
 
@@ -345,72 +315,19 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
-	std::cout << "eval_grad_f entered" << std::endl;
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	int varcheck = 0;
-	// all phases
-	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
-		int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
-		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-		double fL = x[phaseindex]; // phase fraction
-
-		sublattice_vector subls_vec;
-		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-			std::map<std::string,double> subl_map;
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					subl_map[*k] = x[var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first];
-				}
-			}
-			subls_vec.push_back(subl_map);
-		}
-		sublattice_vector::const_iterator subls_start = subls_vec.cbegin();
-		sublattice_vector::const_iterator subls_end = subls_vec.cend();
-
-		// calculate dF/dfL
-		double Gibbs = get_Gibbs(subls_start, subls_end, cur_phase,conditions);
-		//std::cout << "grad_f[" << phaseindex << "] = " << Gibbs << std::endl;
-		grad_f[phaseindex] = Gibbs; ++varcheck;
-
-		// each sublattice
-		auto subl_begin = (*i).begin();
-		for (auto j = subl_begin; j != (*i).end(); ++j) {
-			int sublindex = std::distance(subl_begin, j);
-			// each species
-			auto spec_begin = (*j).begin();
-			for (auto k = spec_begin; k != (*j).end(); ++k) {
-				// k->second.second = phase_iter
-				// k->second.second->first = name of the phase
-				const Phase_Collection::const_iterator phase_iter = k->second.second;
-				double dGdy = get_Gibbs_deriv(
-					subls_start,
-					subls_end,
-					phase_iter,
-					conditions,
-					sublindex,
-					k->first
-					);
-				// k->second.first = index
-				grad_f[k->second.first] = fL * dGdy; ++varcheck;
-				//std::cout.precision(16);
-				//std::cout << "grad_f[" << k->second.first << "] = " << grad_f[k->second.first] << std::endl;
-			}
-		}
-	}
-	assert (varcheck == n);
+	//std::cout << "eval_grad_f entered" << std::endl;
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
 		double newgrad = differentiate_utree(master_tree, conditions, i->first, main_indices, (double*) x).get<double>();
-		std::cout << "grad_f[" << i->second << "]: " << newgrad <<  "(new) == " << grad_f[i->second] << std::endl;
+		//std::cout << "grad_f[" << i->second << "]: " << newgrad <<  "(new) == " << grad_f[i->second] << std::endl;
 		grad_f[i->second] = newgrad;
 	}
-std::cout << "eval_grad_f exit" << std::endl;
+	//std::cout << "eval_grad_f exit" << std::endl;
 	return true;
 }
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
-	std::cout << "entering eval_g" << std::endl;
+	//std::cout << "entering eval_g" << std::endl;
 	// return the value of the constraints: g(x)
 	double sum_phase_fracs = 0;
 	Index cons_index = 0;
@@ -493,7 +410,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		++cons_index;
 	}
 	assert(cons_index == m_num);
-	std::cout << "exiting eval_g" << std::endl;
+	//std::cout << "exiting eval_g" << std::endl;
   return true;
 }
 
@@ -502,7 +419,7 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Number* values)
 {
 	if (values == NULL) {
-		std::cout << "entering eval_jac_g values == NULL" << std::endl;
+		//std::cout << "entering eval_jac_g values == NULL" << std::endl;
 		Index cons_index = 0;
 		Index jac_index = 0;
 		const auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
@@ -729,9 +646,9 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		}
 		//std::cout << "complete jac_index: " << jac_index << std::endl;
 		assert(cons_index == m_num);
-		std::cout << "exit eval_jac_g with values" << std::endl;
+		//std::cout << "exit eval_jac_g with values" << std::endl;
 	}
-	std::cout << "exiting eval_jac_g" << std::endl;
+	//std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
 }
 
