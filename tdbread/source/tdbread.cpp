@@ -37,7 +37,7 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = PhaseStatus::ENTERED;
   mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
-  mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
+  //mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
   mainconditions.phases["FCC_A1"] = PhaseStatus::ENTERED;
   //mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
   mainconditions.phases["LIQUID"] = PhaseStatus::ENTERED;

@@ -9,7 +9,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// Model for reference Gibbs energy (from pure elements)
+// Model for excees Gibbs energy using Redlich-Kister polynomials
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
@@ -28,7 +28,7 @@ typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
-utree build_Gibbs_ref(
+utree build_excess_redlichkister(
 		const std::string &phasename,
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
@@ -77,7 +77,7 @@ utree build_Gibbs_ref(
 	return ret_tree;
 }
 
-utree permute_site_fractions (
+utree permute_interaction_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,

@@ -30,10 +30,10 @@ void Database::DatabaseTDB::Parameter(std::string &argstr) {
 	if (r && iter == end)
 	{
 		// First, sort the species vector of each sublattice for easy later comparison.
-		for (auto i = ret_param.constituent_array.begin(); i != ret_param.constituent_array.end(); ++i) {
+		/*for (auto i = ret_param.constituent_array.begin(); i != ret_param.constituent_array.end(); ++i) {
 			std::sort((*i).begin(),(*i).end());
 			std::unique((*i).begin(),(*i).end()); // remove duplicate species
-		}
+		}*/
 
 		// We need to determine what phase this parameter corresponds to.
 		// Ordering designations (L12, B2, etc.) can be in any order: e.g. L12_FCC or BCC_A2
