@@ -15,6 +15,8 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include <string>
+#include <map>
+#include <algorithm>
 #include <sstream>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
@@ -94,6 +96,21 @@ double count_mixing_sites(const sublattice_set_view &ssv) {
 	return sitecount;
 }
 
+// helper function to add multiplicative factors of (y_i - y_j)**k
+utree add_interaction_factor(const std::string &lhs_varname, const std::string &rhs_varname, const double &degree, const utree &input_tree) {
+	utree temp_tree, power_tree, ret_tree;
+	temp_tree.push_back("-");
+	temp_tree.push_back(lhs_varname);
+	temp_tree.push_back(rhs_varname);
+	power_tree.push_back("**");
+	power_tree.push_back(temp_tree);
+	power_tree.push_back(degree);
+	ret_tree.push_back("*");
+	ret_tree.push_back(power_tree);
+	ret_tree.push_back(input_tree);
+	return ret_tree;
+}
+
 // Normalize by the total number of mixing sites
 void normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
 	utree temp;
@@ -104,11 +121,7 @@ void normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
 }
 
 utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
-	// TODO: check degree of parameters (for interaction parameters)
-	// TODO: poorly defined behavior for multiple matching parameters
-	// one idea: keep a vector of matching parameters; at the end, return the one with fewest *'s
-	// if "*" count is equal, throw an exception or choose the first one
-	utree ret_tree;
+	std::vector<const Parameter*> matches;
 	int sublcount = 0;
 	std::vector<std::vector<std::string>> search_config;
 	auto subl_start = get<myindex>(subl_view).begin();
@@ -175,9 +188,11 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 		while (array_iter != array_end) {
 			const std::string firstelement = *(*array_iter).cbegin();
 			// if the parameter sublattices don't match, or the parameter isn't using a wildcard, do not match
+			// NOTE: A wildcard will not match if we are looking for a 2+ species interaction in that sublattice
+			// The interaction must be explicitly stated to match
 			if (!(
 				(*array_iter) == search_config[std::distance(array_begin,array_iter)])
-				|| (firstelement == "*")
+				|| (firstelement == "*" && search_config[std::distance(array_begin,array_iter)].size() == 1)
 				) {
 				isvalid = false;
 				break;
@@ -185,13 +200,94 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 			++array_iter;
 		}
 		if (isvalid) {
-			// We found a valid parameter, return its abstract syntax tree
-			ret_tree = (*param_iter)->ast;
-			break;
+			// We found a valid parameter, save it
+			matches.push_back(*param_iter);
 		}
 
 		++param_iter;
 	}
 
-	return ret_tree;
+	if (matches.size() >= 1) {
+		if (matches.size() == 1) return matches[0]->ast; // exactly one parameter found
+		// multiple matching parameters found
+		// first, we need to figure out if these are interaction parameters of different polynomial degrees
+		// if they are, then all of them are allowed to match
+		// if not, match the one with the fewest wildcards
+		// TODO: if some have equal numbers of wildcards, choose the first one and warn the user
+		std::map<double,const Parameter*> minwilds; // map polynomial degrees to parameters; TODO: this is a dirty hack; I need to add wildcount to Parameter
+		bool interactionparam = false;
+		bool returnall = true;
+		for (auto i = matches.begin(); i != matches.end(); ++i) {
+			int wildcount = 0;
+			const double curdegree = (*i)->degree;
+			const auto array_begin = (*i)->constituent_array.begin();
+			const auto array_end = (*i)->constituent_array.end();
+			for (auto j = array_begin; j != array_end; ++j) {
+				if ((*j)[0] == "*") ++wildcount;
+				if ((*j).size() == 2) interactionparam = true; // TODO: only handles binary interactions
+			}
+			if (minwilds.find(curdegree) == minwilds.end() || wildcount < minwilds[curdegree]->wildcount()) {
+				minwilds[curdegree] = (*i);
+			}
+		}
+
+
+		// We're fine to return minparam's AST if all polynomial degrees are the same
+		// TODO: It seems like it's possible to construct corner cases with duplicate
+		// parameters with varying degrees that would confuse this matching.
+
+		if (minwilds.size() == 1) return minwilds.cbegin()->second->ast;
+
+		if (minwilds.size() > 1 && (!interactionparam)) {
+			std::cout << "ERROR: Multiple polynomial degrees specified for non-interaction parameters." << std::endl;
+			BOOST_THROW_EXCEPTION(internal_error());
+		}
+
+		if (minwilds.size() > 1 && interactionparam) {
+			utree ret_tree;
+			if (minwilds.size() != matches.size()) {
+				// not all polynomial degrees here are unique
+				// it shouldn't be a problem, it should just mean we matched some based on wildcards
+				// (this is just here as a note)
+			}
+			for (auto param = minwilds.begin(); param != minwilds.end(); ++param) {
+				if (param->first == 0) {
+					// (y_i - y_j)**0 == 1
+					ret_tree = param->second->ast;
+					continue;
+				}
+				// get the names of the variables that are interacting
+				std::string lhs_var, rhs_var;
+				const auto array_begin = param->second->constituent_array.begin();
+				const auto array_end = param->second->constituent_array.end();
+				for (auto j = array_begin; j != array_end; ++j) {
+					if ((*j).size() == 2) { // TODO: only handles binary interactions
+						std::stringstream varname1, varname2;
+						varname1 << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[0];
+						varname2 << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[1];
+						lhs_var = varname1.str();
+						rhs_var = varname2.str();
+						break; // NOTE: if this parameter has multiple interactions, we don't handle that for now
+					}
+				}
+
+				// add to the parameter tree a factor of (y_i - y_j)**k, where k is the degree and i,j are interacting
+				utree next_term = add_interaction_factor(lhs_var, rhs_var, param->second->degree, param->second->ast);
+
+				// add next_term to the sum
+				utree temp_tree;
+				temp_tree.push_back("+");
+				temp_tree.push_back(ret_tree);
+				temp_tree.push_back(next_term);
+				ret_tree.swap(temp_tree);
+			}
+
+			return ret_tree; // return the parameter tree
+		}
+
+		if (minwilds.size() == 0) {
+			BOOST_THROW_EXCEPTION(internal_error() << specific_errinfo("Failed to match parameter, but the parameter had already been found"));
+		}
+	}
+	return 0; // no parameter found
 }

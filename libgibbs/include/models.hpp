@@ -112,11 +112,22 @@ boost::spirit::utree build_Gibbs_ref(
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
 		);
+boost::spirit::utree build_excess_redlichkister(
+		const std::string &phasename,
+		const sublattice_set &subl_set,
+		const parameter_set &param_set
+		);
 boost::spirit::utree build_ideal_mixing_entropy(const std::string &phasename,const sublattice_set &subl_set);
 boost::spirit::utree permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view, // contains the parameters
+		const int &sublindex
+		);
+boost::spirit::utree permute_site_fractions_redlichkister (
+		const sublattice_set_view &total_view, // all sublattices
+		const sublattice_set_view &subl_view, // the active sublattice permutation
+		const parameter_set_view &param_view,
 		const int &sublindex
 		);
 boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view);

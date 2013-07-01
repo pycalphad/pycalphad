@@ -69,15 +69,25 @@ utree build_excess_redlichkister(
 		++it0;
 	}
 
+	// Also include parameters of type "L"
+	scantype = "L";
+	boost::tuples::tie(it0,it1)=get<type_index>(psv).equal_range(scantype);
+
+	// Construct a subview from the view
+	while (it0 != it1) {
+		psv_subview.insert(*it0);
+		++it0;
+	}
+
 	// Get the reference energy by permuting the site fractions and finding parameters
-	ret_tree = permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
+	ret_tree = permute_site_fractions_redlichkister(ssv, sublattice_set_view(), psv_subview, (int)0);
 	// Normalize the reference Gibbs energy by the total number of mixing sites in this phase
 	normalize_utree(ret_tree, ssv);
 
 	return ret_tree;
 }
 
-utree permute_interaction_site_fractions (
+utree permute_site_fractions_redlichkister (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,
@@ -112,7 +122,7 @@ utree permute_interaction_site_fractions (
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 
-		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1);
+		utree recursive_term = permute_site_fractions_redlichkister(total_view, temp_view, param_view, sublindex+1);
 		if (recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 

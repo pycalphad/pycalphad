@@ -80,6 +80,17 @@ struct Parameter {
 		}
 		else return phase;
 	}
+	int wildcount() const {
+		const auto array_begin = constituent_array.begin();
+		const auto array_end = constituent_array.end();
+		int wilds;
+		for (auto j = array_begin; j != array_end; ++j) {
+			if ((*j).size() == 1 && (*j)[0] == "*") {
+				++wilds;
+			}
+		}
+		return wilds;
+	}
 };
 BOOST_FUSION_ADAPT_STRUCT
 (
