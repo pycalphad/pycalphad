@@ -106,6 +106,8 @@ utree permute_site_fractions_redlichkister (
 		 * parameter, if it exists.
 		 */
 
+		if (subl_view.size() == sublindex) return 0; // skip non-interaction parameters
+
 		return find_parameter_ast(subl_view,param_view);
 	}
 
@@ -123,6 +125,40 @@ utree permute_site_fractions_redlichkister (
 		current_product.push_back(utree(varname));
 
 		utree recursive_term = permute_site_fractions_redlichkister(total_view, temp_view, param_view, sublindex+1);
+
+		// Calculate all the two-species interactions
+		for (auto j = ic0; j != ic1; ++j) {
+			if (j == i) continue; // ignore self-interactions
+			sublattice_set_view interaction_view = temp_view;
+			utree interact_product, interact_recursive_term, interact_temptree;
+			interaction_view.insert(*j); // add interacting species to subview
+
+			interact_product.push_back("*");
+			// interacting species multiplication
+			interact_product.push_back(utree((*j)->name()));
+			interact_recursive_term = permute_site_fractions_redlichkister(total_view, interaction_view, param_view, sublindex+1);
+
+			if (interact_recursive_term.which() == utree_type::int_type && interact_recursive_term.get<int>() == 0) continue;
+			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
+			std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
+
+			// We only get here for non-zero terms
+
+			interact_product.push_back(interact_recursive_term);
+
+			if ((recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) || recursive_term.which() == utree_type::invalid_type) {
+				recursive_term = interact_product; // no prior product exists
+			}
+			else {
+				// Contribute term to the sum
+				interact_temptree.push_back("+");
+				interact_temptree.push_back(interact_product);
+				interact_temptree.push_back(recursive_term);
+				recursive_term.swap(interact_temptree);
+			}
+		}
+
+
 		if (recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 

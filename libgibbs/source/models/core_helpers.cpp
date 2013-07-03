@@ -214,7 +214,7 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 		// if they are, then all of them are allowed to match
 		// if not, match the one with the fewest wildcards
 		// TODO: if some have equal numbers of wildcards, choose the first one and warn the user
-		std::map<double,const Parameter*> minwilds; // map polynomial degrees to parameters; TODO: this is a dirty hack; I need to add wildcount to Parameter
+		std::map<double,const Parameter*> minwilds; // map polynomial degrees to parameters
 		bool interactionparam = false;
 		bool returnall = true;
 		for (auto i = matches.begin(); i != matches.end(); ++i) {
@@ -274,12 +274,15 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 				// add to the parameter tree a factor of (y_i - y_j)**k, where k is the degree and i,j are interacting
 				utree next_term = add_interaction_factor(lhs_var, rhs_var, param->second->degree, param->second->ast);
 
-				// add next_term to the sum
-				utree temp_tree;
-				temp_tree.push_back("+");
-				temp_tree.push_back(ret_tree);
-				temp_tree.push_back(next_term);
-				ret_tree.swap(temp_tree);
+				// add next_term to the sum (or make ret_tree equal to first term)
+				if (ret_tree.which() == utree_type::invalid_type) {
+					utree temp_tree;
+					temp_tree.push_back("+");
+					temp_tree.push_back(ret_tree);
+					temp_tree.push_back(next_term);
+					ret_tree.swap(temp_tree);
+				}
+				else ret_tree = next_term;
 			}
 
 			return ret_tree; // return the parameter tree

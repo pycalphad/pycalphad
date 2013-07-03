@@ -53,11 +53,17 @@ GibbsOpt::GibbsOpt(
 		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
 		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
+		boost::spirit::utree redlichkister = build_excess_redlichkister(i->first, main_ss, pset);
+		std::cout << i->first << "excess" << std::endl << redlichkister << std::endl;
 
 		// sum the contributions
 		phase_ast.push_back("+");
-		phase_ast.push_back(curphaseref);
 		phase_ast.push_back(idealmix);
+		temptree.push_back("+");
+		temptree.push_back(curphaseref);
+		temptree.push_back(redlichkister);
+		phase_ast.push_back(temptree);
+		temptree.clear();
 
 		// multiply by phase fraction variable
 		temptree.push_back("*");
@@ -75,6 +81,8 @@ GibbsOpt::GibbsOpt(
 			master_tree.swap(temptree);
 		}
 		else master_tree.swap(phase_ast);
+
+		std::cout << "master_tree: " << master_tree << std::endl;
 	}
 
 	//std::cout << master_tree << std::endl;

@@ -27,7 +27,7 @@ boost::spirit::utree const differentiate_utree(
 	) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
-	//std::cout << "deriv_processing " << ut.which() << " tree: " << ut << std::endl;
+	std::cout << "deriv_processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
 			break;
@@ -162,7 +162,7 @@ boost::spirit::utree const differentiate_utree(
 						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
-						if (lhs < 0 && (abs(rhs) < 1 && abs(rhs) > 0)) {
+						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
@@ -197,7 +197,7 @@ boost::spirit::utree const differentiate_utree(
 			if (!is_allowed_value<double>(res)) {
 				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
 			}
-			//std::cout << "process_utree returning: " << res << std::endl;
+			//std::cout << "deriv returning: " << res << std::endl;
 			return utree(res);
 			//std::cout << ") ";
 			break;

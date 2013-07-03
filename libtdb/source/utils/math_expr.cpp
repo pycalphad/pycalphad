@@ -180,6 +180,7 @@ boost::spirit::utree const process_utree(
 						else {
 							// outside the domain of ln
 							// TODO: add this as a warning to the logger
+							std::cout << "logwarnerr" << std::endl;
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
 					}
