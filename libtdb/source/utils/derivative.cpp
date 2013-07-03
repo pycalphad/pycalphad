@@ -27,7 +27,7 @@ boost::spirit::utree const differentiate_utree(
 	) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
-	std::cout << "deriv_processing " << ut.which() << " tree: " << ut << std::endl;
+	//std::cout << "deriv_processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
 			break;
@@ -158,16 +158,19 @@ boost::spirit::utree const differentiate_utree(
 					else if (op == "**") {
 						// generalized power rule
 						// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
+
 						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
 						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+
 						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
 						}
-						res += (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
+						if (lhs != 0) res += (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
+						else res += 0;
 					}
 					else if (op == "LN") {
 						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
@@ -185,6 +188,7 @@ boost::spirit::utree const differentiate_utree(
 					}
 					else {
 						// a bad symbol made it into our AST
+						std::cout << "badsymerr" << std::endl;
 						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op));
 					}
 					//std::cout << "LHS: " << lhs << std::endl;
@@ -194,10 +198,11 @@ boost::spirit::utree const differentiate_utree(
 				}
 				++it;
 			}
+			//std::cout << "deriv " << ut << " = " << res << std::endl;
 			if (!is_allowed_value<double>(res)) {
+				std::cout << "fperr5" << std::endl;
 				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
 			}
-			//std::cout << "deriv returning: " << res << std::endl;
 			return utree(res);
 			//std::cout << ") ";
 			break;
