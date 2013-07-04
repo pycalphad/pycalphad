@@ -156,21 +156,43 @@ boost::spirit::utree const differentiate_utree(
 						}
 					}
 					else if (op == "**") {
-						// generalized power rule
-						// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
+						if ((*rhsiter).which() == utree_type::double_type) {
+							// exponent is a constant: power rule
+							lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+							rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
+							double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+							double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+							if (rhs != 0) {
+								// power rule + chain rule
+								res += rhs * pow(lhs,rhs-1) * lhs_deriv;
+							}
 
-						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
-						rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
-						double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
-						double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
-
-						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
-							// the result is complex
-							// we do not support this (for now)
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
 						}
-						if (lhs != 0) res += (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
-						else res += 0;
+						else {
+							// generalized power rule
+							// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
+
+							lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+							rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
+							double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+							double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+							double temp_result;
+
+							if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
+								// the result is complex
+								// we do not support this (for now)
+								BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+							}
+							temp_result = (pow(lhs, rhs) * (lhs_deriv * (rhs/lhs) + rhs_deriv * log(lhs)));
+							if (!is_allowed_value<double>(temp_result)) {
+								std::cout << "lhs: " << lhs << std::endl;
+								std::cout << "rhs: " << rhs << std::endl;
+								std::cout << "lhs_deriv: " << lhs_deriv << std::endl;
+								std::cout << "rhs_deriv: " << rhs_deriv << std::endl;
+							}
+							if (lhs != 0) res += temp_result;
+							else res += 0;
+						}
 					}
 					else if (op == "LN") {
 						lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
@@ -198,8 +220,8 @@ boost::spirit::utree const differentiate_utree(
 				}
 				++it;
 			}
-			//std::cout << "deriv " << ut << " = " << res << std::endl;
 			if (!is_allowed_value<double>(res)) {
+				std::cout << "deriv " << ut << " = " << res << std::endl;
 				std::cout << "fperr5" << std::endl;
 				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
 			}
