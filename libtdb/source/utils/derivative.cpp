@@ -161,11 +161,12 @@ boost::spirit::utree const differentiate_utree(
 							lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
 							rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
 							double lhs_deriv = differentiate_utree(*lhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
-							double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
+							//double rhs_deriv = differentiate_utree(*rhsiter, conditions, diffvar, modelvar_indices, modelvars).get<double>();
 							if (rhs != 0) {
 								// power rule + chain rule
 								res += rhs * pow(lhs,rhs-1) * lhs_deriv;
 							}
+							else res += 0;
 
 						}
 						else {

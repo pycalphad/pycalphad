@@ -275,7 +275,7 @@ utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_s
 				utree next_term = add_interaction_factor(lhs_var, rhs_var, param->second->degree, param->second->ast);
 
 				// add next_term to the sum (or make ret_tree equal to first term)
-				if (ret_tree.which() == utree_type::invalid_type) {
+				if (ret_tree.which() != utree_type::invalid_type) {
 					utree temp_tree;
 					temp_tree.push_back("+");
 					temp_tree.push_back(ret_tree);
