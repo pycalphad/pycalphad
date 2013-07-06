@@ -1,3 +1,10 @@
+/*=============================================================================
+	Copyright (c) 2012-2013 Richard Otis
+
+    Distributed under the Boost Software License, Version 1.0. (See accompanying
+    file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
+=============================================================================*/
+
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/conditions.hpp"
 #include "libgibbs/include/equilibrium.hpp"
@@ -11,8 +18,8 @@ int main(int argc, char* argv[])
     return 1;
   }
   evalconditions mainconditions;
-  /*
-  mainconditions.statevars['T'] = 1000;
+
+  /*mainconditions.statevars['T'] = 1000;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
   mainconditions.xfrac["AL"] = 0.33;
@@ -22,16 +29,17 @@ int main(int argc, char* argv[])
   mainconditions.elements.push_back("CR");
   mainconditions.elements.push_back("VA");
   mainconditions.phases["HCP_A3"] = PhaseStatus::ENTERED;
-  //mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
-  //mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
+  mainconditions.phases["BCC_A2"] = PhaseStatus::ENTERED;
+  mainconditions.phases["CHI"] = PhaseStatus::ENTERED;
   mainconditions.phases["FCC_A1"] = PhaseStatus::ENTERED;
-  //mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
+  mainconditions.phases["SIGMA1"] = PhaseStatus::ENTERED;
   mainconditions.phases["LIQUID"] = PhaseStatus::ENTERED;
   */
-  mainconditions.statevars['T'] = 2200;
+
+  mainconditions.statevars['T'] = 1700;
   mainconditions.statevars['P'] = 101325;
   mainconditions.statevars['N'] = 1;
-  mainconditions.xfrac["NB"] = 0.63;
+  mainconditions.xfrac["NB"] = 0.02;
   mainconditions.elements.push_back("NB");
   mainconditions.elements.push_back("RE");
   mainconditions.elements.push_back("VA");
