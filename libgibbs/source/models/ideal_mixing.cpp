@@ -25,7 +25,7 @@ using namespace boost::multi_index;
 
 // helper function to help x*ln(x) avoid domain errors when x <= 0
 
-void protect_domain(const std::string &varname, utree &input_tree) {
+void IdealMixingModel::protect_domain(const std::string &varname, utree &input_tree) {
 	utree temp_tree;
 	temp_tree.push_back("@"); // constraint operator
 	temp_tree.push_back(varname); // constrained variable
@@ -41,7 +41,7 @@ void protect_domain(const std::string &varname, utree &input_tree) {
 }
 
 // helper function to produce utrees of form x*ln(x)
-utree make_xlnx(const std::string &varname) {
+utree IdealMixingModel::make_xlnx(const std::string &varname) {
 	utree ln_tree, ret_tree;
 	// make ln(x)
 	ln_tree.push_back("LN");
@@ -54,12 +54,12 @@ utree make_xlnx(const std::string &varname) {
 	return ret_tree;
 }
 
-utree build_ideal_mixing_entropy(
+IdealMixingModel::IdealMixingModel(
 		const std::string &phasename,
 		const sublattice_set &subl_set
-		) {
+		) : EnergyModel(phasename, subl_set) {
 	// TODO: add intelligence to detect single-species sublattices (no mixing contribution)
-	utree ret_tree, temptree, gas_const_product;
+	utree work_tree, gas_const_product;
 	sublattice_set_view ssv;
 	int curindex = 0;
 
@@ -103,11 +103,11 @@ utree build_ideal_mixing_entropy(
 		if (curindex > 0) {
 			// This is not the first sublattice
 			temptree_loop.push_back("+");
-			temptree_loop.push_back(ret_tree);
+			temptree_loop.push_back(work_tree);
 			temptree_loop.push_back(subl_tree);
-			ret_tree.swap(temptree_loop);
+			work_tree.swap(temptree_loop);
 		}
-		else ret_tree.swap(subl_tree);
+		else work_tree.swap(subl_tree);
 
 		// Advance to next sublattice
 		++curindex;
@@ -116,13 +116,11 @@ utree build_ideal_mixing_entropy(
 	}
 
 	// add R*T as a product in front and normalize by the number of sites
-	temptree.push_back("*");
-	temptree.push_back("T");
+	model_ast.push_back("*");
+	model_ast.push_back("T");
 	gas_const_product.push_back("*");
 	gas_const_product.push_back(SI_GAS_CONSTANT);
-	gas_const_product.push_back(ret_tree);
-	temptree.push_back(gas_const_product);
-	normalize_utree(temptree, ssv);
-
-	return temptree;
+	gas_const_product.push_back(work_tree);
+	model_ast.push_back(gas_const_product);
+	normalize_utree(model_ast, ssv);
 }

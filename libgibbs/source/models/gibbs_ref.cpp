@@ -28,12 +28,11 @@ typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
-utree build_Gibbs_ref(
+PureCompoundEnergyModel::PureCompoundEnergyModel(
 		const std::string &phasename,
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
-		) {
-	utree ret_tree;
+		) : EnergyModel(phasename, subl_set, param_set) {
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview;
@@ -70,14 +69,12 @@ utree build_Gibbs_ref(
 	}
 
 	// Get the reference energy by permuting the site fractions and finding parameters
-	ret_tree = permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
+	model_ast = permute_site_fractions(ssv, sublattice_set_view(), psv_subview, (int)0);
 	// Normalize the reference Gibbs energy by the total number of mixing sites in this phase
-	normalize_utree(ret_tree, ssv);
-
-	return ret_tree;
+	normalize_utree(model_ast, ssv);
 }
 
-utree permute_site_fractions (
+utree EnergyModel::permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,

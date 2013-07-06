@@ -49,11 +49,11 @@ GibbsOpt::GibbsOpt(
 		boost::spirit::utree phase_ast;
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
-		boost::spirit::utree curphaseref = build_Gibbs_ref(i->first, main_ss, pset);
+		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
 		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
-		boost::spirit::utree idealmix = build_ideal_mixing_entropy(i->first, main_ss);
+		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
 		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
-		boost::spirit::utree redlichkister = build_excess_redlichkister(i->first, main_ss, pset);
+		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
 		std::cout << i->first << "excess" << std::endl << redlichkister << std::endl;
 
 		// sum the contributions

@@ -9,7 +9,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// Model for excees Gibbs energy using Redlich-Kister polynomials
+// Model for excess Gibbs energy using Redlich-Kister polynomials
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
@@ -28,12 +28,11 @@ typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
-utree build_excess_redlichkister(
+RedlichKisterExcessEnergyModel::RedlichKisterExcessEnergyModel(
 		const std::string &phasename,
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
-		) {
-	utree ret_tree;
+		) : EnergyModel(phasename, subl_set, param_set) {
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview;
@@ -80,14 +79,12 @@ utree build_excess_redlichkister(
 	}
 
 	// Get the reference energy by permuting the site fractions and finding parameters
-	ret_tree = permute_site_fractions_redlichkister(ssv, sublattice_set_view(), psv_subview, (int)0);
+	model_ast = permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview, (int)0);
 	// Normalize the reference Gibbs energy by the total number of mixing sites in this phase
-	normalize_utree(ret_tree, ssv);
-
-	return ret_tree;
+	normalize_utree(model_ast, ssv);
 }
 
-utree permute_site_fractions_redlichkister (
+utree EnergyModel::permute_site_fractions_with_interactions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,
@@ -124,7 +121,7 @@ utree permute_site_fractions_redlichkister (
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 
-		utree recursive_term = permute_site_fractions_redlichkister(total_view, temp_view, param_view, sublindex+1);
+		utree recursive_term = permute_site_fractions_with_interactions(total_view, temp_view, param_view, sublindex+1);
 
 		// Calculate all the two-species interactions
 		for (auto j = ic0; j != ic1; ++j) {
@@ -136,7 +133,7 @@ utree permute_site_fractions_redlichkister (
 			interact_product.push_back("*");
 			// interacting species multiplication
 			interact_product.push_back(utree((*j)->name()));
-			interact_recursive_term = permute_site_fractions_redlichkister(total_view, interaction_view, param_view, sublindex+1);
+			interact_recursive_term = permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1);
 
 			if (interact_recursive_term.which() == utree_type::int_type && interact_recursive_term.get<int>() == 0) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;

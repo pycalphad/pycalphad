@@ -1,19 +1,12 @@
 /*=============================================================================
 	Copyright (c) 2012-2013 Richard Otis
 
-	Based on example code from Boost MultiIndex.
-	Copyright (c) 2003-2008 Joaquin M Lopez Munoz.
-	See http://www.boost.org/libs/multi_index for library home page.
-
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// Helper functions for AST-based models
-
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
-#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include <string>
 #include <map>
 #include <algorithm>
@@ -29,53 +22,10 @@ typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
 
-sublattice_set build_variable_map(
-		const Phase_Collection::const_iterator p_begin,
-		const Phase_Collection::const_iterator p_end,
-		const evalconditions &conditions,
-		std::map<std::string, int> &indices
-		) {
-	sublattice_set ret_set;
-
-	int indexcount = 0; // counter for variable indices (for optimizer)
-
-	// All phases
-	for (auto i = p_begin; i != p_end; ++i) {
-		auto const cond_find = conditions.phases.find(i->first);
-		if (cond_find->second != PhaseStatus::ENTERED) continue;
-		auto subl_start = i->second.get_sublattice_iterator();
-		auto subl_end = i->second.get_sublattice_iterator_end();
-		std::string phasename = i->first;
-
-		indices[phasename + "_FRAC"] = indexcount; // save index of phase fraction
-		// insert fake record for the phase fraction variable at -1 sublattice index
-
-		ret_set.insert(sublattice_entry(-1, indexcount++, 0, phasename, ""));
-
-		// All sublattices
-		for (auto j = subl_start; j != subl_end;++j) {
-			// All species
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					int sublindex = std::distance(subl_start,j);
-					double sitecount = (*j).stoi_coef;
-					std::string spec = (*k);
-					std::stringstream varname;
-					varname << phasename << "_" << sublindex << "_" << spec; // build variable name
-					indices[varname.str()] = indexcount; // save index of variable
-
-					ret_set.insert(sublattice_entry(sublindex, indexcount++, sitecount, phasename, spec));
-				}
-			}
-		}
-	}
-	return ret_set;
-}
 
 // count the total number of "mixing" sites in a sublattice set
 // non-mixing sites are sublattices with only vacancies in them
-double count_mixing_sites(const sublattice_set_view &ssv) {
+double EnergyModel::count_mixing_sites(const sublattice_set_view &ssv) {
 	int curindex = 0;
 	int sitecount = 0;
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
@@ -97,7 +47,7 @@ double count_mixing_sites(const sublattice_set_view &ssv) {
 }
 
 // helper function to add multiplicative factors of (y_i - y_j)**k
-utree add_interaction_factor(const std::string &lhs_varname, const std::string &rhs_varname, const double &degree, const utree &input_tree) {
+utree EnergyModel::add_interaction_factor(const std::string &lhs_varname, const std::string &rhs_varname, const double &degree, const utree &input_tree) {
 	utree temp_tree, power_tree, ret_tree;
 	temp_tree.push_back("-");
 	temp_tree.push_back(lhs_varname);
@@ -112,7 +62,7 @@ utree add_interaction_factor(const std::string &lhs_varname, const std::string &
 }
 
 // Normalize by the total number of mixing sites
-void normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
+void EnergyModel::normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
 	utree temp;
 	temp.push_back("/");
 	temp.push_back(input_tree);
@@ -120,7 +70,7 @@ void normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
 	input_tree.swap(temp);
 }
 
-utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
+utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
 	std::vector<const Parameter*> matches;
 	int sublcount = 0;
 	std::vector<std::vector<std::string>> search_config;

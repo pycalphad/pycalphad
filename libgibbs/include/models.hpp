@@ -107,37 +107,83 @@ typedef boost::multi_index::multi_index_container<
 > sublattice_set_view;
 
 
-boost::spirit::utree build_Gibbs_ref(
-		const std::string &phasename,
-		const sublattice_set &subl_set,
-		const parameter_set &param_set
-		);
-boost::spirit::utree build_excess_redlichkister(
-		const std::string &phasename,
-		const sublattice_set &subl_set,
-		const parameter_set &param_set
-		);
-boost::spirit::utree build_ideal_mixing_entropy(const std::string &phasename,const sublattice_set &subl_set);
-boost::spirit::utree permute_site_fractions (
-		const sublattice_set_view &total_view, // all sublattices
-		const sublattice_set_view &subl_view, // the active sublattice permutation
-		const parameter_set_view &param_view, // contains the parameters
-		const int &sublindex
-		);
-boost::spirit::utree permute_site_fractions_redlichkister (
-		const sublattice_set_view &total_view, // all sublattices
-		const sublattice_set_view &subl_view, // the active sublattice permutation
-		const parameter_set_view &param_view,
-		const int &sublindex
-		);
-boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view);
+// bridge function between Database and EnergyModels
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,
 		const evalconditions &conditions,
 		std::map<std::string, int> &indices
 		);
-double count_mixing_sites(const sublattice_set_view &ssv);
-void normalize_utree(boost::spirit::utree &input_tree, const sublattice_set_view &ssv);
+
+
+
+// prototype model
+class EnergyModel {
+public:
+	EnergyModel(const std::string &phasename, const sublattice_set &subl_set, const parameter_set &param_set) {
+		// implementation
+	}
+	EnergyModel(const std::string &phasename, const sublattice_set &subl_set) {
+		// implementation
+	};
+	boost::spirit::utree get_ast() { return model_ast; }
+protected:
+	boost::spirit::utree model_ast;
+	double count_mixing_sites(const sublattice_set_view &ssv);
+	boost::spirit::utree add_interaction_factor (
+			const std::string &lhs_varname,
+			const std::string &rhs_varname,
+			const double &degree,
+			const boost::spirit::utree &input_tree
+			);
+	void normalize_utree(boost::spirit::utree &input_tree, const sublattice_set_view &ssv);
+	boost::spirit::utree find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view);
+	boost::spirit::utree permute_site_fractions (
+			const sublattice_set_view &total_view, // all sublattices
+			const sublattice_set_view &subl_view, // the active sublattice permutation
+			const parameter_set_view &param_view,
+			const int &sublindex
+			);
+	boost::spirit::utree permute_site_fractions_with_interactions (
+			const sublattice_set_view &total_view, // all sublattices
+			const sublattice_set_view &subl_view, // the active sublattice permutation
+			const parameter_set_view &param_view,
+			const int &sublindex
+			);
+private:
+	EnergyModel(const EnergyModel&);
+	EnergyModel& operator=(const EnergyModel&);
+};
+
+
+// default models
+class PureCompoundEnergyModel : public EnergyModel {
+public:
+	PureCompoundEnergyModel(
+			const std::string &phasename,
+			const sublattice_set &subl_set,
+			const parameter_set &param_set
+			);
+};
+
+class IdealMixingModel : public EnergyModel {
+public:
+	IdealMixingModel(
+			const std::string &phasename,
+			const sublattice_set &subl_set
+			);
+protected:
+	void protect_domain(const std::string &varname, boost::spirit::utree &input_tree);
+	boost::spirit::utree make_xlnx(const std::string &varname);
+};
+
+class RedlichKisterExcessEnergyModel : public EnergyModel {
+public:
+	RedlichKisterExcessEnergyModel(
+			const std::string &phasename,
+			const sublattice_set &subl_set,
+			const parameter_set &param_set
+			);
+};
 
 #endif
