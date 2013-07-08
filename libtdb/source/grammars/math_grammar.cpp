@@ -12,6 +12,9 @@
 
 //#define BOOST_SPIRIT_DEBUG
 #include "libtdb/include/libtdb_pch.hpp"
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
 #include "libtdb/include/grammars/math_grammar.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>
@@ -24,8 +27,7 @@ namespace spirit = boost::spirit;
 
 struct expr
 {
-	template <typename T1, typename T2 = void>
-	struct result { typedef void type; };
+	typedef void result_type;
 
 	expr(char* op) : op(op) {}
 

@@ -10,6 +10,7 @@
 //#define BOOST_SPIRIT_DEBUG
 
 #include "libtdb/include/libtdb_pch.hpp"
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
 #include "libtdb/include/grammars/function_grammar.hpp"
 
 #include <limits>
@@ -25,8 +26,9 @@ namespace spirit = boost::spirit;
 
 struct constraint
 {
-	template <typename T1, typename T2>
-	struct result { typedef void type; };
+	//template <typename T1, typename T2>
+	//struct result { typedef void type; };
+	typedef void result_type;
 
 	constraint(char* var) : var(var) {}
 

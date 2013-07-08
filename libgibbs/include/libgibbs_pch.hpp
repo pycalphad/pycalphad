@@ -7,6 +7,9 @@
 
 // libgibbs_pch.hpp -- list of headers to precompile for libGibbs
 
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"

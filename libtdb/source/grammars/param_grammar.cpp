@@ -10,6 +10,9 @@
 //#define BOOST_SPIRIT_DEBUG
 
 #include "libtdb/include/libtdb_pch.hpp"
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
 #include "libtdb/include/grammars/param_grammar.hpp"
 
 #include <boost/spirit/include/support_utree.hpp>
@@ -22,8 +25,7 @@ namespace spirit = boost::spirit;
 
 struct findSpecies_
 {
-	template <typename T1, typename T2, typename T3>
-	struct result { typedef void type; };
+	typedef void result_type;
 
 	void operator()(Species &output, const std::string &input, const Species_Collection& myspecies) const
 	{

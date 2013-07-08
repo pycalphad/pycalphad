@@ -8,5 +8,8 @@
 // libtdb_pch.hpp -- list of precompiled headers for libTDB
 
 #include "libtdb/include/warning_disable.hpp"
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>
