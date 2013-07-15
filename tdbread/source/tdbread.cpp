@@ -22,7 +22,7 @@ int main(int argc, char* argv[])
 	src::severity_channel_logger< > slg(keywords::channel = "console");
 	if (argc < 2)
 	{
-		BOOST_LOG_SEV(slg, normal) << "Usage: tdbread path\n";
+		BOOST_LOG_SEV(slg, routine) << "Usage: tdbread path\n";
 		return 1;
 	}
 	evalconditions mainconditions;
@@ -61,13 +61,13 @@ int main(int argc, char* argv[])
 	try {
 		// init the database by reading from the .TDB specified on the command line
 		Database maindb(argv[1]);
-		BOOST_LOG_SEV(slg, normal) << maindb.get_info(); // read out database infostring
+		BOOST_LOG_SEV(slg, routine) << maindb.get_info(); // read out database infostring
 
 		// try to calculate the minimum Gibbs energy by constructing an equilibrium
 		EquilibriumFactory eqfact = EquilibriumFactory();
 		Equilibrium myeq(maindb, mainconditions, eqfact.GetIpopt());
 		// print the resulting equilibrium
-		BOOST_LOG_SEV(slg, normal) << myeq;
+		BOOST_LOG_SEV(slg, routine) << myeq;
 	}
 	catch (equilibrium_error &e) {
 		std::string specific_info, err_msg; // error message strings
