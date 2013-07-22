@@ -19,11 +19,34 @@ std::ostream& operator<< (std::ostream& strm, severity_level level)
 {
     static const char* strings[] =
     {
-        "normal",
+        "routine",
         "warning",
         "critical"
     };
 
+    if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
+        strm << strings[level];
+    else
+        strm << static_cast< int >(level);
+
+    return strm;
+}
+
+// The operator is used when putting the severity level to log
+logging::formatting_ostream& operator<<
+(
+    logging::formatting_ostream& strm,
+    logging::to_log_manip< severity_level, tag::severity > const& manip
+)
+{
+    static const char* strings[] =
+    {
+        "routine",
+        "warning",
+        "critical"
+    };
+
+    severity_level level = manip.get();
     if (static_cast< std::size_t >(level) < sizeof(strings) / sizeof(*strings))
         strm << strings[level];
     else
@@ -39,23 +62,31 @@ void init_logging()
     min_severity_filter min_severity = expr::channel_severity_filter(channel, severity);
 
     // Set up the minimum severity levels for different channels
-    min_severity["general"] = critical;
-    min_severity["network"] = warning;
-    min_severity["ui"] = routine;
+    min_severity["network"] = critical;
+    min_severity["optimizer"] = warning;
+    min_severity["data"] = routine;
 
     boost::shared_ptr< logging::core > core = logging::core::get();
 
     boost::shared_ptr< sinks::text_file_backend > backend =
         boost::make_shared< sinks::text_file_backend >(
             keywords::file_name = "tdbread_%5N.log",
-            keywords::rotation_size = 5 * 1024 * 1024,
-            keywords::format = "[%TimeStamp%]: %Message%"
+            keywords::rotation_size = 5 * 1024 * 1024
         );
+
 
     // Wrap it into the frontend and register in the core.
     // The backend requires synchronization in the frontend.
     typedef sinks::synchronous_sink< sinks::text_file_backend > file_sink_t;
     boost::shared_ptr< file_sink_t > sink(new file_sink_t(backend));
+
+    sink->set_formatter
+    (
+        expr::format("#%1% <%2%> %3%")
+            % channel
+            % severity
+            % expr::smessage
+    );
 
     core->add_sink(sink);
 

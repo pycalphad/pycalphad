@@ -19,7 +19,7 @@ using namespace journal;
 int main(int argc, char* argv[])
 {
 	init_logging();
-	src::severity_channel_logger< > slg(keywords::channel = "console");
+	src::severity_channel_logger<severity_level> slg(keywords::channel = "data");
 	if (argc < 2)
 	{
 		BOOST_LOG_SEV(slg, routine) << "Usage: tdbread path\n";

@@ -12,6 +12,7 @@
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
+#include "libtdb/include/logging.hpp"
 #include "external/coin/IpTNLP.hpp"
 
 using namespace Ipopt;
@@ -26,6 +27,7 @@ GibbsOpt::GibbsOpt(
 {
 	int varcount = 0;
 	int activephases = 0;
+	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
@@ -50,11 +52,11 @@ GibbsOpt::GibbsOpt(
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
-		std::cout << i->first << "ref" << std::endl << curphaseref << std::endl;
+		BOOST_LOG_SEV(opt_log, routine) << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
-		std::cout << i->first << "idmix" << std::endl << idealmix << std::endl;
+		BOOST_LOG_SEV(opt_log, routine) << i->first << "idmix" << std::endl << idealmix << std::endl;
 		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
-		std::cout << i->first << "excess" << std::endl << redlichkister << std::endl;
+		BOOST_LOG_SEV(opt_log, routine) << i->first << "excess" << std::endl << redlichkister << std::endl;
 
 		// sum the contributions
 		phase_ast.push_back("+");
@@ -82,7 +84,7 @@ GibbsOpt::GibbsOpt(
 		}
 		else master_tree.swap(phase_ast);
 
-		std::cout << "master_tree: " << master_tree << std::endl;
+		BOOST_LOG_SEV(opt_log, routine) << "master_tree: " << master_tree << std::endl;
 	}
 
 	//std::cout << master_tree << std::endl;

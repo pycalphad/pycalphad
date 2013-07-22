@@ -13,6 +13,7 @@
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/conditions.hpp"
+#include "libtdb/include/logging.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
@@ -27,6 +28,7 @@ using namespace Ipopt;
 
 Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartPtr<IpoptApplication> solver)
 : sourcename(DB.get_info()), conditions(conds) {
+	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conds.phases.find(i->first) != conds.phases.end()) {
@@ -57,13 +59,13 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartP
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
 		if (!opt_ptr)
 		{
-			std::cout << "internal mem error" << std::endl;
+			BOOST_LOG_SEV(opt_log, routine) << "Internal memory error from dynamic_cast<GibbsOpt*>";
 			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
 		}
 		ph_map = opt_ptr->get_phase_map();
 	}
 	else {
-		std::cout << "solve failed" << std::endl;
+		BOOST_LOG_SEV(opt_log, routine) << "Failed to construct Equilibrium object" << std::endl;
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Solver failed to find equilibrium"));
 	}
 }
@@ -195,7 +197,8 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
     const auto glob_end = global_comp.cend();
     stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     for (auto h = glob_begin; h != glob_end; ++h) {
-    	stream << h->first << " " << (h->second.first / h->second.second) * N << " ???? ???? ???? ????" << std::endl;
+    	double molefrac = h->second.first / h->second.second;
+    	stream << h->first << "\t" <<  molefrac * N << "\t????\t????\t" << "??" << "\tSER" << std::endl;
     }
     stream << std::endl;
 
