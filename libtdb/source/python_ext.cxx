@@ -5,10 +5,18 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
+#include "libtdb/include/libtdb_pch.hpp"
 #define BOOST_PYTHON_STATIC_LIB
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
+#include "libtdb/include/database.hpp"
+#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/equilibrium.hpp"
 #include <cmath>
-#include <boost/python/module.hpp>
-#include <boost/python/def.hpp>
+#include <boost/python.hpp>
+
+using namespace boost::python;
 
 char const* greet()
 {
@@ -17,6 +25,8 @@ char const* greet()
 
 BOOST_PYTHON_MODULE(libpytdb)
 {
-    using namespace boost::python;
+    class_<Database>("Database", init<std::string>())
+        .def("get_info", &Database::get_info)
+    ;
     def("greet", greet);
 }
