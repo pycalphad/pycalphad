@@ -8,7 +8,7 @@ set(CMAKE_MODULE_PATH ${TDBREAD_SOURCE_DIR}/cmake)
 include(PCHSupport)
 
 UNSET(Boost_LIBRARIES)
-set(Boost_USE_STATIC_LIBS OFF)
+set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON) 
 set(Boost_USE_STATIC_RUNTIME OFF)
 find_package(Boost COMPONENTS timer chrono system log log_setup unit_test_framework REQUIRED)
@@ -29,7 +29,6 @@ add_executable(unittest ${unittest_SRCS} ${unittest_HFILES})
 add_precompiled_header(unittest ${CMAKE_CURRENT_SOURCE_DIR}/include/test_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/test_pch.cpp)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
     set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -lpthread -lgfortran")
 endif()
 
