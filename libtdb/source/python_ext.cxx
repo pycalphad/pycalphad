@@ -25,8 +25,5 @@ char const* greet()
 
 BOOST_PYTHON_MODULE(libpytdb)
 {
-    class_<Database>("Database", init<std::string>())
-        .def("get_info", &Database::get_info)
-    ;
     def("greet", greet);
 }

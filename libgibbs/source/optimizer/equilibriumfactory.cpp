@@ -11,8 +11,10 @@
 #include "libgibbs/include/equilibrium.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
+#include <boost/make_shared.hpp>
 
 using namespace Ipopt;
+
 
 EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 	// set Ipopt options
@@ -31,4 +33,9 @@ EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 	}
 }
 
-SmartPtr<IpoptApplication> EquilibriumFactory::GetIpopt() { return app; }
+boost::shared_ptr<Equilibrium> EquilibriumFactory::create
+(const Database &DB, const evalconditions &conds) {
+	return boost::make_shared<Equilibrium>(DB, conds, app);
+}
+
+boost::shared_ptr<IpoptApplication> EquilibriumFactory::GetIpopt() { return app; }

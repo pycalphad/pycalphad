@@ -26,7 +26,7 @@
 
 using namespace Ipopt;
 
-Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, SmartPtr<IpoptApplication> solver)
+Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost::shared_ptr<IpoptApplication> solver)
 : sourcename(DB.get_info()), conditions(conds) {
 	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 	Phase_Collection phase_col;
