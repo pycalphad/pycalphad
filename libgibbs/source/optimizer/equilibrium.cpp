@@ -13,6 +13,7 @@
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/conditions.hpp"
+#include "libtdb/include/utils/enum_handling.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
@@ -28,7 +29,7 @@ using namespace Ipopt;
 
 Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost::shared_ptr<IpoptApplication> solver)
 : sourcename(DB.get_info()), conditions(conds) {
-	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
+	logger opt_log(journal::keywords::channel = "optimizer");
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conds.phases.find(i->first) != conds.phases.end()) {
@@ -74,11 +75,12 @@ double Equilibrium::GibbsEnergy() {
 	return mingibbs;
 }
 
-std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
+std::string Equilibrium::print() const {
+	std::stringstream stream;
 	boost::io::ios_flags_saver  ifs( stream ); // preserve original state of the stream once we leave scope
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
-	std::string walltime = boost::timer::format(eq.timer.elapsed(), 3, "%w");
-	stream << "Solved in " << eq.iter_count << " iterations (" << walltime << "secs)" << std::endl;
+	std::string walltime = boost::timer::format(timer.elapsed(), 3, "%w");
+	stream << "Solved in " << iter_count << " iterations (" << walltime << "secs)" << std::endl;
 	stream << "Conditions:" << std::endl;
 
 	// We want the individual phase information to appear AFTER
@@ -89,46 +91,48 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 	std::stringstream temp_buf;
     temp_buf << std::scientific;
 
-	const auto sv_end = eq.conditions.statevars.cend();
-	const auto xf_end = eq.conditions.xfrac.cend();
-	for (auto i = eq.conditions.xfrac.cbegin(); i !=xf_end; ++i) {
+	const auto sv_end = conditions.statevars.cend();
+	const auto xf_end = conditions.xfrac.cend();
+	for (auto i = conditions.xfrac.cbegin(); i !=xf_end; ++i) {
 		stream << "X(" << i->first << ")=" << i->second << ", ";
 	}
-	for (auto i = eq.conditions.statevars.cbegin(); i != sv_end; ++i) {
+	for (auto i = conditions.statevars.cbegin(); i != sv_end; ++i) {
 		stream << i->first << "=" << i->second;
 		// if this isn't the last one, add a comma
 		if (std::distance(i,sv_end) != 1) stream << ", ";
 	}
 	stream << std::endl;
 	// should be c + 2 - conditions, where c is the number of components
-	size_t dof = eq.conditions.elements.size() + 2 - (eq.conditions.xfrac.size()+1) - eq.conditions.statevars.size();
+	size_t dof = conditions.elements.size() + 2 - (conditions.xfrac.size()+1) - conditions.statevars.size();
 	stream << "DEGREES OF FREEDOM " << dof << std::endl;
 
 	stream << std::endl;
 
 	double T,P,N;
-	T = eq.conditions.statevars.find('T')->second;
-	P = eq.conditions.statevars.find('P')->second;
-	N = eq.conditions.statevars.find('N')->second;
+	T = conditions.statevars.find('T')->second;
+	P = conditions.statevars.find('P')->second;
+	N = conditions.statevars.find('N')->second;
 	stream << "Temperature " << T << " K (" << (T-273.15) << " C), " << "Pressure " << P << " Pa" << std::endl;
 
 	stream << std::scientific; // switch to scientific notation for doubles
     stream << "Number of moles of components " << N << ", Mass ????" << std::endl;
-    stream << "Total Gibbs energy " << eq.mingibbs << " Enthalpy ???? " << "Volume ????" << std::endl;
+    stream << "Total Gibbs energy " << mingibbs << " Enthalpy ???? " << "Volume ????" << std::endl;
 
     stream << std::endl;
 
-    const auto ph_end = eq.ph_map.cend();
-	const auto cond_spec_begin = eq.conditions.elements.cbegin();
-	const auto cond_spec_end = eq.conditions.elements.cend();
+    const auto ph_end = ph_map.cend();
+	const auto cond_spec_begin = conditions.elements.cbegin();
+	const auto cond_spec_end = conditions.elements.cend();
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
-    for (auto i = eq.ph_map.cbegin(); i != ph_end; ++i) {
+    for (auto i = ph_map.cbegin(); i != ph_end; ++i) {
     	const auto subl_begin = i->second.second.cbegin();
     	const auto subl_end = i->second.second.cend();
     	const double phasefrac = i->second.first;
+    	auto statfind = conditions.phases.find(i->first);
+
     	std::map<std::string,std::pair<double,double>> phase_comp;
-    	temp_buf << i->first << "\tStatus ENTERED  Driving force 0" << std::endl; // phase name
+    	temp_buf << i->first << "\tStatus " << enumToString(statfind->second) << "  Driving force ????" << std::endl; // phase name
     	temp_buf << "Number of moles " << i->second.first * N << ", Mass ???? ";
     	temp_buf << "Mole fractions:" << std::endl;
     	for (auto j = subl_begin; j != subl_end; ++j) {
@@ -204,5 +208,5 @@ std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq) {
 
     stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
 
-	return stream;
+	return (const std::string)stream.str();
 }

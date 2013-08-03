@@ -19,6 +19,7 @@ std::ostream& operator<< (std::ostream& strm, severity_level level)
 {
     static const char* strings[] =
     {
+    	"debug",
         "routine",
         "warning",
         "critical"
@@ -41,6 +42,7 @@ logging::formatting_ostream& operator<<
 {
     static const char* strings[] =
     {
+    	"debug",
         "routine",
         "warning",
         "critical"
@@ -62,7 +64,7 @@ void init_logging()
     min_severity_filter min_severity = expr::channel_severity_filter(channel, severity);
 
     // Set up the minimum severity levels for different channels
-    min_severity["network"] = critical;
+    min_severity["network"] = warning;
     min_severity["optimizer"] = warning;
     min_severity["data"] = routine;
 
@@ -79,6 +81,8 @@ void init_logging()
     // The backend requires synchronization in the frontend.
     typedef sinks::synchronous_sink< sinks::text_file_backend > file_sink_t;
     boost::shared_ptr< file_sink_t > sink(new file_sink_t(backend));
+
+    sink->set_filter(min_severity || severity >= debug); // capture everything to debug
 
     sink->set_formatter
     (
@@ -104,6 +108,7 @@ void init_logging()
     // The backend requires synchronization in the frontend.
     typedef sinks::synchronous_sink< sinks::text_ostream_backend > ostream_sink_t;
     boost::shared_ptr< ostream_sink_t > consolesink(new ostream_sink_t(consolebackend));
+    consolesink->set_filter(min_severity || severity >= critical); // be selective with the console
     core->add_sink(consolesink);
 }
 

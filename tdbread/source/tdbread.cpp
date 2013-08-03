@@ -67,7 +67,7 @@ int main(int argc, char* argv[])
 		EquilibriumFactory eqfact = EquilibriumFactory();
 		Equilibrium myeq(maindb, mainconditions, eqfact.GetIpopt());
 		// print the resulting equilibrium
-		BOOST_LOG_SEV(slg, routine) << myeq;
+		BOOST_LOG_SEV(slg, routine) << "" << myeq.print();
 	}
 	catch (equilibrium_error &e) {
 		std::string specific_info, err_msg; // error message strings

@@ -14,6 +14,7 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libtdb/include/logging.hpp"
 #include <string>
 #include <sstream>
 #include <set>
@@ -36,11 +37,13 @@ PureCompoundEnergyModel::PureCompoundEnergyModel(
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview;
+	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 
 	// Get all the sublattices for this phase
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
 	boost::tuples::tie(ic0,ic1)=get<phases>(subl_set).equal_range(phasename);
 
+	if (ic0 == ic1) BOOST_LOG_SEV(opt_log, critical) << "Sublattice set empty!";
 	// Construct a view from the iterators
 	while (ic0 != ic1) {
 		ssv.insert(&*ic0);
@@ -51,6 +54,7 @@ PureCompoundEnergyModel::PureCompoundEnergyModel(
 	boost::multi_index::index<parameter_set,phase_index>::type::iterator pa_start,pa_end;
 	boost::tuples::tie(pa_start,pa_end)=get<phase_index>(param_set).equal_range(phasename);
 
+	if (pa_start == pa_end) BOOST_LOG_SEV(opt_log, critical) << "Parameter set empty!";
 	// Construct a view from the iterators
 	while (pa_start != pa_end) {
 		psv.insert(&*pa_start);

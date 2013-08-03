@@ -7,6 +7,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libtdb/include/logging.hpp"
 #include <string>
 #include <map>
 #include <algorithm>
@@ -72,6 +73,7 @@ void EnergyModel::normalize_utree(utree &input_tree, const sublattice_set_view &
 
 utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
 	std::vector<const Parameter*> matches;
+	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 	int sublcount = 0;
 	std::vector<std::vector<std::string>> search_config;
 	auto subl_start = get<myindex>(subl_view).begin();

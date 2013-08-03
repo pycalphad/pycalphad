@@ -10,6 +10,7 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libtdb/include/logging.hpp"
 #include <string>
 #include <limits>
 #include <sstream>
@@ -62,13 +63,15 @@ IdealMixingModel::IdealMixingModel(
 	utree work_tree, gas_const_product;
 	sublattice_set_view ssv;
 	int curindex = 0;
-
+	logger opt_log(journal::keywords::channel = "optimizer");
 	// Get all the sublattices for this phase
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
 	boost::tuples::tie(ic0,ic1)=get<phases>(subl_set).equal_range(phasename);
 
 	// Generate a subview which excludes the "-1" fake sublattice index
+	if (ic0 == ic1) BOOST_LOG_SEV(opt_log, critical) << "Sublattice set in ideal mixing model empty!";
 	while (ic0 != ic1) {
+		BOOST_LOG_SEV(opt_log, routine) << "ic0: " << ic0->name();
 		ssv.insert(&*ic0);
 		++ic0;
 	}
@@ -76,6 +79,7 @@ IdealMixingModel::IdealMixingModel(
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_end = get<myindex>(ssv).upper_bound(curindex);
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator s_final_end = get<myindex>(ssv).end();
 
+	if (s_start == s_final_end || s_start == s_end) BOOST_LOG_SEV(opt_log, critical) << "Sublattice set view in ideal mixing model empty!";
 	while (s_start != s_final_end) {
 		utree subl_tree, temptree_loop;
 

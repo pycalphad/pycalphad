@@ -27,7 +27,7 @@ GibbsOpt::GibbsOpt(
 {
 	int varcount = 0;
 	int activephases = 0;
-	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
+	logger opt_log(journal::keywords::channel = "optimizer");
 
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
@@ -35,8 +35,12 @@ GibbsOpt::GibbsOpt(
 		}
 	}
 
+
+
 	phase_iter = phase_col.cbegin();
 	phase_end = phase_col.cend();
+	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opt_log, critical) << "Missing element conditions!";
+	if (phase_iter == phase_end) BOOST_LOG_SEV(opt_log, critical) << "No phases found!";
 
 	// build_variable_map() will fill main_indices
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
@@ -52,11 +56,11 @@ GibbsOpt::GibbsOpt(
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, routine) << i->first << "ref" << std::endl << curphaseref << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << "ref" << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
-		BOOST_LOG_SEV(opt_log, routine) << i->first << "idmix" << std::endl << idealmix << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << "idmix" << std::endl << idealmix << std::endl;
 		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, routine) << i->first << "excess" << std::endl << redlichkister << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << "excess" << std::endl << redlichkister << std::endl;
 
 		// sum the contributions
 		phase_ast.push_back("+");
@@ -84,10 +88,9 @@ GibbsOpt::GibbsOpt(
 		}
 		else master_tree.swap(phase_ast);
 
-		BOOST_LOG_SEV(opt_log, routine) << "master_tree: " << master_tree << std::endl;
 	}
+	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
-	//std::cout << master_tree << std::endl;
 
 	// Build a sitefracs object so that we can calculate the Gibbs energy
 	for (auto i = phase_iter; i != phase_end; ++i) {

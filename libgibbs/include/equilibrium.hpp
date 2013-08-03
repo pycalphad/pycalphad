@@ -74,7 +74,7 @@ public:
 	double GibbsEnergy();
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);
-	friend std::ostream& operator<< (std::ostream& stream, const Equilibrium& eq);
+	std::string print() const;
 };
 
 class EquilibriumFactory {

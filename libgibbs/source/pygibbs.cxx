@@ -47,7 +47,7 @@ BOOST_PYTHON_MODULE(libpygibbs)
 	;
 
 
-    class_<Database, boost::shared_ptr<Database> >("Database", init<std::string>())
+    class_<Database>("Database", init<std::string>())
         .def("get_info", &Database::get_info)
     ;
     class_<evalconditions>("evalconditions")
@@ -58,6 +58,8 @@ BOOST_PYTHON_MODULE(libpygibbs)
     ;
 
     class_<Equilibrium, boost::shared_ptr<Equilibrium>, boost::noncopyable>("Equilibrium", no_init)
+    	.def("__repr__", &Equilibrium::print)
+    	.def("__str__", &Equilibrium::print)
     ;
     class_<EquilibriumFactory>("EquilibriumFactory")
         .def("GetIpopt", &EquilibriumFactory::GetIpopt)

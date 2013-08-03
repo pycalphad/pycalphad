@@ -13,8 +13,8 @@
 #include <vector>
 #include <cstdint>
 
-enum class PhaseStatus : unsigned char {
-	ENTERED = 'E', DORMANT = 'D', FIXED = 'F', SUSPENDED = 'S'
+enum class PhaseStatus : unsigned int {
+	ENTERED = 0, DORMANT = 1, FIXED = 2, SUSPENDED = 3
 };
 
 struct evalconditions { 

@@ -35,11 +35,14 @@ namespace keywords = boost::log::keywords;
 
 enum severity_level
 {
+	debug,
     routine,
     warning,
     critical
 };
 
 void init_logging();
+
+typedef journal::src::severity_channel_logger<severity_level,std::string> logger;
 
 #endif
