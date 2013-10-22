@@ -19,7 +19,7 @@ using namespace journal;
 int main(int argc, char* argv[])
 {
 	init_logging();
-	src::severity_channel_logger<severity_level> slg(keywords::channel = "data");
+	src::severity_channel_logger<severity_level,std::string> slg(keywords::channel = "data");
 	if (argc < 2)
 	{
 		BOOST_LOG_SEV(slg, routine) << "Usage: tdbread path\n";
@@ -77,9 +77,9 @@ int main(int argc, char* argv[])
 		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 			err_msg = *mi;
 		}
-		BOOST_LOG_SEV(slg, critical) << "Failed to construct equilibrium" << std::endl;
-		BOOST_LOG_SEV(slg, critical) << "Exception: " << err_msg << std::endl;
-		BOOST_LOG_SEV(slg, critical) << "Reason: " << specific_info << std::endl;
+		BOOST_LOG_SEV(slg, critical) << "Failed to construct equilibrium";
+		BOOST_LOG_SEV(slg, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(slg, critical) << "Reason: " << specific_info;
 	}
 	catch (boost::exception &e) {
 		// catch any other uncaught Boost-enabled exceptions here
