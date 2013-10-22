@@ -14,6 +14,7 @@
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/constraint.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
 #include <boost/spirit/include/support_utree.hpp>
