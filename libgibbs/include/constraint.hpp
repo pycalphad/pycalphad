@@ -14,11 +14,23 @@ enum class ConstraintOperatorType {
 };
 
 class Constraint {
-private:
+protected:
 	boost::spirit::utree lhs;
 	boost::spirit::utree rhs;
 	ConstraintOperatorType op;
 public:
 	void evaluate_constraint();
 	virtual ~Constraint() {};
+};
+
+class MassBalanceConstraint : public Constraint {
+
+};
+
+class PhaseFractionBalanceConstraint : public Constraint {
+
+};
+
+class StateVariableConstraint : public Constraint {
+
 };
