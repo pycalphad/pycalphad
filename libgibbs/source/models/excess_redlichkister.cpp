@@ -137,7 +137,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 			if (interact_recursive_term.which() == utree_type::int_type && interact_recursive_term.get<int>() == 0) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
-			std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
+			//std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
 
 			// We only get here for non-zero terms
 
