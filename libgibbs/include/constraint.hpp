@@ -28,9 +28,16 @@ class MassBalanceConstraint : public Constraint {
 };
 
 class PhaseFractionBalanceConstraint : public Constraint {
+	// ctor needs a list of all non-suspended phases, their sublattice configurations and all non-suspended components
 
 };
 
 class StateVariableConstraint : public Constraint {
 
 };
+
+
+// perhaps a ConstraintManager object handles the active phases and components along with all constraints
+// this object would convert all of the constraints into a form the optimizer engine can handle
+// this object would have add and remove methods for constraints
+// ConstraintManager would be how Equilibrium objects handle constraints
