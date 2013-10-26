@@ -15,6 +15,7 @@
 #include "libtdb/include/utils/math_expr.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
+#include "libgibbs/include/constraint.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <string>
 #include <unordered_map>
@@ -117,6 +118,7 @@ private:
 	Phase_Collection::const_iterator phase_iter;
 	Phase_Collection::const_iterator phase_end;
 	Phase_Collection phase_col;
+	ConstraintManager cm;
 
 	// data structure for final result
 	phasemap ph_map; // maps phase name to its object (final result)

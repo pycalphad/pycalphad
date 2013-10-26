@@ -45,10 +45,12 @@ GibbsOpt::GibbsOpt(
 	// build_variable_map() will fill main_indices
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
 
+	// load the parameters from the database
 	parameter_set pset = DB.get_parameter_set();
 
 	// this is the part where we look up the models enabled for each phase and call their AST builders
 	// then we build a master Gibbs AST for the objective function
+	// TODO: right now the models called are hard-coded, in the future this will be typedef-dependent
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
@@ -90,6 +92,13 @@ GibbsOpt::GibbsOpt(
 
 	}
 	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
+
+	// Add the mandatory constraints to the ConstraintManager
+	// NOTE: Once addConstraint has int return type, use it to record id's for g[] in optimizer
+	cm.addConstraint(PhaseFractionBalanceConstraint(phase_iter, phase_end));
+	// Add the mass balance constraint to ConstraintManager (mandatory)
+
+	// TODO: Add any user-specified constraints to the ConstraintManager
 
 
 	// Build a sitefracs object so that we can calculate the Gibbs energy

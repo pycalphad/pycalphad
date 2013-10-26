@@ -7,6 +7,10 @@
 
 // header file for Constraint class and enums
 
+#ifndef INCLUDED_CONSTRAINT
+#define INCLUDED_CONSTRAINT
+
+#include "libtdb/include/structure.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 
 enum class ConstraintOperatorType {
@@ -14,12 +18,11 @@ enum class ConstraintOperatorType {
 };
 
 class Constraint {
-protected:
+public:
 	boost::spirit::utree lhs;
 	boost::spirit::utree rhs;
 	ConstraintOperatorType op;
-public:
-	void evaluate_constraint();
+	std::string name;
 	virtual ~Constraint() {};
 };
 
@@ -28,8 +31,9 @@ class MassBalanceConstraint : public Constraint {
 };
 
 class PhaseFractionBalanceConstraint : public Constraint {
-	// ctor needs a list of all non-suspended phases, their sublattice configurations and all non-suspended components
-
+public:
+	typedef Phase_Collection::const_iterator PhaseIterator;
+	PhaseFractionBalanceConstraint(PhaseIterator phase_begin, PhaseIterator phase_end);
 };
 
 class StateVariableConstraint : public Constraint {
@@ -41,3 +45,17 @@ class StateVariableConstraint : public Constraint {
 // this object would convert all of the constraints into a form the optimizer engine can handle
 // this object would have add and remove methods for constraints
 // ConstraintManager would be how Equilibrium objects handle constraints
+
+class ConstraintManager {
+protected:
+	std::vector<Constraint> constraints;
+public:
+	void addConstraint(Constraint cons);
+	void deleteConstraint();
+
+	typedef std::vector<Constraint>::const_iterator ConstraintIterator;
+	ConstraintIterator begin();
+	ConstraintIterator end();
+};
+
+#endif
