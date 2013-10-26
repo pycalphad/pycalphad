@@ -19,3 +19,11 @@ void ConstraintManager::deleteConstraint() {
 	// TODO: make deletion of constraints work
 	return;
 }
+
+ConstraintManager::ConstraintIterator ConstraintManager::begin() {
+	return constraints.begin();
+}
+
+ConstraintManager::ConstraintIterator ConstraintManager::end() {
+	return constraints.end();
+}
