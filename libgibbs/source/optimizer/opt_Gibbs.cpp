@@ -356,6 +356,8 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 	sitefracs thesitefracs;
 	const auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
 	const auto sitefrac_end = var_map.sitefrac_iters.cend();
+	const auto cons_begin = cm.begin();
+	const auto cons_end = cm.end();
 
 	if (std::distance(sitefrac_begin,sitefrac_end) > 1) {
 		// More than one phase
@@ -406,6 +408,13 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		// Phase fraction balance constraint
 		//std::cout << "g[0] = " << sum_phase_fracs << " - 1 = " << sum_phase_fracs - 1 << std::endl;
 		g[0] = sum_phase_fracs - 1;
+	}
+
+	for (auto i = cons_begin; i != cons_end; ++i) {
+		// Calculate left-hand side and right-hand side of all constraints
+		double lhs = process_utree(i->lhs, conditions, main_indices, (double*)x).get<double>();
+		double rhs = process_utree(i->rhs, conditions, main_indices, (double*)x).get<double>();
+		g[std::distance(cons_begin,i)] = lhs - rhs;
 	}
 
 	// Mass balance constraint
