@@ -94,30 +94,42 @@ GibbsOpt::GibbsOpt(
 	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
 	// Add the mandatory constraints to the ConstraintManager
-	// NOTE: Once addConstraint has int return type, use it to record id's for g[] in optimizer
-	cm.addConstraint(PhaseFractionBalanceConstraint(phase_iter, phase_end));
-	// Add the mass balance constraint to ConstraintManager (mandatory)
+	if (activephases == 1)
+		cm.addConstraint(
+				PhaseFractionBalanceConstraint(
+						phase_iter, phase_end
+					)
+				); // Add the mass balance constraint to ConstraintManager (mandatory)
 
-	// TODO: Add any user-specified constraints to the ConstraintManager
-
-
-	// Build a sitefracs object so that we can calculate the Gibbs energy
+	// Add the sublattice site fraction constraints (mandatory)
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		sublattice_vector subls_vec;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
-			std::map<std::string,double> subl_map;
+			std::vector<std::string> subl_list;
 			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
 				// Check if this species in this sublattice is on our list of elements to investigate
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					subl_map[*k] = 1;
-					//var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k]
+					subl_list.push_back(*k); // Add to the list
 				}
 			}
-			subls_vec.push_back(subl_map);
+			cm.addConstraint(
+					SublatticeBalanceConstraint(
+							i->first,
+							std::distance(i->second.get_sublattice_iterator(),j),
+							subl_list.cbegin(),
+							subl_list.cend()
+						)
+				);
 		}
-		mysitefracs.push_back(std::make_pair(i->first,subls_vec));
 	}
+
+	// Add any user-specified constraints to the ConstraintManager
+
+	for (auto i = 0; i < conditions.xfrac.size(); ++i) {
+		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
+	}
+
 	// Build the index map
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
