@@ -11,6 +11,7 @@
 #define INCLUDED_CONSTRAINT
 
 #include "libtdb/include/structure.hpp"
+#include <string>
 #include <boost/spirit/include/support_utree.hpp>
 
 enum class ConstraintOperatorType {
@@ -27,7 +28,9 @@ public:
 };
 
 class MassBalanceConstraint : public Constraint {
-
+public:
+	typedef Phase_Collection::const_iterator PhaseIterator;
+	MassBalanceConstraint(PhaseIterator phase_begin, PhaseIterator phase_end, std::string spec_name, double moles);
 };
 
 class PhaseFractionBalanceConstraint : public Constraint {
