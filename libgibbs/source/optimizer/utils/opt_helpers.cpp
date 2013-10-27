@@ -6,8 +6,10 @@
 #include <boost/spirit/include/support_utree.hpp>
 #include <math.h>
 #include <iostream>
+#include <sstream>
 
 using boost::spirit::utree;
+typedef boost::spirit::utree_type utree_type;
 
 double mole_fraction(
 	const std::string &spec_name,
@@ -62,16 +64,17 @@ double mole_fraction(
 		return (numerator / denominator);
 }
 
+// Construct the AST of the mole fraction of a species in a phase
 boost::spirit::utree mole_fraction(
 	const std::string &phase_name,
 	const std::string &spec_name,
 	const Sublattice_Collection::const_iterator ref_subl_iter_start,
 	const Sublattice_Collection::const_iterator ref_subl_iter_end
 	) {
-		double numerator = 0;
 		double denominator = 0;
-		utree ret_tree;
+		utree num_tree, ret_tree;
 
+		// Iterate through all the sublattices in the phase
 		for (auto i = ref_subl_iter_start; i != ref_subl_iter_end; ++i) {
 			//std::cout << "sublattice " << std::distance(subl_iter_start,i) << std::endl;
 			const auto sitefrac_begin = i->get_species_iterator();
@@ -97,13 +100,22 @@ boost::spirit::utree mole_fraction(
 				temp_tree.push_back("*");
 				temp_tree.push_back(stoi_coef);
 				temp_tree.push_back(ss.str());
-				const double num = stoi_coef * sitefrac_iter->second;
 
-				numerator += num;
+				if (num_tree.which() == utree_type::nil_type) num_tree.swap(temp_tree);
+				else {
+					utree build_tree;
+					build_tree.push_back("+");
+					build_tree.push_back(temp_tree);
+					build_tree.push_back(num_tree);
+					num_tree.swap(build_tree);
+				}
 			}
 		}
+		ret_tree.push_back("/");
+		ret_tree.push_back(num_tree);
+		ret_tree.push_back(denominator);
 
-		return (numerator / denominator);
+		return ret_tree;
 }
 
 double mole_fraction_deriv(
