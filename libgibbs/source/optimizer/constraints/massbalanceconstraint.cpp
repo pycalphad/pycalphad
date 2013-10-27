@@ -9,15 +9,16 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/constraint.hpp"
+#include "libtdb/include/structure.hpp"
 
 using boost::spirit::utree;
 typedef boost::spirit::utree_type utree_type;
 
 MassBalanceConstraint::MassBalanceConstraint(
-		PhaseIterator phase_begin,
-		PhaseIterator phase_end,
-		std::string spec_name,
-		double moles
+		const PhaseIterator phase_begin,
+		const PhaseIterator phase_end,
+		const std::string &spec_name,
+		const double &moles
 		) {
 	utree ret_tree;
 	op = ConstraintOperatorType::EQUALITY_CONSTRAINT;
