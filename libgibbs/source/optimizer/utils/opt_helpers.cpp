@@ -101,7 +101,9 @@ boost::spirit::utree mole_fraction(
 				temp_tree.push_back(stoi_coef);
 				temp_tree.push_back(ss.str());
 
-				if (num_tree.which() == utree_type::nil_type) num_tree.swap(temp_tree);
+				if (num_tree.which() == utree_type::invalid_type) {
+					num_tree.swap(temp_tree);
+				}
 				else {
 					utree build_tree;
 					build_tree.push_back("+");
@@ -111,9 +113,12 @@ boost::spirit::utree mole_fraction(
 				}
 			}
 		}
-		ret_tree.push_back("/");
-		ret_tree.push_back(num_tree);
-		ret_tree.push_back(denominator);
+		if (num_tree.which() != utree_type::invalid_type) {
+			ret_tree.push_back("/");
+			ret_tree.push_back(num_tree);
+			ret_tree.push_back(denominator);
+		}
+		else ret_tree = utree(0);
 
 		return ret_tree;
 }

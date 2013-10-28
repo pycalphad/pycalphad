@@ -30,7 +30,7 @@ SublatticeBalanceConstraint::SublatticeBalanceConstraint(const std::string &phas
 	for (auto i = spec_begin; i != spec_end; ++i) {
 		std::stringstream ss;
 		ss << phase_name << "_" << sublindex << "_" << *i;
-		if (lhs.which() == utree_type::nil_type) {
+		if (i == spec_begin) {
 			// first site fraction is handled differently
 			lhs = utree(ss.str());
 			continue;

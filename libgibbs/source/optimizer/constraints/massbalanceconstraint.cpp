@@ -35,7 +35,7 @@ MassBalanceConstraint::MassBalanceConstraint(
 						phase_iter->second.get_sublattice_iterator_end()
 						)
 					);
-		if (ret_tree.which() == utree_type::nil_type) ret_tree.swap(phase_tree);
+		if (ret_tree.which() == utree_type::invalid_type) ret_tree.swap(phase_tree);
 		else {
 			utree temp_tree;
 			temp_tree.push_back("+");

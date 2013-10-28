@@ -94,7 +94,7 @@ GibbsOpt::GibbsOpt(
 	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
 	// Add the mandatory constraints to the ConstraintManager
-	if (activephases == 1)
+	if (activephases > 1)
 		cm.addConstraint(
 				PhaseFractionBalanceConstraint(
 						phase_iter, phase_end
@@ -104,7 +104,6 @@ GibbsOpt::GibbsOpt(
 	// Add the sublattice site fraction constraints (mandatory)
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
-		sublattice_vector subls_vec;
 		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
 			std::vector<std::string> subl_list;
 			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
@@ -113,14 +112,16 @@ GibbsOpt::GibbsOpt(
 					subl_list.push_back(*k); // Add to the list
 				}
 			}
-			cm.addConstraint(
-					SublatticeBalanceConstraint(
-							i->first,
-							std::distance(i->second.get_sublattice_iterator(),j),
-							subl_list.cbegin(),
-							subl_list.cend()
+			if (subl_list.size() > 1 ) {
+				cm.addConstraint(
+						SublatticeBalanceConstraint(
+								i->first,
+								std::distance(i->second.get_sublattice_iterator(),j),
+								subl_list.cbegin(),
+								subl_list.cend()
 						)
 				);
+			}
 		}
 	}
 
@@ -128,6 +129,11 @@ GibbsOpt::GibbsOpt(
 
 	for (auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i) {
 		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
+	}
+
+	for (auto i = cm.begin(); i != cm.end(); ++i) {
+		BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
 	}
 
 	// Build the index map
@@ -170,6 +176,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   Index sitebalances = 0; // number of site fraction balance constraints
   Index speccount = (Index) conditions.xfrac.size() + 1; // total number of species for which mass must balance
   auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
+  logger opt_log(journal::keywords::channel = "optimizer");
 
   for (auto i = var_map.sitefrac_iters.cbegin(); i != var_map.sitefrac_iters.cend(); ++i) {
 	  const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
@@ -215,7 +222,6 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	  // single-phase case
 	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
   }
-  //std::cout << "nnz_jac_g = " << nnz_jac_g << std::endl;
 
   index_style = C_STYLE;
   return true;
@@ -235,7 +241,6 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	if (std::distance(sitefrac_begin, sitefrac_end) == 1) {
 		// single phase optimization, fix the value of the phase fraction at 1
 		x_l[0] = x_u[0] = 1;
-		// no phase balance constraint needed
 	}
 
 	// Set bounds for constraints
@@ -316,19 +321,25 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
-	//std::cout << "entering eval_g" << std::endl;
+	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(opt_log, debug) << "entering eval_g" << std::endl;
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.begin();
 	const auto cons_end = cm.end();
 
 	for (auto i = cons_begin; i != cons_end; ++i) {
 		// Calculate left-hand side and right-hand side of all constraints
+		//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
+		//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
+		//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
 		double lhs = process_utree(i->lhs, conditions, main_indices, (double*)x).get<double>();
+		//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << lhs << std::endl;
 		double rhs = process_utree(i->rhs, conditions, main_indices, (double*)x).get<double>();
+		//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << rhs << std::endl;
 		g[std::distance(cons_begin,i)] = lhs - rhs;
 	}
 
-	//std::cout << "exiting eval_g" << std::endl;
+	BOOST_LOG_SEV(opt_log, debug) << "exiting eval_g" << std::endl;
   return true;
 }
 
@@ -337,16 +348,22 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Number* values)
 {
 	Index jac_index = 0;
+	logger opt_log(journal::keywords::channel = "optimizer");
 	if (values == NULL) {
-		//std::cout << "entering eval_jac_g values == NULL" << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << "entering eval_jac_g values == NULL" << std::endl;
 		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-			// for each variable-constraint combination, choose a jac_index
+			BOOST_LOG_SEV(opt_log, debug) << "Variable " << i->first << std::endl;
+			// for each variable-constraint combination, give it a jac_index
 			for (auto j = cm.begin(); j != cm.end(); ++j) {
+				BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cm.begin(),j) << std::endl;
+				BOOST_LOG_SEV(opt_log, debug) << "iRow[" << jac_index << "] = " << std::distance(cm.begin(),j) << std::endl;
+				BOOST_LOG_SEV(opt_log, debug) << "jCol[" << jac_index << "] = " << i->second << std::endl;
 				iRow[jac_index] = std::distance(cm.begin(),j);
 				jCol[jac_index] = i->second;
 				++jac_index;
 			}
 		}
+		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values" << std::endl;
 	}
 	else {
 		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
@@ -358,9 +375,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 				++jac_index;
 			}
 		}
-		//std::cout << "exit eval_jac_g with values" << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values" << std::endl;
 	}
-	//std::cout << "exiting eval_jac_g" << std::endl;
 	return true;
 }
 
