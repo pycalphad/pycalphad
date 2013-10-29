@@ -389,6 +389,23 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 {
 	// No explicit evaluation of the Hessian
 	return false;
+
+	Index h_idx = 0;
+	if (values == NULL) {
+		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+			// for each variable, calculate derivatives of all the constraints
+			for (auto j = cm.begin(); j != cm.end(); ++j) {
+				double lhs = differentiate_utree(j->lhs, conditions, i->first, main_indices, (double*) x).get<double>();
+				double rhs = differentiate_utree(j->rhs, conditions, i->first, main_indices, (double*) x).get<double>();
+				values[h_idx] = lhs - rhs;
+				++h_idx;
+			}
+		}
+	}
+	else {
+		break;
+	}
+	return true;
 }
 
 void GibbsOpt::finalize_solution(SolverReturn status,
@@ -422,24 +439,4 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 		//thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
 		ph_map[cur_phase->first] = std::make_pair(fL,subls_vec);
 	}
-	/*for (auto m = conditions.elements.cbegin(); m != conditions.elements.cend(); ++m) {
-		for (auto i = var_map.phasefrac_iters.begin(); i != var_map.phasefrac_iters.end(); ++i) {
-			const Phase_Collection::const_iterator myphase = (*i).get<2>();
-			sublattice_vector::const_iterator subls_start = (thesitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cbegin();
-			sublattice_vector::const_iterator subls_end = (thesitefracs[std::distance(var_map.phasefrac_iters.begin(),i)].second).cend();
-			const Index phaseindex = (*i).get<0>();
-			const double fL = x[phaseindex];
-			double molefrac = mole_fraction(
-				(*m),
-				(*myphase).second.get_sublattice_iterator(),
-				(*myphase).second.get_sublattice_iterator_end(),
-				subls_start,
-				subls_end
-				);
-			//std::cout << "x(" << myphase->first << "," << *m << ") = " << molefrac << " ; X = " << fL*molefrac << std::endl;
-		}
-	}*/
-	/*for (Index i = 0; i < m_num; ++i) {
-		std::cout << "g[" << i << "] = " << g[i] << std::endl;
-	}*/
 }
