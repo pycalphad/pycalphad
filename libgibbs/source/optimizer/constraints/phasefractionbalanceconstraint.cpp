@@ -9,10 +9,11 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/constraint.hpp"
+#include "libtdb/include/structure.hpp"
 
 using boost::spirit::utree;
 
-PhaseFractionBalanceConstraint::PhaseFractionBalanceConstraint(PhaseIterator phase_begin, PhaseIterator phase_end) {
+PhaseFractionBalanceConstraint::PhaseFractionBalanceConstraint(const PhaseIterator phase_begin, const PhaseIterator phase_end) {
 	op = ConstraintOperatorType::EQUALITY_CONSTRAINT;
 	name = "Phase Fraction Balance";
 	rhs = utree(1); // phase fractions must sum to 1

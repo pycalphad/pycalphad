@@ -11,7 +11,15 @@
 #define INCLUDED_CONSTRAINT
 
 #include "libtdb/include/structure.hpp"
+#include <string>
 #include <boost/spirit/include/support_utree.hpp>
+
+boost::spirit::utree mole_fraction(
+	const std::string &phase_name,
+	const std::string &spec_name,
+	const Sublattice_Collection::const_iterator ref_subl_iter_start,
+	const Sublattice_Collection::const_iterator ref_subl_iter_end
+	);
 
 enum class ConstraintOperatorType {
 	EQUALITY_CONSTRAINT
@@ -27,13 +35,29 @@ public:
 };
 
 class MassBalanceConstraint : public Constraint {
+public:
+	typedef Phase_Collection::const_iterator PhaseIterator;
+	MassBalanceConstraint(
+			const PhaseIterator phase_begin,
+			const PhaseIterator phase_end,
+			const std::string &spec_name,
+			const double &moles);
+};
 
+class SublatticeBalanceConstraint : public Constraint {
+public:
+	typedef Sublattice_Collection::const_iterator SublatticeIterator;
+	SublatticeBalanceConstraint(
+			const std::string &phase_name,
+			const int &sublindex,
+			const std::vector<std::string>::const_iterator spec_begin,
+			const std::vector<std::string>::const_iterator spec_end);
 };
 
 class PhaseFractionBalanceConstraint : public Constraint {
 public:
 	typedef Phase_Collection::const_iterator PhaseIterator;
-	PhaseFractionBalanceConstraint(PhaseIterator phase_begin, PhaseIterator phase_end);
+	PhaseFractionBalanceConstraint(const PhaseIterator phase_begin, const PhaseIterator phase_end);
 };
 
 class StateVariableConstraint : public Constraint {
