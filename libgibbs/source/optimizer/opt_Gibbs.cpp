@@ -223,6 +223,8 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
   }
 
+  nnz_jac_g = n*m; // TODO: temporary fix until I get better at non-zero detection
+
   index_style = C_STYLE;
   return true;
 }
