@@ -32,6 +32,7 @@ boost::spirit::utree const differentiate_utree(
 		std::map<std::string, int> const&,
 		double* const
 		);
+boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar);
 boost::spirit::utree const differentiate_utree(
 		boost::spirit::utree const&,
 		evalconditions const&,

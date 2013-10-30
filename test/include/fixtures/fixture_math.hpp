@@ -67,13 +67,14 @@ struct MathParserFixture
 			utree final_tree;
 			if (diffvar == "") {
 				final_tree = process_utree(ret_tree, conditions);
-			}
-			else final_tree = differentiate_utree(ret_tree, conditions, diffvar);
-			if (final_tree.which() == utree_type::double_type) {
-				return final_tree.get<double>();
+				if (final_tree.which() == utree_type::double_type) return final_tree.get<double>();
+				else BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
 			}
 			else {
-				BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
+				final_tree = differentiate_utree(ret_tree, diffvar);
+				final_tree = process_utree(final_tree, conditions);
+				if (final_tree.which() == utree_type::double_type) return final_tree.get<double>();
+				else BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
 			}
 		}
 		else
