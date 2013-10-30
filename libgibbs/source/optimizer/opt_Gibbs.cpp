@@ -14,6 +14,7 @@
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libtdb/include/logging.hpp"
 #include "external/coin/IpTNLP.hpp"
+#include <sstream>
 
 using namespace Ipopt;
 
@@ -93,6 +94,11 @@ GibbsOpt::GibbsOpt(
 	}
 	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
+	// Calculate first derivative ASTs of all variables
+	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
+	}
+
 	// Add the mandatory constraints to the ConstraintManager
 	if (activephases > 1)
 		cm.addConstraint(
@@ -111,6 +117,11 @@ GibbsOpt::GibbsOpt(
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
 					subl_list.push_back(*k); // Add to the list
 				}
+			}
+			if (subl_list.size() == 1) {
+				std::stringstream ss;
+				ss << i->first << "_" << std::distance(i->second.get_sublattice_iterator(),j) << "_" << *(subl_list.begin());
+				fixed_indices.push_back(main_indices[ss.str()]);
 			}
 			if (subl_list.size() > 1 ) {
 				cm.addConstraint(
@@ -167,61 +178,25 @@ GibbsOpt::~GibbsOpt()
 bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
                          Index& nnz_h_lag, IndexStyleEnum& index_style)
 {
-	// TODO: fix this to use Boost multi_index (will probably require modification of sublattice_set)
-  Index sublcount = 0; // total number of sublattices across all phases under consideration
-  Index phasecount = 0; // total number of phases under consideration
-  Index sitefraccount = 0; // total number of site fractions
-  Index balancedsitefraccount = 0; // number of site fractions in sublattices with more than one species
-  Index balanced_species_in_each_sublattice = 0; // number of site fractions subject to a mass balance constraint
-  Index sitebalances = 0; // number of site fraction balance constraints
-  Index speccount = (Index) conditions.xfrac.size() + 1; // total number of species for which mass must balance
-  auto sitefrac_begin = var_map.sitefrac_iters.cbegin();
-  logger opt_log(journal::keywords::channel = "optimizer");
-
-  for (auto i = var_map.sitefrac_iters.cbegin(); i != var_map.sitefrac_iters.cend(); ++i) {
-	  const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-	  const Sublattice_Collection::const_iterator subls_start = cur_phase->second.get_sublattice_iterator();
-	  const Sublattice_Collection::const_iterator subls_end = cur_phase->second.get_sublattice_iterator_end();
-	  sublcount += std::distance(subls_start,subls_end);
-	  for (auto j = subls_start; j != subls_end;++j) {
-		  int sublspeccount = 0;
-		  for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-			  // Check if this species in this sublattice is on our list of elements to investigate
-			  if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-				  ++sitefraccount;
-				  ++sublspeccount;
-			  }
-			  const auto balanced_spec_find = conditions.xfrac.find(*k);
-			  const auto balanced_spec_end = conditions.xfrac.cend();
-			  if (balanced_spec_find != balanced_spec_end) {
-				  ++balanced_species_in_each_sublattice;
-			  }
-		  }
-		  if (sublspeccount > 1) {
-			  ++sitebalances;
-			  balancedsitefraccount += sublspeccount;
-		  }
-	  }
-	  ++phasecount;
-  }
   // number of variables
   n = main_indices.size();
   //std::cout << "n = " << n << std::endl;
   // one phase fraction balance constraint (for multi-phase)
   // plus all the sublattice fraction balance constraints
   // plus all the mass balance constraints
-  if (phasecount > 1) m = 1 + sitebalances + (speccount-1);
-  else m = sitebalances + (speccount-1);
+
+
+  m = std::distance(cm.begin(),cm.end());
   //std::cout << "m = " << m << std::endl;
 
   // nonzeros in the jacobian of the lagrangian
-  if (phasecount > 1) {
+  /*if (phasecount > 1) {
 	  nnz_jac_g = phasecount + (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
   }
   else {
 	  // single-phase case
 	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
-  }
+  }*/
 
   nnz_jac_g = n*m; // TODO: temporary fix until I get better at non-zero detection
 
@@ -243,6 +218,9 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	if (std::distance(sitefrac_begin, sitefrac_end) == 1) {
 		// single phase optimization, fix the value of the phase fraction at 1
 		x_l[0] = x_u[0] = 1;
+	}
+	for (auto i = fixed_indices.begin(); i != fixed_indices.end(); ++i) {
+		x_l[*i] = x_u[*i] = 1;
 	}
 
 	// Set bounds for constraints
@@ -312,11 +290,10 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
 	//std::cout << "eval_grad_f entered" << std::endl;
-	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		double newgrad = differentiate_utree(master_tree, conditions, i->first, main_indices, (double*) x).get<double>();
-		//std::cout << "grad_f[" << i->second << "]: " << newgrad <<  "(new) == " << grad_f[i->second] << std::endl;
-		grad_f[i->second] = newgrad;
+	for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
+		grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
 	}
+
 	//std::cout << "eval_grad_f exit" << std::endl;
 	return true;
 }
@@ -357,9 +334,9 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			BOOST_LOG_SEV(opt_log, debug) << "Variable " << i->first << std::endl;
 			// for each variable-constraint combination, give it a jac_index
 			for (auto j = cm.begin(); j != cm.end(); ++j) {
-				BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cm.begin(),j) << std::endl;
-				BOOST_LOG_SEV(opt_log, debug) << "iRow[" << jac_index << "] = " << std::distance(cm.begin(),j) << std::endl;
-				BOOST_LOG_SEV(opt_log, debug) << "jCol[" << jac_index << "] = " << i->second << std::endl;
+				//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cm.begin(),j) << std::endl;
+				//BOOST_LOG_SEV(opt_log, debug) << "iRow[" << jac_index << "] = " << std::distance(cm.begin(),j) << std::endl;
+				//BOOST_LOG_SEV(opt_log, debug) << "jCol[" << jac_index << "] = " << i->second << std::endl;
 				iRow[jac_index] = std::distance(cm.begin(),j);
 				jCol[jac_index] = i->second;
 				++jac_index;

@@ -119,6 +119,8 @@ private:
 	Phase_Collection::const_iterator phase_end;
 	Phase_Collection phase_col;
 	ConstraintManager cm;
+	std::map<int,boost::spirit::utree> first_derivatives;
+	std::vector<int> fixed_indices;
 
 	// data structure for final result
 	phasemap ph_map; // maps phase name to its object (final result)

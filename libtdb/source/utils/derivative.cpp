@@ -12,7 +12,6 @@
 #include "libtdb/include/conditions.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/utils/math_expr.hpp"
-#include "libtdb/include/logging.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/algorithm/string.hpp>
 
@@ -348,7 +347,6 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						return ret_tree;
 					}
 					else if (op == "*") {
-						logger opt_log(journal::keywords::channel = "optimizer");
 						// derivative of product is lhs'rhs + rhs'lhs (product rule)
 						// TODO: optimizations for multiplication by 1 and 0
 						utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
@@ -364,7 +362,6 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs_prod_tree);
 						ret_tree.push_back(rhs_prod_tree);
-						BOOST_LOG_SEV(opt_log, debug) << "Product Rule: " << ret_tree << std::endl;
 						return ret_tree;
 					}
 					else if (op == "/") {
