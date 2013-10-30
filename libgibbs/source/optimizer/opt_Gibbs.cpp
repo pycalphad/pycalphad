@@ -403,7 +403,6 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 		}
 	}
 	else {
-		break;
 	}
 	return true;
 }
