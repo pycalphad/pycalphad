@@ -99,6 +99,7 @@ GibbsOpt::GibbsOpt(
 		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
 	}
 
+
 	// Add the mandatory constraints to the ConstraintManager
 	if (activephases > 1)
 		cm.addConstraint(
@@ -145,6 +146,20 @@ GibbsOpt::GibbsOpt(
 	for (auto i = cm.begin(); i != cm.end(); ++i) {
 		BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
 		BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
+	}
+
+	// Calculate first derivative ASTs of all constraints
+	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+		// for each variable, calculate derivatives of all the constraints
+		for (auto j = cm.begin(); j != cm.end(); ++j) {
+			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
+			boost::spirit::utree rhs = differentiate_utree(j->rhs, i->first);
+			boost::spirit::utree subtract_tree;
+			subtract_tree.push_back("-");
+			subtract_tree.push_back(lhs);
+			subtract_tree.push_back(rhs);
+			jac_g_trees.push_back(subtract_tree);
+		}
 	}
 
 	// Build the index map
@@ -345,14 +360,8 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values" << std::endl;
 	}
 	else {
-		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-			// for each variable, calculate derivatives of all the constraints
-			for (auto j = cm.begin(); j != cm.end(); ++j) {
-				double lhs = differentiate_utree(j->lhs, conditions, i->first, main_indices, (double*) x).get<double>();
-				double rhs = differentiate_utree(j->rhs, conditions, i->first, main_indices, (double*) x).get<double>();
-				values[jac_index] = lhs - rhs;
-				++jac_index;
-			}
+		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
+			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(*i, conditions, main_indices, (double*)x).get<double>();
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values" << std::endl;
 	}

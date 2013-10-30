@@ -120,6 +120,7 @@ private:
 	Phase_Collection phase_col;
 	ConstraintManager cm;
 	std::map<int,boost::spirit::utree> first_derivatives;
+	std::vector<boost::spirit::utree> jac_g_trees;
 	std::vector<int> fixed_indices;
 
 	// data structure for final result
