@@ -69,7 +69,6 @@ class StateVariableConstraint : public Constraint {
 // this object would convert all of the constraints into a form the optimizer engine can handle
 // this object would have add and remove methods for constraints
 // ConstraintManager would be how Equilibrium objects handle constraints
-
 class ConstraintManager {
 protected:
 	std::vector<Constraint> constraints;
@@ -80,6 +79,20 @@ public:
 	typedef std::vector<Constraint>::const_iterator ConstraintIterator;
 	ConstraintIterator begin();
 	ConstraintIterator end();
+};
+
+
+struct jacobian_entry {
+	int cons_index; // constraint index (for optimizer)
+	int var_index; // differentiating variable index (for optimizer)
+	bool trivial; // is it always zero?
+	boost::spirit::utree ast; // abstract syntax tree
+	jacobian_entry (
+			int cons_index_, int var_index_, bool trivial_, boost::spirit::utree ast_) :
+				cons_index(cons_index_),
+				var_index(var_index_),
+				trivial(trivial_),
+				ast(ast_) {}
 };
 
 #endif

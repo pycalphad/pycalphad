@@ -21,6 +21,7 @@ boost::spirit::utree const process_utree(
 		std::map<std::string, int> const&,
 		double* const
 		);
+boost::spirit::utree const process_utree(boost::spirit::utree const& ut);
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const&,
 		evalconditions const&

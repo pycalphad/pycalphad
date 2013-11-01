@@ -46,6 +46,10 @@ GibbsOpt::GibbsOpt(
 	// build_variable_map() will fill main_indices
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
 
+	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+		BOOST_LOG_SEV(opt_log, debug) << "Variable " << i->second << ": " << i->first;
+	}
+
 	// load the parameters from the database
 	parameter_set pset = DB.get_parameter_set();
 
@@ -97,6 +101,7 @@ GibbsOpt::GibbsOpt(
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
 		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
+		BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
 	}
 
 
@@ -142,10 +147,9 @@ GibbsOpt::GibbsOpt(
 	for (auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i) {
 		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
 	}
-
-	for (auto i = cm.begin(); i != cm.end(); ++i) {
-		BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
-		BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
+	for (auto i = cm.begin() ; i != cm.end(); ++i) {
+		BOOST_LOG_SEV(opt_log, debug) << "Constraint " << i->name << " LHS: " << i->lhs;
+		BOOST_LOG_SEV(opt_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
 	}
 
 	// Calculate first derivative ASTs of all constraints
@@ -154,11 +158,22 @@ GibbsOpt::GibbsOpt(
 		for (auto j = cm.begin(); j != cm.end(); ++j) {
 			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
 			boost::spirit::utree rhs = differentiate_utree(j->rhs, i->first);
+			boost::spirit::utree lhstest = process_utree(lhs);
+			boost::spirit::utree rhstest = process_utree(rhs);
+			if (lhstest.which() == boost::spirit::utree_type::double_type && rhstest.which() == boost::spirit::utree_type::double_type) {
+				double lhsget, rhsget;
+				lhsget = lhstest.get<double>();
+				rhsget = rhstest.get<double>();
+				//if (lhsget == 0 && rhsget == 0) continue; // don't add zeros to the Jacobian
+			}
 			boost::spirit::utree subtract_tree;
 			subtract_tree.push_back("-");
 			subtract_tree.push_back(lhs);
 			subtract_tree.push_back(rhs);
-			jac_g_trees.push_back(subtract_tree);
+			int var_index = i->second;
+			int cons_index = std::distance(cm.begin(),j);
+			jac_g_trees.push_back(jacobian_entry(cons_index,var_index,false,subtract_tree));
+			BOOST_LOG_SEV(opt_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << ": " << subtract_tree;
 		}
 	}
 
@@ -195,25 +210,10 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 {
   // number of variables
   n = main_indices.size();
-  //std::cout << "n = " << n << std::endl;
-  // one phase fraction balance constraint (for multi-phase)
-  // plus all the sublattice fraction balance constraints
-  // plus all the mass balance constraints
-
-
+  // number of constraints
   m = std::distance(cm.begin(),cm.end());
-  //std::cout << "m = " << m << std::endl;
-
-  // nonzeros in the jacobian of the lagrangian
-  /*if (phasecount > 1) {
-	  nnz_jac_g = phasecount + (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
-  }
-  else {
-	  // single-phase case
-	  nnz_jac_g = (speccount-1)*phasecount + balanced_species_in_each_sublattice + balancedsitefraccount;
-  }*/
-
-  nnz_jac_g = n*m; // TODO: temporary fix until I get better at non-zero detection
+  // number of nonzeros in Jacobian of constraints
+  nnz_jac_g = jac_g_trees.size();
 
   index_style = C_STYLE;
   return true;
@@ -316,7 +316,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
 	logger opt_log(journal::keywords::channel = "optimizer");
-	BOOST_LOG_SEV(opt_log, debug) << "entering eval_g" << std::endl;
+	BOOST_LOG_SEV(opt_log, debug) << "entering eval_g";
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.begin();
 	const auto cons_end = cm.end();
@@ -333,7 +333,7 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		g[std::distance(cons_begin,i)] = lhs - rhs;
 	}
 
-	BOOST_LOG_SEV(opt_log, debug) << "exiting eval_g" << std::endl;
+	BOOST_LOG_SEV(opt_log, debug) << "exiting eval_g";
   return true;
 }
 
@@ -344,26 +344,19 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Index jac_index = 0;
 	logger opt_log(journal::keywords::channel = "optimizer");
 	if (values == NULL) {
-		BOOST_LOG_SEV(opt_log, debug) << "entering eval_jac_g values == NULL" << std::endl;
-		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-			BOOST_LOG_SEV(opt_log, debug) << "Variable " << i->first << std::endl;
-			// for each variable-constraint combination, give it a jac_index
-			for (auto j = cm.begin(); j != cm.end(); ++j) {
-				//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cm.begin(),j) << std::endl;
-				//BOOST_LOG_SEV(opt_log, debug) << "iRow[" << jac_index << "] = " << std::distance(cm.begin(),j) << std::endl;
-				//BOOST_LOG_SEV(opt_log, debug) << "jCol[" << jac_index << "] = " << i->second << std::endl;
-				iRow[jac_index] = std::distance(cm.begin(),j);
-				jCol[jac_index] = i->second;
-				++jac_index;
-			}
+		BOOST_LOG_SEV(opt_log, debug) << "entering eval_jac_g values == NULL";
+		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
+			iRow[jac_index] = i->cons_index;
+			jCol[jac_index] = i->var_index;
+			++jac_index;
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values" << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values";
 	}
 	else {
 		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
-			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(*i, conditions, main_indices, (double*)x).get<double>();
+			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values" << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values";
 	}
 	return true;
 }

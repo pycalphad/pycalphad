@@ -93,6 +93,7 @@ boost::spirit::utree mole_fraction(
 			// if the sublattice is pure vacancies, don't include it in the denominator
 			// unless we're calculating mole fraction of VA for some reason
 			if (!pure_vacancies || spec_name == "VA") denominator += stoi_coef;
+
 			if (sitefrac_iter != sitefrac_end) {
 				utree temp_tree;
 				std::stringstream ss;

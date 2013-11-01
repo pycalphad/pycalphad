@@ -307,7 +307,9 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						ret_tree.push_back(*it); // highlimit
 						++it;
 						ret_tree.push_back(differentiate_utree(*it, diffvar)); // abstract syntax tree (AST)
-						return ret_tree;
+						++it;
+						if (it == end) return ret_tree;
+						else continue;
 					}
 
 					++it; // get left-hand side
@@ -321,11 +323,6 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						bool lhszero, rhszero = false;
 						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, diffvar);
 						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, diffvar);
-						if (lhs.which() == utree_type::double_type && lhs.get<double>() == 0) lhszero = true;
-						if (rhs.which() == utree_type::double_type && rhs.get<double>() == 0) rhszero = true;
-						if (lhszero && rhszero) return 0;
-						if (lhszero) return rhs;
-						if (rhszero) return lhs;
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs);
 						ret_tree.push_back(rhs);

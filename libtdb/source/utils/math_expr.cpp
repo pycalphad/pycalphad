@@ -254,6 +254,164 @@ boost::spirit::utree const process_utree(
 	return utree(utree_type::invalid_type);
 }
 
+boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
+	typedef boost::spirit::utree utree;
+	typedef boost::spirit::utree_type utree_type;
+	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
+	switch ( ut.which() ) {
+		case utree_type::invalid_type: {
+			break;
+		}
+		case utree_type::nil_type: {
+			break;
+		}
+		case utree_type::list_type: {
+			auto it = ut.begin();
+			auto end = ut.end();
+			double res = 0; // storage for the final result
+			double lhs = 0; // left-hand side
+			double rhs = 0; // right-hand side
+			std::string op;
+			//std::cout << "<list>(";
+			while (it != end) {
+				if ((*it).which() == utree_type::double_type && std::distance(it,end) == 1) {
+					// only one element in utree list, and it's a double
+					// return its value
+					double retval = (*it).get<double>();
+					if (!is_allowed_value<double>(retval)) {
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+					}
+					return retval;
+				}
+				if ((*it).which() == utree_type::int_type && std::distance(it,end) == 1) {
+					// only one element in utree list, and it's an int
+					// return its value
+					double retval = (*it).get<double>();
+					if (!is_allowed_value<double>(retval)) {
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+					}
+					return retval;
+				}
+				if ((*it).which() == utree_type::string_type) {
+					// operator/function
+					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
+					op = std::string(rt.begin(), rt.end()); // set the symbol
+					boost::algorithm::to_upper(op);
+					//std::cout << "OPERATOR: " << op << std::endl;
+					if (op == "@") {
+						++it;
+						double curT = process_utree(*it).get<double>();
+						//std::cout << "curT: " << curT << std::endl;
+						++it;
+						double lowlimit = process_utree(*it).get<double>();
+						//std::cout << "lowlimit:" << lowlimit << std::endl;
+						//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
+						++it;
+						double highlimit = process_utree(*it).get<double>();
+
+						if (!is_allowed_value<double>(curT)) {
+							return utree(utree_type::invalid_type);
+						}
+						if (!is_allowed_value<double>(lowlimit) || !is_allowed_value<double>(highlimit))
+							return utree(utree_type::invalid_type);
+						//std::cout << "highlimit:" << highlimit << std::endl;
+						//if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
+						++it;
+						if ((curT >= lowlimit) && (curT < highlimit)) {
+							// Range check satisfied
+							// Process the tree and return the result
+							// Note: by design we only return the first result to satisfy the criterion
+							return process_utree(*it).get<double>();
+						}
+						else {
+							// Range check not satisfied
+							++it; // Advance to the next token (if any)
+							if (it == end) {
+								return utree(utree_type::invalid_type);
+							}
+							continue; // Go back to the start of the loop
+						}
+						//std::cout << "RESULT: " << res << std::endl;
+					}
+					++it; // get left-hand side
+					// TODO: exception handling
+					if (it != end) lhs = process_utree(*it).get<double>();
+					++it; // get right-hand side
+					if (it != end) rhs = process_utree(*it).get<double>();
+
+					//std::cout << "LHS: " << lhs << std::endl;
+					//std::cout << "RHS: " << rhs << std::endl;
+
+					if (op == "+") res += (lhs + rhs);  // accumulate the result
+					else if (op == "-") {
+						if (ut.size() == 2) lhs = -lhs; // case of negation (unary operator)
+						res += (lhs - rhs);
+					}
+					else if (op == "*") res += (lhs * rhs);
+					else if (op == "/") {
+						if (rhs == 0) {
+							BOOST_THROW_EXCEPTION(divide_by_zero_error());
+						}
+						else res += (lhs / rhs);
+					}
+					else if (op == "**") {
+						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
+							// the result is complex
+							// we do not support this (for now)
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+						}
+						res += pow(lhs, rhs);
+					}
+					else if (op == "LN") {
+						if (lhs > 0) {
+							res += log(lhs);
+						}
+						else {
+							// outside the domain of ln
+							// TODO: add this as a warning to the logger
+							std::cout << "logwarnerr" << std::endl;
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
+						}
+					}
+					else if (op == "EXP") res += exp(lhs);
+					else return utree(utree_type::invalid_type);
+					//std::cout << "LHS: " << lhs << std::endl;
+					//std::cout << "RHS: " << rhs << std::endl;
+					lhs = rhs = 0;
+					op.erase();
+				}
+				++it;
+			}
+			if (!is_allowed_value<double>(res)) return utree(utree_type::invalid_type);
+			//std::cout << "process_utree " << ut << " = " << res << std::endl;
+			return utree(res);
+			//std::cout << ") ";
+			break;
+		}
+		case utree_type::function_type: {
+			break;
+		}
+		case utree_type::string_type: {
+			return utree(utree_type::invalid_type);
+		}
+		case utree_type::double_type: {
+			double retval = ut.get<double>();
+			if (!is_allowed_value<double>(retval)) {
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+			}
+			return retval;
+		}
+		case utree_type::int_type: {
+			double retval = ut.get<double>();
+			if (!is_allowed_value<double>(retval)) {
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+			}
+			return retval;
+		}
+	}
+	return utree(utree_type::invalid_type);
+}
+
 // TODO: transitional code for backwards compatibility
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
