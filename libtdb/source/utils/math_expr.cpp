@@ -269,8 +269,8 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 			auto it = ut.begin();
 			auto end = ut.end();
 			double res = 0; // storage for the final result
-			double lhs = 0; // left-hand side
-			double rhs = 0; // right-hand side
+			utree lhs; // left-hand side
+			utree rhs; // right-hand side
 			std::string op;
 			//std::cout << "<list>(";
 			while (it != end) {
@@ -303,44 +303,59 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
-					if (it != end) {
-						utree lhstree = process_utree(*it);
-						if (lhstree.which() != utree_type::double_type) return utree(utree_type::invalid_type);
-						lhs = lhstree.get<double>();
-					}
+					if (it != end) lhs = process_utree(*it);
 					++it; // get right-hand side
-					if (it != end) {
-						utree rhstree = process_utree(*it);
-						if (rhstree.which() != utree_type::double_type) return utree(utree_type::invalid_type);
-						rhs = rhstree.get<double>();
+					if (it != end) rhs = process_utree(*it);
+
+					if (op == "+") {
+						if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
+							res += (lhs.get<double>() + rhs.get<double>());  // accumulate the result
+						else return utree(utree_type::invalid_type);
 					}
-
-					//std::cout << "LHS: " << lhs << std::endl;
-					//std::cout << "RHS: " << rhs << std::endl;
-
-					if (op == "+") res += (lhs + rhs);  // accumulate the result
 					else if (op == "-") {
-						if (ut.size() == 2) lhs = -lhs; // case of negation (unary operator)
-						res += (lhs - rhs);
+						if (ut.size() == 2) {
+							if (lhs.which() == utree_type::double_type) res += -lhs.get<double>(); // case of negation (unary operator)
+							else return utree(utree_type::invalid_type);
+						}
+						if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
+							res += (lhs.get<double>() - rhs.get<double>());
+						else return utree(utree_type::invalid_type);
 					}
-					else if (op == "*") res += (lhs * rhs);
+					else if (op == "*") {
+						if (lhs.which() == utree_type::double_type && lhs.get<double>() == 0)
+							res += 0;
+						else if (rhs.which() == utree_type::double_type && rhs.get<double>() == 0)
+							res += 0;
+						else if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
+							res += (lhs.get<double>() * rhs.get<double>());
+						else return utree(utree_type::invalid_type);
+					}
 					else if (op == "/") {
+						if (!(lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type))
+								return utree(utree_type::invalid_type);
 						if (rhs == 0) {
 							BOOST_THROW_EXCEPTION(divide_by_zero_error());
 						}
-						else res += (lhs / rhs);
+						else res += (lhs.get<double>() / rhs.get<double>());
 					}
 					else if (op == "**") {
-						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
-							// the result is complex
-							// we do not support this (for now)
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+						if (rhs.which() == utree_type::double_type && rhs.get<double>() == 0)
+							res += 1;
+						else {
+							if (!(lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type))
+								return utree(utree_type::invalid_type);
+							if (lhs < 0 && (fabs(rhs.get<double>()) < 1 && fabs(rhs.get<double>()) > 0)) {
+								// the result is complex
+								// we do not support this (for now)
+								BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+							}
+							res += pow(lhs.get<double>(), rhs.get<double>());
 						}
-						res += pow(lhs, rhs);
 					}
 					else if (op == "LN") {
+						if (lhs.which() != utree_type::double_type) return utree(utree_type::invalid_type);
 						if (lhs > 0) {
-							res += log(lhs);
+							res += log(lhs.get<double>());
 						}
 						else {
 							// outside the domain of ln
@@ -349,7 +364,10 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
 					}
-					else if (op == "EXP") res += exp(lhs);
+					else if (op == "EXP") {
+						if (lhs.which() != utree_type::double_type) return utree(utree_type::invalid_type);
+						res += exp(lhs.get<double>());
+					}
 					else return utree(utree_type::invalid_type);
 					//std::cout << "LHS: " << lhs << std::endl;
 					//std::cout << "RHS: " << rhs << std::endl;
