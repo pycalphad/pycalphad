@@ -164,7 +164,7 @@ GibbsOpt::GibbsOpt(
 				double lhsget, rhsget;
 				lhsget = lhstest.get<double>();
 				rhsget = rhstest.get<double>();
-				//if (lhsget == 0 && rhsget == 0) continue; // don't add zeros to the Jacobian
+				if (lhsget == 0 && rhsget == 0) continue; // don't add zeros to the Jacobian
 			}
 			boost::spirit::utree subtract_tree;
 			subtract_tree.push_back("-");
@@ -372,6 +372,9 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 	Index h_idx = 0;
 	if (values == NULL) {
 		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+			// objective portion
+
+			// each of the constraints
 			// for each variable, calculate derivatives of all the constraints
 			for (auto j = cm.begin(); j != cm.end(); ++j) {
 				double lhs = differentiate_utree(j->lhs, conditions, i->first, main_indices, (double*) x).get<double>();

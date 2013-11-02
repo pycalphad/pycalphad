@@ -299,45 +299,21 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					boost::algorithm::to_upper(op);
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
-						++it;
-						double curT = process_utree(*it).get<double>();
-						//std::cout << "curT: " << curT << std::endl;
-						++it;
-						double lowlimit = process_utree(*it).get<double>();
-						//std::cout << "lowlimit:" << lowlimit << std::endl;
-						//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
-						++it;
-						double highlimit = process_utree(*it).get<double>();
-
-						if (!is_allowed_value<double>(curT)) {
-							return utree(utree_type::invalid_type);
-						}
-						if (!is_allowed_value<double>(lowlimit) || !is_allowed_value<double>(highlimit))
-							return utree(utree_type::invalid_type);
-						//std::cout << "highlimit:" << highlimit << std::endl;
-						//if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
-						++it;
-						if ((curT >= lowlimit) && (curT < highlimit)) {
-							// Range check satisfied
-							// Process the tree and return the result
-							// Note: by design we only return the first result to satisfy the criterion
-							return process_utree(*it).get<double>();
-						}
-						else {
-							// Range check not satisfied
-							++it; // Advance to the next token (if any)
-							if (it == end) {
-								return utree(utree_type::invalid_type);
-							}
-							continue; // Go back to the start of the loop
-						}
-						//std::cout << "RESULT: " << res << std::endl;
+						return utree(utree_type::invalid_type);
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
-					if (it != end) lhs = process_utree(*it).get<double>();
+					if (it != end) {
+						utree lhstree = process_utree(*it);
+						if (lhstree.which() != utree_type::double_type) return utree(utree_type::invalid_type);
+						lhs = lhstree.get<double>();
+					}
 					++it; // get right-hand side
-					if (it != end) rhs = process_utree(*it).get<double>();
+					if (it != end) {
+						utree rhstree = process_utree(*it);
+						if (rhstree.which() != utree_type::double_type) return utree(utree_type::invalid_type);
+						rhs = rhstree.get<double>();
+					}
 
 					//std::cout << "LHS: " << lhs << std::endl;
 					//std::cout << "RHS: " << rhs << std::endl;
