@@ -221,7 +221,7 @@ GibbsOpt::GibbsOpt(
 			h_entry.asts[j->cons_index] = cons_second_deriv; // set AST for constraint Hessian
 			hessian_data.replace(h_iter, h_entry); // update original entry
 			BOOST_LOG_SEV(opt_log, debug) << "Hessian of constraint  "
-					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated" ;
+					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated";
 		}
 	}
 
@@ -437,6 +437,7 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 			int varindex2 = i->var_index2;
 			values[h_idx] = 0; // initialize
 			for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
+				BOOST_LOG_SEV(opt_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
 				boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
 				if (j->first == -1) {
 					// objective portion

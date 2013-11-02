@@ -26,19 +26,7 @@ boost::spirit::utree const process_utree(
 		boost::spirit::utree const&,
 		evalconditions const&
 		);
-boost::spirit::utree const differentiate_utree(
-		boost::spirit::utree const&,
-		evalconditions const&,
-		std::string const&,
-		std::map<std::string, int> const&,
-		double* const
-		);
 boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar);
-boost::spirit::utree const differentiate_utree(
-		boost::spirit::utree const&,
-		evalconditions const&,
-		std::string const&
-		);
 template <typename T> bool is_allowed_value(T &);
 
 #endif

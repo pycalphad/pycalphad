@@ -146,12 +146,11 @@ boost::spirit::utree const process_utree(
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
+					auto lhsiter = it;
 					if (it != end) lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 					++it; // get right-hand side
 					if (it != end) rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 
-					//std::cout << "LHS: " << lhs << std::endl;
-					//std::cout << "RHS: " << rhs << std::endl;
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
 					else if (op == "-") {
@@ -161,6 +160,8 @@ boost::spirit::utree const process_utree(
 					else if (op == "*") res += (lhs * rhs); 
 					else if (op == "/") { 
 						if (rhs == 0) {
+							std::cout << "divzeroerr with " << *lhsiter;
+							return utree(utree_type::invalid_type);
 							BOOST_THROW_EXCEPTION(divide_by_zero_error());
 						}
 						else res += (lhs / rhs);
@@ -169,6 +170,7 @@ boost::spirit::utree const process_utree(
 						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
+							std::cout << "domainerr";
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
 						}
 						res += pow(lhs, rhs);
@@ -181,12 +183,14 @@ boost::spirit::utree const process_utree(
 							// outside the domain of ln
 							// TODO: add this as a warning to the logger
 							std::cout << "logwarnerr" << std::endl;
+							return utree(utree_type::invalid_type);
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
 					}
 					else if (op == "EXP") res += exp(lhs);
 					else {
 						// a bad symbol made it into our AST
+						std::cout << "badsymerr";
 						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op));
 					}
 					//std::cout << "LHS: " << lhs << std::endl;
@@ -334,7 +338,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 						if (!(lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type))
 								return utree(utree_type::invalid_type);
 						if (rhs == 0) {
-							BOOST_THROW_EXCEPTION(divide_by_zero_error());
+							return utree(utree_type::invalid_type);
 						}
 						else res += (lhs.get<double>() / rhs.get<double>());
 					}
@@ -347,7 +351,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 							if (lhs < 0 && (fabs(rhs.get<double>()) < 1 && fabs(rhs.get<double>()) > 0)) {
 								// the result is complex
 								// we do not support this (for now)
-								BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+								return utree(utree_type::invalid_type);
 							}
 							res += pow(lhs.get<double>(), rhs.get<double>());
 						}
@@ -359,6 +363,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 						}
 						else {
 							// outside the domain of ln
+							return utree(utree_type::invalid_type);
 							// TODO: add this as a warning to the logger
 							std::cout << "logwarnerr" << std::endl;
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
@@ -391,14 +396,14 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 		case utree_type::double_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+				return utree(utree_type::invalid_type);
 			}
 			return retval;
 		}
 		case utree_type::int_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+				return utree(utree_type::invalid_type);
 			}
 			return retval;
 		}
