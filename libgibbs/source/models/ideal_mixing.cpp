@@ -32,7 +32,7 @@ void IdealMixingModel::protect_domain(const std::string &varname, utree &input_t
 	temp_tree.push_back(varname); // constrained variable
 	temp_tree.push_back(-std::numeric_limits<double>::max()); // low limit
 	temp_tree.push_back(1e-20); // high limit
-	temp_tree.push_back(0); // log(x) ~ x for small x
+	temp_tree.push_back(varname); // x*log(x) ~ x for small x
 	temp_tree.push_back("@"); // constraint operator
 	temp_tree.push_back(varname);
 	temp_tree.push_back(1e-20); // low limit
