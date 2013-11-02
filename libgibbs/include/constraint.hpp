@@ -101,23 +101,13 @@ struct jacobian_entry {
 
 
 struct hessian_entry {
-	int cons_index; // constraint/objective index (-1 for objective, for optimizer)
 	int var_index1; // differentiating variable index 1 (for optimizer)
 	int var_index2; // differentiating variable index 2 (for optimizer)
-	boost::spirit::utree ast; // abstract syntax tree
+	std::map<int, boost::spirit::utree> asts; // maps cons_index (-1 for objective) to AST
 	hessian_entry (
-			int cons_index_, int var_index1_, int var_index2_, boost::spirit::utree ast_) :
-				cons_index(cons_index_),
+			int var_index1_, int var_index2_) :
 				var_index1(var_index1_),
-				var_index2(var_index2_),
-				ast(ast_) {
-		if (var_index2 > var_index1) {
-			// Store only the upper triangular form
-			int temp = var_index2;
-			var_index2 = var_index1;
-			var_index1 = temp;
-		}
-	}
+				var_index2(var_index2_) {}
 };
 
 typedef boost::multi_index_container<
@@ -127,8 +117,7 @@ typedef boost::multi_index_container<
       boost::multi_index::composite_key<
         hessian_entry,
         BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,var_index1),
-        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,var_index2),
-        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,cons_index)
+        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,var_index2)
       >
     >
   >

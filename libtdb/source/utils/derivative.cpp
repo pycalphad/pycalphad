@@ -352,15 +352,15 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						lhs_prod_tree.push_back("*");
 						lhs_prod_tree.push_back(lhs_deriv);
 						lhs_prod_tree.push_back(*rhsiter);
-						//utree lhstest = process_utree(lhs_prod_tree);
+						utree lhstest = process_utree(lhs_prod_tree);
 						// Optimization for multiplication by constant
-						//if (lhstest.which() == boost::spirit::utree_type::double_type) lhs_prod_tree = lhstest;
+						if (lhstest.which() == boost::spirit::utree_type::double_type && lhstest.get<double>() == 0) lhs_prod_tree = utree(0);
 						rhs_prod_tree.push_back("*");
 						rhs_prod_tree.push_back(rhs_deriv);
 						rhs_prod_tree.push_back(*lhsiter);
-						//utree rhstest = process_utree(rhs_prod_tree);
+						utree rhstest = process_utree(rhs_prod_tree);
 						// Optimization for multiplication by constant
-						//if (rhstest.which() == boost::spirit::utree_type::double_type) rhs_prod_tree = rhstest;
+						if (rhstest.which() == boost::spirit::utree_type::double_type && rhstest.get<double>() == 0) rhs_prod_tree = utree(0);
 
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs_prod_tree);

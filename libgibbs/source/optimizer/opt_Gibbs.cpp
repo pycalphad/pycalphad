@@ -96,13 +96,7 @@ GibbsOpt::GibbsOpt(
 		else master_tree.swap(phase_ast);
 
 	}
-	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
-
-	// Calculate first derivative ASTs of all variables
-	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
-		BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
-	}
+	//BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
 
 	// Add the mandatory constraints to the ConstraintManager
@@ -152,6 +146,12 @@ GibbsOpt::GibbsOpt(
 		BOOST_LOG_SEV(opt_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
 	}
 
+	// Calculate first derivative ASTs of all variables
+	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
+		//BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
+	}
+
 	// Calculate first derivative ASTs of all constraints
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
@@ -173,35 +173,55 @@ GibbsOpt::GibbsOpt(
 			int var_index = i->second;
 			int cons_index = std::distance(cm.begin(),j);
 			jac_g_trees.push_back(jacobian_entry(cons_index,var_index,false,subtract_tree));
-			BOOST_LOG_SEV(opt_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << ": " << subtract_tree;
+			BOOST_LOG_SEV(opt_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
 	}
 
 	// Calculate second derivatives of objective function and constraints
-	// TODO: duplicate detection for addition of Hessian (take advantage of symmetry)
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		// objective portion
 		for (auto j = main_indices.cbegin(); j != main_indices.cend(); ++j) {
 			// second derivative of obj function w.r.t i,j
+			if (i->second > j->second) continue; // skip upper triangular
 			boost::spirit::utree obj_second_deriv = differentiate_utree(first_derivatives[i->second], j->first);
 			boost::spirit::utree test_tree = process_utree(obj_second_deriv);
+			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
 			// TODO: this misses some of the zeros
 			if (test_tree.which() == boost::spirit::utree_type::double_type && test_tree.get<double>() == 0) continue;
-			hessian_data.insert(hessian_entry(-1,i->second,j->second, obj_second_deriv));
-			BOOST_LOG_SEV(opt_log, debug) << "Hessian of objective  (" << i->second << "," << j->second << ") = " << obj_second_deriv;
+
+			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->second));
+			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->second));
+			// create a new Hessian record if it does not exist
+			if (h_iter == h_end) h_iter = hessian_data.insert(hessian_entry(i->second,j->second)).first;
+			hessian_entry h_entry = *h_iter;
+			h_entry.asts[-1] = obj_second_deriv; // set AST for objective Hessian
+			hessian_data.replace(h_iter, h_entry); // update original entry
+
+			BOOST_LOG_SEV(opt_log, debug) << "Hessian of objective  ("
+					<< i->second << "," << j->second << ") pre-calculated";
 		}
 
 		// each of the constraints
 		// for each variable, calculate derivatives of the Jacobian w.r.t all the constraints
 		for (auto j = jac_g_trees.cbegin(); j != jac_g_trees.cend(); ++j) {
+			if (i->second > j->var_index) continue; // skip upper triangular
 			// second derivative of constraint jac_g_trees->cons_index w.r.t jac_g_trees->var_index, i->second
 			boost::spirit::utree cons_second_deriv = differentiate_utree(j->ast, i->first);
 			boost::spirit::utree test_tree = process_utree(cons_second_deriv);
+			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
 			if (test_tree.which() == boost::spirit::utree_type::double_type && test_tree.get<double>() == 0) continue;
-			hessian_data.insert(hessian_entry(j->cons_index,j->var_index,i->second, cons_second_deriv));
-			BOOST_LOG_SEV(opt_log, debug) << "Hessian of constraint  " << j->cons_index << " (" << j->var_index << "," << i->second << ") = " << cons_second_deriv;
+
+			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->var_index));
+			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->var_index));
+			// create a new Hessian record if it does not exist
+			if (h_iter == h_end) h_iter = hessian_data.insert(hessian_entry(i->second,j->var_index)).first;
+			hessian_entry h_entry = *h_iter;
+			h_entry.asts[j->cons_index] = cons_second_deriv; // set AST for constraint Hessian
+			hessian_data.replace(h_iter, h_entry); // update original entry
+			BOOST_LOG_SEV(opt_log, debug) << "Hessian of constraint  "
+					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated" ;
 		}
 	}
 
@@ -243,7 +263,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
   // number of nonzeros in Jacobian of constraints
   nnz_jac_g = jac_g_trees.size();
   // number of nonzeros in the Hessian
-  nnz_h_lag = 200; // TODO: fix
+  nnz_h_lag = hessian_data.size();
   // indices start at 0
   index_style = C_STYLE;
   return true;
@@ -398,50 +418,36 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 {
 	Index h_idx = 0;
 	logger opt_log(journal::keywords::channel = "optimizer");
-	// TODO: This is not the most efficient way of doing this. This does more searches than necessary
+
 	if (values == NULL) {
 		BOOST_LOG_SEV(opt_log, debug) << "enter eval_h without values";
-		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-			for (auto j = main_indices.cbegin(); i != main_indices.cend(); ++j) {
-				int varindex1 = i->second;
-				int varindex2 = j->second;
-				if (varindex1 < varindex2) {
-					hessian_set::iterator h_iter = hessian_data.find(boost::make_tuple(i->second,j->second));
-					hessian_set::iterator h_end = hessian_data.end();
-					if (h_iter != h_end) {
-						// this is a nonzero variable combination for the Hessian
-						iRow[h_idx] = varindex1;
-						jCol[h_idx] = varindex2;
-						++h_idx;
-					}
-				}
-			}
+		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
+			int varindex1 = i->var_index1;
+			int varindex2 = i->var_index2;
+			iRow[h_idx] = varindex1;
+			jCol[h_idx] = varindex2;
+			++h_idx;
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_h without values";
 	}
 	else {
 		BOOST_LOG_SEV(opt_log, debug) << "enter eval_h with values";
-		for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-			for (auto j = main_indices.cbegin(); i != main_indices.cend(); ++j) {
-				int varindex1 = i->second;
-				int varindex2 = j->second;
-				if (varindex1 < varindex2) {
-					hessian_set::iterator h_iter = hessian_data.find(boost::make_tuple(i->second,j->second));
-					hessian_set::iterator h_end = hessian_data.end();
-					for (auto i = h_iter; i != h_end; ++i) {
-						// this is a nonzero variable combination for the Hessian
-						if (i->cons_index == -1) {
-							// objective function part
-							values[h_idx] += obj_factor * process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
-						}
-						else {
-							// constraint part
-							values[h_idx] += lambda[i->cons_index] * process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
-						}
-					}
-					if (h_iter != h_end) ++h_idx;
+		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
+			int varindex1 = i->var_index1;
+			int varindex2 = i->var_index2;
+			values[h_idx] = 0; // initialize
+			for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
+				boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
+				if (j->first == -1) {
+					// objective portion
+					values[h_idx] += obj_factor * hess_tree.get<double>();
+				}
+				else {
+					// constraint portion
+					values[h_idx] += lambda[j->first] * hess_tree.get<double>();
 				}
 			}
+			++h_idx;
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_h with values";
 	}
