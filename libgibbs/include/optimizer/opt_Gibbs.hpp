@@ -121,6 +121,7 @@ private:
 	ConstraintManager cm;
 	std::map<int,boost::spirit::utree> first_derivatives;
 	std::vector<jacobian_entry> jac_g_trees;
+	hessian_set hessian_data;
 	std::vector<int> fixed_indices;
 
 	// data structure for final result

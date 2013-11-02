@@ -352,9 +352,15 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						lhs_prod_tree.push_back("*");
 						lhs_prod_tree.push_back(lhs_deriv);
 						lhs_prod_tree.push_back(*rhsiter);
+						//utree lhstest = process_utree(lhs_prod_tree);
+						// Optimization for multiplication by constant
+						//if (lhstest.which() == boost::spirit::utree_type::double_type) lhs_prod_tree = lhstest;
 						rhs_prod_tree.push_back("*");
 						rhs_prod_tree.push_back(rhs_deriv);
 						rhs_prod_tree.push_back(*lhsiter);
+						//utree rhstest = process_utree(rhs_prod_tree);
+						// Optimization for multiplication by constant
+						//if (rhstest.which() == boost::spirit::utree_type::double_type) rhs_prod_tree = rhstest;
 
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs_prod_tree);
@@ -370,13 +376,23 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						lhs_prod_tree.push_back("*");
 						lhs_prod_tree.push_back(lhs_deriv);
 						lhs_prod_tree.push_back(*rhsiter);
+						//utree lhstest = process_utree(lhs_prod_tree);
+						// Optimization for multiplication by zero
+						//if (lhstest.which() == boost::spirit::utree_type::double_type && lhstest.get<double>() == 0) lhs_prod_tree = 0;
 						rhs_prod_tree.push_back("*");
 						rhs_prod_tree.push_back(rhs_deriv);
 						rhs_prod_tree.push_back(*lhsiter);
+						//utree rhstest = process_utree(rhs_prod_tree);
+						// Optimization for multiplication by zero
+						//if (rhstest.which() == boost::spirit::utree_type::double_type && rhstest.get<double>() == 0) rhs_prod_tree = 0;
 
 						numerator_tree.push_back("-");
 						numerator_tree.push_back(lhs_prod_tree);
 						numerator_tree.push_back(rhs_prod_tree);
+
+						//utree numtest = process_utree(numerator_tree);
+						// Optimization for zero in numerator
+						//if (numtest.which() == boost::spirit::utree_type::double_type && numtest.get<double>() == 0) return 0;
 
 						power_tree.push_back("**");
 						power_tree.push_back(*rhsiter);

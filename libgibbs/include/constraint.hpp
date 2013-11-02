@@ -13,6 +13,10 @@
 #include "libtdb/include/structure.hpp"
 #include <string>
 #include <boost/spirit/include/support_utree.hpp>
+#include <boost/multi_index_container.hpp>
+#include <boost/multi_index/composite_key.hpp>
+#include <boost/multi_index/member.hpp>
+#include <boost/multi_index/ordered_index.hpp>
 
 boost::spirit::utree mole_fraction(
 	const std::string &phase_name,
@@ -94,5 +98,40 @@ struct jacobian_entry {
 				trivial(trivial_),
 				ast(ast_) {}
 };
+
+
+struct hessian_entry {
+	int cons_index; // constraint/objective index (-1 for objective, for optimizer)
+	int var_index1; // differentiating variable index 1 (for optimizer)
+	int var_index2; // differentiating variable index 2 (for optimizer)
+	boost::spirit::utree ast; // abstract syntax tree
+	hessian_entry (
+			int cons_index_, int var_index1_, int var_index2_, boost::spirit::utree ast_) :
+				cons_index(cons_index_),
+				var_index1(var_index1_),
+				var_index2(var_index2_),
+				ast(ast_) {
+		if (var_index2 > var_index1) {
+			// Store only the upper triangular form
+			int temp = var_index2;
+			var_index2 = var_index1;
+			var_index1 = temp;
+		}
+	}
+};
+
+typedef boost::multi_index_container<
+  hessian_entry,
+  boost::multi_index::indexed_by<
+    boost::multi_index::ordered_unique<
+      boost::multi_index::composite_key<
+        hessian_entry,
+        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,var_index1),
+        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,var_index2),
+        BOOST_MULTI_INDEX_MEMBER(hessian_entry,int,cons_index)
+      >
+    >
+  >
+> hessian_set;
 
 #endif
