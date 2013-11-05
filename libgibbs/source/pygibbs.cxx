@@ -12,6 +12,7 @@
 #endif
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/conditions.hpp"
+#include "libtdb/include/logging.hpp"
 #include "libgibbs/include/equilibrium.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
@@ -25,6 +26,7 @@ using namespace boost::python;
 
 BOOST_PYTHON_MODULE(libpygibbs)
 {
+	init_logging();
 	// Wrapper to convert some common std containers
 	class_<std::map<std::string,double>>("StdMap")
 		.def(map_indexing_suite<std::map<std::string, double> >() )
