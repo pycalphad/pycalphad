@@ -54,9 +54,9 @@ private:
 			RegisterParserCallback("PARAMETER", &DatabaseTDB::Parameter);
 			RegisterParserCallback("PARA", &DatabaseTDB::Parameter);
 			RegisterParserCallback("PARAM", &DatabaseTDB::Parameter);
+			RegisterParserCallback("TYPE_DEFINITION", &DatabaseTDB::Type_Definition);
+			RegisterParserCallback("TYPE_DEF", &DatabaseTDB::Type_Definition);
 
-			RegisterParserCallback("TYPE_DEFINITION", &DatabaseTDB::Unsupported_Command);
-			RegisterParserCallback("TYPE_DEF", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("DEFINE_SYSTEM_DEFAULT", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("DEFAULT_COMMAND", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("VERSION_DATE", &DatabaseTDB::Unsupported_Command);
@@ -73,6 +73,7 @@ private:
 	void Constituent(std::string &);
 	void Function(std::string &);
 	void Parameter(std::string &);
+	void Type_Definition(std::string &);
 
 	void Species(::Element); // non-callback, internal version for pure elements
 public:
