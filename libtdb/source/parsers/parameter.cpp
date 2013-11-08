@@ -39,7 +39,7 @@ void Database::DatabaseTDB::Parameter(std::string &argstr) {
 		// Ordering designations (L12, B2, etc.) can be in any order: e.g. L12_FCC or BCC_A2
 		// When names conflict, look at the sublattice count.
 		auto keyword_iter = reserved_phase_keywords.find(ret_param.phase);
-		if (keyword_iter != reserved_phase_keywords.end()) {
+		if (keyword_iter != reserved_phase_keywords.end() && ret_param.suffix.size() > 0) {
 			// the prefix is a reserved word
 			// the second part must be the phase name
 			// swap the strings
