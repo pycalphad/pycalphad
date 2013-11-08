@@ -9,6 +9,7 @@
 
 #include "libtdb/include/libtdb_pch.hpp"
 #include "libtdb/include/database_tdb.hpp"
+#include "libtdb/include/utils/match_keyword.hpp"
 #include <boost/lexical_cast.hpp>
 
 // TODO: add support for the optional auxillary info string (comes after last sublattice argument)
@@ -95,8 +96,79 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 	phases[name] = ::Phase(name, subls, init_commands); // add Phase to the Database
 }
 
+void Phase::modify_phase(const std::string &command) {
+	std::set<std::string> keywords = {
+			"AMEND_PHASE_DESCRIPTION",
+			"DISORDERED_PART",
+			"MAGNETIC_ORDERING"
+	};
+	std::vector<std::string> words;
+	std::string matching_command;
+	boost::split(words, command, boost::is_any_of(" "), boost::token_compress_on);
+
+	matching_command = match_keyword(words[0], keywords);
+
+	if (matching_command == "AMEND_PHASE_DESCRIPTION") {
+		// Modify a phase description
+		if (words.size() >= 3) {
+			auto words_iter = words.begin(); // on A_P_D command
+			++words_iter; // name of phase
+			if (*words_iter != phase_name) {
+				// phase name mismatch
+				std::string errmsg
+				("Phase name mismatch in AMEND_PHASE_DESCRIPTION type definition for phase " + phase_name);
+				BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo(errmsg));
+			}
+			++words_iter; // specific amendment to make
+			std::string matching_subcommand = match_keyword(*words_iter, keywords);
+			if (matching_subcommand == "MAGNETIC_ORDERING") {
+				if (words.size() >= 5) {
+					++words_iter; // AFM factor
+					double afm_factor = boost::lexical_cast<double>(*words_iter);
+					++words_iter; // SRO enthalpy factor
+					double sro_factor = boost::lexical_cast<double>(*words_iter);
+
+					// Modify the phase's magnetic settings
+					magnetic_afm_factor = afm_factor;
+					magnetic_sro_enthalpy_order_fraction = sro_factor;
+					return;
+				}
+			}
+			else if (matching_subcommand == "DISORDERED_PART") {
+				// TODO: Atomic ordering model not yet implemented
+				return;
+			}
+			BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo("Not implemented: " + command));
+		}
+
+	}
+	BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo("Improper syntax for AMEND_PHASE_DESCRIPTION type definition in " + phase_name));
+}
+
+void Phase::process_type_definition(const std::string &command) {
+	std::set<std::string> keywords = {
+			"GES",
+			"SEQ"
+	};
+	std::string test_command = std::string(command.begin(), boost::find_first(command, " ").begin());
+	std::string matching_command = match_keyword(test_command, keywords);
+
+	if (matching_command == "GES") {
+		std::string remaining_command(boost::find_first(command, " ").end(), command.end());
+		modify_phase(remaining_command);
+	}
+	else if (matching_command == "SEQ") {
+		// we don't implement any of the optimizations provided by this command
+	}
+	else BOOST_THROW_EXCEPTION(syntax_error() << specific_errinfo("Unknown command in type definition for phase " + phase_name));
+}
+
 Phase::Phase (std::string phasename, Sublattice_Collection s, std::vector<std::string> init_commands) {
 	phase_name = phasename;
 	subls = s;
+	magnetic_afm_factor = 0;
+	magnetic_sro_enthalpy_order_fraction = 0;
 	init_cmds = init_commands;
+	// Apply all of this phase's type definitions
+	for (auto i = init_cmds.begin(); i != init_cmds.end(); ++i) process_type_definition(*i);
 }

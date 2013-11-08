@@ -138,11 +138,15 @@ typedef boost::multi_index_container<
 class Phase {
 private:
 	std::string phase_name;
+	void process_type_definition(const std::string &command);
+	void modify_phase(const std::string &command);
 public:
 	Sublattice_Collection subls; // sublattices
 	Parameters params; // parameters from a database
 	std::vector<std::string> init_cmds; // commands to call when initializing the optimizer
-	Phase() { };
+	double magnetic_afm_factor; // The anti-ferromagnetic factor (Hertzman and Sundman, 1982)
+	double magnetic_sro_enthalpy_order_fraction; // fraction of total enthalpy due to short-range ordering above transition T
+	Phase() { magnetic_afm_factor = 0; magnetic_sro_enthalpy_order_fraction = 0; };
 	Phase(std::string, Sublattice_Collection, std::vector<std::string>); // (name, suffix, subls, cmds)
 	std::string name() { return phase_name; }
 	Sublattice_Collection sublattices() { return subls; } // makes a copy

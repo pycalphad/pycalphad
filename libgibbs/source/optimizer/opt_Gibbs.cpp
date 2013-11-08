@@ -55,10 +55,11 @@ GibbsOpt::GibbsOpt(
 
 	// this is the part where we look up the models enabled for each phase and call their AST builders
 	// then we build a master Gibbs AST for the objective function
-	// TODO: right now the models called are hard-coded, in the future this will be typedef-dependent
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << "magnetic_afm_factor: " << i->second.magnetic_afm_factor;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << "magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
 		boost::spirit::utree phase_ast;
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
