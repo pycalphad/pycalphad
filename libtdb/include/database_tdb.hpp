@@ -35,6 +35,7 @@ private:
 
 	typedef void (DatabaseTDB:: *ParserCallback)(std::string &);
 	std::map<std::string, ParserCallback>  parser_map; // maps commands from input database to a parser function
+	std::map<std::string, std::string> type_definitions; // commands for every declared TYPE_DEFINITION
 
 	void proc_command(std::string &); // internal parser function
 	void RegisterParserCallback(std::string cmdname, ParserCallback pcb) { parser_map[cmdname] = pcb; };
@@ -59,6 +60,7 @@ private:
 
 			RegisterParserCallback("DEFINE_SYSTEM_DEFAULT", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("DEFAULT_COMMAND", &DatabaseTDB::Unsupported_Command);
+			RegisterParserCallback("LIST_OF_REFERENCES", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("VERSION_DATE", &DatabaseTDB::Unsupported_Command);
 			RegisterParserCallback("REFERENCE_FILE", &DatabaseTDB::Unsupported_Command);
 	};

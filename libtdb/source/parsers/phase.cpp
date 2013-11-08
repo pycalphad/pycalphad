@@ -17,7 +17,7 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 	std::string codes, phase_code; // character codes for the phase
 	int num_subl; // number of sublattices
 	Sublattice_Collection subls; // sublattices, we only init stoi_coef in this parser
-	std::vector<std::string> splitargs;
+	std::vector<std::string> splitargs, init_commands;
 
 	boost::split(splitargs, argstr, boost::is_any_of(" "));
 	if (splitargs.size() < 4) { // we have the wrong number of arguments
@@ -79,13 +79,24 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 		std::string err_msg ("Non-numeric input for numeric parameter");
 		BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg));
 	}
-	// TODO: read the character codes for the phase
-	for (auto j = codes.begin(); j != codes.end(); ++j) {
+	// Ensure that the type definitions for the phase have been defined
+	for (auto j = codes.cbegin(); j != codes.cend(); ++j) {
+		const std::string type(j, j+1);
+		auto typefind = type_definitions.find(type);
+		if (typefind == type_definitions.end()) {
+			// undefined type definition
+			std::string err_msg ("Undefined type definition: ");
+			BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo(err_msg + type));
+		}
+		else {
+			init_commands.push_back(typefind->second); // add command to list
+		}
 	}
-	phases[name] = ::Phase(name, subls); // add Phase to the Database
+	phases[name] = ::Phase(name, subls, init_commands); // add Phase to the Database
 }
 
-Phase::Phase (std::string phasename, Sublattice_Collection s) {
+Phase::Phase (std::string phasename, Sublattice_Collection s, std::vector<std::string> init_commands) {
 	phase_name = phasename;
 	subls = s;
+	init_cmds = init_commands;
 }

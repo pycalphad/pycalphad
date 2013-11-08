@@ -141,8 +141,9 @@ private:
 public:
 	Sublattice_Collection subls; // sublattices
 	Parameters params; // parameters from a database
+	std::vector<std::string> init_cmds; // commands to call when initializing the optimizer
 	Phase() { };
-	Phase(std::string, Sublattice_Collection); // (name, suffix, subls)
+	Phase(std::string, Sublattice_Collection, std::vector<std::string>); // (name, suffix, subls, cmds)
 	std::string name() { return phase_name; }
 	Sublattice_Collection sublattices() { return subls; } // makes a copy
 	Sublattice_Collection::const_iterator get_sublattice_iterator() const { return subls.cbegin(); }
