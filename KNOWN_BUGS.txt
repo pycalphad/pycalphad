@@ -1,0 +1,15 @@
+Known Bugs and Missing Features in TDBread
+==========================================
+
+Optimizer (libgibbs)
+--------------------
+Pre-calculation of the Hessian abstract syntax trees takes longer than it should.
+Phases with miscibility gaps are not correctly handled.
+Magnetic ordering is not handled.
+Atomic ordering is not handled.
+Ternary interaction parameters for excess models are not handled.
+Charged species in sublattices are not correctly handled.
+
+TDB Reading (libtdb)
+--------------------
+References are not recorded.
