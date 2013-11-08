@@ -59,6 +59,7 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 						// current command did not terminate, but there's no more data
 						BOOST_THROW_EXCEPTION(parse_error() << str_errinfo("Command did not terminate") << boost::errinfo_at_line(templinecount));
 					}
+					boost::algorithm::trim_all(buf);
 					++linecount;
 				}
 				line = line + " " + buf;
