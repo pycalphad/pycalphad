@@ -63,7 +63,7 @@ boost::spirit::utree const process_utree(
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 					}
 					return retval;
 				}
@@ -72,7 +72,7 @@ boost::spirit::utree const process_utree(
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 					}
 					return retval;
 				}
@@ -92,46 +92,54 @@ boost::spirit::utree const process_utree(
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
 						++it;
-						double curT = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
-						//std::cout << "curT: " << curT << std::endl;
-						++it;
-						double lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
-						//std::cout << "lowlimit:" << lowlimit << std::endl;
-						//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
-						++it;
-						double highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+						double curT, lowlimit, highlimit;
+						try {
+							curT = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							//std::cout << "curT: " << curT << std::endl;
+							++it;
+							lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							//std::cout << "lowlimit:" << lowlimit << std::endl;
+							//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
+							++it;
+							highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+						}
+						catch (boost::exception &e) {
+							e << ast_errinfo(*it);
+							throw;
+						}
 
 						if (!is_allowed_value<double>(curT)) {
-							std::cout << "fperr2";
-							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Variable is infinite, subnormal, or not a number"));
+							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Variable is infinite, subnormal, or not a number") << ast_errinfo(ut));
 						}
 						if (!is_allowed_value<double>(lowlimit) || !is_allowed_value<double>(highlimit)) {
-							std::cout << "fperr3";
-							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Variable limits are infinite, subnormal, or not a number"));
+							BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Variable limits are infinite, subnormal, or not a number") << ast_errinfo(ut));
 						}
 						//std::cout << "highlimit:" << highlimit << std::endl;
 						//if (highlimit == -1) highlimit = curT+1; // highlimit == -1 means no limit
 						if (highlimit <= lowlimit) {
-							std::cout << "bounderr";
-							BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Inconsistent bounds on variable specified. The upper limit <= the lower limit."));
+							BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Inconsistent bounds on variable specified. The upper limit <= the lower limit.") << ast_errinfo(ut));
 						}
 						++it;
 						if ((curT >= lowlimit) && (curT < highlimit)) {
 							// Range check satisfied
 							// Process the tree and return the result
 							// Note: by design we only return the first result to satisfy the criterion
-							return process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							utree ret_tree;
+							try {
+								ret_tree = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							}
+							catch (boost::exception &e) {
+								e << ast_errinfo(*it);
+								throw;
+							}
+							return ret_tree;
 						}
 						else {
 							// Range check not satisfied
 							++it; // Advance to the next token (if any)
 							if (it == end) {
+								// Failed all range checks
 								return utree(0);
-								// We are at the end and we failed all range checks
-								// The upstream system may decide this is not a problem
-								// and use a value of 0, but we want them to have a choice
-								//std::cout << "rngerr";
-								//BOOST_THROW_EXCEPTION(range_check_error() << str_errinfo("Ranges specified by parameter do not satisfy current system conditions"));
 							}
 							continue; // Go back to the start of the loop
 						}
@@ -147,9 +155,25 @@ boost::spirit::utree const process_utree(
 					++it; // get left-hand side
 					// TODO: exception handling
 					auto lhsiter = it;
-					if (it != end) lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+					if (it != end) {
+						try {
+							lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+						}
+						catch (boost::exception &e) {
+							e << ast_errinfo(*it);
+							throw;
+						}
+					}
 					++it; // get right-hand side
-					if (it != end) rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+					if (it != end) {
+						try {
+							rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+						}
+						catch (boost::exception &e) {
+							e << ast_errinfo(*it);
+							throw;
+						}
+					}
 
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
@@ -160,9 +184,8 @@ boost::spirit::utree const process_utree(
 					else if (op == "*") res += (lhs * rhs); 
 					else if (op == "/") { 
 						if (rhs == 0) {
-							std::cout << "divzeroerr with " << *lhsiter;
 							return utree(utree_type::invalid_type);
-							BOOST_THROW_EXCEPTION(divide_by_zero_error());
+							BOOST_THROW_EXCEPTION(divide_by_zero_error() << ast_errinfo(ut));
 						}
 						else res += (lhs / rhs);
 					}
@@ -170,8 +193,7 @@ boost::spirit::utree const process_utree(
 						if (lhs < 0 && (fabs(rhs) < 1 && fabs(rhs) > 0)) {
 							// the result is complex
 							// we do not support this (for now)
-							std::cout << "domainerr";
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real"));
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real") << ast_errinfo(ut));
 						}
 						res += pow(lhs, rhs);
 					}
@@ -184,14 +206,14 @@ boost::spirit::utree const process_utree(
 							// TODO: add this as a warning to the logger
 							std::cout << "logwarnerr" << std::endl;
 							return utree(utree_type::invalid_type);
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined") << ast_errinfo(ut));
 						}
 					}
 					else if (op == "EXP") res += exp(lhs);
 					else {
 						// a bad symbol made it into our AST
 						std::cout << "badsymerr";
-						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op));
+						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op) << ast_errinfo(ut));
 					}
 					//std::cout << "LHS: " << lhs << std::endl;
 					//std::cout << "RHS: " << rhs << std::endl;
@@ -201,7 +223,7 @@ boost::spirit::utree const process_utree(
 				++it;
 			}
 			if (!is_allowed_value<double>(res)) {
-				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			}
 			//std::cout << "process_utree " << ut << " = " << res << std::endl;
 			return utree(res);
@@ -214,14 +236,14 @@ boost::spirit::utree const process_utree(
 		case utree_type::double_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			}
 			return retval;
 		}
 		case utree_type::int_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			}
 			return retval;
 		}
@@ -240,7 +262,7 @@ boost::spirit::utree const process_utree(
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {
 				// throw an exception (bad symbol/state variable)
-				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (e.g., @) operators or state variables can only be a single character") << specific_errinfo(op));
+				BOOST_THROW_EXCEPTION(bad_symbol_error() << str_errinfo("Non-arithmetic (e.g., @) operators or state variables can only be a single character") << specific_errinfo(op) << ast_errinfo(ut));
 			}
 			if (conditions.statevars.find(*op) != conditions.statevars.end()) {
 				//std::cout << "T executed" << std::endl;
@@ -249,7 +271,7 @@ boost::spirit::utree const process_utree(
 			}
 			else {
 				// throw an exception: undefined state variable
-				BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << specific_errinfo(op));
+				BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << specific_errinfo(op) << ast_errinfo(ut));
 			}
 			//std::cout << "<operator>:" << op << std::endl;
 			break;
@@ -283,7 +305,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+						return utree(utree_type::invalid_type);
 					}
 					return retval;
 				}
@@ -292,7 +314,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number"));
+						return utree(utree_type::invalid_type);
 					}
 					return retval;
 				}
@@ -364,9 +386,6 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 						else {
 							// outside the domain of ln
 							return utree(utree_type::invalid_type);
-							// TODO: add this as a warning to the logger
-							std::cout << "logwarnerr" << std::endl;
-							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined"));
 						}
 					}
 					else if (op == "EXP") {
