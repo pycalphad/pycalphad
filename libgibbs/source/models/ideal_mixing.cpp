@@ -71,7 +71,7 @@ IdealMixingModel::IdealMixingModel(
 	// Generate a subview which excludes the "-1" fake sublattice index
 	if (ic0 == ic1) BOOST_LOG_SEV(opt_log, critical) << "Sublattice set in ideal mixing model empty!";
 	while (ic0 != ic1) {
-		BOOST_LOG_SEV(opt_log, routine) << "ic0: " << ic0->name();
+		BOOST_LOG_SEV(opt_log, debug) << "ic0: " << ic0->name();
 		ssv.insert(&*ic0);
 		++ic0;
 	}
