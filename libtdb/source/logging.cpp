@@ -13,6 +13,8 @@ using namespace journal;
 
 BOOST_LOG_ATTRIBUTE_KEYWORD(severity, "Severity", severity_level)
 BOOST_LOG_ATTRIBUTE_KEYWORD(channel, "Channel", std::string)
+BOOST_LOG_ATTRIBUTE_KEYWORD(timestamp, "TimeStamp", boost::posix_time::ptime)
+BOOST_LOG_ATTRIBUTE_KEYWORD(scope, "Scope", attrs::named_scope::value_type)
 
 // The operator puts a human-friendly representation of the severity level to the stream
 std::ostream& operator<< (std::ostream& strm, severity_level level)
@@ -69,32 +71,20 @@ void init_logging()
     min_severity["data"] = routine;
 
     boost::shared_ptr< logging::core > core = logging::core::get();
+    core->add_global_attribute("Scope", attrs::named_scope());
+    core->add_global_attribute("TimeStamp", attrs::local_clock());
 
-    boost::shared_ptr< sinks::text_file_backend > backend =
-        boost::make_shared< sinks::text_file_backend >(
-            keywords::file_name = "tdbread_%5N.log",
-            keywords::rotation_size = 5 * 1024 * 1024
-        );
-
-
-    // Wrap it into the frontend and register in the core.
-    // The backend requires synchronization in the frontend.
-    typedef sinks::synchronous_sink< sinks::text_file_backend > file_sink_t;
-    boost::shared_ptr< file_sink_t > sink(new file_sink_t(backend));
-
-    sink->set_filter(min_severity || severity >= debug); // capture everything to debug
-
-    sink->set_formatter
+    logging::add_file_log
     (
-        expr::format("#%1% <%2%> %3%")
-            % channel
-            % severity
-            % expr::smessage
+        keywords::file_name = "tdbread_%5N.log",
+        keywords::format =
+        (
+            expr::stream
+            << "[" << expr::attr< boost::posix_time::ptime >("TimeStamp")
+                << "] <" << channel << "\\" << severity << "\\" << scope
+                << "> " << expr::smessage
+        )
     );
-
-    core->add_sink(sink);
-
-
 
     boost::shared_ptr< sinks::text_ostream_backend > consolebackend =
         boost::make_shared< sinks::text_ostream_backend >();
