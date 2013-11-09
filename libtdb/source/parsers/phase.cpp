@@ -20,7 +20,7 @@ void Database::DatabaseTDB::Phase(std::string &argstr) {
 	Sublattice_Collection subls; // sublattices, we only init stoi_coef in this parser
 	std::vector<std::string> splitargs, init_commands;
 
-	boost::split(splitargs, argstr, boost::is_any_of(" "));
+	boost::split(splitargs, argstr, boost::is_any_of(" "), boost::token_compress_on);
 	if (splitargs.size() < 4) { // we have the wrong number of arguments
 		std::string argnum (boost::lexical_cast<std::string>(splitargs.size())); // convert number to string
 		std::string err_msg("Wrong number of arguments (" + argnum + ")");
