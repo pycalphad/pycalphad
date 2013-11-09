@@ -39,7 +39,7 @@ sublattice_set build_variable_map(
 	int indexcount = 0; // counter for variable indices (for optimizer)
 
 	for (auto i = conditions.elements.cbegin(); i != conditions.elements.cend(); ++i) {
-		BOOST_LOG_SEV(opt_log, routine) << "conditions element: " << (*i);
+		BOOST_LOG_SEV(opt_log, debug) << "conditions element: " << (*i);
 	}
 
 	// All phases
@@ -55,16 +55,16 @@ sublattice_set build_variable_map(
 		// insert fake record for the phase fraction variable at -1 sublattice index
 
 		ret_set.insert(sublattice_entry(-1, indexcount++, 0, phasename, ""));
-		BOOST_LOG_SEV(opt_log, routine) << "building phase " << phasename;
+		BOOST_LOG_SEV(opt_log, debug) << "building phase " << phasename;
 		// All sublattices
 		for (auto j = subl_start; j != subl_end;++j) {
 			// All species
-			BOOST_LOG_SEV(opt_log, routine) << "looping sublattice " << std::distance(subl_start,j);
+			BOOST_LOG_SEV(opt_log, debug) << "looping sublattice " << std::distance(subl_start,j);
 			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				BOOST_LOG_SEV(opt_log, routine) << "checking species " << (*k);
+				BOOST_LOG_SEV(opt_log, debug) << "checking species " << (*k);
 				// Check if this species in this sublattice is on our list of elements to investigate
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					BOOST_LOG_SEV(opt_log, routine) << "matched species " << (*k);
+					BOOST_LOG_SEV(opt_log, debug) << "matched species " << (*k);
 					int sublindex = std::distance(subl_start,j);
 					double sitecount = (*j).stoi_coef;
 					std::string spec = (*k);
@@ -72,7 +72,7 @@ sublattice_set build_variable_map(
 					varname << phasename << "_" << sublindex << "_" << spec; // build variable name
 					indices[varname.str()] = indexcount; // save index of variable
 					ret_set.insert(sublattice_entry(sublindex, indexcount++, sitecount, phasename, spec));
-					BOOST_LOG_SEV(opt_log, routine) << "inserted sublattice_entry for " << varname.str();
+					BOOST_LOG_SEV(opt_log, debug) << "inserted sublattice_entry for " << varname.str();
 				}
 			}
 		}
