@@ -121,7 +121,7 @@ utree EnergyModel::permute_site_fractions (
 		current_product.push_back(recursive_term);
 		// Contribute this product to the sum
 		// Check if we are on the first (or only) term in the sum
-		if (i != ic0) {
+		if (ret_tree.which() != utree_type::invalid_type) {
 			buildtree.push_back("+");
 			buildtree.push_back(ret_tree);
 			buildtree.push_back(current_product);
