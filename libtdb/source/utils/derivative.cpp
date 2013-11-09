@@ -175,38 +175,40 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					else if (op == "**") {
 						if ((*rhsiter).which() == utree_type::double_type) {
 							// exponent is a constant: power rule
-								// power rule + chain rule
-								// res += rhs * pow(lhs,rhs-1) * lhs_deriv;
-								utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
-								utree prod_tree, power_tree, exponent_tree;
+							// power rule + chain rule
+							// res += rhs * pow(lhs,rhs-1) * lhs_deriv;
+							if (is_zero_tree(*rhsiter)) return utree(0);
+							utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
+							if (rhsiter->get<double>() == 1) return lhs_deriv;
+							if (is_zero_tree(lhs_deriv)) return utree(0);
+							utree prod_tree, power_tree, exponent_tree;
 
-								exponent_tree.push_back("-");
-								exponent_tree.push_back(*rhsiter);
-								exponent_tree.push_back(1);
+							exponent_tree.push_back("-");
+							exponent_tree.push_back(*rhsiter);
+							exponent_tree.push_back(1);
 
-								power_tree.push_back("**");
-								power_tree.push_back(*lhsiter);
-								power_tree.push_back(exponent_tree);
+							power_tree.push_back("**");
+							power_tree.push_back(*lhsiter);
+							power_tree.push_back(exponent_tree);
 
-								prod_tree.push_back("*");
-								prod_tree.push_back(*rhsiter);
-								prod_tree.push_back(power_tree);
+							prod_tree.push_back("*");
+							prod_tree.push_back(*rhsiter);
+							prod_tree.push_back(power_tree);
 
-								ret_tree.push_back("*");
-								ret_tree.push_back(prod_tree);
-								ret_tree.push_back(lhs_deriv);
+							ret_tree.push_back("*");
+							ret_tree.push_back(prod_tree);
+							ret_tree.push_back(lhs_deriv);
 
-								return ret_tree;
+							return ret_tree;
 						}
 						else {
 							// generalized power rule
 							// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
-
+							if (is_zero_tree(*lhsiter)) return utree(0);
 							utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
 							utree rhs_deriv = differentiate_utree(*rhsiter, diffvar);
 							utree power_tree, prod_tree1, prod_tree2, div_tree, log_tree, add_tree;
 
-							if (is_zero_tree(*lhsiter)) return utree(0);
 
 							power_tree.push_back("**");
 							power_tree.push_back(*lhsiter);
@@ -226,10 +228,12 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 							prod_tree2.push_back("*");
 							prod_tree2.push_back(rhs_deriv);
 							prod_tree2.push_back(log_tree);
+							if (is_zero_tree(rhs_deriv)) prod_tree2 = utree(0);
 
 							add_tree.push_back("+");
 							add_tree.push_back(prod_tree1);
 							add_tree.push_back(prod_tree2);
+							if (is_zero_tree(lhs_deriv)) add_tree = prod_tree2;
 
 							ret_tree.push_back("*");
 							ret_tree.push_back(power_tree);
@@ -241,6 +245,7 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					else if (op == "LN") {
 						// res += lhs_deriv / lhs;
 						utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
+						if (is_zero_tree(lhs_deriv)) return utree(0);
 						ret_tree.push_back("/");
 						ret_tree.push_back(lhs_deriv);
 						ret_tree.push_back(*lhsiter);
@@ -249,7 +254,9 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					}
 					else if (op == "EXP") {
 						// res += exp(lhs) * lhs_deriv;
+						if (is_zero_tree(*lhsiter)) return utree(0);
 						utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
+						if (is_zero_tree(lhs_deriv)) return utree(0);
 						utree exp_tree;
 						exp_tree.push_back("EXP");
 						exp_tree.push_back(*lhsiter);
