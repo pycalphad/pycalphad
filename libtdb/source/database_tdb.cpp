@@ -11,6 +11,7 @@
 #include "libtdb/include/database_tdb.hpp"
 #include <iostream>
 #include <fstream>
+#include <boost/algorithm/string/find.hpp>
 
 Database::DatabaseTDB::DatabaseTDB(std::string path) {
 	int linecount = 0; // linecount will keep track of which line we are reading for debugging purposes
@@ -51,7 +52,8 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 
 			int templinecount = linecount; // store linecount prior to iteration for better error reporting
 
-			while (!boost::algorithm::ends_with(line,"!")) { // the current command doesn't terminate yet, keep reading
+			auto line_iters = boost::algorithm::find_first(line, "!");
+			while (line_iters.begin() == line.end()) { // the current command doesn't terminate yet, keep reading
 				std::string buf;
 				while (buf.begin() == buf.end()) {
 					std::getline(tdbfile,buf); // move until we find a non-empty line
@@ -63,6 +65,7 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 					++linecount;
 				}
 				line = line + " " + buf;
+				line_iters = boost::algorithm::find_first(line, "!");
 			}
 			boost::algorithm::trim_all(line); // trim again in case we had a multi-line command that added spaces
 			try {
