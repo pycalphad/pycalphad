@@ -15,7 +15,6 @@
 #include "libtdb/include/conditions.hpp"
 #include "libtdb/include/utils/enum_handling.hpp"
 #include "libtdb/include/logging.hpp"
-#include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"

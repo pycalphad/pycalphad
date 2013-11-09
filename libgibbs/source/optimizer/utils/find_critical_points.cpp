@@ -17,7 +17,7 @@
 
 typedef boost::multi_array<double,2> domain;
 
-point_list find_critical_points (
+/*point_list find_critical_points (
 		const Phase_Collection::const_iterator phase_iter,
 		const evalconditions &conditions,
 		domain V,
@@ -85,4 +85,4 @@ point_list find_critical_points (
 		}
 	}
 	return V;
-}
+}*/

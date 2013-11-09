@@ -112,7 +112,6 @@ private:
 	sublattice_set main_ss;
 	vector_map var_map;
 	index_table main_indices;
-	sitefracs mysitefracs;
 	evalconditions conditions;
 	boost::spirit::utree master_tree; // abstract syntax tree (AST) for the objective function
 	Phase_Collection::const_iterator phase_iter;

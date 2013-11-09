@@ -12,7 +12,6 @@
 #endif
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
-#include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/constraint.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
