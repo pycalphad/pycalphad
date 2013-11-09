@@ -13,6 +13,14 @@
 #include "libtdb/include/logging.hpp"
 #include <sstream>
 
+// Add new_tree to root_tree
+void add_trees (boost::spirit::utree &root_tree, const boost::spirit::utree &new_tree) {
+	boost::spirit::utree temp_tree;
+	temp_tree.push_back("+");
+	temp_tree.push_back(root_tree);
+	temp_tree.push_back(new_tree);
+	root_tree.swap(temp_tree);
+}
 
 GibbsOpt::GibbsOpt(
 		const Database &DB,
@@ -53,26 +61,27 @@ GibbsOpt::GibbsOpt(
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
-		BOOST_LOG_SEV(opt_log, debug) << i->first << "magnetic_afm_factor: " << i->second.magnetic_afm_factor;
-		BOOST_LOG_SEV(opt_log, debug) << i->first << "magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic_afm_factor: " << i->second.magnetic_afm_factor;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
 		boost::spirit::utree phase_ast;
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << "ref" << std::endl << curphaseref << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " ref " << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << "idmix" << std::endl << idealmix << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " idmix " << std::endl << idealmix << std::endl;
 		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << "excess" << std::endl << redlichkister << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " excess " << std::endl << redlichkister << std::endl;
+		boost::spirit::utree magnetism =
+				IHJMagneticModel(i->first, main_ss, pset,
+						i->second.magnetic_afm_factor, i->second.magnetic_sro_enthalpy_order_fraction).get_ast();
+		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic " << std::endl << magnetism << std::endl;
 
 		// sum the contributions
-		phase_ast.push_back("+");
-		phase_ast.push_back(idealmix);
-		temptree.push_back("+");
-		temptree.push_back(curphaseref);
-		temptree.push_back(redlichkister);
-		phase_ast.push_back(temptree);
-		temptree.clear();
+		add_trees(phase_ast, idealmix);
+		add_trees(phase_ast, curphaseref);
+		add_trees(phase_ast, redlichkister);
+		add_trees(phase_ast, magnetism);
 
 		// multiply by phase fraction variable
 		temptree.push_back("*");
@@ -84,10 +93,7 @@ GibbsOpt::GibbsOpt(
 		// add phase AST to master AST
 		if (activephases != 1) {
 			// this is not the only / first phase
-			temptree.push_back("+");
-			temptree.push_back(master_tree);
-			temptree.push_back(phase_ast);
-			master_tree.swap(temptree);
+			add_trees(master_tree, phase_ast);
 		}
 		else master_tree.swap(phase_ast);
 

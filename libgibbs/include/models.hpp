@@ -186,4 +186,15 @@ public:
 			);
 };
 
+class IHJMagneticModel : public EnergyModel {
+public:
+	IHJMagneticModel(
+			const std::string &phasename,
+			const sublattice_set &subl_set,
+			const parameter_set &param_set,
+			const double &afm_factor,
+			const double &sro_enthalpy_order_fraction
+			);
+};
+
 #endif
