@@ -49,6 +49,7 @@ double EnergyModel::count_mixing_sites(const sublattice_set_view &ssv) {
 
 // helper function to add multiplicative factors of (y_i - y_j)**k
 utree EnergyModel::add_interaction_factor(const std::string &lhs_varname, const std::string &rhs_varname, const double &degree, const utree &input_tree) {
+	if (degree == 0) return input_tree;
 	utree temp_tree, power_tree, ret_tree;
 	temp_tree.push_back("-");
 	temp_tree.push_back(lhs_varname);
@@ -56,6 +57,7 @@ utree EnergyModel::add_interaction_factor(const std::string &lhs_varname, const 
 	power_tree.push_back("**");
 	power_tree.push_back(temp_tree);
 	power_tree.push_back(degree);
+	if (degree == 1) power_tree = temp_tree;
 	ret_tree.push_back("*");
 	ret_tree.push_back(power_tree);
 	ret_tree.push_back(input_tree);
