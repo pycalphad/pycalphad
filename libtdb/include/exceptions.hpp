@@ -40,4 +40,10 @@ struct file_read_error: virtual file_error, virtual read_error { };
 typedef boost::error_info<struct spec_err,std::string> specific_errinfo; // info for specific token that caused exception
 typedef boost::error_info<struct str_err,std::string> str_errinfo; // user friendly error message
 
+namespace boost { namespace spirit {
+class utree;
+}
+}
+typedef boost::error_info<struct ast_err,boost::spirit::utree> ast_errinfo; // related abstract syntax tree
+
 #endif
