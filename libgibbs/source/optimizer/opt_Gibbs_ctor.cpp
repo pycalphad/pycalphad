@@ -251,6 +251,7 @@ GibbsOpt::GibbsOpt(
 			}
 		}
 	}
+	BOOST_LOG_SEV(opt_log, debug) << "function exit";
 }
 
 GibbsOpt::~GibbsOpt()
