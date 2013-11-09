@@ -106,9 +106,25 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 
 bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
+	logger opt_log(journal::keywords::channel = "optimizer");
 	// return the value of the objective function
 	//std::cout << "enter process_utree" << std::endl;
+	try {
 	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
+	}
+	catch (boost::exception &e) {
+		std::string specific_info, err_msg; // error message strings
+		if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+			specific_info = *mi;
+		}
+		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+			err_msg = *mi;
+		}
+		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		throw;
+	}
 	//std::cout << "exit process_utree" << std::endl;
 	//std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
 	return true;
@@ -116,11 +132,27 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 
 bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
+	logger opt_log(journal::keywords::channel = "optimizer");
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
 	//std::cout << "eval_grad_f entered" << std::endl;
+	try {
 	for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
 		grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
+	}
+	}
+	catch (boost::exception &e) {
+		std::string specific_info, err_msg; // error message strings
+		if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+			specific_info = *mi;
+		}
+		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+			err_msg = *mi;
+		}
+		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		throw;
 	}
 
 	//std::cout << "eval_grad_f exit" << std::endl;
@@ -134,17 +166,31 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.begin();
 	const auto cons_end = cm.end();
-
-	for (auto i = cons_begin; i != cons_end; ++i) {
-		// Calculate left-hand side and right-hand side of all constraints
-		//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
-		//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
-		//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
-		double lhs = process_utree(i->lhs, conditions, main_indices, (double*)x).get<double>();
-		//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << lhs << std::endl;
-		double rhs = process_utree(i->rhs, conditions, main_indices, (double*)x).get<double>();
-		//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << rhs << std::endl;
-		g[std::distance(cons_begin,i)] = lhs - rhs;
+	try {
+		for (auto i = cons_begin; i != cons_end; ++i) {
+			// Calculate left-hand side and right-hand side of all constraints
+			//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
+			//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
+			//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
+			double lhs = process_utree(i->lhs, conditions, main_indices, (double*)x).get<double>();
+			//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << lhs << std::endl;
+			double rhs = process_utree(i->rhs, conditions, main_indices, (double*)x).get<double>();
+			//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << rhs << std::endl;
+			g[std::distance(cons_begin,i)] = lhs - rhs;
+		}
+	}
+	catch (boost::exception &e) {
+		std::string specific_info, err_msg; // error message strings
+		if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+			specific_info = *mi;
+		}
+		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+			err_msg = *mi;
+		}
+		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		throw;
 	}
 
 	BOOST_LOG_SEV(opt_log, debug) << "exiting eval_g";
@@ -167,8 +213,23 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values";
 	}
 	else {
+		try {
 		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
 			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
+		}
+		}
+		catch (boost::exception &e) {
+			std::string specific_info, err_msg; // error message strings
+			if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+				specific_info = *mi;
+			}
+			if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+				err_msg = *mi;
+			}
+			BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
+			BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
+			BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+			throw;
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values";
 	}
@@ -196,23 +257,38 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 	}
 	else {
 		BOOST_LOG_SEV(opt_log, debug) << "enter eval_h with values";
-		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
-			int varindex1 = i->var_index1;
-			int varindex2 = i->var_index2;
-			values[h_idx] = 0; // initialize
-			for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
-				BOOST_LOG_SEV(opt_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
-				boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
-				if (j->first == -1) {
-					// objective portion
-					values[h_idx] += obj_factor * hess_tree.get<double>();
+		try {
+			for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
+				int varindex1 = i->var_index1;
+				int varindex2 = i->var_index2;
+				values[h_idx] = 0; // initialize
+				for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
+					BOOST_LOG_SEV(opt_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
+					boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
+					if (j->first == -1) {
+						// objective portion
+						values[h_idx] += obj_factor * hess_tree.get<double>();
+					}
+					else {
+						// constraint portion
+						values[h_idx] += lambda[j->first] * hess_tree.get<double>();
+					}
 				}
-				else {
-					// constraint portion
-					values[h_idx] += lambda[j->first] * hess_tree.get<double>();
-				}
+				++h_idx;
 			}
-			++h_idx;
+		}
+		catch (boost::exception &e) {
+			std::string specific_info, err_msg; // error message strings
+			if (std::string const * mi = boost::get_error_info<specific_errinfo>(e) ) {
+				specific_info = *mi;
+			}
+			if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
+				err_msg = *mi;
+			}
+			BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
+			BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
+			BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+			throw;
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "exit eval_h with values";
 	}
