@@ -29,6 +29,7 @@ GibbsOpt::GibbsOpt(
 			phase_iter(DB.get_phase_iterator()),
 			phase_end(DB.get_phase_iterator_end())
 {
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::GibbsOpt");
 	int varcount = 0;
 	int activephases = 0;
 	logger opt_log(journal::keywords::channel = "optimizer");

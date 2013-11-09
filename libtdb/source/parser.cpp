@@ -9,9 +9,13 @@
 
 #include "libtdb/include/libtdb_pch.hpp"
 #include "libtdb/include/database_tdb.hpp"
+#include "libtdb/include/logging.hpp"
 
 
 void Database::DatabaseTDB::proc_command(std::string &cmdstring) {
+	BOOST_LOG_NAMED_SCOPE("proc_command");
+	logger tdb_log(journal::keywords::channel = "tdb");
+	BOOST_LOG_SEV(tdb_log, debug) << cmdstring;
 	auto cmdrange = boost::find_first(cmdstring," ");
 	std::string cmd(cmdstring.begin(),cmdrange.end()); // current command name
 	boost::trim_right(cmd); // remove the trailing space from the command name
