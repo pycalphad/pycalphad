@@ -152,7 +152,7 @@ GibbsOpt::GibbsOpt(
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
 		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
-		//BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
+		BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
 	}
 
 	// Calculate first derivative ASTs of all constraints
