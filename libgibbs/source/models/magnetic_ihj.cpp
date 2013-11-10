@@ -135,9 +135,9 @@ IHJMagneticModel::IHJMagneticModel(
 
 utree magnetic_polynomial(const utree &tc_tree, const double &p) {
 	// These are constant factors from the heat capacity integration
-	double A = (518/1125) + (11692/15975)*((1/p) - 1);
-	double B = 79/(140*p);
-	double C = (474/497)*((1/p)-1);
+	double A = (518.0/1125.0) + ((11692.0/15975.0)*((1.0/p) - 1.0));
+	double B = 79.0/(140*p);
+	double C = (474.0/497.0)*((1.0/p)-1.0);
 	utree ret_tree, tau, subcritical_tree, supercritical_tree;
 
 	tau = a_o("T", tc_tree, "/");
@@ -146,18 +146,18 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p) {
 
 	// First calculate the polynomial for tau < 1
 	utree taum1 = a_o(B, a_o(tau, -1, "**"), "*");
-	utree tau3 = a_o(1/6, a_o(tau, 3, "**"), "*");
-	utree tau9 = a_o(1/135, a_o(tau, 9, "**"), "*");
-	utree tau15 = a_o(1/600, a_o(tau, 15, "**"), "*");
+	utree tau3 = a_o(1.0/6.0, a_o(tau, 3, "**"), "*");
+	utree tau9 = a_o(1.0/135.0, a_o(tau, 9, "**"), "*");
+	utree tau15 = a_o(1.0/600.0, a_o(tau, 15, "**"), "*");
 	utree total_taus = a_o(C, a_o(a_o(tau3, tau9, "+"), tau15, "+"), "*");
 	total_taus = a_o(taum1, total_taus, "+");
-	total_taus = a_o(-1/A, total_taus, "*");
+	total_taus = a_o(-1.0/A, total_taus, "*");
 	subcritical_tree = a_o(1, total_taus, "-");
 
 	// Now calculate the polynomial for tau >= 1
-	utree taum5 = a_o(1/10, a_o(tau, -5, "**"), "*");
-	utree taum15 = a_o(1/315, a_o(tau, -15, "**"), "*");
-	utree taum25 = a_o(1/1500, a_o(tau, -25, "**"), "*");
+	utree taum5 = a_o(1.0/10.0, a_o(tau, -5, "**"), "*");
+	utree taum15 = a_o(1.0/315.0, a_o(tau, -15, "**"), "*");
+	utree taum25 = a_o(1.0/1500.0, a_o(tau, -25, "**"), "*");
 	total_taus = a_o(a_o(taum5, taum15, "+"), taum25, "+");
 	supercritical_tree = a_o(-1/A, total_taus, "*");
 
