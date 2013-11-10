@@ -13,3 +13,9 @@ Charged species in sublattices are not correctly handled.
 TDB Reading (libtdb)
 --------------------
 References are not recorded.
+
+Python API (pylibgibbs)
+-----------------------
+Cannot change reference state from the default.
+No API yet for manipulating the Equilibrium object once created.
+No display of activities / potentials on the user-side.
