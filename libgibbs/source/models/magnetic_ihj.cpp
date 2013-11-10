@@ -98,6 +98,7 @@ IHJMagneticModel::IHJMagneticModel(
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_tc, (int)0),
 			"+"
 			);
+	Curie_temperature = a_o(Curie_temperature, afm_factor, "/"); // divide TC by the AFM factor
 	utree checktree = process_utree(Curie_temperature);
 	if (checktree.which() == utree_type::double_type && checktree.get<double>() == 0) {
 		// Transition temperature is always zero, no magnetic contribution
@@ -119,6 +120,7 @@ IHJMagneticModel::IHJMagneticModel(
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_bm, (int)0),
 			"+"
 			);
+	mean_magnetic_moment = a_o(mean_magnetic_moment, afm_factor, "/"); // divide BMAGN by the AFM factor
 	checktree = process_utree(mean_magnetic_moment);
 		if (checktree.which() == utree_type::double_type && checktree.get<double>() == 0) {
 			// Mean magnetic moment is always zero, no magnetic contribution
