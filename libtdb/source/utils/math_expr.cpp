@@ -160,7 +160,7 @@ boost::spirit::utree const process_utree(
 							lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						}
 						catch (boost::exception &e) {
-							e << ast_errinfo(*it);
+							//e << ast_errinfo(*it);
 							throw;
 						}
 					}
@@ -170,7 +170,7 @@ boost::spirit::utree const process_utree(
 							rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
 						}
 						catch (boost::exception &e) {
-							e << ast_errinfo(*it);
+							//e << ast_errinfo(*it);
 							throw;
 						}
 					}
@@ -203,8 +203,6 @@ boost::spirit::utree const process_utree(
 						}
 						else {
 							// outside the domain of ln
-							// TODO: add this as a warning to the logger
-							std::cout << "logwarnerr" << std::endl;
 							return utree(utree_type::invalid_type);
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined") << ast_errinfo(ut));
 						}
@@ -212,7 +210,6 @@ boost::spirit::utree const process_utree(
 					else if (op == "EXP") res += exp(lhs);
 					else {
 						// a bad symbol made it into our AST
-						std::cout << "badsymerr";
 						BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator, function or symbol") << specific_errinfo(op) << ast_errinfo(ut));
 					}
 					//std::cout << "LHS: " << lhs << std::endl;
