@@ -135,7 +135,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 			interact_product.push_back(utree((*j)->name()));
 			interact_recursive_term = permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1);
 
-			if (interact_recursive_term.which() == utree_type::int_type && interact_recursive_term.get<int>() == 0) continue;
+			if (interact_recursive_term.which() == utree_type::double_type && interact_recursive_term.get<double>() == 0) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
 			//std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
 
@@ -143,7 +143,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 			interact_product.push_back(interact_recursive_term);
 
-			if ((recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) || recursive_term.which() == utree_type::invalid_type) {
+			if ((recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) || recursive_term.which() == utree_type::invalid_type) {
 				recursive_term = interact_product; // no prior product exists
 			}
 			else {
@@ -156,7 +156,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		}
 
 
-		if (recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) continue;
+		if (recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 
 		// we only get here for non-zero terms

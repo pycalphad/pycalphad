@@ -114,7 +114,7 @@ utree EnergyModel::permute_site_fractions (
 		current_product.push_back(utree(varname));
 
 		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1);
-		if (recursive_term.which() == utree_type::int_type && recursive_term.get<int>() == 0) continue;
+		if (recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 
 		// we only get here for non-zero terms
