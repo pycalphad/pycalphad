@@ -170,6 +170,8 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p) {
 	ret_tree.push_back(-std::numeric_limits<double>::max());
 	ret_tree.push_back(1);
 	ret_tree.push_back(subcritical_tree);
+	ret_tree.push_back("@");
+	ret_tree.push_back(tau);
 	ret_tree.push_back(1);
 	ret_tree.push_back(std::numeric_limits<double>::max());
 	ret_tree.push_back(supercritical_tree);
