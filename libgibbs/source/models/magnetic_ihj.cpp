@@ -122,7 +122,6 @@ IHJMagneticModel::IHJMagneticModel(
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_bm, (int)0),
 			"+"
 	);
-	mean_magnetic_moment = a_o(mean_magnetic_moment, afm_factor, "/"); // divide BMAGN by the AFM factor
 	mean_magnetic_moment = simplify_utree(mean_magnetic_moment);
 	if (is_zero_tree(mean_magnetic_moment)) {
 		// Mean magnetic moment is always zero, no magnetic contribution
