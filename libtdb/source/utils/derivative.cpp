@@ -93,6 +93,7 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					else if (op == "-") {
 						// derivative of difference is difference of derivatives
 						if (lhsiter != end) lhs = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+						if (rhsiter != end) rhs = simplify_utree(differentiate_utree(*rhsiter, diffvar));
 						if (is_zero_tree(lhs) && is_zero_tree(rhs)) return utree(0);
 						if (ut.size() == 2) {
 							if (is_zero_tree(lhs)) return utree(0);
@@ -101,7 +102,6 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 							ret_tree.push_back(lhs);
 							return ret_tree;
 						}
-						if (rhsiter != end) rhs = simplify_utree(differentiate_utree(*rhsiter, diffvar));
 						if (is_zero_tree(rhs)) return simplify_utree(lhs);
 						ret_tree.push_back("-");
 						ret_tree.push_back(lhs);
@@ -273,6 +273,9 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 			break;
 		}
 		case utree_type::double_type: {
+			return utree(0);
+		}
+		case utree_type::int_type: {
 			return utree(0);
 		}
 		case utree_type::string_type: {

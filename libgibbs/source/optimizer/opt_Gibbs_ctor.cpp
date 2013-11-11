@@ -80,7 +80,7 @@ GibbsOpt::GibbsOpt(
 		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic " << std::endl << magnetism << std::endl;
 
 		// sum the contributions
-		add_trees(phase_ast, idealmix);
+		phase_ast = idealmix;
 		add_trees(phase_ast, curphaseref);
 		add_trees(phase_ast, redlichkister);
 		add_trees(phase_ast, magnetism);
@@ -95,12 +95,13 @@ GibbsOpt::GibbsOpt(
 		// add phase AST to master AST
 		if (activephases != 1) {
 			// this is not the only / first phase
-			add_trees(master_tree, phase_ast);
+			if (master_tree.which() != boost::spirit::utree_type::invalid_type) add_trees(master_tree, phase_ast);
+			else master_tree.swap(phase_ast);
 		}
 		else master_tree.swap(phase_ast);
 
 	}
-	//BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
+	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
 
 	// Add the mandatory constraints to the ConstraintManager
