@@ -338,9 +338,9 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 						if (it != end) {
 							// this should be the range-specific tree
 							// if it's a trivial zero, we should discard this operation
-							bool checkzero = is_zero_tree(simplify_utree(*it));
-							if (checkzero && it == end) return utree(0);
-							if (checkzero && it != end) continue;
+							//bool checkzero = is_zero_tree(simplify_utree(*it));
+							//if (checkzero && it == end) return utree(0);
+							//if (checkzero && it != end) continue;
 						}
 						return ut;
 					}
