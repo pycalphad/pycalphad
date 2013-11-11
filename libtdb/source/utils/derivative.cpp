@@ -166,7 +166,7 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						return ret_tree;
 					}
 					else if (op == "**") {
-						if ((*rhsiter).which() == utree_type::double_type || (*rhsiter).which() == utree_type::int_type) {
+						if ((*rhsiter).which() == utree_type::int_type) {
 							// exponent is a constant: power rule
 							// power rule + chain rule
 							// res += rhs * pow(lhs,rhs-1) * lhs_deriv;
