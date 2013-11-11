@@ -97,10 +97,12 @@ IHJMagneticModel::IHJMagneticModel(
 	Curie_temperature = a_o(Curie_temperature,
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_tc, (int)0),
 			"+"
-			);
+	);
 	Curie_temperature = a_o(Curie_temperature, afm_factor, "/"); // divide TC by the AFM factor
-	utree checktree = process_utree(Curie_temperature);
-	if (checktree.which() == utree_type::double_type && checktree.get<double>() == 0) {
+	std::cout << "Curie_temperature: " << Curie_temperature << std::endl;
+	Curie_temperature = simplify_utree(Curie_temperature);
+	std::cout << "Curie temperature after process_utree: " << Curie_temperature << std::endl;
+	if (is_zero_tree(Curie_temperature)) {
 		// Transition temperature is always zero, no magnetic contribution
 		model_ast = utree(0);
 		return;
@@ -119,14 +121,14 @@ IHJMagneticModel::IHJMagneticModel(
 	mean_magnetic_moment = a_o(mean_magnetic_moment,
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_bm, (int)0),
 			"+"
-			);
+	);
 	mean_magnetic_moment = a_o(mean_magnetic_moment, afm_factor, "/"); // divide BMAGN by the AFM factor
-	checktree = process_utree(mean_magnetic_moment);
-		if (checktree.which() == utree_type::double_type && checktree.get<double>() == 0) {
-			// Mean magnetic moment is always zero, no magnetic contribution
-			model_ast = utree(0);
-			return;
-		}
+	mean_magnetic_moment = simplify_utree(mean_magnetic_moment);
+	if (is_zero_tree(mean_magnetic_moment)) {
+		// Mean magnetic moment is always zero, no magnetic contribution
+		model_ast = utree(0);
+		return;
+	}
 
 	model_ast = a_o("T", max_magnetic_entropy(mean_magnetic_moment), "*");
 	model_ast = a_o(model_ast, magnetic_polynomial(Curie_temperature, sro_enthalpy_order_fraction), "*");

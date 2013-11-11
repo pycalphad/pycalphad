@@ -18,11 +18,6 @@
 #include <math.h>
 #include <string>
 
-bool is_zero_tree (boost::spirit::utree const& ut) {
-	if (ut.which() == boost::spirit::utree_type::double_type && ut.get<double>() == 0) return true;
-	else return false;
-}
-
 
 // differentiate the utree without variable evaluation
 boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar) {
@@ -46,7 +41,11 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 			while (it != end) {
 				if ((*it).which() == utree_type::double_type && std::distance(it,end) == 1) {
 					// only one element in utree list, and it's a double
-					return 0;
+					return utree(0);
+				}
+				if ((*it).which() == utree_type::int_type && std::distance(it,end) == 1) {
+					// only one element in utree list, and it's an int
+					return utree(0);
 				}
 				if ((*it).which() == utree_type::string_type) {
 					// operator/function
@@ -63,11 +62,11 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						++it;
 						ret_tree.push_back(*it); // highlimit
 						++it;
-						utree push_tree = differentiate_utree(*it, diffvar);
+						utree push_tree = simplify_utree(differentiate_utree(*it, diffvar));
 						ret_tree.push_back(push_tree); // abstract syntax tree (AST)
 						++it;
-						if (is_zero_tree(push_tree) && it == end) return utree(0);
-						if (is_zero_tree(push_tree) && it != end) continue;
+						//if (is_zero_tree(push_tree) && it == end) return utree(0);
+						//if (is_zero_tree(push_tree) && it != end) continue;
 
 						if (it == end) return ret_tree;
 						else continue;
@@ -82,10 +81,10 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					if (op == "+") {
 						// derivative of sum is sum of derivatives
 						bool lhszero, rhszero = false;
-						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, diffvar);
-						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, diffvar);
-						if (is_zero_tree(lhs)) return rhs;
-						if (is_zero_tree(rhs)) return lhs;
+						if (lhsiter != end) lhs = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+						if (rhsiter != end) rhs = simplify_utree(differentiate_utree(*rhsiter, diffvar));
+						if (is_zero_tree(lhs)) return simplify_utree(rhs);
+						if (is_zero_tree(rhs)) return simplify_utree(lhs);
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs);
 						ret_tree.push_back(rhs);
@@ -93,7 +92,7 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					}
 					else if (op == "-") {
 						// derivative of difference is difference of derivatives
-						if (lhsiter != end) lhs = differentiate_utree(*lhsiter, diffvar);
+						if (lhsiter != end) lhs = simplify_utree(differentiate_utree(*lhsiter, diffvar));
 						if (is_zero_tree(lhs) && is_zero_tree(rhs)) return utree(0);
 						if (ut.size() == 2) {
 							if (is_zero_tree(lhs)) return utree(0);
@@ -102,8 +101,8 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 							ret_tree.push_back(lhs);
 							return ret_tree;
 						}
-						if (rhsiter != end) rhs = differentiate_utree(*rhsiter, diffvar);
-						if (is_zero_tree(rhs)) return lhs;
+						if (rhsiter != end) rhs = simplify_utree(differentiate_utree(*rhsiter, diffvar));
+						if (is_zero_tree(rhs)) return simplify_utree(lhs);
 						ret_tree.push_back("-");
 						ret_tree.push_back(lhs);
 						ret_tree.push_back(rhs);
@@ -112,21 +111,18 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					else if (op == "*") {
 						// derivative of product is lhs'rhs + rhs'lhs (product rule)
 						// TODO: optimizations for multiplication by 1 and 0
-						utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
-						utree rhs_deriv = differentiate_utree(*rhsiter, diffvar);
+						utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+						utree rhs_deriv = simplify_utree(differentiate_utree(*rhsiter, diffvar));
 						utree lhs_prod_tree, rhs_prod_tree;
 						lhs_prod_tree.push_back("*");
 						lhs_prod_tree.push_back(lhs_deriv);
 						lhs_prod_tree.push_back(*rhsiter);
-						utree lhstest = process_utree(lhs_prod_tree);
-						// Optimization for multiplication by zero
-						if (is_zero_tree(lhstest)) lhs_prod_tree = utree(0);
+						lhs_prod_tree = simplify_utree(lhs_prod_tree);
+
 						rhs_prod_tree.push_back("*");
 						rhs_prod_tree.push_back(rhs_deriv);
 						rhs_prod_tree.push_back(*lhsiter);
-						utree rhstest = process_utree(rhs_prod_tree);
-						// Optimization for multiplication by zero
-						if (is_zero_tree(rhstest)) rhs_prod_tree = utree(0);
+						rhs_prod_tree = simplify_utree(rhs_prod_tree);
 
 						ret_tree.push_back("+");
 						ret_tree.push_back(lhs_prod_tree);
@@ -136,31 +132,28 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					else if (op == "/") {
 						// derivative of quotient is (lhs'rhs - rhs'lhs)/(rhs^2) (quotient rule)
 						// TODO: optimization for identity and 0 operations
-						utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
-						utree rhs_deriv = differentiate_utree(*rhsiter, diffvar);
+						utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+						utree rhs_deriv = simplify_utree(differentiate_utree(*rhsiter, diffvar));
 						utree lhs_prod_tree, rhs_prod_tree, numerator_tree, power_tree;
 						lhs_prod_tree.push_back("*");
 						lhs_prod_tree.push_back(lhs_deriv);
 						lhs_prod_tree.push_back(*rhsiter);
 
-						utree lhstest = process_utree(lhs_prod_tree);
-						// Optimization for multiplication by zero
-						if (is_zero_tree(lhstest)) lhs_prod_tree = 0;
+						lhs_prod_tree = simplify_utree(lhs_prod_tree);
+
 						rhs_prod_tree.push_back("*");
 						rhs_prod_tree.push_back(rhs_deriv);
 						rhs_prod_tree.push_back(*lhsiter);
 
-						utree rhstest = process_utree(rhs_prod_tree);
-						// Optimization for multiplication by zero
-						if (is_zero_tree(rhstest)) rhs_prod_tree = 0;
+						rhs_prod_tree = simplify_utree(rhs_prod_tree);
 
 						numerator_tree.push_back("-");
 						numerator_tree.push_back(lhs_prod_tree);
 						numerator_tree.push_back(rhs_prod_tree);
 
-						utree numtest = process_utree(numerator_tree);
+						numerator_tree = simplify_utree(numerator_tree);
 						// Optimization for zero in numerator
-						if (is_zero_tree(numtest)) return 0;
+						if (is_zero_tree(numerator_tree)) return numerator_tree;
 
 						power_tree.push_back("**");
 						power_tree.push_back(*rhsiter);
@@ -178,8 +171,8 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 							// power rule + chain rule
 							// res += rhs * pow(lhs,rhs-1) * lhs_deriv;
 							if (is_zero_tree(*rhsiter)) return utree(0);
-							utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
-							if (rhsiter->get<double>() == 1) return lhs_deriv;
+							utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+							if (rhsiter->get<double>() == 1) return simplify_utree(lhs_deriv);
 							if (is_zero_tree(lhs_deriv)) return utree(0);
 							utree prod_tree, power_tree, exponent_tree;
 
@@ -205,8 +198,8 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 							// generalized power rule
 							// lhs^rhs * (lhs' * (rhs/lhs) + rhs' * ln(lhs))
 							if (is_zero_tree(*lhsiter)) return utree(0);
-							utree lhs_deriv = differentiate_utree(*lhsiter, diffvar);
-							utree rhs_deriv = differentiate_utree(*rhsiter, diffvar);
+							utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
+							utree rhs_deriv = simplify_utree(differentiate_utree(*rhsiter, diffvar));
 							utree power_tree, prod_tree1, prod_tree2, div_tree, log_tree, add_tree;
 
 
@@ -269,8 +262,8 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					}
 
 					// not an operator, must be a symbol
-					if (op == diffvar) return 1;
-					else return 0;
+					if (op == diffvar) return utree(1);
+					else return utree(0);
 				}
 				++it;
 			}
@@ -280,15 +273,15 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 			break;
 		}
 		case utree_type::double_type: {
-			return 0;
+			return utree(0);
 		}
 		case utree_type::string_type: {
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
 			std::string varname(rt.begin(),rt.end());
 
-			if (diffvar == varname) return 1;
-			else return 0;
+			if (diffvar == varname) return utree(1);
+			else return utree(0);
 		}
 	}
-	return utree(utree_type::invalid_type);
+	return utree();
 }

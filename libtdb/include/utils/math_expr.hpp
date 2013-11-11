@@ -21,12 +21,13 @@ boost::spirit::utree const process_utree(
 		std::map<std::string, int> const&,
 		double* const
 		);
-boost::spirit::utree const process_utree(boost::spirit::utree const& ut);
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const&,
 		evalconditions const&
 		);
+boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut);
 boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar);
 template <typename T> bool is_allowed_value(T &);
+bool is_zero_tree(const boost::spirit::utree &ut);
 
 #endif

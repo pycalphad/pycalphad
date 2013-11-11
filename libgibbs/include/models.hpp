@@ -142,13 +142,15 @@ protected:
 			const sublattice_set_view &total_view, // all sublattices
 			const sublattice_set_view &subl_view, // the active sublattice permutation
 			const parameter_set_view &param_view,
-			const int &sublindex
+			const int &sublindex,
+			const double &param_division_factor = 1
 			);
 	boost::spirit::utree permute_site_fractions_with_interactions (
 			const sublattice_set_view &total_view, // all sublattices
 			const sublattice_set_view &subl_view, // the active sublattice permutation
 			const parameter_set_view &param_view,
-			const int &sublindex
+			const int &sublindex,
+			const double &param_division_factor = 1
 			);
 private:
 	EnergyModel(const EnergyModel&);

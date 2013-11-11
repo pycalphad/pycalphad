@@ -14,6 +14,7 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libtdb/include/utils/math_expr.hpp"
 #include <string>
 #include <sstream>
 #include <set>
@@ -88,7 +89,8 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,
-		const int &sublindex
+		const int &sublindex,
+		const double &param_division_factor // divide all parameters by this factor
 		) {
 
 	utree ret_tree;
@@ -103,9 +105,19 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		 * parameter, if it exists.
 		 */
 
-		if (subl_view.size() == sublindex) return 0; // skip non-interaction parameters
+		if (subl_view.size() == sublindex) return utree(); // skip non-interaction parameters
 
-		return find_parameter_ast(subl_view,param_view);
+		utree ret_tree = find_parameter_ast(subl_view, param_view);
+
+		if (param_division_factor != 1) {
+			utree temp_tree;
+			temp_tree.push_back("/");
+			temp_tree.push_back(ret_tree);
+			temp_tree.push_back(param_division_factor);
+			ret_tree.swap(temp_tree);
+		}
+
+		return ret_tree;
 	}
 
 	for (auto i = ic0; i != ic1; ++i) {
@@ -121,7 +133,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 
-		utree recursive_term = permute_site_fractions_with_interactions(total_view, temp_view, param_view, sublindex+1);
+		utree recursive_term = permute_site_fractions_with_interactions(total_view, temp_view, param_view, sublindex+1, param_division_factor);
 
 		// Calculate all the two-species interactions
 		for (auto j = ic0; j != ic1; ++j) {
@@ -133,17 +145,17 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 			interact_product.push_back("*");
 			// interacting species multiplication
 			interact_product.push_back(utree((*j)->name()));
-			interact_recursive_term = permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1);
+			interact_recursive_term = permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1, param_division_factor);
 
-			if (interact_recursive_term.which() == utree_type::double_type && interact_recursive_term.get<double>() == 0) continue;
+			if (is_zero_tree(interact_recursive_term)) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
-			//std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
+			std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
 
 			// We only get here for non-zero terms
 
 			interact_product.push_back(interact_recursive_term);
 
-			if ((recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) || recursive_term.which() == utree_type::invalid_type) {
+			if (recursive_term.which() == utree_type::invalid_type) {
 				recursive_term = interact_product; // no prior product exists
 			}
 			else {
@@ -156,14 +168,15 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		}
 
 
-		if (recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) continue;
+		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
+		std::cout << "recursive_term: " << recursive_term << std::endl;
 
 		// we only get here for non-zero terms
 		current_product.push_back(recursive_term);
 		// Contribute this product to the sum
 		// Check if we are on the first (or only) term in the sum
-		if (i != ic0) {
+		if (ret_tree.which() != utree_type::invalid_type) {
 			buildtree.push_back("+");
 			buildtree.push_back(ret_tree);
 			buildtree.push_back(current_product);
@@ -173,5 +186,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 	}
 
 	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
+	std::cout << "excess returning: " << ret_tree << std::endl;
 	return ret_tree;
 }

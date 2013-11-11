@@ -15,6 +15,7 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libtdb/include/logging.hpp"
+#include "libtdb/include/utils/math_expr.hpp"
 #include <string>
 #include <sstream>
 #include <set>
@@ -82,7 +83,8 @@ utree EnergyModel::permute_site_fractions (
 		const sublattice_set_view &total_view, // all sublattices
 		const sublattice_set_view &subl_view, // the active sublattice permutation
 		const parameter_set_view &param_view,
-		const int &sublindex
+		const int &sublindex,
+		const double &param_division_factor
 		) {
 
 	utree ret_tree;
@@ -96,8 +98,17 @@ utree EnergyModel::permute_site_fractions (
 		 * Use the sublattice permutation to find a matching
 		 * parameter, if it exists.
 		 */
+		utree ret_tree = find_parameter_ast(subl_view, param_view);
 
-		return find_parameter_ast(subl_view,param_view);
+		if (param_division_factor != 1) {
+			utree temp_tree;
+			temp_tree.push_back("/");
+			temp_tree.push_back(ret_tree);
+			temp_tree.push_back(param_division_factor);
+			ret_tree.swap(temp_tree);
+		}
+
+		return ret_tree;
 	}
 
 	for (auto i = ic0; i != ic1; ++i) {
@@ -113,8 +124,8 @@ utree EnergyModel::permute_site_fractions (
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 
-		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1);
-		if (recursive_term.which() == utree_type::double_type && recursive_term.get<double>() == 0) continue;
+		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1, param_division_factor);
+		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 
 		// we only get here for non-zero terms

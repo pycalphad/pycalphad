@@ -19,6 +19,9 @@
 #include <math.h>
 #include <string>
 
+using boost::spirit::utree;
+using boost::spirit::utree_type;
+
 // Determine if the given floating-point value is allowed in our calculation
 template <typename T>
 bool is_allowed_value(T &val) {
@@ -33,6 +36,11 @@ bool is_allowed_value(T &val) {
 	}
 }
 template bool is_allowed_value(double&); // explicit instantiation
+
+bool is_zero_tree(const utree &ut) {
+	bool condition = ((ut.which() == utree_type::double_type || ut.which() == utree_type::int_type) && ut.get<double>() == 0.0);
+	return condition;
+}
 
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
@@ -184,7 +192,7 @@ boost::spirit::utree const process_utree(
 					else if (op == "*") res += (lhs * rhs); 
 					else if (op == "/") { 
 						if (rhs == 0) {
-							return utree(utree_type::invalid_type);
+							return utree();
 							BOOST_THROW_EXCEPTION(divide_by_zero_error() << ast_errinfo(ut));
 						}
 						else res += (lhs / rhs);
@@ -203,7 +211,7 @@ boost::spirit::utree const process_utree(
 						}
 						else {
 							// outside the domain of ln
-							return utree(utree_type::invalid_type);
+							return utree();
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined") << ast_errinfo(ut));
 						}
 					}
@@ -274,26 +282,26 @@ boost::spirit::utree const process_utree(
 			break;
 		}
 	}
-	return utree(utree_type::invalid_type);
+	return utree();
 }
 
-boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
+boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
+			return ut;
 			break;
 		}
 		case utree_type::nil_type: {
+			return ut;
 			break;
 		}
 		case utree_type::list_type: {
 			auto it = ut.begin();
 			auto end = ut.end();
 			double res = 0; // storage for the final result
-			utree lhs; // left-hand side
-			utree rhs; // right-hand side
 			std::string op;
 			//std::cout << "<list>(";
 			while (it != end) {
@@ -302,7 +310,7 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						return utree(utree_type::invalid_type);
+						return ut;
 					}
 					return retval;
 				}
@@ -311,94 +319,125 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						return utree(utree_type::invalid_type);
+						return ut;
 					}
 					return retval;
 				}
 				if ((*it).which() == utree_type::string_type) {
 					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
+					utree lhs, rhs;
 					op = std::string(rt.begin(), rt.end()); // set the symbol
 					boost::algorithm::to_upper(op);
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
-						return utree(utree_type::invalid_type);
+						if (it != end) ++it; // curT
+						if (it != end) ++it; // lowlimit
+						if (it != end) ++it; // highlimit
+						if (it != end) ++it; // tree
+						if (it != end) {
+							// this should be the range-specific tree
+							// if it's a trivial zero, we should discard this operation
+							bool checkzero = is_zero_tree(simplify_utree(*it));
+							if (checkzero && it == end) return utree(0);
+							if (checkzero && it != end) continue;
+						}
+						return ut;
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
-					if (it != end) lhs = process_utree(*it);
+					if (it != end) lhs = simplify_utree(*it);
 					++it; // get right-hand side
-					if (it != end) rhs = process_utree(*it);
+					if (it != end) rhs = simplify_utree(*it);
 
 					if (op == "+") {
-						if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
+						if ((lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type)
+								&&
+								(rhs.which() == utree_type::double_type || rhs.which() == utree_type::int_type)
+						) {
 							res += (lhs.get<double>() + rhs.get<double>());  // accumulate the result
-						else return utree(utree_type::invalid_type);
+						}
+						else return ut;
 					}
 					else if (op == "-") {
 						if (ut.size() == 2) {
-							if (lhs.which() == utree_type::double_type) res += -lhs.get<double>(); // case of negation (unary operator)
-							else return utree(utree_type::invalid_type);
+							if (lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type) {
+								res += -lhs.get<double>(); // case of negation (unary operator)
+							}
+							else return ut;
 						}
-						if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
-							res += (lhs.get<double>() - rhs.get<double>());
-						else return utree(utree_type::invalid_type);
+						else {
+							if ((lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type)
+									&&
+									(rhs.which() == utree_type::double_type || rhs.which() == utree_type::int_type)
+							) {
+								res += (lhs.get<double>() - rhs.get<double>());
+							}
+							else return ut;
+						}
 					}
 					else if (op == "*") {
-						if (lhs.which() == utree_type::double_type && lhs.get<double>() == 0)
+						if (is_zero_tree(lhs))
 							res += 0;
-						else if (rhs.which() == utree_type::double_type && rhs.get<double>() == 0)
+						else if (is_zero_tree(rhs))
 							res += 0;
-						else if (lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type)
+						else if ((lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type)
+								&&
+								(rhs.which() == utree_type::double_type || rhs.which() == utree_type::int_type)
+						) {
 							res += (lhs.get<double>() * rhs.get<double>());
-						else return utree(utree_type::invalid_type);
+						}
+						else return ut;
 					}
 					else if (op == "/") {
-						if (!(lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type))
-								return utree(utree_type::invalid_type);
-						if (rhs == 0) {
-							return utree(utree_type::invalid_type);
+						if (!(lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type)
+								||
+								!(rhs.which() == utree_type::double_type || rhs.which() == utree_type::int_type)
+						) {
+								return ut;
+						}
+						if (is_zero_tree(rhs)) {
+							return ut;
 						}
 						else res += (lhs.get<double>() / rhs.get<double>());
 					}
 					else if (op == "**") {
-						if (rhs.which() == utree_type::double_type && rhs.get<double>() == 0)
+						if (is_zero_tree(rhs))
 							res += 1;
 						else {
-							if (!(lhs.which() == utree_type::double_type && rhs.which() == utree_type::double_type))
-								return utree(utree_type::invalid_type);
-							if (lhs < 0 && (fabs(rhs.get<double>()) < 1 && fabs(rhs.get<double>()) > 0)) {
+							if ((!(lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type))
+									||
+									!((rhs.which() == utree_type::double_type || rhs.which() == utree_type::int_type)
+							))
+								return ut;
+							if (lhs.get<double>() < 0 && (fabs(rhs.get<double>()) < 1 && fabs(rhs.get<double>()) > 0)) {
 								// the result is complex
 								// we do not support this (for now)
-								return utree(utree_type::invalid_type);
+								return ut;
 							}
 							res += pow(lhs.get<double>(), rhs.get<double>());
 						}
 					}
 					else if (op == "LN") {
-						if (lhs.which() != utree_type::double_type) return utree(utree_type::invalid_type);
-						if (lhs > 0) {
+						if (!((lhs.which() == utree_type::double_type) || lhs.which() == utree_type::int_type)) return ut;
+						if (lhs.get<double>() > 0) {
 							res += log(lhs.get<double>());
 						}
 						else {
 							// outside the domain of ln
-							return utree(utree_type::invalid_type);
+							return ut;
 						}
 					}
 					else if (op == "EXP") {
-						if (lhs.which() != utree_type::double_type) return utree(utree_type::invalid_type);
+						if (!((lhs.which() == utree_type::double_type) || lhs.which() == utree_type::int_type)) return ut;
 						res += exp(lhs.get<double>());
 					}
-					else return utree(utree_type::invalid_type);
-					//std::cout << "LHS: " << lhs << std::endl;
-					//std::cout << "RHS: " << rhs << std::endl;
-					lhs = rhs = 0;
+					else return ut;
 					op.erase();
 				}
 				++it;
 			}
-			if (!is_allowed_value<double>(res)) return utree(utree_type::invalid_type);
-			//std::cout << "process_utree " << ut << " = " << res << std::endl;
+			if (!is_allowed_value<double>(res)) return ut;
 			return utree(res);
 			//std::cout << ") ";
 			break;
@@ -407,24 +446,24 @@ boost::spirit::utree const process_utree(boost::spirit::utree const& ut) {
 			break;
 		}
 		case utree_type::string_type: {
-			return utree(utree_type::invalid_type);
+			return ut;
 		}
 		case utree_type::double_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				return utree(utree_type::invalid_type);
+				return ut;
 			}
-			return retval;
+			return utree(retval);
 		}
 		case utree_type::int_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				return utree(utree_type::invalid_type);
+				return ut;
 			}
-			return retval;
+			return utree(retval);
 		}
 	}
-	return utree(utree_type::invalid_type);
+	return ut;
 }
 
 // TODO: transitional code for backwards compatibility
