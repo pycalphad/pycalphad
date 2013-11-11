@@ -192,7 +192,6 @@ boost::spirit::utree const process_utree(
 					else if (op == "*") res += (lhs * rhs); 
 					else if (op == "/") { 
 						if (rhs == 0) {
-							return utree();
 							BOOST_THROW_EXCEPTION(divide_by_zero_error() << ast_errinfo(ut));
 						}
 						else res += (lhs / rhs);
@@ -211,7 +210,6 @@ boost::spirit::utree const process_utree(
 						}
 						else {
 							// outside the domain of ln
-							return utree();
 							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined") << ast_errinfo(ut));
 						}
 					}
