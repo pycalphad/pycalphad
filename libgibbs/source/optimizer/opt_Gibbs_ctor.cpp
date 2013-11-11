@@ -153,7 +153,7 @@ GibbsOpt::GibbsOpt(
 
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		first_derivatives[i->second] = differentiate_utree(master_tree, i->first);
+		first_derivatives[i->second] = simplify_utree(differentiate_utree(master_tree, i->first));
 		BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
 	}
 
@@ -163,17 +163,17 @@ GibbsOpt::GibbsOpt(
 		for (auto j = cm.begin(); j != cm.end(); ++j) {
 			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
 			boost::spirit::utree rhs = differentiate_utree(j->rhs, i->first);
-			boost::spirit::utree lhstest = simplify_utree(lhs);
-			boost::spirit::utree rhstest = simplify_utree(rhs);
+			lhs = simplify_utree(lhs);
+			rhs = simplify_utree(rhs);
 			if (
-					(lhstest.which() == boost::spirit::utree_type::double_type || lhstest.which() == boost::spirit::utree_type::int_type)
+					(lhs.which() == boost::spirit::utree_type::double_type || lhs.which() == boost::spirit::utree_type::int_type)
 					&&
-					(rhstest.which() == boost::spirit::utree_type::double_type || rhstest.which() == boost::spirit::utree_type::int_type)
+					(rhs.which() == boost::spirit::utree_type::double_type || rhs.which() == boost::spirit::utree_type::int_type)
 			)
 			{
 				double lhsget, rhsget;
-				lhsget = lhstest.get<double>();
-				rhsget = rhstest.get<double>();
+				lhsget = lhs.get<double>();
+				rhsget = rhs.get<double>();
 				if (lhsget == rhsget) continue; // don't add zeros to the Jacobian
 			}
 			boost::spirit::utree subtract_tree;
@@ -194,11 +194,11 @@ GibbsOpt::GibbsOpt(
 			// second derivative of obj function w.r.t i,j
 			if (i->second > j->second) continue; // skip upper triangular
 			boost::spirit::utree obj_second_deriv = differentiate_utree(first_derivatives[i->second], j->first);
-			boost::spirit::utree test_tree = simplify_utree(obj_second_deriv);
+			obj_second_deriv = simplify_utree(obj_second_deriv);
 			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
 			// TODO: this misses some of the zeros
-			if (is_zero_tree(test_tree)) continue;
+			if (is_zero_tree(obj_second_deriv)) continue;
 
 			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->second));
 			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->second));
@@ -218,10 +218,10 @@ GibbsOpt::GibbsOpt(
 			if (i->second > j->var_index) continue; // skip upper triangular
 			// second derivative of constraint jac_g_trees->cons_index w.r.t jac_g_trees->var_index, i->second
 			boost::spirit::utree cons_second_deriv = differentiate_utree(j->ast, i->first);
-			boost::spirit::utree test_tree = simplify_utree(cons_second_deriv);
+			cons_second_deriv = simplify_utree(cons_second_deriv);
 			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
-			if (test_tree.which() == boost::spirit::utree_type::double_type && test_tree.get<double>() == 0) continue;
+			if (is_zero_tree(cons_second_deriv)) continue;
 
 			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->var_index));
 			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->var_index));
