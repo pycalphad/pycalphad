@@ -198,7 +198,7 @@ std::string Equilibrium::print() const {
     }
     const auto glob_begin = global_comp.cbegin();
     const auto glob_end = global_comp.cend();
-    stream << "Component\tMoles\tW-Fraction\tActivity\tPotential\tRef.state" << std::endl;
+    stream << "Component\tMoles\tM-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     for (auto h = glob_begin; h != glob_end; ++h) {
     	double molefrac = h->second.first / h->second.second;
     	stream << h->first << "\t" <<  molefrac * N << "\t????\t????\t" << "??" << "\tSER" << std::endl;
