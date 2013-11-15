@@ -101,6 +101,7 @@ GibbsOpt::GibbsOpt(
 		else master_tree.swap(phase_ast);
 
 	}
+	master_tree = simplify_utree(master_tree);
 	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
 
 
@@ -194,7 +195,7 @@ GibbsOpt::GibbsOpt(
 			// second derivative of obj function w.r.t i,j
 			if (i->second > j->second) continue; // skip upper triangular
 			boost::spirit::utree obj_second_deriv = differentiate_utree(first_derivatives[i->second], j->first);
-			obj_second_deriv = simplify_utree(obj_second_deriv);
+			//obj_second_deriv = simplify_utree(obj_second_deriv);
 			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
 			// TODO: this misses some of the zeros
@@ -218,7 +219,7 @@ GibbsOpt::GibbsOpt(
 			if (i->second > j->var_index) continue; // skip upper triangular
 			// second derivative of constraint jac_g_trees->cons_index w.r.t jac_g_trees->var_index, i->second
 			boost::spirit::utree cons_second_deriv = differentiate_utree(j->ast, i->first);
-			cons_second_deriv = simplify_utree(cons_second_deriv);
+			//cons_second_deriv = simplify_utree(cons_second_deriv);
 			hessian_set::iterator h_iter, h_end;
 			// don't add zeros to the Hessian
 			if (is_zero_tree(cons_second_deriv)) continue;
