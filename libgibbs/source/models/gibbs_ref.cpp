@@ -124,7 +124,7 @@ utree EnergyModel::permute_site_fractions (
 		const std::string varname = (*i)->name();
 		current_product.push_back(utree(varname));
 
-		utree recursive_term = permute_site_fractions(total_view, temp_view, param_view, sublindex+1, param_division_factor);
+		utree recursive_term = simplify_utree(permute_site_fractions(total_view, temp_view, param_view, sublindex+1, param_division_factor));
 		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
 

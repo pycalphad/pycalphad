@@ -145,7 +145,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 			interact_product.push_back("*");
 			// interacting species multiplication
 			interact_product.push_back(utree((*j)->name()));
-			interact_recursive_term = permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1, param_division_factor);
+			interact_recursive_term = simplify_utree(permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1, param_division_factor));
 
 			if (is_zero_tree(interact_recursive_term)) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
