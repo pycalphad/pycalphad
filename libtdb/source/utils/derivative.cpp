@@ -54,22 +54,44 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 					boost::algorithm::to_upper(op);
 
 					if (op == "@") {
-						ret_tree.push_back("@");
-						++it;
-						ret_tree.push_back(*it); // curT
-						++it;
-						ret_tree.push_back(*it); // lowlimit
-						++it;
-						ret_tree.push_back(*it); // highlimit
-						++it;
+						if (it != end) ++it;
+						auto curT = it;
+						if (it != end) ++it;
+						auto lowlimit = it; // lowlimit
+						if (it != end) ++it;
+						auto highlimit = it; // highlimit
+						if (it != end) ++it;
 						utree push_tree = simplify_utree(differentiate_utree(*it, diffvar));
-						ret_tree.push_back(push_tree); // abstract syntax tree (AST)
-						++it;
-						//if (is_zero_tree(push_tree) && it == end) return utree(0);
-						//if (is_zero_tree(push_tree) && it != end) continue;
-
-						if (it == end) return ret_tree;
-						else continue;
+						if (it != end) ++it;
+						if (is_zero_tree(push_tree)) {
+							// this tree is trivial and this range check operation can be removed
+							if (it == end) {
+								if (ret_tree.which() == utree_type::invalid_type) {
+									// all range checks are trivial; simplify to clean zero
+									return utree(0);
+								}
+								else return ret_tree;
+							}
+							else {
+								// this tree is trivial but we have more range checks to evaluate
+								// move on and go back to the top of the loop
+								continue;
+							}
+						}
+						else {
+							// this is a non-trivial tree and must be returned
+							ret_tree.push_back("@");
+							ret_tree.push_back(*curT);
+							ret_tree.push_back(*lowlimit);
+							ret_tree.push_back(*highlimit);
+							ret_tree.push_back(push_tree);
+							if (it == end) {
+								return ret_tree;
+							}
+							else {
+								continue;
+							}
+						}
 					}
 
 					++it; // get left-hand side
@@ -286,6 +308,6 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 			else return utree(0);
 		}
 	}
-	std::cout << "invalid differentiation: " << ut << std::endl;
+	BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to differentiate abstract syntax tree") << ast_errinfo(ut));
 	return utree();
 }
