@@ -52,9 +52,11 @@ boost::spirit::utree const process_utree(
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::nil_type: {
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::list_type: {
@@ -234,6 +236,7 @@ boost::spirit::utree const process_utree(
 			break;
 		}
 		case utree_type::function_type: {
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::double_type: {
@@ -280,6 +283,7 @@ boost::spirit::utree const process_utree(
 			break;
 		}
 	}
+	BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << ast_errinfo(ut));
 	return utree();
 }
 
@@ -289,11 +293,11 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
 	switch ( ut.which() ) {
 		case utree_type::invalid_type: {
-			return ut;
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to simplify abstract syntax tree") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::nil_type: {
-			return ut;
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to simplify abstract syntax tree") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::list_type: {
@@ -301,6 +305,7 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 			auto end = ut.end();
 			double res = 0; // storage for the final result
 			std::string op;
+			utree ret_tree;
 			//std::cout << "<list>(";
 			while (it != end) {
 				if ((*it).which() == utree_type::double_type && std::distance(it,end) == 1) {
@@ -308,7 +313,7 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						return ut;
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 					}
 					return retval;
 				}
@@ -317,7 +322,7 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 					// return its value
 					double retval = (*it).get<double>();
 					if (!is_allowed_value<double>(retval)) {
-						return ut;
+						BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 					}
 					return retval;
 				}
@@ -329,18 +334,47 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 					boost::algorithm::to_upper(op);
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
-						if (it != end) ++it; // curT
-						if (it != end) ++it; // lowlimit
-						if (it != end) ++it; // highlimit
-						if (it != end) ++it; // tree
-						if (it != end) {
-							// this should be the range-specific tree
-							// if it's a trivial zero, we should discard this operation
-							//bool checkzero = is_zero_tree(simplify_utree(*it));
-							//if (checkzero && it == end) return utree(0);
-							//if (checkzero && it != end) continue;
+						utree::const_iterator curT, lowlimit, highlimit;
+						utree tree;
+						if (it != end) ++it;
+						curT = it; // curT
+						if (it != end) ++it;
+						lowlimit = it; // lowlimit
+						if (it != end) ++it;
+						highlimit = it; // highlimit
+						if (it != end) ++it;
+						tree = simplify_utree(*it); // tree
+						if (it != end) ++it;
+						if (is_zero_tree(tree)) {
+							// this tree is trivial and this range check operation can be removed
+							if (it == end) {
+								if (ret_tree.which() == utree_type::invalid_type) {
+									// all range checks are trivial; simplify to clean zero
+									return utree(0);
+								}
+								else return ret_tree;
+							}
+							else {
+								// this tree is trivial but we have more range checks to evaluate
+								// move on and go back to the top of the loop
+								continue;
+							}
 						}
-						return ut;
+						else {
+							// this is a non-trivial tree and must be returned
+							//if (it == end && ret_tree.which() == utree_type::invalid_type) return ut;
+							ret_tree.push_back("@");
+							ret_tree.push_back(*curT);
+							ret_tree.push_back(*lowlimit);
+							ret_tree.push_back(*highlimit);
+							ret_tree.push_back(tree);
+							if (it == end) {
+								return ret_tree;
+							}
+							else {
+								continue;
+							}
+						}
 					}
 					++it; // get left-hand side
 					// TODO: exception handling
@@ -395,12 +429,12 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 								return ut;
 						}
 						if (is_zero_tree(rhs)) {
-							return ut;
+							BOOST_THROW_EXCEPTION(divide_by_zero_error() << ast_errinfo(ut));
 						}
 						else res += (lhs.get<double>() / rhs.get<double>());
 					}
 					else if (op == "**") {
-						if (is_zero_tree(rhs))
+						if (is_zero_tree(rhs) && !is_zero_tree(lhs))
 							res += 1;
 						else {
 							if ((!(lhs.which() == utree_type::double_type || lhs.which() == utree_type::int_type))
@@ -411,7 +445,7 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 							if (lhs.get<double>() < 0 && (fabs(rhs.get<double>()) < 1 && fabs(rhs.get<double>()) > 0)) {
 								// the result is complex
 								// we do not support this (for now)
-								return ut;
+								BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Calculated values are not real") << ast_errinfo(ut));
 							}
 							res += pow(lhs.get<double>(), rhs.get<double>());
 						}
@@ -423,24 +457,25 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 						}
 						else {
 							// outside the domain of ln
-							return ut;
+							BOOST_THROW_EXCEPTION(domain_error() << str_errinfo("Logarithm of nonpositive number is not defined") << ast_errinfo(ut));
 						}
 					}
 					else if (op == "EXP") {
 						if (!((lhs.which() == utree_type::double_type) || lhs.which() == utree_type::int_type)) return ut;
 						res += exp(lhs.get<double>());
 					}
-					else return ut;
+					else BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unknown operator or state variable") << specific_errinfo(op) << ast_errinfo(ut));;
 					op.erase();
 				}
 				++it;
 			}
-			if (!is_allowed_value<double>(res)) return ut;
+			if (!is_allowed_value<double>(res)) BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			return utree(res);
 			//std::cout << ") ";
 			break;
 		}
 		case utree_type::function_type: {
+			BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to simplify abstract syntax tree") << ast_errinfo(ut));
 			break;
 		}
 		case utree_type::string_type: {
@@ -449,18 +484,19 @@ boost::spirit::utree const simplify_utree(boost::spirit::utree const& ut) {
 		case utree_type::double_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				return ut;
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			}
 			return utree(retval);
 		}
 		case utree_type::int_type: {
 			double retval = ut.get<double>();
 			if (!is_allowed_value<double>(retval)) {
-				return ut;
+				BOOST_THROW_EXCEPTION(floating_point_error() << str_errinfo("Calculated value is infinite, subnormal, or not a number") << ast_errinfo(ut));
 			}
 			return utree(retval);
 		}
 	}
+	BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to simplify abstract syntax tree") << ast_errinfo(ut));
 	return ut;
 }
 
