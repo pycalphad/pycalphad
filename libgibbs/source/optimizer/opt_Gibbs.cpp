@@ -60,8 +60,9 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "Completed fixed index optimization check";
 	// Set bounds for constraints
+	if (std::distance(cm.begin(),cm.end()) >= m_num)
+		BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed constraint variable index is out of bounds"));
 	for (auto i = cm.begin(); i != cm.end(); ++i) {
-		if (std::distance(cm.begin(),i) >= m_num) BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed constraint variable index is out of bounds"));
 		if (i->op == ConstraintOperatorType::EQUALITY_CONSTRAINT) {
 			BOOST_LOG_SEV(opto_log, debug) << "Setting bounds for constraint " << std::distance(cm.begin(),i);
 			g_l[std::distance(cm.begin(),i)] = 0;
@@ -123,6 +124,7 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 	// return the value of the objective function
 	//std::cout << "enter process_utree" << std::endl;
 	try {
+		BOOST_LOG_SEV(opto_log, debug) << "trying to evaluate master tree";
 		obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
 	}
 	catch (boost::exception &e) {
