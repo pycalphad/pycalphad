@@ -98,8 +98,8 @@ IHJMagneticModel::IHJMagneticModel(
 			permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_tc, (int)0),
 			"+"
 	);
+	Curie_temperature = simplify_utree(Curie_temperature);
 	std::cout << "Curie_temperature: " << Curie_temperature << std::endl;
-	//Curie_temperature = simplify_utree(Curie_temperature);
 	if (is_zero_tree(Curie_temperature)) {
 		// Transition temperature is always zero, no magnetic contribution
 		model_ast = utree(0);
@@ -120,7 +120,7 @@ IHJMagneticModel::IHJMagneticModel(
 				permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview_bm, (int)0),
 				"+"
 		);
-	//mean_magnetic_moment = simplify_utree(mean_magnetic_moment);
+	mean_magnetic_moment = simplify_utree(mean_magnetic_moment);
 	if (is_zero_tree(mean_magnetic_moment)) {
 		// Mean magnetic moment is always zero, no magnetic contribution
 		model_ast = utree(0);
