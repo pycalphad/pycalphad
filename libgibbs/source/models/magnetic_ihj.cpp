@@ -47,6 +47,7 @@ utree a_o (const utree &root_tree, const std::string &op) {
 
 utree max_magnetic_entropy(const utree &beta);
 utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &afm_factor);
+utree get_afm_factor(const utree &tree, const double &afm_factor);
 
 IHJMagneticModel::IHJMagneticModel(
 		const std::string &phasename,
@@ -126,6 +127,10 @@ IHJMagneticModel::IHJMagneticModel(
 		model_ast = utree(0);
 		return;
 	}
+	else {
+		// Apply AFM factor
+		mean_magnetic_moment = a_o(get_afm_factor(mean_magnetic_moment, afm_factor), mean_magnetic_moment, "*");
+	}
 
 	model_ast = a_o("T", max_magnetic_entropy(mean_magnetic_moment), "*");
 	model_ast = a_o(model_ast, magnetic_polynomial(Curie_temperature, sro_enthalpy_order_fraction, afm_factor), "*");
@@ -139,21 +144,11 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &a
 	double A = (518.0/1125.0) + ((11692.0/15975.0)*((1.0/p) - 1.0));
 	double B = 79.0/(140*p);
 	double C = (474.0/497.0)*((1.0/p)-1.0);
-	utree ret_tree, tau, subcritical_tree, afm_factor_tree, supercritical_tree;
+	utree ret_tree, tau, subcritical_tree, supercritical_tree;
 
 	tau = a_o("T", tc_tree, "/");
 	// If tau < 0, apply the anti-ferromagnetic (AFM) factor
-	afm_factor_tree.push_back("@");
-	afm_factor_tree.push_back(tau);
-	afm_factor_tree.push_back(-std::numeric_limits<double>::max());
-	afm_factor_tree.push_back(0);
-	afm_factor_tree.push_back(1.0/afm_factor);
-	afm_factor_tree.push_back("@");
-	afm_factor_tree.push_back(tau);
-	afm_factor_tree.push_back(0);
-	afm_factor_tree.push_back(std::numeric_limits<double>::max());
-	afm_factor_tree.push_back(1);
-	tau = a_o(afm_factor_tree, tau, "*");
+	tau = a_o(get_afm_factor(tau, afm_factor), tau, "*");
 
 	// TODO: This is a mess. Using the utree visitation interface might make this better.
 
@@ -197,4 +192,20 @@ utree max_magnetic_entropy(const utree &beta) {
 	ret_tree = a_o(SI_GAS_CONSTANT, a_o(a_o(beta, 1.0, "+"), "LN"), "*"); // R*ln(beta + 1)
 
 	return ret_tree;
+}
+
+// Calculate the anti-ferromagnetic (AFM) factor
+utree get_afm_factor(const utree &tree, const double &afm_factor) {
+	utree afm_factor_tree;
+	afm_factor_tree.push_back("@");
+	afm_factor_tree.push_back(tree);
+	afm_factor_tree.push_back(-std::numeric_limits<double>::max());
+	afm_factor_tree.push_back(0);
+	afm_factor_tree.push_back(1.0/afm_factor);
+	afm_factor_tree.push_back("@");
+	afm_factor_tree.push_back(tree);
+	afm_factor_tree.push_back(0);
+	afm_factor_tree.push_back(std::numeric_limits<double>::max());
+	afm_factor_tree.push_back(1);
+	return afm_factor_tree;
 }
