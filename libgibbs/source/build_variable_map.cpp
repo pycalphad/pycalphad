@@ -33,7 +33,7 @@ sublattice_set build_variable_map(
 		const evalconditions &conditions,
 		std::map<std::string, int> &indices
 		) {
-	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
+	logger opt_log(journal::keywords::channel = "optimizer");
 	sublattice_set ret_set;
 
 	int indexcount = 0; // counter for variable indices (for optimizer)
