@@ -149,7 +149,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 			if (is_zero_tree(interact_recursive_term)) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
-			std::cout << "interact_recursive_term: " << interact_recursive_term << std::endl;
 
 			// We only get here for non-zero terms
 
@@ -170,7 +169,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
-		std::cout << "recursive_term: " << recursive_term << std::endl;
 
 		// we only get here for non-zero terms
 		current_product.push_back(recursive_term);
@@ -186,6 +184,5 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 	}
 
 	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
-	std::cout << "excess returning: " << ret_tree << std::endl;
 	return ret_tree;
 }
