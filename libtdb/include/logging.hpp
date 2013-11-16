@@ -21,6 +21,9 @@
 #include <boost/log/sinks/sync_frontend.hpp>
 #include <boost/log/sinks/text_file_backend.hpp>
 #include <boost/log/sinks/text_ostream_backend.hpp>
+#include <boost/log/sources/channel_feature.hpp>
+#include <boost/log/sources/channel_logger.hpp>
+#include <boost/log/sources/global_logger_storage.hpp>
 #include <boost/log/sources/severity_channel_logger.hpp>
 #include <boost/log/sources/record_ostream.hpp>
 #include <boost/log/support/date_time.hpp>
@@ -49,6 +52,6 @@ enum severity_level
 
 void init_logging();
 
-typedef journal::src::severity_channel_logger<severity_level,std::string> logger;
+typedef journal::src::severity_channel_logger_mt<severity_level,std::string> logger;
 
 #endif
