@@ -164,22 +164,10 @@ boost::spirit::utree const process_utree(
 					}
 					++it; // get left-hand side
 					auto lhsiter = it;
-					bool lhsset, rhsset = false;
-					if (it != end) {
-						try {
-							lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
-							lhsset = true;
-							if (it != end) {
-								++it; // get right-hand side
-								rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
-								rhsset = true;
-							}
-						}
-						catch (boost::exception &e) {
-							//e << ast_errinfo(*it);
-							throw;
-						}
-					}
+					++it; // get right-hand side
+					auto rhsiter = it;
+					if (lhsiter != end) lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
+					if (rhsiter != end) rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
 
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
