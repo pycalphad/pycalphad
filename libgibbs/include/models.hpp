@@ -13,7 +13,6 @@
 #ifndef INCLUDED_MODELS_HPP
 #define INCLUDED_MODELS_HPP
 
-#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include <string>
 #include <sstream>
 #include <boost/spirit/include/support_utree.hpp>
