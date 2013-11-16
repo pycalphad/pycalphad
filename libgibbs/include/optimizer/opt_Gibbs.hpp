@@ -13,6 +13,7 @@
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/utils/math_expr.hpp"
+#include "libtdb/include/logging.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/constraint.hpp"
@@ -25,6 +26,7 @@ using namespace Ipopt;
 typedef std::map<std::string, int> index_table; // matches variable names to Ipopt indices
 
 class GibbsOpt : public TNLP {
+	mutable logger opto_log;
 public:
 	GibbsOpt(
 		const Database &DB,

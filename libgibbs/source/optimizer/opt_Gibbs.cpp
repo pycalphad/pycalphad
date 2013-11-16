@@ -18,48 +18,57 @@
 using namespace Ipopt;
 
 bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
-                         Index& nnz_h_lag, IndexStyleEnum& index_style)
+		Index& nnz_h_lag, IndexStyleEnum& index_style)
 {
-  // number of variables
-  n = main_indices.size();
-  // number of constraints
-  m = std::distance(cm.begin(),cm.end());
-  // number of nonzeros in Jacobian of constraints
-  nnz_jac_g = jac_g_trees.size();
-  // number of nonzeros in the Hessian
-  nnz_h_lag = hessian_data.size();
-  // indices start at 0
-  index_style = C_STYLE;
-  return true;
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::get_nlp_info");
+	BOOST_LOG_SEV(opto_log, debug) << "entering get_nlp_info";
+	// number of variables
+	n = main_indices.size();
+	BOOST_LOG_SEV(opto_log, debug) << "Number of variables: " << n;
+	// number of constraints
+	m = std::distance(cm.begin(),cm.end());
+	BOOST_LOG_SEV(opto_log, debug) << "Number of constraints: " << m;
+	// number of nonzeros in Jacobian of constraints
+	nnz_jac_g = jac_g_trees.size();
+	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Jacobian of constraints: " << nnz_jac_g;
+	// number of nonzeros in the Hessian
+	nnz_h_lag = hessian_data.size();
+	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Hessian: " << nnz_h_lag;
+	// indices start at 0
+	index_style = C_STYLE;
+	BOOST_LOG_SEV(opto_log, debug) << "exiting get_nlp_info";
+	return true;
 }
 
 bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
                             Index m_num, Number* g_l, Number* g_u)
 {
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::get_bounds_info");
+	BOOST_LOG_SEV(opto_log, debug) << "entering get_bounds_info";
 	for (Index i = 0; i < n; ++i) {
+		BOOST_LOG_SEV(opto_log, debug) << "Setting main variable bounds for x = " << i;
 		x_l[i] = 0;
 		x_u[i] = 1;
 	}
+	BOOST_LOG_SEV(opto_log, debug) << "All main variable bounds set";
 
-	Index cons_index = 0;
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	auto sitefrac_end = var_map.sitefrac_iters.end();
-	if (std::distance(sitefrac_begin, sitefrac_end) == 1) {
-		// single phase optimization, fix the value of the phase fraction at 1
-		x_l[0] = x_u[0] = 1;
-	}
 	for (auto i = fixed_indices.begin(); i != fixed_indices.end(); ++i) {
-		x_l[*i] = x_u[*i] = 1;
+		if (*i >= n) BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed variable index is out of bounds"));
+		BOOST_LOG_SEV(opto_log, debug) << "Fixing x[" << *i << "] = 1";
+		x_l[*i] = 1;
+		x_u[*i] = 1;
 	}
-
+	BOOST_LOG_SEV(opto_log, debug) << "Completed fixed index optimization check";
 	// Set bounds for constraints
 	for (auto i = cm.begin(); i != cm.end(); ++i) {
+		if (std::distance(cm.begin(),i) >= m_num) BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed constraint variable index is out of bounds"));
 		if (i->op == ConstraintOperatorType::EQUALITY_CONSTRAINT) {
+			BOOST_LOG_SEV(opto_log, debug) << "Setting bounds for constraint " << std::distance(cm.begin(),i);
 			g_l[std::distance(cm.begin(),i)] = 0;
 			g_u[std::distance(cm.begin(),i)] = 0;
 		}
 	}
-
+	BOOST_LOG_SEV(opto_log, debug) << "exiting get_bounds_info";
 	return true;
 }
 
@@ -68,6 +77,8 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 	Index m, bool init_lambda,
 	Number* lambda)
 {
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::get_starting_point");
+	BOOST_LOG_SEV(opto_log, debug) << "entering get_starting_point";
 	const double numphases = var_map.phasefrac_iters.size();
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	double result = 0;
@@ -101,16 +112,18 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 		}
 	}
 	assert(varcount == m);
+	BOOST_LOG_SEV(opto_log, debug) << "exiting get_starting_point";
 	return true;
 }
 
 bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 {
-	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_f");
+	BOOST_LOG_SEV(opto_log, debug) << "entering eval_f";
 	// return the value of the objective function
 	//std::cout << "enter process_utree" << std::endl;
 	try {
-	obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
+		obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
 	}
 	catch (boost::exception &e) {
 		std::string specific_info, err_msg; // error message strings
@@ -120,26 +133,26 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 			err_msg = *mi;
 		}
-		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
-		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
-		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
 		throw;
 	}
-	//std::cout << "exit process_utree" << std::endl;
-	//std::cout << "eval_f: " << obj_value << " (new) == " << result << std::endl;
+	BOOST_LOG_SEV(opto_log, debug) << "exiting eval_f";
 	return true;
 }
 
 bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
-	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_grad_f");
+	BOOST_LOG_SEV(opto_log, debug) << "entering eval_grad_f";
 	// return the gradient of the objective function grad_{x} f(x)
 	// calculate dF/dy(l,s,j)
 	//std::cout << "eval_grad_f entered" << std::endl;
 	try {
-	for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
-		grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
-	}
+		for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
+			grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
+		}
 	}
 	catch (boost::exception &e) {
 		std::string specific_info, err_msg; // error message strings
@@ -149,33 +162,32 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 			err_msg = *mi;
 		}
-		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
-		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
-		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
 		throw;
 	}
-
-	//std::cout << "eval_grad_f exit" << std::endl;
+	BOOST_LOG_SEV(opto_log, debug) << "exiting eval_grad_f";
 	return true;
 }
 
 bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number* g)
 {
-	logger opt_log(journal::keywords::channel = "optimizer");
-	BOOST_LOG_SEV(opt_log, debug) << "entering eval_g";
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_g");
+	BOOST_LOG_SEV(opto_log, debug) << "entering eval_g";
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.begin();
 	const auto cons_end = cm.end();
 	try {
 		for (auto i = cons_begin; i != cons_end; ++i) {
 			// Calculate left-hand side and right-hand side of all constraints
-			//BOOST_LOG_SEV(opt_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
-			//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
-			//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
+			//BOOST_LOG_SEV(opto_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
+			//BOOST_LOG_SEV(opto_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
+			//BOOST_LOG_SEV(opto_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
 			double lhs = process_utree(i->lhs, conditions, main_indices, (double*)x).get<double>();
-			//BOOST_LOG_SEV(opt_log, debug) << i->name << " LHS: " << lhs << std::endl;
+			//BOOST_LOG_SEV(opto_log, debug) << i->name << " LHS: " << lhs << std::endl;
 			double rhs = process_utree(i->rhs, conditions, main_indices, (double*)x).get<double>();
-			//BOOST_LOG_SEV(opt_log, debug) << i->name << " RHS: " << rhs << std::endl;
+			//BOOST_LOG_SEV(opto_log, debug) << i->name << " RHS: " << rhs << std::endl;
 			g[std::distance(cons_begin,i)] = lhs - rhs;
 		}
 	}
@@ -187,13 +199,13 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 		if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 			err_msg = *mi;
 		}
-		BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
-		BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
-		BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+		BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
+		BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
+		BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
 		throw;
 	}
 
-	BOOST_LOG_SEV(opt_log, debug) << "exiting eval_g";
+	BOOST_LOG_SEV(opto_log, debug) << "exiting eval_g";
   return true;
 }
 
@@ -202,15 +214,15 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	Number* values)
 {
 	Index jac_index = 0;
-	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_jac_g");
 	if (values == NULL) {
-		BOOST_LOG_SEV(opt_log, debug) << "entering eval_jac_g values == NULL";
+		BOOST_LOG_SEV(opto_log, debug) << "entering eval_jac_g values == NULL";
 		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
 			iRow[jac_index] = i->cons_index;
 			jCol[jac_index] = i->var_index;
 			++jac_index;
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g without values";
+		BOOST_LOG_SEV(opto_log, debug) << "exit eval_jac_g without values";
 	}
 	else {
 		try {
@@ -226,12 +238,12 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 			if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 				err_msg = *mi;
 			}
-			BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
-			BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
-			BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+			BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
+			BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
+			BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
 			throw;
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_jac_g with values";
+		BOOST_LOG_SEV(opto_log, debug) << "exit eval_jac_g with values";
 	}
 	return true;
 }
@@ -242,10 +254,10 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
                    Index* jCol, Number* values)
 {
 	Index h_idx = 0;
-	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_h");
 
 	if (values == NULL) {
-		BOOST_LOG_SEV(opt_log, debug) << "enter eval_h without values";
+		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h without values";
 		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
 			int varindex1 = i->var_index1;
 			int varindex2 = i->var_index2;
@@ -253,17 +265,17 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 			jCol[h_idx] = varindex2;
 			++h_idx;
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_h without values";
+		BOOST_LOG_SEV(opto_log, debug) << "exit eval_h without values";
 	}
 	else {
-		BOOST_LOG_SEV(opt_log, debug) << "enter eval_h with values";
+		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h with values";
 		try {
 			for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
 				int varindex1 = i->var_index1;
 				int varindex2 = i->var_index2;
 				values[h_idx] = 0; // initialize
 				for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
-					BOOST_LOG_SEV(opt_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
+					BOOST_LOG_SEV(opto_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
 					boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
 					if (j->first == -1) {
 						// objective portion
@@ -285,12 +297,12 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 			if (std::string const * mi = boost::get_error_info<str_errinfo>(e) ) {
 				err_msg = *mi;
 			}
-			BOOST_LOG_SEV(opt_log, critical) << "Exception: " << err_msg;
-			BOOST_LOG_SEV(opt_log, critical) << "Reason: " << specific_info;
-			BOOST_LOG_SEV(opt_log, critical) << boost::diagnostic_information(e);
+			BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
+			BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
+			BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
 			throw;
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "exit eval_h with values";
+		BOOST_LOG_SEV(opto_log, debug) << "exit eval_h with values";
 	}
 	return true;
 }

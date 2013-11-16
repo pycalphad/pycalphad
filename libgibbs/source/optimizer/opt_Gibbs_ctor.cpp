@@ -31,9 +31,9 @@ GibbsOpt::GibbsOpt(
 			phase_end(DB.get_phase_iterator_end())
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::GibbsOpt");
+	BOOST_LOG_CHANNEL_SEV(opto_log, "optimizer", debug) << "enter ctor";
 	int varcount = 0;
 	int activephases = 0;
-	logger opt_log(journal::keywords::channel = "optimizer");
 
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
@@ -45,14 +45,14 @@ GibbsOpt::GibbsOpt(
 
 	phase_iter = phase_col.cbegin();
 	phase_end = phase_col.cend();
-	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opt_log, critical) << "Missing element conditions!";
-	if (phase_iter == phase_end) BOOST_LOG_SEV(opt_log, critical) << "No phases found!";
+	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opto_log, critical) << "Missing element conditions!";
+	if (phase_iter == phase_end) BOOST_LOG_SEV(opto_log, critical) << "No phases found!";
 
 	// build_variable_map() will fill main_indices
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
 
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		BOOST_LOG_SEV(opt_log, debug) << "Variable " << i->second << ": " << i->first;
+		BOOST_LOG_SEV(opto_log, debug) << "Variable " << i->second << ": " << i->first;
 	}
 
 	// load the parameters from the database
@@ -63,21 +63,21 @@ GibbsOpt::GibbsOpt(
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic_afm_factor: " << i->second.magnetic_afm_factor;
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_afm_factor: " << i->second.magnetic_afm_factor;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
 		boost::spirit::utree phase_ast;
 		boost::spirit::utree temptree;
 		// build an AST for the given phase
 		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " ref " << std::endl << curphaseref << std::endl;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " ref " << std::endl << curphaseref << std::endl;
 		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " idmix " << std::endl << idealmix << std::endl;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " idmix " << std::endl << idealmix << std::endl;
 		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " excess " << std::endl << redlichkister << std::endl;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " excess " << std::endl << redlichkister << std::endl;
 		boost::spirit::utree magnetism =
 				IHJMagneticModel(i->first, main_ss, pset,
 						i->second.magnetic_afm_factor, i->second.magnetic_sro_enthalpy_order_fraction).get_ast();
-		BOOST_LOG_SEV(opt_log, debug) << i->first << " magnetic " << std::endl << magnetism << std::endl;
+		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic " << std::endl << magnetism << std::endl;
 
 		// sum the contributions
 		phase_ast = idealmix;
@@ -102,7 +102,7 @@ GibbsOpt::GibbsOpt(
 
 	}
 	master_tree = simplify_utree(master_tree);
-	BOOST_LOG_SEV(opt_log, debug) << "master_tree: " << master_tree << std::endl;
+	BOOST_LOG_SEV(opto_log, debug) << "master_tree: " << master_tree << std::endl;
 
 
 	// Add the mandatory constraints to the ConstraintManager
@@ -112,6 +112,12 @@ GibbsOpt::GibbsOpt(
 						phase_iter, phase_end
 					)
 				); // Add the mass balance constraint to ConstraintManager (mandatory)
+	if (activephases == 1) {
+		// If only one phase is present, fix its corresponding variable index
+		std::stringstream ss;
+		ss << (phase_col.begin())->first << "_FRAC";
+		fixed_indices.push_back(main_indices[ss.str()]);
+	}
 
 	// Add the sublattice site fraction constraints (mandatory)
 	for (auto i = phase_iter; i != phase_end; ++i) {
@@ -148,14 +154,14 @@ GibbsOpt::GibbsOpt(
 		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
 	}
 	for (auto i = cm.begin() ; i != cm.end(); ++i) {
-		BOOST_LOG_SEV(opt_log, debug) << "Constraint " << i->name << " LHS: " << i->lhs;
-		BOOST_LOG_SEV(opt_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
+		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " LHS: " << i->lhs;
+		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
 	}
 
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
 		first_derivatives[i->second] = simplify_utree(differentiate_utree(master_tree, i->first));
-		BOOST_LOG_SEV(opt_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
+		BOOST_LOG_SEV(opto_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
 	}
 
 	// Calculate first derivative ASTs of all constraints
@@ -184,7 +190,7 @@ GibbsOpt::GibbsOpt(
 			int var_index = i->second;
 			int cons_index = std::distance(cm.begin(),j);
 			jac_g_trees.push_back(jacobian_entry(cons_index,var_index,false,subtract_tree));
-			BOOST_LOG_SEV(opt_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
+			BOOST_LOG_SEV(opto_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
 	}
 
@@ -209,7 +215,7 @@ GibbsOpt::GibbsOpt(
 			h_entry.asts[-1] = obj_second_deriv; // set AST for objective Hessian
 			hessian_data.replace(h_iter, h_entry); // update original entry
 
-			BOOST_LOG_SEV(opt_log, debug) << "Hessian of objective  ("
+			BOOST_LOG_SEV(opto_log, debug) << "Hessian of objective  ("
 					<< i->second << "," << j->second << ") pre-calculated";
 		}
 
@@ -231,7 +237,7 @@ GibbsOpt::GibbsOpt(
 			hessian_entry h_entry = *h_iter;
 			h_entry.asts[j->cons_index] = cons_second_deriv; // set AST for constraint Hessian
 			hessian_data.replace(h_iter, h_entry); // update original entry
-			BOOST_LOG_SEV(opt_log, debug) << "Hessian of constraint  "
+			BOOST_LOG_SEV(opto_log, debug) << "Hessian of constraint  "
 					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated";
 		}
 	}
@@ -259,7 +265,7 @@ GibbsOpt::GibbsOpt(
 			}
 		}
 	}
-	BOOST_LOG_SEV(opt_log, debug) << "function exit";
+	BOOST_LOG_SEV(opto_log, debug) << "function exit";
 }
 
 GibbsOpt::~GibbsOpt()
