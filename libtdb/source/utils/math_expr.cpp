@@ -163,21 +163,17 @@ boost::spirit::utree const process_utree(
 						}
 					}
 					++it; // get left-hand side
-					// TODO: exception handling
 					auto lhsiter = it;
+					bool lhsset, rhsset = false;
 					if (it != end) {
 						try {
 							lhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
-						}
-						catch (boost::exception &e) {
-							//e << ast_errinfo(*it);
-							throw;
-						}
-					}
-					++it; // get right-hand side
-					if (it != end) {
-						try {
-							rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							lhsset = true;
+							if (it != end) {
+								++it; // get right-hand side
+								rhs = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+								rhsset = true;
+							}
 						}
 						catch (boost::exception &e) {
 							//e << ast_errinfo(*it);
