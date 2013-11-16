@@ -188,13 +188,13 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 						return ret_tree;
 					}
 					else if (op == "**") {
-						if ((*rhsiter).which() == utree_type::int_type) {
+						if ((*rhsiter).which() == utree_type::int_type || (*rhsiter).which() == utree_type::double_type) {
 							// exponent is a constant: power rule
 							// power rule + chain rule
 							// res += rhs * pow(lhs,rhs-1) * lhs_deriv;
 							if (is_zero_tree(*rhsiter)) return utree(0);
 							utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
-							if (rhsiter->get<double>() == 1) return simplify_utree(lhs_deriv);
+							if (rhsiter->get<double>() == 1) return lhs_deriv;
 							if (is_zero_tree(lhs_deriv)) return utree(0);
 							utree prod_tree, power_tree, exponent_tree;
 
