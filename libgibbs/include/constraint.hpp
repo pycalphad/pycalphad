@@ -74,15 +74,10 @@ class StateVariableConstraint : public Constraint {
 // this object would have add and remove methods for constraints
 // ConstraintManager would be how Equilibrium objects handle constraints
 class ConstraintManager {
-protected:
-	std::vector<Constraint> constraints;
 public:
 	void addConstraint(Constraint cons);
 	void deleteConstraint();
-
-	typedef std::vector<Constraint>::const_iterator ConstraintIterator;
-	ConstraintIterator begin();
-	ConstraintIterator end();
+	std::vector<Constraint> constraints;
 };
 
 

@@ -26,7 +26,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	n = main_indices.size();
 	BOOST_LOG_SEV(opto_log, debug) << "Number of variables: " << n;
 	// number of constraints
-	m = std::distance(cm.begin(),cm.end());
+	m = std::distance(cm.constraints.begin(),cm.constraints.end());
 	BOOST_LOG_SEV(opto_log, debug) << "Number of constraints: " << m;
 	// number of nonzeros in Jacobian of constraints
 	nnz_jac_g = jac_g_trees.size();
@@ -45,6 +45,9 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::get_bounds_info");
 	BOOST_LOG_SEV(opto_log, debug) << "entering get_bounds_info";
+	BOOST_LOG_SEV(opto_log, debug) << "m_num: " << m_num;
+	if (cm.constraints.size() > m_num)
+		BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed constraint variable index is out of bounds"));
 	for (Index i = 0; i < n; ++i) {
 		BOOST_LOG_SEV(opto_log, debug) << "Setting main variable bounds for x = " << i;
 		x_l[i] = 0;
@@ -60,13 +63,11 @@ bool GibbsOpt::get_bounds_info(Index n, Number* x_l, Number* x_u,
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "Completed fixed index optimization check";
 	// Set bounds for constraints
-	if (std::distance(cm.begin(),cm.end()) >= m_num)
-		BOOST_THROW_EXCEPTION(bounds_error() << str_errinfo("Specified fixed constraint variable index is out of bounds"));
-	for (auto i = cm.begin(); i != cm.end(); ++i) {
+	for (auto i = cm.constraints.begin(); i != cm.constraints.end(); ++i) {
 		if (i->op == ConstraintOperatorType::EQUALITY_CONSTRAINT) {
-			BOOST_LOG_SEV(opto_log, debug) << "Setting bounds for constraint " << std::distance(cm.begin(),i);
-			g_l[std::distance(cm.begin(),i)] = 0;
-			g_u[std::distance(cm.begin(),i)] = 0;
+			BOOST_LOG_SEV(opto_log, debug) << "Setting bounds for constraint " << std::distance(cm.constraints.begin(),i);
+			g_l[std::distance(cm.constraints.begin(),i)] = 0;
+			g_u[std::distance(cm.constraints.begin(),i)] = 0;
 		}
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "exiting get_bounds_info";
@@ -122,7 +123,6 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_f");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_f";
 	// return the value of the objective function
-	//std::cout << "enter process_utree" << std::endl;
 	try {
 		BOOST_LOG_SEV(opto_log, debug) << "trying to evaluate master tree";
 		obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
@@ -138,6 +138,10 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 		BOOST_LOG_SEV(opto_log, critical) << "Exception: " << err_msg;
 		BOOST_LOG_SEV(opto_log, critical) << "Reason: " << specific_info;
 		BOOST_LOG_SEV(opto_log, critical) << boost::diagnostic_information(e);
+		throw;
+	}
+	catch (std::exception &e) {
+		BOOST_LOG_SEV(opto_log, critical) << "Exception: " << e.what();
 		throw;
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "exiting eval_f";
@@ -178,8 +182,8 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_g");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_g";
 	// return the value of the constraints: g(x)
-	const auto cons_begin = cm.begin();
-	const auto cons_end = cm.end();
+	const auto cons_begin = cm.constraints.begin();
+	const auto cons_end = cm.constraints.end();
 	try {
 		for (auto i = cons_begin; i != cons_end; ++i) {
 			// Calculate left-hand side and right-hand side of all constraints

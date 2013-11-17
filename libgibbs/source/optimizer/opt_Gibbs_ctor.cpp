@@ -153,7 +153,7 @@ GibbsOpt::GibbsOpt(
 	for (auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i) {
 		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
 	}
-	for (auto i = cm.begin() ; i != cm.end(); ++i) {
+	for (auto i = cm.constraints.begin() ; i != cm.constraints.end(); ++i) {
 		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " LHS: " << i->lhs;
 		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
 	}
@@ -167,7 +167,7 @@ GibbsOpt::GibbsOpt(
 	// Calculate first derivative ASTs of all constraints
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
-		for (auto j = cm.begin(); j != cm.end(); ++j) {
+		for (auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j) {
 			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
 			boost::spirit::utree rhs = differentiate_utree(j->rhs, i->first);
 			lhs = simplify_utree(lhs);
@@ -188,7 +188,7 @@ GibbsOpt::GibbsOpt(
 			subtract_tree.push_back(lhs);
 			subtract_tree.push_back(rhs);
 			int var_index = i->second;
-			int cons_index = std::distance(cm.begin(),j);
+			int cons_index = std::distance(cm.constraints.begin(),j);
 			jac_g_trees.push_back(jacobian_entry(cons_index,var_index,false,subtract_tree));
 			BOOST_LOG_SEV(opto_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
