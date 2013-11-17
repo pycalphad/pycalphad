@@ -100,12 +100,13 @@ IHJMagneticModel::IHJMagneticModel(
 			"+"
 	);
 	Curie_temperature = simplify_utree(Curie_temperature);
-	std::cout << "Curie_temperature: " << Curie_temperature << std::endl;
 	if (is_zero_tree(Curie_temperature)) {
 		// Transition temperature is always zero, no magnetic contribution
 		model_ast = utree(0);
 		return;
 	}
+	// Apply AFM factor to TC
+	Curie_temperature = a_o(get_afm_factor(Curie_temperature, afm_factor), Curie_temperature, "*");
 
 	// Now find parameters of type "BMAGN"
 	scantype = "BMAGN";
@@ -131,7 +132,6 @@ IHJMagneticModel::IHJMagneticModel(
 		// Apply AFM factor
 		mean_magnetic_moment = a_o(get_afm_factor(mean_magnetic_moment, afm_factor), mean_magnetic_moment, "*");
 	}
-
 	model_ast = a_o("T", max_magnetic_entropy(mean_magnetic_moment), "*");
 	model_ast = a_o(model_ast, magnetic_polynomial(Curie_temperature, sro_enthalpy_order_fraction, afm_factor), "*");
 
@@ -147,16 +147,14 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &a
 	utree ret_tree, tau, subcritical_tree, supercritical_tree;
 
 	tau = a_o("T", tc_tree, "/");
-	// If tau < 0, apply the anti-ferromagnetic (AFM) factor
-	tau = a_o(get_afm_factor(tau, afm_factor), tau, "*");
 
 	// TODO: This is a mess. Using the utree visitation interface might make this better.
 
 	// First calculate the polynomial for 0 < tau < 1
-	utree taum1 = a_o(B, a_o(tau, -1, "**"), "*");
-	utree tau3 = a_o(1.0/6.0, a_o(tau, 3, "**"), "*");
-	utree tau9 = a_o(1.0/135.0, a_o(tau, 9, "**"), "*");
-	utree tau15 = a_o(1.0/600.0, a_o(tau, 15, "**"), "*");
+	utree taum1 = a_o(B, a_o(tau, -1.0, "**"), "*");
+	utree tau3 = a_o(1.0/6.0, a_o(tau, 3.0, "**"), "*");
+	utree tau9 = a_o(1.0/135.0, a_o(tau, 9.0, "**"), "*");
+	utree tau15 = a_o(1.0/600.0, a_o(tau, 15.0, "**"), "*");
 	utree total_taus = a_o(C, a_o(a_o(tau3, tau9, "+"), tau15, "+"), "*");
 
 	total_taus = a_o(taum1, total_taus, "+");
@@ -165,9 +163,9 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &a
 
 
 	// Now calculate the polynomial for tau >= 1
-	utree taum5 = a_o(1.0/10.0, a_o(tau, -5, "**"), "*");
-	utree taum15 = a_o(1.0/315.0, a_o(tau, -15, "**"), "*");
-	utree taum25 = a_o(1.0/1500.0, a_o(tau, -25, "**"), "*");
+	utree taum5 = a_o(1.0/10.0, a_o(tau, -5.0, "**"), "*");
+	utree taum15 = a_o(1.0/315.0, a_o(tau, -15.0, "**"), "*");
+	utree taum25 = a_o(1.0/1500.0, a_o(tau, -25.0, "**"), "*");
 	total_taus = a_o(a_o(taum5, taum15, "+"), taum25, "+");
 	supercritical_tree = a_o(-1.0/A, total_taus, "*");
 
