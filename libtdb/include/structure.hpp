@@ -148,13 +148,13 @@ public:
 	double magnetic_sro_enthalpy_order_fraction; // fraction of total enthalpy due to short-range ordering above transition T
 	Phase() { magnetic_afm_factor = 0; magnetic_sro_enthalpy_order_fraction = 0; };
 	Phase(std::string, Sublattice_Collection, std::vector<std::string>); // (name, suffix, subls, cmds)
-	std::string name() { return phase_name; }
-	Sublattice_Collection sublattices() { return subls; } // makes a copy
+	std::string name() const { return phase_name; }
+	Sublattice_Collection sublattices() const { return subls; } // makes a copy
 	Sublattice_Collection::const_iterator get_sublattice_iterator() const { return subls.cbegin(); }
 	Sublattice_Collection::const_iterator get_sublattice_iterator_end() const { return subls.cend(); }
 	Parameters::const_iterator get_parameter_iterator() const { return params.cbegin(); }
 	Parameters::const_iterator get_parameter_iterator_end() const { return params.cend(); }
-	int sublattice_count() { return (int) subls.size(); } // number of sublattices
+	int sublattice_count() const { return (int) subls.size(); } // number of sublattices
 };
 typedef std::map<std::string, Phase>   Phase_Collection;
 
