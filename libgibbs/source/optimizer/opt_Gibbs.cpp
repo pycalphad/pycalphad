@@ -320,8 +320,9 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 			      const IpoptData* ip_data,
 			      IpoptCalculatedQuantities* ip_cq)
 {
+	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
+	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	//sitefracs thesitefracs;
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
 		const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
@@ -336,12 +337,16 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
 					sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
 					subl_map[*k] = x[sitefracindex];
-					//std::cout << "y(" << cur_phase->first << "," << *k << ") = " << x[sitefracindex] << std::endl;
 				}
 			}
 			subls_vec.push_back(std::make_pair((*j).stoi_coef,subl_map));
 		}
-		//thesitefracs.push_back(std::make_pair(cur_phase->first,subls_vec));
 		ph_map[cur_phase->first] = std::make_pair(fL,subls_vec);
 	}
+	// Test code for chemical potential calculation
+	for (auto i = 0; i < m_num; ++i) {
+			double mu = lambda[i];
+			BOOST_LOG_SEV(opto_log, debug) << "MU(" << i << ") = " << mu;
+	}
+	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }
