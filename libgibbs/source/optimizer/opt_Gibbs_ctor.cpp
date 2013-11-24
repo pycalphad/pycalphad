@@ -37,7 +37,9 @@ GibbsOpt::GibbsOpt(
 
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
-			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
+			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) {
+				phase_col[i->first] = i->second;
+			}
 		}
 	}
 
@@ -63,6 +65,7 @@ GibbsOpt::GibbsOpt(
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
+		comp_sets.push_back(std::unique_ptr<CompositionSet>(new CompositionSet(i->second, pset, main_ss, main_indices)));
 		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_afm_factor: " << i->second.magnetic_afm_factor;
 		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
 		boost::spirit::utree phase_ast;

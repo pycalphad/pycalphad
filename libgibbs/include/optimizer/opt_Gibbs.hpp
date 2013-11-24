@@ -17,10 +17,12 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/constraint.hpp"
+#include "libgibbs/include/compositionset.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
+#include <memory>
 
 using namespace Ipopt;
 typedef std::map<std::string, int> index_table; // matches variable names to Ipopt indices
@@ -124,6 +126,7 @@ private:
 	std::vector<jacobian_entry> jac_g_trees;
 	hessian_set hessian_data;
 	std::vector<int> fixed_indices;
+	std::vector<std::unique_ptr<CompositionSet>> comp_sets;
 
 	// data structure for final result
 	phasemap ph_map; // maps phase name to its object (final result)
