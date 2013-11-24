@@ -40,6 +40,11 @@ CompositionSet::CompositionSet(
 			continue;
 		}
 		for (auto j = models.cbegin(); j != models.cend(); ++j) {
+			if (i->first == (cset_name + "_FRAC")) {
+				// the derivative w.r.t the phase fraction is just the energy of this phase
+				tree_data.insert(ast_entry(diffvars, j->first, j->second->get_ast()));
+				continue;
+			}
 			boost::spirit::utree difftree = simplify_utree(differentiate_utree(j->second->get_ast(), i->first));
 			if (is_zero_tree(difftree)) continue;
 			tree_data.insert(ast_entry(diffvars, j->first, difftree));
@@ -66,6 +71,7 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
 	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
+	const std::string compset_name(cset_name + "_FRAC");
 
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		retmap[i->second] = 0; // initialize all indices as zero
@@ -74,7 +80,13 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
 		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
 		const int varindex = (*main_indices.find(diffvar)).second;
-		retmap[varindex] += diffvalue;
+		if (diffvar != compset_name) {
+			retmap[varindex] += x[(*main_indices.find(compset_name)).second] * diffvalue; // multiply derivative by phase fraction
+		}
+		else {
+			// don't multiply derivative by phase fraction because this is the derivative w.r.t phase fraction
+			retmap[varindex] += diffvalue;
+		}
 	}
 
 	return retmap;
