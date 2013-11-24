@@ -36,7 +36,6 @@ CompositionSet::CompositionSet(
 		if (!boost::algorithm::starts_with(i->first, cset_name)) {
 			// the differentiating variable doesn't come from this composition set
 			// the derivative should be zero, so skip calculation
-			tree_data.insert(ast_entry(diffvars, std::string(), boost::spirit::utree(0)));
 			continue;
 		}
 		for (auto j = models.cbegin(); j != models.cend(); ++j) {
@@ -60,12 +59,10 @@ CompositionSet::CompositionSet(
 				second_diffvars.push_back(k->first);
 				if (k->first == (cset_name + "_FRAC")) {
 					// second derivative w.r.t phase fraction is zero
-					tree_data.insert(ast_entry(second_diffvars, j->first, boost::spirit::utree(0)));
 				}
 				else if (!boost::algorithm::starts_with(k->first, cset_name)) {
 					// the differentiating variable doesn't come from this composition set
 					// the derivative should be zero, so skip calculation
-					tree_data.insert(ast_entry(second_diffvars, j->first, boost::spirit::utree(0)));
 				}
 				else {
 					boost::spirit::utree second_difftree = simplify_utree(differentiate_utree(difftree, k->first));
@@ -142,12 +139,17 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 	for (auto i = ast_begin; i != ast_end; ++i) {
 		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
 		const std::string diffvar1 = *(i->diffvars.cbegin());
-		const std::string diffvar2 = *(++i->diffvars.cbegin());
+		const std::string diffvar2 = *(++(i->diffvars.cbegin()));
 		const int varindex1 = (*main_indices.find(diffvar1)).second;
 		const int varindex2 = (*main_indices.find(diffvar2)).second;
-		const std::list<int> searchlist {varindex1,varindex2};
+		std::list<int> searchlist;
+		if (varindex1 <= varindex2) searchlist = {varindex1,varindex2};
+		else searchlist = {varindex2, varindex1};
 		// multiply derivative by phase fraction
-		retmap[searchlist] += x[(*main_indices.find(compset_name)).second] * diffvalue;
+		if (diffvar1 == compset_name || diffvar2 == compset_name) {
+			retmap[searchlist] += diffvalue;
+		}
+		else retmap[searchlist] += x[(*main_indices.find(compset_name)).second] * diffvalue;
 	}
 	return retmap;
 }
@@ -160,10 +162,12 @@ std::set<std::list<int>> CompositionSet::hessian_sparsity_structure(
 	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(2);
 	for (auto i = ast_begin; i != ast_end; ++i) {
 		const std::string diffvar1 = *(i->diffvars.cbegin());
-		const std::string diffvar2 = *(++i->diffvars.cbegin());
+		const std::string diffvar2 = *(++(i->diffvars.cbegin()));
 		const int varindex1 = (*main_indices.find(diffvar1)).second;
 		const int varindex2 = (*main_indices.find(diffvar2)).second;
-		std::list<int> nonzero_entry{varindex1,varindex2};
+		std::list<int> nonzero_entry;
+		if (varindex1 <= varindex2) nonzero_entry = {varindex1,varindex2};
+		else nonzero_entry = {varindex2, varindex1};
 		retset.insert(nonzero_entry);
 	}
 	return retset;
