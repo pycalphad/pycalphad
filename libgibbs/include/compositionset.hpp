@@ -14,6 +14,7 @@
 #include "libgibbs/include/optimizer/ast_set.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
+#include <list>
 
 // A CompositionSet works with libtdb's Phase class
 // Its purpose is to handle the optimizer's specific configuration for the given conditions and models
@@ -24,10 +25,9 @@ public:
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
-	std::vector<double> evaluate_constraints();
-	std::vector<double> evaluate_jacobian_of_constraints();
-	std::vector<double> evaluate_hessian();
-	std::string name() { return cset_name; }
+	std::map<std::list<int,int>,double> evaluate_objective_hessian(
+			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::string name() const { return cset_name; }
 	// make CompositionSet from existing Phase
 	CompositionSet(
 			const Phase &phaseobj,
