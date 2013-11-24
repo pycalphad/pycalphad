@@ -157,12 +157,17 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_grad_f");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_grad_f";
-	// return the gradient of the objective function grad_{x} f(x)
-	// calculate dF/dy(l,s,j)
-	//std::cout << "eval_grad_f entered" << std::endl;
+	// initialize gradient to zero
+	for (auto i = 0; i < n; ++i) {
+		grad_f[i] = 0;
+	}
 	try {
-		for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
-			grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
+		// For all composition sets, evaluate the gradient
+		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
+			const std::map<int,double> gradmap = (*i)->evaluate_objective_gradient(conditions, main_indices, (double*)x);
+			for (auto j = gradmap.cbegin(); j != gradmap.cend(); ++j) {
+				grad_f[j->first] += j->second;
+			}
 		}
 	}
 	catch (boost::exception &e) {
