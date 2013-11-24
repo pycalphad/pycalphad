@@ -12,6 +12,9 @@
 #include "libtdb/include/utils/math_expr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 
+using boost::multi_index_container;
+using namespace boost::multi_index;
+
 CompositionSet::CompositionSet(
 		const Phase &phaseobj,
 		const parameter_set &pset,
@@ -28,18 +31,18 @@ CompositionSet::CompositionSet(
 
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		std::vector<std::string> diffvars;
+		std::list<std::string> diffvars;
 		diffvars.push_back(i->first);
 		if (!boost::algorithm::starts_with(i->first, cset_name)) {
 			// the differentiating variable doesn't come from this composition set
 			// the derivative should be zero, so skip calculation
-			tree_data.insert(ast_entry(1, diffvars, std::string(), boost::spirit::utree(0)));
+			tree_data.insert(ast_entry(diffvars, std::string(), boost::spirit::utree(0)));
 			continue;
 		}
 		for (auto j = models.cbegin(); j != models.cend(); ++j) {
 			boost::spirit::utree difftree = simplify_utree(differentiate_utree(j->second->get_ast(), i->first));
 			if (is_zero_tree(difftree)) continue;
-			tree_data.insert(ast_entry(1, diffvars, j->first, difftree));
+			tree_data.insert(ast_entry(diffvars, j->first, difftree));
 		}
 	}
 }
@@ -57,8 +60,22 @@ double CompositionSet::evaluate_objective(
 	return objective;
 }
 
-std::vector<double> CompositionSet::evaluate_objective_gradient(
-			evalconditions const& conditions, std::map<std::string, int> const &main_indices, double* const x) const {
-	std::vector<double> retvec;
-	return retvec;
+std::map<int,double> CompositionSet::evaluate_objective_gradient(
+		evalconditions const& conditions, std::map<std::string, int> const &main_indices, double* const x) const {
+	std::map<int,double> retmap;
+	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
+	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
+	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
+
+	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+		retmap[i->second] = 0; // initialize all indices as zero
+	}
+	for (auto i = ast_begin; i != ast_end; ++i) {
+		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
+		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
+		const int varindex = (*main_indices.find(diffvar)).second;
+		retmap[varindex] += diffvalue;
+	}
+
+	return retmap;
 }

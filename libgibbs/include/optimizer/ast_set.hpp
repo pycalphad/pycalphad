@@ -21,52 +21,59 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/multi_index/mem_fun.hpp>
 
 struct ast_entry {
-	int derivative_order;
-	std::vector<std::string> diffvars; // variables of differentiation
+	std::list<std::string> diffvars; // variables of differentiation
 	std::string model_name;
 	boost::spirit::utree ast;
 	ast_entry (
-			int deriv_order, std::vector<std::string> dv, std::string mod_name, boost::spirit::utree tree) :
-				derivative_order(deriv_order),
+			std::list<std::string> dv, std::string mod_name, boost::spirit::utree tree) :
 				diffvars(dv),
 				model_name(mod_name),
 				ast(tree) {}
+	std::list<std::string>::size_type ast_derivative_order() const {
+		return diffvars.size();
+	}
 };
 
 struct ast_deriv_order_index {};
 struct ast_model_name_index {};
+struct ast_diffvars_index {};
 
 typedef boost::multi_index::multi_index_container<
 		ast_entry,
 		boost::multi_index::indexed_by<
-		boost::multi_index::ordered_non_unique<
-		boost::multi_index::tag<ast_deriv_order_index>,
-		BOOST_MULTI_INDEX_MEMBER(ast_entry,int,derivative_order)
-		>,
+	    boost::multi_index::ordered_non_unique<
+	    boost::multi_index::tag<ast_deriv_order_index>,
+	      BOOST_MULTI_INDEX_CONST_MEM_FUN(ast_entry,std::list<std::string>::size_type,ast_derivative_order)
+	    >,
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<ast_model_name_index>,
 		BOOST_MULTI_INDEX_MEMBER(ast_entry,std::string,model_name)
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<ast_diffvars_index>,
+		BOOST_MULTI_INDEX_MEMBER(ast_entry,std::list<std::string>,diffvars)
 		>
 >
 > ast_set;
 
 
 typedef boost::multi_index::multi_index_container<
-		const sublattice_entry*,
+		const ast_entry*,
 		boost::multi_index::indexed_by<
+	    boost::multi_index::ordered_non_unique<
+	    boost::multi_index::tag<ast_deriv_order_index>,
+	      BOOST_MULTI_INDEX_CONST_MEM_FUN(ast_entry,std::list<std::string>::size_type,ast_derivative_order)
+	    >,
 		boost::multi_index::ordered_non_unique<
-		boost::multi_index::tag<myindex>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const int,index)
+		boost::multi_index::tag<ast_model_name_index>,
+		BOOST_MULTI_INDEX_MEMBER(ast_entry,std::string,model_name)
 		>,
 		boost::multi_index::ordered_non_unique<
-		boost::multi_index::tag<optimizer_index>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const int,opt_index)
-		>,
-		boost::multi_index::ordered_non_unique<
-		boost::multi_index::tag<phases>,
-		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const std::string,phase)
+		boost::multi_index::tag<ast_diffvars_index>,
+		BOOST_MULTI_INDEX_MEMBER(ast_entry,std::list<std::string>,diffvars)
 		>
 >
 > ast_set_view;

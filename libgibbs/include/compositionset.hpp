@@ -20,8 +20,9 @@
 // Multiple CompositionSets of the same Phase can be created to handle miscibility gaps
 class CompositionSet {
 public:
-	double evaluate_objective(evalconditions const&, std::map<std::string, int> const &, double* const) const;
-	std::vector<double> evaluate_objective_gradient(
+	double evaluate_objective(
+			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
 	std::vector<double> evaluate_constraints();
 	std::vector<double> evaluate_jacobian_of_constraints();
