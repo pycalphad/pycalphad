@@ -275,7 +275,7 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h without values";
 		for (auto i = hess_sparsity_structure.cbegin(); i != hess_sparsity_structure.cend(); ++i) {
 			const int varindex1 = *(i->cbegin());
-			const int varindex2 = *(++i->cbegin());
+			const int varindex2 = *(++(i->cbegin()));
 			iRow[h_idx] = varindex1;
 			jCol[h_idx] = varindex2;
 			++h_idx;
@@ -300,7 +300,7 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 									hess_sparsity_structure.begin(),
 									hess_sparsity_structure.find(searchlist)
 									);
-					values[sparse_index] += j->second; // objective portion
+					values[sparse_index] += obj_factor * j->second; // objective portion
 				}
 			}
 
@@ -308,7 +308,9 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 			for (auto i = constraint_hessian_data.cbegin(); i != constraint_hessian_data.cend(); ++i) {
 				const int varindex1 = i->var_index1;
 				const int varindex2 = i->var_index2;
-				const std::list<int> searchlist {varindex1,varindex2};
+				std::list<int> searchlist;
+				if (varindex1 <= varindex2) searchlist = {varindex1,varindex2};
+				else searchlist = {varindex2, varindex1};
 				const int sparse_index =
 						std::distance(
 								hess_sparsity_structure.begin(),

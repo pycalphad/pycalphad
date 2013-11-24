@@ -178,10 +178,10 @@ GibbsOpt::GibbsOpt(
 			hessian_entry h_entry = *h_iter;
 			h_entry.asts[j->cons_index] = cons_second_deriv; // set AST for constraint Hessian
 			constraint_hessian_data.replace(h_iter, h_entry); // update original entry
-			const std::list<int> nonzerolist {j->var_index, i->second};
+			const std::list<int> nonzerolist {i->second, j->var_index};
 			hess_sparsity_structure.insert(nonzerolist); // add nonzero to sparsity structure
 			BOOST_LOG_SEV(opto_log, debug) << "Hessian of constraint  "
-					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated";
+					<< j->cons_index << " (" << i->second << "," << j->var_index << ") pre-calculated";
 		}
 	}
 
