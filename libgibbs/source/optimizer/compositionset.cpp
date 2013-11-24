@@ -121,11 +121,11 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 	return retmap;
 }
 
-std::map<std::list<int,int>,double> CompositionSet::evaluate_objective_hessian(
+std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 			evalconditions const& conditions,
 			std::map<std::string, int> const &main_indices,
 			double* const x) const {
-	std::map<std::list<int,int>,double> retmap;
+	std::map<std::list<int>,double> retmap;
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
 	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(2);
@@ -134,18 +134,37 @@ std::map<std::list<int,int>,double> CompositionSet::evaluate_objective_hessian(
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		for (auto j = main_indices.cbegin(); j != main_indices.cend(); ++j) {
 			if (i->second > j->second) continue; // skip upper triangular
-			retmap[std::list<int,int>({i->second,j->second})] = 0; // initialize all indices as zero
+			const std::list<int> searchlist {i->second,j->second};
+			retmap[searchlist] = 0; // initialize all indices as zero
 		}
 	}
 
 	for (auto i = ast_begin; i != ast_end; ++i) {
 		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
 		const std::string diffvar1 = *(i->diffvars.cbegin());
-		const std::string diffvar2 = *(i->diffvars.cbegin()+1);
+		const std::string diffvar2 = *(++i->diffvars.cbegin());
 		const int varindex1 = (*main_indices.find(diffvar1)).second;
 		const int varindex2 = (*main_indices.find(diffvar2)).second;
+		const std::list<int> searchlist {varindex1,varindex2};
 		// multiply derivative by phase fraction
-		retmap[std::list<int,int>({varindex1,varindex2})] += x[(*main_indices.find(compset_name)).second] * diffvalue;
+		retmap[searchlist] += x[(*main_indices.find(compset_name)).second] * diffvalue;
 	}
 	return retmap;
+}
+
+std::set<std::list<int>> CompositionSet::hessian_sparsity_structure(
+		std::map<std::string, int> const &main_indices) const {
+	std::set<std::list<int>> retset;
+	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
+	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
+	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(2);
+	for (auto i = ast_begin; i != ast_end; ++i) {
+		const std::string diffvar1 = *(i->diffvars.cbegin());
+		const std::string diffvar2 = *(++i->diffvars.cbegin());
+		const int varindex1 = (*main_indices.find(diffvar1)).second;
+		const int varindex2 = (*main_indices.find(diffvar2)).second;
+		std::list<int> nonzero_entry{varindex1,varindex2};
+		retset.insert(nonzero_entry);
+	}
+	return retset;
 }

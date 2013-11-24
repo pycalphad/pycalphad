@@ -14,6 +14,7 @@
 #include "libgibbs/include/optimizer/ast_set.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
+#include <set>
 #include <list>
 
 // A CompositionSet works with libtdb's Phase class
@@ -25,8 +26,9 @@ public:
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
-	std::map<std::list<int,int>,double> evaluate_objective_hessian(
+	std::map<std::list<int>,double> evaluate_objective_hessian(
 			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::set<std::list<int>> hessian_sparsity_structure(std::map<std::string, int> const &) const;
 	std::string name() const { return cset_name; }
 	// make CompositionSet from existing Phase
 	CompositionSet(

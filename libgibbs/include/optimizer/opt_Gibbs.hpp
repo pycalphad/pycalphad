@@ -23,6 +23,7 @@
 #include <unordered_map>
 #include <utility>
 #include <memory>
+#include <set>
 
 using namespace Ipopt;
 typedef std::map<std::string, int> index_table; // matches variable names to Ipopt indices
@@ -124,7 +125,8 @@ private:
 	ConstraintManager cm;
 	std::map<int,boost::spirit::utree> first_derivatives;
 	std::vector<jacobian_entry> jac_g_trees;
-	hessian_set hessian_data;
+	std::set<std::list<int>> hess_sparsity_structure;
+	hessian_set constraint_hessian_data;
 	std::vector<int> fixed_indices;
 	std::vector<std::unique_ptr<CompositionSet>> comp_sets;
 

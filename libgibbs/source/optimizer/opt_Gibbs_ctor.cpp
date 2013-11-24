@@ -66,47 +66,7 @@ GibbsOpt::GibbsOpt(
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
 		comp_sets.push_back(std::unique_ptr<CompositionSet>(new CompositionSet(i->second, pset, main_ss, main_indices)));
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_afm_factor: " << i->second.magnetic_afm_factor;
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic_sro_enthalpy_order_fraction: " << i->second.magnetic_sro_enthalpy_order_fraction;
-		boost::spirit::utree phase_ast;
-		boost::spirit::utree temptree;
-		// build an AST for the given phase
-		boost::spirit::utree curphaseref = PureCompoundEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " ref " << std::endl << curphaseref << std::endl;
-		boost::spirit::utree idealmix = IdealMixingModel(i->first, main_ss).get_ast();
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " idmix " << std::endl << idealmix << std::endl;
-		boost::spirit::utree redlichkister = RedlichKisterExcessEnergyModel(i->first, main_ss, pset).get_ast();
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " excess " << std::endl << redlichkister << std::endl;
-		boost::spirit::utree magnetism =
-				IHJMagneticModel(i->first, main_ss, pset,
-						i->second.magnetic_afm_factor, i->second.magnetic_sro_enthalpy_order_fraction).get_ast();
-		BOOST_LOG_SEV(opto_log, debug) << i->first << " magnetic " << std::endl << magnetism << std::endl;
-
-		// sum the contributions
-		phase_ast = idealmix;
-		add_trees(phase_ast, curphaseref);
-		add_trees(phase_ast, redlichkister);
-		add_trees(phase_ast, magnetism);
-
-		// multiply by phase fraction variable
-		temptree.push_back("*");
-		temptree.push_back(i->first + "_FRAC");
-		temptree.push_back(phase_ast);
-		phase_ast.swap(temptree);
-		temptree.clear();
-
-		// add phase AST to master AST
-		if (activephases != 1) {
-			// this is not the only / first phase
-			if (master_tree.which() != boost::spirit::utree_type::invalid_type) add_trees(master_tree, phase_ast);
-			else master_tree.swap(phase_ast);
-		}
-		else master_tree.swap(phase_ast);
-
 	}
-	master_tree = simplify_utree(master_tree);
-	BOOST_LOG_SEV(opto_log, debug) << "master_tree: " << master_tree << std::endl;
-
 
 	// Add the mandatory constraints to the ConstraintManager
 	if (activephases > 1)
@@ -161,12 +121,6 @@ GibbsOpt::GibbsOpt(
 		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
 	}
 
-	// Calculate first derivative ASTs of all variables
-	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
-		first_derivatives[i->second] = simplify_utree(differentiate_utree(master_tree, i->first));
-		BOOST_LOG_SEV(opto_log, debug) << "First derivative w.r.t. " << i->first << "(" << i->second << ") = " << first_derivatives[i->second] << std::endl;
-	}
-
 	// Calculate first derivative ASTs of all constraints
 	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
@@ -197,32 +151,16 @@ GibbsOpt::GibbsOpt(
 		}
 	}
 
-	// Calculate second derivatives of objective function and constraints
-	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
-		// objective portion
-		for (auto j = main_indices.cbegin(); j != main_indices.cend(); ++j) {
-			// second derivative of obj function w.r.t i,j
-			if (i->second > j->second) continue; // skip upper triangular
-			boost::spirit::utree obj_second_deriv = differentiate_utree(first_derivatives[i->second], j->first);
-			//obj_second_deriv = simplify_utree(obj_second_deriv);
-			hessian_set::iterator h_iter, h_end;
-			// don't add zeros to the Hessian
-			// TODO: this misses some of the zeros
-			if (is_zero_tree(obj_second_deriv)) continue;
-
-			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->second));
-			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->second));
-			// create a new Hessian record if it does not exist
-			if (h_iter == h_end) h_iter = hessian_data.insert(hessian_entry(i->second,j->second)).first;
-			hessian_entry h_entry = *h_iter;
-			h_entry.asts[-1] = obj_second_deriv; // set AST for objective Hessian
-			hessian_data.replace(h_iter, h_entry); // update original entry
-
-			BOOST_LOG_SEV(opto_log, debug) << "Hessian of objective  ("
-					<< i->second << "," << j->second << ") pre-calculated";
+	for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
+		// Add nonzero elements from objective Hessian to sparsity structure
+		std::set<std::list<int>> comp_set_hess_sparsity_structure = (*i)->hessian_sparsity_structure(main_indices);
+		for (auto j = comp_set_hess_sparsity_structure.cbegin(); j != comp_set_hess_sparsity_structure.cend(); ++j) {
+			hess_sparsity_structure.insert(*j);
 		}
+	}
 
-		// each of the constraints
+	// Calculate second derivatives of constraints
+	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
 		// for each variable, calculate derivatives of the Jacobian w.r.t all the constraints
 		for (auto j = jac_g_trees.cbegin(); j != jac_g_trees.cend(); ++j) {
 			if (i->second > j->var_index) continue; // skip upper triangular
@@ -233,13 +171,15 @@ GibbsOpt::GibbsOpt(
 			// don't add zeros to the Hessian
 			if (is_zero_tree(cons_second_deriv)) continue;
 
-			h_iter = hessian_data.lower_bound(boost::make_tuple(i->second,j->var_index));
-			h_end = hessian_data.upper_bound(boost::make_tuple(i->second,j->var_index));
+			h_iter = constraint_hessian_data.lower_bound(boost::make_tuple(i->second,j->var_index));
+			h_end = constraint_hessian_data.upper_bound(boost::make_tuple(i->second,j->var_index));
 			// create a new Hessian record if it does not exist
-			if (h_iter == h_end) h_iter = hessian_data.insert(hessian_entry(i->second,j->var_index)).first;
+			if (h_iter == h_end) h_iter = constraint_hessian_data.insert(hessian_entry(i->second,j->var_index)).first;
 			hessian_entry h_entry = *h_iter;
 			h_entry.asts[j->cons_index] = cons_second_deriv; // set AST for constraint Hessian
-			hessian_data.replace(h_iter, h_entry); // update original entry
+			constraint_hessian_data.replace(h_iter, h_entry); // update original entry
+			const std::list<int> nonzerolist {j->var_index, i->second};
+			hess_sparsity_structure.insert(nonzerolist); // add nonzero to sparsity structure
 			BOOST_LOG_SEV(opto_log, debug) << "Hessian of constraint  "
 					<< j->cons_index << " (" << j->var_index << "," << i->second << ") pre-calculated";
 		}

@@ -32,7 +32,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	nnz_jac_g = jac_g_trees.size();
 	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Jacobian of constraints: " << nnz_jac_g;
 	// number of nonzeros in the Hessian
-	nnz_h_lag = hessian_data.size();
+	nnz_h_lag = hess_sparsity_structure.size();
 	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Hessian: " << nnz_h_lag;
 	// indices start at 0
 	index_style = C_STYLE;
@@ -273,9 +273,9 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 
 	if (values == NULL) {
 		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h without values";
-		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
-			int varindex1 = i->var_index1;
-			int varindex2 = i->var_index2;
+		for (auto i = hess_sparsity_structure.cbegin(); i != hess_sparsity_structure.cend(); ++i) {
+			const int varindex1 = *(i->cbegin());
+			const int varindex2 = *(++i->cbegin());
 			iRow[h_idx] = varindex1;
 			jCol[h_idx] = varindex2;
 			++h_idx;
@@ -284,24 +284,42 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 	}
 	else {
 		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h with values";
+		for (auto i = hess_sparsity_structure.cbegin(); i != hess_sparsity_structure.cend(); ++i) {
+			values[std::distance(hess_sparsity_structure.cbegin(),i)] = 0; // initialize
+		}
 		try {
-			for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
-				int varindex1 = i->var_index1;
-				int varindex2 = i->var_index2;
-				values[h_idx] = 0; // initialize
+			// objective portion
+			for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
+				auto hessian = (*i)->evaluate_objective_hessian(conditions, main_indices, (double*)x);
+				for (auto j = hessian.cbegin(); j != hessian.cend(); ++j) {
+					const int varindex1 = *(j->first.cbegin());
+					const int varindex2 = *(++j->first.cbegin());
+					const std::list<int> searchlist {varindex1,varindex2};
+					const int sparse_index =
+							std::distance(
+									hess_sparsity_structure.begin(),
+									hess_sparsity_structure.find(searchlist)
+									);
+					values[sparse_index] += j->second; // objective portion
+				}
+			}
+
+			// constraint portion
+			for (auto i = constraint_hessian_data.cbegin(); i != constraint_hessian_data.cend(); ++i) {
+				const int varindex1 = i->var_index1;
+				const int varindex2 = i->var_index2;
+				const std::list<int> searchlist {varindex1,varindex2};
+				const int sparse_index =
+						std::distance(
+								hess_sparsity_structure.begin(),
+								hess_sparsity_structure.find(searchlist)
+								);
 				for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
 					BOOST_LOG_SEV(opto_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
 					boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
-					if (j->first == -1) {
-						// objective portion
-						values[h_idx] += obj_factor * hess_tree.get<double>();
-					}
-					else {
-						// constraint portion
-						values[h_idx] += lambda[j->first] * hess_tree.get<double>();
-					}
+					// constraint portion
+					values[sparse_index] += lambda[j->first] * hess_tree.get<double>();
 				}
-				++h_idx;
 			}
 		}
 		catch (boost::exception &e) {

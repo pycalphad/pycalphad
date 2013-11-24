@@ -16,6 +16,8 @@
 
 #include <string>
 #include <sstream>
+#include <set>
+#include <list>
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
