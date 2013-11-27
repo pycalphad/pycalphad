@@ -10,6 +10,7 @@ Atomic ordering is not handled.
 Ternary interaction parameters for excess models are not handled.
 Charged species in sublattices are not correctly handled.
 Attempting to print a single-component Equilibrium object will cause a crash.
+Entering a phase for which not all of the necessary components are entered will cause an exception.
 
 TDB Reading (libtdb)
 --------------------
