@@ -63,8 +63,7 @@ BOOST_PYTHON_MODULE(libpygibbs)
     	.def("__repr__", &Equilibrium::print)
     	.def("__str__", &Equilibrium::print)
     ;
-    class_<EquilibriumFactory>("EquilibriumFactory")
-        .def("GetIpopt", &EquilibriumFactory::GetIpopt)
+    class_<EquilibriumFactory, boost::noncopyable>("EquilibriumFactory")
         .def("create", &EquilibriumFactory::create)
     ;
 }
