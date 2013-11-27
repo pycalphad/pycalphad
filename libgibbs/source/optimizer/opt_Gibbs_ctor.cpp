@@ -47,7 +47,7 @@ GibbsOpt::GibbsOpt(
 
 	phase_iter = phase_col.cbegin();
 	phase_end = phase_col.cend();
-	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opto_log, critical) << "Missing element conditions!";
+	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opto_log, critical) << "No components entered!";
 	if (phase_iter == phase_end) BOOST_LOG_SEV(opto_log, critical) << "No phases found!";
 
 	// build_variable_map() will fill main_indices
@@ -116,6 +116,7 @@ GibbsOpt::GibbsOpt(
 	for (auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i) {
 		cm.addConstraint(MassBalanceConstraint(phase_iter, phase_end, i->first, i->second));
 	}
+
 	for (auto i = cm.constraints.begin() ; i != cm.constraints.end(); ++i) {
 		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " LHS: " << i->lhs;
 		BOOST_LOG_SEV(opto_log, debug) << "Constraint " << i->name << " RHS: " << i->rhs;
