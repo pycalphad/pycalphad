@@ -38,6 +38,11 @@ public:
 	virtual ~Constraint() {};
 };
 
+class TrivialConstraint : public Constraint {
+public:
+	TrivialConstraint();
+};
+
 class MassBalanceConstraint : public Constraint {
 public:
 	typedef Phase_Collection::const_iterator PhaseIterator;

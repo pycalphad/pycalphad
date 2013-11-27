@@ -11,6 +11,7 @@
 #define COMPOSITIONSET_INCLUDED
 
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/optimizer/ast_set.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
