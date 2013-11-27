@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpCachedResults.hpp 2019 2011-06-15 16:32:30Z andreasw $
+// $Id: IpCachedResults.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -16,14 +16,14 @@
 #include <list>
 
 namespace Ipopt
-      //#define IP_DEBUG_CACHE
+{
+
 #if COIN_IPOPT_CHECKLEVEL > 2
 # define IP_DEBUG_CACHE
 #endif
 #ifdef IP_DEBUG_CACHE
 # include "IpDebug.hpp"
 #endif
-{
 
   // Forward Declarations
 
@@ -41,9 +41,9 @@ namespace Ipopt
   //     CP_Iterate
   //   };
 
-  /** Templated class for Chached Results.  This class stores up to a
+  /** Templated class for Cached Results.  This class stores up to a
    *  given number of "results", entities that are stored here
-   *  together with identifies, that can be used to later retrieve the
+   *  together with identifiers, that can be used to later retrieve the
    *  information again.
    *
    *  Typically, T is a SmartPtr for some calculated quantity that
@@ -53,7 +53,7 @@ namespace Ipopt
    *  the cache using the AddCachedResults methods, and the can be
    *  retrieved with the GetCachedResults methods. The second set of
    *  methods checks whether a result has been cached for the given
-   *  identifiers.  If a corresponding results is found, a copy of it
+   *  identifiers.  If a corresponding result is found, a copy of it
    *  is returned and the method evaluates to true, otherwise it
    *  evaluates to false.
    *
@@ -79,7 +79,7 @@ namespace Ipopt
     //@{
     /** Constructor, where max_cache_size is the maximal number of
      *  results that should be cached.  If max_cache_size is negative,
-     *  we allow an infinite abount of cache.
+     *  we allow an infinite amount of cache.
      */
     CachedResults(Int max_cache_size);
 
@@ -201,7 +201,7 @@ namespace Ipopt
     }
     //@}
 
-    /** Invalidates the result for given dependecies. Sets the stale
+    /** Invalidates the result for given dependencies. Sets the stale
      *  flag for the corresponding cached result to true if it is
      *  found.  Returns true, if the result was found. */
     bool InvalidateResult(const std::vector<const TaggedObject*>& dependents,
@@ -259,7 +259,6 @@ namespace Ipopt
   public:
 
 #ifdef IP_DEBUG_CACHE
-
     static const Index dbg_verbosity;
 #endif
 
@@ -338,7 +337,6 @@ namespace Ipopt
   };
 
 #ifdef IP_DEBUG_CACHE
-
   template <class T>
   const Index CachedResults<T>::dbg_verbosity = 0;
 
@@ -374,7 +372,7 @@ namespace Ipopt
         dependent_tags_[i] = dependents[i]->GetTag();
       }
       else {
-        dependent_tags_[i] = 0;
+        dependent_tags_[i] = TaggedObject::Tag();
       }
     }
   }
@@ -436,7 +434,7 @@ namespace Ipopt
     else {
       for (Index i=0; i<(Index)dependents.size(); i++) {
         if ( (dependents[i] && dependents[i]->GetTag() != dependent_tags_[i])
-             || (!dependents[i] && dependent_tags_[i] != 0) ) {
+             || (!dependents[i] && dependent_tags_[i] != TaggedObject::Tag()) ) {
           retVal = false;
           break;
         }

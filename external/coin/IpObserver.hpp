@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpObserver.hpp 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpObserver.hpp 2161 2013-01-01 20:39:05Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -51,6 +51,7 @@ namespace Ipopt
     {}
 
     /** Default destructor */
+    inline
     virtual ~Observer();
     //@}
 
@@ -68,6 +69,7 @@ namespace Ipopt
      * not call "Attach" explicitly on the Subject
      * since further processing is done here
      */
+    inline
     void RequestAttach(NotifyType notify_type, const Subject* subject);
 
     /** Derived classes should call this method
@@ -75,6 +77,7 @@ namespace Ipopt
      * not call "Detach" explicitly on the Subject
      * since further processing is done here
      */
+    inline
     void RequestDetach(NotifyType notify_type, const Subject* subject);
 
     /** Derived classes should overload this method to
@@ -109,6 +112,7 @@ namespace Ipopt
      *  the overloaded RecieveNotification method
      *  for the derived class to process.
      */
+    inline
     void ProcessNotification(NotifyType notify_type, const Subject* subject);
 
     friend class Subject;
@@ -137,6 +141,7 @@ namespace Ipopt
     {}
 
     /** Default destructor */
+    inline
     virtual ~Subject();
     //@}
 
@@ -154,15 +159,18 @@ namespace Ipopt
 
     /** Attach the specified observer
      *  (i.e., begin recieving notifications). */
+    inline
     void AttachObserver(Observer::NotifyType notify_type, Observer* observer) const;
 
     /** Detach the specified observer
      *  (i.e., no longer recieve notifications). */
+    inline
     void DetachObserver(Observer::NotifyType notify_type, Observer* observer) const;
     //@}
 
   protected:
 
+    inline
     void Notify(Observer::NotifyType notify_type) const;
 
   private:

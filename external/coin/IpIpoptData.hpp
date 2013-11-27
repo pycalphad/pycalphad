@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpIpoptData.hpp 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpIpoptData.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -111,6 +111,7 @@ namespace Ipopt
     /** @name Get Methods for Iterates */
     //@{
     /** Current point */
+    inline
     SmartPtr<const IteratesVector> curr() const;
 
     /** Get the current point in a copied container that is non-const.
@@ -120,6 +121,7 @@ namespace Ipopt
     //    SmartPtr<IteratesVector> curr_container() const;
 
     /** Get Trial point */
+    inline
     SmartPtr<const IteratesVector> trial() const;
 
     /** Get Trial point in a copied container that is non-const.
@@ -132,6 +134,7 @@ namespace Ipopt
      *  efficiency (no copy and to keep cache tags the same) so
      *  after you call set you cannot modify the data again
      */
+    inline
     void set_trial(SmartPtr<IteratesVector>& trial);
 
     /** Set the values of the primal trial variables (x and s) from
@@ -164,12 +167,14 @@ namespace Ipopt
     // void set_trial(SmartPtr<const IteratesVector>& trial_iterates);
 
     /** get the current delta */
+    inline
     SmartPtr<const IteratesVector> delta() const;
 
     /** Set the current delta - like the trial point, this method copies
      *  the pointer for efficiency (no copy and to keep cache tags the
      *  same) so after you call set, you cannot modify the data
      */
+    inline
     void set_delta(SmartPtr<IteratesVector>& delta);
 
     /** Set the current delta - like the trial point, this method
@@ -178,15 +183,18 @@ namespace Ipopt
      *  data.  This is the version that is happy with a pointer to
      *  const IteratesVector.
      */
+    inline
     void set_delta(SmartPtr<const IteratesVector>& delta);
 
     /** Affine Delta */
+    inline
     SmartPtr<const IteratesVector> delta_aff() const;
 
     /** Set the affine delta - like the trial point, this method copies
      *  the pointer for efficiency (no copy and to keep cache tags the
      *  same) so after you call set, you cannot modify the data
      */
+    inline
     void set_delta_aff(SmartPtr<IteratesVector>& delta_aff);
 
     /** Hessian or Hessian approximation (do not hold on to it, it might be changed) */
@@ -265,6 +273,7 @@ namespace Ipopt
     /** @name Public Methods for updating iterates */
     //@{
     /** Copy the trial values to the current values */
+    inline
     void CopyTrialToCurrent();
 
     /** Set the current iterate values from the
@@ -427,6 +436,36 @@ namespace Ipopt
       info_skip_output_ = info_skip_output;
     }
 
+    /** gives time when the last summary output line was printed */
+    Number info_last_output()
+    {
+       return info_last_output_;
+    }
+    /** sets time when the last summary output line was printed */
+    void Set_info_last_output(Number info_last_output)
+    {
+       info_last_output_ = info_last_output;
+    }
+
+    /** gives number of iteration summaries actually printed
+     * since last summary header was printed */
+    int info_iters_since_header()
+    {
+       return info_iters_since_header_;
+    }
+    /** increases number of iteration summaries actually printed
+     * since last summary header was printed */
+    void Inc_info_iters_since_header()
+    {
+       info_iters_since_header_++;
+    }
+    /** sets number of iteration summaries actually printed
+     * since last summary header was printed */
+    void Set_info_iters_since_header(int info_iters_since_header)
+    {
+       info_iters_since_header_ = info_iters_since_header;
+    }
+
     /** Reset all info fields */
     void ResetInfo()
     {
@@ -584,6 +623,11 @@ namespace Ipopt
     bool info_skip_output_;
     /** any string of characters for the end of the output line */
     std::string info_string_;
+    /** time when the last summary output line was printed */
+    Number info_last_output_;
+    /** number of iteration summaries actually printed since last
+     * summary header was printed */
+    int info_iters_since_header_;
     //@}
 
     /** VectorSpace for all the iterates */
@@ -685,8 +729,8 @@ namespace Ipopt
       debug_curr_tag_sum_ = curr_->GetTagSum();
     }
     else {
-      debug_curr_tag_ = 0;
-      debug_curr_tag_sum_ = 0;
+      debug_curr_tag_ = TaggedObject::Tag();
+      debug_curr_tag_sum_ = TaggedObject::Tag();
     }
 #endif
 
@@ -705,8 +749,8 @@ namespace Ipopt
       debug_trial_tag_sum_ = trial->GetTagSum();
     }
     else {
-      debug_trial_tag_ = 0;
-      debug_trial_tag_sum_ = 0;
+      debug_trial_tag_ = TaggedObject::Tag();
+      debug_trial_tag_sum_ = TaggedObject::Tag();
     }
 #endif
 
@@ -724,8 +768,8 @@ namespace Ipopt
       debug_delta_tag_sum_ = delta->GetTagSum();
     }
     else {
-      debug_delta_tag_ = 0;
-      debug_delta_tag_sum_ = 0;
+      debug_delta_tag_ = TaggedObject::Tag();
+      debug_delta_tag_sum_ = TaggedObject::Tag();
     }
 #endif
 
@@ -743,8 +787,8 @@ namespace Ipopt
       debug_delta_tag_sum_ = delta->GetTagSum();
     }
     else {
-      debug_delta_tag_ = 0;
-      debug_delta_tag_sum_ = 0;
+      debug_delta_tag_ = TaggedObject::Tag();
+      debug_delta_tag_sum_ = TaggedObject::Tag();
     }
 #endif
 
@@ -762,7 +806,7 @@ namespace Ipopt
       debug_delta_aff_tag_sum_ = delta_aff->GetTagSum();
     }
     else {
-      debug_delta_aff_tag_ = 0;
+      debug_delta_aff_tag_ = TaggedObject::Tag();
       debug_delta_aff_tag_sum_ = delta_aff->GetTagSum();
     }
 #endif

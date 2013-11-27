@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpIteratesVector.hpp 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpIteratesVector.hpp 2276 2013-05-05 12:33:44Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-06-06
 
@@ -78,6 +78,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the x entry */
+    inline
     SmartPtr<Vector> create_new_x();
 
     /** Create a new vector in the x entry and copy the current values
@@ -119,6 +120,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the s entry */
+    inline
     SmartPtr<Vector> create_new_s();
 
     /** Create a new vector in the s entry and copy the current values
@@ -160,6 +162,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the y_c entry */
+    inline
     SmartPtr<Vector> create_new_y_c();
 
     /** Create a new vector in the y_c entry and copy the current
@@ -201,6 +204,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the y_d entry */
+    inline
     SmartPtr<Vector> create_new_y_d();
 
     /** Create a new vector in the y_d entry and copy the current
@@ -242,7 +246,8 @@ namespace Ipopt
     }
 
     /** Create a new vector in the z_L entry */
-    SmartPtr<Vector> create_new_z_L() ;
+    inline
+    SmartPtr<Vector> create_new_z_L();
 
     /** Create a new vector in the z_L entry and copy the current
      *  values into it. */
@@ -283,6 +288,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the z_U entry */
+    inline
     SmartPtr<Vector> create_new_z_U();
 
     /** Create a new vector in the z_U entry and copy the current
@@ -324,6 +330,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the v_L entry */
+    inline
     SmartPtr<Vector> create_new_v_L();
 
     /** Create a new vector in the v_L entry and copy the current
@@ -365,6 +372,7 @@ namespace Ipopt
     }
 
     /** Create a new vector in the v_U entry */
+    inline
     SmartPtr<Vector> create_new_v_U();
 
     /** Create a new vector in the v_U entry and copy the current
@@ -441,32 +449,31 @@ namespace Ipopt
      */
     TaggedObject::Tag GetTagSum() const
     {
-      TaggedObject::Tag tag = 0;
+      TaggedObject::Tag tag;
 
-      if (IsValid(x())) {
-        tag += x()->GetTag();
-      }
-      if (IsValid(s())) {
-        tag += s()->GetTag();
-      }
-      if (IsValid(y_c())) {
-        tag += y_c()->GetTag();
-      }
-      if (IsValid(y_d())) {
-        tag += y_d()->GetTag();
-      }
-      if (IsValid(z_L())) {
-        tag += z_L()->GetTag();
-      }
-      if (IsValid(z_U())) {
-        tag += z_U()->GetTag();
-      }
-      if (IsValid(v_L())) {
-        tag += v_L()->GetTag();
-      }
-      if (IsValid(v_U())) {
-        tag += v_U()->GetTag();
-      }
+      if (IsValid(x()))
+        tag = x()->GetTag() + tag;
+
+      if (IsValid(s()))
+        tag = s()->GetTag() + tag;
+
+      if (IsValid(y_c()))
+        tag = y_c()->GetTag() + tag;
+
+      if (IsValid(y_d()))
+        tag = y_d()->GetTag() + tag;
+
+      if (IsValid(z_L()))
+        tag = z_L()->GetTag() + tag;
+
+      if (IsValid(z_U()))
+        tag = z_U()->GetTag() + tag;
+
+      if (IsValid(v_L()))
+        tag = v_L()->GetTag() + tag;
+
+      if (IsValid(v_U()))
+        tag = v_U()->GetTag() + tag;
 
       return tag;
     }

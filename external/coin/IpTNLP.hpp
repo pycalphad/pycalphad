@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpTNLP.hpp 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpTNLP.hpp 2212 2013-04-14 14:51:52Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -126,8 +126,8 @@ namespace Ipopt
     }
 
     /** overload this method to return the variables linearity
-     * (TNLP::Linear or TNLP::NonLinear). The var_types
-     *  array should be allocated with length at least n. (default implementation
+     * (TNLP::LINEAR or TNLP::NON_LINEAR). The var_types
+     *  array has been allocated with length at least n. (default implementation
      *  just return false and does not fill the array).*/
     virtual bool get_variables_linearity(Index n, LinearityType* var_types)
     {
@@ -135,7 +135,7 @@ namespace Ipopt
     }
 
     /** overload this method to return the constraint linearity.
-     * array should be alocated with length at least n. (default implementation
+     *  array has been allocated with length at least n. (default implementation
      *  just return false and does not fill the array).*/
     virtual bool get_constraints_linearity(Index m, LinearityType* const_types)
     {
@@ -214,7 +214,7 @@ namespace Ipopt
     /** This method is called just before finalize_solution.  With
      *  this method, the algorithm returns any metadata collected
      *  during its run, including the metadata provided by the user
-     *  with the above get_var_con_metada.  Each metadata can be of
+     *  with the above get_var_con_metadata.  Each metadata can be of
      *  type string, integer, and numeric. It can be associated to
      *  either the variables or the constraints.  The metadata that
      *  was associated with the primal variable vector is stored in

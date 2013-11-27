@@ -3,13 +3,13 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpReturnCodes_inc.h 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpReturnCodes_inc.h 2216 2013-04-14 17:06:00Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 ************************************************************************/
 
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
-/* !!!!!!!!!!!!!!!! REMEMBER TO UPDATE IpReturnCodes.inc !!!!!!!!!!!!!!!! */
+/* !!!!!!!!! REMEMBER TO UPDATE IpReturnCodes.inc and Ipopt.java !!!!!!!! */
 /* !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!! */
 
 /** Return codes for the Optimize call for an application */
