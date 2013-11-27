@@ -18,12 +18,13 @@ using namespace Ipopt;
 
 EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 	// set Ipopt options
-	app->Options()->SetStringValue("derivative_test","second-order");
-	app->Options()->SetNumericValue("derivative_test_perturbation",1e-6);
+	//app->Options()->SetStringValue("derivative_test","second-order");
+	//app->Options()->SetNumericValue("derivative_test_perturbation",1e-6);
 	//app->Options()->SetStringValue("hessian_approximation","limited-memory");
-	app->Options()->SetIntegerValue("print_level",4);
-	app->Options()->SetStringValue("derivative_test_print_all","yes");
+	app->Options()->SetIntegerValue("print_level",6);
+	//app->Options()->SetStringValue("derivative_test_print_all","yes");
 	app->Options()->SetStringValue("sb","yes"); // we handle copyright printing for Ipopt
+	app->RethrowNonIpoptException(true); // push our exceptions back up through the call stack
 
 
 	ApplicationReturnStatus status;
