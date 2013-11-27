@@ -26,15 +26,15 @@
 
 using namespace Ipopt;
 
-Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost::shared_ptr<IpoptApplication> solver)
+Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const SmartPtr<IpoptApplication> &solver)
 : sourcename(DB.get_info()), conditions(conds) {
 	BOOST_LOG_NAMED_SCOPE("Equilibrium::Equilibrium");
 	logger opt_log(journal::keywords::channel = "optimizer");
 	BOOST_LOG_SEV(opt_log, debug) << "enter ctor";
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
-		if (conds.phases.find(i->first) != conds.phases.end()) {
-			if (conds.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
+		if (conditions.phases.find(i->first) != conditions.phases.end()) {
+			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
 		}
 	}
 
@@ -49,18 +49,16 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost:
 
 	timer.start();
 	// Create NLP
-	SmartPtr<TNLP> mynlp = new GibbsOpt(DB, conds);
-	BOOST_LOG_SEV(opt_log, debug) << "return from GibbsOpt";
+	SmartPtr<TNLP> mynlp = new GibbsOpt(DB, conditions);
+	BOOST_LOG_SEV(opt_log, debug) << "return from GibbsOpt ctor";
 	ApplicationReturnStatus status;
 	status = solver->OptimizeTNLP(mynlp);
+	BOOST_LOG_SEV(opt_log, debug) << "return from GibbsOpt::OptimizeTNLP";
 	timer.stop();
 
 	if (status == Solve_Succeeded || status == Solved_To_Acceptable_Level) {
 		BOOST_LOG_SEV(opt_log, debug) << "Ipopt returned successfully";
-		iter_count = solver->Statistics()->IterationCount();
-		Number final_obj = solver->Statistics()->FinalObjective();
-		mingibbs = final_obj * conds.statevars.find('N')->second;
-
+		Number final_obj;
 		/* The dynamic_cast allows us to use the get_phase_map() function.
 		 * It is not exposed by the TNLP base class.
 		 */
@@ -72,6 +70,18 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost:
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "Attempting get_phase_map()";
 		ph_map = opt_ptr->get_phase_map();
+
+		if (IsValid(solver->Statistics())) {
+			final_obj = solver->Statistics()->FinalObjective();
+			iter_count = solver->Statistics()->IterationCount();
+		}
+		else {
+			// No statistics for the solve, must have been trivial
+			iter_count = 0;
+			BOOST_LOG_SEV(opt_log, critical) << "TODO: Fix finalize_solution() to not require Ipopt SolveStatistics for objective";
+		}
+
+		mingibbs = final_obj * conditions.statevars.find('N')->second;
 	}
 	else {
 		BOOST_LOG_SEV(opt_log, critical) << "Failed to construct Equilibrium object";

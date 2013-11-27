@@ -11,12 +11,11 @@
 #include "libgibbs/include/equilibrium.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
-#include <boost/make_shared.hpp>
 
 using namespace Ipopt;
 
 
-EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
+EquilibriumFactory::EquilibriumFactory() : app(SmartPtr<IpoptApplication>(new IpoptApplication())) {
 	// set Ipopt options
 	//app->Options()->SetStringValue("derivative_test","second-order");
 	//app->Options()->SetNumericValue("derivative_test_perturbation",1e-6);
@@ -36,7 +35,9 @@ EquilibriumFactory::EquilibriumFactory() : app(IpoptApplicationFactory()) {
 
 boost::shared_ptr<Equilibrium> EquilibriumFactory::create
 (const Database &DB, const evalconditions &conds) {
-	return boost::make_shared<Equilibrium>(DB, conds, app);
+	return boost::shared_ptr<Equilibrium>(new Equilibrium(DB, conds, app));
 }
 
-boost::shared_ptr<IpoptApplication> EquilibriumFactory::GetIpopt() { return app; }
+SmartPtr<IpoptApplication> EquilibriumFactory::GetIpopt() {
+	return app;
+}
