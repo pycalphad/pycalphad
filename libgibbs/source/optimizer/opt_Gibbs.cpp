@@ -190,6 +190,10 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_g");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_g";
+	if (m_num == 0) {
+		BOOST_LOG_SEV(opto_log, debug) << "No constraints";
+		return true;
+	}
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.constraints.begin();
 	const auto cons_end = cm.constraints.end();
@@ -230,6 +234,10 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 {
 	Index jac_index = 0;
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_jac_g");
+	if (m_num == 0) {
+		BOOST_LOG_SEV(opto_log, debug) << "No constraints";
+		return true;
+	}
 	if (values == NULL) {
 		BOOST_LOG_SEV(opto_log, debug) << "entering eval_jac_g values == NULL";
 		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
@@ -371,11 +379,6 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 			subls_vec.push_back(std::make_pair((*j).stoi_coef,subl_map));
 		}
 		ph_map[cur_phase->first] = std::make_pair(fL,subls_vec);
-	}
-	// Test code for chemical potential calculation
-	for (auto i = 0; i < m_num; ++i) {
-			double mu = lambda[i];
-			BOOST_LOG_SEV(opto_log, debug) << "MU(" << i << ") = " << mu;
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }
