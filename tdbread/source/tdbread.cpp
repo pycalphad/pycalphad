@@ -64,7 +64,7 @@ int main(int argc, char* argv[])
 		BOOST_LOG_SEV(slg, routine) << maindb.get_info(); // read out database infostring
 
 		// try to calculate the minimum Gibbs energy by constructing an equilibrium
-		EquilibriumFactory eqfact = EquilibriumFactory();
+		EquilibriumFactory eqfact;
 		Equilibrium myeq(maindb, mainconditions, eqfact.GetIpopt());
 		// print the resulting equilibrium
 		BOOST_LOG_SEV(slg, routine) << "" << myeq.print();
