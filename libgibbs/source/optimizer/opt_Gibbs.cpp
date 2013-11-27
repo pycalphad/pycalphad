@@ -198,6 +198,9 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 	const auto cons_begin = cm.constraints.begin();
 	const auto cons_end = cm.constraints.end();
 	try {
+		for (auto i = 0; i < m_num; ++i) {
+			g[i] = 0;
+		}
 		for (auto i = cons_begin; i != cons_end; ++i) {
 			// Calculate left-hand side and right-hand side of all constraints
 			//BOOST_LOG_SEV(opto_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
@@ -249,9 +252,12 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	}
 	else {
 		try {
-		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
-			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
-		}
+			for (auto i = 0; i < m_num; ++i) {
+				values[i] = 0;
+			}
+			for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
+				values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
+			}
 		}
 		catch (boost::exception &e) {
 			std::string specific_info, err_msg; // error message strings
@@ -354,15 +360,17 @@ void GibbsOpt::finalize_solution(SolverReturn status,
                               Index n, const Number* x, const Number* z_L, const Number* z_U,
                               Index m_num, const Number* g, const Number* lambda,
                               Number obj_value,
-			      const IpoptData* ip_data,
-			      IpoptCalculatedQuantities* ip_cq)
+                              const IpoptData* ip_data,
+                              IpoptCalculatedQuantities* ip_cq)
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
 	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
+		BOOST_LOG_SEV(opto_log, debug) << "Begin sitefrac_iters loop";
 		const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
+		BOOST_LOG_SEV(opto_log, debug) << "Iterating over phaseindex " << cur_phase->first;
 		const double fL = x[phaseindex]; // phase fraction
 
 		constitution subls_vec;
