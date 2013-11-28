@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpJournalist.hpp 2044 2011-08-27 11:21:16Z stefan $
+// $Id: IpJournalist.hpp 2204 2013-04-13 13:49:26Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -229,9 +229,9 @@ namespace Ipopt
      *  was a problem creating a new Journal.    
      */
     virtual SmartPtr<Journal> AddFileJournal(
-      const std::string& location_name,    /** identifier */
-      const std::string& fname,
-      EJournalLevel default_level = J_WARNING
+      const std::string& location_name,        /**< journal identifier */
+      const std::string& fname,                /**< file name */
+      EJournalLevel default_level = J_WARNING  /**< default journal level */
     );
 
     /** Get an existing journal.  You can use this method to change

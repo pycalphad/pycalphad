@@ -2,7 +2,7 @@
 // All Rights Reserved.
 // This code is published under the Eclipse Public License.
 //
-// $Id: IpIpoptApplication.hpp 1861 2010-12-21 21:34:47Z andreasw $
+// $Id: IpIpoptApplication.hpp 2400 2013-10-19 18:38:36Z stefan $
 //
 // Authors:  Carl Laird, Andreas Waechter     IBM    2004-08-13
 
@@ -63,15 +63,32 @@ namespace Ipopt
     list. */
     virtual SmartPtr<IpoptApplication> clone();
 
-    /** Initialize method. This method reads the params file and
-     *  initializes the journalists. You should call this method at
-     *  some point before the first optimize call. Note: you can skip
-     *  the processing of a params file by setting params_file to "".
+    /** Initialization method. This method reads options from the
+     *  input stream and initializes the journalists. It returns
+     *  something other than Solve_Succeeded if there was a
+     *  problem in the initialization (such as an invalid option).
+     *  You should call one of the initialization methods at some
+     *  point before the first optimize call.
+     */
+    virtual ApplicationReturnStatus Initialize(std::istream& is);
+    /** Initialization method. This method reads options from the
+     *  params file and initializes the journalists. It returns
+     *  something other than Solve_Succeeded if there was a
+     *  problem in the initialization (such as an invalid option).
+     *  You should call one of the initialization methods at some
+     *  point before the first optimize call.
+     *  Note: You can skip the processing of a params file by
+     *  setting params_file to "".
+     */
+    virtual ApplicationReturnStatus Initialize(std::string params_file);
+    /** Initialize method. This method reads the options file specified
+     *  by the option_file_name option and initializes the journalists.
+     *  You should call this method at some point before the first optimize
+     *  call.
      *  It returns something other than Solve_Succeeded if there was a
      *  problem in the initialization (such as an invalid option).
      */
-    virtual ApplicationReturnStatus Initialize(std::string params_file = "ipopt.opt");
-    virtual ApplicationReturnStatus Initialize(std::istream& is);
+    virtual ApplicationReturnStatus Initialize();
 
     /**@name Solve methods */
     //@{
@@ -153,6 +170,18 @@ namespace Ipopt
      *  method at the convenient time.  */
     void PrintCopyrightMessage();
 
+    /** Method to set whether non-ipopt non-bad_alloc exceptions
+     * are rethrown by Ipopt.
+     * By default, non-Ipopt and non-std::bad_alloc exceptions are
+     * caught by Ipopts initialization and optimization methods
+     * and the status NonIpopt_Exception_Thrown is returned.
+     * This function allows to enable rethrowing of such exceptions.
+     */
+    void RethrowNonIpoptException(bool dorethrow)
+    {
+       rethrow_nonipoptexception_ = dorethrow;
+    }
+
     /** @name Methods for IpoptTypeInfo */
     //@{
     static void RegisterOptions(SmartPtr<RegisteredOptions> roptions);
@@ -189,6 +218,9 @@ namespace Ipopt
     //@{
     /** Decide whether or not the ipopt.opt file should be read */
     bool read_params_dat_;
+
+    /** Decide whether non-ipopt non-bad_alloc exceptions should be rethrown */
+    bool rethrow_nonipoptexception_;
     //@}
 
     /** Journalist for reporting output */
@@ -233,9 +265,6 @@ namespace Ipopt
     /** Flag indicating if all bounds should be replaced by inequality
      *  constraints.  This is necessary for the inexact algorithm. */
     bool replace_bounds_;
-    /** Flag indicating if the NLP:FinalizeSolution method should not
-     *  be called after optimization. */
-    bool skip_finalize_solution_call_;
     //@}
   };
 

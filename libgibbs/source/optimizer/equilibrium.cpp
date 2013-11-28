@@ -9,13 +9,13 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/equilibrium.hpp"
+#include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/utils/enum_handling.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
-#include "libtdb/include/conditions.hpp"
-#include "libtdb/include/utils/enum_handling.hpp"
 #include "libtdb/include/logging.hpp"
-#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
 #include <iostream>
@@ -25,14 +25,17 @@
 #include <boost/io/ios_state.hpp>
 
 using namespace Ipopt;
+using namespace Optimizer;
 
-Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost::shared_ptr<IpoptApplication> solver)
+Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const SmartPtr<IpoptApplication> &solver)
 : sourcename(DB.get_info()), conditions(conds) {
+	BOOST_LOG_NAMED_SCOPE("Equilibrium::Equilibrium");
 	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(opt_log, debug) << "enter ctor";
 	Phase_Collection phase_col;
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
-		if (conds.phases.find(i->first) != conds.phases.end()) {
-			if (conds.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
+		if (conditions.phases.find(i->first) != conditions.phases.end()) {
+			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
 		}
 	}
 
@@ -40,34 +43,52 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, boost:
 	const Phase_Collection::const_iterator phase_end = phase_col.cend();
 
 	// TODO: check validity of conditions
+	if (phase_iter == phase_end) {
+		// No phases are entered
+		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("No phases are entered"));
+	}
 
 	timer.start();
 	// Create NLP
-	SmartPtr<TNLP> mynlp = new GibbsOpt(DB, conds);
+	SmartPtr<TNLP> mynlp = new GibbsOpt(DB, conditions);
+	BOOST_LOG_SEV(opt_log, debug) << "return from GibbsOpt ctor";
 	ApplicationReturnStatus status;
 	status = solver->OptimizeTNLP(mynlp);
+	BOOST_LOG_SEV(opt_log, debug) << "return from GibbsOpt::OptimizeTNLP";
 	timer.stop();
 
 	if (status == Solve_Succeeded || status == Solved_To_Acceptable_Level) {
-		iter_count = solver->Statistics()->IterationCount();
-		Number final_obj = solver->Statistics()->FinalObjective();
-		mingibbs = final_obj * conds.statevars.find('N')->second;
-
+		BOOST_LOG_SEV(opt_log, debug) << "Ipopt returned successfully";
+		Number final_obj;
 		/* The dynamic_cast allows us to use the get_phase_map() function.
 		 * It is not exposed by the TNLP base class.
 		 */
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
 		if (!opt_ptr)
 		{
-			BOOST_LOG_SEV(opt_log, routine) << "Internal memory error from dynamic_cast<GibbsOpt*>";
+			BOOST_LOG_SEV(opt_log, critical) << "Internal memory error from dynamic_cast<GibbsOpt*>";
 			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
 		}
+		BOOST_LOG_SEV(opt_log, debug) << "Attempting get_phase_map()";
 		ph_map = opt_ptr->get_phase_map();
+
+		if (IsValid(solver->Statistics())) {
+			final_obj = solver->Statistics()->FinalObjective();
+			iter_count = solver->Statistics()->IterationCount();
+		}
+		else {
+			// No statistics for the solve, must have been trivial
+			iter_count = 0;
+			BOOST_LOG_SEV(opt_log, critical) << "TODO: Fix finalize_solution() to not require Ipopt SolveStatistics for objective";
+		}
+
+		mingibbs = final_obj * conditions.statevars.find('N')->second;
 	}
 	else {
-		BOOST_LOG_SEV(opt_log, routine) << "Failed to construct Equilibrium object" << std::endl;
+		BOOST_LOG_SEV(opt_log, critical) << "Failed to construct Equilibrium object";
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Solver failed to find equilibrium"));
 	}
+	BOOST_LOG_SEV(opt_log, debug) << "exit ctor";
 }
 
 double Equilibrium::GibbsEnergy() {
@@ -75,6 +96,9 @@ double Equilibrium::GibbsEnergy() {
 }
 
 std::string Equilibrium::print() const {
+	BOOST_LOG_NAMED_SCOPE("Equilibrium::print");
+	logger opt_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(opt_log, debug) << "enter function";
 	std::stringstream stream;
 	boost::io::ios_flags_saver  ifs( stream ); // preserve original state of the stream once we leave scope
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
@@ -207,5 +231,6 @@ std::string Equilibrium::print() const {
 
     stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
 
+    BOOST_LOG_SEV(opt_log, debug) << "returning";
 	return (const std::string)stream.str();
 }

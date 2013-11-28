@@ -86,7 +86,6 @@ typedef boost::multi_index::multi_index_container<
 > sublattice_set;
 
 
-// TODO: fix the view object to work on pointers, not the actual object
 typedef boost::multi_index::multi_index_container<
 		const sublattice_entry*,
 		boost::multi_index::indexed_by<
@@ -106,16 +105,6 @@ typedef boost::multi_index::multi_index_container<
 > sublattice_set_view;
 
 
-// bridge function between Database and EnergyModels
-sublattice_set build_variable_map(
-		const Phase_Collection::const_iterator p_begin,
-		const Phase_Collection::const_iterator p_end,
-		const evalconditions &conditions,
-		std::map<std::string, int> &indices
-		);
-
-
-
 // prototype model
 class EnergyModel {
 public:
@@ -125,7 +114,7 @@ public:
 	EnergyModel(const std::string &phasename, const sublattice_set &subl_set) {
 		// implementation
 	};
-	boost::spirit::utree get_ast() { return model_ast; }
+	const boost::spirit::utree& get_ast() const { return model_ast; }
 protected:
 	boost::spirit::utree model_ast;
 	double count_mixing_sites(const sublattice_set_view &ssv);

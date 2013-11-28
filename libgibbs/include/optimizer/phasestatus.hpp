@@ -5,10 +5,15 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-#include "libgibbs/include/libgibbs_pch.hpp"
-#include "libtdb/include/utils/enum_handling.hpp"
-#include "libtdb/include/conditions.hpp"
+// declaration for PhaseStatus
 
-// static member initialization for template classes
+#ifndef PHASESTATUS_INCLUDED
+#define PHASESTATUS_INCLUDED
 
-template<> char const* enumStrings<PhaseStatus>::data[] = {"ENTERED", "DORMANT", "FIXED", "SUSPENDED"};
+namespace Optimizer {
+enum class PhaseStatus : unsigned int {
+	ENTERED = 0, DORMANT = 1, FIXED = 2, SUSPENDED = 3
+};
+}
+
+#endif

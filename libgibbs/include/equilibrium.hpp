@@ -15,9 +15,10 @@
 #include <unordered_map>
 #include <vector>
 #include <utility>
+#include <memory>
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libtdb/include/database.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 
@@ -70,7 +71,7 @@ private:
 	typedef std::unordered_map<std::string,phase> phasemap;
 	phasemap ph_map; // maps phase name to its object
 public:
-	Equilibrium(const Database &DB, const evalconditions &conds, boost::shared_ptr<Ipopt::IpoptApplication> solver);
+	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
 	double GibbsEnergy();
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);
@@ -79,12 +80,14 @@ public:
 
 class EquilibriumFactory {
 private:
-	boost::shared_ptr<Ipopt::IpoptApplication> app; // pointer to Ipopt
-	// collection of Equilibrium objects
+	Ipopt::SmartPtr<Ipopt::IpoptApplication> app; // pointer to Ipopt
 public:
 	EquilibriumFactory();
-	boost::shared_ptr<Ipopt::IpoptApplication> GetIpopt();
+	// EquilibriumFactory is noncopyable
+	EquilibriumFactory(const EquilibriumFactory&)=delete;
+	EquilibriumFactory & operator=(const EquilibriumFactory&) = delete;
 	boost::shared_ptr<Equilibrium> create(const Database &, const evalconditions &);
+	Ipopt::SmartPtr<Ipopt::IpoptApplication> GetIpopt();
 };
 
 #endif

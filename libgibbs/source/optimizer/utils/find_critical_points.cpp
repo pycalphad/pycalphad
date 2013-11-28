@@ -9,10 +9,10 @@
 // See Emelianenko, Liu, and Du (2006)
 
 #include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libtdb/include/structure.hpp"
-#include "libtdb/include/conditions.hpp"
 #include <boost/multi_array.hpp>
 
 typedef boost::multi_array<double,2> domain;

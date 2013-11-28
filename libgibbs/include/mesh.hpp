@@ -12,7 +12,7 @@
 
 #include <unordered_map>
 #include <string>
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/conditions.hpp"
 
 
 enum class MeshAxisType : unsigned int {

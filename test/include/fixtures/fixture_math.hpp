@@ -12,8 +12,8 @@
 
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/grammars/math_grammar.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>
 

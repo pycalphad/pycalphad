@@ -32,7 +32,7 @@ bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 	nnz_jac_g = jac_g_trees.size();
 	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Jacobian of constraints: " << nnz_jac_g;
 	// number of nonzeros in the Hessian
-	nnz_h_lag = hessian_data.size();
+	nnz_h_lag = hess_sparsity_structure.size();
 	BOOST_LOG_SEV(opto_log, debug) << "Number of nonzeros in Hessian: " << nnz_h_lag;
 	// indices start at 0
 	index_style = C_STYLE;
@@ -125,7 +125,11 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 	// return the value of the objective function
 	try {
 		BOOST_LOG_SEV(opto_log, debug) << "trying to evaluate master tree";
-		obj_value = process_utree(master_tree, conditions, main_indices, (double*)x).get<double>();
+		double objective = 0;
+		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
+			objective += (*i)->evaluate_objective(conditions, main_indices,(double*)x);
+		}
+		obj_value = objective;
 	}
 	catch (boost::exception &e) {
 		std::string specific_info, err_msg; // error message strings
@@ -152,12 +156,17 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_grad_f");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_grad_f";
-	// return the gradient of the objective function grad_{x} f(x)
-	// calculate dF/dy(l,s,j)
-	//std::cout << "eval_grad_f entered" << std::endl;
+	// initialize gradient to zero
+	for (auto i = 0; i < n; ++i) {
+		grad_f[i] = 0;
+	}
 	try {
-		for (auto i = first_derivatives.begin(); i != first_derivatives.end(); ++i) {
-			grad_f[i->first] = process_utree(i->second, conditions, main_indices, (double*) x).get<double>();
+		// For all composition sets, evaluate the gradient
+		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
+			const std::map<int,double> gradmap = (*i)->evaluate_objective_gradient(conditions, main_indices, (double*)x);
+			for (auto j = gradmap.cbegin(); j != gradmap.cend(); ++j) {
+				grad_f[j->first] += j->second;
+			}
 		}
 	}
 	catch (boost::exception &e) {
@@ -181,10 +190,17 @@ bool GibbsOpt::eval_g(Index n, const Number* x, bool new_x, Index m_num, Number*
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_g");
 	BOOST_LOG_SEV(opto_log, debug) << "entering eval_g";
+	if (m_num == 0) {
+		BOOST_LOG_SEV(opto_log, debug) << "No constraints";
+		return true;
+	}
 	// return the value of the constraints: g(x)
 	const auto cons_begin = cm.constraints.begin();
 	const auto cons_end = cm.constraints.end();
 	try {
+		for (auto i = 0; i < m_num; ++i) {
+			g[i] = 0;
+		}
 		for (auto i = cons_begin; i != cons_end; ++i) {
 			// Calculate left-hand side and right-hand side of all constraints
 			//BOOST_LOG_SEV(opto_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
@@ -221,6 +237,10 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 {
 	Index jac_index = 0;
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::eval_jac_g");
+	if (m_num == 0) {
+		BOOST_LOG_SEV(opto_log, debug) << "No constraints";
+		return true;
+	}
 	if (values == NULL) {
 		BOOST_LOG_SEV(opto_log, debug) << "entering eval_jac_g values == NULL";
 		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
@@ -232,9 +252,12 @@ bool GibbsOpt::eval_jac_g(Index n, const Number* x, bool new_x,
 	}
 	else {
 		try {
-		for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
-			values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
-		}
+			for (auto i = 0; i < m_num; ++i) {
+				values[i] = 0;
+			}
+			for (auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i) {
+				values[std::distance(jac_g_trees.cbegin(),i)] = process_utree(i->ast, conditions, main_indices, (double*)x).get<double>();
+			}
 		}
 		catch (boost::exception &e) {
 			std::string specific_info, err_msg; // error message strings
@@ -264,9 +287,9 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 
 	if (values == NULL) {
 		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h without values";
-		for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
-			int varindex1 = i->var_index1;
-			int varindex2 = i->var_index2;
+		for (auto i = hess_sparsity_structure.cbegin(); i != hess_sparsity_structure.cend(); ++i) {
+			const int varindex1 = *(i->cbegin());
+			const int varindex2 = *(++(i->cbegin()));
 			iRow[h_idx] = varindex1;
 			jCol[h_idx] = varindex2;
 			++h_idx;
@@ -275,24 +298,44 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 	}
 	else {
 		BOOST_LOG_SEV(opto_log, debug) << "enter eval_h with values";
+		for (auto i = hess_sparsity_structure.cbegin(); i != hess_sparsity_structure.cend(); ++i) {
+			values[std::distance(hess_sparsity_structure.cbegin(),i)] = 0; // initialize
+		}
 		try {
-			for (auto i = hessian_data.cbegin(); i != hessian_data.cend(); ++i) {
-				int varindex1 = i->var_index1;
-				int varindex2 = i->var_index2;
-				values[h_idx] = 0; // initialize
+			// objective portion
+			for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
+				auto hessian = (*i)->evaluate_objective_hessian(conditions, main_indices, (double*)x);
+				for (auto j = hessian.cbegin(); j != hessian.cend(); ++j) {
+					const int varindex1 = *(j->first.cbegin());
+					const int varindex2 = *(++j->first.cbegin());
+					const std::list<int> searchlist {varindex1,varindex2};
+					const int sparse_index =
+							std::distance(
+									hess_sparsity_structure.begin(),
+									hess_sparsity_structure.find(searchlist)
+									);
+					values[sparse_index] += obj_factor * j->second; // objective portion
+				}
+			}
+
+			// constraint portion
+			for (auto i = constraint_hessian_data.cbegin(); i != constraint_hessian_data.cend(); ++i) {
+				const int varindex1 = i->var_index1;
+				const int varindex2 = i->var_index2;
+				std::list<int> searchlist;
+				if (varindex1 <= varindex2) searchlist = {varindex1,varindex2};
+				else searchlist = {varindex2, varindex1};
+				const int sparse_index =
+						std::distance(
+								hess_sparsity_structure.begin(),
+								hess_sparsity_structure.find(searchlist)
+								);
 				for (auto j = i->asts.cbegin(); j != i->asts.cend(); ++j) {
 					BOOST_LOG_SEV(opto_log, debug) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
 					boost::spirit::utree hess_tree = process_utree(j->second, conditions, main_indices, (double*)x).get<double>();
-					if (j->first == -1) {
-						// objective portion
-						values[h_idx] += obj_factor * hess_tree.get<double>();
-					}
-					else {
-						// constraint portion
-						values[h_idx] += lambda[j->first] * hess_tree.get<double>();
-					}
+					// constraint portion
+					values[sparse_index] += lambda[j->first] * hess_tree.get<double>();
 				}
-				++h_idx;
 			}
 		}
 		catch (boost::exception &e) {
@@ -317,15 +360,17 @@ void GibbsOpt::finalize_solution(SolverReturn status,
                               Index n, const Number* x, const Number* z_L, const Number* z_U,
                               Index m_num, const Number* g, const Number* lambda,
                               Number obj_value,
-			      const IpoptData* ip_data,
-			      IpoptCalculatedQuantities* ip_cq)
+                              const IpoptData* ip_data,
+                              IpoptCalculatedQuantities* ip_cq)
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
 	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
 	auto sitefrac_begin = var_map.sitefrac_iters.begin();
 	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
+		BOOST_LOG_SEV(opto_log, debug) << "Begin sitefrac_iters loop";
 		const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
 		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
+		BOOST_LOG_SEV(opto_log, debug) << "Iterating over phaseindex " << cur_phase->first;
 		const double fL = x[phaseindex]; // phase fraction
 
 		constitution subls_vec;
@@ -342,11 +387,6 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 			subls_vec.push_back(std::make_pair((*j).stoi_coef,subl_map));
 		}
 		ph_map[cur_phase->first] = std::make_pair(fL,subls_vec);
-	}
-	// Test code for chemical potential calculation
-	for (auto i = 0; i < m_num; ++i) {
-			double mu = lambda[i];
-			BOOST_LOG_SEV(opto_log, debug) << "MU(" << i << ") = " << mu;
 	}
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }

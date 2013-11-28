@@ -11,30 +11,44 @@
 #define COMPOSITIONSET_INCLUDED
 
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/constraint.hpp"
+#include "libgibbs/include/optimizer/ast_set.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
+#include <set>
+#include <list>
 
 // A CompositionSet works with libtdb's Phase class
 // Its purpose is to handle the optimizer's specific configuration for the given conditions and models
 // Multiple CompositionSets of the same Phase can be created to handle miscibility gaps
 class CompositionSet {
 public:
-	std::vector<double> evaluate_objective();
-	std::vector<double> evaluate_objective_gradient();
-	std::vector<double> evaluate_constraints();
-	std::vector<double> evaluate_jacobian_of_constraints();
-	std::vector<double> evaluate_hessian();
-	std::string name() { return cset_name; }
+	double evaluate_objective(
+			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::map<int,double> evaluate_objective_gradient(
+			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::map<std::list<int>,double> evaluate_objective_hessian(
+			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+	std::set<std::list<int>> hessian_sparsity_structure(std::map<std::string, int> const &) const;
+	std::string name() const { return cset_name; }
 	// make CompositionSet from existing Phase
-	CompositionSet(const Phase& phaseobj, const parameter_set &pset, const sublattice_set &sublset);
+	CompositionSet(
+			const Phase &phaseobj,
+			const parameter_set &pset,
+			const sublattice_set &sublset,
+			std::map<std::string, int> const &main_indices);
 private:
 	std::string cset_name;
 	std::map<std::string,std::unique_ptr<EnergyModel>> models;
+	std::map<int,boost::spirit::utree> first_derivatives;
+	std::vector<jacobian_entry> jac_g_trees;
+	hessian_set hessian_data;
+	ast_set tree_data;
 	// Block copy ctor
 	CompositionSet(const CompositionSet&);
 	// Block assignment operator
 	CompositionSet& operator=(const CompositionSet&);
 };
-
 
 #endif

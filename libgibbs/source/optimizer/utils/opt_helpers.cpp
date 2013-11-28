@@ -1,7 +1,7 @@
 // opt_helpers.cpp -- helper functions for the Gibbs energy optimizer
 
 #include "libgibbs/include/libgibbs_pch.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <math.h>
 #include <iostream>

@@ -9,7 +9,6 @@
 
 #include "libgibbs/include/equilibrium.hpp"
 #include "libtdb/include/database.hpp"
-#include "libtdb/include/conditions.hpp"
 #include <sstream>
 
 #ifndef INCLUDED_FIXTURE_EQ

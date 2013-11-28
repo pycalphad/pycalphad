@@ -11,7 +11,7 @@
 #define INCLUDED_MATH_EXPR
 
 #include "libtdb/include/warning_disable.hpp"
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include <string>
 #include <boost/spirit/include/support_utree.hpp>
 

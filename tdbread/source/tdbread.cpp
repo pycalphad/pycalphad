@@ -9,12 +9,13 @@
 #define BOOST_SPIRIT_USE_PHOENIX_V3 1
 #endif
 #include "libtdb/include/database.hpp"
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/equilibrium.hpp"
 #include <iostream>
 #include "libtdb/include/logging.hpp"
 
 using namespace journal;
+using namespace Optimizer;
 
 int main(int argc, char* argv[])
 {
@@ -64,7 +65,7 @@ int main(int argc, char* argv[])
 		BOOST_LOG_SEV(slg, routine) << maindb.get_info(); // read out database infostring
 
 		// try to calculate the minimum Gibbs energy by constructing an equilibrium
-		EquilibriumFactory eqfact = EquilibriumFactory();
+		EquilibriumFactory eqfact;
 		Equilibrium myeq(maindb, mainconditions, eqfact.GetIpopt());
 		// print the resulting equilibrium
 		BOOST_LOG_SEV(slg, routine) << "" << myeq.print();

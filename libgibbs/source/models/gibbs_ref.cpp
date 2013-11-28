@@ -14,8 +14,8 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include "libtdb/include/logging.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
 #include <string>
 #include <sstream>
 #include <set>
