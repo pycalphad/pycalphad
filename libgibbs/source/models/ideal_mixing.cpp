@@ -59,6 +59,7 @@ IdealMixingModel::IdealMixingModel(
 		const std::string &phasename,
 		const sublattice_set &subl_set
 		) : EnergyModel(phasename, subl_set) {
+	BOOST_LOG_NAMED_SCOPE("IdealMixingModel::IdealMixingModel");
 	// TODO: add intelligence to detect single-species sublattices (no mixing contribution)
 	utree work_tree, gas_const_product;
 	sublattice_set_view ssv;

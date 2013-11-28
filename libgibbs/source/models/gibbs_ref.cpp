@@ -35,6 +35,7 @@ PureCompoundEnergyModel::PureCompoundEnergyModel(
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
 		) : EnergyModel(phasename, subl_set, param_set) {
+	BOOST_LOG_NAMED_SCOPE("PureCompoundEnergyModel::PureCompoundEnergyModel");
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview;
