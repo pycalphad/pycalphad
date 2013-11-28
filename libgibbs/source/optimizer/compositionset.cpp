@@ -9,7 +9,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/compositionset.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 
 using boost::multi_index_container;

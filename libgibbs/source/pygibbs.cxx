@@ -11,8 +11,8 @@
 #define BOOST_SPIRIT_USE_PHOENIX_V3 1
 #endif
 #include "libtdb/include/database.hpp"
-#include "libtdb/include/conditions.hpp"
 #include "libtdb/include/logging.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/equilibrium.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
@@ -23,6 +23,7 @@
 #include <boost/python/suite/indexing/vector_indexing_suite.hpp>
 
 using namespace boost::python;
+using namespace Optimizer;
 
 BOOST_PYTHON_MODULE(libpygibbs)
 {
@@ -31,7 +32,7 @@ BOOST_PYTHON_MODULE(libpygibbs)
 	class_<std::map<std::string,double>>("StdMap")
 		.def(map_indexing_suite<std::map<std::string, double> >() )
 	;
-	class_<std::map<std::string,PhaseStatus>>("PhaseStatusMap")
+	class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
 		.def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
 	;
 	// TODO: why do I have charmaps at all? This is a class decl problem

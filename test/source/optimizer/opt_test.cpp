@@ -11,9 +11,10 @@
 #include "test/include/fixtures/fixture_eq.hpp"
 #include "libgibbs/include/equilibrium.hpp"
 #include "libtdb/include/database.hpp"
-#include "libtdb/include/conditions.hpp"
 #define BOOST_TEST_STATIC_LINK
 #include <boost/test/unit_test.hpp>
+
+using namespace Optimizer;
 
 BOOST_FIXTURE_TEST_SUITE(EquilibriumSuite, EquilibriumFixture)
 BOOST_AUTO_TEST_CASE(SimpleIdealBinaryEquilibrium) {

@@ -105,16 +105,6 @@ typedef boost::multi_index::multi_index_container<
 > sublattice_set_view;
 
 
-// bridge function between Database and EnergyModels
-sublattice_set build_variable_map(
-		const Phase_Collection::const_iterator p_begin,
-		const Phase_Collection::const_iterator p_end,
-		const evalconditions &conditions,
-		std::map<std::string, int> &indices
-		);
-
-
-
 // prototype model
 class EnergyModel {
 public:

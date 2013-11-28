@@ -12,7 +12,6 @@
 #include "libgibbs/include/mesh.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/exceptions.hpp"
-#include "libtdb/include/conditions.hpp"
 
 void NaivePartition(const Database &DB, const EquilibriumFactory &eqfact, const Mesh &eqmesh) {
 	// set up all equilibria calculations on the EquilibriumFactory queue

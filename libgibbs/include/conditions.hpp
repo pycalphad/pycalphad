@@ -12,15 +12,12 @@
 #include <map>
 #include <vector>
 #include <cstdint>
-
-enum class PhaseStatus : unsigned int {
-	ENTERED = 0, DORMANT = 1, FIXED = 2, SUSPENDED = 3
-};
+#include "libgibbs/include/optimizer/phasestatus.hpp"
 
 struct evalconditions { 
 std::map<char,double> statevars; // state variable values
 std::vector<std::string> elements; // elements under consideration
-std::map<std::string,PhaseStatus> phases; // phases under consideration
+std::map<std::string,Optimizer::PhaseStatus> phases; // phases under consideration
 std::map<std::string,double> xfrac; // system mole fractions
 };
 

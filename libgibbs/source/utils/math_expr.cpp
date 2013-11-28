@@ -7,11 +7,10 @@
 
 // math_expr.cpp -- evaluator for Thermo-Calc-like mathematical expressions
 
-#include "libtdb/include/libtdb_pch.hpp"
-#include "libtdb/include/warning_disable.hpp"
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/libgibbs_pch.hpp"
+#include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include "libtdb/include/exceptions.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/algorithm/string.hpp>

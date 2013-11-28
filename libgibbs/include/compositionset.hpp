@@ -13,6 +13,7 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/optimizer/ast_set.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
 #include <set>

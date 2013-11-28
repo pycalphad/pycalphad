@@ -13,7 +13,6 @@
 #include <vector>
 #include "libtdb/include/utils/chemical_formula.hpp"
 #include "libtdb/include/utils/periodic_table.hpp"
-#include "libtdb/include/conditions.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/warning_disable.hpp"
 #include <boost/spirit/home/support/utree.hpp>

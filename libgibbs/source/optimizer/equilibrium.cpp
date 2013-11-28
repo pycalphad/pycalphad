@@ -9,13 +9,13 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/equilibrium.hpp"
+#include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/utils/enum_handling.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
-#include "libtdb/include/conditions.hpp"
-#include "libtdb/include/utils/enum_handling.hpp"
 #include "libtdb/include/logging.hpp"
-#include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 #include "external/coin/IpSolveStatistics.hpp"
 #include <iostream>
@@ -25,6 +25,7 @@
 #include <boost/io/ios_state.hpp>
 
 using namespace Ipopt;
+using namespace Optimizer;
 
 Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const SmartPtr<IpoptApplication> &solver)
 : sourcename(DB.get_info()), conditions(conds) {

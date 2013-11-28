@@ -18,7 +18,7 @@
 #include <memory>
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
-#include "libtdb/include/conditions.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include "libtdb/include/database.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 

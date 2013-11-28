@@ -26,6 +26,7 @@ using boost::spirit::utree;
 typedef boost::spirit::utree_type utree_type;
 using boost::multi_index_container;
 using namespace boost::multi_index;
+using namespace Optimizer;
 
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,

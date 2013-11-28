@@ -9,10 +9,13 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/utils/build_variable_map.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libtdb/include/logging.hpp"
-#include "libtdb/include/utils/math_expr.hpp"
 #include <sstream>
+
+using namespace Optimizer;
 
 // Add new_tree to root_tree
 void add_trees (boost::spirit::utree &root_tree, const boost::spirit::utree &new_tree) {
