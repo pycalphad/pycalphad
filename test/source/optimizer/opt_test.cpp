@@ -9,7 +9,6 @@
 
 #include "test/include/test_pch.hpp"
 #include "test/include/fixtures/fixture_eq.hpp"
-#include "libgibbs/include/equilibrium.hpp"
 #include "libtdb/include/database.hpp"
 #define BOOST_TEST_STATIC_LINK
 #include <boost/test/unit_test.hpp>
