@@ -26,7 +26,6 @@ struct sublattice_entry {
 	int index; // sublattice index
 	int opt_index; // variable index (for optimizer)
 	double num_sites; // number of sites
-	double sitefrac; // value of fraction (for optimizer)
 	std::string phase;
 	std::string species; // species name
 	sublattice_entry (
@@ -35,8 +34,7 @@ struct sublattice_entry {
 				opt_index(opt_index_),
 				num_sites(num_sites_),
 				phase(phase_),
-				species(species_),
-				sitefrac(-1) {}
+				species(species_) {}
 	const std::string name() const {
 		// std::to_string exists in C++11 but some compilers are buggy
 		std::stringstream ss;
@@ -49,6 +47,7 @@ struct sublattice_entry {
 struct myindex{};
 struct optimizer_index{};
 struct phases{};
+struct phase_subl{};
 
 /* Sublattice entries are sorted first by phase name, then index, then by species.
  * NB: The use of derivation here instead of simple typedef is explained in
@@ -81,7 +80,15 @@ typedef boost::multi_index::multi_index_container<
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<phases>,
 		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase)
-		>
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phase_subl>,
+		boost::multi_index::composite_key<
+			sublattice_entry,
+			BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase),
+			BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
+			>
+>
 >
 > sublattice_set;
 

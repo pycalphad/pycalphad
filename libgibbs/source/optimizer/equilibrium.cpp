@@ -33,6 +33,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 	logger opt_log(journal::keywords::channel = "optimizer");
 	BOOST_LOG_SEV(opt_log, debug) << "enter ctor";
 	Phase_Collection phase_col;
+	boost::timer::cpu_timer timer; // tracking wall clock time for the solve
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
 			if (conditions.phases.at(i->first) == PhaseStatus::ENTERED) phase_col[i->first] = i->second;
@@ -70,19 +71,19 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
 		}
 		BOOST_LOG_SEV(opt_log, debug) << "Attempting get_phase_map()";
-		ph_map = opt_ptr->get_phase_map();
+		result = opt_ptr->get_result();
 
 		if (IsValid(solver->Statistics())) {
-			final_obj = solver->Statistics()->FinalObjective();
-			iter_count = solver->Statistics()->IterationCount();
+			result.itercount = solver->Statistics()->IterationCount();
 		}
 		else {
 			// No statistics for the solve, must have been trivial
-			iter_count = 0;
+			result.itercount = 0;
 			BOOST_LOG_SEV(opt_log, critical) << "TODO: Fix finalize_solution() to not require Ipopt SolveStatistics for objective";
 		}
 
-		mingibbs = final_obj * conditions.statevars.find('N')->second;
+		result.walltime = timer.elapsed().wall;
+		result.N = conditions.statevars.find('N')->second; // TODO: this needs to be done in a more general way for unknown N
 	}
 	else {
 		BOOST_LOG_SEV(opt_log, critical) << "Failed to construct Equilibrium object";
@@ -91,19 +92,16 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 	BOOST_LOG_SEV(opt_log, debug) << "exit ctor";
 }
 
-double Equilibrium::GibbsEnergy() {
-	return mingibbs;
-}
-
 std::string Equilibrium::print() const {
 	BOOST_LOG_NAMED_SCOPE("Equilibrium::print");
+	return std::string(); // TODO: fix this function
 	logger opt_log(journal::keywords::channel = "optimizer");
 	BOOST_LOG_SEV(opt_log, debug) << "enter function";
 	std::stringstream stream;
 	boost::io::ios_flags_saver  ifs( stream ); // preserve original state of the stream once we leave scope
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
-	std::string walltime = boost::timer::format(timer.elapsed(), 3, "%w");
-	stream << "Solved in " << iter_count << " iterations (" << walltime << "secs)" << std::endl;
+	//std::string walltime = boost::timer::format(result.walltime, 3, "%w");
+	stream << "Solved in " << result.itercount << " iterations (" << result.walltime << "secs)" << std::endl;
 	stream << "Conditions:" << std::endl;
 
 	// We want the individual phase information to appear AFTER
@@ -131,18 +129,19 @@ std::string Equilibrium::print() const {
 
 	stream << std::endl;
 
-	double T,P,N;
+	double T,P,N,energy;
 	T = conditions.statevars.find('T')->second;
 	P = conditions.statevars.find('P')->second;
 	N = conditions.statevars.find('N')->second;
+	energy = result.energy();
 	stream << "Temperature " << T << " K (" << (T-273.15) << " C), " << "Pressure " << P << " Pa" << std::endl;
 
 	stream << std::scientific; // switch to scientific notation for doubles
     stream << "Number of moles of components " << N << ", Mass ????" << std::endl;
-    stream << "Total Gibbs energy " << mingibbs << " Enthalpy ???? " << "Volume ????" << std::endl;
+    stream << "Total Gibbs energy " << energy << " Enthalpy ???? " << "Volume ????" << std::endl;
 
     stream << std::endl;
-
+/*
     const auto ph_end = ph_map.cend();
 	const auto cond_spec_begin = conditions.elements.cbegin();
 	const auto cond_spec_end = conditions.elements.cend();
@@ -174,7 +173,7 @@ std::string Equilibrium::print() const {
     		 * 1) all species (except VA), to add to the denominator
     		 * 2) only species in that sublattice, to add to the numerator
     		 * With this method, all mole fractions will sum properly.
-    		 */
+    		 *
     		for (auto k = cond_spec_begin; k != cond_spec_end; ++k) {
     			if (*k == "VA") continue; // vacancies don't contribute to mole fractions
 				if (vacancy_iterator != spec_end) {
@@ -192,7 +191,7 @@ std::string Equilibrium::print() const {
     	}
     	/* We've summed up over all sublattices in this phase.
     	 * Now add this phase's contribution to the overall composition.
-    	 */
+    	 *
     	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
     		if (*j == "VA") continue; // vacancies don't contribute to mole fractions
     		global_comp[*j].first += phasefrac * (phase_comp[*j].first / phase_comp[*j].second);
@@ -232,5 +231,5 @@ std::string Equilibrium::print() const {
     stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
 
     BOOST_LOG_SEV(opt_log, debug) << "returning";
-	return (const std::string)stream.str();
+	return (const std::string)stream.str();*/
 }

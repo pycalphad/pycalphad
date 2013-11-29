@@ -19,6 +19,7 @@
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
 #include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/optimizer/equilibriumresult.hpp"
 #include "libtdb/include/database.hpp"
 #include "external/coin/IpIpoptApplication.hpp"
 
@@ -61,15 +62,7 @@ class Equilibrium {
 private:
 	const std::string sourcename; // descriptor for the source of the equilibrium data
 	const evalconditions conditions; // thermodynamic conditions of the equilibrium
-	double mingibbs; // Gibbs energy for the equilibrium (must use common reference state)
-	int iter_count; // number of iterations required for the solve
-	boost::timer::cpu_timer timer; // time tracking for the solve
-	typedef std::unordered_map<std::string, double> speclist; // species name + site fraction
-	typedef std::pair<double, speclist> sublattice; // stoichiometric coefficient + species list
-	typedef std::vector<sublattice> constitution; // collection of sublattices
-	typedef std::pair<double, constitution> phase; // phase fraction + constitution
-	typedef std::unordered_map<std::string,phase> phasemap;
-	phasemap ph_map; // maps phase name to its object
+	Optimizer::EquilibriumResult<Ipopt::Number> result; // equilibrium data from the optimization
 public:
 	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
 	double GibbsEnergy();

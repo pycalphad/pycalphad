@@ -11,6 +11,8 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
+#include "libgibbs/include/optimizer/equilibriumresult.hpp"
+#include "libgibbs/include/optimizer/utils/startingpoint_naive.hpp"
 #include "libtdb/include/logging.hpp"
 #include "external/coin/IpTNLP.hpp"
 #include <sstream>
@@ -81,39 +83,12 @@ bool GibbsOpt::get_starting_point(Index n, bool init_x, Number* x,
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::get_starting_point");
 	BOOST_LOG_SEV(opto_log, debug) << "entering get_starting_point";
-	const double numphases = var_map.phasefrac_iters.size();
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	double result = 0;
-	int varcount = 0;
-	// all phases
-	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
-		const int phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
-		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-		x[phaseindex] = 1 / numphases; // phase fraction
-		//std::cout << "x[" << phaseindex << "] = " << x[phaseindex] << std::endl;
-		++varcount;
-		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-			double speccount = 0;
-			// Iterating through the sublattice twice is not very efficient,
-			// but we only set the starting values once and this is far simpler to read
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					speccount = speccount + 1;
-				}
-			}
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					int sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
-					x[sitefracindex] = 1 / speccount;
-					//std::cout << "x[" << sitefracindex << "] = " << x[sitefracindex] << std::endl;
-					++varcount;
-				}
-			}
-		}
+	// For now, choose a naive starting point
+	std::map<Index,Number> startpoint = get_startingpoint_naive<Index,Number>(main_ss);
+	// Set starting point variables
+	for (auto i = startpoint.cbegin(); i != startpoint.cend(); ++i) {
+		x[i->first] = i->second;
 	}
-	assert(varcount == m);
 	BOOST_LOG_SEV(opto_log, debug) << "exiting get_starting_point";
 	return true;
 }
@@ -365,28 +340,6 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
 	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
-	auto sitefrac_begin = var_map.sitefrac_iters.begin();
-	for (auto i = sitefrac_begin; i != var_map.sitefrac_iters.end(); ++i) {
-		BOOST_LOG_SEV(opto_log, debug) << "Begin sitefrac_iters loop";
-		const Index phaseindex = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<0>();
-		const Phase_Collection::const_iterator cur_phase = var_map.phasefrac_iters.at(std::distance(sitefrac_begin,i)).get<2>();
-		BOOST_LOG_SEV(opto_log, debug) << "Iterating over phaseindex " << cur_phase->first;
-		const double fL = x[phaseindex]; // phase fraction
-
-		constitution subls_vec;
-		for (auto j = cur_phase->second.get_sublattice_iterator(); j != cur_phase->second.get_sublattice_iterator_end();++j) {
-			std::unordered_map<std::string,double> subl_map;
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				Index sitefracindex;
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					sitefracindex = var_map.sitefrac_iters[std::distance(sitefrac_begin,i)][std::distance(cur_phase->second.get_sublattice_iterator(),j)][*k].first;
-					subl_map[*k] = x[sitefracindex];
-				}
-			}
-			subls_vec.push_back(std::make_pair((*j).stoi_coef,subl_map));
-		}
-		ph_map[cur_phase->first] = std::make_pair(fL,subls_vec);
-	}
+	// TODO: rewrite this implementation
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }

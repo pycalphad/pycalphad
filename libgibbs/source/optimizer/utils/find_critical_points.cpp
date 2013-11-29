@@ -10,7 +10,6 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/conditions.hpp"
-#include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libtdb/include/structure.hpp"
 #include <boost/multi_array.hpp>

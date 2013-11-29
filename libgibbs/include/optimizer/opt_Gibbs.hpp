@@ -14,11 +14,12 @@
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/models.hpp"
-#include "libgibbs/include/utils/math_expr.hpp"
-#include "libgibbs/include/optimizer/optimizer.hpp"
 #include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/compositionset.hpp"
+#include "libgibbs/include/optimizer/equilibriumresult.hpp"
+#include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
+#include <boost/bimap.hpp>
 #include <string>
 #include <unordered_map>
 #include <utility>
@@ -29,7 +30,6 @@ using namespace Ipopt;
 typedef std::map<std::string, int> index_table; // matches variable names to Ipopt indices
 
 class GibbsOpt : public TNLP {
-	mutable logger opto_log;
 public:
 	GibbsOpt(
 		const Database &DB,
@@ -90,13 +90,7 @@ public:
 		IpoptCalculatedQuantities* ip_cq);
 	//@}
 
-	typedef std::unordered_map<std::string, double> speclist; // species name + site fraction
-	typedef std::pair<double, speclist> sublattice; // stoichiometric coefficient + species list
-	typedef std::vector<sublattice> constitution; // collection of sublattices
-	typedef std::pair<double, constitution> phase; // phase fraction + constitution
-	typedef std::unordered_map<std::string,phase> phasemap;
-
-	phasemap get_phase_map() { return ph_map; };
+	Optimizer::EquilibriumResult<Ipopt::Number> get_result() { return result; };
 
 private:
 	/**@name Methods to block default compiler methods.
@@ -114,24 +108,22 @@ private:
 	GibbsOpt(const GibbsOpt&);
 	GibbsOpt& operator=(const GibbsOpt&);
 	//@}
-	sublattice_set main_ss;
-	vector_map var_map;
-	index_table main_indices;
-	evalconditions conditions;
-	boost::spirit::utree master_tree; // abstract syntax tree (AST) for the objective function
+	mutable logger opto_log; // Boost Log object
+	boost::bimap<std::string, Ipopt::Index> main_indices; // Map variable name to Index
+	sublattice_set main_ss; // Information about the structure of the sublattice models in each phase
+	evalconditions conditions; // User-specified conditions
 	Phase_Collection::const_iterator phase_iter;
 	Phase_Collection::const_iterator phase_end;
-	Phase_Collection phase_col;
-	ConstraintManager cm;
-	std::map<int,boost::spirit::utree> first_derivatives;
-	std::vector<jacobian_entry> jac_g_trees;
-	std::set<std::list<int>> hess_sparsity_structure;
-	hessian_set constraint_hessian_data;
-	std::vector<int> fixed_indices;
-	std::vector<std::unique_ptr<CompositionSet>> comp_sets;
+	Phase_Collection phase_col; // Collection of phases from database
+	ConstraintManager cm; // Handles all constraints
 
-	// data structure for final result
-	phasemap ph_map; // maps phase name to its object (final result)
+	std::vector<jacobian_entry> jac_g_trees; // Jacobian ASTs of constraints
+	std::set<std::list<Ipopt::Index>> hess_sparsity_structure; // Hessian sparsity structure
+	hessian_set constraint_hessian_data; // Hessian ASTs of objective
+	std::vector<Ipopt::Index> fixed_indices; // Indices of variables that are fixed at unity
+	std::vector<std::unique_ptr<CompositionSet>> comp_sets; // All composition sets
+
+	Optimizer::EquilibriumResult<Ipopt::Number> result; // data structure for final result
 };
 
 #endif

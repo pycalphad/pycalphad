@@ -14,6 +14,7 @@
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/algorithm/string.hpp>
+#include <boost/bimap.hpp>
 
 #include <math.h>
 #include <string>
@@ -44,7 +45,7 @@ bool is_zero_tree(const utree &ut) {
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions,
-		std::map<std::string, int> const &modelvar_indices,
+		boost::bimap<std::string, int> const &modelvar_indices,
 		double* const modelvars) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
@@ -90,8 +91,8 @@ boost::spirit::utree const process_utree(
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
 					op = std::string(rt.begin(), rt.end()); // set the symbol
 					boost::algorithm::to_upper(op);
-					const auto varindex = modelvar_indices.find(op); // attempt to find this symbol as a model variable
-					if (varindex != modelvar_indices.end()) {
+					const auto varindex = modelvar_indices.left.find(op); // attempt to find this symbol as a model variable
+					if (varindex != modelvar_indices.left.end()) {
 						// we found the variable
 						// use the index to return the current value
 						//std::cout << "variable " << op << " found in list string_type" << std::endl;
@@ -240,8 +241,8 @@ boost::spirit::utree const process_utree(
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
 			std::string varname(rt.begin(),rt.end());
 
-			const auto varindex = modelvar_indices.find(varname); // attempt to find this variable
-			if (varindex != modelvar_indices.end()) {
+			const auto varindex = modelvar_indices.left.find(varname); // attempt to find this variable
+			if (varindex != modelvar_indices.left.end()) {
 				// we found the variable
 				// use the index to return the current value
 				//std::cout << "var found in string_type = " << modelvars[varindex->second] << std::endl;
@@ -488,7 +489,7 @@ boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions
 		) {
-	std::map<std::string,int> placeholder;
+	boost::bimap<std::string,int> placeholder;
 	double placeholder2[0];
 	return process_utree(ut, conditions, placeholder, placeholder2);
 }

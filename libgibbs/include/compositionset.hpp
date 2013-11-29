@@ -18,6 +18,7 @@
 #include <memory>
 #include <set>
 #include <list>
+#include <boost/bimap.hpp>
 
 // A CompositionSet works with libtdb's Phase class
 // Its purpose is to handle the optimizer's specific configuration for the given conditions and models
@@ -25,19 +26,19 @@
 class CompositionSet {
 public:
 	double evaluate_objective(
-			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	std::map<int,double> evaluate_objective_gradient(
-			evalconditions const&, std::map<std::string, int> const &, double* const) const;
+			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	std::map<std::list<int>,double> evaluate_objective_hessian(
-			evalconditions const&, std::map<std::string, int> const &, double* const) const;
-	std::set<std::list<int>> hessian_sparsity_structure(std::map<std::string, int> const &) const;
+			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
+	std::set<std::list<int>> hessian_sparsity_structure(boost::bimap<std::string, int> const &) const;
 	std::string name() const { return cset_name; }
 	// make CompositionSet from existing Phase
 	CompositionSet(
 			const Phase &phaseobj,
 			const parameter_set &pset,
 			const sublattice_set &sublset,
-			std::map<std::string, int> const &main_indices);
+			boost::bimap<std::string, int> const &main_indices);
 private:
 	std::string cset_name;
 	std::map<std::string,std::unique_ptr<EnergyModel>> models;

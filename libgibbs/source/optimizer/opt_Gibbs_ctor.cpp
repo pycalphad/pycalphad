@@ -9,9 +9,9 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
-#include "libgibbs/include/utils/build_variable_map.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
+#include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
 #include "libtdb/include/logging.hpp"
 #include <sstream>
 
@@ -37,6 +37,7 @@ GibbsOpt::GibbsOpt(
 	BOOST_LOG_CHANNEL_SEV(opto_log, "optimizer", debug) << "enter ctor";
 	int varcount = 0;
 	int activephases = 0;
+	parameter_set pset;
 
 	for (auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i) {
 		if (conditions.phases.find(i->first) != conditions.phases.end()) {
@@ -53,15 +54,16 @@ GibbsOpt::GibbsOpt(
 	if (conditions.elements.cbegin() == conditions.elements.cend()) BOOST_LOG_SEV(opto_log, critical) << "No components entered!";
 	if (phase_iter == phase_end) BOOST_LOG_SEV(opto_log, critical) << "No phases found!";
 
-	// build_variable_map() will fill main_indices
+	// build_variable_map() will fill main_indices by reference
+	// main_indices is used during the optimization as a simplified variable map
 	main_ss = build_variable_map(phase_iter, phase_end, conditions, main_indices);
 
-	for (auto i = main_indices.begin(); i != main_indices.end(); ++i) {
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
 		BOOST_LOG_SEV(opto_log, debug) << "Variable " << i->second << ": " << i->first;
 	}
 
 	// load the parameters from the database
-	parameter_set pset = DB.get_parameter_set();
+	pset = DB.get_parameter_set();
 
 	// this is the part where we look up the models enabled for each phase and call their AST builders
 	// then we build a master Gibbs AST for the objective function
@@ -82,7 +84,7 @@ GibbsOpt::GibbsOpt(
 		// If only one phase is present, fix its corresponding variable index
 		std::stringstream ss;
 		ss << (phase_col.begin())->first << "_FRAC";
-		fixed_indices.push_back(main_indices[ss.str()]);
+		fixed_indices.push_back(main_indices.left.at(ss.str()));
 	}
 
 	// Add the sublattice site fraction constraints (mandatory)
@@ -99,7 +101,7 @@ GibbsOpt::GibbsOpt(
 			if (subl_list.size() == 1) {
 				std::stringstream ss;
 				ss << i->first << "_" << std::distance(i->second.get_sublattice_iterator(),j) << "_" << *(subl_list.begin());
-				fixed_indices.push_back(main_indices[ss.str()]);
+				fixed_indices.push_back(main_indices.left.at(ss.str()));
 			}
 			if (subl_list.size() > 1 ) {
 				cm.addConstraint(
@@ -126,7 +128,7 @@ GibbsOpt::GibbsOpt(
 	}
 
 	// Calculate first derivative ASTs of all constraints
-	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
 		for (auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j) {
 			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
@@ -155,8 +157,8 @@ GibbsOpt::GibbsOpt(
 		}
 	}
 
+	// Add nonzero elements from objective Hessian to sparsity structure
 	for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
-		// Add nonzero elements from objective Hessian to sparsity structure
 		std::set<std::list<int>> comp_set_hess_sparsity_structure = (*i)->hessian_sparsity_structure(main_indices);
 		for (auto j = comp_set_hess_sparsity_structure.cbegin(); j != comp_set_hess_sparsity_structure.cend(); ++j) {
 			hess_sparsity_structure.insert(*j);
@@ -164,7 +166,7 @@ GibbsOpt::GibbsOpt(
 	}
 
 	// Calculate second derivatives of constraints
-	for (auto i = main_indices.cbegin(); i != main_indices.cend(); ++i) {
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
 		// for each variable, calculate derivatives of the Jacobian w.r.t all the constraints
 		for (auto j = jac_g_trees.cbegin(); j != jac_g_trees.cend(); ++j) {
 			if (i->second > j->var_index) continue; // skip upper triangular
@@ -189,29 +191,6 @@ GibbsOpt::GibbsOpt(
 		}
 	}
 
-	// Build the index map
-	for (auto i = phase_iter; i != phase_end; ++i) {
-		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
-		//std::cout << "x[" << varcount << "] = " << i->first << " phasefrac" << std::endl;
-		var_map.phasefrac_iters.push_back(boost::make_tuple(varcount,varcount+1,i));
-		++varcount;
-		for (auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end();++j) {
-			for (auto k = (*j).get_species_iterator(); k != (*j).get_species_iterator_end();++k) {
-				// Check if this species in this sublattice is on our list of elements to investigate
-				if (std::find(conditions.elements.cbegin(),conditions.elements.cend(),*k) != conditions.elements.cend()) {
-					// This site matches one of our elements under investigation
-					// Add it to the list of sitefracs
-					// +1 for a sitefraction
-					//std::cout << "x[" << varcount << "] = (" << i->first << "," << std::distance(i->second.get_sublattice_iterator(),j) << "," << *k << ")" << std::endl;
-					var_map.sitefrac_iters.resize(std::distance(phase_iter,i)+1);
-					var_map.sitefrac_iters[std::distance(phase_iter,i)].resize(std::distance(i->second.get_sublattice_iterator(),j)+1);
-					var_map.sitefrac_iters[std::distance(phase_iter,i)][std::distance(i->second.get_sublattice_iterator(),j)][*k] =
-						std::make_pair(varcount,i);
-					++varcount;
-				}
-			}
-		}
-	}
 	BOOST_LOG_SEV(opto_log, debug) << "function exit";
 }
 
