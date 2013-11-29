@@ -121,7 +121,7 @@ private:
 	std::set<std::list<Ipopt::Index>> hess_sparsity_structure; // Hessian sparsity structure
 	hessian_set constraint_hessian_data; // Hessian ASTs of objective
 	std::vector<Ipopt::Index> fixed_indices; // Indices of variables that are fixed at unity
-	std::vector<std::unique_ptr<CompositionSet>> comp_sets; // All composition sets
+	std::map<std::string,std::unique_ptr<CompositionSet>> comp_sets; // All composition sets
 
 	Optimizer::EquilibriumResult<Ipopt::Number> result; // data structure for final result
 };

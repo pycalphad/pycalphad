@@ -70,7 +70,7 @@ GibbsOpt::GibbsOpt(
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
-		comp_sets.push_back(std::unique_ptr<CompositionSet>(new CompositionSet(i->second, pset, main_ss, main_indices)));
+		comp_sets[i->first] = std::unique_ptr<CompositionSet>(new CompositionSet(i->second, pset, main_ss, main_indices));
 	}
 
 	// Add the mandatory constraints to the ConstraintManager
@@ -159,7 +159,7 @@ GibbsOpt::GibbsOpt(
 
 	// Add nonzero elements from objective Hessian to sparsity structure
 	for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
-		std::set<std::list<int>> comp_set_hess_sparsity_structure = (*i)->hessian_sparsity_structure(main_indices);
+		std::set<std::list<int>> comp_set_hess_sparsity_structure = i->second->hessian_sparsity_structure(main_indices);
 		for (auto j = comp_set_hess_sparsity_structure.cbegin(); j != comp_set_hess_sparsity_structure.cend(); ++j) {
 			hess_sparsity_structure.insert(*j);
 		}

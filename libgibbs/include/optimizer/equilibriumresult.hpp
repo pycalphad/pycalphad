@@ -30,6 +30,7 @@ template<typename T = double> struct Phase {
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
 	T energy() const; // Energy of the phase
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
+	std::unique_ptr<CompositionSet> compositionset; // pointer to CompositionSet object (contains model ASTs)
 };
 
 // GibbsOpt will fill the EquilibriumResult structure when

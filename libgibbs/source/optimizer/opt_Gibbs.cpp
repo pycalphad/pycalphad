@@ -18,6 +18,8 @@
 #include <sstream>
 
 using namespace Ipopt;
+using boost::multi_index_container;
+using namespace boost::multi_index;
 
 bool GibbsOpt::get_nlp_info(Index& n, Index& m, Index& nnz_jac_g,
 		Index& nnz_h_lag, IndexStyleEnum& index_style)
@@ -102,7 +104,7 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 		BOOST_LOG_SEV(opto_log, debug) << "trying to evaluate master tree";
 		double objective = 0;
 		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
-			objective += (*i)->evaluate_objective(conditions, main_indices,(double*)x);
+			objective += i->second->evaluate_objective(conditions, main_indices,(double*)x);
 		}
 		obj_value = objective;
 	}
@@ -138,7 +140,7 @@ bool GibbsOpt::eval_grad_f(Index n, const Number* x, bool new_x, Number* grad_f)
 	try {
 		// For all composition sets, evaluate the gradient
 		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
-			const std::map<int,double> gradmap = (*i)->evaluate_objective_gradient(conditions, main_indices, (double*)x);
+			const std::map<int,double> gradmap = i->second->evaluate_objective_gradient(conditions, main_indices, (double*)x);
 			for (auto j = gradmap.cbegin(); j != gradmap.cend(); ++j) {
 				grad_f[j->first] += j->second;
 			}
@@ -279,7 +281,7 @@ bool GibbsOpt::eval_h(Index n, const Number* x, bool new_x,
 		try {
 			// objective portion
 			for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i) {
-				auto hessian = (*i)->evaluate_objective_hessian(conditions, main_indices, (double*)x);
+				auto hessian = i->second->evaluate_objective_hessian(conditions, main_indices, (double*)x);
 				for (auto j = hessian.cbegin(); j != hessian.cend(); ++j) {
 					const int varindex1 = *(j->first.cbegin());
 					const int varindex2 = *(++j->first.cbegin());
@@ -340,6 +342,47 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 {
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
 	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
-	// TODO: rewrite this implementation
+
+	// Iterate over all phases
+	for (auto i = phase_col.begin(); i != phase_col.end(); ++i) {
+		sublattice_set_view phase_view; // Subview to current phase
+		const std::string phasename = i->first;
+		Optimizer::Phase<double> result_phase; // The phase result object we're constructing
+		int sublindex = -1; // Current sublattice index (-1 is the phase fraction)
+		boost::multi_index::index<sublattice_set,phase_subl>::type::const_iterator iter,end;
+
+		iter = get<phase_subl>(main_ss).lower_bound(boost::make_tuple(phasename, sublindex));
+		end = get<phase_subl>(main_ss).upper_bound(boost::make_tuple(phasename, sublindex));
+
+		while (iter != end) {
+			if (sublindex == -1) {
+				// This is the phase fraction (should only be one element here)
+				int variable_index = (iter)->opt_index; // Index of variable in optimizer
+				result_phase.f = x[variable_index];
+			}
+			else {
+				// This is a normal sublattice with multiple species
+				Optimizer::Sublattice<double> subl;
+				subl.sitecount = (iter)->num_sites;
+				for (; iter != end; ++iter) {
+					const int variable_index = (iter)->opt_index;
+					const std::string component_name = (iter)->species;
+					Optimizer::Component<double> comp;
+					comp.site_fraction = x[variable_index];
+					subl.components[component_name] = comp; // Add component to sublattice
+				}
+				result_phase.sublattices.push_back(subl); // Add sublattice to phase
+			}
+			// Go to next sublattice
+			++sublindex;
+			iter = get<phase_subl>(main_ss).lower_bound(boost::make_tuple(phasename, sublindex));
+			end = get<phase_subl>(main_ss).upper_bound(boost::make_tuple(phasename, sublindex));
+		}
+
+		result.phases[phasename] = result_phase; // Add phase to equilibrium
+		result.phases[phasename].compositionset = std::move(comp_sets[phasename]); // CompositionSet control to EquilibriumResult
+
+	}
+
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }
