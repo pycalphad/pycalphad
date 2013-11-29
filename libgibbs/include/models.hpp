@@ -107,7 +107,15 @@ typedef boost::multi_index::multi_index_container<
 		boost::multi_index::ordered_non_unique<
 		boost::multi_index::tag<phases>,
 		BOOST_MULTI_INDEX_MEMBER(sublattice_entry,const std::string,phase)
-		>
+		>,
+		boost::multi_index::ordered_non_unique<
+		boost::multi_index::tag<phase_subl>,
+		boost::multi_index::composite_key<
+			sublattice_entry,
+			BOOST_MULTI_INDEX_MEMBER(sublattice_entry,std::string,phase),
+			BOOST_MULTI_INDEX_MEMBER(sublattice_entry,int,index)
+			>
+>
 >
 > sublattice_set_view;
 
