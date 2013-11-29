@@ -39,6 +39,25 @@ public:
 			const parameter_set &pset,
 			const sublattice_set &sublset,
 			boost::bimap<std::string, int> const &main_indices);
+
+	CompositionSet(CompositionSet &&other) {
+		cset_name = std::move(other.cset_name);
+		models = std::move(other.models);
+		jac_g_trees = std::move(other.jac_g_trees);
+		hessian_data = std::move(other.hessian_data);
+		tree_data = std::move(other.tree_data);
+		first_derivatives = std::move(other.first_derivatives);
+	}
+	CompositionSet& operator=(CompositionSet &&other) {
+		cset_name = std::move(other.cset_name);
+		models = std::move(other.models);
+		jac_g_trees = std::move(other.jac_g_trees);
+		hessian_data = std::move(other.hessian_data);
+		tree_data = std::move(other.tree_data);
+		first_derivatives = std::move(other.first_derivatives);
+	}
+	CompositionSet(const CompositionSet &) = delete;
+	CompositionSet& operator=(const CompositionSet &) = delete;
 private:
 	std::string cset_name;
 	std::map<std::string,std::unique_ptr<EnergyModel>> models;
@@ -46,10 +65,6 @@ private:
 	std::vector<jacobian_entry> jac_g_trees;
 	hessian_set hessian_data;
 	ast_set tree_data;
-	// Block copy ctor
-	CompositionSet(const CompositionSet&);
-	// Block assignment operator
-	CompositionSet& operator=(const CompositionSet&);
 };
 
 #endif
