@@ -41,3 +41,5 @@ template <typename Y = int, typename T = double> std::map<Y,T> get_startingpoint
 	}
 	return retmap;
 }
+
+template std::map<int,double> get_startingpoint_naive(const sublattice_set &total_view); // explicit instantiation
