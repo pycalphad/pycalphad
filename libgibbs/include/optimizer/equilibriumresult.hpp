@@ -13,6 +13,8 @@
 #include <map>
 #include <string>
 #include <vector>
+#include <memory>
+#include "libgibbs/include/compositionset.hpp"
 
 namespace Optimizer {
 template<typename T = double> struct Component {
@@ -31,6 +33,24 @@ template<typename T = double> struct Phase {
 	T energy() const; // Energy of the phase
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
 	std::unique_ptr<CompositionSet> compositionset; // pointer to CompositionSet object (contains model ASTs)
+
+	Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { };
+
+	// move constructor
+	Phase(Phase &&other) :
+		f(other.f), status(other.status), sublattices(other.sublattices), compositionset(std::move(other.compositionset)) {
+	}
+	// move assignment
+	Phase & operator= (Phase &&other) {
+		this->f = other.f;
+		this->status = other.status;
+		this->sublattices = std::move(other.sublattices);
+		this->compositionset = std::move(other.compositionset);
+		return *this;
+	}
+
+	Phase(const Phase &) = delete;
+	Phase & operator=(const Phase &) = delete;
 };
 
 // GibbsOpt will fill the EquilibriumResult structure when
@@ -41,7 +61,10 @@ template<typename T = double> struct EquilibriumResult {
 	T chemical_potential(const std::string &) const; // Chemical potentials of all entered species
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in equilibrium
 	T energy() const; // Energy of the system
-	std::map<std::string, Phase<T> > phases; // Phases in equilibrium
+	std::map<std::string, std::unique_ptr<Phase<T> > > phases; // Phases in equilibrium
+
+	EquilibriumResult(const EquilibriumResult &) = delete;
+	EquilibriumResult & operator=(const EquilibriumResult &) = delete;
 };
 }
 
