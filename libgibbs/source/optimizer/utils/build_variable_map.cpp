@@ -9,7 +9,7 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// Helper functions for AST-based models
+// Definition for a function to build a sublattice_set object and fill a variable index object
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
@@ -21,6 +21,7 @@
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
+#include <boost/bimap.hpp>
 
 using boost::spirit::utree;
 typedef boost::spirit::utree_type utree_type;
@@ -32,10 +33,13 @@ sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,
 		const evalconditions &conditions,
-		std::map<std::string, int> &indices
+		boost::bimap<std::string, int> &indices
 		) {
+	BOOST_LOG_NAMED_SCOPE("build_variable_map");
 	logger opt_log(journal::keywords::channel = "optimizer");
 	sublattice_set ret_set;
+    typedef boost::bimap< std::string, int > results_bimap;
+    typedef results_bimap::value_type position;
 
 	int indexcount = 0; // counter for variable indices (for optimizer)
 
@@ -52,7 +56,7 @@ sublattice_set build_variable_map(
 		if (subl_start == subl_end) BOOST_LOG_SEV(opt_log, critical) << "No sublattices found!";
 		std::string phasename = i->first;
 
-		indices[phasename + "_FRAC"] = indexcount; // save index of phase fraction
+		indices.insert(position(phasename + "_FRAC", indexcount)); // save index of phase fraction
 		// insert fake record for the phase fraction variable at -1 sublattice index
 
 		ret_set.insert(sublattice_entry(-1, indexcount++, 0, phasename, ""));
@@ -71,7 +75,7 @@ sublattice_set build_variable_map(
 					std::string spec = (*k);
 					std::stringstream varname;
 					varname << phasename << "_" << sublindex << "_" << spec; // build variable name
-					indices[varname.str()] = indexcount; // save index of variable
+					indices.insert(position(varname.str(), indexcount)); // save index of variable
 					ret_set.insert(sublattice_entry(sublindex, indexcount++, sitecount, phasename, spec));
 					BOOST_LOG_SEV(opt_log, debug) << "inserted sublattice_entry for " << varname.str();
 				}

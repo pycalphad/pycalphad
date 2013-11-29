@@ -10,13 +10,14 @@
 
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/conditions.hpp"
+#include <boost/bimap.hpp>
 
 // bridge function between Database and EnergyModels
 sublattice_set build_variable_map(
 		const Phase_Collection::const_iterator p_begin,
 		const Phase_Collection::const_iterator p_end,
 		const evalconditions &conditions,
-		std::map<std::string, int> &indices
+		boost::bimap<std::string, int> &indices
 		);
 
 #endif
