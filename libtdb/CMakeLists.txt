@@ -23,7 +23,7 @@ if(Boost_FOUND)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
 endif()
 
 # Find ALL the source and header files
@@ -32,4 +32,4 @@ FILE(GLOB_RECURSE libtdb_SRCS ./ *.cpp *.hpp)
 FIX_PRECOMPILED_HEADER(libtdb_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/source/libtdb_pch.cpp)
 add_library(libtdb STATIC ${libtdb_SRCS})
 target_link_libraries(libtdb ${Boost_LIBRARIES})
-add_precompiled_header(libtdb "${CMAKE_CURRENT_SOURCE_DIR}/include/libtdb_pch.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/source/libtdb_pch.cpp")
+#add_precompiled_header(libtdb "${CMAKE_CURRENT_SOURCE_DIR}/include/libtdb_pch.hpp" "${CMAKE_CURRENT_SOURCE_DIR}/source/libtdb_pch.cpp")

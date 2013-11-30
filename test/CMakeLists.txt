@@ -17,7 +17,7 @@ if(Boost_FOUND)
 endif()
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
 endif()
 
 # Find ALL the source and header files
@@ -26,7 +26,7 @@ FILE(GLOB_RECURSE unittest_HFILES include/*.hpp)
 FILE(GLOB_RECURSE unittest_SRCS source/*.cpp)
 FIX_PRECOMPILED_HEADER(unittest_SRCS ${CMAKE_CURRENT_SOURCE_DIR}/source/test_pch.cpp)
 add_executable(unittest ${unittest_SRCS} ${unittest_HFILES})
-add_precompiled_header(unittest ${CMAKE_CURRENT_SOURCE_DIR}/include/test_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/test_pch.cpp)
+#add_precompiled_header(unittest ${CMAKE_CURRENT_SOURCE_DIR}/include/test_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/test_pch.cpp)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
     set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -lpthread -lgfortran")

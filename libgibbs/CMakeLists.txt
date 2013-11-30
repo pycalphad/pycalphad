@@ -27,7 +27,7 @@ set(IPOPT_HEADERS_DIR ${TDBREAD_SOURCE_DIR}/external/coin)
 set(IPOPT_LIB_DIR ${TDBREAD_SOURCE_DIR}/lib)
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
 endif()
 
 
@@ -48,7 +48,7 @@ endif(CMAKE_COMPILER_IS_GNUCXX)
 if (MSVC)
 target_link_libraries(libgibbs ${IPOPT_LIB_DIR}/IpOpt-vc10.lib)
 endif(MSVC)
-add_precompiled_header(libgibbs ${CMAKE_CURRENT_SOURCE_DIR}/include/libgibbs_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/libgibbs_pch.cpp)
+#add_precompiled_header(libgibbs ${CMAKE_CURRENT_SOURCE_DIR}/include/libgibbs_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/libgibbs_pch.cpp)
 
 # Add a target for the corresponding Python library
 find_package(PythonLibs 2.7 REQUIRED)
