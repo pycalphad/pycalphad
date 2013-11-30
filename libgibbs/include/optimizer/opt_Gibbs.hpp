@@ -91,7 +91,7 @@ public:
 		IpoptCalculatedQuantities* ip_cq);
 	//@}
 
-	std::unique_ptr<Optimizer::EquilibriumResult<Ipopt::Number> > get_result() { return std::move(result); };
+	Optimizer::EquilibriumResult<Ipopt::Number>&& get_result() { return std::move(result); };
 
 private:
 	/**@name Methods to block default compiler methods.
@@ -122,9 +122,9 @@ private:
 	std::set<std::list<Ipopt::Index>> hess_sparsity_structure; // Hessian sparsity structure
 	hessian_set constraint_hessian_data; // Hessian ASTs of objective
 	std::vector<Ipopt::Index> fixed_indices; // Indices of variables that are fixed at unity
-	std::map<std::string,std::unique_ptr<CompositionSet>> comp_sets; // All composition sets
+	std::map<std::string,CompositionSet> comp_sets; // All composition sets
 
-	std::unique_ptr<Optimizer::EquilibriumResult<Ipopt::Number> > result; // data structure for final result
+	Optimizer::EquilibriumResult<Ipopt::Number> result; // data structure for final result
 };
 
 #endif

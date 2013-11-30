@@ -32,18 +32,21 @@ template<typename T = double> struct Phase {
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
 	T energy() const; // Energy of the phase
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
-	std::unique_ptr<CompositionSet> compositionset; // pointer to CompositionSet object (contains model ASTs)
+	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
 
-	Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { };
+	Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { }
 
 	// move constructor
 	Phase(Phase &&other) :
-		f(other.f), status(other.status), sublattices(other.sublattices), compositionset(std::move(other.compositionset)) {
+		f(std::move(other.f)),
+		status(std::move(other.status)),
+		sublattices(std::move(other.sublattices)),
+		compositionset(std::move(other.compositionset)) {
 	}
 	// move assignment
 	Phase & operator= (Phase &&other) {
-		this->f = other.f;
-		this->status = other.status;
+		this->f = std::move(other.f);
+		this->status = std::move(other.status);
 		this->sublattices = std::move(other.sublattices);
 		this->compositionset = std::move(other.compositionset);
 		return *this;
@@ -61,7 +64,24 @@ template<typename T = double> struct EquilibriumResult {
 	T chemical_potential(const std::string &) const; // Chemical potentials of all entered species
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in equilibrium
 	T energy() const; // Energy of the system
-	std::map<std::string, std::unique_ptr<Phase<T> > > phases; // Phases in equilibrium
+	std::map<std::string, Phase<T> > phases; // Phases in equilibrium
+
+	EquilibriumResult() {}
+
+	EquilibriumResult(EquilibriumResult &&other) :
+		walltime(other.walltime),
+		itercount(other.itercount),
+		N(other.N),
+		phases(std::move(other.phases)) {
+	}
+
+	EquilibriumResult & operator= (EquilibriumResult &&other) {
+		this->walltime = other.walltime;
+		this->itercount = other.itercount;
+		this->N = other.N;
+		this->phases = std::move(other.phases);
+		return *this;
+	}
 
 	EquilibriumResult(const EquilibriumResult &) = delete;
 	EquilibriumResult & operator=(const EquilibriumResult &) = delete;

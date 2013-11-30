@@ -62,9 +62,11 @@ class Equilibrium {
 private:
 	const std::string sourcename; // descriptor for the source of the equilibrium data
 	const evalconditions conditions; // thermodynamic conditions of the equilibrium
-	std::unique_ptr<Optimizer::EquilibriumResult<Ipopt::Number> > result; // equilibrium data from the optimization
+	Optimizer::EquilibriumResult<Ipopt::Number> result; // equilibrium data from the optimization
 public:
 	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
+	Equilibrium(const Equilibrium &) = delete;
+	Equilibrium& operator=(const Equilibrium &) = delete;
 	double GibbsEnergy();
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);

@@ -40,6 +40,8 @@ public:
 			const sublattice_set &sublset,
 			boost::bimap<std::string, int> const &main_indices);
 
+	CompositionSet() { }
+
 	CompositionSet(CompositionSet &&other) {
 		cset_name = std::move(other.cset_name);
 		models = std::move(other.models);

@@ -74,16 +74,16 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 		result = opt_ptr->get_result();
 
 		if (IsValid(solver->Statistics())) {
-			result->itercount = solver->Statistics()->IterationCount();
+			result.itercount = solver->Statistics()->IterationCount();
 		}
 		else {
 			// No statistics for the solve, must have been trivial
-			result->itercount = 0;
+			result.itercount = 0;
 			BOOST_LOG_SEV(opt_log, critical) << "TODO: Fix finalize_solution() to not require Ipopt SolveStatistics for objective";
 		}
 
-		result->walltime = timer.elapsed().wall;
-		result->N = conditions.statevars.find('N')->second; // TODO: this needs to be done in a more general way for unknown N
+		result.walltime = timer.elapsed().wall;
+		result.N = conditions.statevars.find('N')->second; // TODO: this needs to be done in a more general way for unknown N
 	}
 	else {
 		BOOST_LOG_SEV(opt_log, critical) << "Failed to construct Equilibrium object";
@@ -101,7 +101,7 @@ std::string Equilibrium::print() const {
 	boost::io::ios_flags_saver  ifs( stream ); // preserve original state of the stream once we leave scope
 	stream << "Output from LIBGIBBS, equilibrium number = ??" << std::endl;
 	//std::string walltime = boost::timer::format(result.walltime, 3, "%w");
-	stream << "Solved in " << result->itercount << " iterations (" << result->walltime << "secs)" << std::endl;
+	stream << "Solved in " << result.itercount << " iterations (" << result.walltime << "secs)" << std::endl;
 	stream << "Conditions:" << std::endl;
 
 	// We want the individual phase information to appear AFTER
@@ -133,7 +133,7 @@ std::string Equilibrium::print() const {
 	T = conditions.statevars.find('T')->second;
 	P = conditions.statevars.find('P')->second;
 	N = conditions.statevars.find('N')->second;
-	energy = result->energy();
+	energy = result.energy();
 	stream << "Temperature " << T << " K (" << (T-273.15) << " C), " << "Pressure " << P << " Pa" << std::endl;
 
 	stream << std::scientific; // switch to scientific notation for doubles
