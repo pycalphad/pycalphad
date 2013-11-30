@@ -2,6 +2,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
+#include "libtdb/include/structure.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <math.h>
 #include <iostream>

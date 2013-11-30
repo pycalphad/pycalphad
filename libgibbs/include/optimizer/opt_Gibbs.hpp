@@ -12,6 +12,7 @@
 
 #include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
+#include "libtdb/include/database.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/constraint.hpp"
@@ -90,7 +91,7 @@ public:
 		IpoptCalculatedQuantities* ip_cq);
 	//@}
 
-	Optimizer::EquilibriumResult<Ipopt::Number> get_result() { return result; };
+	std::unique_ptr<Optimizer::EquilibriumResult<Ipopt::Number> > get_result() { return std::move(result); };
 
 private:
 	/**@name Methods to block default compiler methods.
@@ -123,7 +124,7 @@ private:
 	std::vector<Ipopt::Index> fixed_indices; // Indices of variables that are fixed at unity
 	std::map<std::string,std::unique_ptr<CompositionSet>> comp_sets; // All composition sets
 
-	Optimizer::EquilibriumResult<Ipopt::Number> result; // data structure for final result
+	std::unique_ptr<Optimizer::EquilibriumResult<Ipopt::Number> > result; // data structure for final result
 };
 
 #endif
