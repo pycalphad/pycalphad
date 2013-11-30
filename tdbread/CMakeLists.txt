@@ -16,7 +16,7 @@ FILE(GLOB_RECURSE tdbread_exe_SRCS ./ *.cpp *.hpp)
 add_executable(tdbread ${tdbread_exe_SRCS})
 
 if(CMAKE_COMPILER_IS_GNUCXX)
-    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++0x")
+    SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11")
     set(CMAKE_CXX_LINK_EXECUTABLE "${CMAKE_CXX_LINK_EXECUTABLE} -lpthread -lgfortran")
 endif()
 
