@@ -343,6 +343,8 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 	BOOST_LOG_NAMED_SCOPE("GibbsOpt::finalize_solution");
 	BOOST_LOG_SEV(opto_log, debug) << "enter finalize_solution";
 
+	result.conditions = conditions;
+
 	// Iterate over all phases
 	for (auto i = phase_col.begin(); i != phase_col.end(); ++i) {
 		sublattice_set_view phase_view; // Subview to current phase
@@ -359,6 +361,7 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 				// This is the phase fraction (should only be one element here)
 				int variable_index = (iter)->opt_index; // Index of variable in optimizer
 				result_phase.f = x[variable_index];
+				result.variables[iter->name()] = x[variable_index];
 			}
 			else {
 				// This is a normal sublattice with multiple species
@@ -369,6 +372,7 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 					const std::string component_name = (iter)->species;
 					Optimizer::Component<Ipopt::Number> comp;
 					comp.site_fraction = x[variable_index];
+					result.variables[iter->name()] = x[variable_index];
 					subl.components[component_name] = comp; // Add component to sublattice
 				}
 				result_phase.sublattices.push_back(subl); // Add sublattice to phase
