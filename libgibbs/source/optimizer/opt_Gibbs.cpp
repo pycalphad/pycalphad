@@ -16,6 +16,8 @@
 #include "libtdb/include/logging.hpp"
 #include "external/coin/IpTNLP.hpp"
 #include <sstream>
+#include <iomanip>
+#include <cmath>
 
 using namespace Ipopt;
 using boost::multi_index_container;
@@ -386,6 +388,13 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 		}
 		result_phase.compositionset = std::move(comp_sets.at(phasename)); // CompositionSet control to EquilibriumResult
 		result.phases.emplace(phasename, std::move(result_phase)); // add phase to equilibrium
+	}
+	// Sanity check internal EquilibriumResult energy value compared to Ipopt's obj_value
+	double resultenergy = result.energy();
+	if (resultenergy != 0 && std::fabs((resultenergy-obj_value)/resultenergy) > 1e-6) {
+		BOOST_LOG_SEV(opto_log, debug) << "EquilibriumResult energy() = " << std::setprecision(20) << resultenergy;
+		BOOST_LOG_SEV(opto_log, debug) << "Ipopt obj_value = " << std::setprecision(20) << obj_value;
+		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Energy calculated by EquilibriumResult differs from Ipopt"));
 	}
 
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";

@@ -32,6 +32,7 @@ template<typename T = double> struct Phase {
 	T chemical_potential(const std::string &) const; // Chemical potential of species in phase
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
 	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
+		// evaluate_objective() will multiply by phase fraction
 		return compositionset.evaluate_objective(conditions, variables);
 	}
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
@@ -80,7 +81,7 @@ public:
 	T energy() const { // Energy of the system
 		T retval = 0;
 		for (auto i = phases.begin(); i != phases.end(); ++i) {
-			retval += i->second.f * i->second.energy(variables, conditions);
+			retval += i->second.energy(variables, conditions); // Phase object handles multiplication by phase fraction
 		}
 		return retval;
 	}
