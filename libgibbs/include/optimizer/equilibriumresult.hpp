@@ -15,6 +15,7 @@
 #include <vector>
 #include <memory>
 #include "libgibbs/include/compositionset.hpp"
+#include "libgibbs/include/conditions.hpp"
 
 namespace Optimizer {
 template<typename T = double> struct Component {
@@ -30,7 +31,7 @@ template<typename T = double> struct Phase {
 	Optimizer::PhaseStatus status; // Phase status
 	T chemical_potential(const std::string &) const; // Chemical potential of species in phase
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
-	T energy() const; // Energy of the phase
+	T energy(const std::map<std::string,T> &, const evalconditions &) const; // Energy of the phase
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
 	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
 
@@ -56,15 +57,24 @@ template<typename T = double> struct Phase {
 	Phase & operator=(const Phase &) = delete;
 };
 
-// GibbsOpt will fill the EquilibriumResult structure when
+// GibbsOpt will fill the EquilibriumResult structure when finalize_solution() is called
+// Note: By shifting some things around, it would probably be possible to move all of EquilibriumResult into Equilibrium.
+// Only GibbsOpt and Equilibrium will have direct access to a filled EquilibriumResult, and both will control access to it.
+// This justifies use of public data members.
 template<typename T = double> struct EquilibriumResult {
+	typedef std::map<std::string, Phase<T> > PhaseMap;
+	typedef std::map<std::string, T> VariableMap;
 	double walltime; // Wall clock time to perform calculation
 	int itercount; // Number of iterations to perform calculation
-	double N; // Total system size in moles
+	T N; // Total system size in moles (TODO: should eventually be a fixed variable accessed by variables["N"])
+	PhaseMap phases; // Phases in equilibrium
+	VariableMap variables; // optimized values of all variables
+	// TODO: One day all state variables should be fixed variables in the optimization, and evalconditions should go away
+	evalconditions conditions; // conditions object for the Equilibrium
+
 	T chemical_potential(const std::string &) const; // Chemical potentials of all entered species
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in equilibrium
 	T energy() const; // Energy of the system
-	std::map<std::string, Phase<T> > phases; // Phases in equilibrium
 
 	EquilibriumResult() {}
 
