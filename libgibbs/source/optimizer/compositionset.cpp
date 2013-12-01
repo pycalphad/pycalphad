@@ -90,6 +90,17 @@ double CompositionSet::evaluate_objective(
 
 	return objective;
 }
+double CompositionSet::evaluate_objective(
+		evalconditions const &conditions, std::map<std::string,double> const &variables) const {
+	// Need to translate this variable map into something process_utree can understand
+	double vars[variables.size()]; // Create Ipopt-style double array
+	boost::bimap<std::string, int> main_indices;
+	for (auto i = variables.begin(); i != variables.end(); ++i) {
+		vars[std::distance(variables.begin(),i)] = i->second; // Copy values into array
+		main_indices.left.insert({i->first, std::distance(variables.begin(),i)}); // Create fictitious indices
+	}
+	return evaluate_objective(conditions, main_indices, vars);
+}
 
 std::map<int,double> CompositionSet::evaluate_objective_gradient(
 		evalconditions const& conditions, boost::bimap<std::string, int> const &main_indices, double* const x) const {

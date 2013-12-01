@@ -25,8 +25,8 @@
 // Multiple CompositionSets of the same Phase can be created to handle miscibility gaps
 class CompositionSet {
 public:
-	double evaluate_objective(
-			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
+	double evaluate_objective(evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
+	double evaluate_objective(evalconditions const &, std::map<std::string,double> const &) const;
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	std::map<std::list<int>,double> evaluate_objective_hessian(
