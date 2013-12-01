@@ -70,7 +70,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 			BOOST_LOG_SEV(opt_log, critical) << "Internal memory error from dynamic_cast<GibbsOpt*>";
 			BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Internal memory error") << specific_errinfo("dynamic_cast<GibbsOpt*>"));
 		}
-		BOOST_LOG_SEV(opt_log, debug) << "Attempting get_phase_map()";
+		BOOST_LOG_SEV(opt_log, debug) << "Attempting get_result()";
 		result = opt_ptr->get_result();
 
 		if (IsValid(solver->Statistics())) {
