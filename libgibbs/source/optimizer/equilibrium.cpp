@@ -139,28 +139,26 @@ std::string Equilibrium::print() const {
     stream << "Total Gibbs energy " << energy << " Enthalpy ???? " << "Volume ????" << std::endl;
 
     stream << std::endl;
-/*
-    const auto ph_end = ph_map.cend();
-	const auto cond_spec_begin = conditions.elements.cbegin();
-	const auto cond_spec_end = conditions.elements.cend();
+
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
-    for (auto i = ph_map.cbegin(); i != ph_end; ++i) {
-    	const auto subl_begin = i->second.second.cbegin();
-    	const auto subl_end = i->second.second.cend();
-    	const double phasefrac = i->second.first;
-    	auto statfind = conditions.phases.find(i->first);
+    const auto cond_spec_begin = result.conditions.elements.cbegin();
+    const auto cond_spec_end = result.conditions.elements.cend();
+    for (auto i = result.phases.begin(); i != result.phases.end(); ++i) {
+    	const auto subl_begin = i->second.sublattices.cbegin();
+    	const auto subl_end = i->second.sublattices.cend();
+    	const double phasefrac = i->second.f;
 
     	std::map<std::string,std::pair<double,double>> phase_comp;
-    	temp_buf << i->first << "\tStatus " << enumToString(statfind->second) << "  Driving force ????" << std::endl; // phase name
-    	temp_buf << "Number of moles " << i->second.first * N << ", Mass ???? ";
+    	temp_buf << i->first << "\tStatus " << enumToString(i->second.status) << "  Driving force ????" << std::endl; // phase name
+    	temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
     	temp_buf << "Mole fractions:" << std::endl;
     	for (auto j = subl_begin; j != subl_end; ++j) {
-    		const double stoi_coef = j->first;
+    		const double stoi_coef = j->sitecount;
     		const double den = stoi_coef;
-    		const auto spec_begin = j->second.cbegin();
-    		const auto spec_end = j->second.cend();
-    		const auto vacancy_iterator = (j->second).find("VA"); // this may equal spec_end
+    		const auto spec_begin = j->components.cbegin();
+    		const auto spec_end = j->components.cend();
+    		const auto vacancy_iterator = (j->components).find("VA"); // this may equal spec_end
     		/*
     		 * To make sure all mole fractions sum to 1,
     		 * we have to normalize everything using the same
@@ -171,11 +169,11 @@ std::string Equilibrium::print() const {
     		 * 1) all species (except VA), to add to the denominator
     		 * 2) only species in that sublattice, to add to the numerator
     		 * With this method, all mole fractions will sum properly.
-    		 *
+    		 */
     		for (auto k = cond_spec_begin; k != cond_spec_end; ++k) {
     			if (*k == "VA") continue; // vacancies don't contribute to mole fractions
 				if (vacancy_iterator != spec_end) {
-					phase_comp[*k].second += den * (1 - vacancy_iterator->second);
+					phase_comp[*k].second += den * (1 - vacancy_iterator->second.site_fraction);
 				}
 				else {
 					phase_comp[*k].second += den;
@@ -183,13 +181,13 @@ std::string Equilibrium::print() const {
     		}
     		for (auto k = spec_begin; k != spec_end; ++k) {
     			if (k->first == "VA") continue; // vacancies don't contribute to mole fractions
-                double num = k->second * stoi_coef;
+                double num = k->second.site_fraction * stoi_coef;
                 phase_comp[k->first].first += num;
     		}
     	}
     	/* We've summed up over all sublattices in this phase.
     	 * Now add this phase's contribution to the overall composition.
-    	 *
+    	 */
     	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
     		if (*j == "VA") continue; // vacancies don't contribute to mole fractions
     		global_comp[*j].first += phasefrac * (phase_comp[*j].first / phase_comp[*j].second);
@@ -204,18 +202,18 @@ std::string Equilibrium::print() const {
     	temp_buf << std::endl << "Constitution:" << std::endl;
 
     	for (auto j = subl_begin; j != subl_end; ++j) {
-    		double stoi_coef = j->first;
+    		double stoi_coef = j->sitecount;
     		temp_buf << "Sublattice " << std::distance(subl_begin,j)+1 << ", Number of sites " << stoi_coef << std::endl;
-    		const auto spec_begin = j->second.cbegin();
-    		const auto spec_end = j->second.cend();
+    		const auto spec_begin = j->components.cbegin();
+    		const auto spec_end = j->components.cend();
     		for (auto k = spec_begin; k != spec_end; ++k) {
-                temp_buf << k->first << " " << k->second << " ";
+                temp_buf << k->first << " " << k->second.site_fraction << " ";
     		}
     		temp_buf << std::endl;
     	}
 
     	// if we're at the last phase, don't add an extra newline
-    	if (std::distance(i,ph_end) != 1) temp_buf << std::endl;
+    	if (std::distance(i,result.phases.end()) != 1) temp_buf << std::endl;
     }
     const auto glob_begin = global_comp.cbegin();
     const auto glob_end = global_comp.cend();
@@ -227,7 +225,7 @@ std::string Equilibrium::print() const {
     stream << std::endl;
 
     stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
-*/
+
     BOOST_LOG_SEV(opt_log, debug) << "returning";
 	return (const std::string)stream.str();
 }
