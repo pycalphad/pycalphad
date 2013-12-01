@@ -61,7 +61,7 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 	if (status == Solve_Succeeded || status == Solved_To_Acceptable_Level) {
 		BOOST_LOG_SEV(opt_log, debug) << "Ipopt returned successfully";
 		Number final_obj;
-		/* The dynamic_cast allows us to use the get_phase_map() function.
+		/* The dynamic_cast allows us to use the get_result() function.
 		 * It is not exposed by the TNLP base class.
 		 */
 		GibbsOpt* opt_ptr = dynamic_cast<GibbsOpt*> (Ipopt::GetRawPtr(mynlp));
@@ -94,7 +94,6 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 
 std::string Equilibrium::print() const {
 	BOOST_LOG_NAMED_SCOPE("Equilibrium::print");
-	return std::string(); // TODO: fix this function
 	logger opt_log(journal::keywords::channel = "optimizer");
 	BOOST_LOG_SEV(opt_log, debug) << "enter function";
 	std::stringstream stream;
@@ -229,7 +228,7 @@ std::string Equilibrium::print() const {
     stream << std::endl;
 
     stream << temp_buf.rdbuf(); // include the temporary buffer with all the phase data
-
+*/
     BOOST_LOG_SEV(opt_log, debug) << "returning";
-	return (const std::string)stream.str();*/
+	return (const std::string)stream.str();
 }
