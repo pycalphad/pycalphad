@@ -91,7 +91,9 @@ public:
 		walltime(other.walltime),
 		itercount(other.itercount),
 		N(other.N),
-		phases(std::move(other.phases)) {
+		phases(std::move(other.phases),
+		variables(std::move(other.variables)),
+		conditions(std::move(other.conditions))) {
 	}
 
 	EquilibriumResult & operator= (EquilibriumResult &&other) {
@@ -99,6 +101,8 @@ public:
 		this->itercount = other.itercount;
 		this->N = other.N;
 		this->phases = std::move(other.phases);
+		this->variables = std::move(other.variables);
+		this->conditions = std::move(other.conditions);
 		return *this;
 	}
 

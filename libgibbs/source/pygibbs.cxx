@@ -63,6 +63,7 @@ BOOST_PYTHON_MODULE(libpygibbs)
     class_<Equilibrium, boost::shared_ptr<Equilibrium>, boost::noncopyable>("Equilibrium", no_init)
     	.def("__repr__", &Equilibrium::print)
     	.def("__str__", &Equilibrium::print)
+    	.def("GibbsEnergy", &Equilibrium::GibbsEnergy)
     ;
     class_<EquilibriumFactory, boost::noncopyable>("EquilibriumFactory")
         .def("create", &EquilibriumFactory::create)

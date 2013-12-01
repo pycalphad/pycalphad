@@ -8,6 +8,7 @@
 // definition for CompositionSet class
 
 #include "libgibbs/include/libgibbs_pch.hpp"
+#include "libtdb/include/logging.hpp"
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
@@ -79,8 +80,12 @@ double CompositionSet::evaluate_objective(
 		evalconditions const& conditions,
 		boost::bimap<std::string, int> const &main_indices,
 		double* const x) const {
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective(evalconditions const& conditions,boost::bimap<std::string, int> const &main_indices,double* const x)");
+	logger comp_log;
+	BOOST_LOG_SEV(comp_log, debug) << "enter";
 	double objective = 0;
 	const std::string compset_name(cset_name + "_FRAC");
+	BOOST_LOG_SEV(comp_log, debug) << "compset_name: " << compset_name;
 
 	for (auto i = models.cbegin(); i != models.cend(); ++i) {
 		// multiply by phase fraction
@@ -88,17 +93,27 @@ double CompositionSet::evaluate_objective(
 				process_utree(i->second->get_ast(), conditions, main_indices, x).get<double>();
 	}
 
+	BOOST_LOG_SEV(comp_log, debug) << "returning";
 	return objective;
 }
 double CompositionSet::evaluate_objective(
 		evalconditions const &conditions, std::map<std::string,double> const &variables) const {
 	// Need to translate this variable map into something process_utree can understand
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective(evalconditions const &conditions, std::map<std::string,double> const &variables)");
+	logger comp_log;
+	BOOST_LOG_SEV(comp_log, debug) << "enter";
 	double vars[variables.size()]; // Create Ipopt-style double array
 	boost::bimap<std::string, int> main_indices;
+	typedef boost::bimap<std::string, int>::value_type position;
 	for (auto i = variables.begin(); i != variables.end(); ++i) {
 		vars[std::distance(variables.begin(),i)] = i->second; // Copy values into array
-		main_indices.left.insert({i->first, std::distance(variables.begin(),i)}); // Create fictitious indices
+		BOOST_LOG_SEV(comp_log, debug) << "main_indices.insert(" << i->first << ", " << std::distance(variables.begin(), i) << ")";
+		main_indices.insert(position(i->first, std::distance(variables.begin(),i))); // Create fictitious indices
 	}
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
+		BOOST_LOG_SEV(comp_log, debug) << i->first << " -> " << i->second;
+	}
+	BOOST_LOG_SEV(comp_log, debug) << "returning";
 	return evaluate_objective(conditions, main_indices, vars);
 }
 

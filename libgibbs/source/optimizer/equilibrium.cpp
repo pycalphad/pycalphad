@@ -79,10 +79,9 @@ Equilibrium::Equilibrium(const Database &DB, const evalconditions &conds, const 
 		else {
 			// No statistics for the solve, must have been trivial
 			result.itercount = 0;
-			BOOST_LOG_SEV(opt_log, critical) << "TODO: Fix finalize_solution() to not require Ipopt SolveStatistics for objective";
 		}
 
-		result.walltime = timer.elapsed().wall;
+		result.walltime = timer.elapsed().wall * 1e-9; // timer.elapsed().wall is in nanoseconds
 		result.N = conditions.statevars.find('N')->second; // TODO: this needs to be done in a more general way for unknown N
 	}
 	else {

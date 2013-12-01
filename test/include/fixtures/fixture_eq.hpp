@@ -23,7 +23,7 @@ struct EquilibriumFixture {
 	double calculate() {
 		// TODO: go beyond naive checking of the objective function
 		Equilibrium testeq(curdb, conditions, eqfact.GetIpopt());
-		return 0; // TODO: switch to new interface
+		return testeq.GibbsEnergy();
 	}
 	void LoadDatabase(const std::string &filename) {
 		if (filename != dbname) {

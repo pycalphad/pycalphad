@@ -67,7 +67,7 @@ public:
 	Equilibrium(const Database &DB, const evalconditions &conds, const Ipopt::SmartPtr<Ipopt::IpoptApplication> &solver);
 	Equilibrium(const Equilibrium &) = delete;
 	Equilibrium& operator=(const Equilibrium &) = delete;
-	double GibbsEnergy();
+	double GibbsEnergy() { return result.energy(); };
 	double mole_fraction(const std::string &specname);
 	double mole_fraction(const std::string &specname, const std::string &phasename);
 	std::string print() const;
