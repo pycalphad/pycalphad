@@ -31,7 +31,9 @@ template<typename T = double> struct Phase {
 	Optimizer::PhaseStatus status; // Phase status
 	T chemical_potential(const std::string &) const; // Chemical potential of species in phase
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
-	T energy(const std::map<std::string,T> &, const evalconditions &) const; // Energy of the phase
+	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
+		return compositionset.evaluate_objective(conditions, variables);
+	}
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
 	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
 
@@ -62,6 +64,7 @@ template<typename T = double> struct Phase {
 // Only GibbsOpt and Equilibrium will have direct access to a filled EquilibriumResult, and both will control access to it.
 // This justifies use of public data members.
 template<typename T = double> struct EquilibriumResult {
+public:
 	typedef std::map<std::string, Phase<T> > PhaseMap;
 	typedef std::map<std::string, T> VariableMap;
 	double walltime; // Wall clock time to perform calculation
@@ -74,7 +77,13 @@ template<typename T = double> struct EquilibriumResult {
 
 	T chemical_potential(const std::string &) const; // Chemical potentials of all entered species
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in equilibrium
-	T energy() const; // Energy of the system
+	T energy() const { // Energy of the system
+		T retval = 0;
+		for (auto i = phases.begin(); i != phases.end(); ++i) {
+			retval += i->second.f * i->second.energy(variables, conditions);
+		}
+		return retval;
+	}
 
 	EquilibriumResult() {}
 
