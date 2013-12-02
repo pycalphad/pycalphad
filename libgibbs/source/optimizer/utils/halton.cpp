@@ -37,7 +37,6 @@ point_list point_sample (
 			points[sequence_pos-1][i] = halton(sequence_pos,primes[i]);
 			points[sequence_pos-1][varcount] = 0; // extra user-defined value associated with pt
 		}
-		std::cout << std::endl;
 	}
 	for (auto i = 0; i < numpts; ++i) {
 		//std::cout << "point: ";
