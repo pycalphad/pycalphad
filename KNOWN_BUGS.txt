@@ -8,7 +8,6 @@ Phases with miscibility gaps are not correctly handled.
 Atomic ordering is not handled.
 Ternary interaction parameters for excess models are not handled.
 Charged species in sublattices are not correctly handled.
-Calculating a single-component, single-phase Equilibrium will show zero for the value of the Gibbs energy (the site/phase fractions will be correct).
 
 TDB Reading (libtdb)
 --------------------
