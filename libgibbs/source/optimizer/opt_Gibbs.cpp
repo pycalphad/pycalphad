@@ -352,6 +352,7 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 		sublattice_set_view phase_view; // Subview to current phase
 		const std::string phasename = i->first;
 		Optimizer::Phase<Ipopt::Number> result_phase; // The phase result object we're constructing
+		result_phase.status = conditions.phases[phasename];
 		int sublindex = -1; // Current sublattice index (-1 is the phase fraction)
 		boost::multi_index::index<sublattice_set,phase_subl>::type::const_iterator iter,end;
 
