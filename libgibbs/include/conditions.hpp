@@ -22,5 +22,5 @@ std::map<std::string,double> xfrac; // system mole fractions
 };
 
 //#define SI_GAS_CONSTANT 8.3144621 // J/mol-K; the 2010 CODATA recommended value for molar gas constant
-#define SI_GAS_CONSTANT 8.3145 // J/mol-K; Thermo-Calc value
+constexpr const double SI_GAS_CONSTANT = 8.3145; // J/mol-K; Thermo-Calc value
 #endif
