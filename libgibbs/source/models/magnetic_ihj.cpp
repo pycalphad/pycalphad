@@ -149,6 +149,14 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &a
 	tau = a_o("T", tc_tree, "/");
 
 	// TODO: This is a mess. Using the utree visitation interface might make this better.
+	/*
+	 * Idea for dealing with slowness caused by repeated tau differentiation:
+	 * Make "TAU" (needs phase-dependent name) map to a free function that returns the appropriate utree
+	 * Differentiation of "TAU" triggers another function, a wrapper for differentiate_utree()
+	 * EXCEPT this time we save the result tree to a cache map for each variable
+	 * Future calls to differentiate "TAU" will hit the cache instead of the expensive call
+	 * This should be useful for trees that tend to repeat in models
+	 */
 
 	// First calculate the polynomial for 0 < tau < 1
 	utree taum1 = a_o(B, a_o(tau, -1.0, "**"), "*");
