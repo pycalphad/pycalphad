@@ -30,6 +30,13 @@ CompositionSet::CompositionSet(
 	models["IHJ_MAGNETIC"] = std::unique_ptr<EnergyModel>(new IHJMagneticModel(phaseobj.name(), sublset, pset,
 					phaseobj.magnetic_afm_factor, phaseobj.magnetic_sro_enthalpy_order_fraction));
 
+	for (auto i = models.begin(); i != models.end(); ++i) {
+		auto symbol_table = i->second->get_symbol_table();
+		symbols.insert(symbol_table.begin(), symbol_table.end()); // copy model symbols into main symbol table
+		// TODO: we don't check for duplicate symbols at all here...models police themselves to avoid collisions
+		// One idea: put all symbols into model-specific namespaces
+	}
+
 	// Calculate first derivative ASTs of all variables
 	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
 		std::list<std::string> diffvars;
@@ -46,7 +53,7 @@ CompositionSet::CompositionSet(
 				difftree = j->second->get_ast();
 			}
 			else {
-				difftree = simplify_utree(differentiate_utree(j->second->get_ast(), i->first));
+				difftree = simplify_utree(differentiate_utree(j->second->get_ast(), i->first, symbols));
 			}
 			if (!is_zero_tree(difftree)) {
 				tree_data.insert(ast_entry(diffvars, j->first, difftree));
@@ -66,7 +73,7 @@ CompositionSet::CompositionSet(
 					// the derivative should be zero, so skip calculation
 				}
 				else {
-					boost::spirit::utree second_difftree = simplify_utree(differentiate_utree(difftree, k->first));
+					boost::spirit::utree second_difftree = simplify_utree(differentiate_utree(difftree, k->first, symbols));
 					if (!is_zero_tree(second_difftree)) {
 						tree_data.insert(ast_entry(second_diffvars, j->first, second_difftree));
 					}

@@ -126,7 +126,6 @@ typedef boost::multi_index::multi_index_container<
 // prototype model
 class EnergyModel {
 public:
-	typedef std::map<std::string, CachedAbstractSyntaxTree> ASTSymbolMap;
 	EnergyModel(const std::string &phasename, const sublattice_set &subl_set, const parameter_set &param_set) {
 		// implementation
 	}

@@ -10,16 +10,20 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libtdb/include/warning_disable.hpp"
 #include "libtdb/include/exceptions.hpp"
+#include "libgibbs/include/utils/ast_caching.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/algorithm/string.hpp>
-
 #include <math.h>
 #include <string>
 
 
 // differentiate the utree without variable evaluation
-boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar) {
+boost::spirit::utree const differentiate_utree(
+		boost::spirit::utree const& ut,
+		std::string const& diffvar,
+		ASTSymbolMap const& symbols
+		) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	switch ( ut.which() ) {
@@ -303,10 +307,21 @@ boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, s
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
 			std::string varname(rt.begin(),rt.end());
 
+			const auto symbol_find = symbols.find(varname);
+			const auto symbol_end = symbols.end();
+			if (symbol_find != symbol_end) {
+				// this is a special symbol, use its differentiation function
+				return symbol_find->second.differentiate(diffvar, symbols);
+			}
+
 			if (diffvar == varname) return utree(1);
 			else return utree(0);
 		}
 	}
 	BOOST_THROW_EXCEPTION(unknown_symbol_error() << str_errinfo("Unable to differentiate abstract syntax tree") << ast_errinfo(ut));
 	return utree();
+}
+
+boost::spirit::utree const differentiate_utree(boost::spirit::utree const& ut, std::string const& diffvar) {
+	return differentiate_utree(ut, diffvar, ASTSymbolMap());
 }

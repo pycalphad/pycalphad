@@ -9,6 +9,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/utils/ast_caching.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include <boost/spirit/include/support_utree.hpp>
@@ -46,6 +47,15 @@ boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions,
 		boost::bimap<std::string, int> const &modelvar_indices,
+		double* const modelvars) {
+	return process_utree(ut,conditions, modelvar_indices, ASTSymbolMap(), modelvars);
+}
+
+boost::spirit::utree const process_utree(
+		boost::spirit::utree const& ut,
+		evalconditions const& conditions,
+		boost::bimap<std::string, int> const &modelvar_indices,
+		ASTSymbolMap const& symbols,
 		double* const modelvars) {
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
@@ -98,6 +108,13 @@ boost::spirit::utree const process_utree(
 						//std::cout << "variable " << op << " found in list string_type" << std::endl;
 						//std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 						return modelvars[varindex->second];
+					}
+					// determine if this is a special symbol
+					const auto symbol_find = symbols.find(op);
+					const auto symbol_end = symbols.end();
+					if (symbol_find != symbol_end) {
+						// this is a special symbol, return its AST value
+						return process_utree(symbol_find->second.get(), conditions, modelvar_indices, symbols, modelvars);
 					}
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
@@ -248,6 +265,13 @@ boost::spirit::utree const process_utree(
 				//std::cout << "var found in string_type = " << modelvars[varindex->second] << std::endl;
 				//std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 				return modelvars[varindex->second];
+			}
+			// determine if this is a special symbol
+			const auto symbol_find = symbols.find(varname);
+			const auto symbol_end = symbols.end();
+			if (symbol_find != symbol_end) {
+				// this is a special symbol, return its AST value
+				return process_utree(symbol_find->second.get(), conditions, modelvar_indices, symbols, modelvars);
 			}
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {

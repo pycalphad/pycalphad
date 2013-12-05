@@ -14,6 +14,7 @@
 #include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/optimizer/ast_set.hpp"
 #include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/utils/ast_caching.hpp"
 #include "libtdb/include/structure.hpp"
 #include <memory>
 #include <set>
@@ -67,6 +68,7 @@ private:
 	std::vector<jacobian_entry> jac_g_trees;
 	hessian_set hessian_data;
 	ast_set tree_data;
+	ASTSymbolMap symbols; // maps special symbols to ASTs and their derivatives
 };
 
 #endif
