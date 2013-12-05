@@ -46,7 +46,7 @@ utree a_o (const utree &root_tree, const std::string &op) {
 }
 
 utree max_magnetic_entropy(const utree &beta);
-utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &afm_factor);
+utree magnetic_polynomial(const std::string &tau_symbol, const double &p, const double &afm_factor);
 utree get_afm_factor(const utree &tree, const double &afm_factor);
 
 IHJMagneticModel::IHJMagneticModel(
@@ -64,7 +64,8 @@ IHJMagneticModel::IHJMagneticModel(
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview_tc, psv_subview_bm;
-	utree Curie_temperature, mean_magnetic_moment;
+	utree Curie_temperature, tau, mean_magnetic_moment;
+	const std::string tau_symbolname(phasename + "_TAU");
 	std::string scantype;
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
 	boost::multi_index::index<parameter_set_view,type_index>::type::iterator it0, it1;
@@ -107,6 +108,8 @@ IHJMagneticModel::IHJMagneticModel(
 	}
 	// Apply AFM factor to TC
 	Curie_temperature = a_o(get_afm_factor(Curie_temperature, afm_factor), Curie_temperature, "*");
+	// Divide T by TC
+	tau = a_o("T", Curie_temperature, "/");
 
 	// Now find parameters of type "BMAGN"
 	scantype = "BMAGN";
@@ -128,41 +131,37 @@ IHJMagneticModel::IHJMagneticModel(
 		model_ast = utree(0);
 		return;
 	}
-	else {
-		// Apply AFM factor
-		mean_magnetic_moment = a_o(get_afm_factor(mean_magnetic_moment, afm_factor), mean_magnetic_moment, "*");
-	}
+
+	// Apply AFM factor
+	mean_magnetic_moment = a_o(get_afm_factor(mean_magnetic_moment, afm_factor), mean_magnetic_moment, "*");
+
+	// tau is a big, expensive AST that appears several times in our function
+	// Replace it with the symbol "PHASENAME_TAU" and use that instead
+	// This will take advantage of our differentiation caching capabilities, speeding up GibbsOpt construction
+	ast_symbol_table.insert(std::make_pair(tau_symbolname, std::move(tau)));
+
+	// Build the final AST
 	model_ast = a_o("T", max_magnetic_entropy(mean_magnetic_moment), "*");
-	model_ast = a_o(model_ast, magnetic_polynomial(Curie_temperature, sro_enthalpy_order_fraction, afm_factor), "*");
+	model_ast = a_o(model_ast, magnetic_polynomial(tau_symbolname, sro_enthalpy_order_fraction, afm_factor), "*");
 
 
 	normalize_utree(model_ast, ssv);
 }
 
-utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &afm_factor) {
+utree magnetic_polynomial(const std::string &tau_symbol, const double &p, const double &afm_factor) {
 	// These are constant factors from the heat capacity integration
 	double A = (518.0/1125.0) + ((11692.0/15975.0)*((1.0/p) - 1.0));
 	double B = 79.0/(140*p);
 	double C = (474.0/497.0)*((1.0/p)-1.0);
-	utree ret_tree, tau, subcritical_tree, supercritical_tree;
-
-	tau = a_o("T", tc_tree, "/");
+	utree ret_tree, subcritical_tree, supercritical_tree;
 
 	// TODO: This is a mess. Using the utree visitation interface might make this better.
-	/*
-	 * Idea for dealing with slowness caused by repeated tau differentiation:
-	 * Make "TAU" (needs phase-dependent name) map to a free function that returns the appropriate utree
-	 * Differentiation of "TAU" triggers another function, a wrapper for differentiate_utree()
-	 * EXCEPT this time we save the result tree to a cache map for each variable
-	 * Future calls to differentiate "TAU" will hit the cache instead of the expensive call
-	 * This should be useful for trees that tend to repeat in models
-	 */
 
 	// First calculate the polynomial for 0 < tau < 1
-	utree taum1 = a_o(B, a_o(tau, -1.0, "**"), "*");
-	utree tau3 = a_o(1.0/6.0, a_o(tau, 3.0, "**"), "*");
-	utree tau9 = a_o(1.0/135.0, a_o(tau, 9.0, "**"), "*");
-	utree tau15 = a_o(1.0/600.0, a_o(tau, 15.0, "**"), "*");
+	utree taum1 = a_o(B, a_o(tau_symbol, -1.0, "**"), "*");
+	utree tau3 = a_o(1.0/6.0, a_o(tau_symbol, 3.0, "**"), "*");
+	utree tau9 = a_o(1.0/135.0, a_o(tau_symbol, 9.0, "**"), "*");
+	utree tau15 = a_o(1.0/600.0, a_o(tau_symbol, 15.0, "**"), "*");
 	utree total_taus = a_o(C, a_o(a_o(tau3, tau9, "+"), tau15, "+"), "*");
 
 	total_taus = a_o(taum1, total_taus, "+");
@@ -171,19 +170,19 @@ utree magnetic_polynomial(const utree &tc_tree, const double &p, const double &a
 
 
 	// Now calculate the polynomial for tau >= 1
-	utree taum5 = a_o(1.0/10.0, a_o(tau, -5.0, "**"), "*");
-	utree taum15 = a_o(1.0/315.0, a_o(tau, -15.0, "**"), "*");
-	utree taum25 = a_o(1.0/1500.0, a_o(tau, -25.0, "**"), "*");
+	utree taum5 = a_o(1.0/10.0, a_o(tau_symbol, -5.0, "**"), "*");
+	utree taum15 = a_o(1.0/315.0, a_o(tau_symbol, -15.0, "**"), "*");
+	utree taum25 = a_o(1.0/1500.0, a_o(tau_symbol, -25.0, "**"), "*");
 	total_taus = a_o(a_o(taum5, taum15, "+"), taum25, "+");
 	supercritical_tree = a_o(-1.0/A, total_taus, "*");
 
 	ret_tree.push_back("@");
-	ret_tree.push_back(tau);
+	ret_tree.push_back(tau_symbol);
 	ret_tree.push_back(-std::numeric_limits<double>::max());
 	ret_tree.push_back(1);
 	ret_tree.push_back(subcritical_tree);
 	ret_tree.push_back("@");
-	ret_tree.push_back(tau);
+	ret_tree.push_back(tau_symbol);
 	ret_tree.push_back(1);
 	ret_tree.push_back(std::numeric_limits<double>::max());
 	ret_tree.push_back(supercritical_tree);

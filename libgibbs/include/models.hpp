@@ -13,14 +13,16 @@
 #ifndef INCLUDED_MODELS_HPP
 #define INCLUDED_MODELS_HPP
 
-#include <string>
-#include <sstream>
+#include "libtdb/include/structure.hpp"
+#include "libgibbs/include/utils/ast_caching.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
 #include <boost/multi_index/member.hpp>
 #include <boost/multi_index/ordered_index.hpp>
-#include "libtdb/include/structure.hpp"
+#include <boost/range/irange.hpp>
+#include <string>
+#include <sstream>
 
 
 struct sublattice_entry {
@@ -124,6 +126,7 @@ typedef boost::multi_index::multi_index_container<
 // prototype model
 class EnergyModel {
 public:
+	typedef std::map<std::string, CachedAbstractSyntaxTree> ASTSymbolMap;
 	EnergyModel(const std::string &phasename, const sublattice_set &subl_set, const parameter_set &param_set) {
 		// implementation
 	}
@@ -131,8 +134,12 @@ public:
 		// implementation
 	};
 	const boost::spirit::utree& get_ast() const { return model_ast; }
+	const boost::iterator_range<ASTSymbolMap::const_iterator> get_symbol_table() const {
+		return boost::make_iterator_range(ast_symbol_table.begin(), ast_symbol_table.end());
+	}
 protected:
 	boost::spirit::utree model_ast;
+	ASTSymbolMap ast_symbol_table; // storage for expensive, repeating ASTs behind a symbol
 	double count_mixing_sites(const sublattice_set_view &ssv);
 	boost::spirit::utree add_interaction_factor (
 			const std::string &lhs_varname,
