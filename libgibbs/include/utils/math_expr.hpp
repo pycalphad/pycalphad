@@ -13,7 +13,7 @@
 #include "libtdb/include/warning_disable.hpp"
 #include "libgibbs/include/conditions.hpp"
 #include <string>
-#include <boost/spirit/include/support_utree.hpp>
+#include <boost/spirit/home/support/utree/utree_traits_fwd.hpp>
 #include <boost/bimap.hpp>
 
 boost::spirit::utree const process_utree(
