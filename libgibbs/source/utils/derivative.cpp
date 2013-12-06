@@ -199,15 +199,12 @@ boost::spirit::utree const differentiate_utree(
 							utree lhs_deriv = simplify_utree(differentiate_utree(*lhsiter, diffvar));
 							if (rhsiter->get<double>() == 1) return lhs_deriv;
 							if (is_zero_tree(lhs_deriv)) return utree(0);
-							utree prod_tree, power_tree, exponent_tree;
-
-							exponent_tree.push_back("-");
-							exponent_tree.push_back(*rhsiter);
-							exponent_tree.push_back(1);
+							utree prod_tree, power_tree;
+							double exponent = (*rhsiter).get<double>() - 1;
 
 							power_tree.push_back("**");
 							power_tree.push_back(*lhsiter);
-							power_tree.push_back(exponent_tree);
+							power_tree.push_back(exponent);
 
 							prod_tree.push_back("*");
 							prod_tree.push_back(*rhsiter);
