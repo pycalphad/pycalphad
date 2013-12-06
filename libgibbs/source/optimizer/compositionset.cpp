@@ -160,6 +160,8 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 			evalconditions const& conditions,
 			boost::bimap<std::string, int> const &main_indices,
 			double* const x) const {
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective_hessian");
+	logger comp_log(journal::keywords::channel = "optimizer");
 	std::map<std::list<int>,double> retmap;
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
