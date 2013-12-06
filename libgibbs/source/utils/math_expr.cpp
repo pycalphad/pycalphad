@@ -12,6 +12,7 @@
 #include "libgibbs/include/utils/ast_caching.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libtdb/include/exceptions.hpp"
+#include "libtdb/include/logging.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/math/special_functions/fpclassify.hpp>
 #include <boost/algorithm/string.hpp>
@@ -57,6 +58,7 @@ boost::spirit::utree const process_utree(
 		boost::bimap<std::string, int> const &modelvar_indices,
 		ASTSymbolMap const& symbols,
 		double* const modelvars) {
+	BOOST_LOG_NAMED_SCOPE("process_utree");
 	typedef boost::spirit::utree utree;
 	typedef boost::spirit::utree_type utree_type;
 	//std::cout << "processing " << ut.which() << " tree: " << ut << std::endl;
@@ -121,14 +123,14 @@ boost::spirit::utree const process_utree(
 						++it;
 						double curT, lowlimit, highlimit;
 						try {
-							curT = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							curT = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							//std::cout << "curT: " << curT << std::endl;
 							++it;
-							lowlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							lowlimit = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							//std::cout << "lowlimit:" << lowlimit << std::endl;
 							//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 							++it;
-							highlimit = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+							highlimit = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 						}
 						catch (boost::exception &e) {
 							e << ast_errinfo(*it);
@@ -153,7 +155,7 @@ boost::spirit::utree const process_utree(
 							// Note: by design we only return the first result to satisfy the criterion
 							utree ret_tree;
 							try {
-								ret_tree = process_utree(*it, conditions, modelvar_indices, modelvars).get<double>();
+								ret_tree = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							}
 							catch (boost::exception &e) {
 								e << ast_errinfo(*it);
@@ -183,8 +185,8 @@ boost::spirit::utree const process_utree(
 					auto lhsiter = it;
 					++it; // get right-hand side
 					auto rhsiter = it;
-					if (lhsiter != end) lhs = process_utree(*lhsiter, conditions, modelvar_indices, modelvars).get<double>();
-					if (rhsiter != end) rhs = process_utree(*rhsiter, conditions, modelvar_indices, modelvars).get<double>();
+					if (lhsiter != end) lhs = process_utree(*lhsiter, conditions, modelvar_indices, symbols, modelvars).get<double>();
+					if (rhsiter != end) rhs = process_utree(*rhsiter, conditions, modelvar_indices, symbols, modelvars).get<double>();
 
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
@@ -269,6 +271,7 @@ boost::spirit::utree const process_utree(
 			// determine if this is a special symbol
 			const auto symbol_find = symbols.find(varname);
 			const auto symbol_end = symbols.end();
+
 			if (symbol_find != symbol_end) {
 				// this is a special symbol, return its AST value
 				return process_utree(symbol_find->second.get(), conditions, modelvar_indices, symbols, modelvars);

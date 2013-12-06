@@ -50,6 +50,7 @@ public:
 		hessian_data = std::move(other.hessian_data);
 		tree_data = std::move(other.tree_data);
 		first_derivatives = std::move(other.first_derivatives);
+		symbols = std::move(other.symbols);
 	}
 	CompositionSet& operator=(CompositionSet &&other) {
 		cset_name = std::move(other.cset_name);
@@ -58,6 +59,7 @@ public:
 		hessian_data = std::move(other.hessian_data);
 		tree_data = std::move(other.tree_data);
 		first_derivatives = std::move(other.first_derivatives);
+		symbols = std::move(other.symbols);
 	}
 	CompositionSet(const CompositionSet &) = delete;
 	CompositionSet& operator=(const CompositionSet &) = delete;

@@ -21,6 +21,8 @@ CompositionSet::CompositionSet(
 		const parameter_set &pset,
 		const sublattice_set &sublset,
 		boost::bimap<std::string, int> const &main_indices) {
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::CompositionSet");
+	logger comp_log(journal::keywords::channel = "optimizer");
 	cset_name = phaseobj.name();
 
 	// Now initialize the appropriate models
@@ -35,6 +37,9 @@ CompositionSet::CompositionSet(
 		symbols.insert(symbol_table.begin(), symbol_table.end()); // copy model symbols into main symbol table
 		// TODO: we don't check for duplicate symbols at all here...models police themselves to avoid collisions
 		// One idea: put all symbols into model-specific namespaces
+		for (auto j = symbol_table.begin(); j != symbol_table.end(); ++j) {
+			BOOST_LOG_SEV(comp_log, debug) << "added symbol " << j->first << " to composition set " << cset_name << ": "<< j->second.get();
+		}
 	}
 
 	// Calculate first derivative ASTs of all variables
@@ -97,7 +102,7 @@ double CompositionSet::evaluate_objective(
 	for (auto i = models.cbegin(); i != models.cend(); ++i) {
 		// multiply by phase fraction
 		objective += x[main_indices.left.at(compset_name)] *
-				process_utree(i->second->get_ast(), conditions, main_indices, x).get<double>();
+				process_utree(i->second->get_ast(), conditions, main_indices, symbols, x).get<double>();
 	}
 
 	BOOST_LOG_SEV(comp_log, debug) << "returning";
@@ -107,7 +112,7 @@ double CompositionSet::evaluate_objective(
 		evalconditions const &conditions, std::map<std::string,double> const &variables) const {
 	// Need to translate this variable map into something process_utree can understand
 	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective(evalconditions const &conditions, std::map<std::string,double> const &variables)");
-	logger comp_log;
+	logger comp_log(journal::keywords::channel = "optimizer");
 	BOOST_LOG_SEV(comp_log, debug) << "enter";
 	double vars[variables.size()]; // Create Ipopt-style double array
 	boost::bimap<std::string, int> main_indices;
@@ -136,7 +141,7 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 		retmap[i->second] = 0; // initialize all indices as zero
 	}
 	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
-		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
+		const double diffvalue = process_utree(i->ast, conditions, main_indices, symbols, x).get<double>();
 		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
 		const int varindex = main_indices.left.at(diffvar);
 		if (diffvar != compset_name) {
@@ -170,7 +175,7 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 	}
 
 	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
-		const double diffvalue = process_utree(i->ast, conditions, main_indices, x).get<double>();
+		const double diffvalue = process_utree(i->ast, conditions, main_indices, symbols, x).get<double>();
 		const std::string diffvar1 = *(i->diffvars.cbegin());
 		const std::string diffvar2 = *(++(i->diffvars.cbegin()));
 		const int varindex1 = main_indices.left.at(diffvar1);
