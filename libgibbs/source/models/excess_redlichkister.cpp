@@ -136,10 +136,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		/* Construct the expression tree.
 		 * Start by building the recursive product of site fractions.
 		 */
-		current_product.push_back("*");
-		// The variable will be represented as a string
-		const std::string varname = (*i)->name();
-		current_product.push_back(utree(varname));
 
 		utree recursive_term = permute_site_fractions_with_interactions(total_view, temp_view, param_view, sublindex+1, param_division_factor);
 
@@ -151,9 +147,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 			utree interact_product, interact_recursive_term, interact_temptree;
 			interaction_view.insert(*j); // add interacting species to subview
 
-			interact_product.push_back("*");
-			// interacting species multiplication
-			interact_product.push_back(utree((*j)->name()));
 			interact_recursive_term = simplify_utree(permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1, param_division_factor));
 
 			// Calculate all the three-species interactions
@@ -163,50 +156,41 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 				BOOST_LOG_SEV(model_log, debug) << "checking " << (*i)->name() << "," << (*j)->name() << "," << (*k)->name();
 				sublattice_set_view ternary_interaction_view = interaction_view;
 				utree ternary_interact_product;
-				utree ternary_interact_recursive_term, ternary_interact_temptree, ternary_interact_totaltree;
+				utree ternary_interact_recursive_term;
 				ternary_interaction_view.insert(*k); // add interacting species to subview
 
 				ternary_interact_recursive_term = simplify_utree(permute_site_fractions_with_interactions(total_view, ternary_interaction_view, param_view, sublindex+1, param_division_factor));
 
 				if (is_zero_tree(ternary_interact_recursive_term)) continue;
 				if (ternary_interact_recursive_term.which() == utree_type::invalid_type) continue;
+				// only here for non-zero terms
 				BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name() << "," << (*j)->name() << "," << (*k)->name();
 
-				ternary_interact_temptree.push_back("*");
-				ternary_interact_temptree.push_back(utree((*k)->name()));
-				ternary_interact_temptree.push_back(utree((*j)->name()));
-
-				ternary_interact_totaltree.push_back("*");
-				ternary_interact_totaltree.push_back(utree((*i)->name()));
-				ternary_interact_totaltree.push_back((ternary_interact_temptree));
-
-				ternary_interact_product.push_back("*");
 				// interacting species multiplication
-				ternary_interact_product.push_back((ternary_interact_totaltree));
-
-				// We only get here for non-zero terms
-
+				ternary_interact_product.push_back("*");
+				ternary_interact_product.push_back(utree((*k)->name()));
 				ternary_interact_product.push_back(ternary_interact_recursive_term);
 
-				if (recursive_term.which() == utree_type::invalid_type) {
-					recursive_term = (ternary_interact_product); // no prior product exists
+				if (interact_recursive_term.which() == utree_type::invalid_type) {
+					interact_recursive_term = ternary_interact_product; // no prior product exists
 				}
 				else {
 					// Contribute term to the sum
 					utree ternary_temptree;
 					ternary_temptree.push_back("+");
 					ternary_temptree.push_back(ternary_interact_product);
-					ternary_temptree.push_back(recursive_term);
-					recursive_term.swap(interact_temptree);
+					ternary_temptree.push_back(interact_recursive_term);
+					interact_recursive_term.swap(ternary_temptree);
 				}
 			}
 
 			if (is_zero_tree(interact_recursive_term)) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
-			BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name() << "," << (*j)->name();
 
 			// We only get here for non-zero terms
-
+			interact_product.push_back("*");
+			// interacting species multiplication
+			interact_product.push_back(utree((*j)->name()));
 			interact_product.push_back(interact_recursive_term);
 
 			if (recursive_term.which() == utree_type::invalid_type) {
@@ -224,9 +208,10 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
-		BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name();
 
 		// we only get here for non-zero terms
+		current_product.push_back("*");
+		current_product.push_back(utree((*i)->name()));
 		current_product.push_back(recursive_term);
 		// Contribute this product to the sum
 		// Check if we are on the first (or only) term in the sum
@@ -240,6 +225,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 	}
 
 	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
-	BOOST_LOG_SEV(model_log, debug) << "returning";
+	BOOST_LOG_SEV(model_log, debug) << "returning " << ret_tree;
 	return ret_tree;
 }

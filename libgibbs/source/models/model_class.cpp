@@ -165,8 +165,8 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 	}
 
 	if (matches.size() >= 1) {
-		if (matches.size() == 1) return matches[0]->ast; // exactly one parameter found
-		// multiple matching parameters found
+		//if (matches.size() == 1) return matches[0]->ast; // exactly one parameter found
+		// one or more matching parameters found
 		// first, we need to figure out if these are interaction parameters of different polynomial degrees
 		// if they are, then all of them are allowed to match
 		// if not, match the one with the fewest wildcards
@@ -181,7 +181,8 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 			const auto array_end = (*i)->constituent_array.end();
 			for (auto j = array_begin; j != array_end; ++j) {
 				if ((*j)[0] == "*") ++wildcount;
-				if ((*j).size() == 2) interactionparam = true; // TODO: only handles binary interactions
+				if ((*j).size() == 2) interactionparam = true; // Binary interaction parameter
+				if ((*j).size() == 3) interactionparam = true; // Ternary interaction parameter
 			}
 			if (minwilds.find(curdegree) == minwilds.end() || wildcount < minwilds[curdegree]->wildcount()) {
 				minwilds[curdegree] = (*i);
@@ -193,13 +194,13 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 		// TODO: It seems like it's possible to construct corner cases with duplicate
 		// parameters with varying degrees that would confuse this matching.
 
-		if (minwilds.size() == 1) return minwilds.cbegin()->second->ast;
+		//if (minwilds.size() == 1) return minwilds.cbegin()->second->ast;
 
 		if (minwilds.size() > 1 && (!interactionparam)) {
 			BOOST_THROW_EXCEPTION(internal_error() << specific_errinfo("Multiple polynomial degrees specified for non-interaction parameters") << ast_errinfo(minwilds.cbegin()->second->ast));
 		}
 
-		if (minwilds.size() > 1 && interactionparam) {
+		//if (minwilds.size() > 1 && interactionparam) {
 			utree ret_tree;
 			if (minwilds.size() != matches.size()) {
 				// not all polynomial degrees here are unique
@@ -207,15 +208,13 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 				// (this is just here as a note)
 			}
 			for (auto param = minwilds.begin(); param != minwilds.end(); ++param) {
-				if (param->first == 0) {
-					// (y_i - y_j)**0 == 1
-					ret_tree = param->second->ast;
-					continue;
-				}
 				const auto array_begin = param->second->constituent_array.begin();
 				const auto array_end = param->second->constituent_array.end();
 				for (auto j = array_begin; j != array_end; ++j) {
 					utree next_term;
+					if ((*j).size() == 1) { // Unary parameter (non-interaction)
+						next_term = param->second->ast;
+					}
 					if ((*j).size() == 2) { // Binary interactions
 						// get the names of the variables that are interacting
 						std::string lhs_var, rhs_var;
@@ -254,7 +253,7 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 						else ret_tree = std::move(next_term);
 					}
 				}
-			}
+			//}
 			BOOST_LOG_SEV(model_log, debug) << "returning: " << ret_tree;
 			return ret_tree; // return the parameter tree
 		}
