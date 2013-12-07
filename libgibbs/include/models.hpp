@@ -162,6 +162,10 @@ protected:
 			const int &sublindex,
 			const double &param_division_factor = 1
 			);
+	boost::spirit::utree Muggianu_normalize_site_fraction(
+			const std::string &sitefrac,
+			std::vector<std::string> &&allfracs
+			);
 private:
 	EnergyModel(const EnergyModel&);
 	EnergyModel& operator=(const EnergyModel&);

@@ -64,6 +64,48 @@ utree EnergyModel::add_interaction_factor(const std::string &lhs_varname, const 
 	return ret_tree;
 }
 
+utree EnergyModel::Muggianu_normalize_site_fraction(const std::string &sitefrac, std::vector<std::string> &&allfracs) {
+	/*
+	 * When incorporating binary, ternary or n-ary interaction parameters into systems with more than n components,
+	 * the sum of site fractions involved in the interaction parameter may no longer be unity. This breaks the symmetry
+	 * of the parameter. The solution suggested by Muggianu, 1975, is to renormalize the site fractions by replacing them with
+	 * a term that will sum to unity even in higher-order systems. There are other solutions that involve retaining the asymmetry
+	 * for physical reasons, but this solution works well for components that are physically similar.
+	 *
+	 * Replace y_i -> y_i + (1 - sum(y involved in parameter)) / m, where m is the arity of the interaction parameter
+	 *
+	 * This procedure is based on an analysis by Hillert, 1980, published in the Calphad journal.
+	 */
+	utree ret_tree, sum_term, unity_deviation, Muggianu_term;
+
+	for (auto i = allfracs.begin(); i != allfracs.end(); ++i) {
+		utree sum;
+		if (i != allfracs.begin()) {
+			sum.push_back("+");
+			sum.push_back(sum_term);
+			sum.push_back(*i);
+			sum_term.swap(sum);
+		}
+		else {
+			sum_term = *i;
+		}
+	}
+
+	unity_deviation.push_back("-");
+	unity_deviation.push_back(1);
+	unity_deviation.push_back(std::move(sum_term));
+
+	Muggianu_term.push_back("/");
+	Muggianu_term.push_back(std::move(unity_deviation));
+	Muggianu_term.push_back((double)allfracs.size());
+
+	ret_tree.push_back("+");
+	ret_tree.push_back(sitefrac);
+	ret_tree.push_back(std::move(Muggianu_term));
+
+	return ret_tree;
+}
+
 // Normalize by the total number of mixing sites
 void EnergyModel::normalize_utree(utree &input_tree, const sublattice_set_view &ssv) {
 	utree temp;
@@ -235,8 +277,14 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 					varname << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[order];
 					std::string varstr(varname.str());
 					next_term.push_back("*");
-					// TODO: should actually be varstr + Muggianu correction terms for higher-order systems
-					next_term.push_back(std::move(varstr));
+					// TODO: Muggianu ternary excess model is assumed default
+					std::vector<std::string> otherfracs;
+					for (auto k = j->begin(); k != j->end(); ++k) {
+						std::stringstream name;
+						name << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << *k;
+						otherfracs.push_back(name.str());
+					}
+					next_term.push_back(Muggianu_normalize_site_fraction(varstr, std::move(otherfracs)));
 					next_term.push_back(param->second->ast);
 					BOOST_LOG_SEV(model_log, debug) << "Ternary next_term = " << next_term;
 				}
