@@ -276,7 +276,9 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 					std::stringstream varname;
 					varname << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[order];
 					std::string varstr(varname.str());
+
 					next_term.push_back("*");
+
 					// TODO: Muggianu ternary excess model is assumed default
 					std::vector<std::string> otherfracs;
 					for (auto k = j->begin(); k != j->end(); ++k) {
@@ -284,8 +286,10 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 						name << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << *k;
 						otherfracs.push_back(name.str());
 					}
+
 					next_term.push_back(Muggianu_normalize_site_fraction(varstr, std::move(otherfracs)));
 					next_term.push_back(param->second->ast);
+
 					BOOST_LOG_SEV(model_log, debug) << "Ternary next_term = " << next_term;
 				}
 				if (next_term.which() != utree_type::invalid_type) {
