@@ -15,6 +15,7 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
+#include "libtdb/include/logging.hpp"
 #include <string>
 #include <sstream>
 #include <set>
@@ -34,6 +35,9 @@ RedlichKisterExcessEnergyModel::RedlichKisterExcessEnergyModel(
 		const sublattice_set &subl_set,
 		const parameter_set &param_set
 		) : EnergyModel(phasename, subl_set, param_set) {
+	BOOST_LOG_NAMED_SCOPE("RedlichKisterExcessEnergyModel::RedlichKisterExcessEnergyModel");
+	logger model_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(model_log, debug) << "enter";
 	sublattice_set_view ssv;
 	parameter_set_view psv;
 	parameter_set_view psv_subview;
@@ -83,6 +87,7 @@ RedlichKisterExcessEnergyModel::RedlichKisterExcessEnergyModel(
 	model_ast = permute_site_fractions_with_interactions(ssv, sublattice_set_view(), psv_subview, (int)0);
 	// Normalize the reference Gibbs energy by the total number of mixing sites in this phase
 	normalize_utree(model_ast, ssv);
+	BOOST_LOG_SEV(model_log, debug) << "exit";
 }
 
 utree EnergyModel::permute_site_fractions_with_interactions (
@@ -92,7 +97,9 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		const int &sublindex,
 		const double &param_division_factor // divide all parameters by this factor
 		) {
-
+	BOOST_LOG_NAMED_SCOPE("EnergyModel::permute_site_fractions_with_interactions");
+	logger model_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(model_log, debug) << "enter";
 	utree ret_tree;
 	// Construct a view of just the current sublattice
 	boost::multi_index::index<sublattice_set_view,myindex>::type::iterator ic0,ic1;
@@ -121,6 +128,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 	}
 
 	for (auto i = ic0; i != ic1; ++i) {
+		BOOST_LOG_SEV(model_log, debug) << "checking " << (*i)->name();
 		sublattice_set_view temp_view = subl_view;
 		utree current_product;
 		utree buildtree;
@@ -138,6 +146,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 		// Calculate all the two-species interactions
 		for (auto j = ic0; j != ic1; ++j) {
 			if (j == i) continue; // ignore self-interactions
+			BOOST_LOG_SEV(model_log, debug) << "checking " << (*i)->name() << "," << (*j)->name();
 			sublattice_set_view interaction_view = temp_view;
 			utree interact_product, interact_recursive_term, interact_temptree;
 			interaction_view.insert(*j); // add interacting species to subview
@@ -147,8 +156,54 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 			interact_product.push_back(utree((*j)->name()));
 			interact_recursive_term = simplify_utree(permute_site_fractions_with_interactions(total_view, interaction_view, param_view, sublindex+1, param_division_factor));
 
+			// Calculate all the three-species interactions
+			for (auto k = ic0; k != ic1; ++k) {
+				if (k == j) continue; // ignore self-interactions
+				if (k == i) continue; // ignore self-interactions
+				BOOST_LOG_SEV(model_log, debug) << "checking " << (*i)->name() << "," << (*j)->name() << "," << (*k)->name();
+				sublattice_set_view ternary_interaction_view = interaction_view;
+				utree ternary_interact_product;
+				utree ternary_interact_recursive_term, ternary_interact_temptree, ternary_interact_totaltree;
+				ternary_interaction_view.insert(*k); // add interacting species to subview
+
+				ternary_interact_recursive_term = simplify_utree(permute_site_fractions_with_interactions(total_view, ternary_interaction_view, param_view, sublindex+1, param_division_factor));
+
+				if (is_zero_tree(ternary_interact_recursive_term)) continue;
+				if (ternary_interact_recursive_term.which() == utree_type::invalid_type) continue;
+				BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name() << "," << (*j)->name() << "," << (*k)->name();
+
+				ternary_interact_temptree.push_back("*");
+				ternary_interact_temptree.push_back(utree((*k)->name()));
+				ternary_interact_temptree.push_back(utree((*j)->name()));
+
+				ternary_interact_totaltree.push_back("*");
+				ternary_interact_totaltree.push_back(utree((*i)->name()));
+				ternary_interact_totaltree.push_back((ternary_interact_temptree));
+
+				ternary_interact_product.push_back("*");
+				// interacting species multiplication
+				ternary_interact_product.push_back((ternary_interact_totaltree));
+
+				// We only get here for non-zero terms
+
+				ternary_interact_product.push_back(ternary_interact_recursive_term);
+
+				if (recursive_term.which() == utree_type::invalid_type) {
+					recursive_term = (ternary_interact_product); // no prior product exists
+				}
+				else {
+					// Contribute term to the sum
+					utree ternary_temptree;
+					ternary_temptree.push_back("+");
+					ternary_temptree.push_back(ternary_interact_product);
+					ternary_temptree.push_back(recursive_term);
+					recursive_term.swap(interact_temptree);
+				}
+			}
+
 			if (is_zero_tree(interact_recursive_term)) continue;
 			if (interact_recursive_term.which() == utree_type::invalid_type) continue;
+			BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name() << "," << (*j)->name();
 
 			// We only get here for non-zero terms
 
@@ -169,6 +224,7 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 
 		if (is_zero_tree(recursive_term)) continue;
 		if (recursive_term.which() == utree_type::invalid_type) continue;
+		BOOST_LOG_SEV(model_log, debug) << "found: " << (*i)->name();
 
 		// we only get here for non-zero terms
 		current_product.push_back(recursive_term);
@@ -184,5 +240,6 @@ utree EnergyModel::permute_site_fractions_with_interactions (
 	}
 
 	if (ret_tree.which() == utree_type::invalid_type) ret_tree = utree(0); // no parameter for this term
+	BOOST_LOG_SEV(model_log, debug) << "returning";
 	return ret_tree;
 }

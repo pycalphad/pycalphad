@@ -74,6 +74,9 @@ void EnergyModel::normalize_utree(utree &input_tree, const sublattice_set_view &
 }
 
 utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, const parameter_set_view &param_view) {
+	BOOST_LOG_NAMED_SCOPE("EnergyModel::find_parameter_ast");
+	logger model_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(model_log, debug) << "enter";
 	std::vector<const Parameter*> matches;
 	journal::src::severity_channel_logger<severity_level> opt_log(journal::keywords::channel = "optimizer");
 	int sublcount = 0;
@@ -193,8 +196,7 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 		if (minwilds.size() == 1) return minwilds.cbegin()->second->ast;
 
 		if (minwilds.size() > 1 && (!interactionparam)) {
-			std::cout << "ERROR: Multiple polynomial degrees specified for non-interaction parameters." << std::endl;
-			BOOST_THROW_EXCEPTION(internal_error());
+			BOOST_THROW_EXCEPTION(internal_error() << specific_errinfo("Multiple polynomial degrees specified for non-interaction parameters") << ast_errinfo(minwilds.cbegin()->second->ast));
 		}
 
 		if (minwilds.size() > 1 && interactionparam) {
@@ -210,35 +212,50 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 					ret_tree = param->second->ast;
 					continue;
 				}
-				// get the names of the variables that are interacting
-				std::string lhs_var, rhs_var;
 				const auto array_begin = param->second->constituent_array.begin();
 				const auto array_end = param->second->constituent_array.end();
 				for (auto j = array_begin; j != array_end; ++j) {
-					if ((*j).size() == 2) { // TODO: only handles binary interactions
+					utree next_term;
+					if ((*j).size() == 2) { // Binary interactions
+						// get the names of the variables that are interacting
+						std::string lhs_var, rhs_var;
 						std::stringstream varname1, varname2;
 						varname1 << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[0];
 						varname2 << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[1];
 						lhs_var = varname1.str();
 						rhs_var = varname2.str();
-						break; // NOTE: if this parameter has multiple interactions, we don't handle that for now
+						// add to the parameter tree a factor of (y_i - y_j)**k, where k is the degree and i,j are interacting
+						next_term = add_interaction_factor(lhs_var, rhs_var, param->second->degree, param->second->ast);
+					}
+					if ((*j).size() == 3) { // Ternary interactions
+						// the order the parameter corresponds to the index of the relevant component in the constituent array
+						// should be an integer quantity; left auto here to let other data structures choose type
+						auto order = param->second->degree;
+						if (order > ((*j).size() - 1)) {
+							BOOST_THROW_EXCEPTION(internal_error() << specific_errinfo("Order of ternary interaction parameter is out of bounds"));
+						}
+						std::stringstream varname;
+						varname << param->second->phasename() << "_" << std::distance(array_begin,j) << "_" << (*j)[order];
+						std::string varstr(varname.str());
+						next_term.push_back("*");
+						// TODO: should actually be varstr + Muggianu correction terms for higher-order systems
+						next_term.push_back(std::move(varstr));
+						next_term.push_back(param->second->ast);
+					}
+					if (next_term.which() != utree_type::invalid_type) {
+						// add next_term to the sum (or make ret_tree equal to first term)
+						if (ret_tree.which() != utree_type::invalid_type) {
+							utree temp_tree;
+							temp_tree.push_back("+");
+							temp_tree.push_back(ret_tree);
+							temp_tree.push_back(next_term);
+							ret_tree.swap(temp_tree);
+						}
+						else ret_tree = std::move(next_term);
 					}
 				}
-
-				// add to the parameter tree a factor of (y_i - y_j)**k, where k is the degree and i,j are interacting
-				utree next_term = add_interaction_factor(lhs_var, rhs_var, param->second->degree, param->second->ast);
-
-				// add next_term to the sum (or make ret_tree equal to first term)
-				if (ret_tree.which() != utree_type::invalid_type) {
-					utree temp_tree;
-					temp_tree.push_back("+");
-					temp_tree.push_back(ret_tree);
-					temp_tree.push_back(next_term);
-					ret_tree.swap(temp_tree);
-				}
-				else ret_tree = next_term;
 			}
-
+			BOOST_LOG_SEV(model_log, debug) << "returning: " << ret_tree;
 			return ret_tree; // return the parameter tree
 		}
 
@@ -246,5 +263,6 @@ utree EnergyModel::find_parameter_ast(const sublattice_set_view &subl_view, cons
 			BOOST_THROW_EXCEPTION(internal_error() << specific_errinfo("Failed to match parameter, but the parameter had already been found"));
 		}
 	}
+	BOOST_LOG_SEV(model_log, debug) << "no parameter found";
 	return 0; // no parameter found
 }
