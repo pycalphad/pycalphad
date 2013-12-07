@@ -7,7 +7,6 @@ Pre-calculation of the Hessian abstract syntax trees takes longer than it should
 -Note: Can still probably get some performance improvements from implementing EZD global minimization.
 Phases with miscibility gaps are not correctly handled.
 Atomic ordering is not handled.
-Ternary interaction parameters for excess models are not handled.
 Charged species in sublattices are not correctly handled.
 Failure of the generalized power rule automatic differentiation code to detect cancellations of the form x/x will lead to divide-by-zero errors on differentiation of abstract syntax trees with non-constant exponents (which aren't in any models, currently, but are theoretically possible).
 Result from libgibbs will sometimes get the same minimum energy as Thermo-Calc, but with slightly different site/phase fractions.
