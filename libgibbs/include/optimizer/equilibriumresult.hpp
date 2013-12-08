@@ -10,12 +10,13 @@
 #ifndef INCLUDED_EQUILIBRIUMRESULT
 #define INCLUDED_EQUILIBRIUMRESULT
 
+#include "libgibbs/include/compositionset.hpp"
+#include "libgibbs/include/conditions.hpp"
 #include <map>
 #include <string>
 #include <vector>
 #include <memory>
-#include "libgibbs/include/compositionset.hpp"
-#include "libgibbs/include/conditions.hpp"
+#include <sstream>
 
 namespace Optimizer {
 template<typename T = double> struct Component {
@@ -48,7 +49,9 @@ template<typename T = double> struct Phase {
 		// First sublattice iteration to calculate a constant with respect to iteration
 		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
 			T vacancy_sitefraction = 0;
-			const auto vacancy_find = variables.find(vacancy_sitefraction_name);
+			std::stringstream vacancy_sitefraction_name;
+			vacancy_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_VA";
+			const auto vacancy_find = variables.find(vacancy_sitefraction_name.str());
 			if (vacancy_find != variables.end()) vacancy_sitefraction = vacancy_find->second;
 			sum_of_sublattice_coefficients += subl->sitecount * (1 - vacancy_sitefraction);
 		}
@@ -56,18 +59,41 @@ template<typename T = double> struct Phase {
 		// Main sublattice iteration: Iterate over all sublattices in this phase
 		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
 			// Define the variable name corresponding to the site fraction of interest in this sublattice
-			const std::string primary_sitefraction_name
-			(compositionset.name() + "_" << std::distance(sublattices.begin(),subl) + "_" + name);
+			std::stringstream primary_sitefraction_name;
+			primary_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << name;
 
 			// Search for it in the variables
-			const auto component_find = variables.find(primary_sitefraction_name);
+			const auto primary_component_find = variables.find(primary_sitefraction_name.str());
 
 			// Does the named component exist in this sublattice?
-			if (component_find == variables.end()) continue; // Skip this sublattice, the component doesn't exist here
+			if (primary_component_find == variables.end()) continue; // Skip this sublattice, the component doesn't exist here
+
 			// This works because evaluate_objective_gradient() will return the gradient in the same order as "variables"
-			const int gradient_variable_index = std::distance(variables.begin(),primary_site_fraction_name);
-			const T gradient_value = gradient[gradient_variable_index];
-			T subl_term = (1.0/(subl->sitecount)) * gradient_value * sum_of_sublattice_coefficients;
+			const int gradient_variable_index = std::distance(variables.begin(),primary_component_find);
+			const T gradient_value = gradient.at(gradient_variable_index);
+			T subl_term = gradient_value * sum_of_sublattice_coefficients; // Contribution by named species
+
+			// Now add contribution from all of the other components in this sublattice
+			for (auto j = subl->components.begin(); j != subl->components.end(); ++j) {
+				if (j->first == name) continue; // exclude the named component
+				std::stringstream sitefraction_name;
+				sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << j->first;
+				const auto component_find = variables.find(sitefraction_name.str());
+				const int gradient_component_index = std::distance(variables.begin(), component_find);
+				const T other_gradient_value = gradient.at(gradient_component_index);
+				T weighted_sum_of_sitefractions = 0;
+				for (auto k = sublattices.begin(); k != sublattices.end(); ++k) {
+					std::stringstream other_sitefraction_name;
+					other_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),k) << "_" << j->first;
+					const auto other_sublattice_component_find = variables.find(other_sitefraction_name.str());
+					if (other_sublattice_component_find == variables.end()) continue; // Component is not in this sublattice
+					weighted_sum_of_sitefractions += k->sitecount * other_sublattice_component_find->second;
+				}
+				subl_term -= other_gradient_value * weighted_sum_of_sitefractions; // Subtract from sublattice contribution
+			}
+
+			subl_term = subl_term / subl->sitecount;
+			ret_potential += subl_term; // Add sublattice contribution to total chemical potential
 		}
 
 		return ret_potential;

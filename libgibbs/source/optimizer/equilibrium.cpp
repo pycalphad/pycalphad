@@ -153,6 +153,13 @@ std::string Equilibrium::print() const {
     	temp_buf << i->first << "\tStatus " << enumToString(i->second.status) << "  Driving force ????" << std::endl; // phase name
     	temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
     	temp_buf << "Mole fractions:" << std::endl;
+
+    	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
+    		if (*j == "VA") continue; // don't include vacancies in chemical potential
+    		double mu = i->second.chemical_potential(*j, result.variables, result.conditions);
+    		temp_buf << "MU(" << *j << ") = " << mu << std::endl;
+    	}
+
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		const double stoi_coef = j->sitecount;
     		const double den = stoi_coef;
@@ -220,7 +227,7 @@ std::string Equilibrium::print() const {
     stream << "Component\tMoles\tM-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     for (auto h = glob_begin; h != glob_end; ++h) {
     	double molefrac = h->second.first / h->second.second;
-    	stream << h->first << "\t" <<  molefrac * N << "\t????\t????\t" << "??" << "\tSER" << std::endl;
+    	stream << h->first << "\t" <<  molefrac * N << "\t" << molefrac << "\t????\t" << "??" << "\tSER" << std::endl;
     }
     stream << std::endl;
 
