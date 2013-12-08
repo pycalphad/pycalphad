@@ -7,6 +7,9 @@
 
 // test_pch.hpp -- precompiled header files for the test suite
 
+#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
+#define BOOST_SPIRIT_USE_PHOENIX_V3 1
+#endif
 #include "libtdb/include/warning_disable.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/spirit/include/qi.hpp>
