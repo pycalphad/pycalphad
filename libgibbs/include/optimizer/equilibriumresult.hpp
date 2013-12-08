@@ -29,14 +29,19 @@ template<typename T = double> struct Sublattice {
 template<typename T = double> struct Phase {
 	T f; // Phase fraction
 	Optimizer::PhaseStatus status; // Phase status
-	T chemical_potential(const std::string &) const; // Chemical potential of species in phase
-	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
-	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
-		// evaluate_objective() will multiply by phase fraction
-		return compositionset.evaluate_objective(conditions, variables);
-	}
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
 	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
+	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
+	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
+		return compositionset.evaluate_objective(conditions, variables);
+	}
+	T chemical_potential(const std::string &name, const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Chemical potential of species in phase
+		// G + dG/dname - sum(x*dG/dx)
+		T ret_potential;
+		std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
+		ret_potential = energy(variables, conditions);
+		return ret_potential;
+	}
 
 	Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { }
 
@@ -81,7 +86,8 @@ public:
 	T energy() const { // Energy of the system
 		T retval = 0;
 		for (auto i = phases.begin(); i != phases.end(); ++i) {
-			retval += i->second.energy(variables, conditions); // Phase object handles multiplication by phase fraction
+			const std::string phasefrac(i->first + "_FRAC");
+			retval += variables.at(phasefrac) * i->second.energy(variables, conditions);
 		}
 		return retval;
 	}

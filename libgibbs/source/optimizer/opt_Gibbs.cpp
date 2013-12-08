@@ -106,7 +106,8 @@ bool GibbsOpt::eval_f(Index n, const Number* x, bool new_x, Number& obj_value)
 		BOOST_LOG_SEV(opto_log, debug) << "trying to evaluate master tree";
 		double objective = 0;
 		for (auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i){
-			objective += i->second.evaluate_objective(conditions, main_indices,(double*)x);
+			objective += x[main_indices.left.at(i->first + "_FRAC")] // multiply by phase fraction
+			               * i->second.evaluate_objective(conditions, main_indices,(double*)x);
 		}
 		obj_value = objective;
 	}

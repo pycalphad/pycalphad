@@ -30,6 +30,8 @@ public:
 	double evaluate_objective(evalconditions const &, std::map<std::string,double> const &) const;
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
+	std::map<int,double> evaluate_objective_gradient(
+			evalconditions const &, std::map<std::string,double> const &) const;
 	std::map<std::list<int>,double> evaluate_objective_hessian(
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	std::set<std::list<int>> hessian_sparsity_structure(boost::bimap<std::string, int> const &) const;

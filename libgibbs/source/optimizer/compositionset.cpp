@@ -100,9 +100,7 @@ double CompositionSet::evaluate_objective(
 	BOOST_LOG_SEV(comp_log, debug) << "compset_name: " << compset_name;
 
 	for (auto i = models.cbegin(); i != models.cend(); ++i) {
-		// multiply by phase fraction
-		objective += x[main_indices.left.at(compset_name)] *
-				process_utree(i->second->get_ast(), conditions, main_indices, symbols, x).get<double>();
+		objective += process_utree(i->second->get_ast(), conditions, main_indices, symbols, x).get<double>();
 	}
 
 	BOOST_LOG_SEV(comp_log, debug) << "returning";
@@ -154,6 +152,26 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 	}
 
 	return retmap;
+}
+
+std::map<int,double> CompositionSet::evaluate_objective_gradient(
+		evalconditions const &conditions, std::map<std::string,double> const &variables) const {
+	// Need to translate this variable map into something process_utree can understand
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective_gradient");
+	logger comp_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(comp_log, debug) << "enter";
+	double vars[variables.size()]; // Create Ipopt-style double array
+	boost::bimap<std::string, int> main_indices;
+	typedef boost::bimap<std::string, int>::value_type position;
+	for (auto i = variables.begin(); i != variables.end(); ++i) {
+		vars[std::distance(variables.begin(),i)] = i->second; // Copy values into array
+		main_indices.insert(position(i->first, std::distance(variables.begin(),i))); // Create fictitious indices
+	}
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
+		BOOST_LOG_SEV(comp_log, debug) << i->first << " -> " << i->second;
+	}
+	BOOST_LOG_SEV(comp_log, debug) << "returning";
+	return evaluate_objective_gradient(conditions, main_indices, vars);
 }
 
 std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
