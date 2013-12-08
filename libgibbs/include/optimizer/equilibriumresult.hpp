@@ -35,11 +35,41 @@ template<typename T = double> struct Phase {
 	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
 		return compositionset.evaluate_objective(conditions, variables);
 	}
-	T chemical_potential(const std::string &name, const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Chemical potential of species in phase
-		// G + dG/dname - sum(x*dG/dx)
+	T chemical_potential(const std::string &name, const std::map<std::string,T> &variables, const evalconditions &conditions) const {
+		// Chemical potential of species in phase
+		// The expression for this in terms of site fractions involves a summation over all sublattices
+		// mu_k = G(...) + sum[s]((1/(b_s))*(dG/dy[k,s]*sum[v](b_v*(1-y_vVa))) - sum[j](dG/dy[j,s]*sum[v](b_v*y[j,v])))
+		// For the single-sublattice case, this reduces to the well-known expression for mole fractions derived by Hillert
 		T ret_potential;
+		T sum_of_sublattice_coefficients = 0;
 		std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
-		ret_potential = energy(variables, conditions);
+		ret_potential = energy(variables, conditions); // First term is the energy of the phase
+
+		// First sublattice iteration to calculate a constant with respect to iteration
+		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+			T vacancy_sitefraction = 0;
+			const auto vacancy_find = variables.find(vacancy_sitefraction_name);
+			if (vacancy_find != variables.end()) vacancy_sitefraction = vacancy_find->second;
+			sum_of_sublattice_coefficients += subl->sitecount * (1 - vacancy_sitefraction);
+		}
+
+		// Main sublattice iteration: Iterate over all sublattices in this phase
+		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+			// Define the variable name corresponding to the site fraction of interest in this sublattice
+			const std::string primary_sitefraction_name
+			(compositionset.name() + "_" << std::distance(sublattices.begin(),subl) + "_" + name);
+
+			// Search for it in the variables
+			const auto component_find = variables.find(primary_sitefraction_name);
+
+			// Does the named component exist in this sublattice?
+			if (component_find == variables.end()) continue; // Skip this sublattice, the component doesn't exist here
+			// This works because evaluate_objective_gradient() will return the gradient in the same order as "variables"
+			const int gradient_variable_index = std::distance(variables.begin(),primary_site_fraction_name);
+			const T gradient_value = gradient[gradient_variable_index];
+			T subl_term = (1.0/(subl->sitecount)) * gradient_value * sum_of_sublattice_coefficients;
+		}
+
 		return ret_potential;
 	}
 
