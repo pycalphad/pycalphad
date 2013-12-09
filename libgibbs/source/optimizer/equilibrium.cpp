@@ -151,14 +151,15 @@ std::string Equilibrium::print() const {
 
     	std::map<std::string,std::pair<double,double>> phase_comp;
     	temp_buf << i->first << "\tStatus " << enumToString(i->second.status) << "  Driving force ????" << std::endl; // phase name
-    	temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
-    	temp_buf << "Mole fractions:" << std::endl;
 
     	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
     		if (*j == "VA") continue; // don't include vacancies in chemical potential
     		double mu = i->second.chemical_potential(*j, result.variables, result.conditions);
     		temp_buf << "MU(" << *j << ") = " << mu << std::endl;
     	}
+
+    	temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
+    	temp_buf << "Mole fractions:" << std::endl;
 
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		const double stoi_coef = j->sitecount;
