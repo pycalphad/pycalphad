@@ -12,6 +12,7 @@
 
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/conditions.hpp"
+#include "libtdb/include/logging.hpp"
 #include <map>
 #include <string>
 #include <vector>
@@ -32,6 +33,7 @@ template<typename T = double> struct Phase {
 	Optimizer::PhaseStatus status; // Phase status
 	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
 	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
+	mutable logger pot_log;
 	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
 	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
 		return compositionset.evaluate_objective(conditions, variables);
@@ -41,10 +43,13 @@ template<typename T = double> struct Phase {
 		// The expression for this in terms of site fractions involves a summation over all sublattices
 		// mu_k = G(...) + sum[s]((1/(b_s))*(dG/dy[k,s]*sum[v](b_v*(1-y_vVa))) - sum[j](dG/dy[j,s]*sum[v](b_v*y[j,v])))
 		// For the single-sublattice case, this reduces to the well-known expression for mole fractions derived by Hillert
+		BOOST_LOG_NAMED_SCOPE("Phase::chemical_potential");
+		BOOST_LOG_CHANNEL_SEV(pot_log, "optimizer", debug) << "mu " << name << " in " << compositionset.name();
 		T ret_potential;
 		T sum_of_sublattice_coefficients = 0;
 		std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
 		ret_potential = energy(variables, conditions); // First term is the energy of the phase
+		BOOST_LOG_SEV(pot_log, debug) << "energy = " << ret_potential;
 
 		// First sublattice iteration to calculate a constant with respect to iteration
 		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
@@ -55,6 +60,7 @@ template<typename T = double> struct Phase {
 			if (vacancy_find != variables.end()) vacancy_sitefraction = vacancy_find->second;
 			sum_of_sublattice_coefficients += subl->sitecount * (1 - vacancy_sitefraction);
 		}
+		BOOST_LOG_SEV(pot_log, debug) << "sum_of_sublattice_coefficients = " << sum_of_sublattice_coefficients;
 
 		// Main sublattice iteration: Iterate over all sublattices in this phase
 		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
@@ -93,9 +99,11 @@ template<typename T = double> struct Phase {
 			}
 
 			subl_term = subl_term / subl->sitecount;
+			BOOST_LOG_SEV(pot_log, debug) << "subl_term = " << subl_term;
 			ret_potential += subl_term; // Add sublattice contribution to total chemical potential
 		}
 
+		BOOST_LOG_SEV(pot_log, debug) << "ret_potential = " << ret_potential;
 		return ret_potential;
 	}
 
