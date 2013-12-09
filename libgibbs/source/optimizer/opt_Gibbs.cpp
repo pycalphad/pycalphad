@@ -399,5 +399,9 @@ void GibbsOpt::finalize_solution(SolverReturn status,
 		BOOST_THROW_EXCEPTION(equilibrium_error() << str_errinfo("Energy calculated by EquilibriumResult differs from Ipopt"));
 	}
 
+	for (auto i = cm.constraints.begin(); i != cm.constraints.end(); ++i) {
+		BOOST_LOG_SEV(opto_log, debug) << i->name << " MU = " << lambda[std::distance(cm.constraints.begin(),i)];
+	}
+
 	BOOST_LOG_SEV(opto_log, debug) << "exit finalize_solution";
 }
