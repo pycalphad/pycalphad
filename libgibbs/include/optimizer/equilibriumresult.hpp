@@ -79,9 +79,8 @@ template<typename T = double> struct Phase {
 			const T gradient_value = gradient.at(gradient_variable_index);
 			T subl_term = gradient_value * sum_of_sublattice_coefficients; // Contribution by named species
 
-			// Now add contribution from all of the other components in this sublattice
+			// Now add contribution from all of the components in this sublattice
 			for (auto j = subl->components.begin(); j != subl->components.end(); ++j) {
-				if (j->first == name) continue; // exclude the named component
 				std::stringstream sitefraction_name;
 				sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << j->first;
 				const auto component_find = variables.find(sitefraction_name.str());
