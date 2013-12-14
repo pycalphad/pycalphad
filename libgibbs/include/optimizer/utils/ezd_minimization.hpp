@@ -12,8 +12,10 @@
 #ifndef INCLUDED_EZD_MINIMIZATION
 #define INCLUDED_EZD_MINIMIZATION
 
+#include "libgibbs/include/optimizer/utils/geometry/dynamic_rtree.hpp"
 #include "libgibbs/include/optimizer/utils/geometry/dynamic_point.hpp"
 #include "libgibbs/include/optimizer/utils/geometry/dynamic_box.hpp"
+
 namespace Optimizer {
 }
 

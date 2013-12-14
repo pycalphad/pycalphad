@@ -13,6 +13,7 @@
 #ifndef INCLUDED_DYNAMIC_BOX
 #define INCLUDED_DYNAMIC_BOX
 
+#include "libgibbs/include/optimizer/utils/geometry/dynamic_access.hpp"
 #include <boost/geometry/core/access.hpp>
 
 
