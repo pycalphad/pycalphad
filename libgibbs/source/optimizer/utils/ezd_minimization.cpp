@@ -13,11 +13,18 @@
 #include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
+#include <boost/geometry/index/rtree.hpp>
 
 
 namespace Optimizer {
 
+namespace bg = boost::geometry;
+namespace bgi = boost::geometry::index;
+
 void LocateMinima(std::unique_ptr<CompositionSet> const &phase, const int depth) {
+	typedef bg::model::dynamic_point<float, bg::cs::cartesian> point;
+	typedef bg::model::dynamic_box<point> box;
+	typedef std::pair<box, double> value;
 
 }
 

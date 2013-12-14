@@ -7,7 +7,10 @@
 
 // implementation of Boost Geometry Library point concept with run-time dimensionality
 
-#include <boost/geometry/core/access.hpp>
+#ifndef INCLUDED_DYNAMIC_POINT
+#define INCLUDED_DYNAMIC_POINT
+
+#include "libgibbs/include/optimizer/utils/geometry/dynamic_access.hpp"
 #include <boost/geometry/core/coordinate_type.hpp>
 #include <boost/geometry/core/coordinate_system.hpp>
 #include <boost/geometry/core/tag.hpp>
@@ -62,7 +65,7 @@ template
     typename CoordinateType,
     typename CoordinateSystem
 >
-struct tag<Optimizer::point<CoordinateType, CoordinateSystem> >
+struct tag<model::dynamic_point<CoordinateType, CoordinateSystem> >
 {
     typedef point_tag type;
 };
@@ -72,7 +75,7 @@ template
     typename CoordinateType,
     typename CoordinateSystem
 >
-struct coordinate_type<Optimizer::point<CoordinateType, CoordinateSystem> >
+struct coordinate_type<model::dynamic_point<CoordinateType, CoordinateSystem> >
 {
     typedef CoordinateType type;
 };
@@ -82,7 +85,7 @@ template
     typename CoordinateType,
     typename CoordinateSystem
 >
-struct coordinate_system<Optimizer::point<CoordinateType, CoordinateSystem> >
+struct coordinate_system<model::dynamic_point<CoordinateType, CoordinateSystem> >
 {
     typedef CoordinateSystem type;
 };
@@ -92,17 +95,17 @@ template
     typename CoordinateType,
     typename CoordinateSystem
 >
-struct access<Optimizer::point<CoordinateType, CoordinateSystem> >
+struct dynamic_access<model::dynamic_point<CoordinateType, CoordinateSystem> >
 {
     static inline CoordinateType get(
-        std::size_t const& K, Optimizer::point<CoordinateType, CoordinateSystem> const& p)
+        std::size_t const& K, model::dynamic_point<CoordinateType, CoordinateSystem> const& p)
     {
         return p.get(K);
     }
 
     static inline void set(
+        model::dynamic_point<CoordinateType, CoordinateSystem>& p,
     	std::size_t const& K,
-        Optimizer::point<CoordinateType, CoordinateSystem>& p,
         CoordinateType const& value)
     {
         p.set(K, value);
@@ -112,3 +115,5 @@ struct access<Optimizer::point<CoordinateType, CoordinateSystem> >
 } // namespace traits
 } // namespace geometry
 } // namespace boost
+
+#endif
