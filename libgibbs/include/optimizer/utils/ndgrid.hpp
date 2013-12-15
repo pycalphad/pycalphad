@@ -18,7 +18,7 @@ struct NDGrid {
 			const double& min_extent,
 			const double& max_extent,
 			const std::size_t& dimension,
-			const unsigned int& grid_points_per_major_axis,
+			const double& grid_points_per_major_axis,
 			const Func &func,
 			std::vector<double>& address) {
 		if (address.size() == dimension) {
@@ -26,13 +26,12 @@ struct NDGrid {
 			func(address);
 		}
 		else {
-			double step = (max_extent - min_extent) / (double)_grid_points_per_major_axis;
+			double step = (max_extent - min_extent) / grid_points_per_major_axis;
 			for (auto j = 0; j <= grid_points_per_major_axis; ++j) {
 				double location = step*j + min_extent;
 				address.push_back(location);
-				if (std::accumulate(temp.begin(), temp.end()) > 1) break; // addresses must sum to 1
 				// recursive step
-				this->apply(min_extent, max_extent, dimension, grid_points_per_major_axis, func, temp);
+				apply(min_extent, max_extent, dimension, grid_points_per_major_axis, func, address);
 				address.pop_back(); // remove the element we just added (this way avoids copying)
 			}
 		}
@@ -41,10 +40,10 @@ struct NDGrid {
 			const double& min_extent,
 			const double& max_extent,
 			const std::size_t& dimension,
-			const unsigned int& grid_points_per_major_axis,
+			const double& grid_points_per_major_axis,
 			const Func &func) {
 		std::vector<double> address;
-		this->apply(min_extent_max_extent, dimension, grid_points_per_major_axis, func, address);
+		apply(min_extent, max_extent, dimension, grid_points_per_major_axis, func, address);
 	}
 };
 
