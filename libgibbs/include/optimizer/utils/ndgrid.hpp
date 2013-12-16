@@ -11,7 +11,6 @@
 #define INCLUDED_NDGRID
 
 #include <vector>
-#include <numeric>
 
 struct NDGrid {
 	template <typename Func> static void apply(
