@@ -15,10 +15,10 @@
 
 struct NDGrid {
 	template <typename Func> static void apply(
-			const double& min_extent,
-			const double& max_extent,
-			const std::size_t& dimension,
-			const double& grid_points_per_major_axis,
+			const double min_extent,
+			const double max_extent,
+			const std::size_t dimension,
+			const double grid_points_per_major_axis,
 			const Func &func,
 			std::vector<double>& address) {
 		if (address.size() == dimension) {
@@ -37,10 +37,10 @@ struct NDGrid {
 		}
 	}
 	template <typename Func> static inline void apply(
-			const double& min_extent,
-			const double& max_extent,
-			const std::size_t& dimension,
-			const double& grid_points_per_major_axis,
+			const double min_extent,
+			const double max_extent,
+			const std::size_t dimension,
+			const double grid_points_per_major_axis,
 			const Func &func) {
 		std::vector<double> address;
 		apply(min_extent, max_extent, dimension, grid_points_per_major_axis, func, address);
