@@ -30,20 +30,20 @@ void LocateMinima(std::unique_ptr<CompositionSet> const &phase, const int depth)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	// (1) Sample some points on the domain using NDGrid (probably separate function)
 	// (2) Calculate the Lagrangian Hessian (L'') for all sampled points
-	// (3) Verify that all diagonal elements of L'' are strictly positive; if not, remove this point from consideration
-	//     NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
-	//     Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
 	// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
-	// (4) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
+	// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 	//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
 	//        TODO: But how do I choose the Langrange multipliers for all the constraints? Can I calculate them?
 	//    (a) Form matrix A, the Jacobian of active constraints (constraint gradient matrix)
 	//    (b) Perform QR factorization of transpose(A)
 	//    (c) Set Z = Q2, which is defined by (TODO: still not clear on how to do this) Eq. 12.71, p. 349 of Nocedal and Wright, 2006
 	//    (d) Set Hproj = transpose(Z)*(L'')*Z
-	//    (e) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
-	//    (f) If it succeeds, save this point; else, remove it
-	// (5) For each saved point, send to next depth
+	//    (e) Verify that all diagonal elements of L'' are strictly positive; if not, remove this point from consideration
+	//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
+	//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
+	//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
+	//    (g) If it succeeds, save this point; else, remove it
+	// (4) For each saved point, send to next depth
 	// For depth > 1: FIND MINIMA
 	// (1) Sample some points on the domain using NDGrid (probably separate function)
 	// (2) Calculate the Lagrangian gradient (L') for all sampled points
