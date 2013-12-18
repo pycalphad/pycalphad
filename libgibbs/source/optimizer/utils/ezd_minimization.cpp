@@ -38,7 +38,7 @@ void LocateMinima(std::unique_ptr<CompositionSet> const &phase, const int depth)
 	//    (b) Perform QR factorization of transpose(A)
 	//    (c) Set Z = Q2, which is defined by (TODO: still not clear on how to do this) Eq. 12.71, p. 349 of Nocedal and Wright, 2006
 	//    (d) Set Hproj = transpose(Z)*(L'')*Z
-	//    (e) Verify that all diagonal elements of L'' are strictly positive; if not, remove this point from consideration
+	//    (e) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
 	//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
 	//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
 	//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
