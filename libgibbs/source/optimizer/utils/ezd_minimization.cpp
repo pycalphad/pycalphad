@@ -33,7 +33,9 @@ void LocateMinima(std::unique_ptr<CompositionSet> const &phase, const int depth)
 	// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 	// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 	//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
-	//        TODO: But how do I choose the Langrange multipliers for all the constraints? Can I calculate them?
+	//        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
+	//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
+	//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
 	//    (a) Form matrix A, the Jacobian of active constraints (constraint gradient matrix)
 	//    (b) Perform QR factorization of transpose(A)
 	//    (c) Set Z = Q2, which is defined by (TODO: still not clear on how to do this) Eq. 12.71, p. 349 of Nocedal and Wright, 2006
