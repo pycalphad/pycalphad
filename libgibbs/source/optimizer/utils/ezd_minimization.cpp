@@ -37,8 +37,9 @@ void LocateMinima(std::unique_ptr<CompositionSet> const &phase, const int depth)
 	//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
 	//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
 	//    (a) Form matrix A, the Jacobian of active constraints (constraint gradient matrix)
-	//    (b) Perform QR factorization of transpose(A)
-	//    (c) Set Z = Q2, which is defined by (TODO: still not clear on how to do this) Eq. 12.71, p. 349 of Nocedal and Wright, 2006
+	//    (b) Compute the full QR decomposition of transpose(A)
+	//    (c) Copy the last m-n columns of Q into Z (corresponds to the bottom m-n rows of R which should all be zero)
+	//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006
 	//    (d) Set Hproj = transpose(Z)*(L'')*Z
 	//    (e) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
 	//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
