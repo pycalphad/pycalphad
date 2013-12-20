@@ -14,6 +14,10 @@
 #include <iostream>
 #include "libtdb/include/logging.hpp"
 
+// TODO: test code
+#include "libgibbs/include/utils/qr.hpp"
+#include <boost/numeric/ublas/io.hpp>
+
 using namespace journal;
 using namespace Optimizer;
 
@@ -21,6 +25,18 @@ int main(int argc, char* argv[])
 {
 	init_logging();
 	src::severity_channel_logger<severity_level,std::string> slg(keywords::channel = "data");
+	boost::numeric::ublas::matrix<double> A(3,2);
+	boost::numeric::ublas::matrix<double> Q(boost::numeric::ublas::zero_matrix<double>(3,3));
+	boost::numeric::ublas::matrix<double> R(boost::numeric::ublas::zero_matrix<double>(3,2));
+	A(0,0) = 1; A(0,1) = 7;
+	A(1,0) = 3; A(1,1) = 4;
+	A(2,0) = 5; A(2,1) = 1;
+	std::vector<double> ublas_betas = inplace_qr(A);
+	recoverQ(A, ublas_betas, Q, R);
+	std::cout << "Q: " << Q << std::endl;
+	std::cout << "R: " << R << std::endl;
+	return 0;
+
 	if (argc < 2)
 	{
 		BOOST_LOG_SEV(slg, routine) << "Usage: tdbread path\n";
