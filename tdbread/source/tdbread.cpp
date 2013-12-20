@@ -35,6 +35,9 @@ int main(int argc, char* argv[])
 	recoverQ(A, ublas_betas, Q, R);
 	std::cout << "Q: " << Q << std::endl;
 	std::cout << "R: " << R << std::endl;
+
+	A = boost::numeric::ublas::prod(Q,R);
+	std::cout << "Q*R: " << A << std::endl;
 	return 0;
 
 	if (argc < 2)
