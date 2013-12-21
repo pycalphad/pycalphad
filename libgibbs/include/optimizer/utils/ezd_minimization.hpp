@@ -12,9 +12,11 @@
 #ifndef INCLUDED_EZD_MINIMIZATION
 #define INCLUDED_EZD_MINIMIZATION
 
-#include "libgibbs/include/optimizer/utils/ndgrid.hpp"
+#include "libgibbs/include/models.hpp"
+#include "libgibbs/include/compositionset.hpp"
 
 namespace Optimizer {
+void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, const std::size_t depth = 1);
 }
 
 #endif

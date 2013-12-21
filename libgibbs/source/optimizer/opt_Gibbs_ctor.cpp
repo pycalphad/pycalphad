@@ -12,6 +12,7 @@
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
+#include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
 #include "libtdb/include/logging.hpp"
 #include <sstream>
 
@@ -70,7 +71,8 @@ GibbsOpt::GibbsOpt(
 	for (auto i = phase_iter; i != phase_end; ++i) {
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
-		comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
+		auto it = comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
+		Optimizer::LocateMinima(it.first->second, main_ss); // TODO: test code
 	}
 
 	// Add the mandatory constraints to the ConstraintManager

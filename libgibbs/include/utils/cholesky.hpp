@@ -11,8 +11,8 @@
 // Cholesky factorizations in the spirit of lu.hpp
 // TODO: The full Cholesky factorization may not be needed; may need to write a simplified version to check for p.d. matrix
 
-#ifndef BOOST_UBLAS_CHOLESKY_H
-#define BOOST_UBLAS_CHOLESKY_H
+#ifndef BOOST_UBLAS_CHOLESKY_HPP
+#define BOOST_UBLAS_CHOLESKY_HPP
 
 #include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/triangular.hpp>
@@ -23,8 +23,8 @@ namespace boost { namespace numeric { namespace ublas {
   template<class M>
   bool cholesky_factorize (M &m) {
     typedef M matrix_type;
-    typedef BOOST_UBLAS_TYPENAME M::size_type size_type;
-    typedef BOOST_UBLAS_TYPENAME M::value_type value_type;
+    typedef typename M::size_type size_type;
+    typedef typename M::value_type value_type;
 
     BOOST_UBLAS_CHECK (m.size1() == m.size2(), external_logic("Cholesky decomposition is only valid for a square, positive definite matrix."));
 
