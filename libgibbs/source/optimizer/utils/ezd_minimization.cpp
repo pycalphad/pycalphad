@@ -28,7 +28,8 @@ namespace Optimizer {
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
 // In addition to allowing us to choose a better starting point, this will allow for automatic miscibility gap detection
 void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, const std::size_t depth) {
-	constexpr const std::size_t grid_points_per_axis = 5; // TODO: make this user-configurable
+	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
+	using namespace boost::numeric::ublas;
 	// Because the grid is uniform, we can assume that each point is the center of an N-cube
 	// of width max_extent-min_extent. Boundary points are a special case.
 	// Drop points outside the feasible region.
@@ -39,12 +40,13 @@ void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, co
 		std::vector<std::vector<double> > points;
 
 		// Get all the sublattices for this phase
-		boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
-		boost::tuples::tie(ic0,ic1)=boost::multi_index::get<phases>(sublset).equal_range(phase.name());
+		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
+		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(),0));
+		ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 
 		// (1) Sample some points on the domain using NDGrid
-		// TODO: This is going to generate a lot of infeasible points
-		// A better implementation would handle the sublattice internal degrees of freedom separately
+		// TODO: This is going to generate a LOT of infeasible points. Should I just do rejection sampling?
+		// A better(?) implementation would handle the sublattice internal degrees of freedom separately
 		auto point_add = [&points](std::vector<double> &address) {
 				std::cout << "adding point [";
 				for (auto i = address.begin(); i != address.end(); ++i) {
@@ -55,24 +57,29 @@ void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, co
 				points.push_back(address);
 		};
 		NDGrid::sample(0, 1, std::distance(ic0,ic1), grid_points_per_axis, point_add);
-		// (2) Calculate the Lagrangian Hessian (L'') for all sampled points
-		// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
-		// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
-		//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
-		//        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
-		//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
-		//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
-		//    (a) Form matrix A (m x n), the Jacobian of active constraints (constraint gradient matrix)
-		//    (b) Compute the full QR decomposition of transpose(A)
-		//    (c) Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
-		//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006
-		//    (d) Set Hproj = transpose(Z)*(L'')*Z
-		//    (e) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
-		//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
-		//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
-		//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
-		//    (g) If it succeeds, save this point; else, remove it
-		// (4) For each saved point, send to next depth
+
+		// (2) Calculate the Lagrangian Hessian for all sampled points
+		for (auto pt : points) {
+			symmetric_matrix<double, lower> Hessian;
+			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
+			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
+			//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
+			//        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
+			//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
+			//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
+			//    (a) Form matrix A (m x n), the Jacobian of active constraints (constraint gradient matrix)
+			matrix<double> A;
+			//    (b) Compute the full QR decomposition of transpose(A)
+			//    (c) Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
+			//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006
+			//    (d) Set Hproj = transpose(Z)*(L'')*Z
+			//    (e) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
+			//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
+			//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
+			//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
+			//    (g) If it succeeds, save this point; else, remove it
+			// (4) For each saved point, send to next depth
+		}
 	}
 	// For depth > 1: FIND MINIMA
 	else if (depth > 1) {
