@@ -12,14 +12,18 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
 #include "libgibbs/include/compositionset.hpp"
+#include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libgibbs/include/optimizer/utils/ndgrid.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
 #include "libgibbs/include/utils/qr.hpp"
+#include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <algorithm>
+#include <string>
+#include <map>
 
 namespace Optimizer {
 
@@ -27,7 +31,14 @@ namespace Optimizer {
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
 // In addition to allowing us to choose a better starting point, this will allow for automatic miscibility gap detection
-void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, const std::size_t depth) {
+void LocateMinima(
+		CompositionSet const &phase,
+		sublattice_set const &sublset,
+		evalconditions const& conditions,
+		boost::bimap<std::string, int> const &main_indices, // Variable name to index map
+		//std::vector<jacobian_entry> const &jac_g_trees, // ASTs for Jacobian of constraints for this phase
+		const std::size_t depth // depth tracking for recursion
+		) {
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
 	// Because the grid is uniform, we can assume that each point is the center of an N-cube
@@ -60,16 +71,32 @@ void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, co
 
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
-			symmetric_matrix<double, lower> Hessian;
+			symmetric_matrix<double, lower> Hessian(pt.size(),pt.size());
+			std::map<std::list<int>,double> rawHessian;
+			double eval_point[pt.size()];
+			for (auto i = pt.begin() ; i != pt.end(); ++i)
+				eval_point[std::distance(pt.begin(),i)] = *i; // copy point into double array
+
+			rawHessian = phase.evaluate_objective_hessian(conditions, main_indices, eval_point); // calculate Hessian
+			for (auto h = rawHessian.begin() ; h != rawHessian.end(); ++h)
+				Hessian(*(h->first.begin()), *++(h->first.begin())) = h->second; // copy Hessian into matrix
+
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 			//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
 			//        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
 			//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
 			//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
-			//    (a) Form matrix A (m x n), the Jacobian of active constraints (constraint gradient matrix)
-			matrix<double> A;
+			//    (a) Form matrix trans(A) (n x m), the transpose of the Jacobian of active constraints (constraint gradient matrix)
+			/*matrix<double> transA(pt.size(),jac_g_trees.size());
+			for (auto j : jac_g_trees) // Calculate transpose of Jacobian
+				transA(j->var_index,j->cons_index) =
+						process_utree(j->ast, conditions, main_indices, (double*)eval_point).get<double>();
 			//    (b) Compute the full QR decomposition of transpose(A)
+			std::vector<double> betas = inplace_qr(transA);
+			matrix<double> Q(zero_matrix<double>(pt.size(),pt.size()));
+			matrix<double> R(zero_matrix<double>(pt.size(),jac_g_trees.size()));
+			recoverQ(transA, betas, Q, R);*/
 			//    (c) Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
 			//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006
 			//    (d) Set Hproj = transpose(Z)*(L'')*Z

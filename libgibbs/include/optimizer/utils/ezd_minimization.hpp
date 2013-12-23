@@ -14,9 +14,20 @@
 
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/compositionset.hpp"
+#include "libgibbs/include/constraint.hpp"
+#include "libgibbs/include/conditions.hpp"
+#include <boost/bimap.hpp>
+#include <vector>
 
 namespace Optimizer {
-void LocateMinima(CompositionSet const &phase, sublattice_set const &sublset, const std::size_t depth = 1);
+void LocateMinima(
+		CompositionSet const &phase,
+		sublattice_set const &sublset,
+		evalconditions const& conditions,
+		boost::bimap<std::string, int> const &main_indices,
+		//std::vector<jacobian_entry> const &jac_g_trees,
+		const std::size_t depth = 1
+		);
 }
 
 #endif

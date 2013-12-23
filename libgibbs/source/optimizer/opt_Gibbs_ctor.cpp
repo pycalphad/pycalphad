@@ -72,7 +72,7 @@ GibbsOpt::GibbsOpt(
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
 		auto it = comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
-		Optimizer::LocateMinima(it.first->second, main_ss); // TODO: test code
+		Optimizer::LocateMinima(it.first->second, main_ss, conditions, main_indices); // TODO: test code
 	}
 
 	// Add the mandatory constraints to the ConstraintManager
