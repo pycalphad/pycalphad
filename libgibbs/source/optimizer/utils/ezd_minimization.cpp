@@ -52,7 +52,7 @@ void LocateMinima(
 
 		// Get all the sublattices for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
-		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(),0));
+		ic0 = boost::multi_index::get<phase_subl>(sublset).begin();
 		ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 
 		// (1) Sample some points on the domain using NDGrid
@@ -71,16 +71,13 @@ void LocateMinima(
 
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
-			symmetric_matrix<double, lower> Hessian(pt.size(),pt.size());
-			std::map<std::list<int>,double> rawHessian;
+			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			double eval_point[pt.size()];
 			for (auto i = pt.begin() ; i != pt.end(); ++i)
 				eval_point[std::distance(pt.begin(),i)] = *i; // copy point into double array
 
-			rawHessian = phase.evaluate_objective_hessian(conditions, main_indices, eval_point); // calculate Hessian
-			for (auto h = rawHessian.begin() ; h != rawHessian.end(); ++h)
-				Hessian(*(h->first.begin()), *++(h->first.begin())) = h->second; // copy Hessian into matrix
-
+			Hessian = phase.evaluate_objective_hessian_matrix(conditions, main_indices, pt);
+			std::cout << "Hessian: " << Hessian << std::endl;
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 			//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)

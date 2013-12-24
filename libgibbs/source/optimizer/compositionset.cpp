@@ -12,6 +12,7 @@
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
+#include <boost/numeric/ublas/symmetric.hpp>
 
 using boost::multi_index_container;
 using namespace boost::multi_index;
@@ -210,6 +211,37 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 		else retmap[searchlist] += x[main_indices.left.at(compset_name)] * diffvalue;
 	}
 	return retmap;
+}
+
+boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> CompositionSet::evaluate_objective_hessian_matrix(
+			evalconditions const& conditions,
+			boost::bimap<std::string, int> const &main_indices,
+			std::vector<double> const &x) const {
+	BOOST_LOG_NAMED_SCOPE("CompositionSet::evaluate_objective_hessian_matrix");
+	typedef boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> sym_matrix;
+	using boost::numeric::ublas::zero_matrix;
+	logger comp_log(journal::keywords::channel = "optimizer");
+	sym_matrix retmatrix(zero_matrix<double>(x.size(),x.size()));
+	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
+	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
+	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(2);
+	const std::string compset_name(cset_name + "_FRAC");
+
+
+	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
+		// TODO: const_cast is obviously suboptimal here, but it saves a copy and will do until process_utree is fixed
+		const double diffvalue = process_utree(i->ast, conditions, main_indices, symbols, const_cast<double*>(&x[0])).get<double>();
+		const std::string diffvar1 = *(i->diffvars.cbegin());
+		const std::string diffvar2 = *(++(i->diffvars.cbegin()));
+		const int varindex1 = main_indices.left.at(diffvar1);
+		const int varindex2 = main_indices.left.at(diffvar2);
+		// multiply derivative by phase fraction
+		if (diffvar1 == compset_name || diffvar2 == compset_name) {
+			retmatrix(varindex1,varindex2) += diffvalue;
+		}
+		else retmatrix(varindex1,varindex2) += x[main_indices.left.at(compset_name)] * diffvalue;
+	}
+	return retmatrix;
 }
 
 std::set<std::list<int>> CompositionSet::hessian_sparsity_structure(
