@@ -87,6 +87,64 @@ CompositionSet::CompositionSet(
 			}
 		}
 	}
+
+	// Add the mandatory site fraction balance constraints
+	boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
+	std::size_t sublindex = 0;
+	ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phaseobj.name(),sublindex));
+	ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phaseobj.name(),sublindex));
+	while (ic0 != ic1) {
+		// Current sublattice
+		std::vector<std::string> subl_list;
+		for ( ; ic0 != ic1 ; ++ic0) subl_list.push_back(ic0->species);
+		if (subl_list.size() == 1) {
+			//fixed_indices.push_back(main_indices.left.at(ic0->name()));
+		}
+		if (subl_list.size() > 1 ) {
+			cm.addConstraint(
+					SublatticeBalanceConstraint(
+							phaseobj.name(),
+							sublindex,
+							subl_list.cbegin(),
+							subl_list.cend()
+					)
+			);
+		}
+
+		++sublindex;
+		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phaseobj.name(),sublindex));
+		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phaseobj.name(),sublindex));
+	}
+
+	// Calculate first derivative ASTs of all constraints
+	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
+		// for each variable, calculate derivatives of all the constraints
+		for (auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j) {
+			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
+			boost::spirit::utree rhs = differentiate_utree(j->rhs, i->first);
+			lhs = simplify_utree(lhs);
+			rhs = simplify_utree(rhs);
+			if (
+					(lhs.which() == boost::spirit::utree_type::double_type || lhs.which() == boost::spirit::utree_type::int_type)
+					&&
+					(rhs.which() == boost::spirit::utree_type::double_type || rhs.which() == boost::spirit::utree_type::int_type)
+			)
+			{
+				double lhsget, rhsget;
+				lhsget = lhs.get<double>();
+				rhsget = rhs.get<double>();
+				if (lhsget == rhsget) continue; // don't add zeros to the Jacobian
+			}
+			boost::spirit::utree subtract_tree;
+			subtract_tree.push_back("-");
+			subtract_tree.push_back(lhs);
+			subtract_tree.push_back(rhs);
+			int var_index = i->second;
+			int cons_index = std::distance(cm.constraints.begin(),j);
+			jac_g_trees.push_back(jacobian_entry(cons_index,var_index,false,subtract_tree));
+			BOOST_LOG_SEV(comp_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
+		}
+	}
 }
 
 double CompositionSet::evaluate_objective(

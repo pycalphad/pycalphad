@@ -72,10 +72,6 @@ void LocateMinima(
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
-			double eval_point[pt.size()];
-			for (auto i = pt.begin() ; i != pt.end(); ++i)
-				eval_point[std::distance(pt.begin(),i)] = *i; // copy point into double array
-
 			Hessian = phase.evaluate_objective_hessian_matrix(conditions, main_indices, pt);
 			std::cout << "Hessian: " << Hessian << std::endl;
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)

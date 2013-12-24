@@ -78,6 +78,7 @@ private:
 	hessian_set hessian_data;
 	ast_set tree_data;
 	ASTSymbolMap symbols; // maps special symbols to ASTs and their derivatives
+	ConstraintManager cm; // handles constraints internal to the phase, e.g., site fraction balances
 };
 
 #endif
