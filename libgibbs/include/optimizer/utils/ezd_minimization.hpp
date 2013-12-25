@@ -24,8 +24,6 @@ void LocateMinima(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
 		evalconditions const& conditions,
-		boost::bimap<std::string, int> const &main_indices,
-		//std::vector<jacobian_entry> const &jac_g_trees,
 		const std::size_t depth = 1
 		);
 }

@@ -35,8 +35,6 @@ void LocateMinima(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
 		evalconditions const& conditions,
-		boost::bimap<std::string, int> const &main_indices, // Variable name to index map
-		//std::vector<jacobian_entry> const &jac_g_trees, // ASTs for Jacobian of constraints for this phase
 		const std::size_t depth // depth tracking for recursion
 		) {
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
@@ -52,7 +50,7 @@ void LocateMinima(
 
 		// Get all the sublattices for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
-		ic0 = boost::multi_index::get<phase_subl>(sublset).begin();
+		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), 0));
 		ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 
 		// (1) Sample some points on the domain using NDGrid
@@ -65,14 +63,30 @@ void LocateMinima(
 					if (std::distance(i,address.end()) > 1) std::cout << ",";
 				}
 				std::cout << "]" << std::endl;
+				// The phase fraction is always the last variable if we use CompositionSet::get_variable_map()
+				// Because this is a single-phase calculation, the phase fraction is always 1
+				address.push_back(1);
 				points.push_back(address);
+				address.pop_back();
 		};
 		NDGrid::sample(0, 1, std::distance(ic0,ic1), grid_points_per_axis, point_add);
 
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
-			Hessian = phase.evaluate_objective_hessian_matrix(conditions, main_indices, pt);
+			try {
+				auto var_indices = phase.get_variable_map();
+				std::cout << "var_indices.size() = " << var_indices.size() << std::endl;
+				Hessian = phase.evaluate_objective_hessian_matrix(conditions, var_indices, pt);
+			}
+			catch (boost::exception &e) {
+				std::cout << boost::diagnostic_information(e);
+				throw;
+			}
+			catch (std::exception &e) {
+				std::cout << e.what();
+				throw;
+			}
 			std::cout << "Hessian: " << Hessian << std::endl;
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
@@ -81,14 +95,14 @@ void LocateMinima(
 			//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
 			//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
 			//    (a) Form matrix trans(A) (n x m), the transpose of the Jacobian of active constraints (constraint gradient matrix)
-			/*matrix<double> transA(pt.size(),jac_g_trees.size());
-			for (auto j : jac_g_trees) // Calculate transpose of Jacobian
-				transA(j->var_index,j->cons_index) =
-						process_utree(j->ast, conditions, main_indices, (double*)eval_point).get<double>();
+			matrix<double> transA(pt.size(),phase.get_constraints().size());
+			/*for (auto j : phase.get_jacobian()) // Calculate transpose of Jacobian
+				transA(j.var_index,j.cons_index) =
+						process_utree(j.ast, conditions, main_indices, const_cast<double*>(&pt[0])).get<double>();
 			//    (b) Compute the full QR decomposition of transpose(A)
 			std::vector<double> betas = inplace_qr(transA);
 			matrix<double> Q(zero_matrix<double>(pt.size(),pt.size()));
-			matrix<double> R(zero_matrix<double>(pt.size(),jac_g_trees.size()));
+			matrix<double> R(zero_matrix<double>(pt.size(),phase.get_constraints().size()));
 			recoverQ(transA, betas, Q, R);*/
 			//    (c) Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
 			//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006

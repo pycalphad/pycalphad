@@ -13,6 +13,7 @@
 #include "libgibbs/include/utils/math_expr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/bimap.hpp>
 
 using boost::multi_index_container;
 using namespace boost::multi_index;
@@ -22,6 +23,7 @@ CompositionSet::CompositionSet(
 		const parameter_set &pset,
 		const sublattice_set &sublset,
 		boost::bimap<std::string, int> const &main_indices) {
+	typedef boost::bimap<std::string, int>::value_type position;
 	BOOST_LOG_NAMED_SCOPE("CompositionSet::CompositionSet");
 	logger comp_log(journal::keywords::channel = "optimizer");
 	cset_name = phaseobj.name();
@@ -90,13 +92,19 @@ CompositionSet::CompositionSet(
 
 	// Add the mandatory site fraction balance constraints
 	boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
-	std::size_t sublindex = 0;
+	int sublindex = 0;
+	int varcount = 0;
 	ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phaseobj.name(),sublindex));
 	ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phaseobj.name(),sublindex));
 	while (ic0 != ic1) {
 		// Current sublattice
 		std::vector<std::string> subl_list;
-		for ( ; ic0 != ic1 ; ++ic0) subl_list.push_back(ic0->species);
+		for ( ; ic0 != ic1 ; ++ic0) {
+			subl_list.push_back(ic0->species);
+			phase_indices.insert(position(ic0->name(), varcount++));
+			BOOST_LOG_SEV(comp_log, debug) << "phase_indices[" << ic0->name() << "] = " << varcount-1;
+			BOOST_LOG_SEV(comp_log, debug) << "phase_indices.size() = " << phase_indices.size();
+		}
 		if (subl_list.size() == 1) {
 			//fixed_indices.push_back(main_indices.left.at(ic0->name()));
 		}
@@ -117,7 +125,7 @@ CompositionSet::CompositionSet(
 	}
 
 	// Calculate first derivative ASTs of all constraints
-	for (auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i) {
+	for (auto i = phase_indices.left.begin(); i != phase_indices.left.end(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
 		for (auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j) {
 			boost::spirit::utree lhs = differentiate_utree(j->lhs, i->first);
@@ -145,6 +153,9 @@ CompositionSet::CompositionSet(
 			BOOST_LOG_SEV(comp_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
 	}
+
+	phase_indices.insert(position(cset_name + "_FRAC", varcount++)); // add placeholder for phase fraction
+	BOOST_LOG_SEV(comp_log, debug) << "phase_indices[" << cset_name << "_FRAC] = " << varcount-1;
 }
 
 double CompositionSet::evaluate_objective(
@@ -279,6 +290,7 @@ boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> Com
 	typedef boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> sym_matrix;
 	using boost::numeric::ublas::zero_matrix;
 	logger comp_log(journal::keywords::channel = "optimizer");
+	BOOST_LOG_SEV(comp_log, debug) << "phase_indices.size() = " << phase_indices.size();
 	sym_matrix retmatrix(zero_matrix<double>(x.size(),x.size()));
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
