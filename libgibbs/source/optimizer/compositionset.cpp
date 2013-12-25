@@ -124,6 +124,15 @@ CompositionSet::CompositionSet(
 		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phaseobj.name(),sublindex));
 	}
 
+	// Add an internal constraint to fix the phase fraction as 1
+	Constraint phasefix;
+	phasefix.op = ConstraintOperatorType::EQUALITY_CONSTRAINT;
+	phasefix.lhs = boost::spirit::utree(std::string(cset_name + "_FRAC"));
+	phasefix.rhs = boost::spirit::utree(1);
+	phasefix.name = std::string("Fix Phase " + cset_name);
+	cm.addConstraint(phasefix);
+	phase_indices.insert(position(cset_name + "_FRAC", varcount++)); // add placeholder for phase fraction
+
 	// Calculate first derivative ASTs of all constraints
 	for (auto i = phase_indices.left.begin(); i != phase_indices.left.end(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
@@ -153,8 +162,6 @@ CompositionSet::CompositionSet(
 			BOOST_LOG_SEV(comp_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
 	}
-
-	phase_indices.insert(position(cset_name + "_FRAC", varcount++)); // add placeholder for phase fraction
 }
 
 double CompositionSet::evaluate_objective(

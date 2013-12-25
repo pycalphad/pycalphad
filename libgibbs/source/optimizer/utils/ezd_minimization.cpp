@@ -75,9 +75,7 @@ void LocateMinima(
 		for (auto pt : points) {
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			try {
-				auto var_indices = phase.get_variable_map();
-				std::cout << "var_indices.size() = " << var_indices.size() << std::endl;
-				Hessian = phase.evaluate_objective_hessian_matrix(conditions, var_indices, pt);
+				Hessian = phase.evaluate_objective_hessian_matrix(conditions, phase.get_variable_map(), pt);
 			}
 			catch (boost::exception &e) {
 				std::cout << boost::diagnostic_information(e);
@@ -87,31 +85,56 @@ void LocateMinima(
 				std::cout << e.what();
 				throw;
 			}
-			std::cout << "Hessian: " << Hessian << std::endl;
+			//std::cout << "Hessian: " << Hessian << std::endl;
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 			//        NOTE: This is the two-sided projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
 			//        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
 			//        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
 			//        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
+			//        n = number of variables, m = number of active constraints
 			//    (a) Form matrix trans(A) (n x m), the transpose of the Jacobian of active constraints (constraint gradient matrix)
-			matrix<double> transA(pt.size(),phase.get_constraints().size());
-			/*for (auto j : phase.get_jacobian()) // Calculate transpose of Jacobian
+			matrix<double> transA(zero_matrix<double>(pt.size(),phase.get_constraints().size()));
+			for (auto j : phase.get_jacobian()) // Calculate transpose of Jacobian
 				transA(j.var_index,j.cons_index) =
-						process_utree(j.ast, conditions, main_indices, const_cast<double*>(&pt[0])).get<double>();
+						process_utree(j.ast, conditions, phase.get_variable_map(), const_cast<double*>(&pt[0])).get<double>();
+			//std::cout << "transA: " << transA << std::endl;
 			//    (b) Compute the full QR decomposition of transpose(A)
 			std::vector<double> betas = inplace_qr(transA);
 			matrix<double> Q(zero_matrix<double>(pt.size(),pt.size()));
 			matrix<double> R(zero_matrix<double>(pt.size(),phase.get_constraints().size()));
-			recoverQ(transA, betas, Q, R);*/
-			//    (c) Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
+			recoverQ(transA, betas, Q, R);
+			//std::cout << "Q: " << Q << std::endl;
+			//std::cout << "R: " << R << std::endl;
+			//    (c) Copy the last n-m columns of Q into Z (related to the bottom n-m rows of R which should all be zero)
 			//        Reference: Eq. 12.71, p. 349 of Nocedal and Wright, 2006
+			const std::size_t Zcolumns = pt.size() - phase.get_constraints().size();
+			matrix<double> Z(pt.size(), Zcolumns);
+			// Z is the submatrix of Q that includes all of Q's rows and its rightmost n-m columns
+			Z = subrange(Q, 0,pt.size(), phase.get_constraints().size(),pt.size());
+			//std::cout << "Z: " << Z << std::endl;
 			//    (d) Set Hproj = transpose(Z)*(L'')*Z
+			matrix<double> Hproj(pt.size(), Zcolumns);
+			Hproj = prod(trans(Z), matrix<double>(prod(Hessian,Z)));
+			//std::cout << "Hproj: " << Hproj << std::endl;
 			//    (e) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
 			//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
 			//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
 			//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
+			const bool is_positive_definite = cholesky_factorize(Hessian);
 			//    (g) If it succeeds, save this point; else, remove it
+			if (is_positive_definite) {
+				std::cout << "CONVEX FEASIBLE: ";
+				std::cout << "adding point [";
+				for (auto i = pt.begin(); i != pt.end(); ++i) {
+					std::cout << *i;
+					if (std::distance(i,pt.end()) > 1) std::cout << ",";
+				}
+				std::cout << "]" << std::endl;
+			}
+			else {
+
+			}
 			// (4) For each saved point, send to next depth
 		}
 	}
