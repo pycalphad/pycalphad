@@ -58,6 +58,8 @@ public:
 		tree_data = std::move(other.tree_data);
 		first_derivatives = std::move(other.first_derivatives);
 		symbols = std::move(other.symbols);
+		cm = std::move(other.cm);
+		phase_indices = std::move(other.phase_indices);
 	}
 	CompositionSet& operator=(CompositionSet &&other) {
 		cset_name = std::move(other.cset_name);
@@ -67,6 +69,8 @@ public:
 		tree_data = std::move(other.tree_data);
 		first_derivatives = std::move(other.first_derivatives);
 		symbols = std::move(other.symbols);
+		cm = std::move(other.cm);
+		phase_indices = std::move(other.phase_indices);
 	}
 	const std::vector<jacobian_entry>& get_jacobian() const { return jac_g_trees; };
 	const std::vector<Constraint>& get_constraints() const { return cm.constraints; };
