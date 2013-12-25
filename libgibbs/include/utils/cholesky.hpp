@@ -44,7 +44,7 @@ namespace boost { namespace numeric { namespace ublas {
             return false;
           }
           else {
-            d(i) = type_traits<value_type>::sqrt(elem);
+            d(i) = type_traits<value_type>::type_sqrt(elem);
           }
         }
         else {
