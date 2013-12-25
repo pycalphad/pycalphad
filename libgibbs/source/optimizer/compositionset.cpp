@@ -155,7 +155,6 @@ CompositionSet::CompositionSet(
 	}
 
 	phase_indices.insert(position(cset_name + "_FRAC", varcount++)); // add placeholder for phase fraction
-	BOOST_LOG_SEV(comp_log, debug) << "phase_indices[" << cset_name << "_FRAC] = " << varcount-1;
 }
 
 double CompositionSet::evaluate_objective(
@@ -290,7 +289,6 @@ boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> Com
 	typedef boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> sym_matrix;
 	using boost::numeric::ublas::zero_matrix;
 	logger comp_log(journal::keywords::channel = "optimizer");
-	BOOST_LOG_SEV(comp_log, debug) << "phase_indices.size() = " << phase_indices.size();
 	sym_matrix retmatrix(zero_matrix<double>(x.size(),x.size()));
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(2);
