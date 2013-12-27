@@ -75,6 +75,7 @@ public:
 	const std::vector<jacobian_entry>& get_jacobian() const { return jac_g_trees; };
 	const std::vector<Constraint>& get_constraints() const { return cm.constraints; };
 	const boost::bimap<std::string, int>& get_variable_map() const { return phase_indices; };
+	const ASTSymbolMap& get_symbols() const { return symbols; };
 	CompositionSet(const CompositionSet &) = delete;
 	CompositionSet& operator=(const CompositionSet &) = delete;
 private:

@@ -62,9 +62,13 @@ void LocateMinima(
 			constexpr const double max_constraint_violation = 1e-4; // TODO: make user-configurable
 			for (auto i = phase.get_constraints().cbegin(); i != phase.get_constraints().cend(); ++i) {
 				double lhs =
-						process_utree(i->lhs, conditions, phase.get_variable_map(), const_cast<double*>(&address[0])).get<double>();
+						process_utree(
+								i->lhs, conditions, phase.get_variable_map(), phase.get_symbols(), const_cast<double*>(&address[0])
+								).get<double>();
 				double rhs =
-						process_utree(i->rhs, conditions, phase.get_variable_map(), const_cast<double*>(&address[0])).get<double>();
+						process_utree(
+								i->rhs, conditions, phase.get_variable_map(), phase.get_symbols(), const_cast<double*>(&address[0])
+								).get<double>();
 				constraint_violation += fabs(rhs-lhs);
 				if (constraint_violation > max_constraint_violation) return; // point is infeasible; skip
 			}
@@ -83,6 +87,9 @@ void LocateMinima(
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			try {
 				Hessian = phase.evaluate_objective_hessian_matrix(conditions, phase.get_variable_map(), pt);
+			}
+			catch (divide_by_zero_error &e) {
+				continue;
 			}
 			catch (boost::exception &e) {
 				std::cout << boost::diagnostic_information(e);
@@ -104,7 +111,9 @@ void LocateMinima(
 			matrix<double> transA(zero_matrix<double>(pt.size(),phase.get_constraints().size()));
 			for (auto j : phase.get_jacobian()) // Calculate transpose of Jacobian
 				transA(j.var_index,j.cons_index) =
-						process_utree(j.ast, conditions, phase.get_variable_map(), const_cast<double*>(&pt[0])).get<double>();
+						process_utree(
+								j.ast, conditions, phase.get_variable_map(), phase.get_symbols(), const_cast<double*>(&pt[0])
+								).get<double>();
 			std::cout << "transA: " << transA << std::endl;
 			//    (b) Compute the full QR decomposition of transpose(A)
 			std::vector<double> betas = inplace_qr(transA);
@@ -128,7 +137,7 @@ void LocateMinima(
 			//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
 			//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
 			//    (f) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
-			const bool is_positive_definite = cholesky_factorize(Hessian);
+			const bool is_positive_definite = cholesky_factorize(Hproj);
 			//    (g) If it succeeds, save this point; else, remove it
 			if (is_positive_definite) {
 				std::cout << "CONVEX FEASIBLE: ";

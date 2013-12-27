@@ -108,7 +108,7 @@ CompositionSet::CompositionSet(
 		if (subl_list.size() == 1) {
 			//fixed_indices.push_back(main_indices.left.at(ic0->name()));
 		}
-		if (subl_list.size() > 1 ) {
+		if (subl_list.size() >= 1 ) {
 			cm.addConstraint(
 					SublatticeBalanceConstraint(
 							phaseobj.name(),
