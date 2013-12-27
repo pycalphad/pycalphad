@@ -124,15 +124,6 @@ CompositionSet::CompositionSet(
 		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phaseobj.name(),sublindex));
 	}
 
-	// Add an internal constraint to fix the phase fraction as 1
-	Constraint phasefix;
-	phasefix.op = ConstraintOperatorType::EQUALITY_CONSTRAINT;
-	phasefix.lhs = boost::spirit::utree(std::string(cset_name + "_FRAC"));
-	phasefix.rhs = boost::spirit::utree(1);
-	phasefix.name = std::string("Fix Phase " + cset_name);
-	cm.addConstraint(phasefix);
-	phase_indices.insert(position(cset_name + "_FRAC", varcount++)); // add placeholder for phase fraction
-
 	// Calculate first derivative ASTs of all constraints
 	for (auto i = phase_indices.left.begin(); i != phase_indices.left.end(); ++i) {
 		// for each variable, calculate derivatives of all the constraints
@@ -288,6 +279,7 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian(
 	return retmap;
 }
 
+// NOTE: this is explicitly for the single-phase Hessian
 boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> CompositionSet::evaluate_objective_hessian_matrix(
 			evalconditions const& conditions,
 			boost::bimap<std::string, int> const &main_indices,
@@ -304,17 +296,14 @@ boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> Com
 
 
 	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
-		// TODO: const_cast is obviously suboptimal here, but it saves a copy and will do until process_utree is fixed
-		const double diffvalue = process_utree(i->ast, conditions, main_indices, symbols, const_cast<double*>(&x[0])).get<double>();
 		const std::string diffvar1 = *(i->diffvars.cbegin());
 		const std::string diffvar2 = *(++(i->diffvars.cbegin()));
+		if (diffvar1 == compset_name || diffvar2 == compset_name) continue; // skip phase fraction variable for single-phase calc
 		const int varindex1 = main_indices.left.at(diffvar1);
 		const int varindex2 = main_indices.left.at(diffvar2);
-		// multiply derivative by phase fraction
-		if (diffvar1 == compset_name || diffvar2 == compset_name) {
-			retmatrix(varindex1,varindex2) += diffvalue;
-		}
-		else retmatrix(varindex1,varindex2) += x[main_indices.left.at(compset_name)] * diffvalue;
+		// TODO: const_cast is obviously suboptimal here, but it saves a copy and will do until process_utree is fixed
+		const double diffvalue = process_utree(i->ast, conditions, main_indices, symbols, const_cast<double*>(&x[0])).get<double>();
+		retmatrix(varindex1,varindex2) += diffvalue;
 	}
 	return retmatrix;
 }
