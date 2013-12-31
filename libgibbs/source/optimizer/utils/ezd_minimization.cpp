@@ -27,6 +27,35 @@
 
 namespace Optimizer {
 
+// Constructs an orthonormal basis using the linear constraints to generate feasible points
+// Reference: Nocedal and Wright, 2006, ch. 15.2, p. 429
+void make_feasible(sublattice_set const &sublset, ConstraintManager const &cm, std::vector<double> &x) {
+	using namespace boost::numeric::ublas;
+	// A is the active linear constraint matrix; satisfies Ax=b
+	matrix<double> A(zero_matrix<double>(cm.constraints.size(), x.size()));
+	// TODO: Fill A
+	std::cout << "A: " << A << std::endl;
+	//    (b) Compute the full QR decomposition of A
+	std::vector<double> betas = inplace_qr(A);
+	matrix<double> Q(zero_matrix<double>(cm.constraints.size(),cm.constraints.size()));
+	matrix<double> R(zero_matrix<double>(cm.constraints.size(),x.size()));
+	recoverQ(A, betas, Q, R);
+	std::cout << "Q: " << Q << std::endl;
+	std::cout << "R: " << R << std::endl;
+	// Copy the last m-n columns of Q into Z (related to the bottom n-m rows of R which should all be zero)
+	const std::size_t Zcolumns = cm.constraints.size() - x.size();
+	// Copy the rest into Y
+	const std::size_t Ycolumns = x.size();
+	matrix<double> Z(cm.constraints.size(), Zcolumns);
+	matrix<double> Y(cm.constraints.size(), Ycolumns);
+	// Z is the submatrix of Q that includes all of Q's rows and its rightmost m-n columns
+	Z = subrange(Q, 0,cm.constraints.size(), x.size(),cm.constraints.size());
+	// Y is the remaining columns of Q
+	Y = subrange(Q, 0,cm.constraints.size(), 0,x.size());
+	std::cout << "Z: " << Z << std::endl;
+	std::cout << "Y: " << Y << std::endl;
+}
+
 // TODO: Should this be a member function of GibbsOpt?
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
@@ -87,9 +116,6 @@ void LocateMinima(
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			try {
 				Hessian = phase.evaluate_objective_hessian_matrix(conditions, phase.get_variable_map(), pt);
-			}
-			catch (divide_by_zero_error &e) {
-				continue;
 			}
 			catch (boost::exception &e) {
 				std::cout << boost::diagnostic_information(e);
@@ -157,7 +183,8 @@ void LocateMinima(
 	// For depth > 1: FIND MINIMA
 	else if (depth > 1) {
 		// (1) Sample some points on the domain using NDGrid (probably separate function)
-		// (2) Calculate the Lagrangian gradient (L') for all sampled points
+		// (2) Calculate the objective gradient (f') for all sampled points
+		// Note: This can be done by making use of the first-order KKT conditions to estimate the Lagrange multipliers.
 		// (3) Find the point (z) with the minimum magnitude of L'
 		// (4) If that magnitude is less than some defined epsilon, or we've hit max_depth, return z as a minimum
 		//     Else use N-cube assumption to define new domain around z and send to next depth (return minima from that)
