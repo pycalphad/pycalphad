@@ -29,13 +29,17 @@ namespace Optimizer {
 
 // Constructs an orthonormal basis using the linear constraints to generate feasible points
 // Reference: Nocedal and Wright, 2006, ch. 15.2, p. 429
-void make_feasible(sublattice_set const &sublset, ConstraintManager const &cm, std::vector<double> &x) {
+boost::numeric::ublas::vector<double>
+make_feasible(sublattice_set const &sublset, ConstraintManager const &cm, boost::numeric::ublas::vector<double> const &x) {
 	using namespace boost::numeric::ublas;
 	// A is the active linear constraint matrix; satisfies Ax=b
 	matrix<double> A(zero_matrix<double>(cm.constraints.size(), x.size()));
-	// TODO: Fill A
+	vector<double> b(zero_vector<double>(x.size()));
+	vector<double> feasible_x(x.size());
+	// TODO: Fill A and b
 	std::cout << "A: " << A << std::endl;
-	//    (b) Compute the full QR decomposition of A
+	std::cout << "b: " << b << std::endl;
+	// Compute the full QR decomposition of A
 	std::vector<double> betas = inplace_qr(A);
 	matrix<double> Q(zero_matrix<double>(cm.constraints.size(),cm.constraints.size()));
 	matrix<double> R(zero_matrix<double>(cm.constraints.size(),x.size()));
@@ -54,6 +58,10 @@ void make_feasible(sublattice_set const &sublset, ConstraintManager const &cm, s
 	Y = subrange(Q, 0,cm.constraints.size(), 0,x.size());
 	std::cout << "Z: " << Z << std::endl;
 	std::cout << "Y: " << Y << std::endl;
+
+	inplace_solve(trans(R), b);
+	feasible_x = prod(Y, b) + prod(Z, x);
+	return feasible_x;
 }
 
 // TODO: Should this be a member function of GibbsOpt?
