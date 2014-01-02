@@ -11,8 +11,11 @@
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
+#include "libgibbs/include/utils/qr.hpp"
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/io.hpp>
 #include <boost/bimap.hpp>
 
 using boost::multi_index_container;
@@ -325,4 +328,73 @@ std::set<std::list<int>> CompositionSet::hessian_sparsity_structure(
 		retset.insert(nonzero_entry);
 	}
 	return retset;
+}
+
+// Constructs an orthonormal basis using the linear constraints to generate feasible points
+// Reference: Nocedal and Wright, 2006, ch. 15.2, p. 429
+typedef boost::numeric::ublas::vector<double> ublas_vector;
+std::vector<double> CompositionSet::make_feasible_point(
+		sublattice_set const &sublset,
+		std::vector<double> const &input_x) const {
+	using namespace boost::numeric::ublas;
+	typedef boost::numeric::ublas::matrix<double> ublas_matrix;
+	typedef boost::multi_index::index<sublattice_set,phase_subl>::type::iterator subl_iterator;
+	// A is the active linear constraint matrix; satisfies Ax=b
+	ublas_matrix Atrans(zero_matrix<double>(input_x.size(), cm.constraints.size()));
+	ublas_vector b(zero_vector<double>(cm.constraints.size()));
+	ublas_vector x(input_x.size());
+	std::vector<double> output_x (input_x.size());
+	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
+
+	subl_iterator subl_iter = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(cset_name,0));
+	subl_iterator subl_iter_end = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(cset_name,0));
+	int sublindex = 0;
+	int constraintindex = 0;
+	// This is code for handling the sublattice balance constraint
+	// TODO: Handle charge balance constraints (relatively straightforward extension once sublattice_entry has charge attribute)
+	// This planned extension is why we keep track of the constraint count separately
+	while (subl_iter != subl_iter_end) {
+		// Current sublattice
+		std::vector<std::string> subl_list;
+		for ( ; subl_iter != subl_iter_end ; ++subl_iter) {
+			const auto variablefind = phase_indices.left.find(subl_iter->name());
+			if (variablefind == phase_indices.left.end()) continue; // this is bad
+			const int variableindex = variablefind->second;
+			Atrans(variableindex,constraintindex) = 1;
+		}
+		b(sublindex) = 1; // sublattice site fractions must sum to 1
+		++sublindex;
+		++constraintindex;
+		subl_iter = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(cset_name,sublindex));
+		subl_iter_end = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(cset_name,sublindex));
+	}
+
+	std::cout << "Atrans: " << Atrans << std::endl;
+	std::cout << "b: " << b << std::endl;
+	// Compute the full QR decomposition of Atrans
+	std::vector<double> betas = inplace_qr(Atrans);
+	ublas_matrix Q(zero_matrix<double>(Atrans.size1(),Atrans.size1()));
+	ublas_matrix R(zero_matrix<double>(Atrans.size1(), Atrans.size2()));
+	recoverQ(Atrans, betas, Q, R);
+	std::cout << "Q: " << Q << std::endl;
+	std::cout << "R: " << R << std::endl;
+	// Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
+	const std::size_t Zcolumns = Atrans.size1() - Atrans.size2();
+	// Copy the rest into Y
+	const std::size_t Ycolumns = Atrans.size2();
+	ublas_matrix Z(Atrans.size1(), Zcolumns);
+	ublas_matrix Y(Atrans.size1(), Ycolumns);
+	// Z is the submatrix of Q that includes all of Q's rows and its rightmost m-n columns
+	Z = subrange(Q, 0,Atrans.size1(), Atrans.size2(),Atrans.size1());
+	// Y is the remaining columns of Q
+	Y = subrange(Q, 0,Atrans.size1(), 0,Atrans.size1());
+	std::cout << "Z: " << Z << std::endl;
+	std::cout << "Y: " << Y << std::endl;
+
+	inplace_solve(trans(R), b, upper_tag());
+	std::cout << "old x: " << x << std::endl;
+	x = prod(Y, b) + prod(Z, x);
+	std::cout << "new x: " << x << std::endl;
+	for (auto i = x.begin(); i != x.end(); ++i) output_x[std::distance(x.begin(),i)] = *i; // fill output_x
+	return output_x;
 }

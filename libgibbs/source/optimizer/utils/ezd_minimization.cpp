@@ -20,49 +20,13 @@
 #include "libgibbs/include/utils/qr.hpp"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <algorithm>
 #include <string>
 #include <map>
 
 namespace Optimizer {
-
-// Constructs an orthonormal basis using the linear constraints to generate feasible points
-// Reference: Nocedal and Wright, 2006, ch. 15.2, p. 429
-boost::numeric::ublas::vector<double>
-make_feasible(sublattice_set const &sublset, ConstraintManager const &cm, boost::numeric::ublas::vector<double> const &x) {
-	using namespace boost::numeric::ublas;
-	// A is the active linear constraint matrix; satisfies Ax=b
-	matrix<double> A(zero_matrix<double>(cm.constraints.size(), x.size()));
-	vector<double> b(zero_vector<double>(x.size()));
-	vector<double> feasible_x(x.size());
-	// TODO: Fill A and b
-	std::cout << "A: " << A << std::endl;
-	std::cout << "b: " << b << std::endl;
-	// Compute the full QR decomposition of A
-	std::vector<double> betas = inplace_qr(A);
-	matrix<double> Q(zero_matrix<double>(cm.constraints.size(),cm.constraints.size()));
-	matrix<double> R(zero_matrix<double>(cm.constraints.size(),x.size()));
-	recoverQ(A, betas, Q, R);
-	std::cout << "Q: " << Q << std::endl;
-	std::cout << "R: " << R << std::endl;
-	// Copy the last m-n columns of Q into Z (related to the bottom n-m rows of R which should all be zero)
-	const std::size_t Zcolumns = cm.constraints.size() - x.size();
-	// Copy the rest into Y
-	const std::size_t Ycolumns = x.size();
-	matrix<double> Z(cm.constraints.size(), Zcolumns);
-	matrix<double> Y(cm.constraints.size(), Ycolumns);
-	// Z is the submatrix of Q that includes all of Q's rows and its rightmost m-n columns
-	Z = subrange(Q, 0,cm.constraints.size(), x.size(),cm.constraints.size());
-	// Y is the remaining columns of Q
-	Y = subrange(Q, 0,cm.constraints.size(), 0,x.size());
-	std::cout << "Z: " << Z << std::endl;
-	std::cout << "Y: " << Y << std::endl;
-
-	inplace_solve(trans(R), b);
-	feasible_x = prod(Y, b) + prod(Z, x);
-	return feasible_x;
-}
 
 // TODO: Should this be a member function of GibbsOpt?
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
@@ -93,29 +57,14 @@ void LocateMinima(
 		// (1) Sample some points on the domain using NDGrid
 		// TODO: This is going to generate a LOT of infeasible points. Is rejection sampling sufficient?
 		// A better(?) implementation would handle the sublattice internal degrees of freedom separately
-		auto point_add = [&points,&phase,&conditions](std::vector<double> &address) {
-			// Determine if the point is feasible
-			double constraint_violation = 0;
-			constexpr const double max_constraint_violation = 1e-4; // TODO: make user-configurable
-			for (auto i = phase.get_constraints().cbegin(); i != phase.get_constraints().cend(); ++i) {
-				double lhs =
-						process_utree(
-								i->lhs, conditions, phase.get_variable_map(), phase.get_symbols(), const_cast<double*>(&address[0])
-								).get<double>();
-				double rhs =
-						process_utree(
-								i->rhs, conditions, phase.get_variable_map(), phase.get_symbols(), const_cast<double*>(&address[0])
-								).get<double>();
-				constraint_violation += fabs(rhs-lhs);
-				if (constraint_violation > max_constraint_violation) return; // point is infeasible; skip
-			}
+		auto point_add = [&points,&phase,&sublset,&conditions](std::vector<double> &address) {
 			std::cout << "adding point [";
 			for (auto i = address.begin(); i != address.end(); ++i) {
 				std::cout << *i;
 				if (std::distance(i,address.end()) > 1) std::cout << ",";
 			}
 			std::cout << "]" << std::endl;
-			points.push_back(address);
+			points.push_back(phase.make_feasible_point(sublset,address));
 		};
 		NDGrid::sample(0, 1, std::distance(ic0,ic1), grid_points_per_axis, point_add);
 
