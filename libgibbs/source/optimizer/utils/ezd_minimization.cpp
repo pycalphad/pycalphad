@@ -66,6 +66,8 @@ void LocateMinima(
 			std::cout << "]" << std::endl;
 			points.push_back(phase.make_feasible_point(sublset,address));
 		};
+		// THOUGHT: Switch to Halton sequence for point sampling, then use make_feasible_point to get on constraint plane
+		// Then, rejection sampling for x_i < 0 and x_i > 1
 		NDGrid::sample(0, 1, std::distance(ic0,ic1), grid_points_per_axis, point_add);
 
 		// (2) Calculate the Lagrangian Hessian for all sampled points
