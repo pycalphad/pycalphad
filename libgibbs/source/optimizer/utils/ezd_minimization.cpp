@@ -47,7 +47,7 @@ void LocateMinima(
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	if (depth == 1) {
-		std::vector<std::vector<double> > points;
+		std::set<std::vector<double> > points;
 
 		// Get all the sublattices for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
@@ -56,22 +56,27 @@ void LocateMinima(
 
 		// (1) Sample some points on the domain using NDGrid
 		// TODO: This is going to generate a LOT of infeasible points. Is rejection sampling sufficient?
-		// A better(?) implementation would handle the sublattice internal degrees of freedom separately
-		auto point_add = [&points,&phase,&sublset,&conditions](std::vector<double> &address) {
-			std::cout << "adding point [";
-			for (auto i = address.begin(); i != address.end(); ++i) {
-				std::cout << *i;
-				if (std::distance(i,address.end()) > 1) std::cout << ",";
-			}
-			std::cout << "]" << std::endl;
-			points.push_back(phase.make_feasible_point(sublset,address));
+		auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
+			points.insert(phase.make_feasible_point(sublset,address));
 		};
 		// THOUGHT: Switch to Halton sequence for point sampling, then use make_feasible_point to get on constraint plane
-		// Then, rejection sampling for x_i < 0 and x_i > 1
-		NDGrid::sample(0, 1, std::distance(ic0,ic1), grid_points_per_axis, point_add);
+		// Then, rejection sampling for x_i < 0
+		// NOTE: I can fix this by adding dimension-dependent bounds, then calculating them from constraint matrices
+		// This will have the advantage of automatically detecting fixed variables, cutting down on duplicate point generation
+		NDGrid::sample(-1.3, 1.3, std::distance(ic0,ic1), grid_points_per_axis, point_add);
+
+		for (auto pt : points) {
+			std::cout << "(";
+			for (auto i = pt.begin(); i != pt.end(); ++i) {
+				std::cout << *i;
+				if (std::distance(i,pt.end()) > 1) std::cout << ",";
+			}
+			std::cout << ")" << std::endl;
+		}
 
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
+			if (pt.size() == 0) continue; // skip empty (invalid) points
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			try {
 				Hessian = phase.evaluate_objective_hessian_matrix(conditions, phase.get_variable_map(), pt);

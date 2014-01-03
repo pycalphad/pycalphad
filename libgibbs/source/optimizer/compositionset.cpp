@@ -394,6 +394,7 @@ void CompositionSet::build_constraint_basis_matrices(sublattice_set const &subls
 }
 
 // Uses orthonormal constraint basis to find the feasible point closest to the given input_x
+// Will throw away points that fail non-negativity constraint
 std::vector<double> CompositionSet::make_feasible_point(
 		sublattice_set const &sublset,
 		std::vector<double> const &input_x) const {
@@ -403,9 +404,11 @@ std::vector<double> CompositionSet::make_feasible_point(
 	std::vector<double> output_x (input_x.size());
 	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
 
-	std::cout << "old x: " << x << std::endl;
 	x = constraint_particular_solution + prod(constraint_null_space_matrix, x);
-	std::cout << "new x: " << x << std::endl;
-	for (auto i = x.begin(); i != x.end(); ++i) output_x[std::distance(x.begin(),i)] = *i; // fill output_x
+
+	for (auto i = x.begin(); i != x.end(); ++i) {
+		if (*i < 0) return std::vector<double>(); // fails non-negativity constraint
+		output_x[std::distance(x.begin(),i)] = *i; // fill output_x
+	}
 	return output_x;
 }
