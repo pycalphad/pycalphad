@@ -62,6 +62,8 @@ public:
 		symbols = std::move(other.symbols);
 		cm = std::move(other.cm);
 		phase_indices = std::move(other.phase_indices);
+		constraint_null_space_matrix = std::move(other.constraint_null_space_matrix);
+		constraint_particular_solution = std::move(other.constraint_particular_solution);
 	}
 	CompositionSet& operator=(CompositionSet &&other) {
 		cset_name = std::move(other.cset_name);
@@ -73,6 +75,8 @@ public:
 		symbols = std::move(other.symbols);
 		cm = std::move(other.cm);
 		phase_indices = std::move(other.phase_indices);
+		constraint_null_space_matrix = std::move(other.constraint_null_space_matrix);
+		constraint_particular_solution = std::move(other.constraint_particular_solution);
 	}
 	const std::vector<jacobian_entry>& get_jacobian() const { return jac_g_trees; };
 	const std::vector<Constraint>& get_constraints() const { return cm.constraints; };
@@ -90,6 +94,9 @@ private:
 	ast_set tree_data;
 	ASTSymbolMap symbols; // maps special symbols to ASTs and their derivatives
 	ConstraintManager cm; // handles constraints internal to the phase, e.g., site fraction balances
+	void build_constraint_basis_matrices(sublattice_set const &sublset);
+	boost::numeric::ublas::matrix<double> constraint_null_space_matrix;
+	boost::numeric::ublas::vector<double> constraint_particular_solution;
 };
 
 #endif

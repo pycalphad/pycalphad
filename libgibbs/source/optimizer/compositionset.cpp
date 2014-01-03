@@ -156,6 +156,8 @@ CompositionSet::CompositionSet(
 			BOOST_LOG_SEV(comp_log, debug) << "Jacobian of constraint  " << cons_index << " wrt variable " << var_index << " pre-calculated";
 		}
 	}
+
+	build_constraint_basis_matrices(sublset); // Construct the orthonormal basis in the constraints
 }
 
 double CompositionSet::evaluate_objective(
@@ -332,19 +334,14 @@ std::set<std::list<int>> CompositionSet::hessian_sparsity_structure(
 
 // Constructs an orthonormal basis using the linear constraints to generate feasible points
 // Reference: Nocedal and Wright, 2006, ch. 15.2, p. 429
-typedef boost::numeric::ublas::vector<double> ublas_vector;
-std::vector<double> CompositionSet::make_feasible_point(
-		sublattice_set const &sublset,
-		std::vector<double> const &input_x) const {
+void CompositionSet::build_constraint_basis_matrices(sublattice_set const &sublset) {
 	using namespace boost::numeric::ublas;
 	typedef boost::numeric::ublas::matrix<double> ublas_matrix;
+	typedef boost::numeric::ublas::vector<double> ublas_vector;
 	typedef boost::multi_index::index<sublattice_set,phase_subl>::type::iterator subl_iterator;
 	// A is the active linear constraint matrix; satisfies Ax=b
-	ublas_matrix Atrans(zero_matrix<double>(input_x.size(), cm.constraints.size()));
+	ublas_matrix Atrans(zero_matrix<double>(phase_indices.size(), cm.constraints.size()));
 	ublas_vector b(zero_vector<double>(cm.constraints.size()));
-	ublas_vector x(input_x.size());
-	std::vector<double> output_x (input_x.size());
-	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
 
 	subl_iterator subl_iter = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(cset_name,0));
 	subl_iterator subl_iter_end = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(cset_name,0));
@@ -382,18 +379,32 @@ std::vector<double> CompositionSet::make_feasible_point(
 	const std::size_t Zcolumns = Atrans.size1() - Atrans.size2();
 	// Copy the rest into Y
 	const std::size_t Ycolumns = Atrans.size2();
-	ublas_matrix Z(Atrans.size1(), Zcolumns);
+	constraint_null_space_matrix = zero_matrix<double>(Atrans.size1(), Zcolumns);
 	ublas_matrix Y(Atrans.size1(), Ycolumns);
 	// Z is the submatrix of Q that includes all of Q's rows and its rightmost m-n columns
-	Z = subrange(Q, 0,Atrans.size1(), Atrans.size2(),Atrans.size1());
+	constraint_null_space_matrix = subrange(Q, 0,Atrans.size1(), Atrans.size2(),Atrans.size1());
 	// Y is the remaining columns of Q
 	Y = subrange(Q, 0,Atrans.size1(), 0,Atrans.size1());
-	std::cout << "Z: " << Z << std::endl;
+	std::cout << "Z: " << constraint_null_space_matrix << std::endl;
 	std::cout << "Y: " << Y << std::endl;
 
 	inplace_solve(trans(R), b, upper_tag());
+	constraint_particular_solution = prod(Y,b);
+	std::cout << "constraint_particular_solution: " << constraint_particular_solution << std::endl;
+}
+
+// Uses orthonormal constraint basis to find the feasible point closest to the given input_x
+std::vector<double> CompositionSet::make_feasible_point(
+		sublattice_set const &sublset,
+		std::vector<double> const &input_x) const {
+	using namespace boost::numeric::ublas;
+	typedef boost::numeric::ublas::vector<double> ublas_vector;
+	ublas_vector x(input_x.size());
+	std::vector<double> output_x (input_x.size());
+	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
+
 	std::cout << "old x: " << x << std::endl;
-	x = prod(Y, b) + prod(Z, x);
+	x = constraint_particular_solution + prod(constraint_null_space_matrix, x);
 	std::cout << "new x: " << x << std::endl;
 	for (auto i = x.begin(); i != x.end(); ++i) output_x[std::distance(x.begin(),i)] = *i; // fill output_x
 	return output_x;
