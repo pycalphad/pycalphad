@@ -11,8 +11,38 @@
 #define INCLUDED_NDGRID
 
 #include <vector>
+#include <utility>
 
 struct NDGrid {
+	template <typename Func> static void sample(
+			const std::vector<std::pair<double,double> > &extents,
+			const double grid_points_per_major_axis,
+			const Func &func,
+			std::vector<double>& address) {
+		if (address.size() == extents.size()) {
+			// terminating condition; address is complete
+			func(address);
+		}
+		else {
+			const double max_extent = extents[address.size()].second;
+			const double min_extent = extents[address.size()].first;
+			double step = (max_extent - min_extent) / grid_points_per_major_axis;
+			for (auto j = 0; j <= grid_points_per_major_axis; ++j) {
+				double location = step*j + min_extent;
+				address.push_back(location);
+				// recursive step
+				NDGrid::sample(extents, grid_points_per_major_axis, func, address);
+				address.pop_back(); // remove the element we just added (this way avoids copying)
+			}
+		}
+	}
+	template <typename Func> static inline void sample(
+			const std::vector<std::pair<double,double> > &extents,
+			const double grid_points_per_major_axis,
+			const Func &func) {
+		std::vector<double> address;
+		NDGrid::sample(extents, grid_points_per_major_axis, func, address);
+	}
 	template <typename Func> static void sample(
 			const double min_extent,
 			const double max_extent,
