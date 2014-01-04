@@ -33,6 +33,7 @@ struct NDGrid {
 				// recursive step
 				NDGrid::sample(extents, grid_points_per_major_axis, func, address);
 				address.pop_back(); // remove the element we just added (this way avoids copying)
+				if (step == 0) break; // don't generate duplicate points
 			}
 		}
 	}
@@ -62,6 +63,7 @@ struct NDGrid {
 				// recursive step
 				NDGrid::sample(min_extent, max_extent, dimension, grid_points_per_major_axis, func, address);
 				address.pop_back(); // remove the element we just added (this way avoids copying)
+				if (step == 0) break; // don't generate duplicate points
 			}
 		}
 	}
