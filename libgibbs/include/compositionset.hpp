@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -16,12 +16,14 @@
 #include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/utils/ast_caching.hpp"
 #include "libtdb/include/structure.hpp"
-#include <memory>
-#include <set>
-#include <list>
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <memory>
+#include <set>
+#include <list>
+#include <vector>
+#include <utility>
 
 // A CompositionSet works with libtdb's Phase class
 // Its purpose is to handle the optimizer's specific configuration for the given conditions and models
@@ -64,6 +66,7 @@ public:
 		phase_indices = std::move(other.phase_indices);
 		constraint_null_space_matrix = std::move(other.constraint_null_space_matrix);
 		constraint_particular_solution = std::move(other.constraint_particular_solution);
+		constraint_extents = std::move(other.constraint_extents);
 	}
 	CompositionSet& operator=(CompositionSet &&other) {
 		cset_name = std::move(other.cset_name);
@@ -77,11 +80,13 @@ public:
 		phase_indices = std::move(other.phase_indices);
 		constraint_null_space_matrix = std::move(other.constraint_null_space_matrix);
 		constraint_particular_solution = std::move(other.constraint_particular_solution);
+		constraint_extents = std::move(other.constraint_extents);
 	}
 	const std::vector<jacobian_entry>& get_jacobian() const { return jac_g_trees; };
 	const std::vector<Constraint>& get_constraints() const { return cm.constraints; };
 	const boost::bimap<std::string, int>& get_variable_map() const { return phase_indices; };
 	const boost::numeric::ublas::matrix<double>& get_constraint_null_space_matrix() const { return constraint_null_space_matrix; };
+	const std::vector<std::pair<double,double> >& get_constraint_extents() const { return constraint_extents; };
 	const ASTSymbolMap& get_symbols() const { return symbols; };
 	CompositionSet(const CompositionSet &) = delete;
 	CompositionSet& operator=(const CompositionSet &) = delete;
@@ -98,6 +103,7 @@ private:
 	void build_constraint_basis_matrices(sublattice_set const &sublset);
 	boost::numeric::ublas::matrix<double> constraint_null_space_matrix;
 	boost::numeric::ublas::vector<double> constraint_particular_solution;
+	std::vector<std::pair<double,double> > constraint_extents;
 };
 
 #endif
