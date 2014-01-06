@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -15,6 +15,9 @@
 #include <boost/algorithm/string/predicate.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
+#include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
+#include <boost/numeric/ublas/operation.hpp>
 #include <boost/numeric/ublas/io.hpp>
 #include <boost/bimap.hpp>
 
@@ -384,13 +387,35 @@ void CompositionSet::build_constraint_basis_matrices(sublattice_set const &subls
 	// Z is the submatrix of Q that includes all of Q's rows and its rightmost m-n columns
 	constraint_null_space_matrix = subrange(Q, 0,Atrans.size1(), Atrans.size2(),Atrans.size1());
 	// Y is the remaining columns of Q
-	Y = subrange(Q, 0,Atrans.size1(), 0,Atrans.size1());
+	Y = subrange(Q, 0,Atrans.size1(), 0,Atrans.size2());
 	std::cout << "Z: " << constraint_null_space_matrix << std::endl;
 	std::cout << "Y: " << Y << std::endl;
 
 	inplace_solve(trans(R), b, upper_tag());
+	std::cout << "R_-T*b = " << b << std::endl;
 	constraint_particular_solution = prod(Y,b);
 	std::cout << "constraint_particular_solution: " << constraint_particular_solution << std::endl;
+
+	// Calculate the maximum extents for x_i = 0 and x_i = 1 in the original coordinate system
+	const ublas_vector origin_vector(zero_vector<double>(constraint_null_space_matrix.size1()));
+	const ublas_vector one_vector(scalar_vector<double>(constraint_null_space_matrix.size1()));
+	for (std::size_t i = 0; i<constraint_null_space_matrix.size1(); ++i) {
+		const double constraint_slope = sum(matrix_row<matrix<double> >(constraint_null_space_matrix, i));
+		std::cout << "constraint_slope[" << i << "] = " << constraint_slope << std::endl;
+		double first_extent, second_extent;
+		if (constraint_slope == 0) {
+			// fixed variable
+			first_extent = second_extent = 0;
+		}
+		else {
+			first_extent = (origin_vector[i] - constraint_particular_solution[i]) / constraint_slope;
+			second_extent = (one_vector[i] - constraint_particular_solution[i]) / constraint_slope;
+		}
+		std::cout << "first_extent = " << first_extent << std::endl;
+		std::cout << "second_extent = " << second_extent << std::endl;
+		constraint_extents.push_back(std::make_pair(first_extent, second_extent));
+		//else constraint_extents.push_back(std::make_pair(second_extent, first_extent));
+	}
 }
 
 // Uses orthonormal constraint basis to find the feasible point closest to the given input_x
@@ -404,10 +429,14 @@ std::vector<double> CompositionSet::make_feasible_point(
 	std::vector<double> output_x (input_x.size());
 	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
 
-	x = constraint_particular_solution + prod(constraint_null_space_matrix, x);
+	ublas_vector temp_prod(zero_vector<double>(input_x.size()));
+	axpy_prod(constraint_null_space_matrix, x, temp_prod, false);
+	std::cout << constraint_null_space_matrix << " * " << x << " = " << temp_prod << std::endl;
+
+	x = constraint_particular_solution + temp_prod;
 
 	for (auto i = x.begin(); i != x.end(); ++i) {
-		if (*i < 0) return std::vector<double>(); // fails non-negativity constraint
+		//if (*i < 0) return std::vector<double>(); // fails non-negativity constraint
 		output_x[std::distance(x.begin(),i)] = *i; // fill output_x
 	}
 	return output_x;

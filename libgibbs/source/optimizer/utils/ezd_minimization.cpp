@@ -56,13 +56,19 @@ void LocateMinima(
 		// (1) Sample some points on the domain using NDGrid
 		// TODO: This is going to generate a LOT of infeasible points. Is rejection sampling sufficient?
 		auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
+			std::cout << "old (";
+			for (auto i = address.begin(); i != address.end(); ++i) {
+				std::cout << *i;
+				if (std::distance(i,address.end()) > 1) std::cout << ",";
+			}
+			std::cout << ")" << std::endl;
 			points.insert(phase.make_feasible_point(sublset,address));
 		};
 		// THOUGHT: Switch to Halton sequence for point sampling, then use make_feasible_point to get on constraint plane
 		// Then, rejection sampling for x_i < 0
 		// NOTE: I can fix this by adding dimension-dependent bounds, then calculating them from constraint matrices
 		// This will have the advantage of automatically detecting fixed variables, cutting down on duplicate point generation
-		NDGrid::sample(-1.3, 1.3, std::distance(ic0,ic1), grid_points_per_axis, point_add);
+		NDGrid::sample(phase.get_constraint_extents(), grid_points_per_axis, point_add);
 
 		for (auto pt : points) {
 			std::cout << "(";
