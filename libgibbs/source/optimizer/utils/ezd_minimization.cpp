@@ -15,7 +15,7 @@
 #include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
-#include "libgibbs/include/optimizer/utils/ndgrid.hpp"
+#include "libgibbs/include/optimizer/utils/ndsimplex.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -48,27 +48,26 @@ void LocateMinima(
 	if (depth == 1) {
 		std::set<std::vector<double> > points;
 
-		// Get all the sublattices for this phase
+		// Get the first sublattice for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
-		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), 0));
-		ic1 = boost::multi_index::get<phase_subl>(sublset).end();
+		int sublindex = 0;
+		ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
+		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phase.name(), sublindex));;
 
-		// (1) Sample some points on the domain using NDGrid
-		// TODO: This is going to generate a LOT of infeasible points. Is rejection sampling sufficient?
+		// (1) Sample some points on the domain using NDSimplex
 		auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
-			std::cout << "old (";
-			for (auto i = address.begin(); i != address.end(); ++i) {
-				std::cout << *i;
-				if (std::distance(i,address.end()) > 1) std::cout << ",";
-			}
-			std::cout << ")" << std::endl;
-			points.insert(phase.make_feasible_point(sublset,address));
+			points.insert(address);
 		};
-		// THOUGHT: Switch to Halton sequence for point sampling, then use make_feasible_point to get on constraint plane
-		// Then, rejection sampling for x_i < 0
-		// NOTE: I can fix this by adding dimension-dependent bounds, then calculating them from constraint matrices
-		// This will have the advantage of automatically detecting fixed variables, cutting down on duplicate point generation
-		NDGrid::sample(phase.get_constraint_extents(), grid_points_per_axis, point_add);
+		while (ic0 != ic1) {
+			std::vector<std::pair<double,double> > extents;
+			const std::size_t number_of_species = std::distance(ic0,ic1);
+			for (auto i = 0; i < number_of_species; ++i) extents.push_back(std::make_pair(0,1));
+			NDSimplex::sample(extents, grid_points_per_axis, point_add);
+			// Next sublattice
+			++sublindex;
+			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
+			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
+		}
 
 		for (auto pt : points) {
 			std::cout << "(";
