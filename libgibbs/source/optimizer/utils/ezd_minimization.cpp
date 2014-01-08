@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -62,7 +62,8 @@ void LocateMinima(
 			std::vector<std::pair<double,double> > extents;
 			const std::size_t number_of_species = std::distance(ic0,ic1);
 			for (auto i = 0; i < number_of_species; ++i) extents.push_back(std::make_pair(0,1));
-			NDSimplex::sample(extents, grid_points_per_axis, point_add);
+			//NDSimplex::sample(extents, grid_points_per_axis, point_add);
+			NDSimplex::quasirandom_sample(number_of_species, 50, point_add);
 			// Next sublattice
 			++sublindex;
 			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));

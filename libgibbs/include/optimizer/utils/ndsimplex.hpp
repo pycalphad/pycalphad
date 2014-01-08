@@ -10,6 +10,7 @@
 #ifndef INCLUDED_NDSIMPLEX
 #define INCLUDED_NDSIMPLEX
 
+#include "libgibbs/include/optimizer/halton.hpp"
 #include <vector>
 #include <utility>
 #include <algorithm>
@@ -26,7 +27,7 @@ struct NDSimplex {
 			func(address);
 		}
 		else {
-			const double max_extent = extents[address.size()].second;
+			const double max_extent = std::min(extents[address.size()].second, 1 - sum_of_address);
 			const double min_extent = extents[address.size()].first;
 			double step = (max_extent - min_extent) / grid_points_per_major_axis;
 			for (auto j = 0; j <= grid_points_per_major_axis; ++j) {
@@ -63,6 +64,25 @@ struct NDSimplex {
 			const Func &func) {
 		std::vector<double> address;
 		NDSimplex::sample(extents, grid_points_per_major_axis, func, address, 0);
+	}
+	template <typename Func> static inline void quasirandom_sample (
+			const unsigned int point_dimension,
+			const unsigned int number_of_points,
+			const Func &func
+	) {
+		// TODO: add the shuffling part
+		for (auto sequence_pos = 1; sequence_pos <= point_dimension; ++sequence_pos) {
+			std::vector<double> point;
+			double point_sum = 0;
+			for (auto i = 0; i < number_of_points; ++i) {
+				// Give the coordinate an exponential distribution
+				double value = -log(halton(sequence_pos,primes[i]));
+				point_sum += value;
+				point.push_back(value);
+			}
+			for (auto i = point.begin(); i != point.end(); ++i) *i /= point_sum; // Normalize point to sum to 1
+			func(point);
+		}
 	}
 };
 

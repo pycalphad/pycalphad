@@ -1,21 +1,21 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// header for quasi-random point sampling using shuffled Halton sequences
+// implementation of Halton sequences for quasi-random point sampling
+// See Hess and Polak, 2003.
 
 #ifndef INCLUDED_HALTON
 #define INCLUDED_HALTON
 
-#include <boost/multi_array.hpp>
+#include <cmath>
+#include <vector>
+#include <set>
 
-typedef boost::multi_array<double, 2> point_list;
-point_list point_sample (const unsigned int varcount, const unsigned int numpts);
-
-const int primes[] = {
+const constexpr unsigned int primes[] = {
 		2, 3, 5, 7, 11, 13, 17, 19, 23, 29,
 		31, 37, 41, 43, 47, 53, 59, 61, 67, 71,
 		73, 79, 83, 89, 97, 101, 103, 107, 109, 113,
@@ -32,6 +32,18 @@ const int primes[] = {
 		739, 743, 751, 757, 761, 769, 773, 787, 797, 809,
 		811, 821, 823, 827, 829, 839, 853, 857, 859, 863,
 		877, 881, 883, 887, 907, 911, 919, 929, 937, 941,
+};
+
+inline double halton(unsigned int index, unsigned int base) {
+	double result = 0;
+	double f = 1 / (double)base;
+	unsigned int i = index;
+	while(i > 0) {
+		result = result + f * (i % base);
+		i = floor(i / base);
+		f = f / base;
+	}
+	return result;
 };
 
 #endif
