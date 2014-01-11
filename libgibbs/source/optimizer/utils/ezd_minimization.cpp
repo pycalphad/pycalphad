@@ -39,6 +39,7 @@ void LocateMinima(
 		) {
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
+	typedef std::vector<double> PointType;
 	// Because the grid is uniform, we can assume that each point is the center of an N-cube
 	// of width max_extent-min_extent. Boundary points are a special case.
 	// Drop points outside the feasible region.
@@ -46,7 +47,8 @@ void LocateMinima(
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	if (depth == 1) {
-		std::set<std::vector<double> > points;
+		std::vector<PointType> > points;
+		std::vector<std::size_t> components_in_sublattice;
 
 		// Get the first sublattice for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
@@ -55,17 +57,21 @@ void LocateMinima(
 		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phase.name(), sublindex));;
 
 		// (1) Sample some points on the domain using NDSimplex
-		auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
-			points.insert(address);
-		};
+
+		// Determine number of components in each sublattice
 		while (ic0 != ic1) {
+			auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
+				points.push_back(address);
+			};
 			const std::size_t number_of_species = std::distance(ic0,ic1);
-			NDSimplex::lattice(number_of_species, 5, point_add);
+			if (number_of_species > 0) components_in_sublattice.push_back(number_of_species);
+			NDSimplex::lattice(number_of_species, 100, point_add);
 			// Next sublattice
 			++sublindex;
 			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
 			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 		}
+
 
 		for (auto pt : points) {
 			std::cout << "(";
