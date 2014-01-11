@@ -30,7 +30,7 @@ struct NDSimplex {
 		const PointType::value_type lower_limit = 0;
 		const PointType::value_type upper_limit = 1;
 		PointType point; // Contains current point
-		PointType::iterator coord_find;
+		PointType::iterator coord_find; // corresponds to 'j' in Chasalow and Brand
 
 		// Special case: 1 component; only valid point is {1}
 		if (point_dimension == 1) {
@@ -69,11 +69,14 @@ struct NDSimplex {
 		}
 		while (coord_find != last_coord || point_sum > 0);
 	}
+
+	// Reference: Hess and Polak, 2003.
 	template <typename Func> static inline void quasirandom_sample (
 			const std::size_t point_dimension,
 			const std::size_t number_of_points,
 			const Func &func
 	) {
+		BOOST_ASSERT(point_dimension < primes_size()); // No realistic problem should ever violate this
 		// TODO: Add the shuffling part to the Halton sequence. This will help with correlation problems for large N
 		// TODO: Default-add the end-members (vertices) of the N-simplex
 		for (auto sequence_pos = 1; sequence_pos <= number_of_points; ++sequence_pos) {
@@ -84,7 +87,7 @@ struct NDSimplex {
 				// N samples from the exponential distribution, when normalized to 1, will be distributed uniformly
 				// on the N-simplex.
 				// If X is uniformly distributed, then -LN(X) is exponentially distributed.
-				// Since the Halton sequence is a low-discrepancy sequence over (0,1], we substitute it for the uniform distribution
+				// Since the Halton sequence is a low-discrepancy sequence over [0,1], we substitute it for the uniform distribution
 				// This makes this algorithm deterministic and may also provide some domain coverage advantages over a
 				// psuedo-random sample.
 				double value = -log(halton(sequence_pos,primes[i]));
