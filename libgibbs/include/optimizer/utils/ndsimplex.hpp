@@ -11,10 +11,9 @@
 #define INCLUDED_NDSIMPLEX
 
 #include "libgibbs/include/optimizer/halton.hpp"
+#include "libgibbs/include/utils/primes.hpp"
 #include <boost/assert.hpp>
 #include <vector>
-#include <utility>
-#include <algorithm>
 
 struct NDSimplex {
 	// Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
@@ -70,7 +69,8 @@ struct NDSimplex {
 		while (coord_find != last_coord || point_sum > 0);
 	}
 
-	// Reference: Hess and Polak, 2003.
+	// Reference for Halton sequence: Hess and Polak, 2003.
+	// Reference for uniformly sampling the simplex: Any text on the Dirichlet distribution
 	template <typename Func> static inline void quasirandom_sample (
 			const std::size_t point_dimension,
 			const std::size_t number_of_points,
@@ -85,7 +85,7 @@ struct NDSimplex {
 			for (auto i = 0; i < point_dimension; ++i) {
 				// Draw the coordinate from an exponential distribution
 				// N samples from the exponential distribution, when normalized to 1, will be distributed uniformly
-				// on the N-simplex.
+				// on a facet of the N-simplex.
 				// If X is uniformly distributed, then -LN(X) is exponentially distributed.
 				// Since the Halton sequence is a low-discrepancy sequence over [0,1], we substitute it for the uniform distribution
 				// This makes this algorithm deterministic and may also provide some domain coverage advantages over a
@@ -96,7 +96,7 @@ struct NDSimplex {
 			}
 			for (auto i = point.begin(); i != point.end(); ++i) *i /= point_sum; // Normalize point to sum to 1
 			func(point);
-			if (point_dimension == 1) break; // no need to generate additional points; only one feasible point exists for 1-simplex
+			if (point_dimension == 1) break; // no need to generate additional points; only one feasible point exists for 0-simplex
 		}
 	}
 };

@@ -5,12 +5,11 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// implementation of Halton sequences
+// implementation of Halton sequence
 
 #ifndef INCLUDED_HALTON
 #define INCLUDED_HALTON
 
-#include "libgibbs/include/utils/primes.hpp"
 #include <cmath>
 
 inline double halton(unsigned int index, unsigned int base) {
