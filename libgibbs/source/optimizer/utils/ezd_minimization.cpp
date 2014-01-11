@@ -59,11 +59,8 @@ void LocateMinima(
 			points.insert(address);
 		};
 		while (ic0 != ic1) {
-			std::vector<std::pair<double,double> > extents;
 			const std::size_t number_of_species = std::distance(ic0,ic1);
-			for (auto i = 0; i < number_of_species; ++i) extents.push_back(std::make_pair(0,1));
-			//NDSimplex::sample(extents, grid_points_per_axis, point_add);
-			NDSimplex::quasirandom_sample(number_of_species, 50, point_add);
+			NDSimplex::lattice(number_of_species, 5, point_add);
 			// Next sublattice
 			++sublindex;
 			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
