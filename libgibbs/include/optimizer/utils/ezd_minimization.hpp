@@ -20,10 +20,7 @@
 #include <vector>
 
 namespace Optimizer {
-template <typename T> struct Domain {
-	std::vector<std::vector<T> > lower_left_corner;
-	std::vector<std::vector<T> > upper_right_corner;
-};
+
 void LocateMinima(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
