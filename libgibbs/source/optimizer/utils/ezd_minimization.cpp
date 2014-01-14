@@ -47,7 +47,7 @@ void LocateMinima(
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	if (depth == 1) {
-		std::vector<PointType> > points;
+		std::vector<PointType> points;
 		std::vector<std::size_t> components_in_sublattice;
 
 		// Get the first sublattice for this phase
@@ -60,17 +60,15 @@ void LocateMinima(
 
 		// Determine number of components in each sublattice
 		while (ic0 != ic1) {
-			auto point_add = [&points,&phase,&sublset](std::vector<double> &address) {
-				points.push_back(address);
-			};
 			const std::size_t number_of_species = std::distance(ic0,ic1);
 			if (number_of_species > 0) components_in_sublattice.push_back(number_of_species);
-			NDSimplex::lattice(number_of_species, 100, point_add);
 			// Next sublattice
 			++sublindex;
 			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
 			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 		}
+
+		points = NDSimplex::lattice_complex(components_in_sublattice, 100);
 
 
 		for (auto pt : points) {
