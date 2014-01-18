@@ -126,22 +126,23 @@ void LocateMinima(
 				std::vector<double> gradient = phase.evaluate_internal_objective_gradient(conditions, &pt[0]);
 				double mag = 0;
 				for (auto i = gradient.begin(); i != gradient.end(); ++i) {
+					std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
 					mag += pow(*i,2);
 				}
 				if (mag < gradient_magnitude) {
 					gradient_magnitude = mag;
 					minpoint = pt;
+					std::cout << "new minpoint: ";
+					for (auto i = minpoint.begin(); i != minpoint.end(); ++i) {
+						std::cout << *i;
+						if (std::distance(i,minpoint.end()) > 1) std::cout << ",";
+					}
+					std::cout << " gradient sq: " << gradient_magnitude << std::endl;
 				}
 			}
 			else {
 
 			}
-			std::cout << "minpoint: ";
-			for (auto i = minpoint.begin(); i != minpoint.end(); ++i) {
-				std::cout << *i;
-				if (std::distance(i,minpoint.end()) > 1) std::cout << ",";
-			}
-			std::cout << std::endl;
 			// (4) For each saved point, send to next depth
 		}
 	}
