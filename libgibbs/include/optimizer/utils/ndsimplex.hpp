@@ -15,6 +15,7 @@
 #include <boost/assert.hpp>
 #include <boost/math/special_functions/factorials.hpp>
 #include <vector>
+#include <algorithm>
 
 struct NDSimplex {
 	// Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
@@ -41,36 +42,30 @@ struct NDSimplex {
 
 		// Initialize algorithm
 		point.resize(point_dimension, lower_limit); // Fill with smallest value (0)
-		const PointType::const_iterator last_coord = --point.cend();
+		const PointType::iterator last_coord = --point.end();
 		coord_find = point.begin();
 		*coord_find = upper_limit;
 		// point should now be {1,0,0,0....}
 
-		double point_sum;
 		do {
-			point_sum = *coord_find; // point_sum always includes the active coordinate
-			PointType::iterator temp_coord_find = coord_find;
-			for (auto i = point.begin(); i != coord_find; ++i) point_sum += *i; // sum all previous coordinates (if any)
-
-			std::advance(temp_coord_find,1);
-			if (temp_coord_find != point.end()) {
-				*temp_coord_find = upper_limit - point_sum; // Set coord_find+1 to its upper limit (1 - sum of previous coordinates)
-				std::advance(temp_coord_find,1);
-			}
-			for (auto i = temp_coord_find; i != point.end(); ++i) *i = lower_limit; // set remaining coordinates to 0
-
-			func(point); // process the current point
-
-			// coord_find points to the coordinate to be decremented
-			coord_find = point.begin();
-			while (*coord_find == lower_limit) std::advance(coord_find,1);
+			func(point);
 			*coord_find -= lattice_spacing;
-			if (*coord_find < lattice_spacing) *coord_find = lower_limit; // workaround for floating point issues
+			if (*coord_find < lattice_spacing/2) *coord_find = lower_limit; // workaround for floating point issues
+			if (std::distance(coord_find,point.end()) > 2) {
+				++coord_find;
+				*coord_find = lattice_spacing + *last_coord;
+				*last_coord = lower_limit;
+			}
+			else {
+				*last_coord += lattice_spacing;
+				while (*coord_find == lower_limit) --coord_find;
+			}
 		}
-		while (coord_find != last_coord || point_sum > 0);
+		while (*last_coord < upper_limit);
+
+		func(point); // should be {0,0,...1}
 	}
 
-	// TODO: Is there a way to do this without all the copying?
 	static inline std::vector<std::vector<double>> lattice_complex(
 			const std::vector<std::size_t> &components_in_sublattices,
 			const std::size_t grid_points_per_major_axis
@@ -81,30 +76,42 @@ struct NDSimplex {
 		std::vector<PointCollection> point_lattices; //  Simplex lattices for each sublattice
 		std::vector<PointType> points; // The final return points (combination of all simplex lattices)
 		std::size_t expected_points = 1;
-		point_lattices.reserve(components_in_sublattices.size());
+		std::size_t point_dimension = 0;
 
+		// TODO: Is there a way to do this without all the copying?
 		for (auto i = components_in_sublattices.cbegin(); i != components_in_sublattices.cend(); ++i) {
-			PointCollection returned_points;
-			const unsigned int m = grid_points_per_major_axis - 2; // number of evenly spaced values _between_ 0 and 1
+			PointCollection simplex_points; // all points for this simplex
 			const unsigned int q = *i; // number of components
-			const std::size_t lattice_points =
-					static_cast<std::size_t>(factorial<double>(q+m-1) / (factorial<double>(m)*factorial<double>(q-1)));
-			expected_points *= lattice_points;
-			returned_points.reserve(lattice_points); // allocate this memory for convenience
-
-			auto point_add = [&returned_points](std::vector<double> &address) {
-				returned_points.push_back(address);
+			point_dimension += q;
+			const unsigned int m = grid_points_per_major_axis - 2; // number of evenly spaced values _between_ 0 and 1
+			auto point_add = [&simplex_points] (PointType &address) {
+				simplex_points.push_back(address);
+				std::cout << "point_add: [";
+				for (auto u = address.begin(); u != address.end(); ++u) std::cout << *u << ",";
+				std::cout << "]" << std::endl;
 			};
-			lattice(*i,grid_points_per_major_axis, point_add);
-			BOOST_ASSERT(lattice_points == returned_points.size());
-			point_lattices.push_back(returned_points);
-		}
 
-		// Now, take all the combinations of points
+			lattice(q, grid_points_per_major_axis, point_add);
+			expected_points *= simplex_points.size();
+			point_lattices.push_back(simplex_points); // push points for each simplex
+		}
+		std::cout << "expected_points: " << expected_points << std::endl;
+
 		points.reserve(expected_points);
 
-		for (auto subl = point_lattices.begin(); subl != point_lattices.end(); ++subl) {
-			std::vector<double> point;
+		for (auto p = 0; p < expected_points; ++p) {
+			PointType point;
+			std::size_t dividend = p;
+			point.reserve(point_dimension);
+			std::cout << "p : " << p << " indices: [";
+			for (auto r = point_lattices.rbegin(); r != point_lattices.rend(); ++r) {
+				std::cout << dividend % r->size() << ",";
+				point.insert(point.end(),(*r)[dividend % r->size()].begin(),(*r)[dividend % r->size()].end());
+				dividend = dividend / r->size();
+			}
+			std::cout << "]" << std::endl;
+			std::reverse(point.begin(),point.end());
+			points.push_back(point);
 		}
 
 		return points;
