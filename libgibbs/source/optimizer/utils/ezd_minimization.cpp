@@ -40,10 +40,7 @@ void LocateMinima(
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
 	typedef std::vector<double> PointType;
-	// Because the grid is uniform, we can assume that each point is the center of an N-cube
-	// of width max_extent-min_extent. Boundary points are a special case.
-	// Drop points outside the feasible region.
-	//
+
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	if (depth == 1) {
@@ -57,6 +54,7 @@ void LocateMinima(
 		ic1 = boost::multi_index::get<phase_subl>(sublset).upper_bound(boost::make_tuple(phase.name(), sublindex));;
 
 		// (1) Sample some points on the domain using NDSimplex
+		// Because the grid is uniform, we can assume that each point is the center of an N-simplex
 
 		// Determine number of components in each sublattice
 		while (ic0 != ic1) {
@@ -68,7 +66,7 @@ void LocateMinima(
 			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 		}
 
-		points = NDSimplex::lattice_complex(components_in_sublattice, 100);
+		points = NDSimplex::lattice_complex(components_in_sublattice, 20);
 
 
 		for (auto pt : points) {
@@ -95,7 +93,7 @@ void LocateMinima(
 				std::cout << e.what();
 				throw;
 			}
-			std::cout << "Hessian: " << Hessian << std::endl;
+			//std::cout << "Hessian: " << Hessian << std::endl;
 			// NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
 			// (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
 			//        NOTE: This is the projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
@@ -108,7 +106,7 @@ void LocateMinima(
 			matrix<double> Hproj(pt.size(), Zcolumns);
 			Hproj = prod(trans(phase.get_constraint_null_space_matrix()),
 					matrix<double>(prod(Hessian,phase.get_constraint_null_space_matrix())));
-			std::cout << "Hproj: " << Hproj << std::endl;
+			//std::cout << "Hproj: " << Hproj << std::endl;
 			//    (b) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
 			//        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
 			//        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
