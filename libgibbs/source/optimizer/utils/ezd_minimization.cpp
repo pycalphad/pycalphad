@@ -78,6 +78,8 @@ void LocateMinima(
 			std::cout << ")" << std::endl;
 		}
 
+		PointType minpoint (points[0].size());
+		double gradient_magnitude = std::numeric_limits<double>::max();
 		// (2) Calculate the Lagrangian Hessian for all sampled points
 		for (auto pt : points) {
 			if (pt.size() == 0) continue; // skip empty (invalid) points
@@ -121,10 +123,25 @@ void LocateMinima(
 					if (std::distance(i,pt.end()) > 1) std::cout << ",";
 				}
 				std::cout << "]" << std::endl;
+				std::vector<double> gradient = phase.evaluate_internal_objective_gradient(conditions, &pt[0]);
+				double mag = 0;
+				for (auto i = gradient.begin(); i != gradient.end(); ++i) {
+					mag += pow(*i,2);
+				}
+				if (mag < gradient_magnitude) {
+					gradient_magnitude = mag;
+					minpoint = pt;
+				}
 			}
 			else {
 
 			}
+			std::cout << "minpoint: ";
+			for (auto i = minpoint.begin(); i != minpoint.end(); ++i) {
+				std::cout << *i;
+				if (std::distance(i,minpoint.end()) > 1) std::cout << ",";
+			}
+			std::cout << std::endl;
 			// (4) For each saved point, send to next depth
 		}
 	}

@@ -36,6 +36,8 @@ public:
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const &, std::map<std::string,double> const &) const;
+	std::vector<double> evaluate_internal_objective_gradient(
+			evalconditions const& conditions, double* const&) const;
 	std::map<std::list<int>,double> evaluate_objective_hessian(
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> evaluate_objective_hessian_matrix(
@@ -43,7 +45,6 @@ public:
 				boost::bimap<std::string, int> const &main_indices,
 				std::vector<double> const &x) const;
 	std::set<std::list<int>> hessian_sparsity_structure(boost::bimap<std::string, int> const &) const;
-	std::vector<double> make_feasible_point(sublattice_set const &sublset, std::vector<double> const &x) const;
 	std::string name() const { return cset_name; }
 	// make CompositionSet from existing Phase
 	CompositionSet(

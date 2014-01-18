@@ -229,6 +229,21 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 	return retmap;
 }
 
+std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
+		evalconditions const& conditions, double* const x) const {
+	std::vector<double> gradient (x.size());
+	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
+	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
+	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
+	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
+		const double diffvalue = process_utree(i->ast, conditions, phase_indices, symbols, x).get<double>();
+		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
+		const int varindex = phase_indices.left.at(diffvar);
+		gradient[varindex] += diffvalue;
+	}
+	return gradient;
+}
+
 std::map<int,double> CompositionSet::evaluate_objective_gradient(
 		evalconditions const &conditions, std::map<std::string,double> const &variables) const {
 	// Need to translate this variable map into something process_utree can understand
@@ -416,28 +431,4 @@ void CompositionSet::build_constraint_basis_matrices(sublattice_set const &subls
 		constraint_extents.push_back(std::make_pair(first_extent, second_extent));
 		//else constraint_extents.push_back(std::make_pair(second_extent, first_extent));
 	}
-}
-
-// Uses orthonormal constraint basis to find the feasible point closest to the given input_x
-// Will throw away points that fail non-negativity constraint
-std::vector<double> CompositionSet::make_feasible_point(
-		sublattice_set const &sublset,
-		std::vector<double> const &input_x) const {
-	using namespace boost::numeric::ublas;
-	typedef boost::numeric::ublas::vector<double> ublas_vector;
-	ublas_vector x(input_x.size());
-	std::vector<double> output_x (input_x.size());
-	for (auto i = input_x.cbegin(); i != input_x.cend(); ++i) x(std::distance(input_x.cbegin(),i)) = *i; // fill x
-
-	ublas_vector temp_prod(zero_vector<double>(input_x.size()));
-	axpy_prod(constraint_null_space_matrix, x, temp_prod, false);
-	std::cout << constraint_null_space_matrix << " * " << x << " = " << temp_prod << std::endl;
-
-	x = constraint_particular_solution + temp_prod;
-
-	for (auto i = x.begin(); i != x.end(); ++i) {
-		//if (*i < 0) return std::vector<double>(); // fails non-negativity constraint
-		output_x[std::distance(x.begin(),i)] = *i; // fill output_x
-	}
-	return output_x;
 }
