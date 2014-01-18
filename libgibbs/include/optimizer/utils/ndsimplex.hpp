@@ -86,16 +86,12 @@ struct NDSimplex {
 			const unsigned int m = grid_points_per_major_axis - 2; // number of evenly spaced values _between_ 0 and 1
 			auto point_add = [&simplex_points] (PointType &address) {
 				simplex_points.push_back(address);
-				std::cout << "point_add: [";
-				for (auto u = address.begin(); u != address.end(); ++u) std::cout << *u << ",";
-				std::cout << "]" << std::endl;
 			};
 
 			lattice(q, grid_points_per_major_axis, point_add);
 			expected_points *= simplex_points.size();
 			point_lattices.push_back(simplex_points); // push points for each simplex
 		}
-		std::cout << "expected_points: " << expected_points << std::endl;
 
 		points.reserve(expected_points);
 
