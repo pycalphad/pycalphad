@@ -37,7 +37,7 @@ public:
 	std::map<int,double> evaluate_objective_gradient(
 			evalconditions const &, std::map<std::string,double> const &) const;
 	std::vector<double> evaluate_internal_objective_gradient(
-			evalconditions const& conditions, double* const&) const;
+			evalconditions const& conditions, double* const) const;
 	std::map<std::list<int>,double> evaluate_objective_hessian(
 			evalconditions const&, boost::bimap<std::string, int> const &, double* const) const;
 	boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> evaluate_objective_hessian_matrix(

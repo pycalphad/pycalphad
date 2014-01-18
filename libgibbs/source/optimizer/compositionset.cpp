@@ -231,13 +231,15 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 
 std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 		evalconditions const& conditions, double* const x) const {
-	std::vector<double> gradient (x.size());
+	std::vector<double> gradient (phase_indices.size());
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
 	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
+	const std::string compset_name(cset_name + "_FRAC");
 	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
 		const double diffvalue = process_utree(i->ast, conditions, phase_indices, symbols, x).get<double>();
 		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
+		if (diffvar == compset_name) continue;
 		const int varindex = phase_indices.left.at(diffvar);
 		gradient[varindex] += diffvalue;
 	}
