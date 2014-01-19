@@ -13,7 +13,6 @@
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libgibbs/include/utils/primes.hpp"
 #include <boost/assert.hpp>
-#include <boost/math/special_functions/factorials.hpp>
 #include <vector>
 #include <algorithm>
 
