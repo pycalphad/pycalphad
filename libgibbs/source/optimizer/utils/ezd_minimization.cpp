@@ -122,7 +122,9 @@ void LocateMinima(
 					std::cout << *i;
 					if (std::distance(i,pt.end()) > 1) std::cout << ",";
 				}
-				std::cout << "]" << std::endl;
+				std::cout << "] ";
+				double obj = phase.evaluate_objective(conditions, phase.get_variable_map(), &pt[0]);
+				std::cout << obj << std::endl;
 				std::vector<double> gradient = phase.evaluate_internal_objective_gradient(conditions, &pt[0]);
 				double mag = 0;
 				for (auto i = gradient.begin(); i != gradient.end(); ++i) {
