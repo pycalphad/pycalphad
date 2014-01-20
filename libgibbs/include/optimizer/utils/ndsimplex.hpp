@@ -69,7 +69,6 @@ struct NDSimplex {
 			const std::vector<std::size_t> &components_in_sublattices,
 			const std::size_t grid_points_per_major_axis
 			) {
-		using boost::math::factorial;
 		typedef std::vector<double> PointType;
 		typedef std::vector<PointType> PointCollection;
 		std::vector<PointCollection> point_lattices; //  Simplex lattices for each sublattice
