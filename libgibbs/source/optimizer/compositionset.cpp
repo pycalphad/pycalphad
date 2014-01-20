@@ -232,6 +232,19 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 		evalconditions const& conditions, double* const x) const {
 	std::vector<double> gradient (phase_indices.size());
+	const double perturbation = 1e-5;
+	double x_copy[phase_indices.size()] ;
+	for (auto i = 0; i < phase_indices.size(); ++i) x_copy[i] = x[i];
+	for (auto i = 0; i < phase_indices.size(); ++i) {
+		double lower_obj, upper_obj;
+		x_copy[i] -= perturbation;
+		lower_obj = evaluate_objective(conditions, phase_indices, x_copy);
+		x_copy[i] += 2 * perturbation;
+		upper_obj = evaluate_objective(conditions, phase_indices, x_copy);
+		gradient[i] = (upper_obj - lower_obj) / (2 * perturbation);
+
+		x_copy[i] = x[i]; // Reset to original state
+	}/*
 	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
 	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
 	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
@@ -242,7 +255,7 @@ std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 		if (diffvar == compset_name) continue;
 		const int varindex = phase_indices.left.at(diffvar);
 		gradient[varindex] += diffvalue;
-	}
+	}*/
 	return gradient;
 }
 
