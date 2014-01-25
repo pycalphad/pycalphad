@@ -116,19 +116,13 @@ void LocateMinima(
 			const bool is_positive_definite = cholesky_factorize(Hproj);
 			//    (d) If it succeeds, save this point; else, remove it
 			if (is_positive_definite) {
-				std::cout << "CONVEX FEASIBLE: ";
-				std::cout << "adding point [";
-				for (auto i = pt.begin(); i != pt.end(); ++i) {
-					std::cout << *i;
-					if (std::distance(i,pt.end()) > 1) std::cout << ",";
-				}
-				std::cout << "] ";
+				std::cout << pt[0] << " ";
 				double obj = phase.evaluate_objective(conditions, phase.get_variable_map(), &pt[0]);
 				std::cout << obj << std::endl;
 				std::vector<double> gradient = phase.evaluate_internal_objective_gradient(conditions, &pt[0]);
 				double mag = 0;
 				for (auto i = gradient.begin(); i != gradient.end(); ++i) {
-					std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
+					//std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
 					mag += pow(*i,2);
 				}
 				if (mag < gradient_magnitude) {

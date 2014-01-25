@@ -96,6 +96,7 @@ private:
 	std::map<std::string,std::unique_ptr<EnergyModel>> models;
 	std::map<int,boost::spirit::utree> first_derivatives;
 	boost::bimap<std::string, int> phase_indices;
+	std::vector<int> fixed_phase_indices;
 	std::vector<jacobian_entry> jac_g_trees;
 	hessian_set hessian_data;
 	ast_set tree_data;

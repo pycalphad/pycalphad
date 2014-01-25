@@ -112,7 +112,7 @@ CompositionSet::CompositionSet(
 			BOOST_LOG_SEV(comp_log, debug) << "phase_indices.size() = " << phase_indices.size();
 		}
 		if (subl_list.size() == 1) {
-			//fixed_indices.push_back(main_indices.left.at(ic0->name()));
+			fixed_phase_indices.push_back(varcount-1);
 		}
 		if (subl_list.size() >= 1 ) {
 			cm.addConstraint(
@@ -237,25 +237,14 @@ std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 	for (auto i = 0; i < phase_indices.size(); ++i) x_copy[i] = x[i];
 	for (auto i = 0; i < phase_indices.size(); ++i) {
 		double lower_obj, upper_obj;
-		x_copy[i] -= perturbation;
+		x_copy[i] = x[i] - perturbation;
 		lower_obj = evaluate_objective(conditions, phase_indices, x_copy);
-		x_copy[i] += 2 * perturbation;
+		x_copy[i] = x[i] + perturbation;
 		upper_obj = evaluate_objective(conditions, phase_indices, x_copy);
 		gradient[i] = (upper_obj - lower_obj) / (2 * perturbation);
+	}
+	for (int i : fixed_phase_indices) gradient[i] = 0;
 
-		x_copy[i] = x[i]; // Reset to original state
-	}/*
-	boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
-	ast_begin = get<ast_deriv_order_index>(tree_data).lower_bound(1);
-	ast_end = get<ast_deriv_order_index>(tree_data).upper_bound(1);
-	const std::string compset_name(cset_name + "_FRAC");
-	for (ast_set::const_iterator i = ast_begin; i != ast_end; ++i) {
-		const double diffvalue = process_utree(i->ast, conditions, phase_indices, symbols, x).get<double>();
-		const std::string diffvar = *(i->diffvars.cbegin()); // get differentiating variable
-		if (diffvar == compset_name) continue;
-		const int varindex = phase_indices.left.at(diffvar);
-		gradient[varindex] += diffvalue;
-	}*/
 	return gradient;
 }
 
