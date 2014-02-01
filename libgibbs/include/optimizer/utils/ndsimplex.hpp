@@ -16,6 +16,31 @@
 #include <vector>
 #include <algorithm>
 
+/*
+ * TODO: Implement this instead of enumerating lattice points.
+ * Simplify while making the adaptive meshing trivial to the algorithm.
+ * For future reference: SimpleS edgewise simplex subdivision algorithm
+ * This algorithm is an easy way to construct a color scheme for the subdivision.
+ * It will generate the k^d color schemes for d-dimensional simplex subdivision.
+ * Reference: Goncalves, Palhares, Takahashi, and Mesquita, 2006.
+ * 	"Algorithm 860: SimpleS-An Extension of Freudenthal’s Simplex Subdivision"
+ *
+ * for n = 0, 1, . . . , kd - 1 do
+ * 	xd-1 · · · x0 <- convert n to base k;
+ * 	color <- 0;
+ * 	for i = 0, 1, . . . , k - 1 do
+ * 		chi_ni,0 <- color;
+ * 		for j = 1, . . . ,d do
+ * 			if xd-j = i then
+ * 			color <- color + 1;
+ * 		end
+ * 		chi_ni,j <- color;
+ * 	end
+ * end
+ * end
+ * end algorithm
+*/
+
 struct NDSimplex {
 	// Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
 	template <typename Func> static inline void lattice (
