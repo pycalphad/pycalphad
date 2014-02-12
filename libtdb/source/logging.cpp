@@ -89,7 +89,7 @@ void init_logging()
     boost::shared_ptr< sinks::text_ostream_backend > consolebackend =
         boost::make_shared< sinks::text_ostream_backend >();
     consolebackend->add_stream(
-        boost::shared_ptr< std::ostream >(&std::clog, logging::empty_deleter()));
+        boost::shared_ptr< std::ostream >(&std::clog, boost::empty_deleter()));
 
     // Enable auto-flushing after each log record written
     //backend->auto_flush(true);
