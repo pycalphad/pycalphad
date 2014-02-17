@@ -13,6 +13,7 @@
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libgibbs/include/utils/primes.hpp"
 #include <boost/assert.hpp>
+#include <boost/numeric/ublas/matrix.hpp>
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -60,7 +61,11 @@ std::vector<std::size_t> decimal_to_base(std::size_t decimal, std::size_t base, 
 void color_scheme(std::size_t k, std::size_t d) {
 	BOOST_ASSERT(k > 0);
 	BOOST_ASSERT(d > 0);
-	for (auto n = 0; n < std::pow(k,d); ++n) {
+	const std::size_t maxcolors = std::pow(k,d);
+	typedef boost::numeric::ublas::matrix<std::size_t> MatrixType;
+	std::vector<MatrixType> colors(maxcolors, MatrixType(k,d));
+
+	for (auto n = 0; n < maxcolors; ++n) {
 		std::vector<std::size_t> x = decimal_to_base(n, k, d);
 		std::size_t color = 0;
 		for (auto i = 0; i < k; ++i) {
