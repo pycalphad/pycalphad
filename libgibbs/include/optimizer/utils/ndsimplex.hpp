@@ -15,6 +15,22 @@
 #include <boost/assert.hpp>
 #include <vector>
 #include <algorithm>
+#include <cmath>
+
+std::vector<std::size_t> decimal_to_base(std::size_t decimal, std::size_t base, std::size_t digits) {
+	/*% converts the decimal number "decimal" to y in base "base" with "digits" digits:
+	 * % y(1)+y(2)*b+y(3)*b^2+...+y(n)*b^(n-1) = x
+	 */
+	std::vector<std::size_t> y;
+	y.reserve(digits);
+	std::size_t x = decimal;
+	for (auto i = 0; i < digits; ++i) {
+		std::size_t d = x / base; // float->unsigned conversion will round towards zero as desired
+		y.push_back(x - d*base);
+		x = d;
+	}
+	return y;
+}
 
 /*
  * TODO: Implement this instead of enumerating lattice points.
@@ -40,6 +56,20 @@
  * end
  * end algorithm
 */
+
+void color_scheme(std::size_t k, std::size_t d) {
+	BOOST_ASSERT(k > 0);
+	BOOST_ASSERT(d > 0);
+	for (auto n = 0; n < std::pow(k,d); ++n) {
+		std::vector<std::size_t> x = decimal_to_base(n, k, d);
+		std::size_t color = 0;
+		for (auto i = 0; i < k; ++i) {
+
+		}
+
+	}
+
+}
 
 struct NDSimplex {
 	// Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
