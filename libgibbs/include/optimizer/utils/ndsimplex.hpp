@@ -34,56 +34,30 @@ std::vector<std::size_t> decimal_to_base(std::size_t decimal, std::size_t base, 
 }
 
 /*
- * TODO: Implement this instead of enumerating lattice points.
- * Simplify while making the adaptive meshing trivial to the algorithm.
- * For future reference: SimpleS edgewise simplex subdivision algorithm
  * This algorithm is an easy way to construct a color scheme for the subdivision.
  * It will generate the k^d color schemes for d-dimensional simplex subdivision.
  * Reference: Goncalves, Palhares, Takahashi, and Mesquita, 2006.
- * 	"Algorithm 860: SimpleS-An Extension of Freudenthal’s Simplex Subdivision"
- *
- * for n = 0, 1, . . . , kd - 1 do
- * 	xd-1 · · · x0 <- convert n to base k;
- * 	color <- 0;
- * 	for i = 0, 1, . . . , k - 1 do
- * 		chi_ni,0 <- color;
- * 		for j = 1, . . . ,d do
- * 			if xd-j = i then
- * 				color <- color + 1;
- * 			chi_ni,j <- color;
- * 		end
- * 	end
- * end
- * end
- * end algorithm
+ * 	"Algorithm 860: SimpleS-An Extension of Freudenthal's Simplex Subdivision"
 */
 typedef boost::numeric::ublas::matrix<std::size_t> ColorMatrixType;
-std::vector<ColorMatrixType> color_scheme(std::size_t k, std::size_t d) {
-  std::cout << "enter color_scheme" << std::endl;
+std::vector<ColorMatrixType> color_schemes(std::size_t k, std::size_t d) {
 	BOOST_ASSERT(k > 0);
 	BOOST_ASSERT(d > 0);
 	const std::size_t maxcolors = std::pow(k,d);
-	std::cout << "init colors" << std::endl;
 	std::vector<ColorMatrixType> colors(maxcolors, ColorMatrixType(k,d+1));
 
 	for (auto n = 0; n < maxcolors; ++n) {
-	  std::cout << "n = " << n << std::endl;
 		const std::vector<std::size_t> x = decimal_to_base(n, k, d);
 		std::size_t color = 0;
 		for (auto i = 0; i < k; ++i) {
-		  std::cout << "i = " << i << std::endl;
-		  std::cout << "colors[" << n << "](" << i << ",0) = " << color << std::endl;
 		  (colors[n])(i,0) = color;
 		  for (auto j = 1; j <= d; ++j) {
-		    std::cout << "j = " << j << std::endl;
  		    if (x[d-j] == i) color = color + 1;
-		    std::cout << "colors[" << n << "](" << i << "," << j << ") = " << color << std::endl;
 		    (colors[n])(i,j) = color;
 		  }
 		}
 
 	}
-	std::cout << "returning color_scheme" << std::endl;
 	return colors;
 }
 

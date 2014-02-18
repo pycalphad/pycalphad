@@ -40,6 +40,21 @@ void LocateMinima(
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
 	typedef std::vector<double> PointType;
+	
+	const std::size_t k = 2;
+	const std::size_t d = 2;
+	boost::numeric::ublas::vector<double> vertices(k);
+	for (auto i = 0; i < k; ++i) {
+	  vertices(i) = 1.0 / (double)k;
+	  vertices(i) /= (double)k;
+	}
+	auto colorscheme = color_schemes(k,d);
+	for (auto i = colorscheme.begin(); i != colorscheme.end(); ++i) {
+	  std::cout << "n = " << std::distance(colorscheme.begin(),i) << std::endl;
+	  std::cout << *i << std::endl;
+	  std::cout << prod(vertices,trans(*i)) << std::endl;
+	}
+	return;
 
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
