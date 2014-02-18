@@ -49,31 +49,42 @@ std::vector<std::size_t> decimal_to_base(std::size_t decimal, std::size_t base, 
  * 		chi_ni,0 <- color;
  * 		for j = 1, . . . ,d do
  * 			if xd-j = i then
- * 			color <- color + 1;
+ * 				color <- color + 1;
+ * 			chi_ni,j <- color;
  * 		end
- * 		chi_ni,j <- color;
  * 	end
  * end
  * end
  * end algorithm
 */
-
-void color_scheme(std::size_t k, std::size_t d) {
+typedef boost::numeric::ublas::matrix<std::size_t> ColorMatrixType;
+std::vector<ColorMatrixType> color_scheme(std::size_t k, std::size_t d) {
+  std::cout << "enter color_scheme" << std::endl;
 	BOOST_ASSERT(k > 0);
 	BOOST_ASSERT(d > 0);
 	const std::size_t maxcolors = std::pow(k,d);
-	typedef boost::numeric::ublas::matrix<std::size_t> MatrixType;
-	std::vector<MatrixType> colors(maxcolors, MatrixType(k,d));
+	std::cout << "init colors" << std::endl;
+	std::vector<ColorMatrixType> colors(maxcolors, ColorMatrixType(k,d+1));
 
 	for (auto n = 0; n < maxcolors; ++n) {
-		std::vector<std::size_t> x = decimal_to_base(n, k, d);
+	  std::cout << "n = " << n << std::endl;
+		const std::vector<std::size_t> x = decimal_to_base(n, k, d);
 		std::size_t color = 0;
 		for (auto i = 0; i < k; ++i) {
-
+		  std::cout << "i = " << i << std::endl;
+		  std::cout << "colors[" << n << "](" << i << ",0) = " << color << std::endl;
+		  (colors[n])(i,0) = color;
+		  for (auto j = 1; j <= d; ++j) {
+		    std::cout << "j = " << j << std::endl;
+ 		    if (x[d-j] == i) color = color + 1;
+		    std::cout << "colors[" << n << "](" << i << "," << j << ") = " << color << std::endl;
+		    (colors[n])(i,j) = color;
+		  }
 		}
 
 	}
-
+	std::cout << "returning color_scheme" << std::endl;
+	return colors;
 }
 
 struct NDSimplex {
