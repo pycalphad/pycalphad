@@ -43,16 +43,30 @@ void LocateMinima(
 	
 	const std::size_t k = 2;
 	const std::size_t d = 2;
-	boost::numeric::ublas::vector<double> vertices(k);
-	for (auto i = 0; i < k; ++i) {
-	  vertices(i) = 1.0 / (double)k;
-	  vertices(i) /= (double)k;
-	}
-	auto colorscheme = color_schemes(k,d);
+	boost::numeric::ublas::matrix<double> vertex_coords(d,d+1);
+	// test specifically for 2^2 subdivision of the 2-simplex (unit simplex)
+	// NOTE: Will need to modify to handle automatic calculation of the dependent component
+	vertex_coords(0,0) = 0;
+	vertex_coords(1,0) = 0;
+	vertex_coords(0,1) = 0;
+	vertex_coords(1,1) = 1;
+	vertex_coords(0,2) = 1;
+	vertex_coords(1,2) = 0;
+	const auto colorscheme = color_schemes(k,d);
 	for (auto i = colorscheme.begin(); i != colorscheme.end(); ++i) {
 	  std::cout << "n = " << std::distance(colorscheme.begin(),i) << std::endl;
+	  boost::numeric::ublas::matrix<double> simplex_coords = zero_matrix<double>(d,d+1);
+	  for (auto j = 0; j < d+1; ++j) {
+	    std::cout << "j = " << j << std::endl;
+	    matrix_column<matrix<double>> p (simplex_coords,j);
+	    for (auto m = 0; m < k; ++m) {
+	      std::cout << "m = " << m << std::endl;
+	      const matrix_column<const matrix<double>> s(vertex_coords,(*i)(m,j));
+	      p += (s / (double) k);
+	    }
+	  }
 	  std::cout << *i << std::endl;
-	  std::cout << prod(vertices,trans(*i)) << std::endl;
+	  std::cout << simplex_coords << std::endl;
 	}
 	return;
 
