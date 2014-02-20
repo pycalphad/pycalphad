@@ -16,6 +16,7 @@
 #include <boost/assert.hpp>
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/matrix_proxy.hpp>
+#include <boost/numeric/ublas/vector.hpp>
 #include <vector>
 #include <algorithm>
 #include <cmath>
@@ -65,6 +66,17 @@ public:
         retvec.emplace_back ( simplex_coords );
       }
     return retvec;
+  }
+  // Return the centroid of the simplex
+  boost::numeric::ublas::vector<double> centroid() {
+   using namespace boost::numeric::ublas;
+   boost::numeric::ublas::vector<double> cent = boost::numeric::ublas::zero_vector<double>(vertices.size1());
+   for ( auto j = 0; j < vertices.size2(); ++j )
+   {
+    const matrix_column<const matrix<double>> p ( vertices,j );
+    cent += ( p / ( double ) vertices.size2() );
+   }
+   return cent;
   }
   // Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
   template <typename Func> static inline void lattice (
