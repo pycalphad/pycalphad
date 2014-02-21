@@ -40,8 +40,6 @@ void LocateMinima(
 	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
 	typedef std::vector<double> PointType;
-	
-	return;
 
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
@@ -68,7 +66,7 @@ void LocateMinima(
 			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 		}
 
-		points = NDSimplex::lattice_complex(components_in_sublattice, 20);
+		points = lattice_complex(components_in_sublattice, 2);
 
 
 		for (auto pt : points) {

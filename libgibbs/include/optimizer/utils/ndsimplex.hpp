@@ -18,6 +18,8 @@
 #include <boost/numeric/ublas/matrix_proxy.hpp>
 #include <boost/numeric/ublas/vector.hpp>
 #include <vector>
+#include <functional>
+#include <numeric>
 #include <algorithm>
 #include <cmath>
 
@@ -33,7 +35,7 @@ public:
     using namespace boost::numeric::ublas;
     // First column is zero; subsequent columns are from the dim x dim identity matrix
     this->vertices = zero_matrix<double> ( dim, dim+1 );
-    matrix_range<boost::numeric::ublas::matrix<double>> vr ( this->vertices, range ( 1, this->vertices.size1() ),  range ( 1, this->vertices.size2() ) );
+    matrix_range<boost::numeric::ublas::matrix<double>> vr ( this->vertices, range ( 0, this->vertices.size1() ),  range ( 1, this->vertices.size2() ) );
     vr = identity_matrix<double> ( dim );
   }
   // Construct a simplex from its vertices
@@ -74,12 +76,16 @@ public:
    for ( auto j = 0; j < vertices.size2(); ++j )
    {
     const matrix_column<const matrix<double>> p ( vertices,j );
-    cent += ( p / ( double ) vertices.size2() );
+    cent += p;
    }
+   cent /= (double)vertices.size2();
    return cent;
   }
+private:
+	SimplexMatrixType vertices;                         // vertices of the simplex; each column is a coordinate
+};
   // Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
-  template <typename Func> static inline void lattice (
+  /*template <typename Func> static inline void lattice (
     const std::size_t point_dimension,
     const std::size_t grid_points_per_major_axis,
     const Func &func
@@ -129,9 +135,9 @@ public:
     while ( *last_coord < upper_limit );
 
     func ( point ); // should be {0,0,...1}
-  }
+  }*/
 
-  static inline std::vector<std::vector<double>> lattice_complex (
+  std::vector<std::vector<double>> lattice_complex (
         const std::vector<std::size_t> &components_in_sublattices,
         const std::size_t grid_points_per_major_axis
       )
@@ -143,25 +149,31 @@ public:
     std::size_t expected_points = 1;
     std::size_t point_dimension = 0;
 
-    // TODO: Is there a way to do this without all the copying?
     for ( auto i = components_in_sublattices.cbegin(); i != components_in_sublattices.cend(); ++i )
       {
         PointCollection simplex_points; // all points for this simplex
         const unsigned int q = *i; // number of components
         point_dimension += q;
-        const unsigned int m = grid_points_per_major_axis - 2; // number of evenly spaced values _between_ 0 and 1
-        auto point_add = [&simplex_points] ( PointType &address )
-        {
-          simplex_points.push_back ( address );
-        };
-
-        lattice ( q, grid_points_per_major_axis, point_add );
+	NDSimplex base(q-1); // will construct the unit (q-1)-simplex
+	std::vector<NDSimplex> simplices = base.simplex_subdivide(grid_points_per_major_axis);
+	for (NDSimplex& simp : simplices) {
+		boost::numeric::ublas::vector<double> cent = simp.centroid();
+		std::vector<double> mypoint;
+		mypoint.reserve(cent.size()+1);
+		
+		// Calculate 1 - sum(cent), which is the value of the dependent component
+		double pointsum = std::accumulate (cent.begin(), cent.end(), 1, std::minus<double>());
+		std::copy(cent.begin(),cent.end(),mypoint.begin()); // Copy in the coordinates
+		mypoint.push_back(pointsum); // Add the dependent component
+		
+		simplex_points.push_back(mypoint);
+	}
         expected_points *= simplex_points.size();
         point_lattices.push_back ( simplex_points ); // push points for each simplex
       }
 
     points.reserve ( expected_points );
-
+    
     for ( auto p = 0; p < expected_points; ++p )
       {
         PointType point;
@@ -184,7 +196,7 @@ public:
 
   // Reference for Halton sequence: Hess and Polak, 2003.
   // Reference for uniformly sampling the simplex: Any text on the Dirichlet distribution
-  template <typename Func> static inline void quasirandom_sample (
+  template <typename Func> void quasirandom_sample (
     const std::size_t point_dimension,
     const std::size_t number_of_points,
     const Func &func
@@ -215,9 +227,6 @@ public:
         if ( point_dimension == 1 ) break; // no need to generate additional points; only one feasible point exists for 0-simplex
       }
   }
-private:
-  SimplexMatrixType vertices;                         // vertices of the simplex; each column is a coordinate
-};
 
 #endif
 
