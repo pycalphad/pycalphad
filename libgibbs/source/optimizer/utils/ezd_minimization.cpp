@@ -132,7 +132,8 @@ void LocateMinima(
 			const bool is_positive_definite = cholesky_factorize(Hproj);
 			//    (d) If it succeeds, save this point; else, remove it
 			if (is_positive_definite) {
-				std::cout << pt[0] << " ";
+				for (double i : pt) std::cout << i << ",";
+				std::cout << ":";
 				double obj = phase.evaluate_objective(conditions, phase.get_variable_map(), &pt[0]);
 				std::cout << obj << std::endl;
 				std::vector<double> gradient = phase.evaluate_internal_objective_gradient(conditions, &pt[0]);
@@ -144,7 +145,7 @@ void LocateMinima(
 				if (mag < gradient_magnitude) {
 					gradient_magnitude = mag;
 					minpoint = simpcol;
-					std::cout << "new minpoint";
+					std::cout << "new minpoint ";
 					for (auto i = pt.begin(); i != pt.end(); ++i) {
 						std::cout << *i;
 						if (std::distance(i,pt.end()) > 1) std::cout << ",";
