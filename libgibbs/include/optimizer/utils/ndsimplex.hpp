@@ -159,12 +159,11 @@ typedef std::vector<NDSimplex> SimplexCollection;
     std::vector<SimplexCollection> point_lattices; //  Simplex lattices for each sublattice
     std::vector<SimplexCollection> points; // The final return points (combination of all simplex lattices)
     std::size_t expected_points = 1;
-    std::size_t point_dimension = 0;
+    std::size_t point_dimension = components_in_sublattices.size();
 
     for ( auto i = components_in_sublattices.cbegin(); i != components_in_sublattices.cend(); ++i )
       {
-	point_dimension += i->size();
-        expected_points *= i->begin()->dimension();
+        expected_points *= i->size();
         point_lattices.push_back ( *i ); // push points for each simplex
       }
 
