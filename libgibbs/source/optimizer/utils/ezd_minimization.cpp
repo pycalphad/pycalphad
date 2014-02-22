@@ -25,6 +25,8 @@
 #include <string>
 #include <map>
 
+std::vector<std::vector<double>> AdaptiveSearchND(const SimplexCollection &search_region, const std::size_t depth);
+
 namespace Optimizer
 {
 
@@ -43,11 +45,10 @@ void LocateMinima (
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
-    // For depth = 1: FIND CONCAVITY REGIONS
-    if ( depth == 1 )
-        {
-        std::vector<std::vector<double>> points;
+    // First: FIND CONCAVITY REGIONS
+        std::vector<std::vector<double>> points,  minima;
         std::vector<SimplexCollection> start_simplices;
+        std::vector<SimplexCollection> positive_definite_regions;
         std::vector<SimplexCollection> components_in_sublattice;
 
         // Get the first sublattice for this phase
@@ -141,57 +142,65 @@ void LocateMinima (
             //    (b) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
             //        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
             //        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
+            //        TODO: Currently not bothering to do this; should perform a test to figure out if there would be a performance increase
             //    (c) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
             const bool is_positive_definite = cholesky_factorize ( Hproj );
-            //    (d) If it succeeds, save this point; else, remove it
+            //    (d) If it succeeds, save this point; else, discard it
             if ( is_positive_definite )
                 {
-                std::vector<SimplexCollection> positive_definite_regions;
+                positive_definite_regions.push_back(simpcol);
                 for ( double i : pt ) std::cout << i << ",";
-                std::cout << ":";
-                double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
-                std::cout << obj << std::endl;
-                std::vector<double> gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
-                double mag = 0;
-                for ( auto i = gradient.begin(); i != gradient.end(); ++i )
-                    {
-                    //std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
-                    mag += pow ( *i,2 );
-                    }
-                if ( mag < gradient_magnitude )
-                    {
-                    gradient_magnitude = mag;
-                    minpoint = simpcol;
-                    std::cout << "new minpoint ";
-                    for ( auto i = pt.begin(); i != pt.end(); ++i )
-                        {
-                        std::cout << *i;
-                        if ( std::distance ( i,pt.end() ) > 1 ) std::cout << ",";
-                        }
-                    std::cout << " gradient sq: " << gradient_magnitude << std::endl;
-                    }
+                std::cout << ":" <<  std::endl;
                 }
-            else
-                {
-
-                }
-            // (4) For each saved point, send to next depth
             }
-        }
-    // For depth > 1: FIND MINIMA
-    else if ( depth > 1 )
-        {
-        // (1) Sample some points on the domain using NDGrid (probably separate function)
-        // (2) Calculate the objective gradient (f') for all sampled points
-        // Note: This can be done by making use of the first-order KKT conditions to estimate the Lagrange multipliers.
-        // (3) Find the point (z) with the minimum magnitude of L'
-        // (4) If that magnitude is less than some defined epsilon, or we've hit max_depth, return z as a minimum
-        //     Else use N-cube assumption to define new domain around z and send to next depth (return minima from that)
-        }
-    else
-        {
-        // invalid depth; throw exception
-        }
-    }
+            
+            // positive_definite_regions is now filled
+            // Perform recursive search for minima on each of the identified regions
+            for (const SimplexCollection &simpcol : positive_definite_regions) {
+                // We start at a recursive depth of 2 because we treat LocateMinima as depth == 1
+                // This allows our notation for depth to be consistent with Emelianenko et al.
+                std::vector<std::vector<double>> region_minima = AdaptiveSearchND(simpcol,  2);
+                // Append this region's minima to the list of minima
+                // minima.size() > 1 means there is a miscilibility gap
+                minima.reserve(minima.size()+region_minima.size());
+                minima.insert(minima.end(), std::make_move_iterator(region_minima.begin()),  std::make_move_iterator(region_minima.end()));
+            }
+}
 
+// namespace Optimizer
+}
+
+// Recursive function for searching composition space for minima
+// Input: Simplex that bounds a positive definite search region (SimplexCollection is used for multiple sublattices)
+// Input: Recursion depth
+// Output: Vector of minimum points
+std::vector<std::vector<double>> AdaptiveSearchND(const SimplexCollection &search_region, const std::size_t depth) {
+    BOOST_ASSERT(depth > 0);
+    std::vector<std::vector<double>> minima;
+  // (1) Calculate the objective gradient (f') for the centroid of the active simplex
+  // (2) Find the point (z) with the minimum magnitude of L'
+  // (3) If that magnitude is less than some defined epsilon, or we've hit max_depth, return z as a minimum
+  //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
+  /*double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
+    std::cout << obj << std::endl;
+    std::vector<double> gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
+    double mag = 0;
+    for ( auto i = gradient.begin(); i != gradient.end(); ++i )
+    {
+    //std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
+    mag += pow ( *i,2 );
+  }
+    if ( mag < gradient_magnitude )
+    {
+    gradient_magnitude = mag;
+    minpoint = simpcol;
+    std::cout << "new minpoint ";
+    for ( auto i = pt.begin(); i != pt.end(); ++i )
+    {
+    std::cout << *i;
+    if ( std::distance ( i,pt.end() ) > 1 ) std::cout << ",";
+  }
+    std::cout << " gradient sq: " << gradient_magnitude << std::endl;
+  }*/
+  return minima;
 }
