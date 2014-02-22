@@ -37,15 +37,15 @@ void LocateMinima(
 		evalconditions const& conditions,
 		const std::size_t depth // depth tracking for recursion
 		) {
-	constexpr const std::size_t grid_points_per_axis = 10; // TODO: make this user-configurable
+	constexpr const std::size_t subdivisions_per_axis = 2; // TODO: make this user-configurable
 	using namespace boost::numeric::ublas;
-	typedef std::vector<double> PointType;
 
 	// EZD Global Minimization (Emelianenko et al., 2006)
 	// For depth = 1: FIND CONCAVITY REGIONS
 	if (depth == 1) {
-		std::vector<PointType> points;
-		std::vector<std::size_t> components_in_sublattice;
+		std::vector<std::vector<double>> points;
+		std::vector<SimplexCollection> start_simplices;
+		std::vector<SimplexCollection> components_in_sublattice;
 
 		// Get the first sublattice for this phase
 		boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
@@ -59,29 +59,45 @@ void LocateMinima(
 		// Determine number of components in each sublattice
 		while (ic0 != ic1) {
 			const std::size_t number_of_species = std::distance(ic0,ic1);
-			if (number_of_species > 0) components_in_sublattice.push_back(number_of_species);
+			if (number_of_species > 0) {
+				NDSimplex base(number_of_species-1); // construct the unit (q-1)-simplex
+				components_in_sublattice.emplace_back(base.simplex_subdivide(subdivisions_per_axis));
+			}
 			// Next sublattice
 			++sublindex;
 			ic0 = boost::multi_index::get<phase_subl>(sublset).lower_bound(boost::make_tuple(phase.name(), sublindex));
 			ic1 = boost::multi_index::get<phase_subl>(sublset).end();
 		}
 
-		points = lattice_complex(components_in_sublattice, 2);
+		// Take all combinations of generated points in each sublattice
+		start_simplices = lattice_complex(components_in_sublattice);
 
 
-		for (auto pt : points) {
+		for (SimplexCollection& simpcol : start_simplices) {
 			std::cout << "(";
+			std::vector<double> pt;
+			for (NDSimplex& simp : simpcol) {
+				std::vector<double> sub_pt = simp.centroid_with_dependent_component();
+				pt.insert(pt.end(),std::make_move_iterator(sub_pt.begin()),std::make_move_iterator(sub_pt.end()));
+			}
 			for (auto i = pt.begin(); i != pt.end(); ++i) {
 				std::cout << *i;
 				if (std::distance(i,pt.end()) > 1) std::cout << ",";
 			}
 			std::cout << ")" << std::endl;
+			points.emplace_back(std::move(pt));
 		}
 
-		PointType minpoint (points[0].size());
+		SimplexCollection minpoint;
 		double gradient_magnitude = std::numeric_limits<double>::max();
 		// (2) Calculate the Lagrangian Hessian for all sampled points
-		for (auto pt : points) {
+		for (SimplexCollection& simpcol : start_simplices) {
+			std::vector<double> pt;
+			for (NDSimplex& simp : simpcol) {
+				// Generate the current point from all the simplices in each sublattice
+				std::vector<double> sub_pt = simp.centroid_with_dependent_component();
+				pt.insert(pt.end(),std::make_move_iterator(sub_pt.begin()),std::make_move_iterator(sub_pt.end()));
+			}
 			if (pt.size() == 0) continue; // skip empty (invalid) points
 			symmetric_matrix<double, lower> Hessian(zero_matrix<double>(pt.size(),pt.size()));
 			try {
@@ -127,11 +143,11 @@ void LocateMinima(
 				}
 				if (mag < gradient_magnitude) {
 					gradient_magnitude = mag;
-					minpoint = pt;
-					std::cout << "new minpoint: ";
-					for (auto i = minpoint.begin(); i != minpoint.end(); ++i) {
+					minpoint = simpcol;
+					std::cout << "new minpoint";
+					for (auto i = pt.begin(); i != pt.end(); ++i) {
 						std::cout << *i;
-						if (std::distance(i,minpoint.end()) > 1) std::cout << ",";
+						if (std::distance(i,pt.end()) > 1) std::cout << ",";
 					}
 					std::cout << " gradient sq: " << gradient_magnitude << std::endl;
 				}

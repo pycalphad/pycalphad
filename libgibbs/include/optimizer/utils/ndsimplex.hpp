@@ -45,7 +45,7 @@ public:
     this->vertices = std::move ( simplexmat );
   }
   // Perform the k^dim subdivision of the current simplex; return all of the subsimplices
-  std::vector<NDSimplex> simplex_subdivide ( const std::size_t k )
+  std::vector<NDSimplex> simplex_subdivide ( const std::size_t k ) const
   {
    using namespace Optimizer;
    using namespace boost::numeric::ublas;
@@ -70,7 +70,7 @@ public:
     return retvec;
   }
   // Return the centroid of the simplex
-  boost::numeric::ublas::vector<double> centroid() {
+  boost::numeric::ublas::vector<double> centroid() const {
    using namespace boost::numeric::ublas;
    boost::numeric::ublas::vector<double> cent = boost::numeric::ublas::zero_vector<double>(vertices.size1());
    for ( auto j = 0; j < vertices.size2(); ++j )
@@ -81,9 +81,24 @@ public:
    cent /= (double)vertices.size2();
    return cent;
   }
+  // Return the vector of size d+1 where the first d components are the centroid, and the last is 1 - sum of coordinates
+  std::vector<double> centroid_with_dependent_component() const {
+	  boost::numeric::ublas::vector<double> cent = this->centroid();
+	  std::vector<double> mypoint;
+	  mypoint.reserve(cent.size()+1);
+	  
+	  // Calculate 1 - sum(cent), which is the value of the dependent component
+	  double pointsum = std::accumulate (cent.begin(), cent.end(), 1.0, std::minus<double>());
+	  mypoint.assign(cent.begin(),cent.end()); // Copy in the coordinates
+	  mypoint.push_back(pointsum); // Add the dependent component
+	  return mypoint;
+  }
+  const std::size_t dimension() const { return vertices.size1(); }
 private:
 	SimplexMatrixType vertices;                         // vertices of the simplex; each column is a coordinate
 };
+
+typedef std::vector<NDSimplex> SimplexCollection;
   // Reference: Chasalow and Brand, 1995, "Algorithm AS 299: Generation of Simplex Lattice Points"
   /*template <typename Func> static inline void lattice (
     const std::size_t point_dimension,
@@ -137,53 +152,34 @@ private:
     func ( point ); // should be {0,0,...1}
   }*/
 
-  std::vector<std::vector<double>> lattice_complex (
-        const std::vector<std::size_t> &components_in_sublattices,
-        const std::size_t grid_points_per_major_axis
-      )
+  // Input: Vector of (vector of simplices in each sublattice)
+  // Output: All combinations of those vectors
+  std::vector<SimplexCollection> lattice_complex (const std::vector<SimplexCollection> &components_in_sublattices)
   {
-    typedef std::vector<double> PointType;
-    typedef std::vector<PointType> PointCollection;
-    std::vector<PointCollection> point_lattices; //  Simplex lattices for each sublattice
-    std::vector<PointType> points; // The final return points (combination of all simplex lattices)
+    std::vector<SimplexCollection> point_lattices; //  Simplex lattices for each sublattice
+    std::vector<SimplexCollection> points; // The final return points (combination of all simplex lattices)
     std::size_t expected_points = 1;
     std::size_t point_dimension = 0;
 
     for ( auto i = components_in_sublattices.cbegin(); i != components_in_sublattices.cend(); ++i )
       {
-        PointCollection simplex_points; // all points for this simplex
-        const unsigned int q = *i; // number of components
-        point_dimension += q;
-	NDSimplex base(q-1); // will construct the unit (q-1)-simplex
-	std::vector<NDSimplex> simplices = base.simplex_subdivide(grid_points_per_major_axis);
-	for (NDSimplex& simp : simplices) {
-		boost::numeric::ublas::vector<double> cent = simp.centroid();
-		std::vector<double> mypoint;
-		mypoint.reserve(cent.size()+1);
-		
-		// Calculate 1 - sum(cent), which is the value of the dependent component
-		double pointsum = std::accumulate (cent.begin(), cent.end(), 1, std::minus<double>());
-		std::copy(cent.begin(),cent.end(),mypoint.begin()); // Copy in the coordinates
-		mypoint.push_back(pointsum); // Add the dependent component
-		
-		simplex_points.push_back(mypoint);
-	}
-        expected_points *= simplex_points.size();
-        point_lattices.push_back ( simplex_points ); // push points for each simplex
+	point_dimension += i->size();
+        expected_points *= i->begin()->dimension();
+        point_lattices.push_back ( *i ); // push points for each simplex
       }
 
     points.reserve ( expected_points );
     
     for ( auto p = 0; p < expected_points; ++p )
       {
-        PointType point;
+        SimplexCollection point;
         std::size_t dividend = p;
         point.reserve ( point_dimension );
         std::cout << "p : " << p << " indices: [";
         for ( auto r = point_lattices.rbegin(); r != point_lattices.rend(); ++r )
           {
             std::cout << dividend % r->size() << ",";
-            point.insert ( point.end(), ( *r ) [dividend % r->size()].begin(), ( *r ) [dividend % r->size()].end() );
+            point.insert ( point.end(), ( *r ) [dividend % r->size()] );
             dividend = dividend / r->size();
           }
         std::cout << "]" << std::endl;
