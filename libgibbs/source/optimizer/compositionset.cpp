@@ -232,7 +232,7 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient(
 std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 		evalconditions const& conditions, double* const x) const {
 	std::vector<double> gradient (phase_indices.size());
-	const double perturbation = 1e-5;
+	const double perturbation = 1e-7;
 	double x_copy[phase_indices.size()] ;
 	for (auto i = 0; i < phase_indices.size(); ++i) x_copy[i] = x[i];
 	for (auto i = 0; i < phase_indices.size(); ++i) {
@@ -241,7 +241,7 @@ std::vector<double> CompositionSet::evaluate_internal_objective_gradient(
 		lower_obj = evaluate_objective(conditions, phase_indices, x_copy);
 		x_copy[i] = x[i] + perturbation;
 		upper_obj = evaluate_objective(conditions, phase_indices, x_copy);
-		gradient[i] = (upper_obj - lower_obj) / (2 * perturbation);
+		gradient[i] = (upper_obj - lower_obj) / (2.0 * perturbation);
 	}
 	for (int i : fixed_phase_indices) gradient[i] = 0;
 
