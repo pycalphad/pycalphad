@@ -183,9 +183,10 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   const SimplexCollection &search_region,
                                   const std::size_t depth )
     {
+    using namespace boost::numeric::ublas;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 1e8;
-    constexpr const std::size_t subdivisions_per_axis = 2;
+    constexpr const double gradient_magnitude_threshold = 1e3;
+    constexpr const std::size_t subdivisions_per_axis = 5;
     constexpr const std::size_t max_depth = 5;
     std::vector<std::vector<double>> minima;
     std::vector<double> pt;
@@ -202,12 +203,20 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     }
     //double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
     //std::cout << obj << std::endl;
-    std::vector<double> gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
+    std::vector<double> raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
+    // Project the raw gradient into the null space of constraints
+    // This will leave only the gradient in the feasible directions
+    boost::numeric::ublas::vector<double> projected_gradient(raw_gradient.size());
+    std::move(raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin());
+    projected_gradient = projected_gradient - prod ( phase.get_constraint_null_space_matrix(), projected_gradient );
     double mag = 0;
-    for ( auto i = gradient.begin(); i != gradient.end(); ++i )
+    for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
     {
-        //std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
         mag += pow ( *i,2 );
+    }
+    for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
+    {
+        std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
     }
     // (2) If that magnitude is less than some defined epsilon, return z as a minimum
     //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
@@ -219,9 +228,9 @@ std::vector<std::vector<double>> AdaptiveSearchND (
             if ( std::distance ( i,pt.end() ) > 1 ) std::cout << ",";
         }
         std::cout << " gradient sq: " << mag << std::endl;
-        for ( auto i = gradient.begin(); i != gradient.end(); ++i )
+        for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
         {
-            std::cout << "gradient[" << std::distance(gradient.begin(),i) << "] = " << *i << std::endl;
+            std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
         }
         minima.push_back(pt);
     }
