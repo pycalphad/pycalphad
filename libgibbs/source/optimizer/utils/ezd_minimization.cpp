@@ -29,7 +29,8 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   CompositionSet const &phase,
                                   evalconditions const& conditions,
                                   const SimplexCollection &search_region,
-                                  const std::size_t depth );
+                                  const std::size_t depth,
+                                  const double old_gradient_mag = 1e12);
 
 namespace Optimizer
 {
@@ -181,13 +182,14 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   CompositionSet const &phase,
                                   evalconditions const& conditions,
                                   const SimplexCollection &search_region,
-                                  const std::size_t depth )
+                                  const std::size_t depth,
+                                  const double old_gradient_mag)
     {
     using namespace boost::numeric::ublas;
     typedef boost::numeric::ublas::vector<double> ublas_vector;
     typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 1e1;
+    constexpr const double gradient_magnitude_threshold = 1e2;
     constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 10;
     std::vector<std::vector<double>> minima;
@@ -238,7 +240,8 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         minima.push_back(pt);
     }
     else {
-        if (depth == max_depth) return minima; // we've hit max depth, return what we have (nothing)
+        // give up if we've hit max depth, unless we've reduced the gradient magnitude by more than 10% over the parent iteration
+        if (depth == max_depth) return minima;
         std::vector<SimplexCollection> simplex_combinations, new_simplices;
         // simplex_subdivide() the simplices in all the active sublattices
         for (const NDSimplex &simp : search_region) {
@@ -248,7 +251,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         new_simplices = lattice_complex(simplex_combinations);
         // send each new SimplexCollection to the next depth
         for (const SimplexCollection &sc : new_simplices) {
-            std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND(phase, conditions, sc, depth+1);
+            std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND(phase, conditions, sc, depth+1, mag);
             // Add the found minima to the list of known minima
             minima.reserve(minima.size()+recursive_minima.size());
             minima.insert ( minima.end(), std::make_move_iterator ( recursive_minima.begin() ),  std::make_move_iterator ( recursive_minima.end() ) );
