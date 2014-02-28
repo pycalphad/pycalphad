@@ -46,7 +46,8 @@ void LocateMinima (
     const std::size_t depth // depth tracking for recursion
 )
     {
-    constexpr const std::size_t subdivisions_per_axis = 5; // TODO: make this user-configurable
+        // This is the initial amount of subdivision
+    constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
