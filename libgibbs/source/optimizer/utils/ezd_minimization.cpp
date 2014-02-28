@@ -184,10 +184,12 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   const std::size_t depth )
     {
     using namespace boost::numeric::ublas;
+    typedef boost::numeric::ublas::vector<double> ublas_vector;
+    typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 1e3;
-    constexpr const std::size_t subdivisions_per_axis = 5;
-    constexpr const std::size_t max_depth = 5;
+    constexpr const double gradient_magnitude_threshold = 1e1;
+    constexpr const std::size_t subdivisions_per_axis = 2;
+    constexpr const std::size_t max_depth = 10;
     std::vector<std::vector<double>> minima;
     std::vector<double> pt;
 
@@ -206,9 +208,10 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     std::vector<double> raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
     // Project the raw gradient into the null space of constraints
     // This will leave only the gradient in the feasible directions
-    boost::numeric::ublas::vector<double> projected_gradient(raw_gradient.size());
+    ublas_matrix Z = phase.get_constraint_null_space_matrix();
+    ublas_vector projected_gradient(raw_gradient.size());
     std::move(raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin());
-    projected_gradient = projected_gradient - prod ( phase.get_constraint_null_space_matrix(), projected_gradient );
+    projected_gradient = prod ( ublas_matrix(prod(Z,trans(Z))), projected_gradient );
     double mag = 0;
     for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
     {
@@ -216,7 +219,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     }
     for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
     {
-        std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
+        //std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
     }
     // (2) If that magnitude is less than some defined epsilon, return z as a minimum
     //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
