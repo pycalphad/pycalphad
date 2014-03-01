@@ -73,7 +73,17 @@ GibbsOpt::GibbsOpt(
 		++activephases;
 		auto it = comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
 		std::vector<std::vector<double>> minima = Optimizer::LocateMinima(it.first->second, main_ss, conditions); // TODO: test code
-	}
+                BOOST_LOG_SEV(opto_log, debug) << minima.size() << " minima detected";
+                if (minima.size() == 1) {
+                    // No miscibility gap, no need to create new composition sets
+                    // Use the minimum found during global minimization as the starting point
+                    it.first->second.set_starting_point(*(minima.begin()));
+                }
+                if (minima.size() > 1) {
+                    // Possible miscibility gap detected; create a new composition set for each one
+                    
+                }
+        }
 
 	// Add the mandatory constraints to the ConstraintManager
 	if (activephases > 1)
