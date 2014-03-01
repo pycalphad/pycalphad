@@ -30,7 +30,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   evalconditions const& conditions,
                                   const SimplexCollection &search_region,
                                   const std::size_t depth,
-                                  const double old_gradient_mag = 1e12);
+                                  const double old_gradient_mag = 1e12 );
 
 namespace Optimizer
 {
@@ -46,7 +46,7 @@ void LocateMinima (
     const std::size_t depth // depth tracking for recursion
 )
     {
-        // This is the initial amount of subdivision
+    // This is the initial amount of subdivision
     constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
     using namespace boost::numeric::ublas;
 
@@ -184,7 +184,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   evalconditions const& conditions,
                                   const SimplexCollection &search_region,
                                   const std::size_t depth,
-                                  const double old_gradient_mag)
+                                  const double old_gradient_mag )
     {
     using namespace boost::numeric::ublas;
     typedef boost::numeric::ublas::vector<double> ublas_vector;
@@ -198,66 +198,70 @@ std::vector<std::vector<double>> AdaptiveSearchND (
 
     // (1) Calculate the objective gradient (L') for the centroid of the active simplex
     for ( const NDSimplex& simp : search_region )
-    {
+        {
         // Generate the current point (pt) from all the simplices in each sublattice
         std::vector<double> sub_pt = simp.centroid_with_dependent_component();
         //std::cout << "[";
         //for (double i : sub_pt) std::cout << i << ",";
         //std::cout << "]" << std::endl;
         pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-    }
+        }
     //double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
     //std::cout << obj << std::endl;
     std::vector<double> raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
     // Project the raw gradient into the null space of constraints
     // This will leave only the gradient in the feasible directions
     ublas_matrix Z = phase.get_constraint_null_space_matrix();
-    ublas_vector projected_gradient(raw_gradient.size());
-    std::move(raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin());
-    projected_gradient = prod ( ublas_matrix(prod(Z,trans(Z))), projected_gradient );
+    ublas_vector projected_gradient ( raw_gradient.size() );
+    std::move ( raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin() );
+    projected_gradient = prod ( ublas_matrix ( prod ( Z,trans ( Z ) ) ), projected_gradient );
     double mag = 0;
     for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-    {
+        {
         mag += pow ( *i,2 );
-    }
+        }
     for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-    {
+        {
         //std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
-    }
+        }
     // (2) If that magnitude is less than some defined epsilon, return z as a minimum
     //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
-    if (mag < gradient_magnitude_threshold) {
+    if ( mag < gradient_magnitude_threshold )
+        {
         std::cout << "new minpoint ";
         for ( auto i = pt.begin(); i != pt.end(); ++i )
-        {
+            {
             std::cout << *i;
             if ( std::distance ( i,pt.end() ) > 1 ) std::cout << ",";
-        }
+            }
         std::cout << " gradient sq: " << mag << std::endl;
         for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-        {
-            std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
+            {
+            std::cout << "gradient[" << std::distance ( projected_gradient.begin(),i ) << "] = " << *i << std::endl;
+            }
+        minima.push_back ( pt );
         }
-        minima.push_back(pt);
-    }
-    else {
+    else
+        {
         // give up if we've hit max depth, unless we've reduced the gradient magnitude by more than 10% over the parent iteration
-        if (depth == max_depth) return minima;
+        if ( depth == max_depth ) return minima;
         std::vector<SimplexCollection> simplex_combinations, new_simplices;
         // simplex_subdivide() the simplices in all the active sublattices
-        for (const NDSimplex &simp : search_region) {
-            simplex_combinations.emplace_back(simp.simplex_subdivide(subdivisions_per_axis));
-        }
+        for ( const NDSimplex &simp : search_region )
+            {
+            simplex_combinations.emplace_back ( simp.simplex_subdivide ( subdivisions_per_axis ) );
+            }
         // lattice_complex() the result to generate all the combinations in the sublattices
-        new_simplices = lattice_complex(simplex_combinations);
+        new_simplices = lattice_complex ( simplex_combinations );
         // send each new SimplexCollection to the next depth
-        for (const SimplexCollection &sc : new_simplices) {
-            std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND(phase, conditions, sc, depth+1, mag);
+        for ( const SimplexCollection &sc : new_simplices )
+            {
+            std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND ( phase, conditions, sc, depth+1, mag );
             // Add the found minima to the list of known minima
-            minima.reserve(minima.size()+recursive_minima.size());
+            minima.reserve ( minima.size() +recursive_minima.size() );
             minima.insert ( minima.end(), std::make_move_iterator ( recursive_minima.begin() ),  std::make_move_iterator ( recursive_minima.end() ) );
+            }
         }
-    }
     return minima;
     }
-// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on;
