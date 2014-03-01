@@ -39,7 +39,7 @@ namespace Optimizer
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
 // In addition to allowing us to choose a better starting point, this will allow for automatic miscibility gap detection
-void LocateMinima (
+std::vector<std::vector<double>>  LocateMinima (
     CompositionSet const &phase,
     sublattice_set const &sublset,
     evalconditions const& conditions,
@@ -170,6 +170,7 @@ void LocateMinima (
         minima.reserve ( minima.size() +region_minima.size() );
         minima.insert ( minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
         }
+    return minima;
     }
 
 // namespace Optimizer
@@ -243,7 +244,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         }
     else
         {
-        // give up if we've hit max depth, unless we've reduced the gradient magnitude by more than 10% over the parent iteration
+        // give up if we've hit max depth
         if ( depth == max_depth ) return minima;
         std::vector<SimplexCollection> simplex_combinations, new_simplices;
         // simplex_subdivide() the simplices in all the active sublattices

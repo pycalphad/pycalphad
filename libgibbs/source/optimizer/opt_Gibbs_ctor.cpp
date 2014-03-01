@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -72,7 +72,7 @@ GibbsOpt::GibbsOpt(
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
 		auto it = comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
-		Optimizer::LocateMinima(it.first->second, main_ss, conditions); // TODO: test code
+		std::vector<std::vector<double>> minima = Optimizer::LocateMinima(it.first->second, main_ss, conditions); // TODO: test code
 	}
 
 	// Add the mandatory constraints to the ConstraintManager
