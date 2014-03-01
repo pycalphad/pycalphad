@@ -171,7 +171,6 @@ protected:
 			std::vector<std::string> &&allfracs
 			);
 private:
-	EnergyModel(const EnergyModel&);
 	EnergyModel& operator=(const EnergyModel&);
 };
 

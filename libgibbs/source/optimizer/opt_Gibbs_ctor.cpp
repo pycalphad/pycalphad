@@ -52,16 +52,12 @@ GibbsOpt::GibbsOpt (
             }
         }
 
-
-
-    phase_iter = phase_col.cbegin();
-    phase_end = phase_col.cend();
     if ( conditions.elements.cbegin() == conditions.elements.cend() ) BOOST_LOG_SEV ( opto_log, critical ) << "No components entered!";
-    if ( phase_iter == phase_end ) BOOST_LOG_SEV ( opto_log, critical ) << "No phases found!";
+    if ( phase_col.begin() == phase_col.end() ) BOOST_LOG_SEV ( opto_log, critical ) << "No phases found!";
 
     // build_variable_map() will fill main_indices by reference
     // main_indices is used during the optimization as a simplified variable map
-    main_ss = build_variable_map ( phase_iter, phase_end, conditions, main_indices );
+    main_ss = build_variable_map ( phase_col.begin(), phase_col.end(), conditions, main_indices );
 
     for ( auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i )
         {
@@ -73,6 +69,7 @@ GibbsOpt::GibbsOpt (
 
     // this is the part where we look up the models enabled for each phase and call their AST builders
     // then we build a master Gibbs AST for the objective function
+    auto temp_phase_col = phase_col; // We modify phase_col, so we should be careful here
     for ( auto i = phase_iter; i != phase_end; ++i )
         {
         if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
@@ -103,6 +100,10 @@ GibbsOpt::GibbsOpt (
                     // Set starting point
                     main_compset.set_starting_point ( * ( min ) );
                     // Rename from PHASENAME to PHASENAME#1
+                // TODO: Making a copy of the Phase object is not efficient
+                    phase_col[compsetname.str()] = phase_col[main_compset.name()];
+                    auto remove_phase_iter = phase_col.find ( main_compset.name() );
+                    if ( remove_phase_iter != phase_col.end() ) phase_col.erase ( remove_phase_iter );
                     it = comp_sets.emplace ( compsetname.str(), std::move ( main_compset ) ).first;
                     }
                 else
@@ -113,7 +114,9 @@ GibbsOpt::GibbsOpt (
                     compsetname << it->second.name() << "#" << compsetcount;
                     // Use special constructor which copies, renames and sets the start point
                     comp_sets.emplace ( compsetname.str(), CompositionSet ( it->second, *min, compsetname.str() ) );
-                    BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
+                // TODO: Copying Phase object is not efficient
+                phase_col[compsetname.str()] = phase_col[it->second.name()];    
+                BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
                     }
                 }
             }
