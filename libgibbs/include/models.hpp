@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
 	Based on example code from Boost MultiIndex.
 	Copyright (c) 2003-2008 Joaquin M Lopez Munoz.
@@ -136,6 +136,10 @@ public:
 	const boost::iterator_range<ASTSymbolMap::const_iterator> get_symbol_table() const {
 		return boost::make_iterator_range(ast_symbol_table.begin(), ast_symbol_table.end());
 	}
+	// Explicit copy constructor
+	EnergyModel* clone() const {
+            return new EnergyModel(*this);
+        }
 protected:
 	boost::spirit::utree model_ast;
 	ASTSymbolMap ast_symbol_table; // storage for expensive, repeating ASTs behind a symbol

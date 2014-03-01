@@ -21,7 +21,7 @@
 
 namespace Optimizer {
 
-std::vector<std::vector<double>>  LocateMinima(
+std::vector<std::map<std::string,double>>  LocateMinima(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
 		evalconditions const& conditions,

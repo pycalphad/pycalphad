@@ -72,16 +72,39 @@ GibbsOpt::GibbsOpt(
 		if (conditions.phases[i->first] != PhaseStatus::ENTERED) continue;
 		++activephases;
 		auto it = comp_sets.emplace(i->first, CompositionSet(i->second, pset, main_ss, main_indices));
-		std::vector<std::vector<double>> minima = Optimizer::LocateMinima(it.first->second, main_ss, conditions); // TODO: test code
-                BOOST_LOG_SEV(opto_log, debug) << minima.size() << " minima detected";
+		std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima(it.first->second, main_ss, conditions); // TODO: test code
+                BOOST_LOG_SEV(opto_log, debug) << minima.size() << " minima detected from global minimization";
                 if (minima.size() == 1) {
                     // No miscibility gap, no need to create new composition sets
                     // Use the minimum found during global minimization as the starting point
                     it.first->second.set_starting_point(*(minima.begin()));
                 }
                 if (minima.size() > 1) {
-                    // Possible miscibility gap detected; create a new composition set for each one
-                    
+                    // Miscibility gap detected; create a new composition set for each minimum
+                    std::size_t compsetcount = 1;
+                    for (auto min = minima.begin(); min != minima.end(); ++min) {
+                        if (min == minima.begin()) {
+                            // For the first one, don't clone it; just rename it
+                            std::stringstream compsetname;
+                            compsetname << it.first->second.name() << "#" << compsetcount;
+                            
+                            // Rename from PHASENAME to PHASENAME#1
+                            auto new_it = comp_sets.emplace(compsetname.str(), std::move(it.first->second));
+                            comp_sets.erase(comp_sets.find(it.first->second.name()));
+                            it = new_it;
+                            // Set starting point
+                            it.first->second.set_starting_point(*(min));
+                        }
+                        else {
+                            ++compsetcount;
+                            ++activephases;
+                            std::stringstream compsetname;
+                            compsetname << it.first->second.name() << "#" << compsetcount;
+                            // Use special constructor which copies, renames and sets the start point
+                            auto new_it = comp_sets.emplace(compsetname.str(), CompositionSet(it.first->second, *min, compsetname.str()));
+                            BOOST_LOG_SEV(opto_log, debug) << "Created composition set " << compsetname.str();
+                        }
+                    }
                 }
         }
 

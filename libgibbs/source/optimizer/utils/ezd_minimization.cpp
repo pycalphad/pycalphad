@@ -39,7 +39,7 @@ namespace Optimizer
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
 // In addition to allowing us to choose a better starting point, this will allow for automatic miscibility gap detection
-std::vector<std::vector<double>>  LocateMinima (
+std::vector<std::map<std::string,double>>  LocateMinima (
     CompositionSet const &phase,
     sublattice_set const &sublset,
     evalconditions const& conditions,
@@ -52,7 +52,8 @@ std::vector<std::vector<double>>  LocateMinima (
 
     // EZD Global Minimization (Emelianenko et al., 2006)
     // First: FIND CONCAVITY REGIONS
-    std::vector<std::vector<double>> points,  minima;
+    std::vector<std::vector<double>> points;
+    std::vector<std::map<std::string,double>> minima;
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
     std::vector<SimplexCollection> components_in_sublattice;
@@ -167,8 +168,18 @@ std::vector<std::vector<double>>  LocateMinima (
         std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
         // Append this region's minima to the list of minima
         // minima.size() > 1 means there is a miscilibility gap
-        minima.reserve ( minima.size() +region_minima.size() );
-        minima.insert ( minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
+    
+        // We want to map the indices we used back to variable names for the optimizer
+        boost::bimap<std::string,int> indexmap = phase.get_variable_map();
+        for (const std::vector<double> &min : region_minima) {
+            std::map<std::string, double> x_point_map; // variable name -> value
+            for (auto it = min.begin(); it != min.end(); ++it) {
+                const int index = std::distance(min.begin(),it);
+                const std::string varname = indexmap.right.at(index);
+                x_point_map[varname] = *it;
+            }
+            minima.emplace_back(std::move(x_point_map));
+        }
         }
     return minima;
     }

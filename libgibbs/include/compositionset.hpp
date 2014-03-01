@@ -53,6 +53,31 @@ class CompositionSet
             const parameter_set &pset,
             const sublattice_set &sublset,
             boost::bimap<std::string, int> const &main_indices );
+        
+        // make CompositionSet from another CompositionSet; used for miscibility gaps
+        // this will create a copy
+        CompositionSet (
+            const CompositionSet &other,
+            const std::map<std::string,double> &new_starting_point,
+            const std::string &new_name) {
+            // These are specified by the user
+            cset_name = new_name;
+            starting_point = new_starting_point;
+            
+            // Copy everything else from the parent CompositionSet
+            // Deep copy the model map
+            for (auto energymod = other.models.begin(); energymod != other.models.end(); ++energymod) {
+                models.insert(std::make_pair(energymod->first,std::unique_ptr<EnergyModel>(energymod->second->clone())));
+            }
+            jac_g_trees = other.jac_g_trees;
+            hessian_data = other.hessian_data;
+            tree_data = other.tree_data;
+            first_derivatives = other.first_derivatives;
+            symbols = other.symbols;
+            cm = other.cm;
+            phase_indices = other.phase_indices;
+            constraint_null_space_matrix = other.constraint_null_space_matrix;
+        }
 
         CompositionSet() { }
 
@@ -113,11 +138,11 @@ class CompositionSet
             {
             return cset_name;
             }
-        void set_starting_point ( std::vector<double> &startx )
+        void set_starting_point ( std::map<std::string,double> &startx )
             {
             starting_point = startx;
             }
-        std::vector<double> get_starting_point() const
+        std::map<std::string,double> get_starting_point() const
             {
             return starting_point;
             }
@@ -126,7 +151,7 @@ class CompositionSet
         CompositionSet& operator= ( const CompositionSet & ) = delete;
     private:
         std::string cset_name;
-        std::vector<double> starting_point; // starting point for optimizing this composition set
+        std::map<std::string,double> starting_point; // starting point for optimizing this composition set
         std::map<std::string,std::unique_ptr<EnergyModel>> models;
         std::map<int,boost::spirit::utree> first_derivatives;
         boost::bimap<std::string, int> phase_indices;
