@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2013 Richard Otis
+	Copyright (c) 2012-2014 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -71,7 +71,7 @@ struct MathParserFixture
 				else BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));
 			}
 			else {
-				final_tree = differentiate_utree(ret_tree, diffvar);
+				final_tree = differentiate_utree(ret_tree, std::string(""), diffvar);
 				final_tree = process_utree(final_tree, conditions);
 				if (final_tree.which() == utree_type::double_type) return final_tree.get<double>();
 				else BOOST_THROW_EXCEPTION(parse_error() << specific_errinfo("Bad abstract syntax tree"));

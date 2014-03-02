@@ -75,7 +75,7 @@ CompositionSet::CompositionSet (
                 }
             else
                 {
-                difftree = simplify_utree ( differentiate_utree ( j->second->get_ast(), i->first, symbols ) );
+                difftree = simplify_utree ( differentiate_utree ( j->second->get_ast(), std::string(cset_name + "_"), i->first, symbols ) );
                 }
             if ( !is_zero_tree ( difftree ) )
                 {
@@ -100,7 +100,7 @@ CompositionSet::CompositionSet (
                     }
                 else
                     {
-                    boost::spirit::utree second_difftree = simplify_utree ( differentiate_utree ( difftree, k->first, symbols ) );
+                    boost::spirit::utree second_difftree = simplify_utree ( differentiate_utree ( difftree, std::string(cset_name + "_"), k->first, symbols ) );
                     if ( !is_zero_tree ( second_difftree ) )
                         {
                         tree_data.insert ( ast_entry ( second_diffvars, j->first, second_difftree ) );
@@ -150,8 +150,8 @@ CompositionSet::CompositionSet (
         // for each variable, calculate derivatives of all the constraints
         for ( auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j )
             {
-            boost::spirit::utree lhs = differentiate_utree ( j->lhs, i->first );
-            boost::spirit::utree rhs = differentiate_utree ( j->rhs, i->first );
+            boost::spirit::utree lhs = differentiate_utree ( j->lhs, std::string(cset_name + "_"), i->first );
+            boost::spirit::utree rhs = differentiate_utree ( j->rhs, std::string(cset_name + "_"), i->first );
             lhs = simplify_utree ( lhs );
             rhs = simplify_utree ( rhs );
             if (
@@ -193,7 +193,7 @@ double CompositionSet::evaluate_objective (
 
     for ( auto i = models.cbegin(); i != models.cend(); ++i )
         {
-        objective += process_utree ( i->second->get_ast(), conditions, main_indices, symbols, x ).get<double>();
+        objective += process_utree ( i->second->get_ast(), conditions, std::string(cset_name + "_"), main_indices, symbols, x ).get<double>();
         }
 
     BOOST_LOG_SEV ( comp_log, debug ) << "returning";
@@ -238,7 +238,7 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient (
         }
     for ( ast_set::const_iterator i = ast_begin; i != ast_end; ++i )
         {
-        const double diffvalue = process_utree ( i->ast, conditions, main_indices, symbols, x ).get<double>();
+        const double diffvalue = process_utree ( i->ast, conditions, std::string(cset_name + "_"), main_indices, symbols, x ).get<double>();
         const std::string diffvar = * ( i->diffvars.cbegin() ); // get differentiating variable
         const int varindex = main_indices.left.at ( diffvar );
         if ( diffvar != compset_name )
@@ -323,7 +323,7 @@ std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian (
 
     for ( ast_set::const_iterator i = ast_begin; i != ast_end; ++i )
         {
-        const double diffvalue = process_utree ( i->ast, conditions, main_indices, symbols, x ).get<double>();
+        const double diffvalue = process_utree ( i->ast, conditions, std::string(cset_name + "_"), main_indices, symbols, x ).get<double>();
         const std::string diffvar1 = * ( i->diffvars.cbegin() );
         const std::string diffvar2 = * ( ++ ( i->diffvars.cbegin() ) );
         const int varindex1 = main_indices.left.at ( diffvar1 );
@@ -366,7 +366,7 @@ boost::numeric::ublas::symmetric_matrix<double,boost::numeric::ublas::lower> Com
         const int varindex1 = main_indices.left.at ( diffvar1 );
         const int varindex2 = main_indices.left.at ( diffvar2 );
         // TODO: const_cast is obviously suboptimal here, but it saves a copy and will do until process_utree is fixed
-        const double diffvalue = process_utree ( i->ast, conditions, main_indices, symbols, const_cast<double*> ( &x[0] ) ).get<double>();
+        const double diffvalue = process_utree ( i->ast, conditions, std::string(cset_name + "_"), main_indices, symbols, const_cast<double*> ( &x[0] ) ).get<double>();
         retmatrix ( varindex1,varindex2 ) += diffvalue;
         }
     return retmatrix;

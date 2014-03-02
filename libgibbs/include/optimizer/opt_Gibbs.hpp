@@ -113,9 +113,6 @@ private:
 	boost::bimap<std::string, Ipopt::Index> main_indices; // Map variable name to Index
 	sublattice_set main_ss; // Information about the structure of the sublattice models in each phase
 	evalconditions conditions; // User-specified conditions
-	Phase_Collection::const_iterator phase_iter;
-	Phase_Collection::const_iterator phase_end;
-	Phase_Collection phase_col; // Collection of phases from database
 	ConstraintManager cm; // Handles all constraints
 
 	std::vector<jacobian_entry> jac_g_trees; // Jacobian ASTs of constraints

@@ -69,13 +69,16 @@ class CompositionSet
             for (auto energymod = other.models.begin(); energymod != other.models.end(); ++energymod) {
                 models.insert(std::make_pair(energymod->first,std::unique_ptr<EnergyModel>(energymod->second->clone())));
             }
+            // Rename all of the variables according to the scheme in the new starting_point
+            for (auto i = starting_point.begin(); i != starting_point.end(); ++i) {
+                phase_indices.left.insert(std::make_pair(i->first,std::distance(starting_point.begin(),i)));
+            }
             jac_g_trees = other.jac_g_trees;
             hessian_data = other.hessian_data;
             tree_data = other.tree_data;
             first_derivatives = other.first_derivatives;
             symbols = other.symbols;
             cm = other.cm;
-            phase_indices = other.phase_indices;
             constraint_null_space_matrix = other.constraint_null_space_matrix;
         }
 
@@ -165,4 +168,3 @@ class CompositionSet
     };
 
 #endif
-// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 

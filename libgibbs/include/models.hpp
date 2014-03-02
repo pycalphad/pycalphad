@@ -41,7 +41,7 @@ struct sublattice_entry {
 	const std::string name() const {
 		// std::to_string exists in C++11 but some compilers are buggy
 		std::stringstream ss;
-		ss << phase << "_" << index << "_" << species;
+		ss << index << "_" << species;
 		return (const std::string)ss.str();
 	}
 };
