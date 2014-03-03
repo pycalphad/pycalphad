@@ -62,11 +62,10 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
     int sublindex = 0;
     ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
-    ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ) );;
+    ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ) );
 
     // (1) Sample some points on the domain using NDSimplex
     // Because the grid is uniform, we can assume that each point is the center of an N-simplex
-return minima;
     // Determine number of components in each sublattice
     while ( ic0 != ic1 )
         {
@@ -79,7 +78,7 @@ return minima;
         // Next sublattice
         ++sublindex;
         ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
-        ic1 = boost::multi_index::get<phase_subl> ( sublset ).end();
+    ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ));
         }
 
     // Take all combinations of generated points in each sublattice
