@@ -66,7 +66,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 
     // (1) Sample some points on the domain using NDSimplex
     // Because the grid is uniform, we can assume that each point is the center of an N-simplex
-
+return minima;
     // Determine number of components in each sublattice
     while ( ic0 != ic1 )
         {
