@@ -38,7 +38,7 @@ struct CachedAbstractSyntaxTree {
 		}
 		else {
 			// cache miss: perform the differentiation and store the result
-			auto result = differentiated_ast_cache.emplace(variable, differentiate_utree(ast, std::string(), variable, symbols));
+			auto result = differentiated_ast_cache.emplace(variable, differentiate_utree(ast, variable, symbols));
 			return result.first->second; // return const
 		}
 	}

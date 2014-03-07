@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2014 Richard Otis
+	Copyright (c) 2012-2013 Richard Otis
 
 	Based on example code from Boost MultiIndex.
 	Copyright (c) 2003-2008 Joaquin M Lopez Munoz.

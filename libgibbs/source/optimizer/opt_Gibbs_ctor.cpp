@@ -28,33 +28,18 @@ void add_trees ( boost::spirit::utree &root_tree, const boost::spirit::utree &ne
     root_tree.swap ( temp_tree );
     }
 
-    /*
-     * TODO: The first thing that needs to be done to get automatic composition set generation working
-     * is that GibbsOpt should not use libTDB's Phase objects at all, internally. phase_col needs to go
-     * away and CompositionSets should be constructed as quickly as possible from each Phase object.
-     * Variable names should only be assigned once all CompositionSets have been constructed.
-     */
 GibbsOpt::GibbsOpt (
     const Database &DB,
     const evalconditions &sysstate ) :
-    conditions ( sysstate )
+    conditions ( sysstate ),
+    phase_iter ( DB.get_phase_iterator() ),
+    phase_end ( DB.get_phase_iterator_end() )
     {
     BOOST_LOG_NAMED_SCOPE ( "GibbsOpt::GibbsOpt" );
     BOOST_LOG_CHANNEL_SEV ( opto_log, "optimizer", debug ) << "enter ctor";
-    auto varcount = 0;
-    auto activephases = 0;
+    int varcount = 0;
+    int activephases = 0;
     parameter_set pset;
-    Phase_Collection phase_col;
-    
-    if ( conditions.elements.cbegin() == conditions.elements.cend() ) BOOST_LOG_SEV ( opto_log, critical ) << "No components entered!";
-    if ( DB.get_phase_iterator() == DB.get_phase_iterator_end() ) BOOST_LOG_SEV ( opto_log, critical ) << "No phases found!";
-    
-    
-    // build_variable_map() will fill main_indices by reference
-    // main_indices is used during the optimization as a simplified variable map
-    main_ss = build_variable_map ( DB.get_phase_iterator(), DB.get_phase_iterator_end(), conditions, main_indices );
-    // load the parameters from the database
-    pset = DB.get_parameter_set();
 
     for ( auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i )
         {
@@ -67,17 +52,33 @@ GibbsOpt::GibbsOpt (
             }
         }
 
+    if ( conditions.elements.cbegin() == conditions.elements.cend() ) BOOST_LOG_SEV ( opto_log, critical ) << "No components entered!";
+    if ( phase_col.begin() == phase_col.end() ) BOOST_LOG_SEV ( opto_log, critical ) << "No phases found!";
+
+    // build_variable_map() will fill main_indices by reference
+    // main_indices is used during the optimization as a simplified variable map
+    main_ss = build_variable_map ( phase_col.begin(), phase_col.end(), conditions, main_indices );
+
+    for ( auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i )
+        {
+        BOOST_LOG_SEV ( opto_log, debug ) << "Variable " << i->second << ": " << i->first;
+        }
+
+    // load the parameters from the database
+    pset = DB.get_parameter_set();
+
     // this is the part where we look up the models enabled for each phase and call their AST builders
     // then we build a master Gibbs AST for the objective function
     auto temp_phase_col = phase_col; // We modify phase_col, so we should be careful here
-    for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i )
+    for ( auto i = phase_iter; i != phase_end; ++i )
         {
+        if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         ++activephases;
         CompositionSet main_compset = CompositionSet ( i->second, pset, main_ss, main_indices );
         std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima ( main_compset, main_ss, conditions );
         BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
-    break;
-    if ( minima.size() == 1 )
+
+        if ( minima.size() == 1 )
             {
             // No miscibility gap, no need to create new composition sets
             // Use the minimum found during global minimization as the starting point
@@ -91,30 +92,42 @@ GibbsOpt::GibbsOpt (
             std::map<std::string, CompositionSet>::iterator it;
             for ( auto min = minima.begin(); min != minima.end(); ++min )
                 {
-                if ( min != minima.begin() )
+                if ( min == minima.begin() )
                     {
-                        ++compsetcount;
-                        ++activephases;
+                    // For the first one, don't clone it; just rename it
+                    std::stringstream compsetname;
+                    compsetname << main_compset.name() << "#" << compsetcount;
+
+                    // Set starting point
+                    main_compset.set_starting_point ( * ( min ) );
+                    // Rename from PHASENAME to PHASENAME#1
+                // TODO: Making a copy of the Phase object is not efficient
+                    phase_col[compsetname.str()] = phase_col[main_compset.name()];
+                    auto remove_phase_iter = phase_col.find ( main_compset.name() );
+                    if ( remove_phase_iter != phase_col.end() ) phase_col.erase ( remove_phase_iter );
+                    it = comp_sets.emplace ( compsetname.str(), std::move ( main_compset ) ).first;
                     }
-                std::stringstream compsetname;
-                compsetname << it->second.name() << "#" << compsetcount;
-                // Use special constructor which copies, renames and sets the start point
-                comp_sets.emplace ( compsetname.str(), CompositionSet ( it->second, *min, compsetname.str() ) );
+                else
+                    {
+                    ++compsetcount;
+                    ++activephases;
+                    std::stringstream compsetname;
+                    compsetname << it->second.name() << "#" << compsetcount;
+                    // Use special constructor which copies, renames and sets the start point
+                    comp_sets.emplace ( compsetname.str(), CompositionSet ( it->second, *min, compsetname.str() ) );
                 // TODO: Copying Phase object is not efficient
-                phase_col[compsetname.str()] = temp_phase_col[it->second.name()];    
+                phase_col[compsetname.str()] = phase_col[it->second.name()];    
                 BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
+                    }
                 }
             }
         }
-        
-        BOOST_LOG_SEV(opto_log, debug) << "Global minimization complete. Rebuilding variable map with new composition sets...";
-        main_ss = build_variable_map ( phase_col.begin(), phase_col.end(), conditions, main_indices );
-return;
+
     // Add the mandatory constraints to the ConstraintManager
     if ( activephases > 1 )
         cm.addConstraint (
             PhaseFractionBalanceConstraint (
-                phase_col.begin(), phase_col.end()
+                phase_iter, phase_end
             )
         ); // Add the mass balance constraint to ConstraintManager (mandatory)
     if ( activephases == 1 )
@@ -126,7 +139,7 @@ return;
         }
 
     // Add the sublattice site fraction constraints (mandatory)
-    for ( auto i = phase_col.begin(); i != phase_col.end(); ++i )
+    for ( auto i = phase_iter; i != phase_end; ++i )
         {
         if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         for ( auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end(); ++j )
@@ -164,7 +177,7 @@ return;
 
     for ( auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i )
         {
-        cm.addConstraint ( MassBalanceConstraint ( phase_col.begin(), phase_col.end(), i->first, i->second ) );
+        cm.addConstraint ( MassBalanceConstraint ( phase_iter, phase_end, i->first, i->second ) );
         }
 
     for ( auto i = cm.constraints.begin() ; i != cm.constraints.end(); ++i )
@@ -179,8 +192,8 @@ return;
         // for each variable, calculate derivatives of all the constraints
         for ( auto j = cm.constraints.begin(); j != cm.constraints.end(); ++j )
             {
-            boost::spirit::utree lhs = differentiate_utree ( j->lhs, std::string(), i->first ); // FIXME
-            boost::spirit::utree rhs = differentiate_utree ( j->rhs, std::string(), i->first );
+            boost::spirit::utree lhs = differentiate_utree ( j->lhs, i->first );
+            boost::spirit::utree rhs = differentiate_utree ( j->rhs, i->first );
             lhs = simplify_utree ( lhs );
             rhs = simplify_utree ( rhs );
             if (
@@ -223,7 +236,7 @@ return;
             {
             if ( i->second > j->var_index ) continue; // skip upper triangular
             // second derivative of constraint jac_g_trees->cons_index w.r.t jac_g_trees->var_index, i->second
-            boost::spirit::utree cons_second_deriv = differentiate_utree ( j->ast, std::string(), i->first ); // FIXME
+            boost::spirit::utree cons_second_deriv = differentiate_utree ( j->ast, i->first );
             //cons_second_deriv = simplify_utree(cons_second_deriv);
             hessian_set::iterator h_iter, h_end;
             // don't add zeros to the Hessian

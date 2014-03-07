@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2014 Richard Otis
+	Copyright (c) 2012-2013 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -65,7 +65,7 @@ IHJMagneticModel::IHJMagneticModel(
 	parameter_set_view psv;
 	parameter_set_view psv_subview_tc, psv_subview_bm;
 	utree Curie_temperature, tau, mean_magnetic_moment;
-	const std::string tau_symbolname("TAU");
+	const std::string tau_symbolname(phasename + "_TAU");
 	std::string scantype;
 	boost::multi_index::index<sublattice_set,phases>::type::iterator ic0,ic1;
 	boost::multi_index::index<parameter_set_view,type_index>::type::iterator it0, it1;

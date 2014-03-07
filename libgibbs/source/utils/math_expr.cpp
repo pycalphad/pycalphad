@@ -1,5 +1,5 @@
 /*=============================================================================
-	Copyright (c) 2012-2014 Richard Otis
+	Copyright (c) 2012-2013 Richard Otis
 
     Distributed under the Boost Software License, Version 1.0. (See accompanying
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
@@ -47,16 +47,14 @@ bool is_zero_tree(const utree &ut) {
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions,
-                std::string const& internal_variable_prefix,
 		boost::bimap<std::string, int> const &modelvar_indices,
 		double* const modelvars) {
-	return process_utree(ut,conditions, internal_variable_prefix, modelvar_indices, ASTSymbolMap(), modelvars);
+	return process_utree(ut,conditions, modelvar_indices, ASTSymbolMap(), modelvars);
 }
 
 boost::spirit::utree const process_utree(
 		boost::spirit::utree const& ut,
 		evalconditions const& conditions,
-                std::string const& internal_variable_prefix,
 		boost::bimap<std::string, int> const &modelvar_indices,
 		ASTSymbolMap const& symbols,
 		double* const modelvars) {
@@ -104,8 +102,8 @@ boost::spirit::utree const process_utree(
 					// operator/function
 					boost::spirit::utf8_string_range_type rt = (*it).get<boost::spirit::utf8_string_range_type>();
 					op = std::string(rt.begin(), rt.end()); // set the symbol
-					//boost::algorithm::to_upper(op);
-					const auto varindex = modelvar_indices.left.find(internal_variable_prefix + op); // attempt to find this symbol as a model variable
+					boost::algorithm::to_upper(op);
+					const auto varindex = modelvar_indices.left.find(op); // attempt to find this symbol as a model variable
 					if (varindex != modelvar_indices.left.end()) {
 						// we found the variable
 						// use the index to return the current value
@@ -113,26 +111,26 @@ boost::spirit::utree const process_utree(
 						//std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 						return modelvars[varindex->second];
 					}
-					// determine if this is a special symbol (no prefix applied)
+					// determine if this is a special symbol
 					const auto symbol_find = symbols.find(op);
 					const auto symbol_end = symbols.end();
 					if (symbol_find != symbol_end) {
 						// this is a special symbol, return its AST value
-						return process_utree(symbol_find->second.get(), conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars);
+						return process_utree(symbol_find->second.get(), conditions, modelvar_indices, symbols, modelvars);
 					}
 					//std::cout << "OPERATOR: " << op << std::endl;
 					if (op == "@") {
 						++it;
 						double curT, lowlimit, highlimit;
 						try {
-                                                    curT = process_utree(*it, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
+							curT = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							//std::cout << "curT: " << curT << std::endl;
 							++it;
-                                                        lowlimit = process_utree(*it, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
+							lowlimit = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							//std::cout << "lowlimit:" << lowlimit << std::endl;
 							//if (lowlimit == -1) lowlimit = curT; // lowlimit == -1 means no limit
 							++it;
-                                                        highlimit = process_utree(*it, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
+							highlimit = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 						}
 						catch (boost::exception &e) {
 							e << ast_errinfo(*it);
@@ -157,7 +155,7 @@ boost::spirit::utree const process_utree(
 							// Note: by design we only return the first result to satisfy the criterion
 							utree ret_tree;
 							try {
-                                                            ret_tree = process_utree(*it, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
+								ret_tree = process_utree(*it, conditions, modelvar_indices, symbols, modelvars).get<double>();
 							}
 							catch (boost::exception &e) {
 								e << ast_errinfo(*it);
@@ -187,8 +185,8 @@ boost::spirit::utree const process_utree(
 					auto lhsiter = it;
 					++it; // get right-hand side
 					auto rhsiter = it;
-                                        if (lhsiter != end) lhs = process_utree(*lhsiter, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
-                                        if (rhsiter != end) rhs = process_utree(*rhsiter, conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars).get<double>();
+					if (lhsiter != end) lhs = process_utree(*lhsiter, conditions, modelvar_indices, symbols, modelvars).get<double>();
+					if (rhsiter != end) rhs = process_utree(*rhsiter, conditions, modelvar_indices, symbols, modelvars).get<double>();
 
 
 					if (op == "+") res += (lhs + rhs);  // accumulate the result
@@ -262,7 +260,7 @@ boost::spirit::utree const process_utree(
 			boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
 			std::string varname(rt.begin(),rt.end());
 
-			const auto varindex = modelvar_indices.left.find(internal_variable_prefix + varname); // attempt to find this variable
+			const auto varindex = modelvar_indices.left.find(varname); // attempt to find this variable
 			if (varindex != modelvar_indices.left.end()) {
 				// we found the variable
 				// use the index to return the current value
@@ -270,13 +268,13 @@ boost::spirit::utree const process_utree(
 				//std::cout << "process_utree returning: " << modelvars[varindex->second] << std::endl;
 				return modelvars[varindex->second];
 			}
-			// determine if this is a special symbol (no prefix applied to symbols)
+			// determine if this is a special symbol
 			const auto symbol_find = symbols.find(varname);
 			const auto symbol_end = symbols.end();
 
 			if (symbol_find != symbol_end) {
 				// this is a special symbol, return its AST value
-                            return process_utree(symbol_find->second.get(), conditions, internal_variable_prefix, modelvar_indices, symbols, modelvars);
+				return process_utree(symbol_find->second.get(), conditions, modelvar_indices, symbols, modelvars);
 			}
 			const char* op(rt.begin());
 			if ((rt.end() - rt.begin()) != 1) {
@@ -520,6 +518,5 @@ boost::spirit::utree const process_utree(
 		) {
 	boost::bimap<std::string,int> placeholder;
 	double placeholder2[0];
-        std::string empty_prefix;
-	return process_utree(ut, conditions, empty_prefix, placeholder, placeholder2);
+	return process_utree(ut, conditions, placeholder, placeholder2);
 }

@@ -208,10 +208,9 @@ bool GibbsOpt::eval_g ( Index n, const Number* x, bool new_x, Index m_num, Numbe
             //BOOST_LOG_SEV(opto_log, debug) << "Constraint " << std::distance(cons_begin,i) << std::endl;
             //BOOST_LOG_SEV(opto_log, debug) << i->name << " LHS: " << i->lhs << std::endl;
             //BOOST_LOG_SEV(opto_log, debug) << i->name << " RHS: " << i->rhs << std::endl;
-                // FIXME
-            double lhs = process_utree ( i->lhs, conditions, std::string(), main_indices, ( double* ) x ).get<double>();
+            double lhs = process_utree ( i->lhs, conditions, main_indices, ( double* ) x ).get<double>();
             //BOOST_LOG_SEV(opto_log, debug) << i->name << " LHS: " << lhs << std::endl;
-            double rhs = process_utree ( i->rhs, conditions, std::string(), main_indices, ( double* ) x ).get<double>();
+            double rhs = process_utree ( i->rhs, conditions, main_indices, ( double* ) x ).get<double>();
             //BOOST_LOG_SEV(opto_log, debug) << i->name << " RHS: " << rhs << std::endl;
             g[std::distance ( cons_begin,i )] = lhs - rhs;
             }
@@ -268,8 +267,8 @@ bool GibbsOpt::eval_jac_g ( Index n, const Number* x, bool new_x,
                 values[i] = 0;
                 }
             for ( auto i = jac_g_trees.cbegin(); i != jac_g_trees.cend(); ++i )
-                { // FIXME
-                values[std::distance ( jac_g_trees.cbegin(),i )] = process_utree ( i->ast, conditions, std::string(), main_indices, ( double* ) x ).get<double>();
+                {
+                values[std::distance ( jac_g_trees.cbegin(),i )] = process_utree ( i->ast, conditions, main_indices, ( double* ) x ).get<double>();
                 }
             }
         catch ( boost::exception &e )
@@ -357,7 +356,7 @@ bool GibbsOpt::eval_h ( Index n, const Number* x, bool new_x,
                 for ( auto j = i->asts.cbegin(); j != i->asts.cend(); ++j )
                     {
                     BOOST_LOG_SEV ( opto_log, debug ) << "Hessian evaluation for constraint " << j->first << " (" << varindex1 << "," << varindex2 << ")";
-                    boost::spirit::utree hess_tree = process_utree ( j->second, conditions, std::string(), main_indices, ( double* ) x ).get<double>(); // FIXME
+                    boost::spirit::utree hess_tree = process_utree ( j->second, conditions, main_indices, ( double* ) x ).get<double>();
                     // constraint portion
                     values[sparse_index] += lambda[j->first] * hess_tree.get<double>();
                     }
@@ -396,8 +395,8 @@ void GibbsOpt::finalize_solution ( SolverReturn status,
 
     result.conditions = conditions;
 
-    // Iterate over all composition sets
-    for ( auto i = comp_sets.begin(); i != comp_sets.end(); ++i )
+    // Iterate over all phases
+    for ( auto i = phase_col.begin(); i != phase_col.end(); ++i )
         {
         sublattice_set_view phase_view; // Subview to current phase
         const std::string phasename = i->first;
@@ -460,3 +459,4 @@ void GibbsOpt::finalize_solution ( SolverReturn status,
 
     BOOST_LOG_SEV ( opto_log, debug ) << "exit finalize_solution";
     }
+// kate: indent-mode cstyle; indent-width 4; replace-tabs on; 
