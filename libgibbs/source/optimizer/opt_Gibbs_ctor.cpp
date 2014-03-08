@@ -31,15 +31,14 @@ void add_trees ( boost::spirit::utree &root_tree, const boost::spirit::utree &ne
 GibbsOpt::GibbsOpt (
     const Database &DB,
     const evalconditions &sysstate ) :
-    conditions ( sysstate ),
-    phase_iter ( DB.get_phase_iterator() ),
-    phase_end ( DB.get_phase_iterator_end() )
+    conditions ( sysstate )
     {
     BOOST_LOG_NAMED_SCOPE ( "GibbsOpt::GibbsOpt" );
     BOOST_LOG_CHANNEL_SEV ( opto_log, "optimizer", debug ) << "enter ctor";
-    int varcount = 0;
-    int activephases = 0;
+    auto varcount = 0;
+    auto activephases = 0;
     parameter_set pset;
+    Phase_Collection phase_col;
 
     for ( auto i = DB.get_phase_iterator(); i != DB.get_phase_iterator_end(); ++i )
         {
@@ -70,7 +69,7 @@ GibbsOpt::GibbsOpt (
     // this is the part where we look up the models enabled for each phase and call their AST builders
     // then we build a master Gibbs AST for the objective function
     auto temp_phase_col = phase_col; // We modify phase_col, so we should be careful here
-    for ( auto i = phase_iter; i != phase_end; ++i )
+    for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i )
         {
         if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         ++activephases;
@@ -127,7 +126,7 @@ GibbsOpt::GibbsOpt (
     if ( activephases > 1 )
         cm.addConstraint (
             PhaseFractionBalanceConstraint (
-                phase_iter, phase_end
+                phase_col.begin(), phase_col.end()
             )
         ); // Add the mass balance constraint to ConstraintManager (mandatory)
     if ( activephases == 1 )
@@ -139,7 +138,7 @@ GibbsOpt::GibbsOpt (
         }
 
     // Add the sublattice site fraction constraints (mandatory)
-    for ( auto i = phase_iter; i != phase_end; ++i )
+    for ( auto i = phase_col.begin(); i != phase_col.end(); ++i )
         {
         if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         for ( auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end(); ++j )
@@ -177,7 +176,7 @@ GibbsOpt::GibbsOpt (
 
     for ( auto i = conditions.xfrac.cbegin(); i != conditions.xfrac.cend(); ++i )
         {
-        cm.addConstraint ( MassBalanceConstraint ( phase_iter, phase_end, i->first, i->second ) );
+        cm.addConstraint ( MassBalanceConstraint ( phase_col.begin(), phase_col.end(), i->first, i->second ) );
         }
 
     for ( auto i = cm.constraints.begin() ; i != cm.constraints.end(); ++i )

@@ -396,7 +396,7 @@ void GibbsOpt::finalize_solution ( SolverReturn status,
     result.conditions = conditions;
 
     // Iterate over all phases
-    for ( auto i = phase_col.begin(); i != phase_col.end(); ++i )
+    for ( auto i = comp_sets.begin(); i != comp_sets.end(); ++i )
         {
         sublattice_set_view phase_view; // Subview to current phase
         const std::string phasename = i->first;
