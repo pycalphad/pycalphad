@@ -144,9 +144,17 @@ public:
         auto copymodel = std::unique_ptr<EnergyModel> ( new EnergyModel ( *this ) );
         ASTSymbolMap new_map;
         ast_variable_rename ( copymodel->model_ast, old_phase_name, new_phase_name );
-        // TODO: Modify copymodel's ast_symbol_table
-        // This will probably require copying out each const AST member and building a new ASTSymbolMap
+        // Modify copymodel's ast_symbol_table with variable names for the new phase name
+        // Copy out each const AST member and build a new ASTSymbolMap
+        for (const auto ast_symbol : ast_symbol_table) {
+            boost::spirit::utree cur_tree (ast_symbol.second.get());
+            ast_variable_rename(cur_tree, old_phase_name, new_phase_name);
+            CachedAbstractSyntaxTree new_cached_ast (std::move(cur_tree));
+            // TODO: Fix variable renaming
+            new_map.emplace(std::make_pair("",std::move(new_cached_ast)));
+        }
         copymodel->ast_symbol_table = std::move(new_map);
+        
         return std::move ( copymodel );
     }
 protected:
