@@ -15,6 +15,7 @@
 
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/utils/ast_caching.hpp"
+#include "libgibbs/include/utils/ast_variable_rename.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
@@ -134,12 +135,20 @@ public:
 	};
 	const boost::spirit::utree& get_ast() const { return model_ast; }
 	const boost::iterator_range<ASTSymbolMap::const_iterator> get_symbol_table() const {
-		return boost::make_iterator_range(ast_symbol_table.begin(), ast_symbol_table.end());
-	}
-	// Explicit copy constructor
-	EnergyModel* clone() const {
-            return new EnergyModel(*this);
-        }
+	    return boost::make_iterator_range ( ast_symbol_table.begin(), ast_symbol_table.end() );
+    }
+    std::unique_ptr<EnergyModel> clone_with_renamed_phase (
+        const std::string &old_phase_name,
+        const std::string &new_phase_name
+    ) const {
+        auto copymodel = std::unique_ptr<EnergyModel> ( new EnergyModel ( *this ) );
+        ASTSymbolMap new_map;
+        ast_variable_rename ( copymodel->model_ast, old_phase_name, new_phase_name );
+        // TODO: Modify copymodel's ast_symbol_table
+        // This will probably require copying out each const AST member and building a new ASTSymbolMap
+        copymodel->ast_symbol_table = std::move(new_map);
+        return std::move ( copymodel );
+    }
 protected:
 	boost::spirit::utree model_ast;
 	ASTSymbolMap ast_symbol_table; // storage for expensive, repeating ASTs behind a symbol
