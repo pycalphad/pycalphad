@@ -15,7 +15,7 @@
 
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/utils/ast_caching.hpp"
-#include "libgibbs/include/utils/ast_map_rename.hpp"
+#include "libgibbs/include/utils/ast_container_rename.hpp"
 #include "libgibbs/include/utils/ast_variable_rename.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>

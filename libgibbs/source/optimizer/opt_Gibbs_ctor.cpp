@@ -98,13 +98,14 @@ GibbsOpt::GibbsOpt (
                     compsetname << main_compset.name() << "#" << compsetcount;
 
                     // Set starting point
-                    main_compset.set_starting_point ( * ( min ) );
+                    auto new_starting_point = ast_copy_with_renamed_phase(*min, main_compset.name(), compsetname.str());
                     // Rename from PHASENAME to PHASENAME#1
-                // TODO: Making a copy of the Phase object is not efficient
+                    // TODO: Making a copy of the Phase object is not efficient
                     phase_col[compsetname.str()] = phase_col[main_compset.name()];
                     auto remove_phase_iter = phase_col.find ( main_compset.name() );
                     if ( remove_phase_iter != phase_col.end() ) phase_col.erase ( remove_phase_iter );
-                    it = comp_sets.emplace ( compsetname.str(), std::move ( main_compset ) ).first;
+                    it = comp_sets.emplace ( compsetname.str(), CompositionSet( main_compset, new_starting_point, compsetname.str() ) ).first;
+                    BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
                     }
                 else
                     {
@@ -114,9 +115,9 @@ GibbsOpt::GibbsOpt (
                     compsetname << it->second.name() << "#" << compsetcount;
                     // Use special constructor which copies, renames and sets the start point
                     comp_sets.emplace ( compsetname.str(), CompositionSet ( it->second, *min, compsetname.str() ) );
-                // TODO: Copying Phase object is not efficient
-                phase_col[compsetname.str()] = phase_col[it->second.name()];    
-                BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
+                    // TODO: Copying Phase object is not efficient
+                    phase_col[compsetname.str()] = phase_col[it->second.name()];    
+                    BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
                     }
                 }
             }

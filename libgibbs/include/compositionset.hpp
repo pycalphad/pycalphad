@@ -59,26 +59,7 @@ public:
     CompositionSet (
         const CompositionSet &other,
         const std::map<std::string,double> &new_starting_point,
-        const std::string &new_name ) {
-        std::string old_phase_name (cset_name), new_phase_name (new_name);
-        // These are specified by the user
-        cset_name = new_name;
-        starting_point = new_starting_point;
-
-        // Copy everything else from the parent CompositionSet
-        // Deep copy/rename the model map
-        for ( auto energymod = other.models.begin(); energymod != other.models.end(); ++energymod ) {
-            models.insert ( std::make_pair ( energymod->first,energymod->second->clone_with_renamed_phase ( old_phase_name, new_phase_name ) ) );
-        }
-        jac_g_trees = other.jac_g_trees;
-        hessian_data = other.hessian_data;
-        tree_data = other.tree_data;
-        first_derivatives = other.first_derivatives;
-        symbols = other.symbols;
-        cm = other.cm;
-        phase_indices = other.phase_indices;
-        constraint_null_space_matrix = other.constraint_null_space_matrix;
-    }
+        const std::string &new_name );
 
     CompositionSet() { }
 
