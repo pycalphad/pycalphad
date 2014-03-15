@@ -60,13 +60,13 @@ public:
         const CompositionSet &other,
         const std::map<std::string,double> &new_starting_point,
         const std::string &new_name ) {
-        std::string old_phase_name, new_phase_name;
+        std::string old_phase_name (cset_name), new_phase_name (new_name);
         // These are specified by the user
         cset_name = new_name;
         starting_point = new_starting_point;
 
         // Copy everything else from the parent CompositionSet
-        // Deep copy the model map
+        // Deep copy/rename the model map
         for ( auto energymod = other.models.begin(); energymod != other.models.end(); ++energymod ) {
             models.insert ( std::make_pair ( energymod->first,energymod->second->clone_with_renamed_phase ( old_phase_name, new_phase_name ) ) );
         }

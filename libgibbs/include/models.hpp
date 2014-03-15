@@ -15,6 +15,7 @@
 
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/utils/ast_caching.hpp"
+#include "libgibbs/include/utils/ast_map_rename.hpp"
 #include "libgibbs/include/utils/ast_variable_rename.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
@@ -142,17 +143,10 @@ public:
         const std::string &new_phase_name
     ) const {
         auto copymodel = std::unique_ptr<EnergyModel> ( new EnergyModel ( *this ) );
-        ASTSymbolMap new_map;
+        // Deep copy and rename the ast_symbol_table
+        ASTSymbolMap new_map (ast_copy_with_renamed_phase(ast_symbol_table, old_phase_name, new_phase_name));
+        // Perform a deep rename on model_ast
         ast_variable_rename ( copymodel->model_ast, old_phase_name, new_phase_name );
-        // Modify copymodel's ast_symbol_table with variable names for the new phase name
-        // Copy out each const AST member and build a new ASTSymbolMap
-        for (const auto ast_symbol : ast_symbol_table) {
-            boost::spirit::utree cur_tree (ast_symbol.second.get());
-            ast_variable_rename(cur_tree, old_phase_name, new_phase_name);
-            CachedAbstractSyntaxTree new_cached_ast (std::move(cur_tree));
-            // TODO: Fix variable renaming
-            new_map.emplace(std::make_pair("",std::move(new_cached_ast)));
-        }
         copymodel->ast_symbol_table = std::move(new_map);
         
         return std::move ( copymodel );
