@@ -15,8 +15,6 @@
 
 #include "libtdb/include/structure.hpp"
 #include "libgibbs/include/utils/ast_caching.hpp"
-#include "libgibbs/include/utils/ast_container_rename.hpp"
-#include "libgibbs/include/utils/ast_variable_rename.hpp"
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/multi_index_container.hpp>
 #include <boost/multi_index/composite_key.hpp>
@@ -141,19 +139,15 @@ public:
     std::unique_ptr<EnergyModel> clone_with_renamed_phase (
         const std::string &old_phase_name,
         const std::string &new_phase_name
-    ) const {
-        auto copymodel = std::unique_ptr<EnergyModel> ( new EnergyModel ( *this ) );
-        // Deep copy and rename the ast_symbol_table
-        ASTSymbolMap new_map (ast_copy_with_renamed_phase(ast_symbol_table, old_phase_name, new_phase_name));
-        // Perform a deep rename on model_ast
-        ast_variable_rename ( copymodel->model_ast, old_phase_name, new_phase_name );
-        copymodel->ast_symbol_table = std::move(new_map);
-        
-        return std::move ( copymodel );
-    }
+    ) const;
 protected:
 	boost::spirit::utree model_ast;
 	ASTSymbolMap ast_symbol_table; // storage for expensive, repeating ASTs behind a symbol
+	EnergyModel& operator=( const EnergyModel& );
+        EnergyModel( const EnergyModel &other ) {
+            this->model_ast = other.model_ast;
+            this->ast_symbol_table = other.ast_symbol_table;
+        };
 	double count_mixing_sites(const sublattice_set_view &ssv);
 	boost::spirit::utree add_interaction_factor (
 			const std::string &lhs_varname,
@@ -181,8 +175,6 @@ protected:
 			const std::string &sitefrac,
 			std::vector<std::string> &&allfracs
 			);
-private:
-	EnergyModel& operator=(const EnergyModel&);
 };
 
 

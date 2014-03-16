@@ -173,15 +173,22 @@ CompositionSet::CompositionSet (
     BOOST_LOG_NAMED_SCOPE ( "CompositionSet::CompositionSet" );
     logger comp_log ( journal::keywords::channel = "optimizer" );
     BOOST_LOG_SEV( comp_log, debug ) << "entered";
-    const std::string old_phase_name ( other.cset_name ), new_phase_name ( new_name );
+    const std::string old_phase_name ( other.cset_name );
+    const std::string new_phase_name ( new_name );
+    BOOST_LOG_SEV( comp_log, debug ) << "old_phase_name = " << old_phase_name;
+    BOOST_LOG_SEV( comp_log, debug ) << "new_phase_name = " << new_phase_name;
     // These are specified by the user
     cset_name = new_name;
+    BOOST_LOG_SEV( comp_log, debug ) << "cset_name set";
     starting_point = new_starting_point;
+    BOOST_LOG_SEV( comp_log, debug ) << "new_starting_point set";
 
     // Copy everything else from the parent CompositionSet
     // Deep copy/rename the model map
     for ( auto energymod = other.models.begin(); energymod != other.models.end(); ++energymod ) {
-        models.insert ( std::make_pair ( energymod->first,energymod->second->clone_with_renamed_phase ( old_phase_name, new_phase_name ) ) );
+        BOOST_LOG_SEV( comp_log, debug ) << "init DCR EnergyModel " << energymod->first;
+        models.emplace ( energymod->first,energymod->second->clone_with_renamed_phase ( old_phase_name, new_phase_name ) );
+        BOOST_LOG_SEV( comp_log, debug ) << "DCR complete EnergyModel " << energymod->first;
     }
     BOOST_LOG_SEV( comp_log, debug ) << "DCR EnergyModels complete";
     jac_g_trees = ast_copy_with_renamed_phase ( other.jac_g_trees, old_phase_name, new_phase_name );

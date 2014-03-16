@@ -9,6 +9,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/utils/ast_container_rename.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"

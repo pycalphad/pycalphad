@@ -22,6 +22,7 @@ void ast_variable_rename (
     std::string const & new_prefix )
 {
     BOOST_LOG_NAMED_SCOPE ( "ast_variable_rename" );
+    logger opto_log ( journal::keywords::channel = "optimizer" );
     typedef boost::spirit::utree utree;
     typedef boost::spirit::utree_type utree_type;
     switch ( ut.which() ) {
@@ -37,21 +38,29 @@ void ast_variable_rename (
                 // Check if the string is a variable name that starts with old_prefix
                 // if so, rename it
                 if ( boost::algorithm::istarts_with ( op, old_prefix ) ) {
+                    BOOST_LOG_SEV( opto_log, debug ) << "(list_type) renaming " << op;
                     boost::algorithm::ireplace_first ( op, old_prefix, new_prefix );
                     utree new_var ( op );
-                    ( *it ).swap ( new_var ); // Replace with the new variable
+                    (*it) = new_var; // Replace with the new variable
+                    BOOST_LOG_SEV( opto_log, debug ) << "(list_type) renamed to " << op;
+                    ++it; // next entity
+                    continue;
                 }
 
                 // step through the range check operator
                 if ( op == "@" ) {
+                    BOOST_LOG_SEV( opto_log, debug ) << "range check operator";
                     ++it;
                     try {
+                        BOOST_LOG_SEV( opto_log, debug ) << "curT";
                         // curT
                         ast_variable_rename ( *it, old_prefix, new_prefix );
                         ++it;
+                        BOOST_LOG_SEV( opto_log, debug ) << "lowlimit";
                         // lowlimit
                         ast_variable_rename ( *it, old_prefix, new_prefix );
                         ++it;
+                        BOOST_LOG_SEV( opto_log, debug ) << "highlimit";
                         // highlimit
                         ast_variable_rename ( *it, old_prefix, new_prefix );
                     } catch ( boost::exception &e ) {
@@ -59,9 +68,12 @@ void ast_variable_rename (
                         throw;
                     }
                 }
+                
+                BOOST_LOG_SEV( opto_log, debug ) << "(list_type) trying to get lhs";
 
                 ++it; // get left-hand side
                 auto lhsiter = it;
+                BOOST_LOG_SEV( opto_log, debug ) << "(list_type) trying to get rhs";
                 ++it; // get right-hand side
                 auto rhsiter = it;
                 if ( lhsiter != end ) {
@@ -71,9 +83,13 @@ void ast_variable_rename (
                     ast_variable_rename ( *rhsiter, old_prefix, new_prefix );
                 }
             }
+            
+            BOOST_LOG_SEV( opto_log, debug ) << "(list_type) trying to get next entity";
 
             ++it; // next entity (if any)
         }
+        BOOST_LOG_SEV( opto_log, debug ) << "(list_type) end loop";
+        return;
     }
     case utree_type::string_type: {
         // Check if the string is a variable name that starts with old_prefix
@@ -81,11 +97,12 @@ void ast_variable_rename (
         boost::spirit::utf8_string_range_type rt = ut.get<boost::spirit::utf8_string_range_type>();
         std::string varname ( rt.begin(), rt.end() );
         if ( boost::algorithm::istarts_with ( varname, old_prefix ) ) {
+            BOOST_LOG_SEV( opto_log, debug ) << "(string_type) renaming " << varname;
             boost::algorithm::ireplace_first ( varname, old_prefix, new_prefix );
             utree new_var ( varname );
             ut.swap ( new_var ); // Replace with the new variable
+            BOOST_LOG_SEV( opto_log, debug ) << "(string_type) renamed to " << varname;
         }
     }
     }
-    return;
 }
