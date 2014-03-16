@@ -122,7 +122,7 @@ std::string Equilibrium::print() const {
 	}
 	stream << std::endl;
 	// should be c + 2 - conditions, where c is the number of components
-	size_t dof = conditions.elements.size() + 2 - (conditions.xfrac.size()+1) - conditions.statevars.size();
+	std::size_t dof = conditions.elements.size() + 2 - conditions.xfrac.size() - conditions.statevars.size();
 	stream << "DEGREES OF FREEDOM " << dof << std::endl;
 
 	stream << std::endl;
