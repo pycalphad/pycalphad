@@ -76,6 +76,8 @@ GibbsOpt::GibbsOpt (
         CompositionSet main_compset = CompositionSet ( i->second, pset, main_ss, main_indices );
         std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima ( main_compset, main_ss, conditions );
         BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
+        
+        BOOST_ASSERT ( minima.size() > 0);
 
         if ( minima.size() == 1 )
             {
