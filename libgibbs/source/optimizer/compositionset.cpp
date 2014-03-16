@@ -221,17 +221,12 @@ double CompositionSet::evaluate_objective (
     double* const x ) const
 {
     BOOST_LOG_NAMED_SCOPE ( "CompositionSet::evaluate_objective(evalconditions const& conditions,boost::bimap<std::string, int> const &main_indices,double* const x)" );
-    logger comp_log;
-    BOOST_LOG_SEV ( comp_log, debug ) << "enter";
     double objective = 0;
     const std::string compset_name ( cset_name + "_FRAC" );
-    BOOST_LOG_SEV ( comp_log, debug ) << "compset_name: " << compset_name;
 
     for ( auto i = models.cbegin(); i != models.cend(); ++i ) {
         objective += process_utree ( i->second->get_ast(), conditions, main_indices, symbols, x ).get<double>();
     }
-
-    BOOST_LOG_SEV ( comp_log, debug ) << "returning";
     return objective;
 }
 double CompositionSet::evaluate_objective (
