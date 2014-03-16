@@ -47,7 +47,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 )
     {
     // This is the initial amount of subdivision
-    constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
+    constexpr const std::size_t subdivisions_per_axis = 5; // TODO: make this user-configurable
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
@@ -217,6 +217,11 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         //std::cout << "]" << std::endl;
         pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
         }
+        //std::cout << "checking [";
+    //for (const auto coord : pt) {
+    //    std::cout << coord << ",";
+    //}
+    //std::cout << "]" << std::endl;
     //double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
     //std::cout << obj << std::endl;
     std::vector<double> raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
@@ -235,6 +240,10 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         {
         //std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
         }
+    // If we've increased the gradient relative to previous, then give up
+    if (mag > old_gradient_mag) return minima;
+    // If we're not making good progress, then give up
+    if (depth > 2 && (mag/old_gradient_mag) > 0.95) return minima;
     // (2) If that magnitude is less than some defined epsilon, return z as a minimum
     //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
     if ( mag < gradient_magnitude_threshold )
