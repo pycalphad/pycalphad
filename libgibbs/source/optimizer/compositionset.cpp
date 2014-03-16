@@ -181,7 +181,7 @@ CompositionSet::CompositionSet (
     cset_name = new_name;
     BOOST_LOG_SEV( comp_log, debug ) << "cset_name set";
     starting_point = new_starting_point;
-    BOOST_LOG_SEV( comp_log, debug ) << "new_starting_point set";
+    BOOST_LOG_SEV( comp_log, debug ) << "new starting_point set";
 
     // Copy everything else from the parent CompositionSet
     // Deep copy/rename the model map

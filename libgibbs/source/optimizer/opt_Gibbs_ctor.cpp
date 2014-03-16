@@ -82,7 +82,8 @@ GibbsOpt::GibbsOpt (
             // No miscibility gap, no need to create new composition sets
             // Use the minimum found during global minimization as the starting point
             main_compset.set_starting_point ( * ( minima.begin() ) );
-            comp_sets.emplace ( main_compset.name(), std::move ( main_compset ) );
+            const std::string compset_name ( main_compset.name() );
+            comp_sets.emplace ( compset_name, std::move ( main_compset ) );
             }
         if ( minima.size() > 1 )
             {
@@ -96,16 +97,15 @@ GibbsOpt::GibbsOpt (
                         ++compsetcount;
                         ++activephases;
                     }
-                    std::stringstream compsetname;
-                    compsetname << main_compset.name() << "#" << compsetcount;
+                std::stringstream compsetname;
+                compsetname << main_compset.name() << "#" << compsetcount;
 
-                    // Set starting point
-                    auto new_starting_point = ast_copy_with_renamed_phase(*min, main_compset.name(), compsetname.str());
-                    // Copy from PHASENAME to PHASENAME#N
-                    phase_col[compsetname.str()] = phase_col[main_compset.name()];
-                    conditions.phases[compsetname.str()] = conditions.phases[main_compset.name()];
-                    it = comp_sets.emplace ( compsetname.str(), CompositionSet( main_compset, new_starting_point, compsetname.str() ) ).first;
-                    BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
+                // Set starting point
+                const auto new_starting_point = ast_copy_with_renamed_phase(*min, main_compset.name(), compsetname.str());
+                // Copy from PHASENAME to PHASENAME#N
+                phase_col[compsetname.str()] = phase_col[main_compset.name()];
+                conditions.phases[compsetname.str()] = conditions.phases[main_compset.name()];
+                it = comp_sets.emplace ( compsetname.str(), CompositionSet( main_compset, new_starting_point, compsetname.str() ) ).first;
                 }
             }
             // Remove PHASENAME

@@ -98,18 +98,23 @@ bool GibbsOpt::get_starting_point ( Index n, bool init_x, Number* x,
         const auto phase_varfind = main_indices.left.find(i->first + "_FRAC");
         BOOST_ASSERT( phase_varfind != main_indices.left.end() );
         const auto phase_varindex = phase_varfind->second;
-        // TODO: In the absence of other info, use 1/phasecount for phase fraction
+        // TODO: In the absence of other info, use 1/phasecount for starting phase fraction
         x[phase_varindex] = naive_phase_amount;
         BOOST_LOG_SEV ( opto_log, debug ) << "x[" << i->first << "_FRAC] = " << naive_phase_amount;
         BOOST_ASSERT( i->second.get_starting_point().size() > 0 );
         // For each CompositionSet, set its starting point values for its variables
-        for (const auto &record : i->second.get_starting_point())
+        auto start_map = i->second.get_starting_point();
+        for (auto record = start_map.cbegin(); 
+             record != start_map.cend(); 
+             ++record
+            )
         {
-            const auto varfind = main_indices.left.find(record.first);
+            BOOST_LOG_SEV ( opto_log, debug ) << "Looking up " << record->first;
+            const auto varfind = main_indices.left.find(record->first);
             BOOST_ASSERT( varfind != main_indices.left.end() );
             const Index varindex = varfind->second;
-            x[varindex] = record.second;
-            BOOST_LOG_SEV ( opto_log, debug ) << "x[" << record.first << "] = " << record.second;
+            x[varindex] = record->second;
+            BOOST_LOG_SEV ( opto_log, debug ) << "x[" << record->first << "] = " << record->second;
         }
     }
     BOOST_LOG_SEV ( opto_log, debug ) << "exiting get_starting_point";

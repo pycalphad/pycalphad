@@ -74,7 +74,7 @@ public:
         cm = std::move ( other.cm );
         phase_indices = std::move ( other.phase_indices );
         constraint_null_space_matrix = std::move ( other.constraint_null_space_matrix );
-        starting_point = std::move ( starting_point );
+        starting_point = std::move ( other.starting_point );
     }
     CompositionSet& operator= ( CompositionSet &&other ) {
         cset_name = std::move ( other.cset_name );
@@ -87,7 +87,7 @@ public:
         cm = std::move ( other.cm );
         phase_indices = std::move ( other.phase_indices );
         constraint_null_space_matrix = std::move ( other.constraint_null_space_matrix );
-        starting_point = std::move ( starting_point );
+        starting_point = std::move ( other.starting_point );
     }
     const std::vector<jacobian_entry>& get_jacobian() const {
         return jac_g_trees;
@@ -111,7 +111,7 @@ public:
     std::string name() const {
         return cset_name;
     }
-    void set_starting_point ( std::map<std::string,double> &startx ) {
+    void set_starting_point ( const std::map<std::string,double> &startx ) {
         starting_point = startx;
     }
     std::map<std::string,double> get_starting_point() const {
