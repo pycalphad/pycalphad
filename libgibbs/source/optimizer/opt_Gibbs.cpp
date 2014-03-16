@@ -91,8 +91,16 @@ bool GibbsOpt::get_starting_point ( Index n, bool init_x, Number* x,
     {
     BOOST_LOG_NAMED_SCOPE ( "GibbsOpt::get_starting_point" );
     BOOST_LOG_SEV ( opto_log, debug ) << "entering get_starting_point";
+    const std::size_t phase_count = comp_sets.size();
+    const double naive_phase_amount = 1.0 / (double) phase_count;
     for ( auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i )
     {
+        const auto phase_varfind = main_indices.left.find(i->first + "_FRAC");
+        BOOST_ASSERT( phase_varfind != main_indices.left.end() );
+        const auto phase_varindex = phase_varfind->second;
+        // TODO: In the absence of other info, use 1/phasecount for phase fraction
+        x[phase_varindex] = naive_phase_amount;
+        BOOST_LOG_SEV ( opto_log, debug ) << "x[" << i->first << "_FRAC] = " << naive_phase_amount;
         BOOST_ASSERT( i->second.get_starting_point().size() > 0 );
         // For each CompositionSet, set its starting point values for its variables
         for (const auto &record : i->second.get_starting_point())
