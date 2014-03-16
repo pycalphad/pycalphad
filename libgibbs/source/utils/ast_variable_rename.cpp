@@ -63,6 +63,12 @@ void ast_variable_rename (
                         BOOST_LOG_SEV( opto_log, debug ) << "highlimit";
                         // highlimit
                         ast_variable_rename ( *it, old_prefix, new_prefix );
+                        ++it;
+                        BOOST_LOG_SEV( opto_log, debug ) << "payload";
+                        // payload
+                        ast_variable_rename ( *it, old_prefix, new_prefix );
+                        ++it;
+                        continue;
                     } catch ( boost::exception &e ) {
                         e << ast_errinfo ( *it );
                         throw;

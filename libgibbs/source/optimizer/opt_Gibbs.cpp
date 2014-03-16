@@ -91,13 +91,19 @@ bool GibbsOpt::get_starting_point ( Index n, bool init_x, Number* x,
     {
     BOOST_LOG_NAMED_SCOPE ( "GibbsOpt::get_starting_point" );
     BOOST_LOG_SEV ( opto_log, debug ) << "entering get_starting_point";
-    // For now, choose a naive starting point
-    std::map<Index,Number> startpoint = get_startingpoint_naive<Index,Number> ( main_ss );
-    // Set starting point variables
-    for ( auto i = startpoint.cbegin(); i != startpoint.cend(); ++i )
+    for ( auto i = comp_sets.cbegin(); i != comp_sets.cend(); ++i )
+    {
+        BOOST_ASSERT( i->second.get_starting_point().size() > 0 );
+        // For each CompositionSet, set its starting point values for its variables
+        for (const auto &record : i->second.get_starting_point())
         {
-        x[i->first] = i->second;
+            const auto varfind = main_indices.left.find(record.first);
+            BOOST_ASSERT( varfind != main_indices.left.end() );
+            const Index varindex = varfind->second;
+            x[varindex] = record.second;
+            BOOST_LOG_SEV ( opto_log, debug ) << "x[" << record.first << "] = " << record.second;
         }
+    }
     BOOST_LOG_SEV ( opto_log, debug ) << "exiting get_starting_point";
     return true;
     }

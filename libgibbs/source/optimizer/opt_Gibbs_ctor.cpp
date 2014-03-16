@@ -72,7 +72,6 @@ GibbsOpt::GibbsOpt (
     auto temp_phase_col = phase_col; // We modify phase_col, so we should be careful here
     for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i )
         {
-        if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         ++activephases;
         CompositionSet main_compset = CompositionSet ( i->second, pset, main_ss, main_indices );
         std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima ( main_compset, main_ss, conditions );
@@ -92,36 +91,36 @@ GibbsOpt::GibbsOpt (
             std::map<std::string, CompositionSet>::iterator it;
             for ( auto min = minima.begin(); min != minima.end(); ++min )
                 {
-                if ( min == minima.begin() )
+                if ( min != minima.begin() )
                     {
-                    // For the first one, don't clone it; just rename it
+                        ++compsetcount;
+                        ++activephases;
+                    }
                     std::stringstream compsetname;
                     compsetname << main_compset.name() << "#" << compsetcount;
 
                     // Set starting point
                     auto new_starting_point = ast_copy_with_renamed_phase(*min, main_compset.name(), compsetname.str());
-                    // Rename from PHASENAME to PHASENAME#1
-                    // TODO: Making a copy of the Phase object is not efficient
+                    // Copy from PHASENAME to PHASENAME#N
                     phase_col[compsetname.str()] = phase_col[main_compset.name()];
-                    auto remove_phase_iter = phase_col.find ( main_compset.name() );
-                    if ( remove_phase_iter != phase_col.end() ) phase_col.erase ( remove_phase_iter );
+                    conditions.phases[compsetname.str()] = conditions.phases[main_compset.name()];
                     it = comp_sets.emplace ( compsetname.str(), CompositionSet( main_compset, new_starting_point, compsetname.str() ) ).first;
                     BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
-                    }
-                else
-                    {
-                    ++compsetcount;
-                    ++activephases;
-                    std::stringstream compsetname;
-                    compsetname << it->second.name() << "#" << compsetcount;
-                    // Use special constructor which copies, renames and sets the start point
-                    comp_sets.emplace ( compsetname.str(), CompositionSet ( it->second, *min, compsetname.str() ) );
-                    // TODO: Copying Phase object is not efficient
-                    phase_col[compsetname.str()] = phase_col[it->second.name()];    
-                    BOOST_LOG_SEV ( opto_log, debug ) << "Created composition set " << compsetname.str();
-                    }
                 }
             }
+            // Remove PHASENAME
+            // PHASENAME was renamed to PHASENAME#1
+            BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << main_compset.name();
+            auto remove_phase_iter = phase_col.find ( main_compset.name() );
+            auto remove_conds_phase_iter = conditions.phases.find ( main_compset.name() );
+            if ( remove_phase_iter != phase_col.end() ) phase_col.erase ( remove_phase_iter );
+            if ( remove_conds_phase_iter != conditions.phases.end() ) {
+                conditions.phases.erase ( remove_conds_phase_iter );
+            }
+            // Rebuild the index map now that phases have been renamed and removed
+            BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";
+            main_indices.left.clear();
+            main_ss = build_variable_map ( phase_col.begin(), phase_col.end(), conditions, main_indices );
         }
 
     // Add the mandatory constraints to the ConstraintManager
@@ -142,7 +141,6 @@ GibbsOpt::GibbsOpt (
     // Add the sublattice site fraction constraints (mandatory)
     for ( auto i = phase_col.begin(); i != phase_col.end(); ++i )
         {
-        if ( conditions.phases[i->first] != PhaseStatus::ENTERED ) continue;
         for ( auto j = i->second.get_sublattice_iterator(); j != i->second.get_sublattice_iterator_end(); ++j )
             {
             std::vector<std::string> subl_list;
