@@ -47,7 +47,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 )
     {
     // This is the initial amount of subdivision
-    constexpr const std::size_t subdivisions_per_axis = 5; // TODO: make this user-configurable
+    constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
@@ -201,7 +201,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     typedef boost::numeric::ublas::vector<double> ublas_vector;
     typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 1e2;
+    constexpr const double gradient_magnitude_threshold = 300;
     constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 10;
     std::vector<std::vector<double>> minima;
@@ -238,15 +238,16 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         }
     for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
         {
-        //std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
+        std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
         }
+        const double scaled_gradient_magnitude_threshold = gradient_magnitude_threshold * pow((double)projected_gradient.size(),2);
     // If we've increased the gradient relative to previous, then give up
-    if (mag > old_gradient_mag) return minima;
+    //if (mag > old_gradient_mag) return minima;
     // If we're not making good progress, then give up
-    if (depth > 2 && (mag/old_gradient_mag) > 0.95) return minima;
+    if (depth > 3 && (mag/old_gradient_mag) > 0.99 && mag > 1000*scaled_gradient_magnitude_threshold) return minima;
     // (2) If that magnitude is less than some defined epsilon, return z as a minimum
     //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
-    if ( mag < gradient_magnitude_threshold )
+    if ( mag < scaled_gradient_magnitude_threshold)
         {
         std::cout << "new minpoint ";
         for ( auto i = pt.begin(); i != pt.end(); ++i )
