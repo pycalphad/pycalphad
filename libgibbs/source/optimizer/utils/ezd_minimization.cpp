@@ -53,6 +53,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     // EZD Global Minimization (Emelianenko et al., 2006)
     // First: FIND CONCAVITY REGIONS
     std::vector<std::vector<double>> points;
+    std::vector<std::vector<double>> unmapped_minima;
     std::vector<std::map<std::string,double>> minima;
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
@@ -165,12 +166,28 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         // We start at a recursive depth of 2 because we treat LocateMinima as depth == 1
         // This allows our notation for depth to be consistent with Emelianenko et al.
         std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
-        // Append this region's minima to the list of minima
-        // minima.size() > 1 means there is a miscilibility gap
     
+        // Append this region's minima to the list of minima
+        // unmapped_minima.size() > 1 means there is a miscilibility gap
+        unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
+        unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
+        }
+        
+        // Remove duplicate minima
+        // too_similar is a binary predicate for determining if the minima are too close in state space
+        auto too_similar = [](const std::vector<double> &a, const std::vector<double> &b) {
+            if (a.size() != b.size()) return false;
+            for (auto i = 0; i < a.size(); ++i) {
+                if (fabs(a[i]-b[i]) > 1e-3) return false; // at least one element is different enough
+            }
+            return true; // all elements compared closely
+        };
+        std::sort(unmapped_minima.begin(), unmapped_minima.end());
+        std::unique(unmapped_minima.begin(), unmapped_minima.end(), too_similar);
+        
         // We want to map the indices we used back to variable names for the optimizer
         boost::bimap<std::string,int> indexmap = phase.get_variable_map();
-        for (const std::vector<double> &min : region_minima) {
+        for (const std::vector<double> &min : unmapped_minima) {
             std::map<std::string, double> x_point_map; // variable name -> value
             for (auto it = min.begin(); it != min.end(); ++it) {
                 const int index = std::distance(min.begin(),it);
@@ -179,7 +196,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
             }
             minima.emplace_back(std::move(x_point_map));
         }
-        }
+        
     return minima;
     }
 
@@ -201,7 +218,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     typedef boost::numeric::ublas::vector<double> ublas_vector;
     typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 300;
+    constexpr const double gradient_magnitude_threshold = 100;
     constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 10;
     std::vector<std::vector<double>> minima;
