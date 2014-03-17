@@ -4,9 +4,9 @@ Known Bugs and Missing Features in TDBread
 Optimizer (libgibbs)
 --------------------
 Pre-calculation of the Hessian abstract syntax trees takes longer than it should.
--Note: Can still probably get some performance improvements from implementing EZD global minimization.
 The Inden-Hillert-Jarl (IHJ) magnetic model is implemented but currently broken; the calculated energies are not correct.
-Phases with miscibility gaps are not correctly handled.
+Automatic miscibility gap detection does not work consistently.
+-Source: idealbin.tdb, T=1500, X(NB)=0.6 and CHI entered
 Atomic ordering is not handled.
 Charged species in sublattices are not correctly handled.
 Failure of the generalized power rule automatic differentiation code to detect cancellations of the form x/x will lead to divide-by-zero errors on differentiation of abstract syntax trees with non-constant exponents (which aren't in any models, currently, but are theoretically possible).
