@@ -76,7 +76,14 @@ GibbsOpt::GibbsOpt (
         std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima ( main_compset, main_ss, conditions );
         BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
 
-        BOOST_ASSERT ( minima.size() > 0 );
+        if ( minima.size() == 0 ) {
+            // We didn't find any minima!
+            // This could indicate a problem, or just that we didn't look hard enough
+            BOOST_LOG_SEV ( opto_log, critical ) << "Global minimization found no energy minima";
+            const std::string compset_name ( main_compset.name() );
+            // TODO: What about the starting point?!
+            comp_sets.emplace ( compset_name, std::move ( main_compset ) );
+        }
 
         if ( minima.size() == 1 ) {
             // No miscibility gap, no need to create new composition sets
