@@ -24,6 +24,7 @@
 #include <algorithm>
 #include <string>
 #include <map>
+#include <limits>
 
 std::vector<std::vector<double>> AdaptiveSearchND (
                                   CompositionSet const &phase,
@@ -168,7 +169,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
     
         // Append this region's minima to the list of minima
-        // unmapped_minima.size() > 1 means there is a miscilibility gap
+        // unmapped_minima.size() > 1 means there is a miscibility gap
         unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
         unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
         }
@@ -178,7 +179,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         auto too_similar = [](const std::vector<double> &a, const std::vector<double> &b) {
             if (a.size() != b.size()) return false;
             for (auto i = 0; i < a.size(); ++i) {
-                if (fabs(a[i]-b[i]) > 1e-3) return false; // at least one element is different enough
+                if (fabs(a[i]-b[i]) > 0.1) return false; // at least one element is different enough
             }
             return true; // all elements compared closely
         };
@@ -218,72 +219,16 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     typedef boost::numeric::ublas::vector<double> ublas_vector;
     typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
-    constexpr const double gradient_magnitude_threshold = 100;
+    constexpr const double gradient_magnitude_threshold = 1000;
     constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 10;
     std::vector<std::vector<double>> minima;
     std::vector<double> pt;
+    double mag = std::numeric_limits<double>::max();
 
-    // (1) Calculate the objective gradient (L') for the centroid of the active simplex
-    for ( const NDSimplex& simp : search_region )
-        {
-        // Generate the current point (pt) from all the simplices in each sublattice
-        std::vector<double> sub_pt = simp.centroid_with_dependent_component();
-        //std::cout << "[";
-        //for (double i : sub_pt) std::cout << i << ",";
-        //std::cout << "]" << std::endl;
-        pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-        }
-        //std::cout << "checking [";
-    //for (const auto coord : pt) {
-    //    std::cout << coord << ",";
-    //}
-    //std::cout << "]" << std::endl;
-    //double obj = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
-    //std::cout << obj << std::endl;
-    std::vector<double> raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
-    // Project the raw gradient into the null space of constraints
-    // This will leave only the gradient in the feasible directions
-    ublas_matrix Z = phase.get_constraint_null_space_matrix();
-    ublas_vector projected_gradient ( raw_gradient.size() );
-    std::move ( raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin() );
-    projected_gradient = prod ( ublas_matrix ( prod ( Z,trans ( Z ) ) ), projected_gradient );
-    double mag = 0;
-    for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-        {
-        mag += pow ( *i,2 );
-        }
-    for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-        {
-        std::cout << "gradient[" << std::distance(projected_gradient.begin(),i) << "] = " << *i << std::endl;
-        }
-        const double scaled_gradient_magnitude_threshold = gradient_magnitude_threshold * pow((double)projected_gradient.size(),2);
-    // If we've increased the gradient relative to previous, then give up
-    //if (mag > old_gradient_mag) return minima;
-    // If we're not making good progress, then give up
-    if (depth > 3 && (mag/old_gradient_mag) > 0.99 && mag > 1000*scaled_gradient_magnitude_threshold) return minima;
-    // (2) If that magnitude is less than some defined epsilon, return z as a minimum
-    //     Else simplex_subdivide() the active region and send to next depth (return minima from that)
-    if ( mag < scaled_gradient_magnitude_threshold)
-        {
-        std::cout << "new minpoint ";
-        for ( auto i = pt.begin(); i != pt.end(); ++i )
-            {
-            std::cout << *i;
-            if ( std::distance ( i,pt.end() ) > 1 ) std::cout << ",";
-            }
-        std::cout << " gradient sq: " << mag << std::endl;
-        for ( auto i = projected_gradient.begin(); i != projected_gradient.end(); ++i )
-            {
-            std::cout << "gradient[" << std::distance ( projected_gradient.begin(),i ) << "] = " << *i << std::endl;
-            }
-        minima.push_back ( pt );
-        }
-    else
-        {
-        // give up if we've hit max depth
-        if ( depth == max_depth ) return minima;
         std::vector<SimplexCollection> simplex_combinations, new_simplices;
+        auto chosen_simplex = new_simplices.cend(); // iterator to the current smallest-gradient simplex
+        
         // simplex_subdivide() the simplices in all the active sublattices
         for ( const NDSimplex &simp : search_region )
             {
@@ -291,15 +236,60 @@ std::vector<std::vector<double>> AdaptiveSearchND (
             }
         // lattice_complex() the result to generate all the combinations in the sublattices
         new_simplices = lattice_complex ( simplex_combinations );
-        // send each new SimplexCollection to the next depth
-        for ( const SimplexCollection &sc : new_simplices )
+        
+        // new_simplices now contains a vector of SimplexCollections
+        // It's a SimplexCollection instead of an NDSimplex because there is one NDSimplex per sublattice
+        // The centroids of each NDSimplex are concatenated (with the dependent component) to get the active point
+        // TODO: fix to only send the one with the minimum gradient magnitude to the next depth
+        // Calculate the gradient for each newly-created simplex
+        for ( new_simplices::const_iterator sc : new_simplices )
             {
-            std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND ( phase, conditions, sc, depth+1, mag );
-            // Add the found minima to the list of known minima
-            minima.reserve ( minima.size() +recursive_minima.size() );
-            minima.insert ( minima.end(), std::make_move_iterator ( recursive_minima.begin() ),  std::make_move_iterator ( recursive_minima.end() ) );
+            std::vector<double> pt, raw_gradient;
+            double temp_magnitude = 0;
+
+            // Calculate the objective gradient (L') for the centroid of the active simplex
+            for ( const NDSimplex& simp : sc ) 
+            {
+                // Generate the current point (pt) from all the simplices in each sublattice
+                std::vector<double> sub_pt = simp.centroid_with_dependent_component();
+                pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
             }
-        }
-    return minima;
+            raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
+            // Project the raw gradient into the null space of constraints
+            // This will leave only the gradient in the feasible directions
+            // TODO: This should all be rolled into a projected_gradient() function in CompositionSet
+            // It's silly to have to get a class data member and apply it to the result of a class function
+            // There should probably be a "projector" vector data member in CompositionSet
+            ublas_matrix Z = phase.get_constraint_null_space_matrix();
+            ublas_vector projected_gradient ( raw_gradient.size() );
+            std::move ( raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin() );
+            projected_gradient = prod ( ublas_matrix ( prod ( Z,trans ( Z ) ) ), projected_gradient );
+
+            // Calculate magnitude of projected gradient
+            temp_magnitude = norm_2(projected_gradient);
+            // If this is smaller than the known point, switch to this point
+            if (temp_magnitude < mag) 
+                {
+                // We have a new candidate minimum
+                chosen_simplex = sc;
+                mag = temp_magnitude;
+                }
+            }
+            
+            // Now we must decide whether we have arrived at our terminating condition or to subdivide further
+            if (mag < gradient_magnitude_threshold || depth >= max_depth) {
+                // We've hit our terminating condition
+                // It may or may not be a minimum, but it's the best we can find here
+                minima.push_back(chosen_simplex->centroid_with_dependent_component());
+                return minima;
+            }
+            else {
+                // Keep searching for a minimum by subdividing our chosen_simplex
+                // We save a lot of time by only subdividing chosen_simplex!
+                std::vector<std::vector<double>> recursive_minima = AdaptiveSearchND ( phase, conditions, *chosen_simplex, depth+1, mag );
+                // Add the found minima to the list of known minima
+                minima.reserve ( minima.size() +recursive_minima.size() );
+                minima.insert ( minima.end(), std::make_move_iterator ( recursive_minima.begin() ),  std::make_move_iterator ( recursive_minima.end() ) );
+                return minima;
+            }
     }
-// kate: indent-mode cstyle; indent-width 4; replace-tabs on;
