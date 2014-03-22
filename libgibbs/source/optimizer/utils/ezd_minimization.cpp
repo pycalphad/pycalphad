@@ -237,12 +237,12 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     // The centroids of each NDSimplex are concatenated (with the dependent component) to get the active point
     // TODO: fix to only send the one with the minimum gradient magnitude to the next depth
     // Calculate the gradient for each newly-created simplex
-    for ( new_simplices::const_iterator sc : new_simplices ) {
+    for ( auto sc = new_simplices.cbegin(); sc != new_simplices.cend(); ++sc ) {
         std::vector<double> pt, raw_gradient;
         double temp_magnitude = 0;
 
         // Calculate the objective gradient (L') for the centroid of the active simplex
-        for ( const NDSimplex& simp : sc ) {
+        for ( const NDSimplex& simp : *sc ) {
             // Generate the current point (pt) from all the simplices in each sublattice
             std::vector<double> sub_pt = simp.centroid_with_dependent_component();
             pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
@@ -272,7 +272,13 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     if ( mag < gradient_magnitude_threshold || depth >= max_depth ) {
         // We've hit our terminating condition
         // It may or may not be a minimum, but it's the best we can find here
-        minima.push_back ( chosen_simplex->centroid_with_dependent_component() );
+        std::vector<double> pt;
+        for ( const NDSimplex& simp : *chosen_simplex ) {
+            // Generate the current point (pt) from all the simplices in each sublattice
+            std::vector<double> sub_pt = simp.centroid_with_dependent_component();
+            pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
+        }
+        minima.emplace_back( std::move( pt ) );
         return minima;
     } else {
         // Keep searching for a minimum by subdividing our chosen_simplex
