@@ -10,7 +10,8 @@
 // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
 // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
 //    in equilibrium calculations in two-phase multicomponent alloys"
-
+#ifndef INCLUDED_CONVEX_HULL
+#define INCLUDED_CONVEX_HULL
 
 namespace Optimizer {
     namespace details {
@@ -18,3 +19,5 @@ namespace Optimizer {
         }
     }
 }
+
+#endif

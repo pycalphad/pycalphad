@@ -6,7 +6,8 @@
  =============================================================================*/
 
 // Calculation of the determinant of a matrix
-
+#ifndef INCLUDED_DETERMINANT
+#define INCLUDED_DETERMINANT
 #include <boost/numeric/ublas/matrix.hpp>
 #include <boost/numeric/ublas/lu.hpp>
 #include <boost/assert.hpp>
@@ -24,3 +25,4 @@ T determinant ( const boost::numeric::ublas::matrix<T> &input ) {
     }
     return det;
 }
+#endif
