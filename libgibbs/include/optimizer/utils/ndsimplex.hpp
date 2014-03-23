@@ -94,6 +94,7 @@ public:
 	  return mypoint;
   }
   const std::size_t dimension() const { return vertices.size1(); }
+  const SimplexMatrixType get_vertices() const { return vertices; }
 private:
 	SimplexMatrixType vertices;                         // vertices of the simplex; each column is a coordinate
 };
