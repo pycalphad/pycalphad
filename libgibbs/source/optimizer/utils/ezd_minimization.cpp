@@ -165,6 +165,8 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
         unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
     }
+    
+    // TODO: Now the convex hull of the phase needs to be found using the unmapped_minima points
 
     // Remove duplicate minima
     // too_similar is a binary predicate for determining if the minima are too close in state space
