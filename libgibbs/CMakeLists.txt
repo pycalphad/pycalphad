@@ -51,6 +51,13 @@ target_link_libraries(libgibbs ${IPOPT_LIB_DIR}/IpOpt-vc10.lib)
 endif(MSVC)
 #add_precompiled_header(libgibbs ${CMAKE_CURRENT_SOURCE_DIR}/include/libgibbs_pch.hpp ${CMAKE_CURRENT_SOURCE_DIR}/source/libgibbs_pch.cpp)
 
+# Build and link our internal Qhull library (not exactly ideal but necessary for now, given API instability)
+include_directories(${TDBREAD_SOURCE_DIR}/external)
+FILE(GLOB_RECURSE myqhullcpp_SRCS ${TDBREAD_SOURCE_DIR}/external/libqhullcpp/*.cpp ${TDBREAD_SOURCE_DIR}/external/libqhull/*.c)
+add_definitions("-Dqh_QHpointer")
+add_library(myqhullcpp SHARED ${myqhullcpp_SRCS} ${mylibqhull_SRCS})
+target_link_libraries(libgibbs myqhullcpp)
+
 # Add a target for the corresponding Python library
 find_package(PythonLibs 2.7 REQUIRED)
 include_directories(${PYTHON_INCLUDE_DIRS})

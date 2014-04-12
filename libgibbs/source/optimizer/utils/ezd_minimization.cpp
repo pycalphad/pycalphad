@@ -16,6 +16,7 @@
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
 #include "libgibbs/include/optimizer/utils/ndsimplex.hpp"
+#include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -167,6 +168,10 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     }
     
     // TODO: Now the convex hull of the phase needs to be found using the unmapped_minima points
+    // Also need to calculate the value of objective function and add it as a coordinate to each minima
+    // Or perhaps I can simply lift the sites using the magnitude of the point from the origin
+    // Stub function
+    details::lower_convex_hull( unmapped_minima );
 
     // Remove duplicate minima
     // too_similar is a binary predicate for determining if the minima are too close in state space

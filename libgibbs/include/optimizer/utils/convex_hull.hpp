@@ -5,18 +5,15 @@
  file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
  =============================================================================*/
 
-// Calculation of the lower convex hull of a set of points
-// Modified QuickHull algorithm using d-dimensional Beneath-Beyond
-// Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
-// "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
-//    in equilibrium calculations in two-phase multicomponent alloys"
 #ifndef INCLUDED_CONVEX_HULL
 #define INCLUDED_CONVEX_HULL
 
+#include <vector>
+
 namespace Optimizer {
     namespace details {
-        void lower_convex_hull ( ) {
-        }
+        // Calculation of the lower convex hull of a set of points
+        void lower_convex_hull ( const std::vector<std::vector<double>> &points );
     }
 }
 

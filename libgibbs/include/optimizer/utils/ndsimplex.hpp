@@ -29,6 +29,7 @@ class NDSimplex
 public:
   typedef boost::numeric::ublas::matrix<std::size_t> ColorMatrixType;
   typedef boost::numeric::ublas::matrix<double> SimplexMatrixType;
+  NDSimplex ( ) { } // default ctor required for Boost Graph Library
   // If we only know the dimension, we'll initialize the unit simplex
   NDSimplex ( const std::size_t dim )
   {
