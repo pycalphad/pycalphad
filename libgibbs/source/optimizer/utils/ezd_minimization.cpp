@@ -172,6 +172,9 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     // Or perhaps I can simply lift the sites using the magnitude of the point from the origin
     // Stub function
     details::lower_convex_hull( unmapped_minima );
+    
+    std::cout << "TODO: HARD RETURN ON UNFINISHED SUBROUTINE" << std::endl;
+    return minima;
 
     // Remove duplicate minima
     // too_similar is a binary predicate for determining if the minima are too close in state space
@@ -257,13 +260,9 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
         // Project the raw gradient into the null space of constraints
         // This will leave only the gradient in the feasible directions
-        // TODO: This should all be rolled into a projected_gradient() function in CompositionSet
-        // It's silly to have to get a class data member and apply it to the result of a class function
-        // There should probably be a "projector" vector data member in CompositionSet
-        ublas_matrix Z = phase.get_constraint_null_space_matrix();
         ublas_vector projected_gradient ( raw_gradient.size() );
         std::move ( raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin() );
-        projected_gradient = prod ( ublas_matrix ( prod ( Z,trans ( Z ) ) ), projected_gradient );
+        projected_gradient = prod ( phase.get_gradient_projector(), projected_gradient );
 
         // Calculate magnitude of projected gradient
         temp_magnitude = norm_2 ( projected_gradient );
@@ -285,6 +284,8 @@ std::vector<std::vector<double>> AdaptiveSearchND (
             std::vector<double> sub_pt = simp.centroid_with_dependent_component();
             pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
         }
+        // Add the energy of this configuration as the final coordinate
+        pt.emplace_back ( phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] ) );
         minima.emplace_back( std::move( pt ) );
         return minima;
     } else {

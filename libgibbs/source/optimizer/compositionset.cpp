@@ -214,7 +214,6 @@ CompositionSet::CompositionSet (
     constraint_null_space_matrix = other.constraint_null_space_matrix;
     BOOST_LOG_SEV( comp_log, debug ) << "exiting";
 }
-
 double CompositionSet::evaluate_objective (
     evalconditions const& conditions,
     boost::bimap<std::string, int> const &main_indices,
@@ -451,15 +450,15 @@ void CompositionSet::build_constraint_basis_matrices ( sublattice_set const &sub
         subl_iter_end = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( cset_name,sublindex ) );
     }
 
-    std::cout << "Atrans: " << Atrans << std::endl;
-    std::cout << "b: " << b << std::endl;
+    //std::cout << "Atrans: " << Atrans << std::endl;
+    //std::cout << "b: " << b << std::endl;
     // Compute the full QR decomposition of Atrans
     std::vector<double> betas = inplace_qr ( Atrans );
     ublas_matrix Q ( zero_matrix<double> ( Atrans.size1(),Atrans.size1() ) );
     ublas_matrix R ( zero_matrix<double> ( Atrans.size1(), Atrans.size2() ) );
     recoverQ ( Atrans, betas, Q, R );
-    std::cout << "Q: " << Q << std::endl;
-    std::cout << "R: " << R << std::endl;
+    //std::cout << "Q: " << Q << std::endl;
+    //std::cout << "R: " << R << std::endl;
     // Copy the last m-n columns of Q into Z (related to the bottom m-n rows of R which should all be zero)
     const std::size_t Zcolumns = Atrans.size1() - Atrans.size2();
     // Copy the rest into Y
@@ -470,9 +469,11 @@ void CompositionSet::build_constraint_basis_matrices ( sublattice_set const &sub
     constraint_null_space_matrix = subrange ( Q, 0,Atrans.size1(), Atrans.size2(),Atrans.size1() );
     // Y is the remaining columns of Q
     Y = subrange ( Q, 0,Atrans.size1(), 0,Atrans.size2() );
-    std::cout << "Z: " << constraint_null_space_matrix << std::endl;
-    std::cout << "Y: " << Y << std::endl;
+    //std::cout << "Z: " << constraint_null_space_matrix << std::endl;
+    //std::cout << "Y: " << Y << std::endl;
 
     inplace_solve ( trans ( R ), b, upper_tag() );
-    std::cout << "R_-T*b = " << b << std::endl;
+    //std::cout << "R_-T*b = " << b << std::endl;
+    
+    gradient_projector = ublas_matrix ( prod ( constraint_null_space_matrix,trans ( constraint_null_space_matrix ) ) );
 }

@@ -32,7 +32,7 @@ class CompositionSet
 {
 public:
     double evaluate_objective ( evalconditions const&, boost::bimap<std::string, int> const &, double* const ) const;
-    double evaluate_objective ( evalconditions const &, std::map<std::string,double> const & ) const;
+    double evaluate_objective ( evalconditions const&, std::map<std::string,double> const & ) const;
     std::map<int,double> evaluate_objective_gradient (
         evalconditions const&, boost::bimap<std::string, int> const &, double* const ) const;
     std::map<int,double> evaluate_objective_gradient (
@@ -101,6 +101,9 @@ public:
     const boost::numeric::ublas::matrix<double>& get_constraint_null_space_matrix() const {
         return constraint_null_space_matrix;
     };
+    const boost::numeric::ublas::matrix<double>& get_gradient_projector() const {
+        return gradient_projector;
+    };
     const ASTSymbolMap& get_symbols() const {
         return symbols;
     };
@@ -133,6 +136,7 @@ private:
     ConstraintManager cm; // handles constraints internal to the phase, e.g., site fraction balances
     void build_constraint_basis_matrices ( sublattice_set const &sublset );
     boost::numeric::ublas::matrix<double> constraint_null_space_matrix;
+    boost::numeric::ublas::matrix<double> gradient_projector;
 };
 
 #endif
