@@ -57,9 +57,11 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     std::vector<std::vector<double>> points;
     std::vector<std::vector<double>> unmapped_minima;
     std::vector<std::map<std::string,double>> minima;
+    std::vector<std::size_t> dependent_dimensions; // vector of indices to dependent variables
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
     std::vector<SimplexCollection> components_in_sublattice;
+    std::size_t current_dependent_dimension = 0; // index of current dependent dimension
 
     // Get the first sublattice for this phase
     boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
@@ -73,6 +75,9 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     while ( ic0 != ic1 ) {
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
         if ( number_of_species > 0 ) {
+            // Last component is dependent dimension
+            current_dependent_dimension += (number_of_species-1);
+            dependent_dimensions.push_back(current_dependent_dimension);
             NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
             components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
         }
@@ -162,16 +167,21 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
 
         // Append this region's minima to the list of minima
-        // unmapped_minima.size() > 1 means there is a miscibility gap
         unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
         unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
     }
+    std::cout << "CANDIDATE MINIMA" << std::endl;
+    for (auto min : unmapped_minima) {
+        for (auto coord : min) {
+            std::cout << coord << " ";
+        }
+        std::cout << std::endl;
+    }
     
-    // TODO: Now the convex hull of the phase needs to be found using the unmapped_minima points
-    // Also need to calculate the value of objective function and add it as a coordinate to each minima
-    // Or perhaps I can simply lift the sites using the magnitude of the point from the origin
-    // Stub function
-    details::lower_convex_hull( unmapped_minima );
+    // Now the convex hull of the phase needs to be found using the unmapped_minima points
+    // I cannot simply lift the sites using the magnitude of the point from the origin
+    // due to metastable points
+    details::lower_convex_hull( unmapped_minima, dependent_dimensions );
     
     std::cout << "TODO: HARD RETURN ON UNFINISHED SUBROUTINE" << std::endl;
     return minima;
@@ -279,13 +289,15 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         // We've hit our terminating condition
         // It may or may not be a minimum, but it's the best we can find here
         std::vector<double> pt;
+        double objective;
         for ( const NDSimplex& simp : *chosen_simplex ) {
             // Generate the current point (pt) from all the simplices in each sublattice
             std::vector<double> sub_pt = simp.centroid_with_dependent_component();
             pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
         }
         // Add the energy of this configuration as the final coordinate
-        pt.emplace_back ( phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] ) );
+        objective = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
+        pt.emplace_back ( objective );
         minima.emplace_back( std::move( pt ) );
         return minima;
     } else {
