@@ -50,6 +50,8 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 {
     // This is the initial amount of subdivision
     constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
+    // minimum edge length of a candidate tie hyperplane
+    const double critical_edge_length = 1.0 / (double)subdivisions_per_axis;
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
@@ -181,7 +183,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     // Now the convex hull of the phase needs to be found using the unmapped_minima points
     // I cannot simply lift the sites using the magnitude of the point from the origin
     // due to metastable points
-    details::lower_convex_hull( unmapped_minima, dependent_dimensions );
+    details::lower_convex_hull( unmapped_minima, dependent_dimensions, critical_edge_length );
     
     std::cout << "TODO: HARD RETURN ON UNFINISHED SUBROUTINE" << std::endl;
     return minima;

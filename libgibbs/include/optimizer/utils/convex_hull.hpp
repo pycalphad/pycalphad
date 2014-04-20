@@ -15,7 +15,8 @@ namespace Optimizer {
         // Calculation of the lower convex hull of a set of points
         void lower_convex_hull ( 
         const std::vector<std::vector<double>> &points, 
-        const std::vector<std::size_t> &dependent_dimensions 
+        const std::vector<std::size_t> &dependent_dimensions,
+        const double critical_edge_length
         );
     }
 }
