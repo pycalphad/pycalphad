@@ -24,6 +24,7 @@
 #include <sstream>
 #include <algorithm>
 #include <functional>
+#include <cmath>
 
 using orgQhull::Qhull;
 using orgQhull::QhullError;
@@ -39,8 +40,9 @@ namespace Optimizer { namespace details {
     // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
     // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
     //    in equilibrium calculations in two-phase multicomponent alloys"
-    void lower_convex_hull ( const std::vector<std::vector<double>> &points,
-                             const std::vector<std::size_t> &dependent_dimensions,
+    std::vector<std::vector<double>> lower_convex_hull (
+                             const std::vector<std::vector<double>> &points,
+                             const std::set<std::size_t> &dependent_dimensions,
                              const double critical_edge_length
                            ) {
         BOOST_ASSERT(points.size() > 0);
@@ -48,7 +50,7 @@ namespace Optimizer { namespace details {
         const std::size_t point_dimension = points.begin()->size();
         const std::size_t point_count = points.size();
         const std::size_t point_buffer_size = point_dimension * point_count;
-        std::vector<std::vector<double>> candidate_points; // vertices of tie hyperplanes
+        std::vector<std::vector<double>> candidate_points, final_points; // vertices of tie hyperplanes
         double point_buffer[point_buffer_size-1];
         std::size_t buffer_offset = 0;
         std::string Qhullcommand = "Qt"; // triangulate convex hull (make all facets simplicial)
@@ -122,7 +124,7 @@ namespace Optimizer { namespace details {
                     return false;
                 }
                 for ( auto i = 0; i < a.size(); ++i ) {
-                    if ( fabs ( a[i]-b[i] ) > 0.1 ) {
+                    if ( fabs ( a[i]-b[i] ) > 0.01 ) {
                         return false;    // at least one element is different enough
                     }
                 }
@@ -131,12 +133,34 @@ namespace Optimizer { namespace details {
             std::sort ( candidate_points.begin(), candidate_points.end() );
             std::unique ( candidate_points.begin(), candidate_points.end(), too_similar );
             // Second, restore the dependent variables to the correct coordinate placement
-            for (auto dim : dependent_dimensions) {
+            for (const auto pt : candidate_points) {
+                std::vector<double> final_point;
+                final_point.reserve ( pt.size() + dependent_dimensions.size() );
+                std::size_t sublattice_offset = 0;
+                for (const auto dim : dependent_dimensions) {
+                    double point_sum = 0;
+                    for (auto coord = sublattice_offset; coord < dim; ++coord) {
+                        std::cout << "coord: " << coord << std::endl;
+                        point_sum += pt[coord];
+                        final_point.push_back ( pt[coord] );
+                    }
+                    sublattice_offset = dim;
+                    final_point.emplace_back ( 1 - point_sum ); // dependent coordinate is 1 - independents
+                }
+                final_points.emplace_back ( std::move( final_point ) );
             }
         }
         else {
             // No tie hyperplanes have been found
         }
+        std::cout << "FINAL TIE POINTS" << std::endl;
+        for (auto pt : final_points) {
+            for (auto coord : pt) {
+                std::cout << coord << ",";
+            }
+            std::cout << std::endl;
+        }
+        return final_points;
     }
 } // namespace details
 } // namespace Optimizer

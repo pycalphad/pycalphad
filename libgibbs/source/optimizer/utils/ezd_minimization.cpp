@@ -59,7 +59,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     std::vector<std::vector<double>> points;
     std::vector<std::vector<double>> unmapped_minima;
     std::vector<std::map<std::string,double>> minima;
-    std::vector<std::size_t> dependent_dimensions; // vector of indices to dependent variables
+    std::set<std::size_t> dependent_dimensions; // vector of indices to dependent variables
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
     std::vector<SimplexCollection> components_in_sublattice;
@@ -79,7 +79,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         if ( number_of_species > 0 ) {
             // Last component is dependent dimension
             current_dependent_dimension += (number_of_species-1);
-            dependent_dimensions.push_back(current_dependent_dimension);
+            dependent_dimensions.insert(current_dependent_dimension);
             NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
             components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
         }
@@ -183,26 +183,9 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     // Now the convex hull of the phase needs to be found using the unmapped_minima points
     // I cannot simply lift the sites using the magnitude of the point from the origin
     // due to metastable points
-    details::lower_convex_hull( unmapped_minima, dependent_dimensions, critical_edge_length );
-    
-    std::cout << "TODO: HARD RETURN ON UNFINISHED SUBROUTINE" << std::endl;
-    return minima;
-
-    // Remove duplicate minima
-    // too_similar is a binary predicate for determining if the minima are too close in state space
-    auto too_similar = [] ( const std::vector<double> &a, const std::vector<double> &b ) {
-        if ( a.size() != b.size() ) {
-            return false;
-        }
-        for ( auto i = 0; i < a.size(); ++i ) {
-            if ( fabs ( a[i]-b[i] ) > 0.1 ) {
-                return false;    // at least one element is different enough
-            }
-        }
-        return true; // all elements compared closely
-    };
-    std::sort ( unmapped_minima.begin(), unmapped_minima.end() );
-    std::unique ( unmapped_minima.begin(), unmapped_minima.end(), too_similar );
+    unmapped_minima = details::lower_convex_hull( 
+                         unmapped_minima, dependent_dimensions, critical_edge_length 
+                                                );
 
     // We want to map the indices we used back to variable names for the optimizer
     boost::bimap<std::string,int> indexmap = phase.get_variable_map();
