@@ -20,6 +20,7 @@
 #include "external/libqhullcpp/QhullVertexSet.h"
 #include "external/libqhullcpp/Qhull.h"
 #include <boost/assert.hpp>
+#include <boost/concept_check.hpp>
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -164,6 +165,18 @@ namespace Optimizer { namespace details {
         }
         else {
             // No tie hyperplanes have been found
+            // Return the point with the lowest energy (last coordinate)
+            auto minimum_point_iterator = points.cbegin();
+            for (auto pt = points.cbegin(); pt != points.cend(); ++pt) {
+                // Check the energy values
+                if (*(minimum_point_iterator->cend()-1) > *(pt->cend()-1)) {
+                    // This point is lower in energy
+                    minimum_point_iterator = pt;
+                }
+            }
+            std::vector<double> return_point ( *minimum_point_iterator );
+            return_point.pop_back(); // Remove energy coordinate
+            final_points.emplace_back ( std::move ( return_point ) );
         }
         std::cout << "FINAL TIE POINTS" << std::endl;
         for (auto pt : final_points) {
