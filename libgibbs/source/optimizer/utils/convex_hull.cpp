@@ -8,8 +8,8 @@
 // Calculate convex hull using Qhull / libqhullcpp
 // All interfacing with the library will be done in this module
 
+#include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
-
 #include "external/libqhullcpp/QhullError.h"
 #include "external/libqhullcpp/QhullQh.h"
 #include "external/libqhullcpp/QhullFacet.h"
@@ -131,18 +131,30 @@ namespace Optimizer { namespace details {
                 return true; // all elements compared closely
             };
             std::sort ( candidate_points.begin(), candidate_points.end() );
-            std::unique ( candidate_points.begin(), candidate_points.end(), too_similar );
+            auto new_end = std::unique ( candidate_points.begin(), candidate_points.end(), too_similar );
+            // Fix the deduplicated point list to have no empty elements
+            candidate_points.resize( std::distance( candidate_points.begin(), new_end ) );
+            std::cout << "CANDIDATE POINTS AFTER DEDUPLICATION" << std::endl;
+            for (auto pt : candidate_points) {
+                for (auto coord : pt) {
+                    std::cout << coord << ",";
+                }
+                std::cout << std::endl;
+            }
+            std::cout << "candidate_points.size() = " << candidate_points.size() << std::endl;
             // Second, restore the dependent variables to the correct coordinate placement
             for (const auto pt : candidate_points) {
                 std::vector<double> final_point;
                 final_point.reserve ( pt.size() + dependent_dimensions.size() );
                 std::size_t sublattice_offset = 0;
+                auto iter = pt.cbegin();
                 for (const auto dim : dependent_dimensions) {
                     double point_sum = 0;
                     for (auto coord = sublattice_offset; coord < dim; ++coord) {
-                        std::cout << "coord: " << coord << std::endl;
-                        point_sum += pt[coord];
-                        final_point.push_back ( pt[coord] );
+                        std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
+                        point_sum += *iter;
+                        final_point.push_back ( *iter );
+                        if (iter != pt.cend()) ++iter;
                     }
                     sublattice_offset = dim;
                     final_point.emplace_back ( 1 - point_sum ); // dependent coordinate is 1 - independents
