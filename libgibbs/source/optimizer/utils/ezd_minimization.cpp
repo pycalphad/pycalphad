@@ -80,6 +80,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
             // Last component is dependent dimension
             current_dependent_dimension += (number_of_species-1);
             dependent_dimensions.insert(current_dependent_dimension);
+            ++current_dependent_dimension;
             NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
             components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
         }
