@@ -54,7 +54,7 @@ namespace Optimizer { namespace details {
         std::vector<std::vector<double>> candidate_points, final_points; // vertices of tie hyperplanes
         double point_buffer[point_buffer_size-1];
         std::size_t buffer_offset = 0;
-        std::string Qhullcommand = "Qt"; // triangulate convex hull (make all facets simplicial)
+        std::string Qhullcommand = "";
         // Copy all of the points into a buffer compatible with Qhull
         for (auto pt : points) {
             for (auto coord : pt) {
@@ -77,7 +77,7 @@ namespace Optimizer { namespace details {
         // Get all of the facets
         QhullFacetList facets = qhull.facetList();
         for (auto facet : facets) {
-            if (facet.isDefined() && facet.isGood()) {
+            if (facet.isDefined() && facet.isGood() && facet.isSimplicial()) {
                 double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
                 QhullVertexSet vertices = facet.vertices();
@@ -149,7 +149,7 @@ namespace Optimizer { namespace details {
                 final_point.reserve ( pt.size() + dependent_dimensions.size() );
                 std::size_t sublattice_offset = 0;
                 auto iter = pt.cbegin();
-                for (const auto dim : dependent_dimensions) {
+                for (auto dim : dependent_dimensions) {
                     double point_sum = 0;
                     for (auto coord = sublattice_offset; coord < dim; ++coord) {
                         std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
@@ -157,8 +157,9 @@ namespace Optimizer { namespace details {
                         final_point.push_back ( *iter );
                         if (iter != pt.cend()) ++iter;
                     }
-                    sublattice_offset = dim;
+                    // add back the dependent component
                     final_point.emplace_back ( 1 - point_sum ); // dependent coordinate is 1 - independents
+                    sublattice_offset = dim+1; // move to next sublattice
                 }
                 final_points.emplace_back ( std::move( final_point ) );
             }
