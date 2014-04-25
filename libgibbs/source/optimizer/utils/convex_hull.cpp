@@ -37,6 +37,10 @@ using orgQhull::QhullVertex;
 using orgQhull::QhullVertexSet;
 
 namespace Optimizer { namespace details {
+    std::vector<double> restore_dependent_dimensions (
+        const std::vector<double> &point, 
+        const std::set<std::size_t> &dependent_dimensions);
+    
     // Modified QuickHull algorithm using d-dimensional Beneath-Beyond
     // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
     // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
@@ -44,7 +48,8 @@ namespace Optimizer { namespace details {
     std::vector<std::vector<double>> lower_convex_hull (
                              const std::vector<std::vector<double>> &points,
                              const std::set<std::size_t> &dependent_dimensions,
-                             const double critical_edge_length
+                             const double critical_edge_length,
+                             std::function<double(const std::vector<double>&)> calculate_objective
                            ) {
         BOOST_ASSERT(points.size() > 0);
         BOOST_ASSERT(critical_edge_length > 0);
@@ -82,6 +87,18 @@ namespace Optimizer { namespace details {
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
                 QhullVertexSet vertices = facet.vertices();
                 const std::size_t vertex_count = vertices.size();
+                // The "lever rule energy" will be the last coordinate of the centroid
+                std::vector<double> centroid = facet.getCenter( qhull.runId() ).toStdVector();
+                const double lever_rule_energy = centroid.back(); // Energy is the last coordinate
+                centroid.pop_back(); // Remove the energy coordinate
+                // Then, restore the dependent dimensions to the centroid and calculate the true energy
+                centroid = restore_dependent_dimensions ( centroid, dependent_dimensions );
+                const double true_energy = calculate_objective ( centroid );
+                // If the true energy is "much" greater, it's a true tie line
+                // If the true energy is lower, throw because that is not physical
+                if ( true_energy < 1.05*lever_rule_energy ) {
+                    continue; // not a true tie line, skip it
+                }
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
                 // Check the length of all edges (dimension 1) in the facet
                 for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
@@ -145,23 +162,7 @@ namespace Optimizer { namespace details {
             std::cout << "candidate_points.size() = " << candidate_points.size() << std::endl;
             // Second, restore the dependent variables to the correct coordinate placement
             for (const auto pt : candidate_points) {
-                std::vector<double> final_point;
-                final_point.reserve ( pt.size() + dependent_dimensions.size() );
-                std::size_t sublattice_offset = 0;
-                auto iter = pt.cbegin();
-                for (auto dim : dependent_dimensions) {
-                    double point_sum = 0;
-                    for (auto coord = sublattice_offset; coord < dim; ++coord) {
-                        std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
-                        point_sum += *iter;
-                        final_point.push_back ( *iter );
-                        if (iter != pt.cend()) ++iter;
-                    }
-                    // add back the dependent component
-                    final_point.emplace_back ( 1 - point_sum ); // dependent coordinate is 1 - independents
-                    sublattice_offset = dim+1; // move to next sublattice
-                }
-                final_points.emplace_back ( std::move( final_point ) );
+                final_points.emplace_back ( restore_dependent_dimensions ( pt, dependent_dimensions ) );
             }
         }
         else {
@@ -187,6 +188,28 @@ namespace Optimizer { namespace details {
             std::cout << std::endl;
         }
         return final_points;
+    }
+    // Add the dependent site fraction coordinates back to the point
+    std::vector<double> restore_dependent_dimensions (
+        const std::vector<double> &point, 
+        const std::set<std::size_t> &dependent_dimensions) {
+        std::vector<double> final_point;
+        final_point.reserve ( point.size() + dependent_dimensions.size() );
+        std::size_t sublattice_offset = 0;
+        auto iter = point.cbegin();
+        for (auto dim : dependent_dimensions) {
+            double point_sum = 0;
+            for (auto coord = sublattice_offset; coord < dim; ++coord) {
+                std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
+                point_sum += *iter;
+                final_point.push_back ( *iter );
+                if (iter != point.cend()) ++iter;
+            }
+            // add back the dependent component
+            final_point.emplace_back ( 1 - point_sum ); // dependent coordinate is 1 - independents
+            sublattice_offset = dim+1; // move to next sublattice
+        }
+        return final_point;
     }
 } // namespace details
 } // namespace Optimizer

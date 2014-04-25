@@ -181,11 +181,14 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         std::cout << std::endl;
     }
     
+    auto calculate_energy = [&phase,&conditions] (const std::vector<double>& point) {
+        return phase.evaluate_objective(conditions,phase.get_variable_map(),const_cast<double*>(&point[0]));
+    };
     // Now the convex hull of the phase needs to be found using the unmapped_minima points
     // I cannot simply lift the sites using the magnitude of the point from the origin
     // due to metastable points
     unmapped_minima = details::lower_convex_hull( 
-                         unmapped_minima, dependent_dimensions, critical_edge_length 
+                         unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
                                                 );
 
     // We want to map the indices we used back to variable names for the optimizer

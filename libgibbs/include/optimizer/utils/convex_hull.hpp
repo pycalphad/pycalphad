@@ -10,6 +10,7 @@
 
 #include <vector>
 #include <set>
+#include <functional>
 
 namespace Optimizer {
     namespace details {
@@ -17,7 +18,8 @@ namespace Optimizer {
         std::vector<std::vector<double>> lower_convex_hull ( 
         const std::vector<std::vector<double>> &points, 
         const std::set<std::size_t> &dependent_dimensions,
-        const double critical_edge_length
+        const double critical_edge_length,
+        const std::function<double(const std::vector<double>&)> calculate_objective
         );
     }
 }
