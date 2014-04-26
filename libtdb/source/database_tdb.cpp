@@ -109,6 +109,7 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 		std::cerr << "Exception: " << err_msg << " on line " << linenum << std::endl;
 		std::cerr << "Reason: " << specific_info << std::endl;
 		//std::cerr << std::endl << std::endl << diagnostic_information(e);
+                throw;
 	}
 	catch (file_read_error &e) {
 		// 'path' is in scope here, but just for safety we'll read it from the exception object
@@ -117,6 +118,7 @@ Database::DatabaseTDB::DatabaseTDB(std::string path) {
 			fname = *mi;
 		}
 		std::cerr << "Cannot read from \"" << fname << "\"" << std::endl;
+                throw;
 	}
 }
 
