@@ -53,6 +53,7 @@ namespace Optimizer { namespace details {
                            ) {
         BOOST_ASSERT(points.size() > 0);
         BOOST_ASSERT(critical_edge_length > 0);
+        const double coplanarity_allowance = 0.01; // max energy difference (%/100) to be on tie plane
         const std::size_t point_dimension = points.begin()->size();
         const std::size_t point_count = points.size();
         const std::size_t point_buffer_size = point_dimension * point_count;
@@ -95,8 +96,8 @@ namespace Optimizer { namespace details {
                 centroid = restore_dependent_dimensions ( centroid, dependent_dimensions );
                 const double true_energy = calculate_objective ( centroid );
                 // If the true energy is "much" greater, it's a true tie line
-                // If the true energy is lower, throw because that is not physical
-                if ( true_energy < 1.05*lever_rule_energy ) {
+                // The true energy cannot be "much" lower because it would have  on the convex hull
+                if ( fabs((true_energy-lever_rule_energy)/lever_rule_energy) < coplanarity_allowance ) {
                     continue; // not a true tie line, skip it
                 }
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
