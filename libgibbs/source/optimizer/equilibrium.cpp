@@ -142,24 +142,20 @@ std::string Equilibrium::print() const {
 
     // double/double pair is for separate storage of numerator/denominator pieces of fraction
     std::map<std::string,std::pair<double,double>> global_comp;
+    std::map<std::string,double> chemical_potential; // chemical potential of species
     const auto cond_spec_begin = result.conditions.elements.cbegin();
     const auto cond_spec_end = result.conditions.elements.cend();
     for (auto i = result.phases.begin(); i != result.phases.end(); ++i) {
     	const auto subl_begin = i->second.sublattices.cbegin();
     	const auto subl_end = i->second.sublattices.cend();
     	const double phasefrac = i->second.f;
+        double driving_force = 0;
 
     	std::map<std::string,std::pair<double,double>> phase_comp;
-    	temp_buf << i->first << "\tStatus " << enumToString(i->second.status) << "  Driving force ????" << std::endl; // phase name
-
-    	for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
-    		if (*j == "VA") continue; // don't include vacancies in chemical potential
-    		double mu = i->second.chemical_potential(*j, result.variables, result.conditions);
-    		temp_buf << "MU(" << *j << ") = " << mu << std::endl;
-    	}
-
-    	temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
-    	temp_buf << "Mole fractions:" << std::endl;
+        std::stringstream mole_fraction_buffer;
+        mole_fraction_buffer << std::scientific;
+    	
+    	temp_buf << i->first << "\tStatus " << enumToString(i->second.status) << std::endl;
 
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		const double stoi_coef = j->sitecount;
@@ -205,30 +201,59 @@ std::string Equilibrium::print() const {
     	const auto cmp_begin = phase_comp.cbegin();
     	const auto cmp_end = phase_comp.cend();
     	for (auto g = cmp_begin; g != cmp_end; ++g) {
-    		temp_buf << g->first << " " << (g->second.first / g->second.second) << "  ";
+    		mole_fraction_buffer << g->first << " " << (g->second.first / g->second.second) << "  ";
     	}
-    	temp_buf << std::endl << "Constitution:" << std::endl;
+    	mole_fraction_buffer << std::endl << "Constitution:" << std::endl;
 
     	for (auto j = subl_begin; j != subl_end; ++j) {
     		double stoi_coef = j->sitecount;
-    		temp_buf << "Sublattice " << std::distance(subl_begin,j)+1 << ", Number of sites " << stoi_coef << std::endl;
+    		mole_fraction_buffer << "Sublattice " << std::distance(subl_begin,j)+1 << ", Number of sites " << stoi_coef << std::endl;
     		const auto spec_begin = j->components.cbegin();
     		const auto spec_end = j->components.cend();
     		for (auto k = spec_begin; k != spec_end; ++k) {
-                temp_buf << k->first << " " << k->second.site_fraction << " ";
+                mole_fraction_buffer << k->first << " " << k->second.site_fraction << " ";
     		}
-    		temp_buf << std::endl;
+    		mole_fraction_buffer << std::endl;
     	}
+        
+        for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
+            if (*j == "VA") continue; // don't include vacancies in chemical potential
+            double mu = i->second.chemical_potential(*j, result.variables, result.conditions);
+            temp_buf << "MU(" << *j << ") = " << mu << std::endl;
+            if (!isnan(mu) && phasefrac > 1e-6) chemical_potential[*j] = mu;
+        }
+        
+        
+        temp_buf << "Number of moles " << phasefrac * N << ", Mass ???? ";
+        temp_buf << "Mole fractions:" << std::endl;
+        temp_buf << mole_fraction_buffer.rdbuf();
 
     	// if we're at the last phase, don't add an extra newline
     	if (std::distance(i,result.phases.end()) != 1) temp_buf << std::endl;
     }
+    
+    // Iterate over the phases a second time, so we can add the driving force
+    // We needed global_comp to be filled before we did this
+    /*for (auto i = result.phases.begin(); i != result.phases.end(); ++i) {
+        double driving_force = energy;
+        for (auto j = cond_spec_begin; j != cond_spec_end; ++j) {
+            if (*j == "VA") continue; // don't include vacancies in chemical potential
+            double mu = i->second.chemical_potential(*j, result.variables, result.conditions);
+            if (isnan(mu)) continue;
+            driving_force -= mu * (global_comp[*j].first / global_comp[*j].second);
+            temp_buf << std::endl << "driving_force -= " << mu << " * " << (global_comp[*j].first / global_comp[*j].second) << std::endl;
+        }
+        temp_buf << "Driving force " << driving_force << std::endl;
+    }*/
+    
     const auto glob_begin = global_comp.cbegin();
     const auto glob_end = global_comp.cend();
     stream << "Component\tMoles\tM-Fraction\tActivity\tPotential\tRef.state" << std::endl;
     for (auto h = glob_begin; h != glob_end; ++h) {
     	double molefrac = h->second.first / h->second.second;
-    	stream << h->first << "\t" <<  molefrac * N << "\t" << molefrac << "\t????\t" << "??" << "\tSER" << std::endl;
+        double mu = chemical_potential[h->first];
+        double activity = exp(mu / (SI_GAS_CONSTANT * T));
+    	stream << h->first << "\t" <<  molefrac * N << "\t" << molefrac << "\t" << activity << "\t" << mu << "\tSER" << std::endl;
     }
     stream << std::endl;
 
