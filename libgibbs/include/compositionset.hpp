@@ -35,7 +35,11 @@ public:
     double evaluate_objective ( evalconditions const&, std::map<std::string,double> const & ) const;
     std::map<int,double> evaluate_objective_gradient (
         evalconditions const&, boost::bimap<std::string, int> const &, double* const ) const;
+    std::map<int,double> evaluate_single_phase_objective_gradient (
+        evalconditions const&, boost::bimap<std::string, int> const &, double* const ) const;
     std::map<int,double> evaluate_objective_gradient (
+        evalconditions const &, std::map<std::string,double> const & ) const;
+    std::map<int,double> evaluate_single_phase_objective_gradient (
         evalconditions const &, std::map<std::string,double> const & ) const;
     std::vector<double> evaluate_internal_objective_gradient (
         evalconditions const& conditions, double* const ) const;

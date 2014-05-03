@@ -277,6 +277,28 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient (
     return retmap;
 }
 
+std::map<int,double> CompositionSet::evaluate_single_phase_objective_gradient (
+    evalconditions const& conditions, boost::bimap<std::string, int> const &main_indices, double* const x ) const
+    {
+        std::map<int,double> retmap;
+        boost::multi_index::index<ast_set,ast_deriv_order_index>::type::const_iterator ast_begin,ast_end;
+        ast_begin = get<ast_deriv_order_index> ( tree_data ).lower_bound ( 1 );
+        ast_end = get<ast_deriv_order_index> ( tree_data ).upper_bound ( 1 );
+        const std::string compset_name ( cset_name + "_FRAC" );
+        
+        for ( auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i ) {
+            retmap[i->second] = 0; // initialize all indices as zero
+        }
+        for ( ast_set::const_iterator i = ast_begin; i != ast_end; ++i ) {
+            const double diffvalue = process_utree ( i->ast, conditions, main_indices, symbols, x ).get<double>();
+            const std::string diffvar = * ( i->diffvars.cbegin() ); // get differentiating variable
+            const int varindex = main_indices.left.at ( diffvar );
+            retmap[varindex] += diffvalue;
+        }
+        
+        return retmap;
+    }
+
 std::vector<double> CompositionSet::evaluate_internal_objective_gradient (
     evalconditions const& conditions, double* const x ) const
 {
@@ -318,6 +340,27 @@ std::map<int,double> CompositionSet::evaluate_objective_gradient (
     BOOST_LOG_SEV ( comp_log, debug ) << "returning";
     return evaluate_objective_gradient ( conditions, main_indices, vars );
 }
+
+std::map<int,double> CompositionSet::evaluate_single_phase_objective_gradient (
+    evalconditions const &conditions, std::map<std::string,double> const &variables ) const
+    {
+        // Need to translate this variable map into something process_utree can understand
+        BOOST_LOG_NAMED_SCOPE ( "CompositionSet::evaluate_single_phase_objective_gradient" );
+        logger comp_log ( journal::keywords::channel = "optimizer" );
+        BOOST_LOG_SEV ( comp_log, debug ) << "enter";
+        double vars[variables.size()]; // Create Ipopt-style double array
+        boost::bimap<std::string, int> main_indices;
+        typedef boost::bimap<std::string, int>::value_type position;
+        for ( auto i = variables.begin(); i != variables.end(); ++i ) {
+            vars[std::distance ( variables.begin(),i )] = i->second; // Copy values into array
+            main_indices.insert ( position ( i->first, std::distance ( variables.begin(),i ) ) ); // Create fictitious indices
+        }
+        for ( auto i = main_indices.left.begin(); i != main_indices.left.end(); ++i ) {
+            BOOST_LOG_SEV ( comp_log, debug ) << i->first << " -> " << i->second;
+        }
+        BOOST_LOG_SEV ( comp_log, debug ) << "returning";
+        return evaluate_single_phase_objective_gradient ( conditions, main_indices, vars );
+    }
 
 std::map<std::list<int>,double> CompositionSet::evaluate_objective_hessian (
     evalconditions const& conditions,

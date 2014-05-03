@@ -70,7 +70,7 @@ public:
             T ret_potential;
             std::size_t total_site_count = 0;
             const bool species_occupies_all_sublattices = this->species_occupies_all_sublattices(name);
-            std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
+            std::map<int,T> gradient = compositionset.evaluate_single_phase_objective_gradient(conditions, variables);
             ret_potential = energy(variables, conditions); // First term is the energy of the phase
             BOOST_LOG_SEV(pot_log, debug) << "energy = " << ret_potential;
             
