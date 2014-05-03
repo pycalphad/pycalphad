@@ -51,7 +51,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     // This is the initial amount of subdivision
     constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
     // minimum edge length of a candidate tie hyperplane
-    const double critical_edge_length = (2 * sqrt(2)) / (double)subdivisions_per_axis;
+    const double critical_edge_length = 0.01; //old: (2 * sqrt(2)) / (double)subdivisions_per_axis;
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
@@ -226,7 +226,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     BOOST_ASSERT ( depth > 0 );
     constexpr const double gradient_magnitude_threshold = 1000;
     constexpr const std::size_t subdivisions_per_axis = 2;
-    constexpr const std::size_t max_depth = 3;
+    constexpr const std::size_t max_depth = 5;
     std::vector<std::vector<double>> minima;
     std::vector<double> pt;
     double mag = std::numeric_limits<double>::max();
@@ -265,6 +265,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
 
         // Calculate magnitude of projected gradient
         temp_magnitude = norm_2 ( projected_gradient );
+        std::cout << temp_magnitude << std::endl;
         // If this is smaller than the known point, switch to this point
         if ( temp_magnitude < mag ) {
             // We have a new candidate minimum

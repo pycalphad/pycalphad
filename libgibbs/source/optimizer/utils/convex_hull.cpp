@@ -54,7 +54,7 @@ namespace Optimizer { namespace details {
                            ) {
         BOOST_ASSERT(points.size() > 0);
         BOOST_ASSERT(critical_edge_length > 0);
-        const double coplanarity_allowance = 0.01; // min energy difference (%/100) to be off tie plane
+        const double coplanarity_allowance = 0.001; // max energy difference (%/100) to still be on tie plane
         const std::size_t point_dimension = points.begin()->size();
         const std::size_t point_count = points.size();
         const std::size_t point_buffer_size = point_dimension * point_count;
@@ -94,27 +94,38 @@ namespace Optimizer { namespace details {
                 // Check the length of all edges (dimension 1) in the facet
                 for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
                     std::vector<double> pt_vert1 = vertices[vertex1].point().toStdVector();
-                    pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
+                    //pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
                     for (auto vertex2 = 0; vertex2 < vertex1; ++vertex2) {
                         std::vector<double> pt_vert2 = vertices[vertex2].point().toStdVector();
-                        pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
+                        //pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
                         std::vector<double> difference ( pt_vert2.size() );
                         std::vector<double> midpoint ( pt_vert2.size() ); // midpoint of the edge
                         std::transform (pt_vert2.begin(), pt_vert2.end(), 
                                         pt_vert1.begin(), midpoint.begin(), std::plus<double>() );
-                        for (auto coord : midpoint) coord /= 2;
+                        for (auto &coord : midpoint) coord /= 2;
                         const double lever_rule_energy = midpoint.back();
                         midpoint.pop_back(); // remove energy coordinate
                         midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
                         const double true_energy = calculate_objective ( midpoint );
                         // If the true energy is "much" greater, it's a true tie line
-                        if ( (true_energy-lever_rule_energy)/lever_rule_energy < coplanarity_allowance ) {
+                        std::cout << "pt_vert1: ";
+                        for (auto &coord : pt_vert1) std::cout << coord << ",";
+                        std::cout << ":: ";
+                        std::cout << "pt_vert2: ";
+                        for (auto &coord : pt_vert2) std::cout << coord << ",";
+                        std::cout << ":: ";
+                        std::cout << "midpoint: ";
+                        for (auto &coord : midpoint) std::cout << coord << ",";
+                        std::cout << std::endl;
+                        std::cout << "true_energy: " << true_energy << " lever_rule_energy: " << lever_rule_energy << std::endl;
+                        // We use fabs() here so we don't accidentally flip the sign of the comparison
+                        if ( (true_energy-lever_rule_energy)/fabs(lever_rule_energy) < coplanarity_allowance ) {
                             continue; // not a true tie line, skip it
                         }
                         
                         double distance = 0;
                         // Subtract vertex1 from vertex2 to get the distance
-                        std::transform (pt_vert2.begin(), pt_vert2.end(), 
+                        std::transform (pt_vert2.begin(), pt_vert2.end()-1, 
                                         pt_vert1.begin(), difference.begin(), std::minus<double>() );
                         // Sum the square of all elements of vertex2-vertex1
                         for (auto coord : difference) distance += std::pow(coord,2);
