@@ -17,6 +17,7 @@
 #include <string>
 #include <vector>
 #include <memory>
+#include <limits>
 #include <sstream>
 
 namespace Optimizer {
@@ -29,103 +30,140 @@ template<typename T = double> struct Sublattice {
 	std::map<std::string, Component<T> > components; // Components in sublattice
 };
 template<typename T = double> struct Phase {
-	T f; // Phase fraction
-	Optimizer::PhaseStatus status; // Phase status
-	std::vector<Sublattice<T> > sublattices; // Sublattices in phase
-	CompositionSet compositionset; // CompositionSet object (contains model ASTs)
-	mutable logger pot_log;
-	T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
-	T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
-		return compositionset.evaluate_objective(conditions, variables);
-	}
-	T chemical_potential(const std::string &name, const std::map<std::string,T> &variables, const evalconditions &conditions) const {
-		// Chemical potential of species in phase
-		// The expression for this in terms of site fractions involves a summation over all sublattices
-		// mu_k = G(...) + sum[s]((1/(b_s))*(dG/dy[k,s]*sum[v](b_v*(1-y_vVa))) - sum[j](dG/dy[j,s]*sum[v](b_v*y[j,v])))
-		// For the single-sublattice case, this reduces to the well-known expression for mole fractions derived by Hillert
-		BOOST_LOG_NAMED_SCOPE("Phase::chemical_potential");
-		BOOST_LOG_CHANNEL_SEV(pot_log, "optimizer", debug) << "mu " << name << " in " << compositionset.name();
-		T ret_potential;
-		T sum_of_sublattice_coefficients = 0;
-		std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
-		ret_potential = energy(variables, conditions); // First term is the energy of the phase
-		BOOST_LOG_SEV(pot_log, debug) << "energy = " << ret_potential;
 
-		// First sublattice iteration to calculate a constant with respect to iteration
-		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
-			T vacancy_sitefraction = 0;
-			std::stringstream vacancy_sitefraction_name;
-			vacancy_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_VA";
-			const auto vacancy_find = variables.find(vacancy_sitefraction_name.str());
-			if (vacancy_find != variables.end()) vacancy_sitefraction = vacancy_find->second;
-			sum_of_sublattice_coefficients += subl->sitecount * (1 - vacancy_sitefraction);
-		}
-		BOOST_LOG_SEV(pot_log, debug) << "sum_of_sublattice_coefficients = " << sum_of_sublattice_coefficients;
+protected:
+    bool species_occupies_all_sublattices(const std::string &name) const {
+        // Check if this component is in every sublattice.
+        // Alternatively, check if it's in every sublattice except ones only occupied by vacancies. 
+        // If either of these conditions hold, we can directly calculate the chemical potential.
+        for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+            // Vacancy-only sublattices don't count 
+            if (subl->components.size() == 1 && subl->components.begin()->first == "VA") continue;
+            const auto species_find = subl->components.find(name);
+            // found in sublattice, keep going
+            if (species_find != subl->components.end()) continue;
+            // If we get here, we can't define the chemical potential directly
+            return false;
+            }
+        return true;
+    }
 
-		// Main sublattice iteration: Iterate over all sublattices in this phase
-		for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
-			// Define the variable name corresponding to the site fraction of interest in this sublattice
-			std::stringstream primary_sitefraction_name;
-			primary_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << name;
+public:
+    T f; // Phase fraction
+    Optimizer::PhaseStatus status; // Phase status
+    std::vector<Sublattice<T> > sublattices; // Sublattices in phase
+    CompositionSet compositionset; // CompositionSet object (contains model ASTs)
+    mutable logger pot_log;
+    T mole_fraction(const std::string &) const; //  Mole fraction of species in phase
+    T energy(const std::map<std::string,T> &variables, const evalconditions &conditions) const { // Energy of the phase
+            return compositionset.evaluate_objective(conditions, variables);
+    }
+    T chemical_potential(const std::string &name, const std::map<std::string,T> &variables, const evalconditions &conditions) const {
+            // Chemical potential of species in phase
+            // Based on Hillert, 2008, p. 77-78
+            // NOTE: It is NOT guaranteed that this function is well-defined for all phases/components.
+            // Some phases,  e.g.,  line compounds, only have well-defined chemical potentials at
+            // multi-phase equilibrium,  so they will have to be calculated together.
+            BOOST_LOG_NAMED_SCOPE("Phase::chemical_potential");
+            BOOST_LOG_CHANNEL_SEV(pot_log, "optimizer", debug) << "mu " << name << " in " << compositionset.name();
+            if (name == "VA") return 0; // chemical potential of vacancy is defined to be zero
+            T ret_potential;
+            std::size_t total_site_count = 0;
+            const bool species_occupies_all_sublattices = this->species_occupies_all_sublattices(name);
+            std::map<int,T> gradient = compositionset.evaluate_objective_gradient(conditions, variables);
+            ret_potential = energy(variables, conditions); // First term is the energy of the phase
+            BOOST_LOG_SEV(pot_log, debug) << "energy = " << ret_potential;
+            
+            for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+                // Vacancy-only sublattices don't count 
+                if (subl->components.size() == 1 && subl->components.begin()->first == "VA") continue;
+                total_site_count += subl->sitecount;
+            }
+            
+            if (species_occupies_all_sublattices) {
+                for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+                    T site_count = subl->sitecount;
+                    // Iterate over all components
+                    for (auto j = subl->components.begin(); j != subl->components.end(); ++j) {
+                        if (j->first == "VA") continue;     //  skip vacancies
+                        std::stringstream sitefraction_name;
+                        sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << j->first;
+                        const auto component_find = variables.find(sitefraction_name.str());
+                        const auto gradient_component_index = std::distance(variables.begin(), component_find);
+                        const T gradient_value = gradient.at(gradient_component_index);
+                        ret_potential -= component_find->second * gradient_value;
+                        
+                        if (j->first == name) {
+                            // There's an extra term associated with this being the species of interest
+                            ret_potential += gradient_value;
+                        }
+                    }
+                }
+            }
+            else {
+                auto ref_component_find = conditions.elements.begin();
+                while (ref_component_find != conditions.elements.end() && 
+                    !this->species_occupies_all_sublattices(*(ref_component_find))) {
+                    ref_component_find++;
+                }
+                //  ref_component_find points to a chemical potential which can be calculated
+                //  or it points to nothing
+                if (ref_component_find == conditions.elements.end()) return std::numeric_limits<T>::quiet_NaN();
+                const T ref_chemical_potential = this->chemical_potential(*ref_component_find,  variables,  conditions);
+                //  Now we need to locate a sublattice containing the reference component and the current one
+                auto sublattice_find = sublattices.end();
+                for (auto subl = sublattices.begin(); subl != sublattices.end(); ++subl) {
+                    const auto component_find = subl->components.find(name);
+                    if (component_find != subl->components.end()) {
+                        sublattice_find = subl;
+                        break;
+                    }
+                }
+                if (sublattice_find != sublattices.end()) {
+                    // The chemical potential can be calculated based on the reference component
+                    std::stringstream ref_sitefraction_name;
+                    ref_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),sublattice_find) << "_" << *ref_component_find;
+                    const auto ref_component_find = variables.find(ref_sitefraction_name.str());
+                    const auto ref_gradient_component_index = std::distance(variables.begin(), ref_component_find);
+                    const T ref_gradient_value = gradient.at(ref_gradient_component_index);
+                    
+                    std::stringstream component_sitefraction_name;
+                    component_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),sublattice_find) << "_" << name;
+                    const auto component_find = variables.find(component_sitefraction_name.str());
+                    const auto gradient_component_index = std::distance(variables.begin(), component_find);
+                    const T component_gradient_value = gradient.at(gradient_component_index);
+                    
+                    const auto site_count = sublattice_find->sitecount;
+                    
+                    ret_potential = (total_site_count/site_count) * (component_gradient_value - ref_gradient_value) + ref_chemical_potential;
+                }
+                else return std::numeric_limits<T>::quiet_NaN();
+            }
 
-			// Search for it in the variables
-			const auto primary_component_find = variables.find(primary_sitefraction_name.str());
+            BOOST_LOG_SEV(pot_log, debug) << "ret_potential = " << ret_potential;
+            return ret_potential;
+    }
 
-			// Does the named component exist in this sublattice?
-			if (primary_component_find == variables.end()) continue; // Skip this sublattice, the component doesn't exist here
+    Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { }
 
-			// This works because evaluate_objective_gradient() will return the gradient in the same order as "variables"
-			const int gradient_variable_index = std::distance(variables.begin(),primary_component_find);
-			const T gradient_value = gradient.at(gradient_variable_index);
-			T subl_term = gradient_value * sum_of_sublattice_coefficients; // Contribution by named species
+    // move constructor
+    Phase(Phase &&other) :
+            f(std::move(other.f)),
+            status(std::move(other.status)),
+            sublattices(std::move(other.sublattices)),
+            compositionset(std::move(other.compositionset)) {
+    }
+    // move assignment
+    Phase & operator= (Phase &&other) {
+            this->f = std::move(other.f);
+            this->status = std::move(other.status);
+            this->sublattices = std::move(other.sublattices);
+            this->compositionset = std::move(other.compositionset);
+            return *this;
+    }
 
-			// Now add contribution from all of the components in this sublattice
-			for (auto j = subl->components.begin(); j != subl->components.end(); ++j) {
-				std::stringstream sitefraction_name;
-				sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),subl) << "_" << j->first;
-				const auto component_find = variables.find(sitefraction_name.str());
-				const int gradient_component_index = std::distance(variables.begin(), component_find);
-				const T other_gradient_value = gradient.at(gradient_component_index);
-				T weighted_sum_of_sitefractions = 0;
-				for (auto k = sublattices.begin(); k != sublattices.end(); ++k) {
-					std::stringstream other_sitefraction_name;
-					other_sitefraction_name << compositionset.name() << "_" << std::distance(sublattices.begin(),k) << "_" << j->first;
-					const auto other_sublattice_component_find = variables.find(other_sitefraction_name.str());
-					if (other_sublattice_component_find == variables.end()) continue; // Component is not in this sublattice
-					weighted_sum_of_sitefractions += k->sitecount * other_sublattice_component_find->second;
-				}
-				subl_term -= other_gradient_value * weighted_sum_of_sitefractions; // Subtract from sublattice contribution
-			}
-
-			subl_term = subl_term / subl->sitecount;
-			BOOST_LOG_SEV(pot_log, debug) << "subl_term = " << subl_term;
-			ret_potential += subl_term; // Add sublattice contribution to total chemical potential
-		}
-
-		BOOST_LOG_SEV(pot_log, debug) << "ret_potential = " << ret_potential;
-		return ret_potential;
-	}
-
-	Phase() : f(0), status(Optimizer::PhaseStatus::SUSPENDED) { }
-
-	// move constructor
-	Phase(Phase &&other) :
-		f(std::move(other.f)),
-		status(std::move(other.status)),
-		sublattices(std::move(other.sublattices)),
-		compositionset(std::move(other.compositionset)) {
-	}
-	// move assignment
-	Phase & operator= (Phase &&other) {
-		this->f = std::move(other.f);
-		this->status = std::move(other.status);
-		this->sublattices = std::move(other.sublattices);
-		this->compositionset = std::move(other.compositionset);
-		return *this;
-	}
-
-	Phase(const Phase &) = delete;
-	Phase & operator=(const Phase &) = delete;
+    Phase(const Phase &) = delete;
+    Phase & operator=(const Phase &) = delete;
 };
 
 // GibbsOpt will fill the EquilibriumResult structure when finalize_solution() is called
