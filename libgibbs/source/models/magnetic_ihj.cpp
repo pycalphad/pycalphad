@@ -108,9 +108,10 @@ IHJMagneticModel::IHJMagneticModel(
 	}
 	// Apply AFM factor to TC
 	Curie_temperature = a_o(get_afm_factor(Curie_temperature, afm_factor), Curie_temperature, "*");
+        tau = a_o("T", Curie_temperature, "/");
 	// Divide T by TC
 	// Protection against divide by zero: We know if TC->0, tau->infinity and the magnetic contribution goes to zero
-	tau.push_back("@");
+	/*tau.push_back("@");
 	tau.push_back(Curie_temperature);
 	tau.push_back(-std::numeric_limits<double>::max());
 	tau.push_back(-1e-20);
@@ -124,7 +125,7 @@ IHJMagneticModel::IHJMagneticModel(
 	tau.push_back(Curie_temperature);
 	tau.push_back(1e-20);
 	tau.push_back(std::numeric_limits<double>::max());
-	tau.push_back(a_o("T", Curie_temperature, "/"));
+	tau.push_back(a_o("T", Curie_temperature, "/"));*/
 
 	// Now find parameters of type "BMAGN"
 	scantype = "BMAGN";
