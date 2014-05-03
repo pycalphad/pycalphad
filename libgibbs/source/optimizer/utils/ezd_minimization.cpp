@@ -49,7 +49,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
                                        )
 {
     // This is the initial amount of subdivision
-    constexpr const std::size_t subdivisions_per_axis = 20; // TODO: make this user-configurable
+    constexpr const std::size_t subdivisions_per_axis = 10; // TODO: make this user-configurable
     // minimum edge length of a candidate tie hyperplane
     const double critical_edge_length = 0.01; //old: (2 * sqrt(2)) / (double)subdivisions_per_axis;
     using namespace boost::numeric::ublas;
