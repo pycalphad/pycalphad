@@ -113,7 +113,7 @@ void Phase::modify_phase(const std::string &command) {
 		if (words.size() >= 3) {
 			auto words_iter = words.begin(); // on A_P_D command
 			++words_iter; // name of phase
-			if (*words_iter != phase_name) {
+			if (*words_iter != phase_name && *words_iter != "@") {
 				// phase name mismatch
 				std::string errmsg
 				("Phase name mismatch in AMEND_PHASE_DESCRIPTION type definition for phase " + phase_name);
