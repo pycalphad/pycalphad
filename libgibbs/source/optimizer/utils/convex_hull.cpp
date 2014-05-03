@@ -21,6 +21,7 @@
 #include "external/libqhullcpp/Qhull.h"
 #include <boost/assert.hpp>
 #include <boost/concept_check.hpp>
+#include <boost/graph/graph_concepts.hpp>
 #include <string>
 #include <sstream>
 #include <algorithm>
@@ -53,7 +54,7 @@ namespace Optimizer { namespace details {
                            ) {
         BOOST_ASSERT(points.size() > 0);
         BOOST_ASSERT(critical_edge_length > 0);
-        const double coplanarity_allowance = 0.01; // max energy difference (%/100) to be on tie plane
+        const double coplanarity_allowance = 0.01; // min energy difference (%/100) to be off tie plane
         const std::size_t point_dimension = points.begin()->size();
         const std::size_t point_count = points.size();
         const std::size_t point_buffer_size = point_dimension * point_count;
@@ -88,18 +89,7 @@ namespace Optimizer { namespace details {
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
                 QhullVertexSet vertices = facet.vertices();
                 const std::size_t vertex_count = vertices.size();
-                // The "lever rule energy" will be the last coordinate of the centroid
-                std::vector<double> centroid = facet.getCenter( qhull.runId() ).toStdVector();
-                const double lever_rule_energy = centroid.back(); // Energy is the last coordinate
-                centroid.pop_back(); // Remove the energy coordinate
-                // Then, restore the dependent dimensions to the centroid and calculate the true energy
-                centroid = restore_dependent_dimensions ( centroid, dependent_dimensions );
-                const double true_energy = calculate_objective ( centroid );
-                // If the true energy is "much" greater, it's a true tie line
-                // The true energy cannot be "much" lower because it would have  on the convex hull
-                if ( fabs((true_energy-lever_rule_energy)/lever_rule_energy) < coplanarity_allowance ) {
-                    continue; // not a true tie line, skip it
-                }
+
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
                 // Check the length of all edges (dimension 1) in the facet
                 for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
@@ -109,10 +99,23 @@ namespace Optimizer { namespace details {
                         std::vector<double> pt_vert2 = vertices[vertex2].point().toStdVector();
                         pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
                         std::vector<double> difference ( pt_vert2.size() );
+                        std::vector<double> midpoint ( pt_vert2.size() ); // midpoint of the edge
+                        std::transform (pt_vert2.begin(), pt_vert2.end(), 
+                                        pt_vert1.begin(), midpoint.begin(), std::plus<double>() );
+                        for (auto coord : midpoint) coord /= 2;
+                        const double lever_rule_energy = midpoint.back();
+                        midpoint.pop_back(); // remove energy coordinate
+                        midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
+                        const double true_energy = calculate_objective ( midpoint );
+                        // If the true energy is "much" greater, it's a true tie line
+                        if ( (true_energy-lever_rule_energy)/lever_rule_energy < coplanarity_allowance ) {
+                            continue; // not a true tie line, skip it
+                        }
+                        
                         double distance = 0;
                         // Subtract vertex1 from vertex2 to get the distance
                         std::transform (pt_vert2.begin(), pt_vert2.end(), 
-                                        pt_vert1.begin(), difference.begin(), std::minus<double>());
+                                        pt_vert1.begin(), difference.begin(), std::minus<double>() );
                         // Sum the square of all elements of vertex2-vertex1
                         for (auto coord : difference) distance += std::pow(coord,2);
                         // Square root the result

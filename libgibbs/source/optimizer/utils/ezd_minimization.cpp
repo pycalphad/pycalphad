@@ -226,7 +226,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     BOOST_ASSERT ( depth > 0 );
     constexpr const double gradient_magnitude_threshold = 1000;
     constexpr const std::size_t subdivisions_per_axis = 2;
-    constexpr const std::size_t max_depth = 5;
+    constexpr const std::size_t max_depth = 3;
     std::vector<std::vector<double>> minima;
     std::vector<double> pt;
     double mag = std::numeric_limits<double>::max();
