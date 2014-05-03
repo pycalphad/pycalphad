@@ -62,6 +62,11 @@ namespace Optimizer { namespace details {
         double point_buffer[point_buffer_size-1];
         std::size_t buffer_offset = 0;
         std::string Qhullcommand = "";
+        if (points.size() == 1) { // Special case: No composition dependence
+            auto return_point = restore_dependent_dimensions ( points.front(), dependent_dimensions );
+            final_points.emplace_back ( std::move ( return_point ) );
+            return final_points;
+        }
         // Copy all of the points into a buffer compatible with Qhull
         for (auto pt : points) {
             for (auto coord : pt) {
