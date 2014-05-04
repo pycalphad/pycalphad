@@ -154,12 +154,13 @@ typedef std::vector<NDSimplex> SimplexCollection;
     func ( point ); // should be {0,0,...1}
   }*/
 
-  // Input: Vector of (vector of simplices in each sublattice)
+  // Input: Vector of (vector of objects in each sublattice)
   // Output: All combinations of those vectors
-  std::vector<SimplexCollection> lattice_complex (const std::vector<SimplexCollection> &components_in_sublattices)
+  template <typename T>
+  std::vector<std::vector<T>> lattice_complex (const std::vector<std::vector<T>> &components_in_sublattices)
   {
-    std::vector<SimplexCollection> point_lattices; //  Simplex lattices for each sublattice
-    std::vector<SimplexCollection> points; // The final return points (combination of all simplex lattices)
+    std::vector<std::vector<T>> point_lattices; // Objects from each sublattice
+    std::vector<std::vector<T>> points; // The final return points (all combinations from each vector)
     std::size_t expected_points = 1;
     std::size_t point_dimension = components_in_sublattices.size();
 
@@ -173,7 +174,7 @@ typedef std::vector<NDSimplex> SimplexCollection;
     
     for ( auto p = 0; p < expected_points; ++p )
       {
-        SimplexCollection point;
+        std::vector<T> point;
         std::size_t dividend = p;
         point.reserve ( point_dimension );
         //std::cout << "p : " << p << " indices: [";
