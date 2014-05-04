@@ -29,7 +29,8 @@ std::unique_ptr<EnergyModel> EnergyModel::clone_with_renamed_phase (
     BOOST_LOG_SEV( opto_log, debug ) << "DCR ASTSymbolMap";
     // Perform a deep rename on model_ast
     ast_variable_rename ( copymodel->model_ast, old_phase_name, new_phase_name );
-    BOOST_LOG_SEV( opto_log, debug ) << "DCR model_ast";
+    BOOST_LOG_SEV( opto_log, debug ) << "DCR model_ast(" 
+        << old_phase_name << " -> " << new_phase_name << ") = " << copymodel->model_ast;
     copymodel->ast_symbol_table = std::move ( new_map );
     BOOST_LOG_SEV( opto_log, debug ) << "returning";
     return std::move ( copymodel );
