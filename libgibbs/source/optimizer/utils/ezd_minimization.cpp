@@ -18,6 +18,7 @@
 #include "libgibbs/include/optimizer/utils/ndsimplex.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
+#include "libtdb/include/exceptions.hpp"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -33,6 +34,8 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   const SimplexCollection &search_region,
                                   const std::size_t depth,
                                   const double old_gradient_mag = 1e12 );
+
+std::vector<double> generate_point ( const SimplexCollection &simpcol );
 
 namespace Optimizer
 {
@@ -63,7 +66,13 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
     std::vector<SimplexCollection> components_in_sublattice;
+    std::vector<std::vector<std::vector<double>>> pure_end_members, all_permutations;
     std::size_t current_dependent_dimension = 0; // index of current dependent dimension
+    
+    // Simplified lambda for energy calculation
+    auto calculate_energy = [&phase,&conditions] (const std::vector<double>& point) {
+        return phase.evaluate_objective(conditions,phase.get_variable_map(),const_cast<double*>(&point[0]));
+    };
 
     // Get the first sublattice for this phase
     boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
@@ -96,11 +105,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 
     for ( SimplexCollection& simpcol : start_simplices ) {
         std::cout << "(";
-        std::vector<double> pt;
-        for ( NDSimplex& simp : simpcol ) {
-            std::vector<double> sub_pt = simp.centroid_with_dependent_component();
-            pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-        }
+        std::vector<double> pt = generate_point ( simpcol );
         for ( auto i = pt.begin(); i != pt.end(); ++i ) {
             std::cout << *i;
             if ( std::distance ( i,pt.end() ) > 1 ) {
@@ -113,12 +118,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
 
     // (2) Calculate the Lagrangian Hessian for all sampled points
     for ( SimplexCollection& simpcol : start_simplices ) {
-        std::vector<double> pt;
-        for ( NDSimplex& simp : simpcol ) {
-            // Generate the current point from all the simplices in each sublattice
-            std::vector<double> sub_pt = simp.centroid_with_dependent_component();
-            pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-        }
+        std::vector<double> pt = generate_point ( simpcol );
         if ( pt.size() == 0 ) {
             continue;    // skip empty (invalid) points
         }
@@ -154,41 +154,98 @@ std::vector<std::map<std::string,double>>  LocateMinima (
         const bool is_positive_definite = cholesky_factorize ( Hproj );
         //    (d) If it succeeds, save this point; else, discard it
         if ( is_positive_definite ) {
-            positive_definite_regions.push_back ( simpcol );
+            positive_definite_regions.emplace_back ( simpcol );
             for ( double i : pt ) {
                 std::cout << i << ",";
             }
             std::cout << ":" <<  std::endl;
         }
     }
-
-    // positive_definite_regions is now filled
-    // Perform recursive search for minima on each of the identified regions
-    for ( const SimplexCollection &simpcol : positive_definite_regions ) {
-        // We start at a recursive depth of 2 because we treat LocateMinima as depth == 1
-        // This allows our notation for depth to be consistent with Emelianenko et al.
-        std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
-
-        // Append this region's minima to the list of minima
-        unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
-        unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
+    
+    // The pure end-members are always considered in the calculation, so add them
+    // This will handle the case of complete immiscibility: energy function is nonconvex
+    sublindex = 0;
+    ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
+    ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ) );
+    while ( ic0 != ic1 ) {
+        const std::size_t number_of_species = std::distance ( ic0,ic1 );
+        std::vector<std::vector<double>> sublattice_permutations;
+        if ( number_of_species > 0 ) {
+            const double epsilon_composition = 1e-12;
+            std::vector<double> sub_pt ( number_of_species, 1e-12);
+            sub_pt[number_of_species-1] = 1-(number_of_species-1)*epsilon_composition;
+            sublattice_permutations.push_back ( sub_pt );
+            // Here we take advantage of the fact that sub_pt is sorted by construction
+            // We will iterate from (0,0,...,1) to (1,0,...,0)
+            while ( std::next_permutation ( sub_pt.begin(), sub_pt.end() ) ) {
+                sublattice_permutations.push_back ( sub_pt );
+            }
+        }
+        all_permutations.emplace_back ( sublattice_permutations );
+        // Next sublattice
+        ++sublindex;
+        ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
+        ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ) );
     }
-    std::cout << "CANDIDATE MINIMA" << std::endl;
-    for (auto min : unmapped_minima) {
-        for (auto coord : min) {
-            std::cout << coord << " ";
+    // Take all combinations of generated points in each sublattice
+    pure_end_members = lattice_complex ( all_permutations );
+    for ( auto &pure_points : pure_end_members ) {
+        // We need to concatenate all the sublattice coordinates in pure_points
+        std::vector<double> pt;
+        for ( auto &coords : pure_points ) {
+            pt.reserve ( pt.size() + coords.size() );
+            pt.insert ( pt.end(), std::make_move_iterator ( coords.begin() ),  std::make_move_iterator ( coords.end() ) );
+        }
+        // Before convex_hull, unmapped_minima has an energy coordinate
+        pt.push_back ( calculate_energy ( pt ) );
+        std::cout << "ENDMEMBER ";
+        for ( auto & coord : pt ) {
+            std::cout << coord << ",";
         }
         std::cout << std::endl;
+        unmapped_minima.emplace_back ( std::move ( pt ) );
     }
     
-    auto calculate_energy = [&phase,&conditions] (const std::vector<double>& point) {
-        return phase.evaluate_objective(conditions,phase.get_variable_map(),const_cast<double*>(&point[0]));
-    };
+    // If no unstable regions were found, there's no point in continuing the search
+    if ( start_simplices.size() == positive_definite_regions.size() ) {
+        // Choose the lowest energy region as the starting point
+        double minimum_known_energy = std::numeric_limits<double>::max();
+        auto chosen_simpcol = start_simplices.end();
+        for ( auto simp_iter = start_simplices.begin(); simp_iter != start_simplices.end(); ++simp_iter ) {
+            double new_energy = calculate_energy ( generate_point ( *simp_iter ) );
+            if ( new_energy < minimum_known_energy ) {
+                chosen_simpcol = simp_iter;
+                minimum_known_energy = new_energy;
+            }
+        }
+        unmapped_minima.emplace_back ( generate_point ( *chosen_simpcol ) );
+    }
+    else if ( positive_definite_regions.size() > 0 ) {
+        // positive_definite_regions is now filled
+        // At least one unstable region was found
+        // Perform recursive search for minima on each of the identified regions
+        for ( const SimplexCollection &simpcol : positive_definite_regions ) {
+            // We start at a recursive depth of 2 because we treat LocateMinima as depth == 1
+            // This allows our notation for depth to be consistent with Emelianenko et al.
+            std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
+
+            // Append this region's minima to the list of minima
+            unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
+            unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
+        }
+        std::cout << "CANDIDATE MINIMA" << std::endl;
+        for (auto min : unmapped_minima) {
+            for (auto coord : min) {
+                std::cout << coord << " ";
+            }
+            std::cout << std::endl;
+        }
+    }
     // Now the convex hull of the phase needs to be found using the unmapped_minima points
     // I cannot simply lift the sites using the magnitude of the point from the origin
     // due to metastable points
     unmapped_minima = details::lower_convex_hull( 
-                         unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
+                        unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
                                                 );
 
     // We want to map the indices we used back to variable names for the optimizer
@@ -244,18 +301,13 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     // new_simplices now contains a vector of SimplexCollections
     // It's a SimplexCollection instead of an NDSimplex because there is one NDSimplex per sublattice
     // The centroids of each NDSimplex are concatenated (with the dependent component) to get the active point
-    // TODO: fix to only send the one with the minimum gradient magnitude to the next depth
     // Calculate the gradient for each newly-created simplex
     for ( auto sc = new_simplices.cbegin(); sc != new_simplices.cend(); ++sc ) {
-        std::vector<double> pt, raw_gradient;
+        std::vector<double> pt = generate_point ( *sc );
+        std::vector<double> raw_gradient;
         double temp_magnitude = 0;
 
         // Calculate the objective gradient (L') for the centroid of the active simplex
-        for ( const NDSimplex& simp : *sc ) {
-            // Generate the current point (pt) from all the simplices in each sublattice
-            std::vector<double> sub_pt = simp.centroid_with_dependent_component();
-            pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-        }
         raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
         // Project the raw gradient into the null space of constraints
         // This will leave only the gradient in the feasible directions
@@ -273,18 +325,15 @@ std::vector<std::vector<double>> AdaptiveSearchND (
             mag = temp_magnitude;
         }
     }
+    
+    const bool poor_progress = ( mag > 5000 ) && ( old_gradient_mag > 5000 ) && ( depth > 2 );
 
     // Now we must decide whether we have arrived at our terminating condition or to subdivide further
-    if ( mag < gradient_magnitude_threshold || depth >= max_depth ) {
+    if ( mag < gradient_magnitude_threshold || depth >= max_depth || poor_progress ) {
         // We've hit our terminating condition
         // It may or may not be a minimum, but it's the best we can find here
-        std::vector<double> pt;
+        std::vector<double> pt = generate_point ( *chosen_simplex );
         double objective;
-        for ( const NDSimplex& simp : *chosen_simplex ) {
-            // Generate the current point (pt) from all the simplices in each sublattice
-            std::vector<double> sub_pt = simp.centroid_with_dependent_component();
-            pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
-        }
         // Add the energy of this configuration as the final coordinate
         objective = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
         pt.emplace_back ( objective );
@@ -300,3 +349,15 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         return minima;
     }
 }
+
+// Generate the full coordinates (with dependent dimensions) from the SimplexCollection of a region
+std::vector<double> generate_point ( const SimplexCollection &simpcol ) {
+    std::vector<double> pt;
+    for ( const NDSimplex& simp : simpcol ) {
+        // Generate the current point (pt) from all the simplices in each sublattice
+        std::vector<double> sub_pt = simp.centroid_with_dependent_component();
+        pt.insert ( pt.end(),std::make_move_iterator ( sub_pt.begin() ),std::make_move_iterator ( sub_pt.end() ) );
+    }
+    return pt;
+}
+
