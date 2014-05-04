@@ -464,10 +464,11 @@ void GibbsOpt::finalize_solution ( SolverReturn status,
         }
     // Sanity check internal EquilibriumResult energy value compared to Ipopt's obj_value
     double resultenergy = result.energy();
+    BOOST_LOG_SEV ( opto_log, debug ) << "EquilibriumResult energy() = " << std::setprecision ( 20 ) << resultenergy;
+    BOOST_LOG_SEV ( opto_log, debug ) << "Ipopt obj_value = " << std::setprecision ( 20 ) << obj_value;
     if ( resultenergy != 0 && std::fabs ( ( resultenergy-obj_value ) /resultenergy ) > 1e-6 )
         {
-        BOOST_LOG_SEV ( opto_log, debug ) << "EquilibriumResult energy() = " << std::setprecision ( 20 ) << resultenergy;
-        BOOST_LOG_SEV ( opto_log, debug ) << "Ipopt obj_value = " << std::setprecision ( 20 ) << obj_value;
+        BOOST_LOG_SEV ( opto_log, critical ) << "Energy sanity check failed" << std::endl;
         BOOST_THROW_EXCEPTION ( equilibrium_error() << str_errinfo ( "Energy calculated by EquilibriumResult differs from Ipopt" ) );
         }
 
