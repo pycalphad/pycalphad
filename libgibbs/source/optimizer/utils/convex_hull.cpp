@@ -6,32 +6,33 @@
  =============================================================================*/
 
 // Calculate convex hull using Qhull / libqhullcpp
-// All interfacing with the library will be done in this module
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
+#include "external/libqhullcpp/RboxPoints.h"
 #include "external/libqhullcpp/QhullError.h"
 #include "external/libqhullcpp/QhullQh.h"
 #include "external/libqhullcpp/QhullFacet.h"
 #include "external/libqhullcpp/QhullFacetList.h"
 #include "external/libqhullcpp/QhullHyperplane.h"
 #include "external/libqhullcpp/QhullLinkedList.h"
+#include "external/libqhullcpp/QhullPoint.h"
 #include "external/libqhullcpp/QhullVertex.h"
 #include "external/libqhullcpp/QhullVertexSet.h"
 #include "external/libqhullcpp/Qhull.h"
 #include <boost/assert.hpp>
-#include <boost/concept_check.hpp>
-#include <boost/graph/graph_concepts.hpp>
 #include <string>
 #include <sstream>
 #include <algorithm>
 #include <functional>
 #include <cmath>
 
+using orgQhull::RboxPoints;
 using orgQhull::Qhull;
 using orgQhull::QhullError;
 using orgQhull::QhullFacet;
 using orgQhull::QhullFacetList;
+using orgQhull::QhullPoint;
 using orgQhull::QhullQh;
 using orgQhull::RboxPoints;
 using orgQhull::QhullVertex;
@@ -57,10 +58,10 @@ namespace Optimizer { namespace details {
         const double coplanarity_allowance = 0.001; // max energy difference (%/100) to still be on tie plane
         const std::size_t point_dimension = points.begin()->size();
         const std::size_t point_count = points.size();
-        const std::size_t point_buffer_size = point_dimension * point_count;
         std::vector<std::vector<double>> candidate_points, final_points; // vertices of tie hyperplanes
-        double point_buffer[point_buffer_size-1];
-        std::size_t buffer_offset = 0;
+        RboxPoints point_buffer;
+        point_buffer.setDimension ( point_dimension );
+        point_buffer.reserveCoordinates ( point_count );
         std::string Qhullcommand = "";
         if (points.size() == 1) { // Special case: No composition dependence
             auto return_point = restore_dependent_dimensions ( points.front(), dependent_dimensions );
@@ -69,12 +70,8 @@ namespace Optimizer { namespace details {
         }
         // Copy all of the points into a buffer compatible with Qhull
         for (auto pt : points) {
-            for (auto coord : pt) {
-                if (buffer_offset >= point_buffer_size) break;
-                point_buffer[buffer_offset++] = coord;
-            }
+            point_buffer.append ( QhullPoint ( point_dimension, &pt[0] ) );
         }
-        BOOST_ASSERT(buffer_offset == point_buffer_size);
         
         // Mark dependent dimensions for Qhull so they can be discarded
         for (auto dim : dependent_dimensions) {
@@ -85,11 +82,11 @@ namespace Optimizer { namespace details {
         }
         std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
         // Make the call to Qhull
-        Qhull qhull("", point_dimension, point_count, point_buffer, Qhullcommand.c_str());
+        Qhull qhull ( point_buffer, Qhullcommand.c_str() );
         // Get all of the facets
         QhullFacetList facets = qhull.facetList();
         for (auto facet : facets) {
-            if (facet.isDefined() && facet.isGood() && facet.isSimplicial()) {
+            if (facet.isDefined() && facet.isGood() /*&& facet.isSimplicial()*/) {
                 double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
                 QhullVertexSet vertices = facet.vertices();
@@ -113,10 +110,10 @@ namespace Optimizer { namespace details {
                         midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
                         const double true_energy = calculate_objective ( midpoint );
                         // If the true energy is "much" greater, it's a true tie line
-                        std::cout << "pt_vert1: ";
+                        std::cout << "pt_vert1(" << vertices[vertex1].point().id() << "): ";
                         for (auto &coord : pt_vert1) std::cout << coord << ",";
                         std::cout << ":: ";
-                        std::cout << "pt_vert2: ";
+                        std::cout << "pt_vert2(" << vertices[vertex2].point().id() << "): ";
                         for (auto &coord : pt_vert2) std::cout << coord << ",";
                         std::cout << ":: ";
                         std::cout << "midpoint: ";
