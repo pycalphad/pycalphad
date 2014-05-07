@@ -247,6 +247,35 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     unmapped_minima = details::lower_convex_hull( 
                         unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
                                                 );
+    
+    /* TODO: lower_convex_hull() should return QhullFacetList instead of the vector of points
+     * (1)  Get the QhullFacet from the lower_convex_hull() of this phase.
+     * (2)  Apply any user-supplied conditions related to the internal degrees of freedom.
+     * (3)  Map the remaining facet vertices to the global mole fraction space.
+     *      (a) Each point must somehow be associated with its original internal degrees of freedom.
+     * (4)  Re-run Qhull to calculate the lower convex hull in this space.
+     * (5)  Apply any user-supplied constraints for this phase's state space (activity,composition,etc.)
+     * (6)  For each vertex of the candidate tie hyperplane, recall its internal degrees of freedom.
+     * (7)  Return a vector of these points to the calling function. Each point represents a composition set.
+     *      (a) Instead of returning just a point vector, return a QhullPointSet with the
+     *      mole fraction points still associated with their internal degrees of freedom.
+     *      (b) Combine all candidate points from all phases and calculate the lower convex hull.
+     *      (c) Apply user-supplied conditions related to global state space (activity,composition,etc.)
+     * (8)  If everything was done right, exactly one facet, the candidate hyperplane, will remain.
+     *      (a) Throw if this is not true. If zero, overconstrained. If greater than one, underconstrained.
+     *      (b) It would be nice to report or track the number of facets remaining after applying each
+     *            constraint.
+     * (9)  Use the internal degrees of freedom associated with each vertex to set the phase composition.
+     * (10) Find the equilibrium point on the tie plane by applying the user-supplied conditions 
+     *      for the global state space (activity, composition, etc).
+     *      (a) Fix composition: Set that coordinate to that value.
+     *      (b) Fix activity
+     *          (i)  Use Qhull option QGn to require visible from point n on pure component axis.
+     *          (ii) Use Qhull QVn to add point n to convex hull.
+     *          (iii) Keep facets with negative energy orientation (normal points down). (Pdk:n)
+     *      (c) Dependent composition is subtract the sum of the rest from 1
+     * (11) Return the overall starting point. Metastable phases will be discarded for now.
+     */
 
     // We want to map the indices we used back to variable names for the optimizer
     boost::bimap<std::string,int> indexmap = phase.get_variable_map();
