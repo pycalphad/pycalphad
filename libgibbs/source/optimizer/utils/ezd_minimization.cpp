@@ -18,6 +18,7 @@
 #include "libgibbs/include/optimizer/utils/ndsimplex.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
+#include "libgibbs/include/utils/site_fraction_convert.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
@@ -247,9 +248,11 @@ std::vector<std::map<std::string,double>>  LocateMinima (
     unmapped_minima = details::lower_convex_hull( 
                         unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
                                                 );
+    // TODO: Apply phase-specific user-supplied constraints to the system
+    // TODO: Map to mole fraction space
     
-    /* TODO: lower_convex_hull() should return QhullFacetList instead of the vector of points
-     * (1)  Get the QhullFacet from the lower_convex_hull() of this phase.
+    /* Design notes for constrained global minimization
+     * (1)  Get the points from the lower_convex_hull() of this phase.
      * (2)  Apply any user-supplied conditions related to the internal degrees of freedom.
      * (3)  Map the remaining facet vertices to the global mole fraction space.
      *      (a) Each point must somehow be associated with its original internal degrees of freedom.
