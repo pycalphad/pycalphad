@@ -15,12 +15,11 @@
 #include "libgibbs/include/optimizer/global_minimization.hpp"
 
 namespace Optimizer {
-template <typename ValueType>
-GlobalMinimizer<ValueType>::GlobalMinimizer (
-    std::list<CompositionSet> const &phase_list,
+template <typename CoordinateType, typename EnergyType>
+GlobalMinimizer<CoordinateType,EnergyType>::GlobalMinimizer ( 
+    std::map<std::string,CompositionSet> const &phase_list,
     sublattice_set const &sublset,
     evalconditions const& conditions,
-    GlobalMinimizationMethod method, 
-    Potential pot) {
-};
+    std::function<void()> &phase_internal_hull) {
+}
 } // namespace Optimizer
