@@ -10,7 +10,8 @@
 #ifndef INCLUDED_HULL_MAPPING
 #define INCLUDED_HULL_MAPPING
 
-#include <map>
+#include <boost/noncopyable.hpp>
+#include <forward_list>
 #include <set>
 #include <vector>
 
@@ -25,23 +26,22 @@ namespace Optimizer { namespace details {
  * we fix a point inside the facet and use the lever rule to find the phase fractions.
  */
 template <typename CoordinateType>
-class ConvexHullMap {
+class ConvexHullMap : private boost::noncopyable {
 public:
     typedef std::vector<CoordinateType> PointType;
-    typedef std::vector<const PointType> PointContainerType;
-    typename PointType::const_iterator find_internal_point_from_global_id ( const std::size_t index ) const;
-    void reserve_points ( const std::size_t point_count ) {
-        hull_phase_internal_points.reserve ( point_count );
-        hull_global_points.reserve ( point_count );
-    };
+    // Can't use vector here due to iterator invalidation on container resize
+    typedef std::forward_list<const PointType> PointContainerType;
+    typename PointContainerType::const_iterator find_internal_point_from_global_id ( const std::size_t index ) const;
+
     void add_point ( const PointType &internal_coordinates, const PointType &global_coordinates );
+    ConvexHullMap () {};
 private:
     // These two must be manually kept in sync using point IDs!
     PointContainerType hull_phase_internal_points;
     PointContainerType hull_global_points;
     // using set::lower_bound(), can get iterator to start/end of phase internal points
     // the difference between the actual value of the key and the queried value gives the offset
-    std::set<std::size_t,typename PointType::const_iterator> phase_index_bounds;
+    std::set<std::size_t,typename PointContainerType::const_iterator> phase_index_bounds;
 };
 
 } // namespace details

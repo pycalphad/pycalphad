@@ -5,8 +5,8 @@
     file LICENSE_1_0.txt or copy at http://www.boost.org/LICENSE_1_0.txt)
 =============================================================================*/
 
-// subroutines for EZD global minimization
-// Reference: Maria Emelianenko, Zi-Kui Liu, and Qiang Du.
+// subroutines for modified EZD global minimization
+// Reference for original EZD: Maria Emelianenko, Zi-Kui Liu, and Qiang Du.
 // "A new algorithm for the automation of phase diagram calculation." Computational Materials Science 35.1 (2006): 61-74.
 
 #include "libgibbs/include/libgibbs_pch.hpp"
