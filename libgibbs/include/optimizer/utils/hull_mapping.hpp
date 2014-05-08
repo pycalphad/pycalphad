@@ -34,7 +34,6 @@ public:
     typename PointContainerType::const_iterator find_internal_point_from_global_id ( const std::size_t index ) const;
 
     void add_point ( const PointType &internal_coordinates, const PointType &global_coordinates );
-    ConvexHullMap () {};
 private:
     // These two must be manually kept in sync using point IDs!
     PointContainerType hull_phase_internal_points;

@@ -12,6 +12,8 @@
 
 #include "libgibbs/include/optimizer/utils/hull_mapping.hpp"
 #include <boost/noncopyable.hpp>
+#include <list>
+
 
 namespace Optimizer {
 enum class GlobalMinimizationMethod {
@@ -21,17 +23,25 @@ enum class Potential {
     Gibbs_Energy // natural variables of T,P,N_i
 };
 
+// Relevant forward declarations
+class CompositionSet;
+class sublattice_set;
+class evalconditions;
+
 /* GlobalMinimizer performs global minimization of the specified
  * thermodynamic potential. Energy manifolds are calculated for
  * all phases in the global composition space and each phase's
  * internal degrees of freedom. Constraints can be added incrementally
  * to identify the equilibrium tie hyperplane and fix a position in it.
  */
-template <typename ValueType>
+template <typename ValueType = double>
 class GlobalMinimizer : private boost::noncopyable {
 public:
-    GlobalMinimizer (GlobalMinimizationMethod method = GlobalMinimizationMethod::Modified_EZD, 
-                     Potential pot = Potential::Gibbs_Energy);
+    GlobalMinimizer ( std::list<CompositionSet> const &phase_list,
+                      sublattice_set const &sublset,
+                      evalconditions const& conditions,
+                      GlobalMinimizationMethod method = GlobalMinimizationMethod::Modified_EZD, 
+                      Potential pot = Potential::Gibbs_Energy);
 private:
     details::ConvexHullMap<ValueType> hullmap;
 };
