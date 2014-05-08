@@ -15,11 +15,14 @@
 #include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/halton.hpp"
+#include "libgibbs/include/optimizer/utils/hull_mapping.hpp"
 #include "libgibbs/include/optimizer/utils/ndsimplex.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/utils/cholesky.hpp"
 #include "libgibbs/include/utils/site_fraction_convert.hpp"
 #include "libtdb/include/exceptions.hpp"
+#include "external/libqhullcpp/QhullFacet.h"
+#include "external/libqhullcpp/QhullFacetList.h"
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>
@@ -250,6 +253,24 @@ std::vector<std::map<std::string,double>>  LocateMinima (
                                                 );
     // TODO: Apply phase-specific user-supplied constraints to the system
     // TODO: Map to mole fraction space
+    
+    std::cout << "MAPPING MINIMA" << std::endl;
+    for ( auto minima = unmapped_minima.begin(); minima != unmapped_minima.end(); ++minima ) {
+        const std::size_t minima_index = std::distance ( unmapped_minima.begin(), minima );
+        const double point_energy = minima->back(); // last coordinate is energy
+        minima->pop_back();
+        for ( auto &coord : *minima ) {
+            std::cout << coord << ",";
+        }
+        std::cout << ":";
+        std::map<std::string,double> mapped_minima = convert_site_fractions_to_mole_fractions ( phase.name(), sublset, *minima );
+        for ( auto &coord : mapped_minima ) {
+            std::cout << coord.first << "->" << coord.second << ",";
+        }
+        std::cout << std::endl;
+    }
+    
+    // TODO: Apply known conditions
     
     /* Design notes for constrained global minimization
      * (1)  Get the points from the lower_convex_hull() of this phase.
