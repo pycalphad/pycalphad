@@ -33,7 +33,7 @@ void ConvexHullMap<CoordinateType,EnergyType>::insert_point (
  */
 template <typename CoordinateType, typename EnergyType>
 auto ConvexHullMap<CoordinateType,EnergyType>::find_entry_from_global_id ( const std::size_t index ) 
--> typename HullEntryType::const_iterator const {
+-> typename HullEntryContainerType::const_iterator const {
      auto entry_iterator = all_points.cbegin();
      std::advance ( entry_iterator, index );
      return entry_iterator;

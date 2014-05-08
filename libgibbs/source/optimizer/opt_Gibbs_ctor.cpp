@@ -13,6 +13,7 @@
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
+#include "libgibbs/include/optimizer/global_minimization.hpp"
 #include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
 #include "libtdb/include/logging.hpp"
 #include <sstream>
@@ -71,63 +72,19 @@ GibbsOpt::GibbsOpt (
     // then we build a master Gibbs AST for the objective function
     auto temp_phase_col = phase_col; // We modify phase_col, so we should be careful here
     for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i ) {
-        ++activephases;
-        CompositionSet main_compset = CompositionSet ( i->second, pset, main_ss, main_indices );
-        std::vector<std::map<std::string,double>> minima = Optimizer::LocateMinima ( main_compset, main_ss, conditions );
-        BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
-
-        if ( minima.size() == 0 ) {
-            // We didn't find any minima!
-            // This could indicate a problem, or just that we didn't look hard enough
-            BOOST_LOG_SEV ( opto_log, critical ) << "Global minimization found no energy minima";
-            const std::string compset_name ( main_compset.name() );
-            // TODO: What about the starting point?!
-            comp_sets.emplace ( compset_name, std::move ( main_compset ) );
-        }
-
-        if ( minima.size() == 1 ) {
-            // No miscibility gap, no need to create new composition sets
-            // Use the minimum found during global minimization as the starting point
-            main_compset.set_starting_point ( * ( minima.begin() ) );
-            const std::string compset_name ( main_compset.name() );
-            comp_sets.emplace ( compset_name, std::move ( main_compset ) );
-        }
-        if ( minima.size() > 1 ) {
-            // Miscibility gap detected; create a new composition set for each minimum
-            std::size_t compsetcount = 1;
-            std::map<std::string, CompositionSet>::iterator it;
-            for ( auto min = minima.begin(); min != minima.end(); ++min ) {
-                if ( min != minima.begin() ) {
-                    ++compsetcount;
-                    ++activephases;
-                }
-                std::stringstream compsetname;
-                compsetname << main_compset.name() << "#" << compsetcount;
-
-                // Set starting point
-                const auto new_starting_point = ast_copy_with_renamed_phase ( *min, main_compset.name(), compsetname.str() );
-                // Copy from PHASENAME to PHASENAME#N
-                phase_col[compsetname.str()] = phase_col[main_compset.name()];
-                conditions.phases[compsetname.str()] = conditions.phases[main_compset.name()];
-                it = comp_sets.emplace ( compsetname.str(), CompositionSet ( main_compset, new_starting_point, compsetname.str() ) ).first;
-            }
-            // Remove PHASENAME
-            // PHASENAME was renamed to PHASENAME#1
-            BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << main_compset.name();
-            auto remove_phase_iter = phase_col.find ( main_compset.name() );
-            auto remove_conds_phase_iter = conditions.phases.find ( main_compset.name() );
-            if ( remove_phase_iter != phase_col.end() ) {
-                phase_col.erase ( remove_phase_iter );
-            }
-            if ( remove_conds_phase_iter != conditions.phases.end() ) {
-                conditions.phases.erase ( remove_conds_phase_iter );
-            }
-        }
+        comp_sets.emplace ( i->first, CompositionSet ( i->second, pset, main_ss, main_indices ) );
     }
+    // TODO: Call global minimization to find multiplicity of phases and set starting points
+    // GlobalMinimizer will modify comp_sets and set the starting points automatically
+    auto nothing = [] () {};
+    Optimizer::GlobalMinimizer<double,double> grid ( comp_sets, main_ss, conditions, nothing );
+    
     // Rebuild the index map now that phases have been renamed and removed
     BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";
     main_indices.left.clear();
     main_ss = build_variable_map ( phase_col.begin(), phase_col.end(), conditions, main_indices );
+    
+    activephases = comp_sets.size();
 
     // Add the mandatory constraints to the ConstraintManager
     if ( activephases > 1 )
@@ -142,6 +99,8 @@ GibbsOpt::GibbsOpt (
         ss << ( phase_col.begin() )->first << "_FRAC";
         fixed_indices.push_back ( main_indices.left.at ( ss.str() ) );
     }
+    
+    // TODO: Stop using phase_col below here and use only CompositionSet and sublattice_set
 
     // Add the sublattice site fraction constraints (mandatory)
     for ( auto i = phase_col.begin(); i != phase_col.end(); ++i ) {

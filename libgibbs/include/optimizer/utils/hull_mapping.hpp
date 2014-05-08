@@ -43,14 +43,15 @@ template <typename CoordinateType = double, typename EnergyType = CoordinateType
 class ConvexHullMap : private boost::noncopyable {
 public:
     typedef ConvexHullEntry<CoordinateType,EnergyType> HullEntryType;
+    typedef std::vector<HullEntryType> HullEntryContainerType;
     typedef typename HullEntryType::PointType PointType;
     typedef typename HullEntryType::GlobalPointType GlobalPointType;
-    auto find_entry_from_global_id ( const std::size_t index ) -> typename HullEntryType::const_iterator const;
+    auto find_entry_from_global_id ( const std::size_t index ) -> typename HullEntryContainerType::const_iterator const;
     void insert_point ( const std::string &phase_name, const EnergyType &energy, 
                         const PointType &internal_coordinates, const GlobalPointType &global_coordinates );
 private:
     // entries should be inserted in global ID order
-    std::vector<const HullEntryType> all_points;
+    HullEntryContainerType all_points;
 };
 
 } // namespace details
