@@ -54,6 +54,7 @@ private:
     HullEntryContainerType all_points;
 };
 
+
 } // namespace details
 } // namespace Optimizer
 

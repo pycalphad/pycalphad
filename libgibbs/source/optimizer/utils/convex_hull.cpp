@@ -47,7 +47,7 @@ namespace Optimizer { namespace details {
     // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
     // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
     //    in equilibrium calculations in two-phase multicomponent alloys"
-    std::vector<std::vector<double>> lower_convex_hull (
+    std::vector<std::vector<double>> internal_lower_convex_hull (
                              const std::vector<std::vector<double>> &points,
                              const std::set<std::size_t> &dependent_dimensions,
                              const double critical_edge_length,

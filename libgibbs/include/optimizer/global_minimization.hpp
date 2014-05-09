@@ -13,6 +13,7 @@
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/utils/hull_mapping.hpp"
+#include "libgibbs/include/utils/site_fraction_convert.hpp"
 #include "libtdb/include/logging.hpp"
 #include <boost/noncopyable.hpp>
 #include <functional>
@@ -56,7 +57,7 @@ public:
         BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter ctor";
         //BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
 
-        for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ) {
+        for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ++comp_set ) {
             std::set<std::size_t> dependent_dimensions;
             std::size_t current_dependent_dimension = 0;
             
@@ -85,12 +86,26 @@ public:
             auto calculate_energy = [comp_set,&conditions] (const PointType& point) {
                 return comp_set->second.evaluate_objective(conditions,comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
             };
-            // Calculate the convex hull
+            // Calculate the phase's internal convex hull and store the result
             auto phase_hull_points = phase_internal_hull ( phase_points, dependent_dimensions, calculate_energy );
-            // TODO: Calculate the convex hull
-            // TODO: Apply phase-specific constraints
-            comp_set++;
+            // TODO: Apply phase-specific constraints to internal dof and globally
+            // Add all points from this phase's convex hull to our internal hull map
+            for ( auto point : phase_hull_points ) {
+                // All points added to the hull_map could possibly be on the global hull
+                hull_map.insert_point ( 
+                                       comp_set->first, 
+                                       calculate_energy ( point ), 
+                                       point, 
+                                       convert_site_fractions_to_mole_fractions ( 
+                                                                                 comp_set->first, 
+                                                                                 sublset, 
+                                                                                 point
+                                                                                 )  
+                                      );
+            }
         }
+        // TODO: Construct the global convex hull of the system
+        // TODO: Add points and set options related to activity constraints here
         /*if ( minima.size() == 0 ) {
          * // We didn't find any minima!
          * // This could indicate a problem, or just that we didn't look hard enough
@@ -142,6 +157,7 @@ public:
     }
 private:
     HullMapType hull_map;
+    HullMapType candidate_points_on_hull;
     mutable logger class_log;
 };
 

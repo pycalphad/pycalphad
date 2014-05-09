@@ -81,7 +81,7 @@ GibbsOpt::GibbsOpt (
     
     // Rebind functions to use user-defined parameters
     GlobalMinimizer<double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
-    GlobalMinimizer<double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
+    GlobalMinimizer<double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
 
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
     GlobalMinimizer<double,double> grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction );

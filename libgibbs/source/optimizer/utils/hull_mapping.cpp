@@ -28,6 +28,9 @@ void ConvexHullMap<CoordinateType,EnergyType>::insert_point (
     all_points.emplace_back ( std::move ( hull_entry ) );
 }
 
+// explicitly instantiate the default case
+template void ConvexHullMap<double,double>::insert_point(const std::string&, const double&,const PointType&,const GlobalPointType&);
+
 /* 
  * Locate the entry corresponding to this global point ID.
  */
@@ -38,5 +41,8 @@ auto ConvexHullMap<CoordinateType,EnergyType>::find_entry_from_global_id ( const
      std::advance ( entry_iterator, index );
      return entry_iterator;
  }
+
+// explicitly instantiate the default case
+template auto ConvexHullMap<double,double>::find_entry_from_global_id ( const std::size_t ) -> typename HullEntryContainerType::const_iterator const;
 } // namespace details
 } // namespace Optimizer
