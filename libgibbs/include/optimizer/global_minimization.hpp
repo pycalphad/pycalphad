@@ -81,7 +81,7 @@ public:
             }
             // Sample the composition space of this phase
             auto phase_points = sample_points ( comp_set->second, sublset, conditions );
-            // Create a functor for energy calculation for this phase
+            // Create a callback function for energy calculation for this phase
             auto calculate_energy = [comp_set,&conditions] (const PointType& point) {
                 return comp_set->second.evaluate_objective(conditions,comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
             };

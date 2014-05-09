@@ -56,21 +56,16 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         const std::size_t depth // depth tracking for recursion
                                        )
 {
-    // minimum edge length of a candidate tie hyperplane
-    const double critical_edge_length = 0.01; //old: (2 * sqrt(2)) / (double)subdivisions_per_axis;
     using namespace boost::numeric::ublas;
 
     // EZD Global Minimization (Emelianenko et al., 2006)
     // First: FIND CONCAVITY REGIONS
     std::vector<std::vector<double>> points;
     std::vector<std::vector<double>> unmapped_minima;
-    std::vector<std::map<std::string,double>> minima;
-    std::set<std::size_t> dependent_dimensions; // vector of indices to dependent variables
     std::vector<SimplexCollection> start_simplices;
     std::vector<SimplexCollection> positive_definite_regions;
     std::vector<SimplexCollection> components_in_sublattice;
     std::vector<std::vector<std::vector<double>>> pure_end_members, all_permutations;
-    std::size_t current_dependent_dimension = 0; // index of current dependent dimension
     
     // Simplified lambda for energy calculation
     auto calculate_energy = [&phase,&conditions] (const std::vector<double>& point) {
@@ -89,10 +84,6 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     while ( ic0 != ic1 ) {
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
         if ( number_of_species > 0 ) {
-            // Last component is dependent dimension
-            current_dependent_dimension += (number_of_species-1);
-            dependent_dimensions.insert(current_dependent_dimension);
-            ++current_dependent_dimension;
             NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
             components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
         }
@@ -245,12 +236,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         }
     }
     return unmapped_minima;
-    // Now the convex hull of the phase needs to be found using the unmapped_minima points
-    // I cannot simply lift the sites using the magnitude of the point from the origin
-    // due to metastable points
-    unmapped_minima = details::lower_convex_hull( 
-                        unmapped_minima, dependent_dimensions, critical_edge_length, calculate_energy 
-                                                );
+
     // TODO: Apply phase-specific user-supplied constraints to the system
     // TODO: Map to mole fraction space
     
