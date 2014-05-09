@@ -17,6 +17,7 @@
 #include <boost/noncopyable.hpp>
 #include <functional>
 #include <list>
+#include <set>
 
 namespace Optimizer {
 
@@ -29,17 +30,66 @@ namespace Optimizer {
 template <typename CoordinateType = double, typename EnergyType = CoordinateType>
 class GlobalMinimizer : private boost::noncopyable {
 public:
-    template <typename Functor> GlobalMinimizer ( 
+    /*
+     * The type definitions here get a bit intense. We do this so we keep our
+     * global minimization code flexible and extensible. By farming pieces of the process
+     * out to functors, we retain the ability to swap out and try different sampling methods,
+     * minimization methods, etc., without modifying the class definition.
+     */
+    typedef details::ConvexHullMap<CoordinateType,EnergyType> HullMapType;
+    typedef typename HullMapType::PointType PointType;
+    typedef typename HullMapType::GlobalPointType GlobalPointType;
+    typedef std::function<EnergyType(PointType const&)> CalculateEnergyFunctor;
+    typedef std::function<std::vector<PointType>(CompositionSet const&, 
+                                                 sublattice_set const&,
+                                                 evalconditions const&)> PointSampleFunctor;
+    typedef std::function<std::vector<PointType>(std::vector<PointType> const&,
+                                                 std::set<std::size_t> const&,
+                                                 CalculateEnergyFunctor const&)> InternalHullFunctor;
+    GlobalMinimizer ( 
             std::map<std::string,CompositionSet> &phase_list,
             sublattice_set const &sublset,
             evalconditions const& conditions,
-            Functor &phase_internal_hull) {
+            PointSampleFunctor &sample_points,
+            InternalHullFunctor &phase_internal_hull) {
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::GlobalMinimizer" );
         BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter ctor";
         //BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
-        
+
         for (auto comp_set = phase_list.begin(); comp_set != phase_list.end();) {
-            ++comp_set;
+            std::set<std::size_t> dependent_dimensions;
+            std::size_t current_dependent_dimension;
+            
+            // Determine the indices of the dependent dimensions
+            boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
+            int sublindex = 0;
+            ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( comp_set->first, sublindex ) );
+            ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( comp_set->first, sublindex ) );
+            
+            while ( ic0 != ic1 ) {
+                const std::size_t number_of_species = std::distance ( ic0,ic1 );
+                if ( number_of_species > 0 ) {
+                    // Last component is dependent dimension
+                    current_dependent_dimension += (number_of_species-1);
+                    dependent_dimensions.insert(current_dependent_dimension);
+                    ++current_dependent_dimension;
+                }
+                // Next sublattice
+                ++sublindex;
+                ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( comp_set->first, sublindex ) );
+                ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( comp_set->first, sublindex ) );
+            }
+            // Sample the composition space of this phase
+            auto phase_points = sample_points ( comp_set->second, sublset, conditions );
+            // Create a functor for energy calculation for this phase
+            auto calculate_energy = [comp_set,&conditions] (const PointType& point) {
+                return comp_set->second.evaluate_objective(conditions,comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
+            };
+            // Calculate the convex hull
+            auto phase_hull_points = phase_internal_hull ( phase_points, dependent_dimensions, calculate_energy );
+            // TODO: Calculate the convex hull
+            // TODO: Apply phase-specific constraints
+            comp_set++;
         }
         /*if ( minima.size() == 0 ) {
          * // We didn't find any minima!
@@ -91,7 +141,7 @@ public:
             }*/
     }
 private:
-    details::ConvexHullMap<CoordinateType,EnergyType> hull_map;
+    HullMapType hull_map;
     mutable logger class_log;
 };
 

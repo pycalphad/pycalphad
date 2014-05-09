@@ -13,8 +13,9 @@
 #include "libgibbs/include/utils/math_expr.hpp"
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
-#include "libgibbs/include/optimizer/global_minimization.hpp"
+#include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
+#include "libgibbs/include/optimizer/global_minimization.hpp"
 #include "libtdb/include/logging.hpp"
 #include <sstream>
 
@@ -74,10 +75,16 @@ GibbsOpt::GibbsOpt (
     for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i ) {
         comp_sets.emplace ( i->first, CompositionSet ( i->second, pset, main_ss, main_indices ) );
     }
-    // TODO: Call global minimization to find multiplicity of phases and set starting points
+    // TODO: Move these changeable parameters somewhere
+    const double subdivisions_per_axis = 10;
+    const std::size_t critical_edge_length = 0.01;
+    
+    // Rebind functions to use user-defined parameters
+    GlobalMinimizer<double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis, 1 );
+    GlobalMinimizer<double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
+
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
-    auto nothing = [] () {};
-    Optimizer::GlobalMinimizer<double,double> grid ( comp_sets, main_ss, conditions, nothing );
+    GlobalMinimizer<double,double> grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction );
     
     // Rebuild the index map now that phases have been renamed and removed
     BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";

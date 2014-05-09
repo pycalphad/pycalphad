@@ -14,19 +14,19 @@
 
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/compositionset.hpp"
-#include "libgibbs/include/constraint.hpp"
 #include "libgibbs/include/conditions.hpp"
-#include <boost/bimap.hpp>
 #include <vector>
 
-namespace Optimizer {
+namespace Optimizer { namespace details {
 
-std::vector<std::map<std::string,double>>  LocateMinima(
+std::vector<std::vector<double>>  AdaptiveSimplexSample(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
 		evalconditions const& conditions,
+                const std::size_t subdivisions_per_axis,
 		const std::size_t depth = 1
 		);
+}
 }
 
 #endif

@@ -32,6 +32,8 @@
 #include <map>
 #include <limits>
 
+namespace Optimizer { namespace details {
+
 std::vector<std::vector<double>> AdaptiveSearchND (
                                   CompositionSet const &phase,
                                   evalconditions const& conditions,
@@ -41,22 +43,19 @@ std::vector<std::vector<double>> AdaptiveSearchND (
 
 std::vector<double> generate_point ( const SimplexCollection &simpcol );
 
-namespace Optimizer
-{
 
 // TODO: Should this be a member function of GibbsOpt?
 // The function calling LocateMinima definitely should be at least (needs access to all CompositionSets)
 // LocateMinima finds all of the minima for a given phase's Gibbs energy
 // In addition to allowing us to choose a better starting point, this will allow for automatic miscibility gap detection
-std::vector<std::map<std::string,double>>  LocateMinima (
+std::vector<std::vector<double>>  AdaptiveSimplexSample (
         CompositionSet const &phase,
         sublattice_set const &sublset,
         evalconditions const& conditions,
+        const std::size_t subdivisions_per_axis,
         const std::size_t depth // depth tracking for recursion
                                        )
 {
-    // This is the initial amount of subdivision
-    constexpr const std::size_t subdivisions_per_axis = 10; // TODO: make this user-configurable
     // minimum edge length of a candidate tie hyperplane
     const double critical_edge_length = 0.01; //old: (2 * sqrt(2)) / (double)subdivisions_per_axis;
     using namespace boost::numeric::ublas;
@@ -245,6 +244,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
             std::cout << std::endl;
         }
     }
+    return unmapped_minima;
     // Now the convex hull of the phase needs to be found using the unmapped_minima points
     // I cannot simply lift the sites using the magnitude of the point from the origin
     // due to metastable points
@@ -302,6 +302,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
      */
 
     // We want to map the indices we used back to variable names for the optimizer
+    /*
     boost::bimap<std::string,int> indexmap = phase.get_variable_map();
     for ( const std::vector<double> &min : unmapped_minima ) {
         std::map<std::string, double> x_point_map; // variable name -> value
@@ -311,12 +312,7 @@ std::vector<std::map<std::string,double>>  LocateMinima (
             x_point_map[varname] = *it;
         }
         minima.emplace_back ( std::move ( x_point_map ) );
-    }
-
-    return minima;
-}
-
-// namespace Optimizer
+    }*/
 }
 
 // Recursive function for searching composition space for minima
@@ -413,4 +409,7 @@ std::vector<double> generate_point ( const SimplexCollection &simpcol ) {
     }
     return pt;
 }
+
+} // namespace details
+} // namespace Optimizer
 
