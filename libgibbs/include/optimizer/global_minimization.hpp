@@ -112,14 +112,16 @@ std::set<std::size_t> global_lower_convex_hull (
                 // All points added to the hull_map could possibly be on the global hull
                 auto global_point = convert_site_fractions_to_mole_fractions ( comp_set->first, sublset, point );
                 PointType ordered_global_point;  
-                ordered_global_point.reserve ( global_point.size() );
+                ordered_global_point.reserve ( global_point.size()+1 );
                 for ( auto pt : global_point ) ordered_global_point.push_back ( pt.second );
+                double energy = calculate_energy ( point );
                 hull_map.insert_point ( 
                                        comp_set->first, 
-                                       calculate_energy ( point ), 
-                                       point, 
+                                       energy, 
+                                       point,
                                        global_point
                                       );
+                ordered_global_point.push_back ( energy );
                 temporary_hull_storage.push_back ( std::move ( ordered_global_point ) );
             }
         }
@@ -131,6 +133,7 @@ std::set<std::size_t> global_lower_convex_hull (
                  { 
                      BOOST_ASSERT ( point1_id < hull_map.size() );
                      BOOST_ASSERT ( point2_id < hull_map.size() );
+                     if ( point1_id == point2_id) return hull_map[point1_id].energy;
                      if (hull_map[point1_id].phase_name != hull_map[point2_id].phase_name) {
                          // Can't calculate a "true energy" if the tie points are different phases
                          return std::numeric_limits<EnergyType>::max();

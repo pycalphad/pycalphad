@@ -95,19 +95,20 @@ namespace Optimizer { namespace details {
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
                 // Check the length of all edges (dimension 1) in the facet
                 for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
-                    std::vector<double> pt_vert1 = vertices[vertex1].point().toStdVector();
+                    std::vector<double> pt_vert1 = restore_dependent_dimensions ( vertices[vertex1].point().toStdVector(), dependent_dimensions );
+                    const double vertex1_energy = calculate_objective ( pt_vert1 );
                     //pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
                     for (auto vertex2 = 0; vertex2 < vertex1; ++vertex2) {
-                        std::vector<double> pt_vert2 = vertices[vertex2].point().toStdVector();
+                        std::vector<double> pt_vert2 = restore_dependent_dimensions ( vertices[vertex2].point().toStdVector(), dependent_dimensions );
+                        const double vertex2_energy = calculate_objective ( pt_vert2 );
                         //pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
                         std::vector<double> difference ( pt_vert2.size() );
                         std::vector<double> midpoint ( pt_vert2.size() ); // midpoint of the edge
                         std::transform (pt_vert2.begin(), pt_vert2.end(), 
                                         pt_vert1.begin(), midpoint.begin(), std::plus<double>() );
                         for (auto &coord : midpoint) coord /= 2;
-                        const double lever_rule_energy = midpoint.back();
+                        const double lever_rule_energy = (vertex1_energy + vertex2_energy)/2;
                         midpoint.pop_back(); // remove energy coordinate
-                        midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
                         const double true_energy = calculate_objective ( midpoint );
                         // If the true energy is "much" greater, it's a true tie line
                         std::cout << "pt_vert1(" << vertices[vertex1].point().id() << "): ";
