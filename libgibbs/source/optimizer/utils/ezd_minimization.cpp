@@ -345,7 +345,9 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         // This will leave only the gradient in the feasible directions
         ublas_vector projected_gradient ( raw_gradient.size() );
         std::move ( raw_gradient.begin(), raw_gradient.end(), projected_gradient.begin() );
+        //std::cout << "phase.get_gradient_projector.size1() = " << phase.get_gradient_projector().size1() << std::endl;
         projected_gradient = prod ( phase.get_gradient_projector(), projected_gradient );
+        //std::cout << "projected_gradient.size() = " << projected_gradient.size() << std::endl;
 
         // Calculate magnitude of projected gradient
         temp_magnitude = norm_2 ( projected_gradient );

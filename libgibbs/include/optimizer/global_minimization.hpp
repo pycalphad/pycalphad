@@ -58,7 +58,7 @@ public:
 
         for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ) {
             std::set<std::size_t> dependent_dimensions;
-            std::size_t current_dependent_dimension;
+            std::size_t current_dependent_dimension = 0;
             
             // Determine the indices of the dependent dimensions
             boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
