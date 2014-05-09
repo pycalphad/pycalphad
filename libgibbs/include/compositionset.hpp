@@ -79,6 +79,7 @@ public:
         phase_indices = std::move ( other.phase_indices );
         constraint_null_space_matrix = std::move ( other.constraint_null_space_matrix );
         starting_point = std::move ( other.starting_point );
+        gradient_projector = std::move ( other.gradient_projector );
     }
     CompositionSet& operator= ( CompositionSet &&other ) {
         cset_name = std::move ( other.cset_name );
@@ -92,6 +93,7 @@ public:
         phase_indices = std::move ( other.phase_indices );
         constraint_null_space_matrix = std::move ( other.constraint_null_space_matrix );
         starting_point = std::move ( other.starting_point );
+        gradient_projector = std::move ( other.gradient_projector );
     }
     const std::vector<jacobian_entry>& get_jacobian() const {
         return jac_g_trees;
