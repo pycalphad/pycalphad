@@ -48,7 +48,7 @@ namespace Optimizer { namespace details {
 std::set<std::size_t> global_lower_convex_hull (
     const std::vector<std::vector<double>> &points,
     const double critical_edge_length,
-    std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
+    const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
 ) {
     BOOST_ASSERT(points.size() > 0);
     BOOST_ASSERT(critical_edge_length > 0);

@@ -46,9 +46,20 @@ public:
     typedef std::vector<HullEntryType> HullEntryContainerType;
     typedef typename HullEntryType::PointType PointType;
     typedef typename HullEntryType::GlobalPointType GlobalPointType;
-    auto find_entry_from_global_id ( const std::size_t index ) -> typename HullEntryContainerType::const_iterator const;
+    const HullEntryType operator[] ( const std::size_t index ) { 
+        auto return_iter = all_points.cbegin();
+        std::advance(return_iter, index);
+        return (const HullEntryType) *return_iter;
+    };
     void insert_point ( const std::string &phase_name, const EnergyType &energy, 
-                        const PointType &internal_coordinates, const GlobalPointType &global_coordinates );
+                        const PointType &internal_coordinates, const GlobalPointType &global_coordinates ) {
+        HullEntryType hull_entry;
+        hull_entry.phase_name = phase_name;
+        hull_entry.energy = energy;
+        hull_entry.internal_coordinates = internal_coordinates;
+        hull_entry.global_coordinates = global_coordinates;
+        all_points.push_back ( hull_entry );
+    };
 private:
     // entries should be inserted in global ID order
     HullEntryContainerType all_points;

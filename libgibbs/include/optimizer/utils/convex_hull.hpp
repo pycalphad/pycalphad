@@ -28,7 +28,7 @@ namespace Optimizer {
         std::set<std::size_t> global_lower_convex_hull (
             const std::vector<std::vector<double>> &points,
             const double critical_edge_length,
-            std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
+            const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
         );
     }
 }
