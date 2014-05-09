@@ -45,7 +45,7 @@ namespace Optimizer { namespace details {
 // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
 // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
 //    in equilibrium calculations in two-phase multicomponent alloys"
-std::set<std::size_t> global_lower_convex_hull (
+std::vector<QhullFacet> global_lower_convex_hull (
     const std::vector<std::vector<double>> &points,
     const double critical_edge_length,
     const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
@@ -53,6 +53,7 @@ std::set<std::size_t> global_lower_convex_hull (
     BOOST_ASSERT(points.size() > 0);
     BOOST_ASSERT(critical_edge_length > 0);
     const double coplanarity_allowance = 0.001; // max energy difference (%/100) to still be on tie plane
+    std::vector<QhullFacet> candidates;
     const std::size_t point_dimension = points.begin()->size();
     const std::size_t point_count = points.size();
     std::set<std::size_t> candidate_point_ids; // vertices of tie hyperplanes
@@ -60,10 +61,7 @@ std::set<std::size_t> global_lower_convex_hull (
     point_buffer.setDimension ( point_dimension );
     point_buffer.reserveCoordinates ( point_count );
     std::string Qhullcommand = "";
-    if (points.size() == 1) { // Special case: No composition dependence
-        candidate_point_ids.insert ( 0 );
-        return candidate_point_ids;
-    }
+    
     // Copy all of the points into a buffer compatible with Qhull
     for (auto pt : points) {
         point_buffer.append ( QhullPoint ( point_dimension, &pt[0] ) );
@@ -81,7 +79,9 @@ std::set<std::size_t> global_lower_convex_hull (
     Qhull qhull ( point_buffer, Qhullcommand.c_str() );
     // Get all of the facets
     QhullFacetList facets = qhull.facetList();
+  
     for (auto facet : facets) {
+        bool already_added = false;
         if (facet.isDefined() && facet.isGood() /*&& facet.isSimplicial()*/) {
             double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
             if (orientation > 0) continue; // consider only the facets of the lower convex hull
@@ -90,13 +90,13 @@ std::set<std::size_t> global_lower_convex_hull (
             
             // Only facets with edges beyond the critical length are candidate tie hyperplanes
             // Check the length of all edges (dimension 1) in the facet
-            for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
+            for (auto vertex1 = 0; vertex1 < vertex_count && !already_added; ++vertex1) {
                 const std::size_t vertex1_point_id = vertices[vertex1].point().id();
                 const double vertex1_energy = calculate_midpoint_energy ( vertex1_point_id, vertex1_point_id );
                 std::cout << "vertex1_energy = " << vertex1_energy << std::endl;
                 std::vector<double> pt_vert1 = vertices[vertex1].point().toStdVector();
                 //pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
-                for (auto vertex2 = 0; vertex2 < vertex1; ++vertex2) {
+                for (auto vertex2 = 0; vertex2 < vertex1 && !already_added; ++vertex2) {
                     const std::size_t vertex2_point_id = vertices[vertex2].point().id();
                     const double vertex2_energy = calculate_midpoint_energy ( vertex2_point_id, vertex2_point_id );
                     std::cout << "vertex2_energy = " << vertex2_energy << std::endl;
@@ -138,41 +138,21 @@ std::set<std::size_t> global_lower_convex_hull (
                     for (auto coord : difference) distance += std::pow(coord,2);
                     // Square root the result
                     distance = sqrt(distance);
-                    // if the edge length is large enough, this is a candidate tie hyperplane
-                    if (distance > critical_edge_length) {
-                        std::cout << "Edge length: " << distance << std::endl;
-                        std::cout << "Vertex1: ";
-                        for (auto coord : pt_vert1) std::cout << coord << ",";
-                        std::cout << std::endl;
-                        std::cout << "Vertex2: ";
-                        for (auto coord : pt_vert2) std::cout << coord << ",";
-                        std::cout << std::endl;
-                        candidate_point_ids.insert ( vertex1_point_id );
-                        candidate_point_ids.insert ( vertex2_point_id );
-                        std::cout << facet;
-                    }
+                    std::cout << "Edge length: " << distance << std::endl;
+                    std::cout << "Vertex1: ";
+                    for (auto coord : pt_vert1) std::cout << coord << ",";
+                    std::cout << std::endl;
+                    std::cout << "Vertex2: ";
+                    for (auto coord : pt_vert2) std::cout << coord << ",";
+                    std::cout << std::endl;
+                    candidates.push_back ( facet );
+                    already_added = true;
+                    std::cout << facet;
                 }
             }
         }
     }
-    if (candidate_point_ids.size() > 0) {
-        // There is at least one tie hyperplane
-        std::cout << "candidate_point_ids.size() = " << candidate_point_ids.size() << std::endl;
-    }
-    else {
-        // No tie hyperplanes have been found
-        // Return the point with the lowest energy (last coordinate)
-        auto minimum_point_iterator = points.cbegin();
-        for (auto pt = points.cbegin(); pt != points.cend(); ++pt) {
-            // Check the energy values
-            if (*(minimum_point_iterator->cend()-1) > *(pt->cend()-1)) {
-                // This point is lower in energy
-                minimum_point_iterator = pt;
-            }
-        }
-        candidate_point_ids.insert ( std::distance ( points.cbegin(), minimum_point_iterator ) );
-    }
-    return candidate_point_ids;
+    return candidates;
 }
 } // namespace details
 } // namespace Optimizer

@@ -8,6 +8,7 @@
 #ifndef INCLUDED_CONVEX_HULL
 #define INCLUDED_CONVEX_HULL
 
+#include "external/libqhullcpp/QhullFacet.h"
 #include <map>
 #include <string>
 #include <vector>
@@ -25,7 +26,7 @@ namespace Optimizer {
         );
         
         // Calculation of the global convex hull of a system
-        std::set<std::size_t> global_lower_convex_hull (
+        std::vector<orgQhull::QhullFacet> global_lower_convex_hull (
             const std::vector<std::vector<double>> &points,
             const double critical_edge_length,
             const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy

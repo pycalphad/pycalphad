@@ -14,9 +14,13 @@
 #include "libgibbs/include/optimizer/opt_Gibbs.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
-#include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
-#include "libgibbs/include/optimizer/global_minimization.hpp"
 #include "libtdb/include/logging.hpp"
+#include "libgibbs/include/optimizer/global_minimization.hpp"
+
+// These two headers are implementation details for the default global minimization
+#include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
+#include "external/libqhullcpp/QhullFacet.h"
+
 #include <sstream>
 
 using namespace Optimizer;
@@ -80,11 +84,11 @@ GibbsOpt::GibbsOpt (
     const std::size_t critical_edge_length = 0.01;
     
     // Rebind functions to use user-defined parameters
-    GlobalMinimizer<double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
-    GlobalMinimizer<double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
-    GlobalMinimizer<double,double>::GlobalHullFunctor GlobalHullFunction = std::bind ( details::global_lower_convex_hull, std::placeholders::_1, critical_edge_length, std::placeholders::_2 );
+    GlobalMinimizer<orgQhull::QhullFacet,double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
+    GlobalMinimizer<orgQhull::QhullFacet,double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
+    GlobalMinimizer<orgQhull::QhullFacet,double,double>::GlobalHullFunctor GlobalHullFunction = std::bind ( details::global_lower_convex_hull, std::placeholders::_1, critical_edge_length, std::placeholders::_2 );
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
-    GlobalMinimizer<double,double> grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction, GlobalHullFunction );
+    GlobalMinimizer<orgQhull::QhullFacet,double,double> grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction, GlobalHullFunction );
     
     // Rebuild the index map now that phases have been renamed and removed
     BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";
