@@ -23,8 +23,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample(
 		CompositionSet const &phase,
 		sublattice_set const &sublset,
 		evalconditions const& conditions,
-                const std::size_t subdivisions_per_axis,
-		const std::size_t depth = 1
+                const std::size_t subdivisions_per_axis
 		);
 }
 }

@@ -80,7 +80,7 @@ GibbsOpt::GibbsOpt (
     const std::size_t critical_edge_length = 0.01;
     
     // Rebind functions to use user-defined parameters
-    GlobalMinimizer<double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis, 1 );
+    GlobalMinimizer<double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
     GlobalMinimizer<double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
 
     // GlobalMinimizer will modify comp_sets and set the starting points automatically

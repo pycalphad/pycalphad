@@ -52,9 +52,8 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         CompositionSet const &phase,
         sublattice_set const &sublset,
         evalconditions const& conditions,
-        const std::size_t subdivisions_per_axis,
-        const std::size_t depth // depth tracking for recursion
-                                       )
+        const std::size_t subdivisions_per_axis
+        )
 {
     using namespace boost::numeric::ublas;
 
@@ -219,9 +218,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         // At least one unstable region was found
         // Perform recursive search for minima on each of the identified regions
         for ( const SimplexCollection &simpcol : positive_definite_regions ) {
-            // We start at a recursive depth of 2 because we treat LocateMinima as depth == 1
-            // This allows our notation for depth to be consistent with Emelianenko et al.
-            std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol,  2 );
+            std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol, 1 );
 
             // Append this region's minima to the list of minima
             unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );

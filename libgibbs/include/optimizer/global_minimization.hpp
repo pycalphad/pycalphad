@@ -56,7 +56,7 @@ public:
         BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter ctor";
         //BOOST_LOG_SEV ( opto_log, debug ) << minima.size() << " minima detected from global minimization";
 
-        for (auto comp_set = phase_list.begin(); comp_set != phase_list.end();) {
+        for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ) {
             std::set<std::size_t> dependent_dimensions;
             std::size_t current_dependent_dimension;
             
