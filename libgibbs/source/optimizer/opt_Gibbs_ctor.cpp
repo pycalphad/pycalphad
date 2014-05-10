@@ -115,6 +115,8 @@ GibbsOpt::GibbsOpt (
             continue; 
         }
         
+        std::size_t compsetcount = 1;
+        
         for ( auto tie_point : phase_tie_points ) {
             // We want to map the indices we used back to variable names for the optimizer
             std::map<std::string,double> minimum;
@@ -126,27 +128,28 @@ GibbsOpt::GibbsOpt (
                 BOOST_LOG_SEV ( opto_log, debug ) << "Setting minimum[" << varname << "] = " << *it;
                 minimum[varname] = *it;
             }
-            minimum[comp_set->first + "_FRAC"] = 1; // TODO: Fix to use proper phase fraction
+            // TODO: Set phase fractions based on lever rule
             if ( number_of_composition_sets > 1 ) {
-                BOOST_LOG_SEV ( opto_log, debug ) << comp_set->first << " needs new composition sets";
-                // We have miscibility gaps; need to create composition sets
-                for ( auto compsetcount = 1; compsetcount <= number_of_composition_sets; ++compsetcount ) {
-                    std::stringstream compsetname;
-                    compsetname << comp_set->first << "#" << compsetcount;
-                    // Set starting point
-                    const auto new_starting_point = ast_copy_with_renamed_phase ( minimum, comp_set->first, compsetname.str() );
-                    // Copy from PHASENAME to PHASENAME#N
-                    phase_col[compsetname.str()] = phase_col[comp_set->first];
-                    conditions.phases[compsetname.str()] = conditions.phases[comp_set->first];
-                    new_comp_sets_to_add.emplace ( compsetname.str(), CompositionSet ( comp_set->second, new_starting_point, compsetname.str() ) );
+                BOOST_LOG_SEV ( opto_log, debug ) << comp_set->first << " needs a new composition set";
+                // We have miscibility gaps; need to create a composition set
+                std::stringstream compsetname;
+                compsetname << comp_set->first << "#" << compsetcount++;
+                BOOST_LOG_SEV ( opto_log, debug ) << "Creating new composition set " << compsetname.str();
+                // Set starting point
+                const auto new_starting_point = ast_copy_with_renamed_phase ( minimum, comp_set->first, compsetname.str() );
+                for ( auto startpoint : new_starting_point ) {
+                    BOOST_LOG_SEV ( opto_log, debug ) << "starting_point[" << startpoint.first << "] = " << startpoint.second;
                 }
+                // Copy from PHASENAME to PHASENAME#N
+                phase_col[compsetname.str()] = phase_col[comp_set->first];
+                conditions.phases[compsetname.str()] = conditions.phases[comp_set->first];
+                new_comp_sets_to_add.emplace ( compsetname.str(), CompositionSet ( comp_set->second, new_starting_point, compsetname.str() ) );
             }
             else {
                 BOOST_LOG_SEV ( opto_log, debug ) << "Setting starting point for " << comp_set->first;
                 // No miscibility gaps; set the starting point
                 comp_set->second.set_starting_point ( minimum );
             }
-            break; // ignore all other tie lines for the moment
         }
         if ( number_of_composition_sets > 1) {
             // Remove PHASENAME
