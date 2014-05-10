@@ -89,6 +89,20 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
             QhullVertexSet vertices = facet.vertices();
             const std::size_t vertex_count = vertices.size();
             
+            SimplicialFacet<double> new_facet;
+            for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
+                new_facet.vertices.push_back ( vertex->point().id() );
+            }
+            for ( auto coord : facet.hyperplane() ) {
+                new_facet.normal.push_back ( coord );
+            }
+            new_facet.area = facet.facetArea( qhull.runId() );
+            candidates.push_back ( new_facet );
+            already_added = true;
+            std::cout << facet;
+            
+            continue;
+            
             // Only facets with edges beyond the critical length are candidate tie hyperplanes
             // Check the length of all edges (dimension 1) in the facet
             for (auto vertex1 = 0; vertex1 < vertex_count && !already_added; ++vertex1) {

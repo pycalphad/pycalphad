@@ -87,6 +87,12 @@ namespace Optimizer { namespace details {
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
                 QhullVertexSet vertices = facet.vertices();
                 const std::size_t vertex_count = vertices.size();
+                
+                for ( auto vertex : facet.vertices() ) {
+                    candidate_points.push_back(restore_dependent_dimensions (vertex.point().toStdVector(), dependent_dimensions ));
+                }
+                
+                continue;
 
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
                 // Check the length of all edges (dimension 1) in the facet
