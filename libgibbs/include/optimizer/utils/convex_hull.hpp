@@ -17,6 +17,7 @@
 
 namespace Optimizer {
     namespace details {
+        
         // Calculation of the internal lower convex hull of a set of points
         std::vector<std::vector<double>> internal_lower_convex_hull ( 
         const std::vector<std::vector<double>> &points, 
@@ -31,6 +32,11 @@ namespace Optimizer {
             const double critical_edge_length,
             const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
         );
+        
+        // Adds dependent degrees of freedom back to a point
+        std::vector<double> restore_dependent_dimensions (
+            const std::vector<double> &point, 
+            const std::set<std::size_t> &dependent_dimensions);
     }
 }
 

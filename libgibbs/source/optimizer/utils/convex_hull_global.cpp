@@ -148,7 +148,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                     std::cout << std::endl;
                     SimplicialFacet<double> new_facet;
                     for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
-                        new_facet.vertices.insert ( std::make_pair( vertex->point().id(), vertex->point().toStdVector() ) );
+                        new_facet.vertices.push_back ( vertex->point().id() );
                     }
                     for ( auto coord : facet.hyperplane() ) {
                         new_facet.normal.push_back ( coord );

@@ -39,10 +39,6 @@ using orgQhull::QhullVertex;
 using orgQhull::QhullVertexSet;
 
 namespace Optimizer { namespace details {
-    std::vector<double> restore_dependent_dimensions (
-        const std::vector<double> &point, 
-        const std::set<std::size_t> &dependent_dimensions);
-    
     // Modified QuickHull algorithm using d-dimensional Beneath-Beyond
     // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
     // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
@@ -95,13 +91,13 @@ namespace Optimizer { namespace details {
                 // Only facets with edges beyond the critical length are candidate tie hyperplanes
                 // Check the length of all edges (dimension 1) in the facet
                 for (auto vertex1 = 0; vertex1 < vertex_count; ++vertex1) {
-                    std::vector<double> pt_vert1 = restore_dependent_dimensions ( vertices[vertex1].point().toStdVector(), dependent_dimensions );
-                    const double vertex1_energy = calculate_objective ( pt_vert1 );
-                    //pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
+                    std::vector<double> pt_vert1 = vertices[vertex1].point().toStdVector();
+                    const double vertex1_energy = pt_vert1.back();
+                    pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
                     for (auto vertex2 = 0; vertex2 < vertex1; ++vertex2) {
-                        std::vector<double> pt_vert2 = restore_dependent_dimensions ( vertices[vertex2].point().toStdVector(), dependent_dimensions );
-                        const double vertex2_energy = calculate_objective ( pt_vert2 );
-                        //pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
+                        std::vector<double> pt_vert2 = vertices[vertex2].point().toStdVector();
+                        const double vertex2_energy = pt_vert2.back();
+                        pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
                         std::vector<double> difference ( pt_vert2.size() );
                         std::vector<double> midpoint ( pt_vert2.size() ); // midpoint of the edge
                         std::transform (pt_vert2.begin(), pt_vert2.end(), 
@@ -109,6 +105,7 @@ namespace Optimizer { namespace details {
                         for (auto &coord : midpoint) coord /= 2;
                         const double lever_rule_energy = (vertex1_energy + vertex2_energy)/2;
                         midpoint.pop_back(); // remove energy coordinate
+                        midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
                         const double true_energy = calculate_objective ( midpoint );
                         // If the true energy is "much" greater, it's a true tie line
                         std::cout << "pt_vert1(" << vertices[vertex1].point().id() << "): ";
@@ -128,7 +125,7 @@ namespace Optimizer { namespace details {
                         
                         double distance = 0;
                         // Subtract vertex1 from vertex2 to get the distance
-                        std::transform (pt_vert2.begin(), pt_vert2.end()-1, 
+                        std::transform (pt_vert2.begin(), pt_vert2.end(), 
                                         pt_vert1.begin(), difference.begin(), std::minus<double>() );
                         // Sum the square of all elements of vertex2-vertex1
                         for (auto coord : difference) distance += std::pow(coord,2);
@@ -143,8 +140,8 @@ namespace Optimizer { namespace details {
                           std::cout << "Vertex2: ";
                           for (auto coord : pt_vert2) std::cout << coord << ",";
                           std::cout << std::endl;
-                          candidate_points.push_back(pt_vert1);
-                          candidate_points.push_back(pt_vert2);
+                          candidate_points.push_back(restore_dependent_dimensions (pt_vert1, dependent_dimensions ));
+                          candidate_points.push_back(restore_dependent_dimensions (pt_vert2, dependent_dimensions ));
                           std::cout << facet;
                         }
                     }

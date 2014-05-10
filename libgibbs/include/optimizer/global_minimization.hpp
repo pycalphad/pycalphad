@@ -176,22 +176,21 @@ public:
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
         for ( auto facet : candidate_facets ) {
             BOOST_LOG_SEV ( class_log, debug ) << "facet.vertices.size() = " << facet.vertices.size();
-            bool failed_conditions = true;
+            bool failed_conditions = false;
             for ( auto species : conditions.xfrac ) {
+                BOOST_LOG_SEV ( class_log, debug ) << "check conditions: X(" << species.first << ") = " << species.second;
                 double min_extent = 1, max_extent = 0; // extents of this coordinate
                 for ( auto point = facet.vertices.begin(); point != facet.vertices.end(); ++point ) {
-                    const std::size_t point_id = point->first;
+                    const std::size_t point_id = *point;
                     auto point_entry = hull_map [ point_id ];
                     auto point_coordinate = point_entry.global_coordinates [ species.first ];
                     BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
                     min_extent = std::min ( min_extent, point_coordinate );
                     max_extent = std::max ( max_extent, point_coordinate );
                 }
-                BOOST_LOG_SEV ( class_log, debug ) << "check conditions: X(" << species.first << ") = " << species.second;
                 BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
                 BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
                 if ( species.second >= min_extent && species.second <= max_extent ) {
-                    failed_conditions = false;
                     BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
                 }
                 else { BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; failed_conditions = true; break; }
@@ -203,8 +202,8 @@ public:
                         decltype( facet.vertices.begin() ) point1, 
                        decltype( facet.vertices.begin() ) point2
                     ) { 
-                        const std::size_t point1_id = point1->first;
-                        const std::size_t point2_id = point2->first;
+                        const std::size_t point1_id = *point1;
+                        const std::size_t point2_id = *point2;
                         auto point1_entry = hull_map [ point1_id ];
                         auto point2_entry = hull_map [ point2_id ];
                         if ( point1_entry.phase_name != point2_entry.phase_name ) {
@@ -216,9 +215,11 @@ public:
                             // phases are the same -- does a tie line span a miscibility gap?
                             // use internal coordinates to check
                             CoordinateType distance = 0;
-                            decltype( point1_entry.internal_coordinates ) difference;
-                            std::transform (point2_entry.internal_coordinates.begin(), point2_entry.internal_coordinates.end()-1, 
-                                            point1_entry.internal_coordinates.begin(), difference.begin(), std::minus<double>() );
+                            auto difference = point2_entry.internal_coordinates ;
+                            auto diff_iter = difference.begin();
+                            for ( auto coord : point1_entry.internal_coordinates ) {
+                                *(diff_iter++) -= coord;
+                            }
                             for (auto coord : difference) distance += std::pow(coord,2);
                             if (distance > critical_edge_length) {
                                 // the tie line is sufficiently long
