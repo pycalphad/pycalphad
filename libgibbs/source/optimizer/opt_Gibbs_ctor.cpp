@@ -100,6 +100,7 @@ GibbsOpt::GibbsOpt (
 
     std::map<std::string, CompositionSet> new_comp_sets_to_add;
     for ( auto comp_set = comp_sets.begin(); comp_set != comp_sets.end(); ) {
+        BOOST_LOG_SEV ( opto_log, debug ) << "Checking if " << comp_set->first << " needs to be modified";
         // Search tie points for this phase
         std::vector<typename GlobalMinimizerType::HullMapType::HullEntryType> phase_tie_points;
         for ( auto tie_point : tie_points ) {
@@ -108,7 +109,11 @@ GibbsOpt::GibbsOpt (
             }
         }
         std::size_t number_of_composition_sets = phase_tie_points.size();
-        if ( number_of_composition_sets == 0 ) { comp_sets.erase ( comp_set++ ); continue; }
+        if ( number_of_composition_sets == 0 ) { 
+            BOOST_LOG_SEV ( opto_log, debug ) << comp_set->first << " is not on the convex hull. Removing.";
+            comp_sets.erase ( comp_set++ ); 
+            continue; 
+        }
         
         for ( auto tie_point : phase_tie_points ) {
             // We want to map the indices we used back to variable names for the optimizer
@@ -116,11 +121,14 @@ GibbsOpt::GibbsOpt (
             boost::bimap<std::string,int> indexmap = comp_set->second.get_variable_map();
             for ( auto it = tie_point.internal_coordinates.begin(); it != tie_point.internal_coordinates.end(); ++it ) {
                 const int index = std::distance ( tie_point.internal_coordinates.begin(),it );
+                BOOST_LOG_SEV ( opto_log, debug ) << "Looking up index " << index << " for indexmap";
                 const std::string varname = indexmap.right.at ( index );
+                BOOST_LOG_SEV ( opto_log, debug ) << "Setting minimum[" << varname << "] = " << *it;
                 minimum[varname] = *it;
             }
             minimum[comp_set->first + "_FRAC"] = 1; // TODO: Fix to use proper phase fraction
-            if ( number_of_composition_sets > 1 ) { 
+            if ( number_of_composition_sets > 1 ) {
+                BOOST_LOG_SEV ( opto_log, debug ) << comp_set->first << " needs new composition sets";
                 // We have miscibility gaps; need to create composition sets
                 for ( auto compsetcount = 1; compsetcount <= number_of_composition_sets; ++compsetcount ) {
                     std::stringstream compsetname;
@@ -132,27 +140,31 @@ GibbsOpt::GibbsOpt (
                     conditions.phases[compsetname.str()] = conditions.phases[comp_set->first];
                     new_comp_sets_to_add.emplace ( compsetname.str(), CompositionSet ( comp_set->second, new_starting_point, compsetname.str() ) );
                 }
-                // Remove PHASENAME
-                // PHASENAME was renamed to PHASENAME#1
-                BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << comp_set->first;
-                auto remove_phase_iter = phase_col.find ( comp_set->first );
-                auto remove_conds_phase_iter = conditions.phases.find ( comp_set->first );
-                if ( remove_phase_iter != phase_col.end() ) {
-                    phase_col.erase ( remove_phase_iter );
-                }
-                if ( remove_conds_phase_iter != conditions.phases.end() ) {
-                    conditions.phases.erase ( remove_conds_phase_iter );
-                }
-                // Erase original phase (now renamed)
-                comp_sets.erase ( comp_set++);
             }
             else {
+                BOOST_LOG_SEV ( opto_log, debug ) << "Setting starting point for " << comp_set->first;
                 // No miscibility gaps; set the starting point
-                (comp_set++)->second.set_starting_point ( minimum );
+                comp_set->second.set_starting_point ( minimum );
             }
+            break; // ignore all other tie lines for the moment
         }
+        if ( number_of_composition_sets > 1) {
+            // Remove PHASENAME
+            // PHASENAME was renamed to PHASENAME#1
+            BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << comp_set->first;
+            auto remove_phase_iter = phase_col.find ( comp_set->first );
+            auto remove_conds_phase_iter = conditions.phases.find ( comp_set->first );
+            if ( remove_phase_iter != phase_col.end() ) {
+                phase_col.erase ( remove_phase_iter );
+            }
+            if ( remove_conds_phase_iter != conditions.phases.end() ) {
+                conditions.phases.erase ( remove_conds_phase_iter );
+            }
+            // Erase original phase (now renamed)
+            comp_sets.erase ( comp_set++);
+        }
+        else comp_set++;
     }
-    
     BOOST_LOG_SEV ( opto_log, debug ) << "Adding new composition sets to the optimizer";
     std::move( new_comp_sets_to_add.begin(), new_comp_sets_to_add.end(), std::inserter( comp_sets, comp_sets.begin() ));
     

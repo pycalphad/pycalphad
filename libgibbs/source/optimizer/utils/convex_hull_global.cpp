@@ -83,7 +83,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
   
     for (auto facet : facets) {
         bool already_added = false;
-        if (facet.isDefined() && facet.isGood() /*&& facet.isSimplicial()*/) {
+        if (facet.isDefined() && facet.isGood() && facet.isSimplicial() ) {
             double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
             if (orientation > 0) continue; // consider only the facets of the lower convex hull
             QhullVertexSet vertices = facet.vertices();
@@ -153,7 +153,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                     for ( auto coord : facet.hyperplane() ) {
                         new_facet.normal.push_back ( coord );
                     }
-                    new_facet.volume = facet.facetArea( qhull.runId() );
+                    new_facet.area = facet.facetArea( qhull.runId() );
                     candidates.push_back ( new_facet );
                     already_added = true;
                     std::cout << facet;
