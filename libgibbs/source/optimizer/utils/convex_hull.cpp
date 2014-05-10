@@ -85,6 +85,8 @@ namespace Optimizer { namespace details {
             if (facet.isDefined() && facet.isGood() /*&& facet.isSimplicial()*/) {
                 double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
                 if (orientation > 0) continue; // consider only the facets of the lower convex hull
+                // skip facets with no normal defined (these are duplicates for some reason)
+                if ( std::distance( facet.hyperplane().begin(),facet.hyperplane().end() ) == 0 ) continue;
                 QhullVertexSet vertices = facet.vertices();
                 const std::size_t vertex_count = vertices.size();
                 

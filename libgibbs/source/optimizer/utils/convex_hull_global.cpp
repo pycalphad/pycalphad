@@ -10,6 +10,7 @@
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/optimizer/utils/simplicial_facet.hpp"
+#include "libgibbs/include/utils/invert_matrix.hpp"
 #include "external/libqhullcpp/RboxPoints.h"
 #include "external/libqhullcpp/QhullError.h"
 #include "external/libqhullcpp/QhullQh.h"
@@ -61,7 +62,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     RboxPoints point_buffer;
     point_buffer.setDimension ( point_dimension );
     point_buffer.reserveCoordinates ( point_count );
-    std::string Qhullcommand = " ";
+    std::string Qhullcommand = "Qt ";
     
     // Copy all of the points into a buffer compatible with Qhull
     for (auto pt : points) {
@@ -85,15 +86,29 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
         bool already_added = false;
         if (facet.isDefined() && facet.isGood() && facet.isSimplicial() ) {
             double orientation = *(facet.hyperplane().constEnd()-1); // last coordinate (energy)
-            if (orientation > 0) continue; // consider only the facets of the lower convex hull
+            if (orientation > 0) continue; // consider only the facets of the lower convex hull.
+            // skip facets with no normal defined (these are duplicates for some reason)
+            if ( std::distance( facet.hyperplane().begin(),facet.hyperplane().end() ) == 0 ) continue;
             QhullVertexSet vertices = facet.vertices();
             const std::size_t vertex_count = vertices.size();
             
             SimplicialFacet<double> new_facet;
+            // fill basis matrix
+            new_facet.basis_matrix = SimplicialFacet<double>::MatrixType ( vertex_count, vertex_count );
             for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
+                const std::size_t column_index = std::distance ( vertices.begin(), vertex );
                 new_facet.vertices.push_back ( vertex->point().id() );
+                for ( auto coord = vertex->point().begin(); coord != vertex->point().end()-1 /***/; ++coord ) {
+                    const std::size_t row_index = std::distance ( vertex->point().begin(), coord );
+                    std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
+                    new_facet.basis_matrix ( row_index, column_index ) = *coord;
+                }
+                std::cout << "new_facet.basis_matrix(" << vertex_count-1 << "," << column_index << ") = 1" << std::endl;
+                new_facet.basis_matrix ( vertex_count-1, column_index ) = 1; // last column is all 1's
             }
-            for ( auto coord : facet.hyperplane() ) {
+            bool success = InvertMatrix ( new_facet.basis_matrix, new_facet.basis_matrix );
+            if ( !success ) std::cout << "MATRIX INVERSION FAILED" << std::endl;
+            for ( const auto coord : facet.hyperplane() ) {
                 new_facet.normal.push_back ( coord );
             }
             new_facet.area = facet.facetArea( qhull.runId() );

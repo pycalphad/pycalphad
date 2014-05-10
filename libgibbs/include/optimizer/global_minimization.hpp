@@ -179,7 +179,20 @@ public:
             BOOST_LOG_SEV ( class_log, debug ) << "facet.vertices.size() = " << facet.vertices.size();
             bool failed_conditions = false;
             for ( auto species : conditions.xfrac ) {
-                BOOST_LOG_SEV ( class_log, debug ) << "check conditions: X(" << species.first << ") = " << species.second;
+            }
+            boost::numeric::ublas::vector<CoordinateType> trial_point ( conditions.xfrac.size()+1 );
+            for ( auto coord = conditions.xfrac.begin(); coord !=  conditions.xfrac.end(); ++coord) {
+                trial_point [ std::distance(conditions.xfrac.begin(),coord) ] = coord->second;
+            }
+            trial_point [ conditions.xfrac.size() ] = 1;
+            auto trial_vector = boost::numeric::ublas::prod ( facet.basis_matrix, trial_point );
+            for ( auto coord : trial_vector ) {
+                if ( coord < 0 ) {
+                    failed_conditions = true;
+                    break;
+                }
+            }
+                /*
                 double min_extent = 1, max_extent = 0; // extents of this coordinate
                 for ( auto point = facet.vertices.begin(); point != facet.vertices.end(); ++point ) {
                     const std::size_t point_id = *point;
@@ -199,7 +212,7 @@ public:
                     failed_conditions = true; 
                     break; 
                 }
-            }
+                */
             if (!failed_conditions) {
                 std::stringstream logbuf;
                 logbuf << "Candidate facet ";

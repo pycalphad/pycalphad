@@ -81,7 +81,7 @@ GibbsOpt::GibbsOpt (
         comp_sets.emplace ( i->first, CompositionSet ( i->second, pset, main_ss, main_indices ) );
     }
     // TODO: Move these changeable parameters somewhere
-    const double subdivisions_per_axis = 10;
+    const double subdivisions_per_axis = 40;
     const std::size_t critical_edge_length = 0.01;
     
     // Rebind functions to use user-defined parameters
