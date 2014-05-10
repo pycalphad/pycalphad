@@ -172,6 +172,7 @@ public:
                                                                      ) {
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::find_tie_points" );
         // Filter candidate facets based on user-specified constraints
+        std::set<std::size_t> candidate_ids; // ensures returned points are unique
         std::vector<typename HullMapType::HullEntryType> candidates;
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
         for ( auto facet : candidate_facets ) {
@@ -184,21 +185,42 @@ public:
                     const std::size_t point_id = *point;
                     auto point_entry = hull_map [ point_id ];
                     auto point_coordinate = point_entry.global_coordinates [ species.first ];
-                    BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
+                    //BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
                     min_extent = std::min ( min_extent, point_coordinate );
                     max_extent = std::max ( max_extent, point_coordinate );
                 }
-                BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
-                BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
+                //BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
+                //BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
                 if ( species.second >= min_extent && species.second <= max_extent ) {
-                    BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
+                    //BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
                 }
-                else { BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; failed_conditions = true; break; }
+                else {
+                    //BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; 
+                    failed_conditions = true; 
+                    break; 
+                }
             }
             if (!failed_conditions) {
+                std::stringstream logbuf;
+                logbuf << "Candidate facet ";
+                for ( auto point : facet.vertices ) {
+                    const std::size_t point_id = point;
+                    auto point_entry = hull_map [ point_id ];
+                    logbuf << "[";
+                    for ( auto coord : point_entry.internal_coordinates ) {
+                        logbuf << coord << ",";
+                    }
+                    logbuf << "]";
+                    logbuf << "{";
+                    for ( auto coord : point_entry.global_coordinates ) {
+                        logbuf << coord.first << ":" << coord.second << ",";
+                    }
+                    logbuf << "}";
+                }
+                BOOST_LOG_SEV ( class_log, debug ) << logbuf.str();
                 // this facet satisfies all the conditions; return it
                 for_each_pair (facet.vertices.begin(), facet.vertices.end(), 
-                    [this,&candidates,critical_edge_length](
+                    [this,&candidate_ids,critical_edge_length](
                         decltype( facet.vertices.begin() ) point1, 
                        decltype( facet.vertices.begin() ) point2
                     ) { 
@@ -208,8 +230,8 @@ public:
                         auto point2_entry = hull_map [ point2_id ];
                         if ( point1_entry.phase_name != point2_entry.phase_name ) {
                             // phases differ; definitely a tie line
-                            candidates.emplace_back ( std::move ( point1_entry ) );
-                            candidates.emplace_back ( std::move ( point2_entry ) );
+                            candidate_ids.insert ( point1_id );
+                            candidate_ids.insert ( point2_id );
                         }
                         else {
                             // phases are the same -- does a tie line span a miscibility gap?
@@ -223,14 +245,19 @@ public:
                             for (auto coord : difference) distance += std::pow(coord,2);
                             if (distance > critical_edge_length) {
                                 // the tie line is sufficiently long
-                                candidates.emplace_back ( std::move ( point1_entry ) );
-                                candidates.emplace_back ( std::move ( point2_entry ) );
+                                candidate_ids.insert ( point1_id );
+                                candidate_ids.insert ( point2_id );
                             }
                             // Not a tie line; just add one point to ensure the phase appears
-                            else candidates.emplace_back ( std::move ( point1_entry ) );
+                            else {
+                                candidate_ids.insert ( point1_id );
+                            }
                         }
                     });
             }
+        }
+        for (auto point_id : candidate_ids) {
+            candidates.push_back ( hull_map [ point_id ] );
         }
         return std::move( candidates );
     }

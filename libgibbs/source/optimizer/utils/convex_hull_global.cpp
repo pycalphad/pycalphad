@@ -61,7 +61,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     RboxPoints point_buffer;
     point_buffer.setDimension ( point_dimension );
     point_buffer.reserveCoordinates ( point_count );
-    std::string Qhullcommand = "Qt ";
+    std::string Qhullcommand = " ";
     
     // Copy all of the points into a buffer compatible with Qhull
     for (auto pt : points) {
