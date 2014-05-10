@@ -168,9 +168,10 @@ GibbsOpt::GibbsOpt (
         }
         else comp_set++;
     }
-    BOOST_LOG_SEV ( opto_log, debug ) << "Adding new composition sets to the optimizer";
-    std::move( new_comp_sets_to_add.begin(), new_comp_sets_to_add.end(), std::inserter( comp_sets, comp_sets.begin() ));
-    
+    if ( new_comp_sets_to_add.size() > 0) {
+        BOOST_LOG_SEV ( opto_log, debug ) << "Adding new composition sets to the optimizer";
+        std::move( new_comp_sets_to_add.begin(), new_comp_sets_to_add.end(), std::inserter( comp_sets, comp_sets.begin() ));
+    }
     // Rebuild the index map now that phases have been renamed and removed
     BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";
     main_indices.left.clear();
