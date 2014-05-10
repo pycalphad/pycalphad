@@ -185,17 +185,17 @@ public:
                     const std::size_t point_id = *point;
                     auto point_entry = hull_map [ point_id ];
                     auto point_coordinate = point_entry.global_coordinates [ species.first ];
-                    //BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
+                    BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
                     min_extent = std::min ( min_extent, point_coordinate );
                     max_extent = std::max ( max_extent, point_coordinate );
                 }
-                //BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
-                //BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
+                BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
+                BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
                 if ( species.second >= min_extent && species.second <= max_extent ) {
-                    //BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
+                    BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
                 }
                 else {
-                    //BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; 
+                    BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; 
                     failed_conditions = true; 
                     break; 
                 }
