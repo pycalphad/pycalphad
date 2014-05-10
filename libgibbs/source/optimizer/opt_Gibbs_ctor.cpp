@@ -81,8 +81,8 @@ GibbsOpt::GibbsOpt (
         comp_sets.emplace ( i->first, CompositionSet ( i->second, pset, main_ss, main_indices ) );
     }
     // TODO: Move these changeable parameters somewhere
-    const double subdivisions_per_axis = 40;
-    const std::size_t critical_edge_length = 0.01;
+    const std::size_t subdivisions_per_axis = 40;
+    const double critical_edge_length = (double)(1.0/subdivisions_per_axis);
     
     // Rebind functions to use user-defined parameters
     GlobalMinimizerType::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
