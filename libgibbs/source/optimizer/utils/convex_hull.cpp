@@ -58,7 +58,7 @@ namespace Optimizer { namespace details {
         RboxPoints point_buffer;
         point_buffer.setDimension ( point_dimension );
         point_buffer.reserveCoordinates ( point_count );
-        std::string Qhullcommand = "";
+        std::string Qhullcommand = "Qt ";
         if (points.size() == 1) { // Special case: No composition dependence
             auto return_point = restore_dependent_dimensions ( points.front(), dependent_dimensions );
             final_points.emplace_back ( std::move ( return_point ) );
