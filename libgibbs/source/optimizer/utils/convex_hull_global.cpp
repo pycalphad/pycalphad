@@ -9,6 +9,7 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/optimizer/utils/convex_hull.hpp"
+#include "libgibbs/include/optimizer/utils/simplicial_facet.hpp"
 #include "external/libqhullcpp/RboxPoints.h"
 #include "external/libqhullcpp/QhullError.h"
 #include "external/libqhullcpp/QhullQh.h"
@@ -45,7 +46,7 @@ namespace Optimizer { namespace details {
 // Reference: N. Perevoshchikova, et al., 2012, Computational Materials Science.
 // "A convex hull algorithm for a grid minimization of Gibbs energy as initial step 
 //    in equilibrium calculations in two-phase multicomponent alloys"
-std::vector<QhullFacet> global_lower_convex_hull (
+std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     const std::vector<std::vector<double>> &points,
     const double critical_edge_length,
     const std::function<double(const std::size_t, const std::size_t)> calculate_midpoint_energy
@@ -53,14 +54,14 @@ std::vector<QhullFacet> global_lower_convex_hull (
     BOOST_ASSERT(points.size() > 0);
     BOOST_ASSERT(critical_edge_length > 0);
     const double coplanarity_allowance = 0.001; // max energy difference (%/100) to still be on tie plane
-    std::vector<QhullFacet> candidates;
+    std::vector<SimplicialFacet<double>> candidates;
     const std::size_t point_dimension = points.begin()->size();
     const std::size_t point_count = points.size();
     std::set<std::size_t> candidate_point_ids; // vertices of tie hyperplanes
     RboxPoints point_buffer;
     point_buffer.setDimension ( point_dimension );
     point_buffer.reserveCoordinates ( point_count );
-    std::string Qhullcommand = "";
+    std::string Qhullcommand = "Qt ";
     
     // Copy all of the points into a buffer compatible with Qhull
     for (auto pt : points) {
@@ -145,7 +146,15 @@ std::vector<QhullFacet> global_lower_convex_hull (
                     std::cout << "Vertex2: ";
                     for (auto coord : pt_vert2) std::cout << coord << ",";
                     std::cout << std::endl;
-                    candidates.push_back ( facet );
+                    SimplicialFacet<double> new_facet;
+                    for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
+                        new_facet.vertices.insert ( std::make_pair( vertex->point().id(), vertex->point().toStdVector() ) );
+                    }
+                    for ( auto coord : facet.hyperplane() ) {
+                        new_facet.normal.push_back ( coord );
+                    }
+                    new_facet.volume = facet.facetArea( qhull.runId() );
+                    candidates.push_back ( new_facet );
                     already_added = true;
                     std::cout << facet;
                 }

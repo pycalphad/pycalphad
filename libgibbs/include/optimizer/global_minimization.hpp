@@ -163,77 +163,76 @@ public:
         // TODO: Add points and set options related to activity constraints here
         // Determine the facets on the global convex hull of all phase's energy landscapes
         candidate_facets = global_hull ( temporary_hull_storage, calculate_global_midpoint_energy );
-        
-        for ( auto facet : candidate_facets ) {
-            for_each_pair (facet.outsidePoints().begin(), facet.outsidePoints().end(), 
-                [this](
-                    decltype( facet.outsidePoints().begin() ) point1, 
-                    decltype( facet.outsidePoints().begin() ) point2
-                ) { 
-                    const std::size_t point1_id = (*point1).id();
-                    const std::size_t point2_id = (*point2).id();
-                    
-                }
-            );
-        }
+        BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
     }
     
-    void ReturnFacetsThat () {
+    std::vector<typename HullMapType::HullEntryType> find_tie_points ( 
+                       evalconditions const& conditions,
+                       const std::size_t critical_edge_length
+                                                                     ) {
+        BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::find_tie_points" );
         // Filter candidate facets based on user-specified constraints
-        /*for (auto current_facet : candidate_facets ) {
-         / / *if we satisfy the filter, add the relevant points to the candidate points on hull
-         if ( facet_filter ( current_facet ) ) {
+        std::vector<typename HullMapType::HullEntryType> candidates;
+        BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
+        for ( auto facet : candidate_facets ) {
+            BOOST_LOG_SEV ( class_log, debug ) << "facet.vertices.size() = " << facet.vertices.size();
+            bool failed_conditions = true;
+            for ( auto species : conditions.xfrac ) {
+                double min_extent = 1, max_extent = 0; // extents of this coordinate
+                for ( auto point = facet.vertices.begin(); point != facet.vertices.end(); ++point ) {
+                    const std::size_t point_id = point->first;
+                    auto point_entry = hull_map [ point_id ];
+                    auto point_coordinate = point_entry.global_coordinates [ species.first ];
+                    BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
+                    min_extent = std::min ( min_extent, point_coordinate );
+                    max_extent = std::max ( max_extent, point_coordinate );
+                }
+                BOOST_LOG_SEV ( class_log, debug ) << "check conditions: X(" << species.first << ") = " << species.second;
+                BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
+                BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
+                if ( species.second >= min_extent && species.second <= max_extent ) {
+                    failed_conditions = false;
+                    BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
+                }
+                else { BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; failed_conditions = true; break; }
+            }
+            if (!failed_conditions) {
+                // this facet satisfies all the conditions; return it
+                for_each_pair (facet.vertices.begin(), facet.vertices.end(), 
+                    [this,&candidates,critical_edge_length](
+                        decltype( facet.vertices.begin() ) point1, 
+                       decltype( facet.vertices.begin() ) point2
+                    ) { 
+                        const std::size_t point1_id = point1->first;
+                        const std::size_t point2_id = point2->first;
+                        auto point1_entry = hull_map [ point1_id ];
+                        auto point2_entry = hull_map [ point2_id ];
+                        if ( point1_entry.phase_name != point2_entry.phase_name ) {
+                            // phases differ; definitely a tie line
+                            candidates.emplace_back ( std::move ( point1_entry ) );
+                            candidates.emplace_back ( std::move ( point2_entry ) );
+                        }
+                        else {
+                            // phases are the same -- does a tie line span a miscibility gap?
+                            // use internal coordinates to check
+                            CoordinateType distance = 0;
+                            decltype( point1_entry.internal_coordinates ) difference;
+                            std::transform (point2_entry.internal_coordinates.begin(), point2_entry.internal_coordinates.end()-1, 
+                                            point1_entry.internal_coordinates.begin(), difference.begin(), std::minus<double>() );
+                            for (auto coord : difference) distance += std::pow(coord,2);
+                            if (distance > critical_edge_length) {
+                                // the tie line is sufficiently long
+                                candidates.emplace_back ( std::move ( point1_entry ) );
+                                candidates.emplace_back ( std::move ( point2_entry ) );
+                            }
+                            // Not a tie line; just add one point to ensure the phase appears
+                            else candidates.emplace_back ( std::move ( point1_entry ) );
+                        }
+                    });
+            }
+        }
+        return std::move( candidates );
     }
-    }*/
-        /*if ( minima.size() == 0 ) {
-         * // We didn't find any minima!
-         * // This could indicate a problem, or just that we didn't look hard enough
-         * BOOST_LOG_SEV ( opto_log, critical ) << "Global minimization found no energy minima";
-         * const std::string compset_name ( main_compset.name() );
-         * // TODO: What about the starting point?!
-         * comp_sets.emplace ( compset_name, std::move ( main_compset ) );
-    }
-    
-    if ( minima.size() == 1 ) {
-        // No miscibility gap, no need to create new composition sets
-        // Use the minimum found during global minimization as the starting point
-        main_compset.set_starting_point ( * ( minima.begin() ) );
-        const std::string compset_name ( main_compset.name() );
-        comp_sets.emplace ( compset_name, std::move ( main_compset ) );
-    }
-    if ( minima.size() > 1 ) {
-        // Miscibility gap detected; create a new composition set for each minimum
-        std::size_t compsetcount = 1;
-        std::map<std::string, CompositionSet>::iterator it;
-        for ( auto min = minima.begin(); min != minima.end(); ++min ) {
-            if ( min != minima.begin() ) {
-                ++compsetcount;
-                ++activephases;
-    }
-    std::stringstream compsetname;
-    compsetname << main_compset.name() << "#" << compsetcount;
-    
-    // Set starting point
-    const auto new_starting_point = ast_copy_with_renamed_phase ( *min, main_compset.name(), compsetname.str() );
-    // Copy from PHASENAME to PHASENAME#N
-    phase_col[compsetname.str()] = phase_col[main_compset.name()];
-    conditions.phases[compsetname.str()] = conditions.phases[main_compset.name()];
-    it = comp_sets.emplace ( compsetname.str(), CompositionSet ( main_compset, new_starting_point, compsetname.str() ) ).first;
-    }
-    // Remove PHASENAME
-    // PHASENAME was renamed to PHASENAME#1
-    BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << main_compset.name();
-    auto remove_phase_iter = phase_col.find ( main_compset.name() );
-    auto remove_conds_phase_iter = conditions.phases.find ( main_compset.name() );
-    if ( remove_phase_iter != phase_col.end() ) {
-        phase_col.erase ( remove_phase_iter );
-    }
-    if ( remove_conds_phase_iter != conditions.phases.end() ) {
-        conditions.phases.erase ( remove_conds_phase_iter );
-    }
-    }
-    }*/
-    };
 };
 
 } //namespace Optimizer

@@ -17,9 +17,9 @@
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/optimizer/global_minimization.hpp"
 
-// These two headers are implementation details for the default global minimization
+// These headers are implementation details for the default global minimization
 #include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
-#include "external/libqhullcpp/QhullFacet.h"
+#include "libgibbs/include/optimizer/utils/simplicial_facet.hpp"
 
 #include <sstream>
 
@@ -40,6 +40,7 @@ GibbsOpt::GibbsOpt (
     const evalconditions &sysstate ) :
     conditions ( sysstate )
 {
+    typedef GlobalMinimizer<typename details::SimplicialFacet<double>,double,double> GlobalMinimizerType;
     BOOST_LOG_NAMED_SCOPE ( "GibbsOpt::GibbsOpt" );
     BOOST_LOG_CHANNEL_SEV ( opto_log, "optimizer", debug ) << "enter ctor";
     auto varcount = 0;
@@ -84,11 +85,76 @@ GibbsOpt::GibbsOpt (
     const std::size_t critical_edge_length = 0.01;
     
     // Rebind functions to use user-defined parameters
-    GlobalMinimizer<orgQhull::QhullFacet,double,double>::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
-    GlobalMinimizer<orgQhull::QhullFacet,double,double>::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
-    GlobalMinimizer<orgQhull::QhullFacet,double,double>::GlobalHullFunctor GlobalHullFunction = std::bind ( details::global_lower_convex_hull, std::placeholders::_1, critical_edge_length, std::placeholders::_2 );
+    GlobalMinimizerType::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
+    GlobalMinimizerType::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
+    GlobalMinimizerType::GlobalHullFunctor GlobalHullFunction = std::bind ( details::global_lower_convex_hull, std::placeholders::_1, critical_edge_length, std::placeholders::_2 );
+    
+    BOOST_LOG_SEV ( opto_log, debug ) << "Starting global minimization";
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
-    GlobalMinimizer<orgQhull::QhullFacet,double,double> grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction, GlobalHullFunction );
+    GlobalMinimizerType grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction, GlobalHullFunction );
+    
+    BOOST_LOG_SEV ( opto_log, debug ) << "Locating tie hyperplane";
+    // Get the points on the equilibrium tie hyperplane
+    auto tie_points = grid.find_tie_points ( conditions, critical_edge_length );
+    BOOST_LOG_SEV ( opto_log, critical ) << "Global minimization found " << tie_points.size() << " energy minima";
+
+    std::map<std::string, CompositionSet> new_comp_sets_to_add;
+    for ( auto comp_set = comp_sets.begin(); comp_set != comp_sets.end(); ) {
+        // Search tie points for this phase
+        std::vector<typename GlobalMinimizerType::HullMapType::HullEntryType> phase_tie_points;
+        for ( auto tie_point : tie_points ) {
+            if ( tie_point.phase_name == comp_set->first ) {
+                phase_tie_points.push_back ( tie_point );
+            }
+        }
+        std::size_t number_of_composition_sets = phase_tie_points.size();
+        if ( number_of_composition_sets == 0 ) { comp_sets.erase ( comp_set++ ); continue; }
+        
+        for ( auto tie_point : phase_tie_points ) {
+            // We want to map the indices we used back to variable names for the optimizer
+            std::map<std::string,double> minimum;
+            boost::bimap<std::string,int> indexmap = comp_set->second.get_variable_map();
+            for ( auto it = tie_point.internal_coordinates.begin(); it != tie_point.internal_coordinates.end(); ++it ) {
+                const int index = std::distance ( tie_point.internal_coordinates.begin(),it );
+                const std::string varname = indexmap.right.at ( index );
+                minimum[varname] = *it;
+            }
+            minimum[comp_set->first + "_FRAC"] = 1; // TODO: Fix to use proper phase fraction
+            if ( number_of_composition_sets > 1 ) { 
+                // We have miscibility gaps; need to create composition sets
+                for ( auto compsetcount = 1; compsetcount <= number_of_composition_sets; ++compsetcount ) {
+                    std::stringstream compsetname;
+                    compsetname << comp_set->first << "#" << compsetcount;
+                    // Set starting point
+                    const auto new_starting_point = ast_copy_with_renamed_phase ( minimum, comp_set->first, compsetname.str() );
+                    // Copy from PHASENAME to PHASENAME#N
+                    phase_col[compsetname.str()] = phase_col[comp_set->first];
+                    conditions.phases[compsetname.str()] = conditions.phases[comp_set->first];
+                    new_comp_sets_to_add.emplace ( compsetname.str(), CompositionSet ( comp_set->second, new_starting_point, compsetname.str() ) );
+                }
+                // Remove PHASENAME
+                // PHASENAME was renamed to PHASENAME#1
+                BOOST_LOG_SEV ( opto_log, debug ) << "Removing old phase " << comp_set->first;
+                auto remove_phase_iter = phase_col.find ( comp_set->first );
+                auto remove_conds_phase_iter = conditions.phases.find ( comp_set->first );
+                if ( remove_phase_iter != phase_col.end() ) {
+                    phase_col.erase ( remove_phase_iter );
+                }
+                if ( remove_conds_phase_iter != conditions.phases.end() ) {
+                    conditions.phases.erase ( remove_conds_phase_iter );
+                }
+                // Erase original phase (now renamed)
+                comp_sets.erase ( comp_set++);
+            }
+            else {
+                // No miscibility gaps; set the starting point
+                (comp_set++)->second.set_starting_point ( minimum );
+            }
+        }
+    }
+    
+    BOOST_LOG_SEV ( opto_log, debug ) << "Adding new composition sets to the optimizer";
+    std::move( new_comp_sets_to_add.begin(), new_comp_sets_to_add.end(), std::inserter( comp_sets, comp_sets.begin() ));
     
     // Rebuild the index map now that phases have been renamed and removed
     BOOST_LOG_SEV ( opto_log, debug ) << "Rebuilding variable map";
