@@ -168,7 +168,7 @@ public:
     
     std::vector<typename HullMapType::HullEntryType> find_tie_points ( 
                        evalconditions const& conditions,
-                       const std::size_t critical_edge_length
+                       const double critical_edge_length
                                                                      ) {
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::find_tie_points" );
         // Filter candidate facets based on user-specified constraints
@@ -257,6 +257,7 @@ public:
                 auto point2_entry = hull_map [ point2_id ];
                 if ( point1_entry.phase_name != point2_entry.phase_name ) {
                     // phases differ; definitely a tie line
+                    BOOST_LOG_SEV ( class_log, debug ) << "Adding tie points " << point1_id << "(" << point1_entry.phase_name << ") and " << point2_id << "(" << point2_entry.phase_name << ")";
                     candidate_ids.insert ( point1_id );
                     candidate_ids.insert ( point2_id );
                 }
@@ -264,21 +265,61 @@ public:
                     // phases are the same -- does a tie line span a miscibility gap?
                     // use internal coordinates to check
                     CoordinateType distance = 0;
-                    auto difference = point2_entry.internal_coordinates ;
+                    auto difference = point2_entry.internal_coordinates;
                     auto diff_iter = difference.begin();
-                    for ( auto coord : point1_entry.internal_coordinates ) {
-                        *(diff_iter++) -= coord;
+                    
+                    for ( auto coord = point1_entry.internal_coordinates.begin(); coord != point1_entry.internal_coordinates.end(); ++coord) {
+                        *(diff_iter++) -= *coord;
                     }
-                    for (auto coord : difference) distance += std::pow(coord,2);
-                        if (distance > critical_edge_length) {
-                            // the tie line is sufficiently long
-                            candidate_ids.insert ( point1_id );
-                            candidate_ids.insert ( point2_id );
-                        }
-                        // Not a tie line; just add one point to ensure the phase appears
-                        else {
-                            candidate_ids.insert ( point1_id );
-                        }
+                    for (auto coord : difference) { distance += std::pow(coord,2); }
+                    
+                    distance = sqrt ( distance );
+                       
+                    if (distance > critical_edge_length) {
+                        // the tie line is sufficiently long
+                        BOOST_LOG_SEV ( class_log, debug ) << "Adding tie points " << point1_id << " and " << point2_id << "(distance " << distance << " satisfies critical_edge_length " << critical_edge_length;
+                        candidate_ids.insert ( point1_id );
+                        candidate_ids.insert ( point2_id );
+                    }
+                }
+            });
+        
+        // If there are no candidate IDs yet, no tie lines were found
+        // We must be in a single phase region; just add the first vertex
+        // from the "tie plane"
+        if (candidate_ids.size() == 0) {
+            BOOST_LOG_SEV ( class_log, debug ) << "Adding single-phase point " << *( final_facet->vertices.begin() );
+            candidate_ids.insert ( *( final_facet->vertices.begin() ) );
+        }
+        
+        // If two tie points come from the same phase and are very close together,
+        // one should be discarded; this is the merge step
+        for_each_pair (candidate_ids.begin(), candidate_ids.end(), 
+            [this,&candidate_ids,critical_edge_length](
+                decltype( candidate_ids.begin() ) point1, 
+                                                       decltype( candidate_ids.begin() ) point2
+            ) { 
+                const std::size_t point1_id = *point1;
+                const std::size_t point2_id = *point2;
+                auto point1_entry = hull_map [ point1_id ];
+                auto point2_entry = hull_map [ point2_id ];
+                // don't merge points from different phases
+                if ( point1_entry.phase_name != point2_entry.phase_name ) { return; }
+                CoordinateType distance = 0;
+                auto difference = point2_entry.internal_coordinates;
+                auto diff_iter = difference.begin();
+                
+                for ( auto coord = point1_entry.internal_coordinates.begin(); coord != point1_entry.internal_coordinates.end(); ++coord) {
+                    *(diff_iter++) -= *coord;
+                }
+                for (auto coord : difference) { distance += std::pow(coord,2); }
+                
+                distance = sqrt ( distance );
+                
+                if (distance <= critical_edge_length) {
+                    // this tie line is not real; remove one of the points (arbitrarily, point2)
+                    BOOST_LOG_SEV ( class_log, debug ) << "Removing tie point " << point2_id;
+                    candidate_ids.erase ( point2_id );
                 }
             });
         
