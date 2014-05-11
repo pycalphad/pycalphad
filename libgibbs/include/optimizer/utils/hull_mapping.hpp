@@ -60,6 +60,7 @@ public:
         hull_entry.global_coordinates = global_coordinates;
         all_points.push_back ( hull_entry );
     };
+    HullEntryContainerType get_all_points () const { return all_points; }
 private:
     // entries should be inserted in global ID order
     HullEntryContainerType all_points;

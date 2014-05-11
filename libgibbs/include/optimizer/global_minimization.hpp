@@ -209,6 +209,20 @@ public:
                     break;
                 }
             }
+            std::cout << "POINT DEBUGGING" << std::endl;
+            for ( auto hull_entry : hull_map.get_all_points() ) {
+                for ( auto coord : hull_entry.global_coordinates ) {
+                    std::cout << coord.second << " ";
+                }
+                std::cout  << std::endl;
+            }
+            std::cout << "FACET DEBUGGING" << std::endl;
+            for ( auto facet : candidate_facets ) {
+                for ( auto vertex : facet.vertices ) {
+                    std::cout << vertex << " ";
+                }
+                std::cout << std::endl;
+            }
             
             if ( !failed_conditions ) {
                 // This is a pre-candidate facet!
