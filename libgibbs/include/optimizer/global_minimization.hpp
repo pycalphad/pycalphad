@@ -298,27 +298,16 @@ public:
                 }
             });
         
-        // If there are no candidate IDs yet, no tie lines were found
-        // We must be in a single phase region; just add the first vertex
-        // from the "tie plane"
-        if (candidate_ids.size() == 0) {
-            BOOST_LOG_SEV ( class_log, debug ) << "Adding single-phase point " << *( final_facet->vertices.begin() );
-            candidate_ids.insert ( *( final_facet->vertices.begin() ) );
-        }
-        
         // If two tie points come from the same phase and are very close together,
         // one should be discarded; this is the merge step
-        for_each_pair (candidate_ids.begin(), candidate_ids.end(), 
-            [this,&candidate_ids,critical_edge_length](
-                decltype( candidate_ids.begin() ) point1, 
-                                                       decltype( candidate_ids.begin() ) point2
-            ) { 
+        for ( auto point1 = candidate_ids.begin(); point1 != candidate_ids.end(); ++point1 ) {
+            for ( auto point2 = point1; ++point2 != candidate_ids.end(); /**/ ) {
                 const std::size_t point1_id = *point1;
                 const std::size_t point2_id = *point2;
                 auto point1_entry = hull_map [ point1_id ];
                 auto point2_entry = hull_map [ point2_id ];
                 // don't merge points from different phases
-                if ( point1_entry.phase_name != point2_entry.phase_name ) { return; }
+                if ( point1_entry.phase_name != point2_entry.phase_name ) { continue; }
                 CoordinateType distance = 0;
                 auto difference = point2_entry.internal_coordinates;
                 auto diff_iter = difference.begin();
@@ -334,8 +323,20 @@ public:
                     // this tie line is not real; remove one of the points (arbitrarily, point2)
                     BOOST_LOG_SEV ( class_log, debug ) << "Removing tie point " << point2_id;
                     candidate_ids.erase ( point2_id );
+                    // reset pairwise check after one ID is erased
+                    point1 = candidate_ids.begin();
+                    point2 = ++( candidate_ids.begin() );
                 }
-            });
+            }
+        }
+        
+        // If there are no candidate IDs yet, no tie lines were found
+        // We must be in a single phase region; just add the first vertex
+        // from the "tie plane"
+        if (candidate_ids.size() == 0) {
+            BOOST_LOG_SEV ( class_log, debug ) << "Adding single-phase point " << *( final_facet->vertices.begin() );
+            candidate_ids.insert ( *( final_facet->vertices.begin() ) );
+        }
         
         // Dereference point IDs to hull entries
         for (auto point_id : candidate_ids) {
