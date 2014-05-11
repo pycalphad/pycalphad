@@ -173,47 +173,48 @@ public:
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::find_tie_points" );
         // Filter candidate facets based on user-specified constraints
         std::set<std::size_t> candidate_ids; // ensures returned points are unique
+        std::vector<FacetType> pre_candidate_facets; // check all facets before adding to candidates
         std::vector<typename HullMapType::HullEntryType> candidates;
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
         for ( auto facet : candidate_facets ) {
-            BOOST_LOG_SEV ( class_log, debug ) << "facet.vertices.size() = " << facet.vertices.size();
-            bool failed_conditions = false;
-            for ( auto species : conditions.xfrac ) {
+            std::stringstream logbuf;
+            logbuf << "Checking facet ";
+            logbuf << "[";
+            for ( auto point : facet.vertices ) {
+                const std::size_t point_id = point;
+                auto point_entry = hull_map [ point_id ];
+                logbuf << "(";
+                for ( auto coord : point_entry.global_coordinates ) {
+                    logbuf << coord.first << ":" << coord.second << ",";
+                }
+                logbuf << ")";
             }
+            logbuf << "]";
+            BOOST_LOG_SEV ( class_log, debug ) << logbuf.str();
+            bool failed_conditions = false;
+            
+            // Determine if the user-specified point is inside this facet
             boost::numeric::ublas::vector<CoordinateType> trial_point ( conditions.xfrac.size()+1 );
             for ( auto coord = conditions.xfrac.begin(); coord !=  conditions.xfrac.end(); ++coord) {
                 trial_point [ std::distance(conditions.xfrac.begin(),coord) ] = coord->second;
             }
             trial_point [ conditions.xfrac.size() ] = 1;
+            BOOST_LOG_SEV ( class_log, debug ) << "trial_point: " << trial_point;
+            BOOST_LOG_SEV ( class_log, debug ) << "facet.basis_matrix: " << facet.basis_matrix;
             auto trial_vector = boost::numeric::ublas::prod ( facet.basis_matrix, trial_point );
+            BOOST_LOG_SEV ( class_log, debug ) << "trial_vector: " << trial_vector;
             for ( auto coord : trial_vector ) {
                 if ( coord < 0 ) {
                     failed_conditions = true;
                     break;
                 }
             }
-                /*
-                double min_extent = 1, max_extent = 0; // extents of this coordinate
-                for ( auto point = facet.vertices.begin(); point != facet.vertices.end(); ++point ) {
-                    const std::size_t point_id = *point;
-                    auto point_entry = hull_map [ point_id ];
-                    auto point_coordinate = point_entry.global_coordinates [ species.first ];
-                    BOOST_LOG_SEV ( class_log, debug ) << "point_coordinate = " << point_coordinate;
-                    min_extent = std::min ( min_extent, point_coordinate );
-                    max_extent = std::max ( max_extent, point_coordinate );
-                }
-                BOOST_LOG_SEV ( class_log, debug ) << "min_extent = " << min_extent;
-                BOOST_LOG_SEV ( class_log, debug ) << "max_extent = " << max_extent;
-                if ( species.second >= min_extent && species.second <= max_extent ) {
-                    BOOST_LOG_SEV ( class_log, debug ) << "conditions passed";
-                }
-                else {
-                    BOOST_LOG_SEV ( class_log, debug ) << "conditions failed"; 
-                    failed_conditions = true; 
-                    break; 
-                }
-                */
-            if (!failed_conditions) {
+            
+            if ( !failed_conditions ) {
+                // This is a pre-candidate facet!
+                // It's possible we will have more than one due to edge/corner cases
+                // We can select some method of choosing between them
+                pre_candidate_facets.push_back ( facet );
                 std::stringstream logbuf;
                 logbuf << "Candidate facet ";
                 for ( auto point : facet.vertices ) {
@@ -225,50 +226,63 @@ public:
                     }
                     logbuf << "]";
                     logbuf << "{";
-                    for ( auto coord : point_entry.global_coordinates ) {
-                        logbuf << coord.first << ":" << coord.second << ",";
-                    }
-                    logbuf << "}";
+                        for ( auto coord : point_entry.global_coordinates ) {
+                            logbuf << coord.first << ":" << coord.second << ",";
+                        }
+                        logbuf << "}";
                 }
                 BOOST_LOG_SEV ( class_log, debug ) << logbuf.str();
-                // this facet satisfies all the conditions; return it
-                for_each_pair (facet.vertices.begin(), facet.vertices.end(), 
-                    [this,&candidate_ids,critical_edge_length](
-                        decltype( facet.vertices.begin() ) point1, 
-                       decltype( facet.vertices.begin() ) point2
-                    ) { 
-                        const std::size_t point1_id = *point1;
-                        const std::size_t point2_id = *point2;
-                        auto point1_entry = hull_map [ point1_id ];
-                        auto point2_entry = hull_map [ point2_id ];
-                        if ( point1_entry.phase_name != point2_entry.phase_name ) {
-                            // phases differ; definitely a tie line
+            }
+        }
+        
+        // Sort candidate_facets by area; choose candidate facet with smallest area
+        // If two candidate facets have the same area, we just choose the first one
+        auto facet_area_comparator = [] (const FacetType &a,const FacetType &b) { return a.area<b.area; };
+        std::sort ( pre_candidate_facets.begin(), pre_candidate_facets.end() , facet_area_comparator );
+        
+        if ( pre_candidate_facets.size() == 0 ) return candidates; // No candidate facets; return empty-handed
+        
+        auto final_facet = pre_candidate_facets.begin();
+
+        // final_facet satisfies all the conditions; return its tie points
+        
+        for_each_pair (final_facet->vertices.begin(), final_facet->vertices.end(), 
+            [this,&candidate_ids,critical_edge_length](
+                decltype( final_facet->vertices.begin() ) point1, 
+                                                        decltype( final_facet->vertices.begin() ) point2
+            ) { 
+                const std::size_t point1_id = *point1;
+                const std::size_t point2_id = *point2;
+                auto point1_entry = hull_map [ point1_id ];
+                auto point2_entry = hull_map [ point2_id ];
+                if ( point1_entry.phase_name != point2_entry.phase_name ) {
+                    // phases differ; definitely a tie line
+                    candidate_ids.insert ( point1_id );
+                    candidate_ids.insert ( point2_id );
+                }
+                else {
+                    // phases are the same -- does a tie line span a miscibility gap?
+                    // use internal coordinates to check
+                    CoordinateType distance = 0;
+                    auto difference = point2_entry.internal_coordinates ;
+                    auto diff_iter = difference.begin();
+                    for ( auto coord : point1_entry.internal_coordinates ) {
+                        *(diff_iter++) -= coord;
+                    }
+                    for (auto coord : difference) distance += std::pow(coord,2);
+                        if (distance > critical_edge_length) {
+                            // the tie line is sufficiently long
                             candidate_ids.insert ( point1_id );
                             candidate_ids.insert ( point2_id );
                         }
+                        // Not a tie line; just add one point to ensure the phase appears
                         else {
-                            // phases are the same -- does a tie line span a miscibility gap?
-                            // use internal coordinates to check
-                            CoordinateType distance = 0;
-                            auto difference = point2_entry.internal_coordinates ;
-                            auto diff_iter = difference.begin();
-                            for ( auto coord : point1_entry.internal_coordinates ) {
-                                *(diff_iter++) -= coord;
-                            }
-                            for (auto coord : difference) distance += std::pow(coord,2);
-                            if (distance > critical_edge_length) {
-                                // the tie line is sufficiently long
-                                candidate_ids.insert ( point1_id );
-                                candidate_ids.insert ( point2_id );
-                            }
-                            // Not a tie line; just add one point to ensure the phase appears
-                            else {
-                                candidate_ids.insert ( point1_id );
-                            }
+                            candidate_ids.insert ( point1_id );
                         }
-                    });
-            }
-        }
+                }
+            });
+        
+        // Dereference point IDs to hull entries
         for (auto point_id : candidate_ids) {
             candidates.push_back ( hull_map [ point_id ] );
         }
