@@ -32,5 +32,9 @@ _ReSharper*/
 *.vssscc
 $tf*/
 build/
+dist/
 CMakeCache.txt
 CMakeFiles/
+*.egg-info/
+lib/
+*.kdev4
