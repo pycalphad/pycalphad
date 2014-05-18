@@ -38,3 +38,4 @@ CMakeFiles/
 *.egg-info/
 lib/
 *.kdev4
+*.pyc
