@@ -39,3 +39,4 @@ CMakeFiles/
 lib/
 *.kdev4
 *.pyc
+*.kate-swp
