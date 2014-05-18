@@ -37,7 +37,6 @@ private:
 	std::map<std::string, ParserCallback>  parser_map; // maps commands from input database to a parser function
 	std::map<std::string, std::string> type_definitions; // commands for every declared TYPE_DEFINITION
 
-	void proc_command(std::string &); // internal parser function
 	void RegisterParserCallback(std::string cmdname, ParserCallback pcb) { parser_map[cmdname] = pcb; };
 	void RegisterCallbacks() { // initialize the parser map
 			// Parser callback functions get a string containing everything after the first command name
@@ -82,6 +81,7 @@ public:
 	DatabaseTDB() { RegisterCallbacks(); };
 	DatabaseTDB(std::string);
 
+        void proc_command(std::string &); // internal parser function
 	void set_info(std::string &infostring) { info = infostring; }; // set infostring for the database
 	std::string get_info() { return info; } // get infostring for database
 	::Element get_element(std::string s) { return elements[s]; }

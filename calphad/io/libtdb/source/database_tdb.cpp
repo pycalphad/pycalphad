@@ -136,6 +136,9 @@ Database::Database() { }
 void Database::set_info(std::string &infostring) {
 	pImpl->set_info(infostring);
 }
+void Database::proc_command(std::string &cmd) {
+    pImpl->proc_command(cmd);
+}
 std::string Database::get_info() const {
 	return pImpl->get_info();
 }

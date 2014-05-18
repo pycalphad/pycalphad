@@ -24,6 +24,7 @@ public:
 	Database();
 	Database(std::string);
 	void set_info(std::string &infostring); // set infostring for the database
+        void proc_command(std::string &cmd); // send command to parser
 	std::string get_info() const; // get infostring for database
 	::Element get_element(std::string s) const;
 	Species_Collection get_all_species() const;

@@ -17,8 +17,10 @@
 using namespace boost::python;
 
 BOOST_PYTHON_MODULE(libtdbcpp)
-{      
-    class_<Database>("Database", init<std::string>())
+{
+    init_logging();
+    class_<Database>("DatabaseTDB")
     .def("get_info", &Database::get_info)
+    .def("process_command", &Database::proc_command)
     ;
 }
