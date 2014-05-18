@@ -1,7 +1,38 @@
 import calphad.io.libtdbcpp as ctdb
 
 class Database():
+	"""
+	Structured thermodynamic data.
+	
+	Attributes
+	----------
+	type : string
+	    Format of the source data.
+	    
+	Methods
+	-------
+	raw_command(command)
+	    Execute a raw command on the data.
+	    
+	"""
 	def raw_command(self,command):
+		"""
+		Execute a raw command on the data.
+		The effects depend on the specifics of the implementation.
+		
+		Parameters
+		----------
+		command : Command string
+		
+		Returns
+		-------
+		Nothing.
+		    
+		See Also
+		--------
+		Nothing.
+
+		"""
 		pass
 	pass
 
