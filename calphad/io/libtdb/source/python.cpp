@@ -19,7 +19,8 @@ using namespace boost::python;
 BOOST_PYTHON_MODULE(libtdbcpp)
 {
     init_logging();
-    class_<Database>("DatabaseTDB")
+    class_<Database>("Database")
+    .def(init<std::string>()) // alternative constructor
     .def("get_info", &Database::get_info)
     .def("process_command", &Database::proc_command)
     ;

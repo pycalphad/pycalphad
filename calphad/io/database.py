@@ -3,6 +3,7 @@ associated with structured thermodynamic data.
 
 """
 import calphad.io.libtdbcpp as ctdb
+from itertools import ifilterfalse, tee
 
 class Database():
 	"""
@@ -72,16 +73,37 @@ class TDB(Database):
 		>>> mytdb = calphad.io.database.TDB('feconi.tdb')
 		
 		"""
-		self._database = ctdb.DatabaseTDB()
+		self._database = ctdb.Database()
 		self.type = type
 		if (filepath != ''):
+			self._database = ctdb.Database(filepath) # temporary
+			"""
 			handle = open(filepath,'r')
-			while True:
-				line = handle.readline()
-				if not line:
-					break
-				print(line)
+			lines = handle.read() # read entire file
 			handle.close()
+			# Take care of tabs, extra whitespace
+			lines = lines.replace('\t',' ')
+			lines = lines.strip()
+			# Split the string by newlines
+			splitlines = lines.split('\n')
+			# Remove extra whitespace inside line
+			splitlines = [' '.join(k.split()) for k in splitlines]
+			# Remove comments
+			splitlines = [k for k in splitlines if not k.startswith("$")]
+			# Combine everything back together
+			lines = ' '.join(splitlines)
+			# Now split by the command delimeter
+			commands = lines.split('!')
+			# Filter out comments one more time
+			# It's possible they were at the end of a command
+			commands = [k for k in commands if not k.startswith("$")]
+			# Separate out all PARAMETER commands; to be executed last
+			commands,para_commands = partition(
+				lambda cmd: cmd.upper().startswith("PARA"), 
+				commands)
+			map(self.raw_command,commands)
+			map(self.raw_command,para_commands)
+			"""
 	def raw_command(self,command):
 		"""
 		Send a raw command to the TDB parser.
@@ -110,6 +132,13 @@ class TDB(Database):
 		>>> mytdb.raw_command("PARAMETER G(LIQUID,AL;0) 298.15 +10465.5-3.39259*T; 6000 N !")
 		
 		"""
+		print(command)
 		self._database.process_command(command)
 		pass
 	pass
+
+def partition(pred, iterable):
+    'Use a predicate to partition entries into false entries and true entries'
+    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
+    t1, t2 = tee(iterable)
+    return ifilterfalse(pred, t1), filter(pred, t2)

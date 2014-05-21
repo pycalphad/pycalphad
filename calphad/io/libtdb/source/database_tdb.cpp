@@ -131,12 +131,12 @@ Database::Database(std::string s): pImpl (new DatabaseTDB(s))
 {
 }
 
-Database::Database() { }
+Database::Database(): pImpl (new DatabaseTDB()) { }
 
-void Database::set_info(std::string &infostring) {
+void Database::set_info(std::string infostring) {
 	pImpl->set_info(infostring);
 }
-void Database::proc_command(std::string &cmd) {
+void Database::proc_command(std::string cmd) {
     pImpl->proc_command(cmd);
 }
 std::string Database::get_info() const {
