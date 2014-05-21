@@ -16,8 +16,8 @@
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/exceptions.hpp"
 #include "libtdb/include/logging.hpp"
-#include "external/coin/IpIpoptApplication.hpp"
-#include "external/coin/IpSolveStatistics.hpp"
+#include <coin/IpIpoptApplication.hpp>
+#include <coin/IpSolveStatistics.hpp>
 #include <iostream>
 #include <fstream>
 #include <algorithm>

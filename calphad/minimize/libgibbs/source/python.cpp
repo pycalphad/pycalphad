@@ -6,16 +6,10 @@
 =============================================================================*/
 
 #include "libgibbs/include/libgibbs_pch.hpp"
-#define BOOST_PYTHON_STATIC_LIB
-#ifndef BOOST_SPIRIT_USE_PHOENIX_V3
-#define BOOST_SPIRIT_USE_PHOENIX_V3 1
-#endif
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/equilibrium.hpp"
-#include "external/coin/IpIpoptApplication.hpp"
-#include "external/coin/IpSolveStatistics.hpp"
 #include <cmath>
 #include <boost/python.hpp>
 #include <boost/python/enum.hpp>
@@ -25,7 +19,7 @@
 using namespace boost::python;
 using namespace Optimizer;
 
-BOOST_PYTHON_MODULE(libpygibbs)
+BOOST_PYTHON_MODULE(libgibbscpp)
 {
 	init_logging();
 	// Wrapper to convert some common std containers
@@ -49,10 +43,6 @@ BOOST_PYTHON_MODULE(libpygibbs)
 		.value("SUSPENDED",  PhaseStatus::SUSPENDED)
 	;
 
-
-    class_<Database>("Database", init<std::string>())
-        .def("get_info", &Database::get_info)
-    ;
     class_<evalconditions>("evalconditions")
     	.def_readwrite("statevars", &evalconditions::statevars)
     	.def_readwrite("elements", &evalconditions::elements)

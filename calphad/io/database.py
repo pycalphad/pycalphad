@@ -104,6 +104,29 @@ class TDB(Database):
 			map(self.raw_command,commands)
 			map(self.raw_command,para_commands)
 			"""
+	def get_info(self):
+		"""
+		Get the database's human-readable information (if any).
+		
+		Parameters
+		----------
+		None.
+		
+		Returns
+		-------
+		Human-readable information about the database.
+		
+		See Also
+		--------
+		Nothing.
+		
+		Examples
+		--------
+		>>> mytdb = calphad.io.database.TDB()
+		>>> mytdb.get_info()
+		
+		"""
+		return self._database.get_info()
 	def raw_command(self,command):
 		"""
 		Send a raw command to the TDB parser.

@@ -21,8 +21,8 @@
 #include "libgibbs/include/utils/cholesky.hpp"
 #include "libgibbs/include/utils/site_fraction_convert.hpp"
 #include "libtdb/include/exceptions.hpp"
-#include "external/libqhullcpp/QhullFacet.h"
-#include "external/libqhullcpp/QhullFacetList.h"
+#include <libqhullcpp/QhullFacet.h>
+#include <libqhullcpp/QhullFacetList.h>
 #include <boost/bimap.hpp>
 #include <boost/numeric/ublas/symmetric.hpp>
 #include <boost/numeric/ublas/vector.hpp>

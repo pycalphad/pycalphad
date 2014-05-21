@@ -10,7 +10,6 @@
 #ifndef INCLUDED_OPT_GIBBS
 #define INCLUDED_OPT_GIBBS
 
-#include "external/coin/IpTNLP.hpp"
 #include "libtdb/include/structure.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/logging.hpp"
@@ -19,6 +18,7 @@
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/optimizer/equilibriumresult.hpp"
 #include "libgibbs/include/utils/math_expr.hpp"
+#include <coin/IpTNLP.hpp>
 #include <boost/spirit/include/support_utree.hpp>
 #include <boost/bimap.hpp>
 #include <string>

@@ -12,7 +12,7 @@
 #endif
 /*#include "libtdb/include/database.hpp"
 #include "libtdb/include/structure.hpp"
-#include "external/coin/IpIpoptApplication.hpp"
-#include "external/coin/IpSolveStatistics.hpp"
+#include <coin/IpIpoptApplication.hpp>
+#include <coin/IpSolveStatistics.hpp>
 #include <boost/spirit/include/support_utree.hpp>
 */

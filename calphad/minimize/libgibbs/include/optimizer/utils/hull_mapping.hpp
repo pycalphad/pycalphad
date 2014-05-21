@@ -61,6 +61,7 @@ public:
         all_points.push_back ( hull_entry );
     };
     HullEntryContainerType get_all_points () const { return all_points; }
+    std::size_t size () const { return all_points.size(); }
 private:
     // entries should be inserted in global ID order
     HullEntryContainerType all_points;

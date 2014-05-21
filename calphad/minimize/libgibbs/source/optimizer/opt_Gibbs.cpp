@@ -14,7 +14,7 @@
 #include "libgibbs/include/optimizer/equilibriumresult.hpp"
 #include "libgibbs/include/optimizer/utils/startingpoint_naive.hpp"
 #include "libtdb/include/logging.hpp"
-#include "external/coin/IpTNLP.hpp"
+#include <coin/IpTNLP.hpp>
 #include <sstream>
 #include <iomanip>
 #include <cmath>

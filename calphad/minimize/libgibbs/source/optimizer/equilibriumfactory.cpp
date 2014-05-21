@@ -9,8 +9,8 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libgibbs/include/equilibrium.hpp"
-#include "external/coin/IpIpoptApplication.hpp"
-#include "external/coin/IpSolveStatistics.hpp"
+#include <coin/IpIpoptApplication.hpp>
+#include <coin/IpSolveStatistics.hpp>
 
 using namespace Ipopt;
 

@@ -18,10 +18,10 @@
 #include <memory>
 #include <boost/timer/timer.hpp>
 #include <boost/shared_ptr.hpp>
+#include <coin/IpIpoptApplication.hpp>
 #include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/optimizer/equilibriumresult.hpp"
 #include "libtdb/include/database.hpp"
-#include "external/coin/IpIpoptApplication.hpp"
 
 /*
  * What this class needs to do:
