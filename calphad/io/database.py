@@ -2,7 +2,7 @@
 associated with structured thermodynamic data.
 
 """
-import calphad.io.libtdbcpp as ctdb
+import calphad.libcalphadcpp as lcp
 from itertools import ifilterfalse, tee
 
 class Database():
@@ -73,10 +73,10 @@ class TDB(Database):
 		>>> mytdb = calphad.io.database.TDB('feconi.tdb')
 		
 		"""
-		self._database = ctdb.Database()
+		self._database = lcp.Database()
 		self.type = type
 		if (filepath != ''):
-			self._database = ctdb.Database(filepath) # temporary
+			self._database = lcp.Database(filepath) # temporary
 			"""
 			handle = open(filepath,'r')
 			lines = handle.read() # read entire file

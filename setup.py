@@ -1,37 +1,32 @@
 from setuptools import setup, find_packages, Extension
 import os, sys
 
+libtdbcpp_sources = [os.path.join(dirpath, f)
+    for dirpath, dirnames, files in os.walk('calphad/cpp/libtdb/source')
+    for f in files if f.endswith('.cpp')]
+
+libgibbscpp_sources = [os.path.join(dirpath, f)
+    for dirpath, dirnames, files in os.walk('calphad/cpp/libgibbs/source')
+    for f in files if f.endswith('.cpp')]
+
+libqhullcpp_sources = [os.path.join(dirpath, f)
+    for dirpath, dirnames, files in os.walk('calphad/cpp/libqhullcpp')
+    for f in files if (f.endswith('.c') or f.endswith('.cpp'))]
+
+libcalphadcpp_sources = libtdbcpp_sources + libgibbscpp_sources + libqhullcpp_sources
+libcalphadcpp_sources = libcalphadcpp_sources + ['calphad/cpp/python.cxx']
+
 major_version = sys.version_info[0]
 minor_version = sys.version_info[1]
-
-libtdbcpp =  Extension('calphad.io.libtdbcpp', # C++ extension for TDB parsing
-                  [os.path.join(dirpath, f)
-    for dirpath, dirnames, files in os.walk('calphad/io/libtdb/source')
-    for f in files if f.endswith('.cpp')],
-                  include_dirs=['calphad/io'],
-                  library_dirs=[''],
-                  libraries=['boost_python-'+str(major_version)+'.'+str(minor_version), # find python ver
-			     'boost_log',
-			     'boost_log_setup',
-			     'boost_thread',
-			     'boost_system',
-			    ],
-		  define_macros=[
-			  ('BOOST_ALL_DYN_LINK',None)
-			  ],
-                  extra_compile_args=['-g','-std=c++0x'] # -g is debug for gcc
-                 )
+boost_python_version = 'boost_python-'+str(major_version)+'.'+str(minor_version)
 		  
-libgibbscpp =  Extension('calphad.minimize.libgibbscpp', # C++ extension for equilibria
-                  [os.path.join(dirpath, f)
-    for dirpath, dirnames, files in os.walk('calphad/minimize/libgibbs/source')
-    for f in files if f.endswith('.cpp')],
-                  include_dirs=['calphad/minimize','calphad/io'],
-                  library_dirs=['calphad/io'], # for libtdbcpp
-                  libraries=['tdbcpp', # this is libtdbcpp, built before
-			     'ipopt', # ipopt (NLP solver)
-			     'qhullcpp', # qhull (convex hull calculation)
-			     'boost_python-'+str(major_version)+'.'+str(minor_version), # find python ver
+libcalphadcpp =  Extension('calphad.libcalphadcpp',
+                  libcalphadcpp_sources,
+                  include_dirs=['calphad/cpp','calphad/cpp/libqhullcpp'],
+                  libraries=['ipopt', # ipopt (NLP solver)
+			     boost_python_version,
+			     'boost_timer',
+			     'boost_chrono',
 			     'boost_log',
 			     'boost_log_setup',
 			     'boost_thread',
@@ -41,7 +36,7 @@ libgibbscpp =  Extension('calphad.minimize.libgibbscpp', # C++ extension for equ
 			  ('BOOST_ALL_DYN_LINK',None),
 			  ('qh_QHpointer',1)
 			  ],
-                  extra_compile_args=['-g','-std=c++0x'] # -g is debug for gcc
+                  extra_compile_args=['-g','-std=c++0x'], # -g is debug for gcc
                  )
 
 setup(
@@ -53,5 +48,5 @@ setup(
     license='',
     install_requires=[''],
     classifiers=['Development Status :: 3 - Alpha'],
-    ext_modules=[libgibbscpp,libtdbcpp],
+    ext_modules=[libcalphadcpp],
 )
