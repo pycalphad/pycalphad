@@ -89,6 +89,7 @@ public:
 	Species_Collection get_all_species() { return myspecies; }
 	Phase_Collection::const_iterator get_phase_iterator() const { return phases.cbegin(); }
 	Phase_Collection::const_iterator get_phase_iterator_end() const { return phases.cend(); }
+	Phase_Collection get_phases() const { return phases; }
 	parameter_set get_parameter_set() const { return paramset; }
 };
 

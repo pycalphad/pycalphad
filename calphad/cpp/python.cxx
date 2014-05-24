@@ -35,6 +35,9 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
 	class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
 		.def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
 	;
+        class_<std::map<std::string,::Phase>>("PhaseMap")
+        .def(map_indexing_suite<std::map<std::string, ::Phase> >() )
+        ;
 	// TODO: why do I have charmaps at all? This is a class decl problem
 	class_<std::map<char,double>>("StdCharMap")
 		.def(map_indexing_suite<std::map<char, double> >() )
@@ -59,6 +62,7 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     class_<Database>("Database")
     .def(init<std::string>()) // alternative constructor
     .def("get_info", &Database::get_info)
+    .def("get_phases", &Database::get_phases)
     .def("process_command", &Database::proc_command)
     ;
 
