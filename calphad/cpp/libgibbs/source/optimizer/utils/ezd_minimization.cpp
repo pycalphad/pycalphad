@@ -82,9 +82,17 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     // Determine number of components in each sublattice
     while ( ic0 != ic1 ) {
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
-        if ( number_of_species > 0 ) {
+        BOOST_ASSERT ( number_of_species > 0 );
+        if ( number_of_species > 1 ) {
             NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
             components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
+        }
+        else {
+            // only one species in the sublattice
+            // we can't subdivide a point
+            std::vector<NDSimplex> null_simplices;
+            null_simplices.emplace_back ( NDSimplex ( 0 ) );
+            components_in_sublattice.emplace_back ( null_simplices );
         }
         // Next sublattice
         ++sublindex;
@@ -162,10 +170,11 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( phase.name(), sublindex ) );
     while ( ic0 != ic1 ) {
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
+        BOOST_ASSERT ( number_of_species > 0 );
         std::vector<std::vector<double>> sublattice_permutations;
         if ( number_of_species > 0 ) {
             const double epsilon_composition = 1e-12;
-            std::vector<double> sub_pt ( number_of_species, 1e-12);
+            std::vector<double> sub_pt ( number_of_species, epsilon_composition );
             sub_pt[number_of_species-1] = 1-(number_of_species-1)*epsilon_composition;
             sublattice_permutations.push_back ( sub_pt );
             // Here we take advantage of the fact that sub_pt is sorted by construction
@@ -173,8 +182,8 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
             while ( std::next_permutation ( sub_pt.begin(), sub_pt.end() ) ) {
                 sublattice_permutations.push_back ( sub_pt );
             }
+            all_permutations.emplace_back ( sublattice_permutations );
         }
-        all_permutations.emplace_back ( sublattice_permutations );
         // Next sublattice
         ++sublindex;
         ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
@@ -201,17 +210,12 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     
     // If no unstable regions were found, there's no point in continuing the search
     if ( start_simplices.size() == positive_definite_regions.size() ) {
-        // Choose the lowest energy region as the starting point
-        double minimum_known_energy = std::numeric_limits<double>::max();
-        auto chosen_simpcol = start_simplices.end();
+        // copy the unrefined grid into the return value
         for ( auto simp_iter = start_simplices.begin(); simp_iter != start_simplices.end(); ++simp_iter ) {
-            double new_energy = calculate_energy ( generate_point ( *simp_iter ) );
-            if ( new_energy < minimum_known_energy ) {
-                chosen_simpcol = simp_iter;
-                minimum_known_energy = new_energy;
-            }
+            auto gridpoint = generate_point ( *simp_iter );
+            gridpoint.push_back ( calculate_energy ( gridpoint ) );
+            unmapped_minima.emplace_back ( gridpoint );
         }
-        unmapped_minima.emplace_back ( generate_point ( *chosen_simpcol ) );
     }
     else if ( positive_definite_regions.size() > 0 ) {
         // positive_definite_regions is now filled
@@ -236,7 +240,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
 
     // TODO: Apply phase-specific user-supplied constraints to the system
     // TODO: Map to mole fraction space
-    
+    /*
     std::cout << "MAPPING MINIMA" << std::endl;
     for ( auto minima = unmapped_minima.begin(); minima != unmapped_minima.end(); ++minima ) {
         const std::size_t minima_index = std::distance ( unmapped_minima.begin(), minima );
@@ -251,7 +255,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
             std::cout << coord.first << "->" << coord.second << ",";
         }
         std::cout << std::endl;
-    }
+    }*/
     
     // TODO: Apply known conditions
     

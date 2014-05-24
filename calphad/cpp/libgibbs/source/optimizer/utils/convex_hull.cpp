@@ -56,6 +56,8 @@ namespace Optimizer { namespace details {
         const std::size_t point_count = points.size();
         std::vector<std::vector<double>> candidate_points, final_points; // vertices of tie hyperplanes
         RboxPoints point_buffer;
+        std::cout << "point_dimension: " << point_dimension << std::endl;
+        std::cout << "point_count: " << point_count << std::endl;
         point_buffer.setDimension ( point_dimension );
         point_buffer.reserveCoordinates ( point_count );
         std::string Qhullcommand = "Qt ";
@@ -68,6 +70,7 @@ namespace Optimizer { namespace details {
         for (auto pt : points) {
             point_buffer.append ( QhullPoint ( point_dimension, &pt[0] ) );
         }
+        std::cout << "point_buffer.size() = " << point_buffer.size() << std::endl;
         
         // Mark dependent dimensions for Qhull so they can be discarded
         for (auto dim : dependent_dimensions) {
@@ -165,7 +168,7 @@ namespace Optimizer { namespace details {
                     return false;
                 }
                 for ( auto i = 0; i < a.size(); ++i ) {
-                    if ( fabs ( a[i]-b[i] ) > 0.01 ) {
+                    if ( fabs ( a[i]-b[i] ) > 1e-20 ) {
                         return false;    // at least one element is different enough
                     }
                 }

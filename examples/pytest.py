@@ -13,13 +13,13 @@ conds.statevars['N'] = 1
 conds.elements.append("FE")
 conds.elements.append("NI")
 conds.elements.append("CR")
-conds.elements.append("VA")
+#conds.elements.append("VA")
 conds.xfrac["NI"] = .08
 conds.xfrac["CR"] = .18
 conds.phases["HCP_A3"] = lcp.PhaseStatus.ENTERED
 #conds.phases["BCC_A2"] = lcp.PhaseStatus.ENTERED
 #conds.phases["FCC_A1"] = lcp.PhaseStatus.ENTERED
-#conds.phases["LIQUID"] = lcp.PhaseStatus.ENTERED
+conds.phases["LIQUID"] = lcp.PhaseStatus.ENTERED
 #conds.phases["SIGMA"] = lcp.PhaseStatus.ENTERED
 
 # Build the minimization engine
