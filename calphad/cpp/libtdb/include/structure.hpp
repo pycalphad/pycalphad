@@ -47,6 +47,7 @@ typedef std::map<std::string, Species> Species_Collection;
 struct Sublattice {
 	double stoi_coef; // site stoichiometric coefficient
 	std::vector<std::string> constituents; // list of constituents (must all be unique)
+	Sublattice() { stoi_coef = 0; }
 	Sublattice(double o) { stoi_coef = o; }
 	Sublattice(std::vector<std::string> c) { constituents = c; stoi_coef = 0; }
 	Sublattice(double o, std::vector<std::string> c) { stoi_coef = o; constituents = c; }
@@ -58,10 +59,10 @@ typedef std::vector<Sublattice> Sublattice_Collection;
 
 class Phase {
 private:
-	std::string phase_name;
 	void process_type_definition(const std::string &command);
 	void modify_phase(const std::string &command);
 public:
+        std::string phase_name;
 	Sublattice_Collection subls; // sublattices
 	std::vector<std::string> init_cmds; // commands to call when initializing the optimizer
 	double magnetic_afm_factor; // The anti-ferromagnetic factor (Hertzman and Sundman, 1982)

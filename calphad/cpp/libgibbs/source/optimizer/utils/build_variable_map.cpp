@@ -30,8 +30,8 @@ using namespace boost::multi_index;
 using namespace Optimizer;
 
 sublattice_set build_variable_map(
-		const Phase_Collection::const_iterator p_begin,
-		const Phase_Collection::const_iterator p_end,
+		Phase_Collection::const_iterator p_begin,
+		Phase_Collection::const_iterator p_end,
 		const evalconditions &conditions,
 		boost::bimap<std::string, int> &indices
 		) {
@@ -83,4 +83,13 @@ sublattice_set build_variable_map(
 		}
 	}
 	return ret_set;
+}
+
+sublattice_set build_variable_map(
+    const Phase_Collection &phase_col,
+    const evalconditions &conditions,
+    std::map<std::string,int> &indices
+) {
+    boost::bimap<std::string,int> temp_map;
+    return build_variable_map ( phase_col.cbegin(), phase_col.cend(), conditions, temp_map );
 }

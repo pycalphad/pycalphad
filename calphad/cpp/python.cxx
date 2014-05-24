@@ -6,10 +6,13 @@
 =============================================================================*/
 
 #include "libgibbs/include/libgibbs_pch.hpp"
+#include "libtdb/include/structure.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/conditions.hpp"
 #include "libgibbs/include/equilibrium.hpp"
+#include "libgibbs/include/models.hpp"
+#include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
 #include <cmath>
 #include <boost/python.hpp>
 #include <boost/python/enum.hpp>
@@ -26,6 +29,9 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
 	class_<std::map<std::string,double>>("StdMap")
 		.def(map_indexing_suite<std::map<std::string, double> >() )
 	;
+        class_<std::map<std::string,int>>("IndexStdMap")
+        .def(map_indexing_suite<std::map<std::string, int> >() )
+        ;
 	class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
 		.def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
 	;
@@ -63,5 +69,27 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     ;
     class_<EquilibriumFactory, boost::noncopyable>("EquilibriumFactory")
         .def("create", &EquilibriumFactory::create)
+    ; 
+    class_<::Phase>("Phase")
+    // missing implementation .def_readwrite("subls", &::Phase::subls)
+    .def_readwrite("init_cmds", &::Phase::init_cmds)
+    .def_readwrite("magnetic_afm_factor", &::Phase::magnetic_afm_factor)
+    .def_readwrite("magnetic_sro_enthalpy_order_fraction", &::Phase::magnetic_sro_enthalpy_order_fraction)
+    .def_readwrite("name", &::Phase::phase_name)
     ;
+    class_<sublattice_entry>("sublattice_entry", init<int,int,double,std::string,std::string>() )
+    .def_readwrite("index", &sublattice_entry::index)
+    .def_readwrite("opt_index", &sublattice_entry::opt_index)
+    .def_readwrite("phase", &sublattice_entry::phase)
+    .def_readwrite("species", &sublattice_entry::species)
+    ;
+    class_<sublattice_set>("sublattice_set")
+    ;
+    // function pointer for overloaded build_variable_map()
+    sublattice_set (*bvm1)( 
+         const Phase_Collection&, 
+         const evalconditions&,
+         std::map<std::string,int>&
+                          ) = &build_variable_map;
+    def("build_variable_map", bvm1);
 }

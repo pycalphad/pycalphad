@@ -52,6 +52,12 @@ public:
    using namespace boost::numeric::ublas;
     const std::size_t d = this->vertices.size1();
     std::vector<NDSimplex> retvec;
+    if ( d == 0 ) {
+        auto verts = this->vertices;
+        // can't subdivide a point; return ourselves
+        retvec.emplace_back ( verts );
+        return retvec;
+    }
     retvec.reserve ( std::pow ( k, d ) );
     std::vector<ColorMatrixType> colorschemes = generate_color_schemes ( k, d );
     for ( auto i = colorschemes.begin(); i != colorschemes.end(); ++i )

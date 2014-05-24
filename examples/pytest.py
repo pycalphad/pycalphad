@@ -1,15 +1,12 @@
-import os, sys
-sys.path.append(os.getcwd())
-
-import libpygibbs
+import calphad.libcalphadcpp as lcp
 
 # Load thermodynamic database
-maindb = libpygibbs.Database("crfeni_mie.tdb")
+maindb = lcp.Database("crfeni_mie.tdb")
 if maindb == None:
 	sys.exit("Failed to load database")
 
 # Set equilibrium conditions
-conds = libpygibbs.evalconditions()
+conds = lcp.evalconditions()
 conds.statevars['T'] = 300
 conds.statevars['P'] = 101325
 conds.statevars['N'] = 1
@@ -19,14 +16,14 @@ conds.elements.append("CR")
 conds.elements.append("VA")
 conds.xfrac["NI"] = .08
 conds.xfrac["CR"] = .18
-conds.phases["HCP_A3"] = libpygibbs.PhaseStatus.ENTERED
-#conds.phases["BCC_A2"] = libpygibbs.PhaseStatus.ENTERED
-#conds.phases["FCC_A1"] = libpygibbs.PhaseStatus.ENTERED
-#conds.phases["LIQUID"] = libpygibbs.PhaseStatus.ENTERED
-#conds.phases["SIGMA"] = libpygibbs.PhaseStatus.ENTERED
+conds.phases["HCP_A3"] = lcp.PhaseStatus.ENTERED
+#conds.phases["BCC_A2"] = lcp.PhaseStatus.ENTERED
+#conds.phases["FCC_A1"] = lcp.PhaseStatus.ENTERED
+#conds.phases["LIQUID"] = lcp.PhaseStatus.ENTERED
+#conds.phases["SIGMA"] = lcp.PhaseStatus.ENTERED
 
 # Build the minimization engine
-eqfact = libpygibbs.EquilibriumFactory()
+eqfact = lcp.EquilibriumFactory()
 if eqfact == None:
 	sys.exit("Failed to build EquilibriumFactory")
 
