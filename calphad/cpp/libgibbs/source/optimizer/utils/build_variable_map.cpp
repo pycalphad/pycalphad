@@ -88,8 +88,7 @@ sublattice_set build_variable_map(
 sublattice_set build_variable_map(
     const Phase_Collection &phase_col,
     const evalconditions &conditions,
-    std::map<std::string,int> &indices
+    boost::bimap<std::string,int> &indices
 ) {
-    boost::bimap<std::string,int> temp_map;
-    return build_variable_map ( phase_col.cbegin(), phase_col.cend(), conditions, temp_map );
+    return build_variable_map ( phase_col.cbegin(), phase_col.cend(), conditions, indices );
 }

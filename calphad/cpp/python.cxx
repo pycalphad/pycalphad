@@ -7,9 +7,11 @@
 
 #include "libgibbs/include/libgibbs_pch.hpp"
 #include "libtdb/include/structure.hpp"
+#include "libtdb/include/parameter.hpp"
 #include "libtdb/include/database.hpp"
 #include "libtdb/include/logging.hpp"
 #include "libgibbs/include/conditions.hpp"
+#include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/equilibrium.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
@@ -32,11 +34,16 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
         class_<std::map<std::string,int>>("IndexStdMap")
         .def(map_indexing_suite<std::map<std::string, int> >() )
         ;
+        class_<boost::bimap<std::string,int>>("IndexBiMap")
+        ;
 	class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
 		.def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
 	;
         class_<std::map<std::string,::Phase>>("PhaseMap")
         .def(map_indexing_suite<std::map<std::string, ::Phase> >() )
+        ;
+        class_<std::map<std::string,boost::shared_ptr<CompositionSet>>, boost::noncopyable>("CompositionSetMap", no_init)
+        .def(map_indexing_suite<std::map<std::string, boost::shared_ptr<CompositionSet>>, true >() )
         ;
 	// TODO: why do I have charmaps at all? This is a class decl problem
 	class_<std::map<char,double>>("StdCharMap")
@@ -63,6 +70,7 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     .def(init<std::string>()) // alternative constructor
     .def("get_info", &Database::get_info)
     .def("get_phases", &Database::get_phases)
+    .def("get_parameter_set", &Database::get_parameter_set)
     .def("process_command", &Database::proc_command)
     ;
 
@@ -89,11 +97,22 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     ;
     class_<sublattice_set>("sublattice_set")
     ;
+    class_<parameter_set>("parameter_set")
+    ;
     // function pointer for overloaded build_variable_map()
     sublattice_set (*bvm1)( 
          const Phase_Collection&, 
          const evalconditions&,
-         std::map<std::string,int>&
+         boost::bimap<std::string,int>&
                           ) = &build_variable_map;
     def("build_variable_map", bvm1);
+
+    class_<CompositionSet, boost::noncopyable>("CompositionSet", 
+                           init<::Phase,
+                                parameter_set, 
+                                sublattice_set, 
+                                boost::bimap<std::string,int>
+                                >()
+                          )
+    ;
 }
