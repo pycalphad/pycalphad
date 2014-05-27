@@ -108,11 +108,13 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     def("build_variable_map", bvm1);
 
     class_<CompositionSet, boost::noncopyable>("CompositionSet", 
-                           init<::Phase,
-                                parameter_set, 
-                                sublattice_set, 
-                                boost::bimap<std::string,int>
+                           init<const ::Phase&,
+                                const parameter_set&, 
+                                const sublattice_set&, 
+                                const boost::bimap<std::string,int>&
                                 >()
                           )
+    .def(init<const CompositionSet&,const std::map<std::string, double>&,const std::string&> () )
+    .def("name", &CompositionSet::name)
     ;
 }
