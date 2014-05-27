@@ -80,22 +80,13 @@ GibbsOpt::GibbsOpt (
     for ( auto i = temp_phase_col.begin(); i != temp_phase_col.end(); ++i ) {
         comp_sets.emplace ( i->first, CompositionSet ( i->second, pset, main_ss, main_indices ) );
     }
-    // TODO: Move these changeable parameters somewhere
-    const std::size_t subdivisions_per_axis = 20;
-    const double critical_edge_length = (double)(2.0/subdivisions_per_axis);
-    
-    // Rebind functions to use user-defined parameters
-    GlobalMinimizerType::PointSampleFunctor PointSampleFunction = std::bind ( details::AdaptiveSimplexSample, std::placeholders::_1, std::placeholders::_2, std::placeholders::_3, subdivisions_per_axis );
-    GlobalMinimizerType::InternalHullFunctor InternalHullFunction = std::bind ( details::internal_lower_convex_hull, std::placeholders::_1, std::placeholders::_2, critical_edge_length, std::placeholders::_3 );
-    GlobalMinimizerType::GlobalHullFunctor GlobalHullFunction = std::bind ( details::global_lower_convex_hull, std::placeholders::_1, critical_edge_length, std::placeholders::_2 );
-    
     BOOST_LOG_SEV ( opto_log, debug ) << "Starting global minimization";
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
-    GlobalMinimizerType grid ( comp_sets, main_ss, conditions, PointSampleFunction, InternalHullFunction, GlobalHullFunction );
+    GlobalMinimizerType grid ( comp_sets, main_ss, conditions );
     
     BOOST_LOG_SEV ( opto_log, debug ) << "Locating tie hyperplane";
     // Get the points on the equilibrium tie hyperplane
-    auto tie_points = grid.find_tie_points ( conditions, critical_edge_length );
+    auto tie_points = grid.find_tie_points ( conditions );
     BOOST_LOG_SEV ( opto_log, critical ) << "Global minimization found " << tie_points.size() << " energy minima";
 
     std::map<std::string, CompositionSet> new_comp_sets_to_add;

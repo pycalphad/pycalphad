@@ -15,6 +15,7 @@
 #include "libgibbs/include/equilibrium.hpp"
 #include "libgibbs/include/models.hpp"
 #include "libgibbs/include/optimizer/utils/build_variable_map.hpp"
+#include "python_ext/callback_global_minimization.hpp"
 #include <cmath>
 #include <boost/python.hpp>
 #include <boost/python/enum.hpp>
@@ -42,8 +43,8 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
         class_<std::map<std::string,::Phase>>("PhaseMap")
         .def(map_indexing_suite<std::map<std::string, ::Phase> >() )
         ;
-        class_<std::map<std::string,boost::shared_ptr<CompositionSet>>, boost::noncopyable>("CompositionSetMap", no_init)
-        .def(map_indexing_suite<std::map<std::string, boost::shared_ptr<CompositionSet>>, true >() )
+        class_<std::map<std::string,CompositionSet>>("CompositionSetMap", no_init)
+        .def(map_indexing_suite<std::map<std::string, CompositionSet>>() )
         ;
 	// TODO: why do I have charmaps at all? This is a class decl problem
 	class_<std::map<char,double>>("StdCharMap")
@@ -107,7 +108,7 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
                           ) = &build_variable_map;
     def("build_variable_map", bvm1);
 
-    class_<CompositionSet, boost::noncopyable>("CompositionSet", 
+    class_<CompositionSet>("CompositionSet", 
                            init<const ::Phase&,
                                 const parameter_set&, 
                                 const sublattice_set&, 
@@ -116,5 +117,12 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
                           )
     .def(init<const CompositionSet&,const std::map<std::string, double>&,const std::string&> () )
     .def("name", &CompositionSet::name)
+    ;
+    class_<PyGlobalMinClass,GlobalMinimizer_callback>("GlobalMinimizer",
+                                                    init<const boost::python::dict&,
+                                                        const sublattice_set&,
+                                                        const evalconditions&
+                                                        >()
+    )
     ;
 }

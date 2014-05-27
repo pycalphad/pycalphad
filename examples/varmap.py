@@ -1,5 +1,9 @@
 import calphad.libcalphadcpp as lcp
 
+class GlobMin(lcp.GlobalMinimizer):
+   pass
+
+
 # Load thermodynamic database
 maindb = lcp.Database("crfeni_mie.tdb")
 if maindb == None:
@@ -24,11 +28,10 @@ conds.phases["LIQUID"] = lcp.PhaseStatus.ENTERED
 
 indices = lcp.IndexBiMap()
 varmap = lcp.build_variable_map ( maindb.get_phases(), conds, indices )
-cmps = []
+cmps = {}
 
 for ph in maindb.get_phases():
-    cmp = lcp.CompositionSet(ph.data(), maindb.get_parameter_set(), varmap, indices)
-    cmps.append(cmp)
+    cmps[ph.key()] = lcp.CompositionSet(ph.data(), maindb.get_parameter_set(), varmap, indices)
+print ("Starting global min")
+globminengine = GlobMin(cmps, varmap, conds)
 
-for cmp in cmps:
-    print cmp.name()

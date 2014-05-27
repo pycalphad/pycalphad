@@ -40,7 +40,7 @@ struct ConvexHullEntry {
  * we fix a point inside the facet and use the lever rule to find the phase fractions.
  */
 template <typename CoordinateType = double, typename EnergyType = CoordinateType>
-class ConvexHullMap : private boost::noncopyable {
+class ConvexHullMap {
 public:
     typedef ConvexHullEntry<CoordinateType,EnergyType> HullEntryType;
     typedef std::vector<HullEntryType> HullEntryContainerType;

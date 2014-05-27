@@ -64,6 +64,19 @@ public:
         const CompositionSet &other,
         const std::map<std::string,double> &new_starting_point,
         const std::string &new_name );
+    
+    // copy CompositionSet -- use rename with the same name
+    CompositionSet ( const CompositionSet &other ) 
+    : CompositionSet( other, other.get_starting_point(), other.name() ) {}
+    
+    // copy assignment -- use rename with the same name
+    CompositionSet& operator= ( const CompositionSet &other ) {
+        if (this != &other) {
+            CompositionSet new_self(other);
+            *this = std::move(new_self);
+        }
+        return *this;
+    }
 
     CompositionSet() { }
 
@@ -126,9 +139,6 @@ public:
     std::map<std::string,double> get_starting_point() const {
         return starting_point;
     }
-
-    CompositionSet ( const CompositionSet & ) = delete;
-    CompositionSet& operator= ( const CompositionSet & ) = delete;
 private:
     std::string cset_name;
     std::map<std::string,double> starting_point; // starting point for optimizing this composition set

@@ -12,7 +12,9 @@
 
 #include "libgibbs/include/compositionset.hpp"
 #include "libgibbs/include/models.hpp"
+#include "libgibbs/include/optimizer/utils/ezd_minimization.hpp"
 #include "libgibbs/include/optimizer/utils/hull_mapping.hpp"
+#include "libgibbs/include/optimizer/utils/convex_hull.hpp"
 #include "libgibbs/include/utils/for_each_pair.hpp"
 #include "libgibbs/include/utils/site_fraction_convert.hpp"
 #include "libtdb/include/logging.hpp"
@@ -36,7 +38,7 @@ typename FacetType,
 typename CoordinateType = double, 
 typename EnergyType = CoordinateType
 >
-class GlobalMinimizer : private boost::noncopyable {
+class GlobalMinimizer {
 public:
     typedef details::ConvexHullMap<CoordinateType,EnergyType> HullMapType;
 private:
@@ -44,45 +46,100 @@ private:
     std::vector<FacetType> candidate_facets;
     mutable logger class_log;
 public:
-    /*
-     * The type definitions here get a bit intense. We do this so we keep our
-     * global minimization code flexible and extensible. By farming out pieces of the
-     * process to functors, we retain the ability to swap out and try different sampling
-     * methods, minimization methods, etc., without modifying the class definition.
-     */
     typedef typename HullMapType::PointType PointType;
     typedef typename HullMapType::GlobalPointType GlobalPointType;
-    typedef std::function<EnergyType(PointType const&)> CalculateEnergyFunctor;
-    typedef std::function<double(const std::size_t, const std::size_t)>  CalculateGlobalEnergyFunctor;
-    typedef std::function<std::vector<PointType>(CompositionSet const&, 
-                                                 sublattice_set const&,
-                                                 evalconditions const&)> PointSampleFunctor;
-    typedef std::function<std::vector<PointType>(std::vector<PointType> const&,
-                                                 std::set<std::size_t> const&,
-                                                 CalculateEnergyFunctor const&)> InternalHullFunctor;
-    typedef std::function<std::vector<FacetType>(std::vector<PointType> const&,
-                                                CalculateGlobalEnergyFunctor const&)> GlobalHullFunctor;
 
+    virtual std::vector<PointType> point_sample(
+        CompositionSet const& cmp,
+        sublattice_set const& sublset,
+        evalconditions const& conditions
+        ) {
+        const std::size_t subdivisions_per_axis = 20;
+        // Use adaptive simplex subdivision to sample the space
+        return details::AdaptiveSimplexSample(cmp, sublset, conditions, subdivisions_per_axis);
+    };
+    virtual std::vector<PointType> internal_hull(
+        CompositionSet const& cmp,
+        std::vector<PointType> const& points,
+        std::set<std::size_t> const& dependent_dimensions,
+        evalconditions const& conditions
+    ) {
+        const double critical_edge_length = 0.05;
+        // Create a callback function for energy calculation for this phase
+        auto calculate_energy = [&cmp,&conditions] (const PointType& point) {
+            return cmp.evaluate_objective(conditions,cmp.get_variable_map(),const_cast<EnergyType*>(&point[0]));
+        };
+        // Use qhull to get the hull
+        return details::internal_lower_convex_hull( points, 
+                                                    dependent_dimensions, 
+                                                    critical_edge_length, 
+                                                    calculate_energy 
+                                                  );
+    };
+    virtual std::vector<FacetType> global_hull(
+        std::vector<PointType> const& points,
+        std::map<std::string,CompositionSet> const& phase_list,
+        evalconditions const& conditions
+    ) {
+        const double critical_edge_length = 0.05;
+        // Calculate the "true energy" of the midpoint of two points, based on their IDs
+        // If the phases are distinct, the "true energy" is infinite (indicates true line)
+        auto calculate_global_midpoint_energy = [this,&conditions,&phase_list] 
+        (const std::size_t point1_id, const std::size_t point2_id) 
+        { 
+            BOOST_ASSERT ( point1_id < hull_map.size() );
+            BOOST_ASSERT ( point2_id < hull_map.size() );
+            if ( point1_id == point2_id) return hull_map[point1_id].energy;
+            if (hull_map[point1_id].phase_name != hull_map[point2_id].phase_name) {
+                // Can't calculate a "true energy" if the tie points are different phases
+                return std::numeric_limits<EnergyType>::max();
+            }
+            // Return the energy of the average of the internal degrees of freedom
+            else {
+                PointType midpoint ( hull_map[point1_id].internal_coordinates );
+                PointType point2 ( hull_map[point2_id].internal_coordinates );
+                auto current_comp_set = phase_list.find ( hull_map[point1_id].phase_name );
+                std::transform ( 
+                point2.begin(), 
+                                point2.end(),
+                                midpoint.begin(),
+                                midpoint.begin(),
+                                std::plus<EnergyType>()
+                ); // sum points together
+                for (auto &coord : midpoint) coord /= 2; // divide by two
+                auto calculate_energy = [&] (const PointType& point) {
+                    return current_comp_set->second.evaluate_objective(conditions,current_comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
+                };
+                return  calculate_energy ( midpoint ); 
+            }
+        };
+        // Use qhull to get the global hull
+        return details::global_lower_convex_hull( points, 
+                                                  critical_edge_length, 
+                                                  calculate_global_midpoint_energy
+                                                );
+    };
     /* GlobalMinimizer works by taking the phase information for the system and a
      * list of functors that implement point sampling and convex hull calculation.
      * Once GlobalMinimizer is constructed, the user can filter against the calculated grid.
      */
     GlobalMinimizer ( 
-            std::map<std::string,CompositionSet> const &phase_list,
-            sublattice_set const &sublset,
-            evalconditions const& conditions,
-            PointSampleFunctor &sample_points,
-            InternalHullFunctor &phase_internal_hull,
-            GlobalHullFunctor &global_hull
-                    ) {
+        std::map<std::string,CompositionSet> const &phase_list,
+        sublattice_set const &sublset,
+        evalconditions const& conditions
+    ) 
+    {
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::GlobalMinimizer" );
         BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter ctor";
         std::vector<PointType> temporary_hull_storage;
-
+        
         for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ++comp_set ) {
             std::set<std::size_t> dependent_dimensions;
             std::size_t current_dependent_dimension = 0;
-            
+            // Create a callback function for energy calculation for this phase
+            auto calculate_energy = [&comp_set,&conditions] (const PointType& point) {
+                return comp_set->second.evaluate_objective(conditions,comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
+            };
             // Determine the indices of the dependent dimensions
             boost::multi_index::index<sublattice_set,phase_subl>::type::iterator ic0,ic1;
             int sublindex = 0;
@@ -103,13 +160,9 @@ public:
                 ic1 = boost::multi_index::get<phase_subl> ( sublset ).upper_bound ( boost::make_tuple ( comp_set->first, sublindex ) );
             }
             // Sample the composition space of this phase
-            auto phase_points = sample_points ( comp_set->second, sublset, conditions );
-            // Create a callback function for energy calculation for this phase
-            auto calculate_energy = [comp_set,&conditions] (const PointType& point) {
-                return comp_set->second.evaluate_objective(conditions,comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
-            };
+            auto phase_points = this->point_sample ( comp_set->second, sublset, conditions );
             // Calculate the phase's internal convex hull and store the result
-            auto phase_hull_points = phase_internal_hull ( phase_points, dependent_dimensions, calculate_energy );
+            auto phase_hull_points = this->internal_hull ( comp_set->second, phase_points, dependent_dimensions, conditions );
             // TODO: Apply phase-specific constraints to internal dof and globally
             // Add all points from this phase's convex hull to our internal hull map
             for ( auto point : phase_hull_points ) {
@@ -120,57 +173,26 @@ public:
                 for ( auto pt : global_point ) ordered_global_point.push_back ( pt.second );
                 double energy = calculate_energy ( point );
                 hull_map.insert_point ( 
-                                       comp_set->first, 
-                                       energy, 
-                                       point,
-                                       global_point
-                                      );
+                comp_set->first, 
+                energy, 
+                point,
+                global_point
+                );
                 ordered_global_point.push_back ( energy );
                 temporary_hull_storage.push_back ( std::move ( ordered_global_point ) );
             }
         }
-        // Calculate the "true energy" of the midpoint of two points, based on their IDs
-        // If the phases are distinct, the "true energy" is infinite (indicates true line)
-        auto calculate_global_midpoint_energy = [this,&conditions,&phase_list] 
-            (const std::size_t point1_id, const std::size_t point2_id) 
-            { 
-                BOOST_ASSERT ( point1_id < hull_map.size() );
-                BOOST_ASSERT ( point2_id < hull_map.size() );
-                if ( point1_id == point2_id) return hull_map[point1_id].energy;
-                if (hull_map[point1_id].phase_name != hull_map[point2_id].phase_name) {
-                    // Can't calculate a "true energy" if the tie points are different phases
-                    return std::numeric_limits<EnergyType>::max();
-                }
-                // Return the energy of the average of the internal degrees of freedom
-                else {
-                    PointType midpoint ( hull_map[point1_id].internal_coordinates );
-                    PointType point2 ( hull_map[point2_id].internal_coordinates );
-                    auto current_comp_set = phase_list.find ( hull_map[point1_id].phase_name );
-                    std::transform ( 
-                                    point2.begin(), 
-                                    point2.end(),
-                                    midpoint.begin(),
-                                    midpoint.begin(),
-                                    std::plus<EnergyType>()
-                                ); // sum points together
-                    for (auto &coord : midpoint) coord /= 2; // divide by two
-                    auto calculate_energy = [&] (const PointType& point) {
-                        return current_comp_set->second.evaluate_objective(conditions,current_comp_set->second.get_variable_map(),const_cast<EnergyType*>(&point[0]));
-                    };
-                    return  calculate_energy ( midpoint ); 
-            }
-        };
         // TODO: Add points and set options related to activity constraints here
         // Determine the facets on the global convex hull of all phase's energy landscapes
-        candidate_facets = global_hull ( temporary_hull_storage, calculate_global_midpoint_energy );
+        candidate_facets = this->global_hull ( temporary_hull_storage, phase_list, conditions );
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
     }
     
     std::vector<typename HullMapType::HullEntryType> find_tie_points ( 
-                       evalconditions const& conditions,
-                       const double critical_edge_length
-                                                                     ) {
+        evalconditions const& conditions
+        ) {
         BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::find_tie_points" );
+        const double critical_edge_length = 0.05;
         // Filter candidate facets based on user-specified constraints
         std::set<std::size_t> candidate_ids; // ensures returned points are unique
         std::vector<FacetType> pre_candidate_facets; // check all facets before adding to candidates
