@@ -55,6 +55,9 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     class_<std::vector<std::string>>("StdVector")
             .def(vector_indexing_suite<std::vector<std::string> >() )
     ;
+    class_<std::vector<std::size_t>>("SizeVector")
+    .def(vector_indexing_suite<std::vector<std::size_t> >() )
+    ;
     enum_<PhaseStatus>("PhaseStatus")
             .value("ENTERED", PhaseStatus::ENTERED)
             .value("DORMANT", PhaseStatus::DORMANT)
