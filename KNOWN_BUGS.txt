@@ -5,6 +5,7 @@ Optimizer (libgibbs)
 --------------------
 Pre-calculation of the Hessian abstract syntax trees takes longer than it should.
 The Inden-Hillert-Jarl (IHJ) magnetic model is implemented but currently broken; the calculated energies are not correct.
+Degenerate convex hulls (total immiscibility) not handled correctly.
 Automatic miscibility gap detection does not work consistently.
 -Source: idealbin.tdb, T=1500, X(NB)=0.6 and CHI entered
 Atomic ordering is not handled.
@@ -18,7 +19,7 @@ TDB Reading (libtdb)
 --------------------
 References are not recorded.
 
-Python API (pylibgibbs)
+Python API (calphad)
 -----------------------
 Cannot change reference state from the default.
 No API yet for manipulating the Equilibrium object once created.

@@ -196,14 +196,14 @@ typedef std::vector<NDSimplex> SimplexCollection;
         std::vector<T> point;
         std::size_t dividend = p;
         point.reserve ( point_dimension );
-        std::cout << "p : " << p << " indices: [";
+        //std::cout << "p : " << p << " indices: [";
         for ( auto r = point_lattices.rbegin(); r != point_lattices.rend(); ++r )
           {
-            std::cout << dividend % r->size() << ",";
+            //std::cout << dividend % r->size() << ",";
             point.insert ( point.end(), ( *r ) [dividend % r->size()] );
             dividend = dividend / r->size();
           }
-        std::cout << "]" << std::endl;
+        //std::cout << "]" << std::endl;
         std::reverse ( point.begin(),point.end() );
         points.push_back ( point );
       }

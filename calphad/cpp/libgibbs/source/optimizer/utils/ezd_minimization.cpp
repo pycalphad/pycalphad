@@ -211,7 +211,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         // At least one unstable region was found
         // Perform recursive search for minima on each of the identified regions
         for ( const SimplexCollection &simpcol : positive_definite_regions ) {
-            std::cout << "checking simplexcollection of size " << simpcol.size() << std::endl;
+            //std::cout << "checking simplexcollection of size " << simpcol.size() << std::endl;
             std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol, 1 );
 
             // Append this region's minima to the list of minima
@@ -344,7 +344,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
 
         // Calculate magnitude of projected gradient
         temp_magnitude = norm_2 ( projected_gradient );
-        std::cout << temp_magnitude << std::endl;
+        //std::cout << temp_magnitude << std::endl;
         // If this is smaller than the known point, switch to this point
         if ( temp_magnitude < mag ) {
             // We have a new candidate minimum

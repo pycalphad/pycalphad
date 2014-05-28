@@ -187,6 +187,14 @@ public:
         // Determine the facets on the global convex hull of all phase's energy landscapes
         candidate_facets = this->global_hull ( temporary_hull_storage, phase_list, conditions );
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
+        // Mark all hull entries that are on the global hull
+        for ( auto facet : candidate_facets ) {
+            for ( auto point : facet.vertices ) {
+                const std::size_t point_id = point;
+                // point_id is on the global hull
+                hull_map.set_global_hull_status ( point_id, true);
+            }
+        }
     }
     
     typename HullMapType::HullEntryContainerType get_hull_entries() const {

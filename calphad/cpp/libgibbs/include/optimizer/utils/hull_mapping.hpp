@@ -26,12 +26,14 @@ struct ConvexHullEntry {
     typedef std::vector<CoordinateType> PointType;
     typedef std::map<std::string,CoordinateType> GlobalPointType;
     std::string phase_name;
+    bool on_global_hull;
     CoordinateType energy;
     PointType internal_coordinates;
     GlobalPointType global_coordinates;
     bool operator==(const ConvexHullEntry<CoordinateType,EnergyType>& other) {
         return (phase_name == other.phase_name
         &&      energy == other.energy
+        &&      on_global_hull == other.on_global_hull
         &&      internal_coordinates == other.internal_coordinates
         &&      global_coordinates == other.global_coordinates
                );
@@ -39,6 +41,7 @@ struct ConvexHullEntry {
     bool operator!=(const ConvexHullEntry<CoordinateType,EnergyType>& other) {
         return (phase_name != other.phase_name
         ||      energy != other.energy
+        ||      on_global_hull != other.on_global_hull
         ||      internal_coordinates != other.internal_coordinates
         ||      global_coordinates != other.global_coordinates
         );
@@ -65,10 +68,16 @@ public:
         std::advance(return_iter, index);
         return (const HullEntryType) *return_iter;
     };
+    void set_global_hull_status ( const std::size_t index, const bool status ) {
+        auto iter = all_points.begin();
+        std::advance(iter, index);
+        iter->on_global_hull = status;
+    };
     void insert_point ( const std::string &phase_name, const EnergyType &energy, 
                         const PointType &internal_coordinates, const GlobalPointType &global_coordinates ) {
         HullEntryType hull_entry;
         hull_entry.phase_name = phase_name;
+        hull_entry.on_global_hull = false; // by default
         hull_entry.energy = energy;
         hull_entry.internal_coordinates = internal_coordinates;
         hull_entry.global_coordinates = global_coordinates;

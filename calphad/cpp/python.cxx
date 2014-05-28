@@ -126,6 +126,7 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     ;
     class_<PyConvexHullEntry>("ConvexHullEntry")
     .def_readwrite("phase_name", &PyConvexHullEntry::phase_name)
+    .def_readwrite("on_global_hull", &PyConvexHullEntry::on_global_hull)
     .def_readwrite("energy", &PyConvexHullEntry::energy)
     .def_readwrite("internal_coordinates", &PyConvexHullEntry::internal_coordinates)
     .def_readwrite("global_coordinates", &PyConvexHullEntry::global_coordinates)
