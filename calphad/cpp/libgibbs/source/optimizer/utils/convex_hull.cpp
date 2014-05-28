@@ -61,9 +61,16 @@ namespace Optimizer { namespace details {
         point_buffer.setDimension ( point_dimension );
         point_buffer.reserveCoordinates ( point_count );
         std::string Qhullcommand = "Qt ";
-        if (points.size() == 1) { // Special case: No composition dependence
+        if (point_count == 1) { // Special case: No composition dependence
             auto return_point = restore_dependent_dimensions ( points.front(), dependent_dimensions );
             final_points.emplace_back ( std::move ( return_point ) );
+            return final_points;
+        }
+        if (point_count <= point_dimension) { // Degenerate case: too few points to construct hull
+            // Return all points
+            for (auto pt : points) {
+                final_points.emplace_back ( restore_dependent_dimensions (pt, dependent_dimensions ) );
+            }
             return final_points;
         }
         // Copy all of the points into a buffer compatible with Qhull

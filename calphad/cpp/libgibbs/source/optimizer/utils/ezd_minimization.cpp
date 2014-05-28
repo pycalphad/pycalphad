@@ -83,17 +83,8 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     while ( ic0 != ic1 ) {
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
         BOOST_ASSERT ( number_of_species > 0 );
-        if ( number_of_species > 1 ) {
-            NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
-            components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
-        }
-        else {
-            // only one species in the sublattice
-            // we can't subdivide a point
-            std::vector<NDSimplex> null_simplices;
-            null_simplices.emplace_back ( NDSimplex ( 0 ) );
-            components_in_sublattice.emplace_back ( null_simplices );
-        }
+        NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
+        components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
         // Next sublattice
         ++sublindex;
         ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
@@ -172,18 +163,16 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
         BOOST_ASSERT ( number_of_species > 0 );
         std::vector<std::vector<double>> sublattice_permutations;
-        if ( number_of_species > 0 ) {
-            const double epsilon_composition = 1e-12;
-            std::vector<double> sub_pt ( number_of_species, epsilon_composition );
-            sub_pt[number_of_species-1] = 1-(number_of_species-1)*epsilon_composition;
+        const double epsilon_composition = 1e-12;
+        std::vector<double> sub_pt ( number_of_species, epsilon_composition );
+        sub_pt[number_of_species-1] = 1-(number_of_species-1)*epsilon_composition;
+        sublattice_permutations.push_back ( sub_pt );
+        // Here we take advantage of the fact that sub_pt is sorted by construction
+        // We will iterate from (0,0,...,1) to (1,0,...,0)
+        while ( std::next_permutation ( sub_pt.begin(), sub_pt.end() ) ) {
             sublattice_permutations.push_back ( sub_pt );
-            // Here we take advantage of the fact that sub_pt is sorted by construction
-            // We will iterate from (0,0,...,1) to (1,0,...,0)
-            while ( std::next_permutation ( sub_pt.begin(), sub_pt.end() ) ) {
-                sublattice_permutations.push_back ( sub_pt );
-            }
-            all_permutations.emplace_back ( sublattice_permutations );
         }
+        all_permutations.emplace_back ( sublattice_permutations );
         // Next sublattice
         ++sublindex;
         ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );

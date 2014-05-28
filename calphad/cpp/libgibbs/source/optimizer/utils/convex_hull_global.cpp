@@ -74,6 +74,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     // Qhull command "Qbk:0Bk:0" drops dimension k from consideration
     // Remove dependent coordinate (second to last, energy should be last coordinate)
     stream << " " << "Qb" << point_dimension-2 << ":0B" << point_dimension-2 << ":0";
+    //  Degenerate simplex: delete energy coordinate to calculate hull
     Qhullcommand += stream.str();
 
     std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
@@ -98,7 +99,8 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
             for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
                 const std::size_t column_index = std::distance ( vertices.begin(), vertex );
                 new_facet.vertices.push_back ( vertex->point().id() );
-                for ( auto coord = vertex->point().begin(); coord != vertex->point().end()-1 /***/; ++coord ) {
+                auto end_coordinate = vertex->point().end()-1; // don't add energy coordinate
+                for ( auto coord = vertex->point().begin(); coord != end_coordinate; ++coord ) {
                     const std::size_t row_index = std::distance ( vertex->point().begin(), coord );
                     std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
                     new_facet.basis_matrix ( row_index, column_index ) = *coord;

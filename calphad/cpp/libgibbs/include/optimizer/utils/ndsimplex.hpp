@@ -34,10 +34,16 @@ public:
   NDSimplex ( const std::size_t dim )
   {
     using namespace boost::numeric::ublas;
-    // First column is zero; subsequent columns are from the dim x dim identity matrix
-    this->vertices = zero_matrix<double> ( dim, dim+1 );
-    matrix_range<boost::numeric::ublas::matrix<double>> vr ( this->vertices, range ( 0, this->vertices.size1() ),  range ( 1, this->vertices.size2() ) );
-    vr = identity_matrix<double> ( dim );
+    if ( dim > 0 ) {
+        // First column is zero; subsequent columns are from the dim x dim identity matrix
+        this->vertices = zero_matrix<double> ( dim, dim+1 );
+        matrix_range<boost::numeric::ublas::matrix<double>> vr ( this->vertices, range ( 0, this->vertices.size1() ),  range ( 1, this->vertices.size2() ) );
+        vr = identity_matrix<double> ( dim );
+    }
+    else {
+        // a null simplex
+        this->vertices = identity_matrix<double> ( 1,1 );
+    }
   }
   // Construct a simplex from its vertices
   NDSimplex ( SimplexMatrixType &simplexmat )
@@ -48,11 +54,16 @@ public:
   // Perform the k^dim subdivision of the current simplex; return all of the subsimplices
   std::vector<NDSimplex> simplex_subdivide ( const std::size_t k ) const
   {
-   using namespace Optimizer;
-   using namespace boost::numeric::ublas;
-    const std::size_t d = this->vertices.size1();
+    using namespace Optimizer;
+    using namespace boost::numeric::ublas;
+    const std::size_t d = vertices.size1();
     std::vector<NDSimplex> retvec;
     retvec.reserve ( std::pow ( k, d ) );
+    // can't subdivide null simplex: just return itself
+    if ( vertices.size1() == vertices.size2() == 1 ) {
+        retvec.push_back ( *this );
+        return retvec;
+    }
     std::vector<ColorMatrixType> colorschemes = generate_color_schemes ( k, d );
     for ( auto i = colorschemes.begin(); i != colorschemes.end(); ++i )
       {
@@ -87,14 +98,22 @@ public:
 	  boost::numeric::ublas::vector<double> cent = this->centroid();
 	  std::vector<double> mypoint;
 	  mypoint.reserve(cent.size()+1);
-	  
-	  // Calculate 1 - sum(cent), which is the value of the dependent component
-	  double pointsum = std::accumulate (cent.begin(), cent.end(), 1.0, std::minus<double>());
 	  mypoint.assign(cent.begin(),cent.end()); // Copy in the coordinates
-	  mypoint.push_back(pointsum); // Add the dependent component
+          if (vertices.size1() == vertices.size2() == 1) {
+              // null simplex: don't add the dependent coordinate because we're storing it
+          }
+          else {
+              // Calculate 1 - sum(cent), which is the value of the dependent component
+              double pointsum = std::accumulate (cent.begin(), 
+                                                 cent.end(), 1.0, std::minus<double>());
+              mypoint.push_back(pointsum); // Add the dependent component
+          }
 	  return mypoint;
   }
-  const std::size_t dimension() const { return vertices.size1(); }
+  const std::size_t dimension() const {
+      if (vertices.size1() == vertices.size2() == 1) return 0;
+      else return vertices.size1(); 
+  }
   const SimplexMatrixType get_vertices() const { return vertices; }
 private:
 	SimplexMatrixType vertices;                         // vertices of the simplex; each column is a coordinate
@@ -177,14 +196,14 @@ typedef std::vector<NDSimplex> SimplexCollection;
         std::vector<T> point;
         std::size_t dividend = p;
         point.reserve ( point_dimension );
-        //std::cout << "p : " << p << " indices: [";
+        std::cout << "p : " << p << " indices: [";
         for ( auto r = point_lattices.rbegin(); r != point_lattices.rend(); ++r )
           {
-            //std::cout << dividend % r->size() << ",";
+            std::cout << dividend % r->size() << ",";
             point.insert ( point.end(), ( *r ) [dividend % r->size()] );
             dividend = dividend / r->size();
           }
-        //std::cout << "]" << std::endl;
+        std::cout << "]" << std::endl;
         std::reverse ( point.begin(),point.end() );
         points.push_back ( point );
       }
