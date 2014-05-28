@@ -41,7 +41,8 @@ typename EnergyType = CoordinateType
 class GlobalMinimizer {
 public:
     typedef details::ConvexHullMap<CoordinateType,EnergyType> HullMapType;
-private:
+    typedef FacetType HullFacetType;
+protected:
     HullMapType hull_map;
     std::vector<FacetType> candidate_facets;
     mutable logger class_log;
@@ -186,6 +187,13 @@ public:
         // Determine the facets on the global convex hull of all phase's energy landscapes
         candidate_facets = this->global_hull ( temporary_hull_storage, phase_list, conditions );
         BOOST_LOG_SEV ( class_log, debug ) << "candidate_facets.size() = " << candidate_facets.size();
+    }
+    
+    typename HullMapType::HullEntryContainerType get_hull_entries() const {
+        return hull_map.get_all_points();
+    }
+    std::vector<FacetType> get_facets() const {
+        return candidate_facets;
     }
     
     std::vector<typename HullMapType::HullEntryType> find_tie_points ( 

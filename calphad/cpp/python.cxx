@@ -27,38 +27,40 @@ using namespace Optimizer;
 
 BOOST_PYTHON_MODULE(libcalphadcpp)
 {
-	init_logging();
-	// Wrapper to convert some common std containers
-	class_<std::map<std::string,double>>("StdMap")
-		.def(map_indexing_suite<std::map<std::string, double> >() )
-	;
-        class_<std::map<std::string,int>>("IndexStdMap")
-        .def(map_indexing_suite<std::map<std::string, int> >() )
-        ;
-        class_<boost::bimap<std::string,int>>("IndexBiMap")
-        ;
-	class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
-		.def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
-	;
-        class_<std::map<std::string,::Phase>>("PhaseMap")
-        .def(map_indexing_suite<std::map<std::string, ::Phase> >() )
-        ;
-        class_<std::map<std::string,CompositionSet>>("CompositionSetMap", no_init)
-        .def(map_indexing_suite<std::map<std::string, CompositionSet>>() )
-        ;
-	// TODO: why do I have charmaps at all? This is a class decl problem
-	class_<std::map<char,double>>("StdCharMap")
-		.def(map_indexing_suite<std::map<char, double> >() )
-	;
-	class_<std::vector<std::string>>("StdVector")
-		.def(vector_indexing_suite<std::vector<std::string> >() )
-	;
-	enum_<PhaseStatus>("PhaseStatus")
-		.value("ENTERED", PhaseStatus::ENTERED)
-		.value("DORMANT", PhaseStatus::DORMANT)
-		.value("FIXED", PhaseStatus::FIXED)
-		.value("SUSPENDED",  PhaseStatus::SUSPENDED)
-	;
+    typedef PyGlobalMinClass::HullMapType::HullEntryType PyConvexHullEntry;
+    typedef PyGlobalMinClass::HullMapType::HullEntryContainerType PyConvexHullEntries;
+    init_logging();
+    // Wrapper to convert some common std containers
+    class_<std::map<std::string,double>>("StdMap")
+            .def(map_indexing_suite<std::map<std::string, double> >() )
+    ;
+    class_<std::map<std::string,int>>("IndexStdMap")
+    .def(map_indexing_suite<std::map<std::string, int> >() )
+    ;
+    class_<boost::bimap<std::string,int>>("IndexBiMap")
+    ;
+    class_<std::map<std::string,Optimizer::PhaseStatus>>("PhaseStatusMap")
+            .def(map_indexing_suite<std::map<std::string, PhaseStatus> >() )
+    ;
+    class_<std::map<std::string,::Phase>>("PhaseMap")
+    .def(map_indexing_suite<std::map<std::string, ::Phase> >() )
+    ;
+    class_<std::map<std::string,CompositionSet>>("CompositionSetMap", no_init)
+    .def(map_indexing_suite<std::map<std::string, CompositionSet>>() )
+    ;
+    // TODO: why do I have charmaps at all? This is a class decl problem
+    class_<std::map<char,double>>("StdCharMap")
+            .def(map_indexing_suite<std::map<char, double> >() )
+    ;
+    class_<std::vector<std::string>>("StdVector")
+            .def(vector_indexing_suite<std::vector<std::string> >() )
+    ;
+    enum_<PhaseStatus>("PhaseStatus")
+            .value("ENTERED", PhaseStatus::ENTERED)
+            .value("DORMANT", PhaseStatus::DORMANT)
+            .value("FIXED", PhaseStatus::FIXED)
+            .value("SUSPENDED",  PhaseStatus::SUSPENDED)
+    ;
 
     class_<evalconditions>("evalconditions")
     	.def_readwrite("statevars", &evalconditions::statevars)
@@ -106,7 +108,8 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
          const evalconditions&,
          boost::bimap<std::string,int>&
                           ) = &build_variable_map;
-    def("build_variable_map", bvm1);
+    def("build_variable_map", bvm1)
+    ;
 
     class_<CompositionSet>("CompositionSet", 
                            init<const ::Phase&,
@@ -118,11 +121,32 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     .def(init<const CompositionSet&,const std::map<std::string, double>&,const std::string&> () )
     .def("name", &CompositionSet::name)
     ;
+    class_<PyConvexHullEntry>("ConvexHullEntry")
+    .def_readwrite("phase_name", &PyConvexHullEntry::phase_name)
+    .def_readwrite("energy", &PyConvexHullEntry::energy)
+    .def_readwrite("internal_coordinates", &PyConvexHullEntry::internal_coordinates)
+    .def_readwrite("global_coordinates", &PyConvexHullEntry::global_coordinates)
+    ;
+    class_<PyConvexHullEntries>("ConvexHullEntries")
+    .def(vector_indexing_suite<PyConvexHullEntries>() )
+    ;
+    class_<PyFacetType>("Facet")
+    .def_readwrite("area", &PyFacetType::area)
+    .def_readwrite("normal", &PyFacetType::normal)
+    .def_readwrite("vertices", &PyFacetType::vertices)
+    //TODO .def_readwrite("basis_matrix", &PyFacetType::basis_matrix)
+    ;
+    class_<std::vector<PyFacetType>>("Facets")
+    .def(vector_indexing_suite<std::vector<PyFacetType>>() )
+    ;
+    
     class_<PyGlobalMinClass,GlobalMinimizer_callback>("GlobalMinimizer",
                                                     init<const boost::python::dict&,
                                                         const sublattice_set&,
                                                         const evalconditions&
                                                         >()
     )
+    .def("get_hull_entries", &GlobalMinimizer_callback::get_hull_entries)
+    .def("get_facets", &GlobalMinimizer_callback::get_facets)
     ;
 }

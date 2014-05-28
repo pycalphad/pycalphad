@@ -222,6 +222,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         // At least one unstable region was found
         // Perform recursive search for minima on each of the identified regions
         for ( const SimplexCollection &simpcol : positive_definite_regions ) {
+            std::cout << "checking simplexcollection of size " << simpcol.size() << std::endl;
             std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol, 1 );
 
             // Append this region's minima to the list of minima

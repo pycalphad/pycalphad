@@ -29,6 +29,20 @@ struct ConvexHullEntry {
     CoordinateType energy;
     PointType internal_coordinates;
     GlobalPointType global_coordinates;
+    bool operator==(const ConvexHullEntry<CoordinateType,EnergyType>& other) {
+        return (phase_name == other.phase_name
+        &&      energy == other.energy
+        &&      internal_coordinates == other.internal_coordinates
+        &&      global_coordinates == other.global_coordinates
+               );
+    }
+    bool operator!=(const ConvexHullEntry<CoordinateType,EnergyType>& other) {
+        return (phase_name != other.phase_name
+        ||      energy != other.energy
+        ||      internal_coordinates != other.internal_coordinates
+        ||      global_coordinates != other.global_coordinates
+        );
+    }
 };
 /* The purpose of ConvexHullMap is to keep track of all of the internal convex
  * hulls of all of the phases during global minimization. The points of each phase's

@@ -31,6 +31,18 @@ struct SimplicialFacet {
      * column as all 1's.
      */
     MatrixType basis_matrix;
+    bool operator==(const SimplicialFacet<CoordinateType>& other) {
+        return (area == other.area
+        &&      normal == other.normal
+        &&      vertices == other.vertices
+        );
+    }
+    bool operator!=(const SimplicialFacet<CoordinateType>& other) {
+        return (area != other.area
+        ||      normal != other.normal
+        ||      vertices != other.vertices
+        );
+    }
 };
 } // namespace details
 } // namespace Optimizer
