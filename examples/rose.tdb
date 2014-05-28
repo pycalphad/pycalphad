@@ -1,0 +1,15 @@
+
+Element /-          ELECTRON_GAS         0         0         0  !
+Element VA                VACUUM         0         0         0  !
+ELEMENT CR                BCC_A2    51.996      4050    23.560  !
+ELEMENT FE                BCC_A2    55.847      4489    27.28   !
+Element NI                FCC_A1    58.69       4787    29.7955 !
+
+TYPE_DEFINITION % SEQ * !
+
+ Phase TEST % 1 1 !
+ Constituent TEST : CR,FE,NI : !
+
+ PARAMETER G(TEST,CR,FE,NI;0)     300  200000;               6000 N !
+ PARAMETER G(TEST,CR,FE,NI;1)     300  200000;               6000 N !
+ PARAMETER G(TEST,CR,FE,NI;2)     300  200000;               6000 N !

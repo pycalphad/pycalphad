@@ -311,7 +311,6 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 5;
     std::vector<std::vector<double>> minima;
-    std::vector<double> pt;
     double mag = std::numeric_limits<double>::max();
 
     std::vector<SimplexCollection> simplex_combinations, new_simplices;
@@ -332,7 +331,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         std::vector<double> pt = generate_point ( *sc );
         std::vector<double> raw_gradient;
         double temp_magnitude = 0;
-
+        double objective = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
         // Calculate the objective gradient (L') for the centroid of the active simplex
         raw_gradient = phase.evaluate_internal_objective_gradient ( conditions, &pt[0] );
         // Project the raw gradient into the null space of constraints
@@ -352,20 +351,16 @@ std::vector<std::vector<double>> AdaptiveSearchND (
             chosen_simplex = sc;
             mag = temp_magnitude;
         }
+        // Add every point to mesh, with energy coordinate
+        pt.emplace_back ( objective );
+        minima.emplace_back( std::move( pt ) );
     }
     
     const bool poor_progress = ( mag > 5000 ) && ( old_gradient_mag > 5000 ) && ( depth > 2 );
-
     // Now we must decide whether we have arrived at our terminating condition or to subdivide further
     if ( mag < gradient_magnitude_threshold || depth >= max_depth || poor_progress ) {
         // We've hit our terminating condition
         // It may or may not be a minimum, but it's the best we can find here
-        std::vector<double> pt = generate_point ( *chosen_simplex );
-        double objective;
-        // Add the energy of this configuration as the final coordinate
-        objective = phase.evaluate_objective ( conditions, phase.get_variable_map(), &pt[0] );
-        pt.emplace_back ( objective );
-        minima.emplace_back( std::move( pt ) );
         return minima;
     } else {
         // Keep searching for a minimum by subdividing our chosen_simplex
