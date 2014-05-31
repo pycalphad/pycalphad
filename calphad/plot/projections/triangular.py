@@ -35,12 +35,20 @@ class TriangularAxes(Axes):
         # Don't forget to call the base class
         Axes.cla(self)
         
+        x_min = 0
+        y_min = 0
+        x_max = 1
+        y_max = 1
+        x_spacing = 0.1
+        y_spacing = 0.1
         self.xaxis.set_minor_locator(NullLocator())
         self.yaxis.set_minor_locator(NullLocator())
         self.xaxis.set_ticks_position('bottom')
         self.yaxis.set_ticks_position('left')
-        Axes.set_xlim(self, 0.0, 1.0)
-        Axes.set_ylim(self, 0.0, 1.0)
+        Axes.set_xlim(self, x_min, x_max)
+        Axes.set_ylim(self, y_min, y_max)
+        self.xaxis.set_ticks(np.arange(x_min, x_max+x_spacing, x_spacing))
+        self.yaxis.set_ticks(np.arange(y_min, y_max+y_spacing, y_spacing))
 
     def _set_lim_and_transforms(self):
         """
