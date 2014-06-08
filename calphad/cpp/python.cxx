@@ -55,8 +55,13 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     class_<std::vector<std::string>>("StdVector")
             .def(vector_indexing_suite<std::vector<std::string> >() )
     ;
+    class_<std::vector<std::vector<double>>>("NestedNumberVector")
+    .def(vector_indexing_suite<std::vector<std::vector<double>> >() )
+    ;
     class_<std::vector<std::size_t>>("SizeVector")
     .def(vector_indexing_suite<std::vector<std::size_t> >() )
+    ;
+    class_<std::set<std::size_t>>("SizeSet") // TODO: proper indexing semantics
     ;
     enum_<PhaseStatus>("PhaseStatus")
             .value("ENTERED", PhaseStatus::ENTERED)
@@ -144,13 +149,16 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     .def(vector_indexing_suite<std::vector<PyFacetType>>() )
     ;
     
-    class_<PyGlobalMinClass,GlobalMinimizer_callback>("GlobalMinimizer",
-                                                    init<const boost::python::dict&,
-                                                        const sublattice_set&,
-                                                        const evalconditions&
-                                                        >()
-    )
+    class_<PyGlobalMinClass,GlobalMinimizer_callback>("GlobalMinimizer")
+    .def("run", &GlobalMinimizer_callback::default_run)
+    .def("point_sample", &GlobalMinimizer_callback::default_point_sample)
+    .def("internal_hull", &GlobalMinimizer_callback::default_internal_hull)
+    .def("global_hull", &GlobalMinimizer_callback::default_global_hull)
     .def("get_hull_entries", &GlobalMinimizer_callback::get_hull_entries)
     .def("get_facets", &GlobalMinimizer_callback::get_facets)
+    .def_readwrite("initial_subdivisions_per_axis", &GlobalMinimizer_callback::initial_subdivisions_per_axis)
+    .def_readwrite("refinement_subdivisions_per_axis", &GlobalMinimizer_callback::refinement_subdivisions_per_axis)
+    .def_readwrite("max_search_depth", &GlobalMinimizer_callback::max_search_depth)
+    .def_readwrite("critical_edge_length", &GlobalMinimizer_callback::critical_edge_length)
     ;
 }

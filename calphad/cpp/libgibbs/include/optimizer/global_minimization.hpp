@@ -20,6 +20,7 @@
 #include "libtdb/include/logging.hpp"
 #include <boost/assert.hpp>
 #include <boost/noncopyable.hpp>
+#include <boost/concept_check.hpp>
 #include <functional>
 #include <list>
 #include <limits>
@@ -46,18 +47,29 @@ protected:
     HullMapType hull_map;
     std::vector<FacetType> candidate_facets;
     mutable logger class_log;
+    double critical_edge_length; // minimum length of a tie line
+    std::size_t initial_subdivisions_per_axis; // initial discretization to find spinodals
+    std::size_t refinement_subdivisions_per_axis; // during mesh refinement
+    std::size_t max_search_depth; // maximum recursive depth
 public:
     typedef typename HullMapType::PointType PointType;
     typedef typename HullMapType::GlobalPointType GlobalPointType;
+    
+    GlobalMinimizer() {
+        critical_edge_length = 0.05;
+        initial_subdivisions_per_axis = 20;
+        refinement_subdivisions_per_axis = 2;
+        max_search_depth = 5;
+    }
 
     virtual std::vector<PointType> point_sample(
         CompositionSet const& cmp,
         sublattice_set const& sublset,
         evalconditions const& conditions
         ) {
-        const std::size_t subdivisions_per_axis = 20;
+        BOOST_ASSERT(initial_subdivisions_per_axis>0);
         // Use adaptive simplex subdivision to sample the space
-        return details::AdaptiveSimplexSample(cmp, sublset, conditions, subdivisions_per_axis);
+        return details::AdaptiveSimplexSample(cmp, sublset, conditions, initial_subdivisions_per_axis);
     };
     virtual std::vector<PointType> internal_hull(
         CompositionSet const& cmp,
@@ -65,7 +77,7 @@ public:
         std::set<std::size_t> const& dependent_dimensions,
         evalconditions const& conditions
     ) {
-        const double critical_edge_length = 0.05;
+        BOOST_ASSERT(critical_edge_length>0);
         // Create a callback function for energy calculation for this phase
         auto calculate_energy = [&cmp,&conditions] (const PointType& point) {
             return cmp.evaluate_objective(conditions,cmp.get_variable_map(),const_cast<EnergyType*>(&point[0]));
@@ -82,7 +94,7 @@ public:
         std::map<std::string,CompositionSet> const& phase_list,
         evalconditions const& conditions
     ) {
-        const double critical_edge_length = 0.05;
+        BOOST_ASSERT(critical_edge_length>0);
         // Calculate the "true energy" of the midpoint of two points, based on their IDs
         // If the phases are distinct, the "true energy" is infinite (indicates true line)
         auto calculate_global_midpoint_energy = [this,&conditions,&phase_list] 
@@ -124,15 +136,20 @@ public:
      * list of functors that implement point sampling and convex hull calculation.
      * Once GlobalMinimizer is constructed, the user can filter against the calculated grid.
      */
-    GlobalMinimizer ( 
+    virtual void run ( 
         std::map<std::string,CompositionSet> const &phase_list,
         sublattice_set const &sublset,
         evalconditions const& conditions
     ) 
     {
-        BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::GlobalMinimizer" );
-        BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter ctor";
+        BOOST_LOG_NAMED_SCOPE ( "GlobalMinimizer::run" );
+        BOOST_LOG_CHANNEL_SEV ( class_log, "optimizer", debug ) << "enter";
         std::vector<PointType> temporary_hull_storage;
+
+        BOOST_ASSERT(critical_edge_length>0);
+        BOOST_ASSERT(initial_subdivisions_per_axis>0);
+        BOOST_ASSERT(refinement_subdivisions_per_axis>0);
+        BOOST_ASSERT(max_search_depth>=0);
         
         for ( auto comp_set = phase_list.begin(); comp_set != phase_list.end(); ++comp_set ) {
             std::set<std::size_t> dependent_dimensions;

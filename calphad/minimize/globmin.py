@@ -21,6 +21,21 @@ class GlobalMinimizer(lcp.GlobalMinimizer):
 		Get points and facets of the global convex hull.
 		
 	"""
+	def __init__(self, phase_dict, sublset, conditions, **kwargs):
+		# Initialize minimizer
+		lcp.GlobalMinimizer.__init__(self)
+		allowed_opts = ('critical_edge_length',
+	                   'initial_subdivisions_per_axis',
+	                   'refinement_subdivisions_per_axis',
+	                   'max_search_depth'
+	                   )
+		# Set options
+		for k, v in kwargs.iteritems():
+			assert( k in allowed_opts )
+			setattr(self, k, v)
+		
+		# Execute calculation
+		lcp.GlobalMinimizer.run(self, phase_dict, sublset, conditions)
 	def triangulate_hull(self):
 		raw_entries = lcp.GlobalMinimizer.get_hull_entries(self)
 		facets = lcp.GlobalMinimizer.get_facets(self)

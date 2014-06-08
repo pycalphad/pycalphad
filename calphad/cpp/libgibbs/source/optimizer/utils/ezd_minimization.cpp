@@ -356,7 +356,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
         minima.emplace_back( std::move( pt ) );
     }
     
-    const bool poor_progress = ( mag > 5000 ) && ( old_gradient_mag > 5000 ) && ( depth > 2 );
+    const bool poor_progress = ( mag > 5000 ) && ( old_gradient_mag > 5000 ) && ( depth > 4 );
     // Now we must decide whether we have arrived at our terminating condition or to subdivide further
     if ( mag < gradient_magnitude_threshold || depth >= max_depth || poor_progress ) {
         // We've hit our terminating condition

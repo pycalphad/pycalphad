@@ -24,12 +24,16 @@ typedef Optimizer::GlobalMinimizer<PyFacetType,PyCoordinateType,PyEnergyType> Py
 // Helper class to dispatch calls to Python subclass of GlobalMinimizer.
 // This allows us to subclass GlobalMinimizer from Python, and actually
 // affect the behavior inside C++.
-struct GlobalMinimizer_callback : PyGlobalMinClass {
-    GlobalMinimizer_callback(PyObject *p, 
-                             boost::python::dict const &phase_dict,
-                             sublattice_set const &sublset,
-                             evalconditions const &conditions)
-    : PyGlobalMinClass(extract_map_from_dict(phase_dict), sublset, conditions), self(p) {}
+struct GlobalMinimizer_callback : public PyGlobalMinClass {
+public:
+    // Pull protected options into public memory
+    using PyGlobalMinClass::initial_subdivisions_per_axis;
+    using PyGlobalMinClass::refinement_subdivisions_per_axis;
+    using PyGlobalMinClass::critical_edge_length;
+    using PyGlobalMinClass::max_search_depth;
+    
+    GlobalMinimizer_callback(PyObject *p)
+    : PyGlobalMinClass(), self(p) {}
     GlobalMinimizer_callback(PyObject *p, PyGlobalMinClass const &x) 
     : PyGlobalMinClass(x), self(p) {}
     
@@ -74,6 +78,14 @@ struct GlobalMinimizer_callback : PyGlobalMinClass {
     ) {
         return boost::python::call_method<std::vector<PyFacetType>>(self, "global_hull", points, phase_list, conditions);  
     }
+    void run(
+        boost::python::dict const &phase_dict,
+        sublattice_set const &sublset,
+        evalconditions const& conditions
+    ) 
+    {
+        boost::python::call_method<void>(self, "run", phase_dict, sublset, conditions);
+    }
     
     static std::vector<PyPointType> default_point_sample(
                                     PyGlobalMinClass &self_, 
@@ -83,6 +95,15 @@ struct GlobalMinimizer_callback : PyGlobalMinClass {
                                     ) 
     { 
         return self_.PyGlobalMinClass::point_sample(comp_set,sublset,conditions); 
+    }
+    static void default_run(
+        PyGlobalMinClass &self_,
+        boost::python::dict const &phase_dict,
+        sublattice_set const &sublset,
+        evalconditions const& conditions
+    ) 
+    {
+        self_.PyGlobalMinClass::run(extract_map_from_dict(phase_dict), sublset ,conditions); 
     }
     static std::vector<PyPointType> default_internal_hull(
         PyGlobalMinClass &self_, 

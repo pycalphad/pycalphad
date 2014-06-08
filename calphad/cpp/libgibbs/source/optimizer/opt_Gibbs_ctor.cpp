@@ -82,7 +82,8 @@ GibbsOpt::GibbsOpt (
     }
     BOOST_LOG_SEV ( opto_log, debug ) << "Starting global minimization";
     // GlobalMinimizer will modify comp_sets and set the starting points automatically
-    GlobalMinimizerType grid ( comp_sets, main_ss, conditions );
+    GlobalMinimizerType grid;
+    grid.run ( comp_sets, main_ss, conditions );
     
     BOOST_LOG_SEV ( opto_log, debug ) << "Locating tie hyperplane";
     // Get the points on the equilibrium tie hyperplane
