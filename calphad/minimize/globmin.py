@@ -4,6 +4,8 @@ necessary for reliable automatic miscibility gap detection.
 
 """
 import calphad.libcalphadcpp as lcp
+import pandas as pd
+from collections import defaultdict
 
 
 class GlobalMinimizer(lcp.GlobalMinimizer):
@@ -48,6 +50,8 @@ class GlobalMinimizer(lcp.GlobalMinimizer):
 		"""
 		# Initialize minimizer on C++ side
 		lcp.GlobalMinimizer.__init__(self)
+		# Save list of active conditions for tabulation
+		self.conditions = conditions
 		# Create list of allowed options
 		allowed_opts = ('critical_edge_length',
 	                   'initial_subdivisions_per_axis',
@@ -83,18 +87,28 @@ class GlobalMinimizer(lcp.GlobalMinimizer):
 		"""
 		raw_entries = lcp.GlobalMinimizer.get_hull_entries(self)
 		facets = lcp.GlobalMinimizer.get_facets(self)
-		entries = []
 		facet_list = []
-		point_phases = []
-		hull_mask = []
+		species_coordinates = defaultdict(list) # dict of lists
+		phase_names = []
+		stabilities = []
+		energies = []
+		total_df = pd.DataFrame()
 		for entry in raw_entries:
-			stripped_entry = []
-			for coords in entry.global_coordinates:
-				stripped_entry.append(coords.data())
-			#stripped_entry.append(entry.energy)
-			hull_mask.append(not entry.on_global_hull)
-			point_phases.append(entry.phase_name)
-			entries.append(stripped_entry)
+			for coord in entry.global_coordinates:
+				species_coordinates['X('+coord.key()+')'].append(coord.data())
+			phase_names.append(entry.phase_name)
+			energies.append(entry.energy)
+			stabilities.append(entry.on_global_hull)
+		data_dict = {
+			'Phase' : phase_names,
+			'GM' : energies,
+			'Stable' : stabilities,
+			'T' : self.conditions.statevars['T'],
+			'P' : self.conditions.statevars['P'],
+			'N' : self.conditions.statevars['N']
+			}
+		data_dict.update(species_coordinates) # Merge dictionaries of lists
+		total_df = pd.DataFrame(data_dict)
 		for facet in facets:
 			facet_list.append(facet.vertices)
-		return entries, facet_list, point_phases, hull_mask
+		return total_df, facet_list

@@ -46,7 +46,7 @@ setup(
     author_email='richard.otis@outlook.com',
     packages=['calphad','calphad.io', 'calphad.minimize', 'calphad.plot','calphad.plot.projections'],
     license='',
-    install_requires=['numpy','matplotlib'],
+    install_requires=['numpy','matplotlib','pandas'],
     classifiers=['Development Status :: 3 - Alpha'],
     ext_modules=[libcalphadcpp],
 )
