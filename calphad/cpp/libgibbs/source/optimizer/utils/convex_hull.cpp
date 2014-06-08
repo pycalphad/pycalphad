@@ -56,8 +56,8 @@ namespace Optimizer { namespace details {
         const std::size_t point_count = points.size();
         std::vector<std::vector<double>> candidate_points, final_points; // vertices of tie hyperplanes
         RboxPoints point_buffer;
-        std::cout << "point_dimension: " << point_dimension << std::endl;
-        std::cout << "point_count: " << point_count << std::endl;
+        //std::cout << "point_dimension: " << point_dimension << std::endl;
+        //std::cout << "point_count: " << point_count << std::endl;
         point_buffer.setDimension ( point_dimension );
         point_buffer.reserveCoordinates ( point_count );
         std::string Qhullcommand = "Qt ";
@@ -77,7 +77,7 @@ namespace Optimizer { namespace details {
         for (auto pt : points) {
             point_buffer.append ( QhullPoint ( point_dimension, &pt[0] ) );
         }
-        std::cout << "point_buffer.size() = " << point_buffer.size() << std::endl;
+        //std::cout << "point_buffer.size() = " << point_buffer.size() << std::endl;
         
         // Mark dependent dimensions for Qhull so they can be discarded
         for (auto dim : dependent_dimensions) {
@@ -86,7 +86,7 @@ namespace Optimizer { namespace details {
             stream << " " << "Qb" << dim << ":0B" << dim << ":0";
             Qhullcommand += stream.str();
         }
-        std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
+        //std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
         // Make the call to Qhull
         Qhull qhull ( point_buffer, Qhullcommand.c_str() );
         // Get all of the facets
@@ -126,7 +126,7 @@ namespace Optimizer { namespace details {
                         midpoint = restore_dependent_dimensions ( midpoint, dependent_dimensions );
                         const double true_energy = calculate_objective ( midpoint );
                         // If the true energy is "much" greater, it's a true tie line
-                        std::cout << "pt_vert1(" << vertices[vertex1].point().id() << "): ";
+                        /*DEBUG std::cout << "pt_vert1(" << vertices[vertex1].point().id() << "): ";
                         for (auto &coord : pt_vert1) std::cout << coord << ",";
                         std::cout << ":: ";
                         std::cout << "pt_vert2(" << vertices[vertex2].point().id() << "): ";
@@ -135,7 +135,7 @@ namespace Optimizer { namespace details {
                         std::cout << "midpoint: ";
                         for (auto &coord : midpoint) std::cout << coord << ",";
                         std::cout << std::endl;
-                        std::cout << "true_energy: " << true_energy << " lever_rule_energy: " << lever_rule_energy << std::endl;
+                        std::cout << "true_energy: " << true_energy << " lever_rule_energy: " << lever_rule_energy << std::endl;*/
                         // We use fabs() here so we don't accidentally flip the sign of the comparison
                         if ( (true_energy-lever_rule_energy)/fabs(lever_rule_energy) < coplanarity_allowance ) {
                             continue; // not a true tie line, skip it
@@ -151,16 +151,16 @@ namespace Optimizer { namespace details {
                         distance = sqrt(distance);
                         // if the edge length is large enough, this is a candidate tie hyperplane
                         if (distance > critical_edge_length) {
-                          std::cout << "Edge length: " << distance << std::endl;
+                          /*DEBUG std::cout << "Edge length: " << distance << std::endl;
                           std::cout << "Vertex1: ";
                           for (auto coord : pt_vert1) std::cout << coord << ",";
                           std::cout << std::endl;
                           std::cout << "Vertex2: ";
                           for (auto coord : pt_vert2) std::cout << coord << ",";
-                          std::cout << std::endl;
+                          std::cout << std::endl;*/
                           candidate_points.push_back(restore_dependent_dimensions (pt_vert1, dependent_dimensions ));
                           candidate_points.push_back(restore_dependent_dimensions (pt_vert2, dependent_dimensions ));
-                          std::cout << facet;
+                          /*std::cout << facet;*/
                         }
                     }
                 }
@@ -185,14 +185,14 @@ namespace Optimizer { namespace details {
             auto new_end = std::unique ( candidate_points.begin(), candidate_points.end(), too_similar );
             // Fix the deduplicated point list to have no empty elements
             candidate_points.resize( std::distance( candidate_points.begin(), new_end ) );
-            std::cout << "CANDIDATE POINTS AFTER DEDUPLICATION" << std::endl;
+            /*DEBUG std::cout << "CANDIDATE POINTS AFTER DEDUPLICATION" << std::endl;
             for (auto pt : candidate_points) {
                 for (auto coord : pt) {
                     std::cout << coord << ",";
                 }
                 std::cout << std::endl;
             }
-            std::cout << "candidate_points.size() = " << candidate_points.size() << std::endl;
+            std::cout << "candidate_points.size() = " << candidate_points.size() << std::endl;*/
             // Second, restore the dependent variables to the correct coordinate placement
             for (const auto pt : candidate_points) {
                 final_points.emplace_back ( restore_dependent_dimensions ( pt, dependent_dimensions ) );
@@ -213,13 +213,13 @@ namespace Optimizer { namespace details {
             return_point.pop_back(); // Remove energy coordinate
             final_points.emplace_back ( std::move ( return_point ) );
         }
-        std::cout << "FINAL TIE POINTS" << std::endl;
+        /*DEBUGstd::cout << "FINAL TIE POINTS" << std::endl;
         for (auto pt : final_points) {
             for (auto coord : pt) {
                 std::cout << coord << ",";
             }
             std::cout << std::endl;
-        }
+        }*/
         return final_points;
     }
     // Add the dependent site fraction coordinates back to the point
@@ -233,7 +233,7 @@ namespace Optimizer { namespace details {
         for (auto dim : dependent_dimensions) {
             double point_sum = 0;
             for (auto coord = sublattice_offset; coord < dim; ++coord) {
-                std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
+                //DEBUG std::cout << "sublattice_offset: " << sublattice_offset << " coord: " << coord << " dim: " << dim << std::endl;
                 point_sum += *iter;
                 final_point.push_back ( *iter );
                 if (iter != point.cend()) ++iter;

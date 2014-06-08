@@ -77,7 +77,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     //  Degenerate simplex: delete energy coordinate to calculate hull
     Qhullcommand += stream.str();
 
-    std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
+    //DEBUG std::cout << "DEBUG: Qhullcommand: " << Qhullcommand.c_str() << std::endl;
     // Make the call to Qhull
     Qhull qhull ( point_buffer, Qhullcommand.c_str() );
     // Get all of the facets
@@ -102,21 +102,21 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                 auto end_coordinate = vertex->point().end()-1; // don't add energy coordinate
                 for ( auto coord = vertex->point().begin(); coord != end_coordinate; ++coord ) {
                     const std::size_t row_index = std::distance ( vertex->point().begin(), coord );
-                    std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
+                    //std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
                     new_facet.basis_matrix ( row_index, column_index ) = *coord;
                 }
-                std::cout << "new_facet.basis_matrix(" << vertex_count-1 << "," << column_index << ") = 1" << std::endl;
+                //std::cout << "new_facet.basis_matrix(" << vertex_count-1 << "," << column_index << ") = 1" << std::endl;
                 new_facet.basis_matrix ( vertex_count-1, column_index ) = 1; // last column is all 1's
             }
             bool success = InvertMatrix ( new_facet.basis_matrix, new_facet.basis_matrix );
-            if ( !success ) std::cout << "MATRIX INVERSION FAILED" << std::endl;
+            //if ( !success ) std::cout << "MATRIX INVERSION FAILED" << std::endl;
             for ( const auto coord : facet.hyperplane() ) {
                 new_facet.normal.push_back ( coord );
             }
             new_facet.area = facet.facetArea( qhull.runId() );
             candidates.push_back ( new_facet );
             already_added = true;
-            std::cout << facet;
+            //DEBUG std::cout << facet;
             
             continue;
             
@@ -125,13 +125,13 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
             for (auto vertex1 = 0; vertex1 < vertex_count && !already_added; ++vertex1) {
                 const std::size_t vertex1_point_id = vertices[vertex1].point().id();
                 const double vertex1_energy = calculate_midpoint_energy ( vertex1_point_id, vertex1_point_id );
-                std::cout << "vertex1_energy = " << vertex1_energy << std::endl;
+                //std::cout << "vertex1_energy = " << vertex1_energy << std::endl;
                 std::vector<double> pt_vert1 = vertices[vertex1].point().toStdVector();
                 //pt_vert1.pop_back(); // Remove the last coordinate (energy) for this check
                 for (auto vertex2 = 0; vertex2 < vertex1 && !already_added; ++vertex2) {
                     const std::size_t vertex2_point_id = vertices[vertex2].point().id();
                     const double vertex2_energy = calculate_midpoint_energy ( vertex2_point_id, vertex2_point_id );
-                    std::cout << "vertex2_energy = " << vertex2_energy << std::endl;
+                    //std::cout << "vertex2_energy = " << vertex2_energy << std::endl;
                     std::vector<double> pt_vert2 = vertices[vertex2].point().toStdVector();
                     //pt_vert2.pop_back(); // Remove the last coordinate (energy) for this check
                     std::vector<double> difference ( pt_vert2.size() );
@@ -147,7 +147,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                                                      vertex2_point_id 
                                                );
                     // If the true energy is "much" greater, it's a true tie line
-                    std::cout << "pt_vert1(" << vertex1_point_id << "): ";
+                    /*std::cout << "pt_vert1(" << vertex1_point_id << "): ";
                     for (auto &coord : pt_vert1) std::cout << coord << ",";
                     std::cout << ":: ";
                     std::cout << "pt_vert2(" << vertex2_point_id << "): ";
@@ -156,7 +156,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                     std::cout << "midpoint: ";
                     for (auto &coord : midpoint) std::cout << coord << ",";
                     std::cout << std::endl;
-                    std::cout << "true_energy: " << true_energy << " lever_rule_energy: " << lever_rule_energy << std::endl;
+                    std::cout << "true_energy: " << true_energy << " lever_rule_energy: " << lever_rule_energy << std::endl;*/
                     // We use fabs() here so we don't accidentally flip the sign of the comparison
                     if ( (true_energy-lever_rule_energy)/fabs(lever_rule_energy) < coplanarity_allowance ) {
                         continue; // not a true tie line, skip it
@@ -170,13 +170,13 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                     for (auto coord : difference) distance += std::pow(coord,2);
                     // Square root the result
                     distance = sqrt(distance);
-                    std::cout << "Edge length: " << distance << std::endl;
+                    /*DEBUG std::cout << "Edge length: " << distance << std::endl;
                     std::cout << "Vertex1: ";
                     for (auto coord : pt_vert1) std::cout << coord << ",";
                     std::cout << std::endl;
                     std::cout << "Vertex2: ";
                     for (auto coord : pt_vert2) std::cout << coord << ",";
-                    std::cout << std::endl;
+                    std::cout << std::endl;*/
                     SimplicialFacet<double> new_facet;
                     for ( auto vertex = vertices.begin(); vertex != vertices.end(); ++vertex ) {
                         new_facet.vertices.push_back ( vertex->point().id() );
@@ -187,7 +187,7 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                     new_facet.area = facet.facetArea( qhull.runId() );
                     candidates.push_back ( new_facet );
                     already_added = true;
-                    std::cout << facet;
+                    //DEBUG std::cout << facet;
                 }
             }
         }

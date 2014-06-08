@@ -96,15 +96,15 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
 
 
     for ( SimplexCollection& simpcol : start_simplices ) {
-        std::cout << "(";
+        //DEBUG std::cout << "(";
         std::vector<double> pt = generate_point ( simpcol );
-        for ( auto i = pt.begin(); i != pt.end(); ++i ) {
+        /*for ( auto i = pt.begin(); i != pt.end(); ++i ) {
             std::cout << *i;
             if ( std::distance ( i,pt.end() ) > 1 ) {
                 std::cout << ",";
             }
         }
-        std::cout << ")" << std::endl;
+        std::cout << ")" << std::endl;*/
         points.emplace_back ( std::move ( pt ) );
     }
 
@@ -147,10 +147,10 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         //    (d) If it succeeds, save this point; else, discard it
         if ( is_positive_definite ) {
             positive_definite_regions.emplace_back ( simpcol );
-            for ( double i : pt ) {
+            /*DEBUG for ( double i : pt ) {
                 std::cout << i << ",";
             }
-            std::cout << ":" <<  std::endl;
+            std::cout << ":" <<  std::endl;*/
         }
     }
     
@@ -189,11 +189,11 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         }
         // Before convex_hull, unmapped_minima has an energy coordinate
         pt.push_back ( calculate_energy ( pt ) );
-        std::cout << "ENDMEMBER ";
+        /*DEBUG std::cout << "ENDMEMBER ";
         for ( auto & coord : pt ) {
             std::cout << coord << ",";
         }
-        std::cout << std::endl;
+        std::cout << std::endl;*/
         unmapped_minima.emplace_back ( std::move ( pt ) );
     }
     
@@ -218,13 +218,13 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
             unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
             unmapped_minima.insert ( unmapped_minima.end(), std::make_move_iterator ( region_minima.begin() ),  std::make_move_iterator ( region_minima.end() ) );
         }
-        std::cout << "CANDIDATE MINIMA" << std::endl;
+        /*DEBUG std::cout << "CANDIDATE MINIMA" << std::endl;
         for (auto min : unmapped_minima) {
             for (auto coord : min) {
                 std::cout << coord << " ";
             }
             std::cout << std::endl;
-        }
+        }*/
     }
     return unmapped_minima;
 
