@@ -69,7 +69,7 @@ public:
         ) {
         BOOST_ASSERT(initial_subdivisions_per_axis>0);
         // Use adaptive simplex subdivision to sample the space
-        return details::AdaptiveSimplexSample(cmp, sublset, conditions, initial_subdivisions_per_axis);
+        return details::AdaptiveSimplexSample(cmp, sublset, conditions, initial_subdivisions_per_axis, refinement_subdivisions_per_axis);
     };
     virtual std::vector<PointType> internal_hull(
         CompositionSet const& cmp,

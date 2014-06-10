@@ -38,6 +38,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
                                   CompositionSet const &phase,
                                   evalconditions const& conditions,
                                   const SimplexCollection &search_region,
+                                  const std::size_t refinement_subdivisions_per_axis,
                                   const std::size_t depth,
                                   const double old_gradient_mag = 1e12 );
 
@@ -52,7 +53,8 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         CompositionSet const &phase,
         sublattice_set const &sublset,
         evalconditions const& conditions,
-        const std::size_t subdivisions_per_axis
+        const std::size_t initial_subdivisions_per_axis,
+        const std::size_t refinement_subdivisions_per_axis
         )
 {
     using namespace boost::numeric::ublas;
@@ -84,7 +86,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         const std::size_t number_of_species = std::distance ( ic0,ic1 );
         BOOST_ASSERT ( number_of_species > 0 );
         NDSimplex base ( number_of_species-1 ); // construct the unit (q-1)-simplex
-        components_in_sublattice.emplace_back ( base.simplex_subdivide ( subdivisions_per_axis ) );
+        components_in_sublattice.emplace_back ( base.simplex_subdivide ( initial_subdivisions_per_axis ) );
         // Next sublattice
         ++sublindex;
         ic0 = boost::multi_index::get<phase_subl> ( sublset ).lower_bound ( boost::make_tuple ( phase.name(), sublindex ) );
@@ -212,7 +214,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         // Perform recursive search for minima on each of the identified regions
         for ( const SimplexCollection &simpcol : positive_definite_regions ) {
             //std::cout << "checking simplexcollection of size " << simpcol.size() << std::endl;
-            std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol, 1 );
+            std::vector<std::vector<double>> region_minima = AdaptiveSearchND ( phase, conditions, simpcol, refinement_subdivisions_per_axis, 1 );
 
             // Append this region's minima to the list of minima
             unmapped_minima.reserve ( unmapped_minima.size() +region_minima.size() );
@@ -300,6 +302,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     CompositionSet const &phase,
     evalconditions const& conditions,
     const SimplexCollection &search_region,
+    const std::size_t refinement_subdivisions_per_axis,
     const std::size_t depth,
     const double old_gradient_mag )
 {
@@ -308,7 +311,6 @@ std::vector<std::vector<double>> AdaptiveSearchND (
     typedef boost::numeric::ublas::matrix<double> ublas_matrix;
     BOOST_ASSERT ( depth > 0 );
     constexpr const double gradient_magnitude_threshold = 1000;
-    constexpr const std::size_t subdivisions_per_axis = 2;
     constexpr const std::size_t max_depth = 5;
     std::vector<std::vector<double>> minima;
     double mag = std::numeric_limits<double>::max();
@@ -318,7 +320,7 @@ std::vector<std::vector<double>> AdaptiveSearchND (
 
     // simplex_subdivide() the simplices in all the active sublattices
     for ( const NDSimplex &simp : search_region ) {
-        simplex_combinations.emplace_back ( simp.simplex_subdivide ( subdivisions_per_axis ) );
+        simplex_combinations.emplace_back ( simp.simplex_subdivide ( refinement_subdivisions_per_axis ) );
     }
     // lattice_complex() the result to generate all the combinations in the sublattices
     new_simplices = lattice_complex ( simplex_combinations );

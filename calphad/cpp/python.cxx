@@ -161,4 +161,14 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     .def_readwrite("max_search_depth", &GlobalMinimizer_callback::max_search_depth)
     .def_readwrite("critical_edge_length", &GlobalMinimizer_callback::critical_edge_length)
     ;
+    std::vector<std::vector<double>>  AdaptiveSimplexSample(
+        CompositionSet const &phase,
+        sublattice_set const &sublset,
+        evalconditions const& conditions,
+        const std::size_t initial_subdivisions_per_axis,
+        const std::size_t refinement_subdivisions_per_axis
+    );
+    
+    // Free functions
+    def("adaptive_simplex_sample", &Optimizer::details::AdaptiveSimplexSample);
 }

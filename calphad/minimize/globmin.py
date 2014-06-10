@@ -65,6 +65,14 @@ class GlobalMinimizer(lcp.GlobalMinimizer):
 		
 		# Execute calculation on C++ side
 		lcp.GlobalMinimizer.run(self, phase_dict, sublset, conditions)
+	def point_sample(self, compset, sublset, conditions):
+		print "test"
+		return lcp.adaptive_simplex_sample(compset, 
+				     sublset, 
+				     conditions, 
+				     self.initial_subdivisions_per_axis,
+				     self.refinement_subdivisions_per_axis
+				     )
 	def triangulate_hull(self):
 		"""
 		Get the triangulation of the convex hull.
