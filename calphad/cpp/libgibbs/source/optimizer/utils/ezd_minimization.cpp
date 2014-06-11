@@ -54,7 +54,8 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         sublattice_set const &sublset,
         evalconditions const& conditions,
         const std::size_t initial_subdivisions_per_axis,
-        const std::size_t refinement_subdivisions_per_axis
+        const std::size_t refinement_subdivisions_per_axis,
+        const bool discard_unstable
         )
 {
     using namespace boost::numeric::ublas;
@@ -110,50 +111,56 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         points.emplace_back ( std::move ( pt ) );
     }
 
-    // (2) Calculate the Lagrangian Hessian for all sampled points
-    for ( SimplexCollection& simpcol : start_simplices ) {
-        std::vector<double> pt = generate_point ( simpcol );
-        if ( pt.size() == 0 ) {
-            continue;    // skip empty (invalid) points
-        }
-        symmetric_matrix<double, lower> Hessian ( zero_matrix<double> ( pt.size(),pt.size() ) );
-        try {
-            Hessian = phase.evaluate_objective_hessian_matrix ( conditions, phase.get_variable_map(), pt );
-        } catch ( boost::exception &e ) {
-            std::cout << boost::diagnostic_information ( e );
-            throw;
-        } catch ( std::exception &e ) {
-            std::cout << e.what();
-            throw;
-        }
-        //std::cout << "Hessian: " << Hessian << std::endl;
-        // NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
-        // (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
-        //        NOTE: This is the projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
-        //        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
-        //        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
-        //        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
-        const std::size_t Zcolumns = pt.size() - phase.get_constraints().size();
-        // Z is the constraint null space matrix = phase.get_constraint_null_space_matrix()
-        //    (a) Set Hproj = transpose(Z)*(L'')*Z
-        matrix<double> Hproj ( pt.size(), Zcolumns );
-        Hproj = prod ( trans ( phase.get_constraint_null_space_matrix() ),
-                       matrix<double> ( prod ( Hessian,phase.get_constraint_null_space_matrix() ) ) );
-        //std::cout << "Hproj: " << Hproj << std::endl;
-        //    (b) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
-        //        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
-        //        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
-        //        TODO: Currently not bothering to do this; should perform a test to figure out if there would be a performance increase
-        //    (c) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
-        const bool is_positive_definite = cholesky_factorize ( Hproj );
-        //    (d) If it succeeds, save this point; else, discard it
-        if ( is_positive_definite ) {
-            positive_definite_regions.emplace_back ( simpcol );
-            /*DEBUG for ( double i : pt ) {
-                std::cout << i << ",";
+    if (discard_unstable) {
+        // (2) Calculate the Lagrangian Hessian for all sampled points
+        for ( SimplexCollection& simpcol : start_simplices ) {
+            std::vector<double> pt = generate_point ( simpcol );
+            if ( pt.size() == 0 ) {
+                continue;    // skip empty (invalid) points
             }
-            std::cout << ":" <<  std::endl;*/
+            symmetric_matrix<double, lower> Hessian ( zero_matrix<double> ( pt.size(),pt.size() ) );
+            try {
+                Hessian = phase.evaluate_objective_hessian_matrix ( conditions, phase.get_variable_map(), pt );
+            } catch ( boost::exception &e ) {
+                std::cout << boost::diagnostic_information ( e );
+                throw;
+            } catch ( std::exception &e ) {
+                std::cout << e.what();
+                throw;
+            }
+            //std::cout << "Hessian: " << Hessian << std::endl;
+            // NOTE: For this calculation we consider only the linear constraints for an isolated phase (e.g., site fraction balances)
+            // (3) Save all points for which the Lagrangian Hessian is positive definite in the null space of the constraint gradient matrix
+            //        NOTE: This is the projected Hessian method (Nocedal and Wright, 2006, ch. 12.4, p.349)
+            //        But how do I choose the Lagrange multipliers for all the constraints? Can I calculate them?
+            //        The answer is that, because the constraints are linear, there is no constraint contribution to the Hessian.
+            //        That means that the Hessian of the Lagrangian is just the Hessian of the objective function.
+            const std::size_t Zcolumns = pt.size() - phase.get_constraints().size();
+            // Z is the constraint null space matrix = phase.get_constraint_null_space_matrix()
+            //    (a) Set Hproj = transpose(Z)*(L'')*Z
+            matrix<double> Hproj ( pt.size(), Zcolumns );
+            Hproj = prod ( trans ( phase.get_constraint_null_space_matrix() ),
+                        matrix<double> ( prod ( Hessian,phase.get_constraint_null_space_matrix() ) ) );
+            //std::cout << "Hproj: " << Hproj << std::endl;
+            //    (b) Verify that all diagonal elements of Hproj are strictly positive; if not, remove this point from consideration
+            //        NOTE: This is a necessary but not sufficient condition that a matrix be positive definite, and it's easy to check
+            //        Reference: Carlen and Carvalho, 2007, p. 148, Eq. 5.12
+            //        TODO: Currently not bothering to do this; should perform a test to figure out if there would be a performance increase
+            //    (c) Attempt a Cholesky factorization of Hproj; will only succeed if matrix is positive definite
+            const bool is_positive_definite = cholesky_factorize ( Hproj );
+            //    (d) If it succeeds, save this point; else, discard it
+            if ( is_positive_definite ) {
+                positive_definite_regions.emplace_back ( simpcol );
+                /*DEBUG for ( double i : pt ) {
+                    std::cout << i << ",";
+                }
+                std::cout << ":" <<  std::endl;*/
+            }
         }
+    }
+    else {
+        // Save all points (do not discard unstable regions)
+        positive_definite_regions = start_simplices;
     }
     
     // The pure end-members are always considered in the calculation, so add them

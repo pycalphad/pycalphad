@@ -51,6 +51,7 @@ protected:
     std::size_t initial_subdivisions_per_axis; // initial discretization to find spinodals
     std::size_t refinement_subdivisions_per_axis; // during mesh refinement
     std::size_t max_search_depth; // maximum recursive depth
+    bool discard_unstable; // when sampling points, discard unstable ones before refinement
 public:
     typedef typename HullMapType::PointType PointType;
     typedef typename HullMapType::GlobalPointType GlobalPointType;
@@ -60,6 +61,7 @@ public:
         initial_subdivisions_per_axis = 20;
         refinement_subdivisions_per_axis = 2;
         max_search_depth = 5;
+        discard_unstable = true;
     }
 
     virtual std::vector<PointType> point_sample(
@@ -69,7 +71,7 @@ public:
         ) {
         BOOST_ASSERT(initial_subdivisions_per_axis>0);
         // Use adaptive simplex subdivision to sample the space
-        return details::AdaptiveSimplexSample(cmp, sublset, conditions, initial_subdivisions_per_axis, refinement_subdivisions_per_axis);
+        return details::AdaptiveSimplexSample(cmp, sublset, conditions, initial_subdivisions_per_axis, refinement_subdivisions_per_axis, discard_unstable);
     };
     virtual std::vector<PointType> internal_hull(
         CompositionSet const& cmp,

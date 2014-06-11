@@ -31,6 +31,7 @@ public:
     using PyGlobalMinClass::refinement_subdivisions_per_axis;
     using PyGlobalMinClass::critical_edge_length;
     using PyGlobalMinClass::max_search_depth;
+    using PyGlobalMinClass::discard_unstable;
     
     GlobalMinimizer_callback(PyObject *p)
     : PyGlobalMinClass(), self(p) {}

@@ -55,6 +55,9 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     class_<std::vector<std::string>>("StdVector")
             .def(vector_indexing_suite<std::vector<std::string> >() )
     ;
+    class_<std::vector<double>>("NumberVector")
+    .def(vector_indexing_suite<std::vector<double> >() )
+    ;
     class_<std::vector<std::vector<double>>>("NestedNumberVector")
     .def(vector_indexing_suite<std::vector<std::vector<double>> >() )
     ;
@@ -160,14 +163,8 @@ BOOST_PYTHON_MODULE(libcalphadcpp)
     .def_readwrite("refinement_subdivisions_per_axis", &GlobalMinimizer_callback::refinement_subdivisions_per_axis)
     .def_readwrite("max_search_depth", &GlobalMinimizer_callback::max_search_depth)
     .def_readwrite("critical_edge_length", &GlobalMinimizer_callback::critical_edge_length)
+    .def_readwrite("discard_unstable", &GlobalMinimizer_callback::discard_unstable)
     ;
-    std::vector<std::vector<double>>  AdaptiveSimplexSample(
-        CompositionSet const &phase,
-        sublattice_set const &sublset,
-        evalconditions const& conditions,
-        const std::size_t initial_subdivisions_per_axis,
-        const std::size_t refinement_subdivisions_per_axis
-    );
     
     // Free functions
     def("adaptive_simplex_sample", &Optimizer::details::AdaptiveSimplexSample);
