@@ -60,7 +60,7 @@ class GlobalMinimizer(lcp.GlobalMinimizer):
 	                   'discard_unstable'
 	                   )
 		# Set options; these will override C++ settings
-		for k, v in kwargs.iteritems():
+		for k, v in kwargs.items():
 			assert( k in allowed_opts )
 			setattr(self, k, v)
 		

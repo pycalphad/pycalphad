@@ -85,9 +85,9 @@ class TriangularAxes(Axes):
         # yscale are specific to a Aitoff-Hammer projection, so don't
         # worry about them too much.
         self.transAffine = Affine2D.from_values(
-		1., 0, 0.5, np.sqrt(3)/2., 0, 0)
-	self.transAffinedep = Affine2D.from_values(
-		1., 0, -0.5, np.sqrt(3)/2., 0, 0)
+                1., 0, 0.5, np.sqrt(3)/2., 0, 0)
+        self.transAffinedep = Affine2D.from_values(
+                1., 0, -0.5, np.sqrt(3)/2., 0, 0)
         #self.transAffine = IdentityTransform()
         
         # 3) This is the transformation from axes space to display
@@ -167,10 +167,10 @@ class TriangularAxes(Axes):
         return self._yaxis_text2_transform, 'center', 'left'
 
     def _gen_axes_spines(self):
-	dep_spine = mspines.Spine.linear_spine(self,
+        dep_spine = mspines.Spine.linear_spine(self,
                                                    'right')
-	# Fix dependent axis to be transformed the correct way
-	dep_spine.set_transform(self.transAffinedep + self.transAxes)
+        # Fix dependent axis to be transformed the correct way
+        dep_spine.set_transform(self.transAffinedep + self.transAxes)
         return {'left':mspines.Spine.linear_spine(self,
                                                    'left'),
                 'bottom':mspines.Spine.linear_spine(self,
