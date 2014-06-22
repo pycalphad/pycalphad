@@ -99,15 +99,15 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
 
 
     for ( SimplexCollection& simpcol : start_simplices ) {
-        //DEBUG std::cout << "(";
+        std::cout << "(";
         std::vector<double> pt = generate_point ( simpcol );
-        /*for ( auto i = pt.begin(); i != pt.end(); ++i ) {
+        for ( auto i = pt.begin(); i != pt.end(); ++i ) {
             std::cout << *i;
             if ( std::distance ( i,pt.end() ) > 1 ) {
                 std::cout << ",";
             }
         }
-        std::cout << ")" << std::endl;*/
+        std::cout << ")" << std::endl;
         points.emplace_back ( std::move ( pt ) );
     }
 
@@ -193,19 +193,27 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
         // We need to concatenate all the sublattice coordinates in pure_points
         std::vector<double> pt;
         for ( auto &coords : pure_points ) {
+            if (coords.size() == 0) continue;
             pt.reserve ( pt.size() + coords.size() );
             pt.insert ( pt.end(), std::make_move_iterator ( coords.begin() ),  std::make_move_iterator ( coords.end() ) );
         }
+        std::cout << "checking ";
+        for ( auto i = pt.begin(); i != pt.end(); ++i ) {
+            std::cout << *i;
+            if ( std::distance ( i,pt.end() ) > 1 ) {
+                std::cout << ",";
+            }
+        }
+        std::cout << std::endl;
         // Before convex_hull, unmapped_minima has an energy coordinate
         pt.push_back ( calculate_energy ( pt ) );
-        /*DEBUG std::cout << "ENDMEMBER ";
+        std::cout << "ENDMEMBER ";
         for ( auto & coord : pt ) {
             std::cout << coord << ",";
         }
-        std::cout << std::endl;*/
+        std::cout << std::endl;
         unmapped_minima.emplace_back ( std::move ( pt ) );
     }
-    
     // If no unstable regions were found, there's no point in continuing the search
     if ( start_simplices.size() == positive_definite_regions.size() ) {
         // copy the unrefined grid into the return value
