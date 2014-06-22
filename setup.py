@@ -22,7 +22,7 @@ boost_python_version = 'boost_python-'+str(major_version)+'.'+str(minor_version)
 		  
 libcalphadcpp =  Extension('calphad.libcalphadcpp',
                   libcalphadcpp_sources,
-                  include_dirs=['calphad/cpp','calphad/cpp/libqhullcpp'],
+                  include_dirs=['calphad/cpp','calphad/cpp/libqhullcpp','calphad/cpp/libqhull'],
                   libraries=['ipopt', # ipopt (NLP solver)
 			     boost_python_version,
 			     'boost_timer',
