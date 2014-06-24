@@ -189,6 +189,7 @@ std::vector<std::vector<double>>  AdaptiveSimplexSample (
     }
     // Take all combinations of generated points in each sublattice
     pure_end_members = lattice_complex ( all_permutations );
+    if ( pure_end_members.size() == 1 ) pure_end_members.clear(); // Unary case: already handled by above
     for ( auto &pure_points : pure_end_members ) {
         // We need to concatenate all the sublattice coordinates in pure_points
         std::vector<double> pt;

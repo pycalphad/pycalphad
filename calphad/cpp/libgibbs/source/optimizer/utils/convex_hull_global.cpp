@@ -64,6 +64,18 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
     point_buffer.reserveCoordinates ( point_count );
     std::string Qhullcommand = "Qt ";
     
+    if (point_count == 1) { // Special case: No composition dependence
+        SimplicialFacet<double> new_facet;
+        new_facet.vertices = std::vector<std::size_t>();
+        new_facet.normal = std::vector<double>();
+        new_facet.vertices.push_back ( 0 );
+        new_facet.normal.push_back ( 0 );
+        new_facet.area = 0;
+        candidates.push_back ( new_facet );
+        return candidates;
+    }
+    // TODO: Handle degenerate case when point_count <= point_dimension
+    
     // Copy all of the points into a buffer compatible with Qhull
     for (auto pt : points) {
         point_buffer.append ( QhullPoint ( point_dimension, &pt[0] ) );
