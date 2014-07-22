@@ -40,3 +40,4 @@ lib/
 *.kdev4
 *.pyc
 *.kate-swp
+.ipynb_checkpoints/
