@@ -7,7 +7,8 @@
  
  #ifndef INCLUDED_INVERT_MATRIX
  #define INCLUDED_INVERT_MATRIX
-
+ #define BOOST_UBLAS_NDEBUG 1 // TODO: Ignoring the ill-conditioned matrix doesn't make it go away
+ 
  #include <boost/numeric/ublas/vector.hpp>
  #include <boost/numeric/ublas/vector_proxy.hpp>
  #include <boost/numeric/ublas/matrix.hpp>

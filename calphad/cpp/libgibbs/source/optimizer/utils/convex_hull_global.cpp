@@ -114,13 +114,13 @@ std::vector<SimplicialFacet<double>> global_lower_convex_hull (
                 auto end_coordinate = vertex->point().end()-1; // don't add energy coordinate
                 for ( auto coord = vertex->point().begin(); coord != end_coordinate; ++coord ) {
                     const std::size_t row_index = std::distance ( vertex->point().begin(), coord );
-                    //std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
+                    std::cout << "new_facet.basis_matrix(" << row_index << "," << column_index << ") = " << *coord << std::endl;
                     new_facet.basis_matrix ( row_index, column_index ) = *coord;
                 }
-                //std::cout << "new_facet.basis_matrix(" << vertex_count-1 << "," << column_index << ") = 1" << std::endl;
-                new_facet.basis_matrix ( vertex_count-1, column_index ) = 1; // last column is all 1's
+                std::cout << "new_facet.basis_matrix(" << vertex_count-1 << "," << column_index << ") = 1" << std::endl;
+                new_facet.basis_matrix ( vertex_count-1, column_index ) = 1; // last row is all 1's
             }
-            bool success = InvertMatrix ( new_facet.basis_matrix, new_facet.basis_matrix );
+            //TODO: bool success = InvertMatrix ( new_facet.basis_matrix, new_facet.basis_matrix );
             //if ( !success ) std::cout << "MATRIX INVERSION FAILED" << std::endl;
             for ( const auto coord : facet.hyperplane() ) {
                 new_facet.normal.push_back ( coord );
