@@ -63,6 +63,24 @@ class Database:
             raise TypeError
         # TODO: Verify that species def is all defined elements
         self._species.add(species.upper())
+    def add_structure_entry(self, local_name, global_name):
+        """
+        Define a relation between the system-local name of a phase and a
+        "global" identifier. This is used to link crystallographically
+        similar phases known by different colloquial names.
+
+        Parameters
+        ----------
+        local_name : string
+            System-local name of the phase.
+        global_name : object
+            Abstract representation of symbol, e.g., in SymPy format.
+
+        Examples
+        --------
+        None yet.
+        """
+        self._structure_dict[local_name] = global_name
     def add_symbol(self, name, symbol):
         """
         Add a symbol. This is a FUNCTION in Thermo-Calc lingo.
@@ -105,7 +123,7 @@ class Database:
         name : string
             Name of the symbol.
         symbol : object
-            Abstract representation of symbol, e.g., in SymPy format.
+            Abstract representation of the parameter, e.g., in SymPy format.
 
         Examples
         --------
@@ -117,7 +135,7 @@ class Database:
             raise TypeError
         if not isinstance(param_type, str):
             raise TypeError
-        if not isinstance(ref, str):
+        if not (isinstance(ref, str) or isinstance(ref, None)):
             raise TypeError
         if not isinstance(constituent_array, list):
             raise TypeError
@@ -125,6 +143,7 @@ class Database:
             'phase_name': phase_name,
             'constituent_array': constituent_array,
             'parameter_type': param_type,
+            'parameter_order': param_order,
             'parameter': param,
             'reference': ref
         }
@@ -197,56 +216,45 @@ class Database:
         """
         raise NotImplementedError
 
+from itertools import filterfalse, tee
 
-class TDBParser(object):
+def partition(pred, iterable):
+    'Use a predicate to partition entries into false entries and true entries'
+    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
+    tee1, tee2 = tee(iterable)
+    return filterfalse(pred, tee1), filter(pred, tee2)
+
+def tdbread(lines):
     """
-    Structured thermodynamic data in TDB format.
+    Parse a TDB file into a pycalphad Database object.
 
-    Attributes
+    Parameters
     ----------
-    None.
+    lines : string
+        A raw TDB file.
 
-    Methods
+    Returns
     -------
-    None.
+    Database
     """
-    def __init__(self, input_data, database):
-        """
-        Load a thermodynamic database (TDB).
-
-        Parameters
-        ----------
-        input_data : string
-            Raw data or path to TDB file.
-        database : Database
-            Database to fill.
-        """
-        print(input_data)
-
-"""
-            handle = open(filepath,'r')
-            lines = handle.read() # read entire file
-            handle.close()
-            # Take care of tabs, extra whitespace
-            lines = lines.replace('\t',' ')
-            lines = lines.strip()
-            # Split the string by newlines
-            splitlines = lines.split('\n')
-            # Remove extra whitespace inside line
-            splitlines = [' '.join(k.split()) for k in splitlines]
-            # Remove comments
-            splitlines = [k for k in splitlines if not k.startswith("$")]
-            # Combine everything back together
-            lines = ' '.join(splitlines)
-            # Now split by the command delimeter
-            commands = lines.split('!')
-            # Filter out comments one more time
-            # It's possible they were at the end of a command
-            commands = [k for k in commands if not k.startswith("$")]
-            # Separate out all PARAMETER commands; to be executed last
-            commands,para_commands = partition(
-                lambda cmd: cmd.upper().startswith("PARA"), 
-                commands)
-            map(self.raw_command,commands)
-            map(self.raw_command,para_commands)
-            """
+    newdb = Database()
+    lines = lines.replace('\t', ' ')
+    lines = lines.strip()
+    # Split the string by newlines
+    splitlines = lines.split('\n')
+    # Remove extra whitespace inside line
+    splitlines = [' '.join(k.split()) for k in splitlines]
+    # Remove comments
+    splitlines = [k for k in splitlines if not k.startswith("$")]
+    # Combine everything back together
+    lines = ' '.join(splitlines)
+    # Now split by the command delimeter
+    commands = lines.split('!')
+    # Filter out comments one more time
+    # It's possible they were at the end of a command
+    commands = [k for k in commands if not k.startswith("$")]
+    # Separate out all PARAMETER commands; to be executed last
+    commands, para_commands = partition(
+        lambda cmd: cmd.upper().startswith("PARA"),
+        commands)
+    return newdb
