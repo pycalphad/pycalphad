@@ -28,14 +28,16 @@ def tdbread(targetdb, lines):
     # Remove extra whitespace inside line
     splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k for k in splitlines if not k.startswith("$")]
+    splitlines = [k.strip() for k in splitlines if not k.startswith("$")]
     # Combine everything back together
     lines = ' '.join(splitlines)
     # Now split by the command delimeter
     commands = lines.split('!')
     # Filter out comments one more time
     # It's possible they were at the end of a command
-    commands = [k for k in commands if not k.startswith("$")]
+    commands = [k.strip() for k in commands if not k.startswith("$")]
+    # TODO: Rewrite this part to eliminate dependence on itertools
+    # Use funcparserlib to detect and separate out parameters/functions?
     # Separate out all PARAMETER commands; to be handled last
     commands, para_commands = partition(
         lambda cmd: cmd.upper().startswith("PARA"),
@@ -44,6 +46,9 @@ def tdbread(targetdb, lines):
     commands, func_commands = partition(
         lambda cmd: cmd.upper().startswith("FUNC"),
         commands)
+    print(commands)
+    print(func_commands)
+    print(para_commands)
 
 if __name__ == "__main__":
     pass
