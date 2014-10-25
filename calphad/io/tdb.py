@@ -2,36 +2,35 @@
 Thermo-Calc TDB format.
 """
 
-from itertools import tee
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty, LineEnd
-from pyparsing import Literal, OneOrMore, ParseException, Regex, SkipTo
+from pyparsing import OneOrMore, ParseException, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 from sympy import symbols, sympify, And, Piecewise
-
-def partition(pred, iterable):
-    'Use a predicate to partition entries into false entries and true entries'
-    # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
-    tee1, tee2 = tee(iterable)
-    return [i for i in tee1 if not pred(i)], [i for i in tee2 if pred(i)]
+from calphad.io.database import Database
 
 def _make_piecewise_ast(toks):
     """
     Convenience function for converting tokens into a piecewise sympy AST.
     """
-    final_ast = Piecewise((0, True))
     T = symbols('T') #pylint: disable=C0103
     cur_tok = 0
+    expr_cond_pairs = []
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
         high_temp = toks[cur_tok+2]
-        final_ast = final_ast + \
-            Piecewise((toks[cur_tok+1], And(low_temp <= T, T < high_temp)), \
-                (0,True))
+        expr_cond_pairs.append(
+            (
+                sympify(toks[cur_tok+1].replace('#', '')),
+                And(low_temp <= T, T < high_temp)
+            )
+        )
         cur_tok = cur_tok + 2
-    return final_ast
+    # not sure about having zero as implicit default value
+    expr_cond_pairs.append((0, True))
+    return Piecewise(*expr_cond_pairs) #pylint: disable=W0142
 
-def tdb_grammar(): #pylint: disable=R0914
+def _tdb_grammar(): #pylint: disable=R0914
     """
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
@@ -47,25 +46,31 @@ def tdb_grammar(): #pylint: disable=R0914
         delimitedList(Group(delimitedList(species_name, ',')), ':')
         )
     param_types = CaselessKeyword('G') | CaselessKeyword('L') | \
-                  CaselessKeyword('BM') | CaselessKeyword('TC') | \
-                  CaselessKeyword('BMAGN')
+                  CaselessKeyword('TC') | CaselessKeyword('BMAGN')
     # Let sympy do heavy arithmetic / algebra parsing for us
-    make_ast = lambda t: [sympify(t[0].replace('#', ''))]
-    func_expr = float_number + OneOrMore(SkipTo(';').addParseAction(make_ast) \
-        + Suppress(Literal(';')) + float_number + \
-        Suppress(Word('YNyn', exact=1)))
+    # a convenience function will handle the piecewise details
+    func_expr = float_number + OneOrMore(SkipTo(';') \
+        + Suppress(';') + float_number + Suppress(Word('YNyn', exact=1)))
+    # ELEMENT
     cmd_element = CaselessKeyword('ELEMENT') + Word(alphas+'/-', min=1, max=2)
+    # TYPE_DEFINITION
     cmd_typedef = CaselessKeyword('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
+    # FUNCTION
     cmd_function = CaselessKeyword('FUNCTION') + symbol_name + \
         func_expr.setParseAction(_make_piecewise_ast)
+    # DEFINE_SYSTEM_DEFAULT
     cmd_defsysdef = CaselessKeyword('DEFINE_SYSTEM_DEFAULT')
+    # DEFAULT_COMMAND
     cmd_defcmd = CaselessKeyword('DEFAULT_COMMAND')
+    # PHASE
     cmd_phase = CaselessKeyword('PHASE') + symbol_name + \
         Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
         Suppress(int_number) + Group(OneOrMore(float_number)) + LineEnd()
+    # CONSTITUENT
     cmd_constituent = CaselessKeyword('CONSTITUENT') + symbol_name + \
         Suppress(':') + constituent_array + Suppress(':') + LineEnd()
+    # PARAMETER
     cmd_parameter = CaselessKeyword('PARAMETER') + param_types + \
         Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
         Suppress(';') + int_number + Suppress(')') + \
@@ -82,6 +87,43 @@ def tdb_grammar(): #pylint: disable=R0914
                     Empty()
     return all_commands
 
+def _process_typedef(targetdb, typechar, line):
+    """
+    Process the TYPE_DEFINITION command.
+    """
+    pass
+
+def _process_phase(targetdb, name, typedefs, subls):
+    """
+    Process the PHASE command.
+    """
+    targetdb.add_structure_entry(name, name)
+    targetdb.add_phase(name, typedefs, subls)
+
+def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
+                       constituent_array, param_order, param, ref=None):
+    """
+    Process the PARAMETER command.
+    """
+    targetdb.add_parameter(param_type, phase_name, constituent_array.asList(),
+                           param_order, param, ref)
+
+def _unimplemented(*args, **kwargs): #pylint: disable=W0613
+    """
+    Null function.
+    """
+    pass
+
+_TDB_PROCESSOR = {
+    'ELEMENT': Database.add_element,
+    'TYPE_DEFINITION': _process_typedef,
+    'FUNCTION': Database.add_symbol,
+    'DEFINE_SYSTEM_DEFAULT': _unimplemented,
+    'DEFAULT_COMMAND': _unimplemented,
+    'PHASE': _process_phase,
+    'CONSTITUENT': Database.add_phase_constituents,
+    'PARAMETER': _process_parameter
+}
 def tdbread(targetdb, lines):
     """
     Parse a TDB file into a pycalphad Database object.
@@ -111,10 +153,13 @@ def tdbread(targetdb, lines):
 
     for command in commands:
         try:
-            tokens = tdb_grammar().parseString(command)
-            print(tokens)
+            tokens = _tdb_grammar().parseString(command)
+            if len(tokens) == 0:
+                continue
+            _TDB_PROCESSOR[tokens[0]](targetdb, *tokens[1:])
         except ParseException:
             print("Failed while parsing: "+command)
+            raise
 
 if __name__ == "__main__":
     MYTDB = '''
@@ -354,4 +399,5 @@ $CRFENI-NIMS
 
 
 '''
-    tdbread(None, MYTDB)
+    TESTDB = Database()
+    tdbread(TESTDB, MYTDB)

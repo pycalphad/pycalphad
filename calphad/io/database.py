@@ -1,11 +1,14 @@
 """The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
-from sets import Set
+try:
+    set
+except NameError:
+    from sets import Set as set #pylint: disable=W0622
 from tinydb import TinyDB
-import calphad.io.tdb
+from tinydb.storages import MemoryStorage
 
-class Database:
+class Database(object):
     """
     Structured thermodynamic and/or kinetic data.
     Databases are usually filled by Parsers and read by Models.
@@ -19,12 +22,33 @@ class Database:
     None yet.
 
     """
+    class Phase(object):
+        """
+        Phase in the database.
+
+        Attributes
+        ----------
+        name : string
+            System-local name of the phase.
+        constituents : list of lists
+            Possible sublattice constituents (elements and/or species).
+        sublattices : list
+            Site ratios of sublattices.
+        model_hints : list
+            Structured "hints" for a Model trying to read this phase.
+            Hints for major constituents and typedefs (Thermo-Calc) go here.
+        """
+        def __init__(self):
+            self.name = None
+            self.constituents = None
+            self.sublattices = []
+            self.model_hints = []
     def __init__(self):
-        self._elements = Set()
-        self._species = Set()
+        self._elements = set()
+        self._species = set()
         self._phases = {}
         self._structure_dict = {} # System-local phase names to global IDs
-        self._parameters = TinyDB()
+        self._parameters = TinyDB(storage=MemoryStorage)
         self._symbols = {}
         self._references = {}
         # Note: No typedefs here (from TDB files)
@@ -43,8 +67,6 @@ class Database:
         >>>> db = Database()
         >>>> db.add_element('Al')
         """
-        if not isinstance(element, str):
-            raise TypeError
         self._elements.add(element.upper())
     def add_species(self, species):
         """
@@ -60,8 +82,6 @@ class Database:
         >>>> db = Database()
         >>>> db.add_species('CO2')
         """
-        if not isinstance(species, str):
-            raise TypeError
         # TODO: Verify that species def is all defined elements
         self._species.add(species.upper())
     def add_structure_entry(self, local_name, global_name):
@@ -114,15 +134,20 @@ class Database:
         None yet.
         """
         self._references[name.upper()] = reference
-    def add_parameter(self, phase_name, constituent_array, param_type,
-                      param_order, param, ref=None):
+    def add_parameter(self, param_type, phase_name, #pylint: disable=R0913
+                      constituent_array, param_order,
+                      param, ref=None):
         """
         Add a parameter.
 
         Parameters
         ----------
-        name : string
-            Name of the symbol.
+        param_type : str
+            Type name of the parameter, e.g., G, L, BMAGN.
+        phase_name : string
+            Name of the phase.
+        constituent_array : list
+            Configuration of the sublattices (elements and/or species).
         symbol : object
             Abstract representation of the parameter, e.g., in SymPy format.
 
@@ -130,16 +155,6 @@ class Database:
         --------
         None yet.
         """
-        if not isinstance(phase_name, str):
-            raise TypeError
-        if not isinstance(param_order, int):
-            raise TypeError
-        if not isinstance(param_type, str):
-            raise TypeError
-        if not (isinstance(ref, str) or isinstance(ref, None)):
-            raise TypeError
-        if not isinstance(constituent_array, list):
-            raise TypeError
         new_parameter = {
             'phase_name': phase_name,
             'constituent_array': constituent_array,
@@ -150,7 +165,30 @@ class Database:
         }
         param_id = self._parameters.insert(new_parameter)
         return param_id
-    def add_phase(self, phase_name, constituents, model_hints):
+    def add_phase(self, phase_name, model_hints, sublattices):
+        """
+        Add a phase.
+
+        Parameters
+        ----------
+        phase_name : string
+            System-local name of the phase.
+        model_hints : list
+            Structured "hints" for a Model trying to read this phase.
+            Hints for major constituents and typedefs (Thermo-Calc) go here.
+        sublattices : list
+            Site ratios of sublattices.
+
+        Examples
+        --------
+        None yet.
+        """
+        new_phase = Database.Phase()
+        new_phase.name = phase_name
+        new_phase.sublattices = sublattices
+        new_phase.model_hints = model_hints
+        self._phases[phase_name] = new_phase
+    def add_phase_constituents(self, phase_name, constituents):
         """
         Add a phase.
 
@@ -160,15 +198,16 @@ class Database:
             System-local name of the phase.
         constituents : list
             Possible phase constituents (elements and/or species).
-        model_hints : list
-            Structured "hints" for a Model trying to read this phase.
-            Hints for major constituents and typedefs (Thermo-Calc) go here.
 
         Examples
         --------
         None yet.
         """
-        raise NotImplementedError
+        try:
+            self._phases[phase_name].constituents = constituents
+        except KeyError:
+            print("Undefined phase "+phase_name)
+            raise
     def search(self, query):
         """
         Search for parameters matching the specified query.
@@ -190,12 +229,7 @@ class Database:
         """
         Serialize Database to espei JSON format.
         """
-        raise NotImplementedError
-    def to_tdb(self):
-        """
-        Serialize Database to Thermo-Calc TDB format.
-        """
-        raise NotImplementedError
+        pass
     def from_json(self, input_json):
         """
         Construct Database from espei JSON format.
@@ -205,25 +239,7 @@ class Database:
         input_json : string
             Raw data or path to JSON file.
         """
-        raise NotImplementedError
-    def from_tdb(self, input_data):
-        """
-        Construct Database from Thermo-Calc TDB format.
-
-        Parameters
-        ----------
-        input_data : string
-            Raw data or path to TDB file.
-        """
-        if input_data.find('\n') == -1:
-            # This is probably a filename rather than a raw TDB
-            raw_data = None
-            with open(input_data, 'r') as data:
-                raw_data = data.read()
-            calphad.io.tdb.tdbread(self, raw_data)
-        else:
-            calphad.io.tdb.tdbread(self, input_data)
-
+        pass
 
 if __name__ == "__main__":
     pass
