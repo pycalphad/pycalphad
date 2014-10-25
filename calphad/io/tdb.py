@@ -3,14 +3,84 @@ Thermo-Calc TDB format.
 """
 
 from itertools import tee
-from pyparsing import CaselessKeyword,CharsNotIn,Group,LineEnd,Literal,OneOrMore,ParseException,Regex,SkipTo,Suppress,White,Word,alphanums,alphas,nums,delimitedList
-from sympy import sympify
+from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty, LineEnd
+from pyparsing import Literal, OneOrMore, ParseException, Regex, SkipTo
+from pyparsing import Suppress, White, Word, alphanums, alphas, nums
+from pyparsing import delimitedList
+from sympy import symbols, sympify, And, Piecewise
 
 def partition(pred, iterable):
     'Use a predicate to partition entries into false entries and true entries'
     # partition(is_odd, range(10)) --> 0 2 4 6 8   and  1 3 5 7 9
     tee1, tee2 = tee(iterable)
     return [i for i in tee1 if not pred(i)], [i for i in tee2 if pred(i)]
+
+def _make_piecewise_ast(toks):
+    """
+    Convenience function for converting tokens into a piecewise sympy AST.
+    """
+    final_ast = Piecewise((0, True))
+    T = symbols('T') #pylint: disable=C0103
+    cur_tok = 0
+    while cur_tok < len(toks)-1:
+        low_temp = toks[cur_tok]
+        high_temp = toks[cur_tok+2]
+        final_ast = final_ast + \
+            Piecewise((toks[cur_tok+1], And(low_temp <= T, T < high_temp)), \
+                (0,True))
+        cur_tok = cur_tok + 2
+    return final_ast
+
+def tdb_grammar(): #pylint: disable=R0914
+    """
+    Convenience function for getting the pyparsing grammar of a TDB file.
+    """
+    int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
+    # matching float w/ regex is ugly but is recommended by pyparsing
+    float_number = Regex(r'\d+(\.\d*)?([eE]\d+)?') \
+        .setParseAction(lambda t: [float(t[0])])
+    # symbol name, e.g., phase name, function name
+    symbol_name = Word(alphanums+'_', min=1)
+    # species name, e.g., CO2, AL, FE3+
+    species_name = Word(alphanums+'+-', min=1)
+    constituent_array = Group(
+        delimitedList(Group(delimitedList(species_name, ',')), ':')
+        )
+    param_types = CaselessKeyword('G') | CaselessKeyword('L') | \
+                  CaselessKeyword('BM') | CaselessKeyword('TC') | \
+                  CaselessKeyword('BMAGN')
+    # Let sympy do heavy arithmetic / algebra parsing for us
+    make_ast = lambda t: [sympify(t[0].replace('#', ''))]
+    func_expr = float_number + OneOrMore(SkipTo(';').addParseAction(make_ast) \
+        + Suppress(Literal(';')) + float_number + \
+        Suppress(Word('YNyn', exact=1)))
+    cmd_element = CaselessKeyword('ELEMENT') + Word(alphas+'/-', min=1, max=2)
+    cmd_typedef = CaselessKeyword('TYPE_DEFINITION') + \
+        Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
+    cmd_function = CaselessKeyword('FUNCTION') + symbol_name + \
+        func_expr.setParseAction(_make_piecewise_ast)
+    cmd_defsysdef = CaselessKeyword('DEFINE_SYSTEM_DEFAULT')
+    cmd_defcmd = CaselessKeyword('DEFAULT_COMMAND')
+    cmd_phase = CaselessKeyword('PHASE') + symbol_name + \
+        Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
+        Suppress(int_number) + Group(OneOrMore(float_number)) + LineEnd()
+    cmd_constituent = CaselessKeyword('CONSTITUENT') + symbol_name + \
+        Suppress(':') + constituent_array + Suppress(':') + LineEnd()
+    cmd_parameter = CaselessKeyword('PARAMETER') + param_types + \
+        Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
+        Suppress(';') + int_number + Suppress(')') + \
+        func_expr.setParseAction(_make_piecewise_ast)
+    # Now combine the grammar together
+    all_commands = cmd_element | \
+                    cmd_typedef | \
+                    cmd_function | \
+                    cmd_defsysdef | \
+                    cmd_defcmd | \
+                    cmd_phase | \
+                    cmd_constituent | \
+                    cmd_parameter | \
+                    Empty()
+    return all_commands
 
 def tdbread(targetdb, lines):
     """
@@ -30,7 +100,7 @@ def tdbread(targetdb, lines):
     # Remove extra whitespace inside line
     splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
-    splitlines = [k.strip().split('$',1)[0] for k in splitlines]
+    splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
     # Combine everything back together
     lines = ' '.join(splitlines)
     # Now split by the command delimeter
@@ -38,63 +108,16 @@ def tdbread(targetdb, lines):
     # Filter out comments one more time
     # It's possible they were at the end of a command
     commands = [k.strip() for k in commands if not k.startswith("$")]
-    
-    # TDB grammar definitions
-    intNumber = Word(nums).setParseAction( lambda s,l,t: [ int(t[0]) ] )
-    # matching float w/ regex is ugly but is recommended by pyparsing
-    floatNumber = Regex(r'\d+(\.\d*)?([eE]\d+)?') \
-        .setParseAction( lambda s,l,t: [ float(t[0]) ] )
-    # symbol name, e.g., phase name, function name
-    symbol_name = Word(alphanums+'_',min=1)
-    # species name, e.g., CO2, AL, FE3+
-    species_name = Word(alphanums+'+-', min=1)
-    constituent_array = Group(
-        delimitedList(Group(delimitedList(species_name,',')), ':')
-        )
-    param_types = CaselessKeyword('G') | CaselessKeyword('L') | \
-                  CaselessKeyword('BM') | CaselessKeyword('TC') | \
-                  CaselessKeyword('BMAGN')
-    # Let sympy do heavy arithmetic / algebra parsing for us
-    func_expr = floatNumber + OneOrMore(
-            SkipTo(';').setParseAction(
-                lambda s,l,t: [ sympify(t[0].replace('#','')) ]
-            ) + Suppress(Literal(';')) + floatNumber + \
-            Suppress(Word('YNyn',exact=1))
-        )
-    cmd_element = CaselessKeyword('ELEMENT') + Word(alphas+'/-', min=1, max=2)
-    cmd_typedef = CaselessKeyword('TYPE_DEFINITION') + \
-        Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
-    cmd_function = CaselessKeyword('FUNCTION') + symbol_name + func_expr
-    cmd_defsysdef = CaselessKeyword('DEFINE_SYSTEM_DEFAULT')
-    cmd_defcmd = CaselessKeyword('DEFAULT_COMMAND')
-    cmd_phase = CaselessKeyword('PHASE') + symbol_name + \
-        Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
-        Suppress(intNumber) + Group(OneOrMore(intNumber))
-    cmd_constituent = CaselessKeyword('CONSTITUENT') + symbol_name + \
-        Suppress(':') + constituent_array + Suppress(':')
-    cmd_parameter = CaselessKeyword('PARAMETER') + param_types + \
-        Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
-        Suppress(';') + intNumber + Suppress(')') + func_expr
-    # Now combine the grammar together G(BCC_A2,CR,FE,NI:VA;0)
-    all_commands = cmd_element | \
-                    cmd_typedef | \
-                    cmd_function | \
-                    cmd_defsysdef | \
-                    cmd_defcmd | \
-                    cmd_phase | \
-                    cmd_constituent | \
-                    cmd_parameter
-    
+
     for command in commands:
         try:
-            print('Parsing: '+command)
-            tokens = all_commands.parseString(command)
+            tokens = tdb_grammar().parseString(command)
             print(tokens)
-        except ValueError:
-            pass
+        except ParseException:
+            print("Failed while parsing: "+command)
 
 if __name__ == "__main__":
-    mytdb = '''
+    MYTDB = '''
 $ CRFENI
 $
 $ TDB-file for the thermodynamic assessment of the Cr-Fe-Ni system
@@ -331,4 +354,4 @@ $CRFENI-NIMS
 
 
 '''
-    tdbread(None,mytdb)
+    tdbread(None, MYTDB)
