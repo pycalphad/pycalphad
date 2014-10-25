@@ -7,7 +7,6 @@ from pyparsing import OneOrMore, ParseException, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 from sympy import symbols, sympify, And, Piecewise
-from calphad.io.database import Database
 
 def _make_piecewise_ast(toks):
     """
@@ -115,13 +114,13 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     pass
 
 _TDB_PROCESSOR = {
-    'ELEMENT': Database.add_element,
+    'ELEMENT': lambda db, el: db.add_element(el),
     'TYPE_DEFINITION': _process_typedef,
-    'FUNCTION': Database.add_symbol,
+    'FUNCTION': lambda db, name, sym: db.add_symbol(name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
     'PHASE': _process_phase,
-    'CONSTITUENT': Database.add_phase_constituents,
+    'CONSTITUENT': lambda db, name, c: db.add_phase_constituents(name, c),
     'PARAMETER': _process_parameter
 }
 def tdbread(targetdb, lines):
@@ -399,5 +398,6 @@ $CRFENI-NIMS
 
 
 '''
+    from calphad.io.database import Database
     TESTDB = Database()
     tdbread(TESTDB, MYTDB)
