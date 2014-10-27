@@ -6,6 +6,7 @@ from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty, LineEnd
 from pyparsing import OneOrMore, ParseException, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
+import re
 from sympy import symbols, sympify, And, Piecewise
 
 def _make_piecewise_ast(toks):
@@ -15,18 +16,26 @@ def _make_piecewise_ast(toks):
     T = symbols('T') #pylint: disable=C0103
     cur_tok = 0
     expr_cond_pairs = []
+    # sympify doesn't recognize LN as ln()
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
         high_temp = toks[cur_tok+2]
+        #TODO: sympify uses eval. Don't use it on unsanitized input.
+        expr_string = toks[cur_tok+1].replace('#', '')
+        expr_string = \
+            re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
+        expr_string = \
+            re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
+                   flags=re.IGNORECASE)
         expr_cond_pairs.append(
             (
-                sympify(toks[cur_tok+1].replace('#', '')),
+                sympify(expr_string),
                 And(low_temp <= T, T < high_temp)
             )
         )
         cur_tok = cur_tok + 2
     # not sure about having zero as implicit default value
-    expr_cond_pairs.append((0, True))
+    #expr_cond_pairs.append((0, True))
     return Piecewise(*expr_cond_pairs) #pylint: disable=W0142
 
 def _tdb_grammar(): #pylint: disable=R0914
@@ -96,6 +105,7 @@ def _process_phase(targetdb, name, typedefs, subls):
     """
     Process the PHASE command.
     """
+    print("Adding "+name+" with "+str(subls))
     targetdb.add_structure_entry(name, name)
     targetdb.add_phase(name, typedefs, subls)
 
@@ -114,9 +124,9 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     pass
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: db.add_element(el),
+    'ELEMENT': lambda db, el: db.elements.add(el),
     'TYPE_DEFINITION': _process_typedef,
-    'FUNCTION': lambda db, name, sym: db.add_symbol(name, sym),
+    'FUNCTION': lambda db, name, sym: db.symbols.__setitem__(name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
     'PHASE': _process_phase,

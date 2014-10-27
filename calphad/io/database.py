@@ -15,7 +15,16 @@ class Database(object):
 
     Attributes
     ----------
-    None yet.
+    elements : list
+        List of elements in database.
+    species : list
+        List of species in database.
+    phases : dict
+        Phase objects indexed by their system-local name.
+    symbols : dict
+        SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).
+    references : dict
+        Reference objects indexed by their system-local identifier.
 
     Methods
     -------
@@ -44,46 +53,15 @@ class Database(object):
             self.sublattices = []
             self.model_hints = []
     def __init__(self):
-        self._elements = set()
-        self._species = set()
-        self._phases = {}
+        self.elements = set()
+        self.species = set()
+        self.phases = {}
         self._structure_dict = {} # System-local phase names to global IDs
         self._parameters = TinyDB(storage=MemoryStorage)
-        self._symbols = {}
-        self._references = {}
+        self.symbols = {}
+        self.references = {}
         # Note: No typedefs here (from TDB files)
-        # Instead we put that information in the model_hint for _phases
-    def add_element(self, element):
-        """
-        Add an element.
-
-        Parameters
-        ----------
-        element : string
-            Name of the element.
-
-        Examples
-        --------
-        >>>> db = Database()
-        >>>> db.add_element('Al')
-        """
-        self._elements.add(element.upper())
-    def add_species(self, species):
-        """
-        Add a species.
-
-        Parameters
-        ----------
-        species : string
-            Name of the species.
-
-        Examples
-        --------
-        >>>> db = Database()
-        >>>> db.add_species('CO2')
-        """
-        # TODO: Verify that species def is all defined elements
-        self._species.add(species.upper())
+        # Instead we put that information in the model_hint for phases
     def add_structure_entry(self, local_name, global_name):
         """
         Define a relation between the system-local name of a phase and a
@@ -102,38 +80,6 @@ class Database(object):
         None yet.
         """
         self._structure_dict[local_name] = global_name
-    def add_symbol(self, name, symbol):
-        """
-        Add a symbol. This is a FUNCTION in Thermo-Calc lingo.
-
-        Parameters
-        ----------
-        name : string
-            Name of the symbol.
-        symbol : object
-            Abstract representation of symbol, e.g., in SymPy format.
-
-        Examples
-        --------
-        None yet.
-        """
-        self._symbols[name.upper()] = symbol
-    def add_reference(self, name, reference):
-        """
-        Add a reference to a source of information.
-
-        Parameters
-        ----------
-        name : string
-            Unique name for the reference.
-        reference : string
-            A citation to a source of information.
-
-        Examples
-        --------
-        None yet.
-        """
-        self._references[name.upper()] = reference
     def add_parameter(self, param_type, phase_name, #pylint: disable=R0913
                       constituent_array, param_order,
                       param, ref=None):
@@ -187,7 +133,7 @@ class Database(object):
         new_phase.name = phase_name
         new_phase.sublattices = sublattices
         new_phase.model_hints = model_hints
-        self._phases[phase_name] = new_phase
+        self.phases[phase_name] = new_phase
     def add_phase_constituents(self, phase_name, constituents):
         """
         Add a phase.
@@ -204,7 +150,7 @@ class Database(object):
         None yet.
         """
         try:
-            self._phases[phase_name].constituents = constituents
+            self.phases[phase_name].constituents = constituents
         except KeyError:
             print("Undefined phase "+phase_name)
             raise
@@ -225,21 +171,6 @@ class Database(object):
         >>>> db.search(where('eid') == eid)
         """
         return self._parameters.search(query)
-    def to_json(self):
-        """
-        Serialize Database to espei JSON format.
-        """
-        pass
-    def from_json(self, input_json):
-        """
-        Construct Database from espei JSON format.
-
-        Parameters
-        ----------
-        input_json : string
-            Raw data or path to JSON file.
-        """
-        pass
 
 if __name__ == "__main__":
     pass
