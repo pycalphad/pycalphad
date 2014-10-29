@@ -31,7 +31,7 @@ class Database(object):
     None yet.
 
     """
-    class Phase(object):
+    class Phase(object): #pylint: disable=R0903
         """
         Phase in the database.
 

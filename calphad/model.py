@@ -3,18 +3,12 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 
-from sympy import log, Add, Mul, Pow, S, Symbol
+from sympy import log, Add, Mul, Pow, S
 from tinydb import where
+import calphad.variables as v
 
-SI_GAS_CONSTANT = 8.3145
-T = Symbol('T')
 
-def Y(phase_name, subl_index, comp): #pylint: disable=C0103
-    """
-    Convenience function for the name of site fraction variables.
-    """
-    return 'Y^'+phase_name+'_'+str(subl_index)+',_'+comp
-
+# What about just running all self._model_*?
 class Model(object):
     """
     Models use Phases to calculate energies under specified conditions.
@@ -123,11 +117,33 @@ class Model(object):
         for sublattice in phase.constituents:
             if len(self._components - set(sublattice)) == \
                 len(self._components):
-                # None of the components in this sublattice are active
+                # None of the components in a sublattice are active
                 # We cannot build a model of this phase
                 return None
-        total_mixing_sites = sum(phase.sublattices)
+        total_energy = S.Zero
         # First, build the reference energy term
+        total_energy += self.reference_energy(phase, symbols, param_search)
+
+        # Next, add the ideal mixing term
+        total_energy += self.ideal_mixing_energy(phase)
+
+        # Next, add the binary, ternary and higher order mixing term
+        total_energy += self.excess_mixing_energy(phase, symbols, param_search)
+
+        # Next, we need to handle contributions from magnetic ordering
+        total_energy += self.magnetic_energy(phase, symbols, param_search)
+
+        # Next, we handle atomic ordering
+        total_energy += \
+            self.atomic_ordering_energy(phase, symbols, param_search)
+
+        self._phases[phase.name] = total_energy
+    def reference_energy(self, phase, symbols, param_search):
+        """
+        Returns the weighted average of the endmember energies
+        in symbolic form.
+        """
+        total_mixing_sites = sum(phase.sublattices)
         # TODO: Handle wildcards in constituent array
         pure_energy_term = S.Zero
         pure_param_query = (
@@ -136,6 +152,45 @@ class Model(object):
             (where('parameter_type') == "G") & \
             (where('constituent_array').test(self._purity_test))
         )
+
+        pure_params = param_search(pure_param_query)
+
+        for param in pure_params:
+            site_fraction_product = S.One
+            for subl_index, comp in enumerate(param['constituent_array']):
+                # We know that comp has one entry, by filtering
+                sitefrac = \
+                    v.SiteFraction(phase.name, subl_index, comp[0])
+                site_fraction_product *= sitefrac
+            pure_energy_term += (
+                site_fraction_product * param['parameter'].subs(symbols)
+            ) / total_mixing_sites
+        return pure_energy_term
+    def ideal_mixing_energy(self, phase):
+        """
+        Returns the ideal mixing energy in symbolic form.
+        """
+        total_mixing_sites = sum(phase.sublattices)
+        ideal_mixing_term = S.Zero
+        for subl_index, sublattice in enumerate(phase.constituents):
+            active_comps = set(sublattice).intersection(self._components)
+            ratio = phase.sublattices[subl_index] / total_mixing_sites
+            for comp in active_comps:
+                sitefrac = \
+                    v.SiteFraction(phase.name, subl_index, comp)
+                mixing_term = sitefrac * log(sitefrac)
+                ideal_mixing_term += (mixing_term*ratio)
+        ideal_mixing_term *= (v.R * v.T)
+        return ideal_mixing_term
+    def excess_mixing_energy(self, phase, symbols, param_search):
+        """
+        Build the binary, ternary and higher order interaction term
+        Here we use Redlich-Kister polynomial basis by default
+        Here we use the Muggianu ternary extension by default
+        Replace y_i -> y_i + (1 - sum(y involved in parameter)) / m,
+        where m is the arity of the interaction parameter
+        """
+        excess_mixing_term = S.Zero
         interaction_param_query = (
             (where('phase_name') == phase.name) & \
             (
@@ -144,46 +199,22 @@ class Model(object):
             ) & \
             (where('constituent_array').test(self._interaction_test))
         )
-        pure_params = param_search(pure_param_query)
+        # search for desired parameters
         interaction_params = param_search(interaction_param_query)
-
-        for param in pure_params:
-            site_fraction_product = S.One
-            for subl_index, comp in enumerate(param['constituent_array']):
-                # We know that comp has one entry, by filtering
-                sitefrac = \
-                    Symbol(Y(phase.name, subl_index, comp[0]))
-                site_fraction_product *= sitefrac
-            pure_energy_term += (
-                site_fraction_product * param['parameter'].subs(symbols)
-            ) / total_mixing_sites
-        # Next, build the ideal mixing term
-        ideal_mixing_term = S.Zero
-        for subl_index, sublattice in enumerate(phase.constituents):
-            active_comps = set(sublattice).intersection(self._components)
-            ratio = phase.sublattices[subl_index] / total_mixing_sites
-            for comp in active_comps:
-                sitefrac = \
-                    Symbol(Y(phase.name, subl_index, comp))
-                mixing_term = SI_GAS_CONSTANT * Symbol('T') \
-                    * sitefrac * log(sitefrac)
-                ideal_mixing_term += (mixing_term*ratio)
-
-        # Next, build the binary, ternary and higher order interaction term
-        # Here we use Redlich-Kister polynomial basis by default
-        # Here we use the Muggianu ternary extension by default
-        # Replace y_i -> y_i + (1 - sum(y involved in parameter)) / m,
-        #   where m is the arity of the interaction parameter
-        excess_mixing_term = S.Zero
         for param in interaction_params:
+            # iterate over every sublattice
             for subl_index, comps in enumerate(param['constituent_array']):
+                # consider only active components in sublattice
                 active_comps = set(comps).intersection(self._components)
+                # convert strings to symbols
                 comp_symbols = \
-                    [Symbol(
-                        Y(phase.name, subl_index, comp)
-                        ) for comp in active_comps]
-                ratio = phase.sublattices[subl_index] / total_mixing_sites
+                    [
+                        v.SiteFraction(phase.name, subl_index, comp)
+                        for comp in active_comps
+                    ]
+                ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
                 mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
+                # is this a higher-order interaction parameter?
                 if len(active_comps) > 1 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
@@ -192,10 +223,18 @@ class Model(object):
                     mixing_term *= redlich_kister_poly.subs(
                         self._Muggianu_correction_dict(comp_symbols)
                     )
-                # Perform Muggianu adjustment to all site fractions
                 excess_mixing_term += ratio * mixing_term * \
                     param['parameter'].subs(symbols)
-        # Next, we need to handle contributions from magnetic ordering
-
-        self._phases[phase.name] = pure_energy_term + ideal_mixing_term + \
-            excess_mixing_term
+        return excess_mixing_term
+    def magnetic_energy(self, phase, symbols, param_search):
+        """
+        Return the energy from magnetic ordering in symbolic form.
+        """
+        magnetic_term = S.Zero
+        return magnetic_term
+    def atomic_ordering_energy(self, phase, symbols, param_search):
+        """
+        Return the atomic ordering energy in symbolic form.
+        """
+        ordering_term = S.Zero
+        return ordering_term

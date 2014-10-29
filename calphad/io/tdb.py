@@ -7,15 +7,19 @@ from pyparsing import OneOrMore, ParseException, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
-from sympy import symbols, sympify, And, Piecewise
+from sympy import sympify, And, Piecewise
+import calphad.variables as v
 
 def _make_piecewise_ast(toks):
     """
     Convenience function for converting tokens into a piecewise sympy AST.
     """
-    T = symbols('T') #pylint: disable=C0103
     cur_tok = 0
     expr_cond_pairs = []
+    variable_fixes = {
+        'T': v.T,
+        'P': v.P
+    }
     # sympify doesn't recognize LN as ln()
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
@@ -29,8 +33,8 @@ def _make_piecewise_ast(toks):
                    flags=re.IGNORECASE)
         expr_cond_pairs.append(
             (
-                sympify(expr_string),
-                And(low_temp <= T, T < high_temp)
+                sympify(expr_string).subs(variable_fixes),
+                And(low_temp <= v.T, v.T < high_temp)
             )
         )
         cur_tok = cur_tok + 2
