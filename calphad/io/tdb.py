@@ -103,7 +103,15 @@ def _process_typedef(targetdb, typechar, line):
     """
     Process the TYPE_DEFINITION command.
     """
-    pass
+    # ' GES A_P_D BCC_A2 MAGNETIC  -1    0.4
+    tokens = line.split()
+    if len(tokens) < 6:
+        return
+    if tokens[3].upper() == 'MAGNETIC':
+        # magnetic model (IHJ model assumed by default)
+        targetdb._typedefs[typechar] = {
+            'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
+        }
 
 def _process_phase(targetdb, name, typedefs, subls):
     """
@@ -111,7 +119,15 @@ def _process_phase(targetdb, name, typedefs, subls):
     """
     print("Adding "+name+" with "+str(subls))
     targetdb.add_structure_entry(name, name)
-    targetdb.add_phase(name, typedefs, subls)
+    model_hints = {}
+    for typedef in list(typedefs):
+        if typedef in targetdb._typedefs.keys():
+            if 'ihj_magnetic' in targetdb._typedefs[typedef].keys():
+                model_hints['ihj_magnetic_afm_factor'] = \
+                    targetdb._typedefs[typedef]['ihj_magnetic'][0]
+                model_hints['ihj_magnetic_structure_factor'] = \
+                    targetdb._typedefs[typedef]['ihj_magnetic'][1]
+    targetdb.add_phase(name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
                        constituent_array, param_order, param, ref=None):

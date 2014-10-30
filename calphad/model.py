@@ -2,8 +2,8 @@
 The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
-
-from sympy import log, Add, Mul, Pow, S
+from __future__ import division
+from sympy import log, simplify, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
 import calphad.variables as v
 
@@ -215,7 +215,10 @@ class Model(object):
             for comp in active_comps:
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
-                mixing_term = sitefrac * log(sitefrac)
+                mixing_term = \
+                    Piecewise((sitefrac * log(sitefrac), sitefrac > 1e-16),
+                              (0, True)
+                             )
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
@@ -264,18 +267,45 @@ class Model(object):
                     param['parameter'].subs(symbols)
         return excess_mixing_term
     def magnetic_energy(self, phase, symbols, param_search):
+        #pylint: disable=C0103
         """
         Return the energy from magnetic ordering in symbolic form.
         The implemented model is the Inden-Hillert-Jarl formulation.
         The approach follows from the background section of W. Xiong, 2011.
         """
+        if 'ihj_magnetic_structure_factor' not in phase.model_hints:
+            raise KeyError('Magnetic structure factor undefined: '+phase.name)
+        if 'ihj_magnetic_structure_factor' not in phase.model_hints:
+            raise KeyError('Anti-ferromagnetic factor undefined: '+phase.name)
+        # define basic variables
         mean_magnetic_moment = \
             self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
+        afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
         curie_temp = \
             self._redlich_kister_sum(phase, symbols, 'TC', param_search)
+        tc = Piecewise(
+            (curie_temp, curie_temp > 0),
+            (curie_temp/afm_factor, curie_temp <= 0)
+            )
+        tau = v.T / tc
 
-        magnetic_term = v.R * v.T * log(mean_magnetic_moment+1)
-        return magnetic_term
+        # define model parameters
+        p = phase.model_hints['ihj_magnetic_structure_factor']
+        A = 518/1125 + (11592/15975)*(1/p - 1)
+        # factor when tau < 1
+        sub_tau = 1 - (1/A) * (79/(140*p)*(tau**(-1)) + (474/497)*(1/p - 1) * \
+                     ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                              )
+        # factor when tau >= 1
+        super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
+
+        expr_cond_pairs = [(0, And(tc < 1e-4, tc > 1e6)),
+                           (sub_tau, v.T < tc),
+                           (super_tau, v.T >= tc)
+                          ]
+
+        g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
+        return v.R * v.T * log(mean_magnetic_moment+1) * g_term
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
         Return the atomic ordering energy in symbolic form.

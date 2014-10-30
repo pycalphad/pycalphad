@@ -43,7 +43,7 @@ class Database(object):
             Possible sublattice constituents (elements and/or species).
         sublattices : list
             Site ratios of sublattices.
-        model_hints : list
+        model_hints : dict
             Structured "hints" for a Model trying to read this phase.
             Hints for major constituents and typedefs (Thermo-Calc) go here.
         """
@@ -51,16 +51,17 @@ class Database(object):
             self.name = None
             self.constituents = None
             self.sublattices = []
-            self.model_hints = []
+            self.model_hints = {}
     def __init__(self):
         self.elements = set()
         self.species = set()
         self.phases = {}
+        self._typedefs = {}
         self._structure_dict = {} # System-local phase names to global IDs
         self._parameters = TinyDB(storage=MemoryStorage)
         self.symbols = {}
         self.references = {}
-        # Note: No typedefs here (from TDB files)
+        # Note: No public typedefs here (from TDB files)
         # Instead we put that information in the model_hint for phases
     def add_structure_entry(self, local_name, global_name):
         """
