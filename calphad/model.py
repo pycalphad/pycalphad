@@ -125,7 +125,7 @@ class Model(object):
         total_energy += self.reference_energy(phase, symbols, param_search)
 
         # Next, add the ideal mixing term
-        total_energy += self.ideal_mixing_energy(phase)
+        total_energy += self.ideal_mixing_energy(phase, symbols, param_search)
 
         # Next, add the binary, ternary and higher order mixing term
         total_energy += self.excess_mixing_energy(phase, symbols, param_search)
@@ -138,6 +138,42 @@ class Model(object):
             self.atomic_ordering_energy(phase, symbols, param_search)
 
         self._phases[phase.name] = total_energy
+    def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
+        """
+        Construct parameter in Redlich-Kister polynomial basis, using
+        the Muggianu ternary parameter extension.
+        """
+        rk_term = S.Zero
+        param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == param_type)
+        )
+        # search for desired parameters
+        params = param_search(param_query)
+        for param in params:
+            # iterate over every sublattice
+            for subl_index, comps in enumerate(param['constituent_array']):
+                # consider only active components in sublattice
+                # convert strings to symbols
+                comp_symbols = \
+                    [
+                        v.SiteFraction(phase.name, subl_index, comp)
+                        for comp in set(comps).intersection(self._components)
+                    ]
+                ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
+                mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
+                # is this a higher-order interaction parameter?
+                if len(comp_symbols) > 1 and param['parameter_order'] > 0:
+                    # interacting sublattice, add the interaction polynomial
+                    redlich_kister_poly = Pow(comp_symbols[0] - \
+                        Add(*comp_symbols[1:]), param['parameter_order'])
+                    # Perform Muggianu adjustment to site fractions
+                    mixing_term *= redlich_kister_poly.subs(
+                        self._Muggianu_correction_dict(comp_symbols)
+                    )
+                rk_term += ratio * mixing_term * \
+                    param['parameter'].subs(symbols)
+        return rk_term
     def reference_energy(self, phase, symbols, param_search):
         """
         Returns the weighted average of the endmember energies
@@ -166,7 +202,8 @@ class Model(object):
                 site_fraction_product * param['parameter'].subs(symbols)
             ) / total_mixing_sites
         return pure_energy_term
-    def ideal_mixing_energy(self, phase):
+    def ideal_mixing_energy(self, phase, symbols, param_search):
+        #pylint: disable=W0613
         """
         Returns the ideal mixing energy in symbolic form.
         """
@@ -229,8 +266,15 @@ class Model(object):
     def magnetic_energy(self, phase, symbols, param_search):
         """
         Return the energy from magnetic ordering in symbolic form.
+        The implemented model is the Inden-Hillert-Jarl formulation.
+        The approach follows from the background section of W. Xiong, 2011.
         """
-        magnetic_term = S.Zero
+        mean_magnetic_moment = \
+            self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
+        curie_temp = \
+            self._redlich_kister_sum(phase, symbols, 'TC', param_search)
+
+        magnetic_term = v.R * v.T * log(mean_magnetic_moment+1)
         return magnetic_term
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """

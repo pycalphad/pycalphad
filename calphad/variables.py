@@ -19,7 +19,8 @@ class SiteFraction(StateVariable):
     and nonnegative. The constructor handles formatting of the name.
     """
     def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
-        varname = 'y^'+phase_name+'_'+str(subl_index)+',_'+species
+        varname = 'y^{'+phase_name.replace('_', '-') + \
+            '}_{'+str(subl_index)+'},_{'+species+'}'
         return StateVariable.__new__(cls, varname) #pylint: disable=E1121
 
 temperature = T = StateVariable('T')
