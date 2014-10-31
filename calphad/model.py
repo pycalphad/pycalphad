@@ -3,7 +3,7 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
-from sympy import log, simplify, Add, And, Mul, Piecewise, Pow, S
+from sympy import log, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
 import calphad.variables as v
 
@@ -11,7 +11,8 @@ import calphad.variables as v
 # What about just running all self._model_*?
 class Model(object):
     """
-    Models use Phases to calculate energies under specified conditions.
+    Models use an abstract representation of the energy function
+    to calculate values under specified conditions.
 
     Attributes
     ----------
@@ -137,6 +138,9 @@ class Model(object):
         total_energy += \
             self.atomic_ordering_energy(phase, symbols, param_search)
 
+        # Save all variables
+        self.variables = total_energy.atoms(v.StateVariable)
+
         self._phases[phase.name] = total_energy
     def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
         """
@@ -255,6 +259,7 @@ class Model(object):
                 ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
                 mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
+                # TODO: fix parameter_order handling for ternary params
                 if len(active_comps) > 1 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
@@ -274,9 +279,9 @@ class Model(object):
         The approach follows from the background section of W. Xiong, 2011.
         """
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
-            raise KeyError('Magnetic structure factor undefined: '+phase.name)
-        if 'ihj_magnetic_structure_factor' not in phase.model_hints:
-            raise KeyError('Anti-ferromagnetic factor undefined: '+phase.name)
+            return S.Zero
+        if 'ihj_magnetic_afm_factor' not in phase.model_hints:
+            return S.Zero
         # define basic variables
         mean_magnetic_moment = \
             self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
