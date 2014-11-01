@@ -6,6 +6,10 @@ from __future__ import division
 from sympy import log, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
+try:
+    set
+except NameError:
+    from sets import Set as set #pylint: disable=W0622
 
 # What about just running all self._model_*?
 class Model(object):
@@ -35,6 +39,9 @@ class Model(object):
                     ' is not a subset of '+str(self.components))
         # Build the abstract syntax tree
         self.ast = self._build_phase(db.phases[phase], db.symbols, db.search)
+        # Need to do one more substitution to catch symbols that are functions
+        # of other symbols
+        self.ast = self.ast.subs(db.symbols)
         self.variables = self.ast.atoms(v.StateVariable)
     def _purity_test(self, constituent_array):
         """

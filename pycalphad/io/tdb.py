@@ -117,7 +117,6 @@ def _process_phase(targetdb, name, typedefs, subls):
     """
     Process the PHASE command.
     """
-    print("Adding "+name+" with "+str(subls))
     targetdb.add_structure_entry(name, name)
     model_hints = {}
     for typedef in list(typedefs):
