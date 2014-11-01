@@ -7,7 +7,6 @@ from sympy import log, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
 import calphad.variables as v
 
-
 # What about just running all self._model_*?
 class Model(object):
     """
@@ -30,6 +29,7 @@ class Model(object):
         print("Initializing model for "+ str(phases))
         self._components = set(comps)
         self._phases = {}
+        self.variables = set()
         for phase_name, phase_obj in db.phases.items():
             print('Checking '+phase_name)
             if phase_name in phases:
@@ -139,7 +139,7 @@ class Model(object):
             self.atomic_ordering_energy(phase, symbols, param_search)
 
         # Save all variables
-        self.variables = total_energy.atoms(v.StateVariable)
+        self.variables.update(total_energy.atoms(v.StateVariable))
 
         self._phases[phase.name] = total_energy
     def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
