@@ -5,7 +5,7 @@ calculations under specified conditions.
 from __future__ import division
 from sympy import log, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
-import calphad.variables as v
+import pycalphad.variables as v
 
 # What about just running all self._model_*?
 class Model(object):
@@ -103,7 +103,7 @@ class Model(object):
         are physically similar.
 
         This procedure is based on an analysis by Hillert, 1980,
-        published in the Calphad journal.
+        published in the pycalphad journal.
         """
         arity = len(comps)
         return_dict = {}

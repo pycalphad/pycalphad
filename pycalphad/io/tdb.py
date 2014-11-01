@@ -8,7 +8,7 @@ from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
 from sympy import sympify, And, Piecewise
-import calphad.variables as v
+import pycalphad.variables as v
 
 def _make_piecewise_ast(toks):
     """
@@ -160,7 +160,7 @@ def tdbread(targetdb, lines):
     Parameters
     ----------
     targetdb : Database
-        A pycalphad Database.
+        A pypycalphad Database.
     lines : string
         A raw TDB file.
     """
@@ -210,16 +210,16 @@ $-------------------------------------------------------------------------------
 $ PARAMETERS ARE TAKEN FROM
 $ The parameter set is taken from
 $ [1999Mie] Thermodynamic reassessment of Fe-Cr-Ni system with emphasis on the 
-$ iron-rich corner, J.Miettinen, CALPHAD, 23 (1999) 231-248.
+$ iron-rich corner, J.Miettinen, pycalphad, 23 (1999) 231-248.
 $
 $ [1987And] Thermodynamic properties of teh Cr-Fe system,
-$ J.-O.Andersson and B.Sundman, CALPHAD, 11 (1987), 83-92.
+$ J.-O.Andersson and B.Sundman, pycalphad, 11 (1987), 83-92.
 $
 $ [1993Lee] Revision of thermodynamic descriptions of the Fe-Cr and Fe-Ni 
-$ liquid phases, B.-J.Lee, CALPHAD, 17 (1993), 251-268.
+$ liquid phases, B.-J.Lee, pycalphad, 17 (1993), 251-268.
 $
 $ [1992Lee] On the stability of Cr-Carbides, B.-J.Lee, 
-$ CALPHAD, 16 (1992), 121-149.
+$ pycalphad, 16 (1992), 121-149.
 $
 $ [1990Hil] M.Hillert, C.Qiu, Metall. Trans.A, 21A (1990) 1673.
 $
@@ -428,6 +428,6 @@ $CRFENI-NIMS
 
 
 '''
-    from calphad.io.database import Database
+    from pycalphad.io.database import Database
     TESTDB = Database()
     tdbread(TESTDB, MYTDB)

@@ -46,3 +46,28 @@ def point_sample(comp_count, size=10):
     # join together the coordinates in each sublattice
     result = list(map(np.concatenate, prod))
     return np.asarray(result)
+
+def eq(db, comps, phases, **kwargs):
+    """
+    Calculate the equilibrium state of a system containing the specified
+    components and phases. Model parameters are taken from 'db' and any
+    state variables (T, P, etc.) can be specified as keyword arguments.
+
+    Parameters
+    ----------
+    db : Database
+        Thermodynamic database containing the relevant parameters.
+    comps : list
+        Names (case-sensitive) of components to consider in the calculation.
+    phases : list
+        Names (case-sensitive) of phases to consider in the calculation.
+
+    Returns
+    -------
+    Structured equilibrium calculation.
+
+    Examples
+    --------
+    None yet.
+    """
+    pass
