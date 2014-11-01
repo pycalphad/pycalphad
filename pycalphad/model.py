@@ -11,7 +11,7 @@ import pycalphad.variables as v
 class Model(object):
     """
     Models use an abstract representation of the energy function
-    to calculate values under specified conditions.
+    for calculation of values under specified conditions.
 
     Attributes
     ----------
@@ -25,38 +25,17 @@ class Model(object):
     --------
     None yet.
     """
-    def __init__(self, db, comps, phases):
-        print("Initializing model for "+ str(phases))
-        self._components = set(comps)
-        self._phases = {}
-        self.variables = set()
-        for phase_name, phase_obj in db.phases.items():
-            print('Checking '+phase_name)
-            if phase_name in phases:
-                cur_phase = self._build_phase(phase_obj, db.symbols, db.search)
-                if cur_phase is not None:
-                    # do something
-                    pass
-        print("Initialization complete")
-    def __call__(self, substitutions=None, phases=None):
-        result = {}
-        if phases is None:
-            for name, ast in self._phases.items():
-                if substitutions is None:
-                    result[name] = ast
-                else:
-                    result[name] = ast.subs(substitutions)
-        else:
-            for phase_name in phases:
-                if substitutions is None:
-                    result[phase_name] = self._phases[phase_name]
-                else:
-                    result[phase_name] = \
-                        self._phases[phase_name].subs(substitutions)
-        if len(result) == 1:
-            return list(result.values())[0]
-        else:
-            return result
+    def __init__(self, db, comps, phase):
+        self.components = set(comps)
+        for sublattice in db.phases[phase].constituents:
+            if not set(sublattice).issubset(self.components):
+                # None of the components in a sublattice are active
+                # We cannot build a model of this phase
+                raise ValueError(str(sublattice) + \
+                    ' is not a subset of '+str(self.components))
+        # Build the abstract syntax tree
+        self.ast = self._build_phase(db.phases[phase], db.symbols, db.search)
+        self.variables = self.ast.atoms(v.StateVariable)
     def _purity_test(self, constituent_array):
         """
         Check if constituent array only has one species in its array
@@ -65,7 +44,7 @@ class Model(object):
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
-            if (sublattice[0] not in self._components) and \
+            if (sublattice[0] not in self.components) and \
                 (sublattice[0] != '*'):
                 return False
         return True
@@ -77,7 +56,7 @@ class Model(object):
         result = False
         for sublattice in constituent_array:
             # check if all elements involved are also active
-            valid = set(sublattice).issubset(self._components)
+            valid = set(sublattice).issubset(self.components)
             if len(sublattice) > 1 and valid:
                 result = True
             if not valid:
@@ -115,12 +94,6 @@ class Model(object):
         """
         Apply phase's model hints to build a master SymPy object.
         """
-        for sublattice in phase.constituents:
-            if len(self._components - set(sublattice)) == \
-                len(self._components):
-                # None of the components in a sublattice are active
-                # We cannot build a model of this phase
-                return None
         total_energy = S.Zero
         # First, build the reference energy term
         total_energy += self.reference_energy(phase, symbols, param_search)
@@ -138,10 +111,7 @@ class Model(object):
         total_energy += \
             self.atomic_ordering_energy(phase, symbols, param_search)
 
-        # Save all variables
-        self.variables.update(total_energy.atoms(v.StateVariable))
-
-        self._phases[phase.name] = total_energy
+        return total_energy
     def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
@@ -162,7 +132,7 @@ class Model(object):
                 comp_symbols = \
                     [
                         v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in set(comps).intersection(self._components)
+                        for comp in set(comps).intersection(self.components)
                     ]
                 ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
                 mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
@@ -214,7 +184,7 @@ class Model(object):
         total_mixing_sites = sum(phase.sublattices)
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
-            active_comps = set(sublattice).intersection(self._components)
+            active_comps = set(sublattice).intersection(self.components)
             ratio = phase.sublattices[subl_index] / total_mixing_sites
             for comp in active_comps:
                 sitefrac = \
@@ -249,7 +219,7 @@ class Model(object):
             # iterate over every sublattice
             for subl_index, comps in enumerate(param['constituent_array']):
                 # consider only active components in sublattice
-                active_comps = set(comps).intersection(self._components)
+                active_comps = set(comps).intersection(self.components)
                 # convert strings to symbols
                 comp_symbols = \
                     [
