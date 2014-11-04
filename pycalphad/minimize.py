@@ -4,8 +4,7 @@ The minimize module handles calculation of equilibrium.
 from __future__ import division
 from pycalphad import Model
 import pycalphad.variables as v
-from sympy.printing.theanocode import theano_function
-import theano
+from pycalphad.theanocode import theano_function
 import pandas as pd
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -14,22 +13,6 @@ try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
-
-# monkey patch for theano_function handling sympy
-import sympy.printing.theanocode
-sympy.printing.theanocode.mapping[sympy.And] = theano.tensor.and_
-def _special_print_Piecewise(self, expr, **kwargs):
-    import numpy.nan
-    from theano.ifelse import ifelse
-    e, cond = expr.args[0].args
-    if len(expr.args) == 1:
-        return ifelse(self._print(cond, **kwargs),
-                      self._print(e, **kwargs),
-                      numpy.nan)
-    return ifelse(self._print(cond, **kwargs),
-                  self._print(e, **kwargs),
-                  self._print(sympy.Piecewise(*expr.args[1:]), **kwargs))
-sympy.printing.theanocode._print_Piecewise = _special_print_Piecewise
 
 def point_sample(comp_count, size=10):
     """
@@ -157,22 +140,23 @@ def eq(db, comps, phases, **kwargs):
         sublattice_dof = list(map(len, phase_obj.constituents))
         nontrivial_sublattices = len(sublattice_dof) - sublattice_dof.count(1)
         # Get the site ratios in each sublattice
-        site_ratios = phase_obj.sublattices
+        site_ratios = list(phase_obj.sublattices)
         # Choose a sensible number of compositions to sample
         num_points = int(points_per_phase**(1/nontrivial_sublattices))
         # Sample composition space
         points = point_sample(sublattice_dof, size=num_points)
         # Allocate space for energies, once calculated
         energies = np.zeros(len(points))
-        # Calculate which species occupy which sublattices
-        # This will save us time when we map to global coordinates
-        total_site_occupation = {}
-        for component in comps:
-            total_sites = 0
-            for idx, sublattice in enumerate(phase_obj.constituents):
-                if component in list(sublattice):
-                    total_sites = total_sites + site_ratios[idx]
-            total_site_occupation[component] = total_sites
+
+        # Normalize site ratios
+        site_ratio_normalization = 0
+        for idx, sublattice in enumerate(phase_obj.constituents):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            site_ratio_normalization += site_ratios[idx]
+
+        site_ratios = [c/site_ratio_normalization for c in site_ratios]
 
         # TODO: not very efficient point sampling strategy
         # in principle, this could be parallelized
@@ -183,22 +167,31 @@ def eq(db, comps, phases, **kwargs):
         data_dict = {'GM':energies, 'Phase':phase_name}
         data_dict.update(statevars)
 
+        for comp in sorted(comps):
+            if comp == 'VA':
+                continue
+            data_dict['X('+comp+')'] = [0 for n in range(len(points))]
+
         for column_idx, data in enumerate(points.T):
             data_dict[var_names[column_idx]] = data
-        # TODO: Better way to do this than append (always copies)?
-        phase_df = pd.DataFrame(data_dict)
-        print(phase_df)
 
         # Now map the internal degrees of freedom to global coordinates
-        for p in points:
-            phase_mole_fractions = {comp: 0 for comp in comps}
+        for p_idx, p in enumerate(points):
             for idx, coordinate in enumerate(p):
                 cur_var = variables[idx]
+                if cur_var.species == 'VA':
+                    continue
                 ratio = site_ratios[cur_var.sublattice_index]
-                ratio /= total_site_occupation[cur_var.species]
-                phase_mole_fractions[cur_var.species] += ratio*coordinate
+                data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
 
-    print(all_phases_df)
+        phase_df = pd.DataFrame(data_dict)
+        # Merge dataframe into master dataframe
+        # TODO: Better way to do this than concat (always copies)?
+        all_phases_df = \
+            pd.concat([all_phases_df, phase_df], axis=0, join='outer', \
+                        ignore_index=True)
+    # all_phases_df now contains energy surface information for the system
+    return all_phases_df
 
 def find_hull(points, energies, sublattice_dof):
     # Construct a matrix to calculate the convex hull of this phase
