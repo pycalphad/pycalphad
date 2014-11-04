@@ -32,11 +32,11 @@ class Model(object):
     def __init__(self, db, comps, phase):
         self.components = set(comps)
         for sublattice in db.phases[phase].constituents:
-            if not set(sublattice).issubset(self.components):
+            if len(set(sublattice).intersection(self.components)) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
                 raise ValueError(str(sublattice) + \
-                    ' is not a subset of '+str(self.components))
+                    ' has no components in '+str(self.components))
         # Build the abstract syntax tree
         self.ast = self._build_phase(db.phases[phase], db.symbols, db.search)
         # Need to do one more substitution to catch symbols that are functions
@@ -53,6 +53,15 @@ class Model(object):
                 return False
             if (sublattice[0] not in self.components) and \
                 (sublattice[0] != '*'):
+                return False
+        return True
+    def _array_validity(self, constituent_array):
+        """
+        Check that the current array contains only active species.
+        """
+        for sublattice in constituent_array:
+            valid = set(sublattice).issubset(self.components)
+            if not valid:
                 return False
         return True
     def _interaction_test(self, constituent_array):
@@ -127,7 +136,8 @@ class Model(object):
         rk_term = S.Zero
         param_query = (
             (where('phase_name') == phase.name) & \
-            (where('parameter_type') == param_type)
+            (where('parameter_type') == param_type) & \
+            (where('constituent_array').test(self._array_validity))
         )
         # search for desired parameters
         params = param_search(param_query)

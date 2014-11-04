@@ -114,6 +114,7 @@ def eq(db, comps, phases, **kwargs):
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
     statevars = {v.StateVariable(k): val for k, val in kwargs.items()}
+    active_comps = set(comps)
     # Consider only the active phases
     active_phases = {name: db.phases[name] for name in phases}
     comp_sets = {}
@@ -124,9 +125,13 @@ def eq(db, comps, phases, **kwargs):
         mod = Model(db, comps, phase_name)
         # Construct an ordered list of the variables
         variables = []
+        sublattice_dof = []
         for idx, sublattice in enumerate(phase_obj.constituents):
-            for component in sorted(sublattice):
+            dof = 0
+            for component in set(sublattice).intersection(active_comps):
                 variables.append(v.SiteFraction(phase_name, idx, component))
+                dof += 1
+            sublattice_dof.append(dof)
 
         # Build the "fast" representation of that model
         comp_sets[phase_name] = CompositionSet(mod, statevars, variables)
@@ -137,7 +142,6 @@ def eq(db, comps, phases, **kwargs):
                 for variable in variables]
 
         # Calculate the number of components in each sublattice
-        sublattice_dof = list(map(len, phase_obj.constituents))
         nontrivial_sublattices = len(sublattice_dof) - sublattice_dof.count(1)
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
@@ -165,7 +169,7 @@ def eq(db, comps, phases, **kwargs):
 
         # Add points and calculated energies to the DataFrame
         data_dict = {'GM':energies, 'Phase':phase_name}
-        data_dict.update(statevars)
+        data_dict.update(kwargs)
 
         for comp in sorted(comps):
             if comp == 'VA':
@@ -192,20 +196,3 @@ def eq(db, comps, phases, **kwargs):
                         ignore_index=True)
     # all_phases_df now contains energy surface information for the system
     return all_phases_df
-
-def find_hull(points, energies, sublattice_dof):
-    # Construct a matrix to calculate the convex hull of this phase
-    gibbs_matrix = np.ndarray((len(points), sum(sublattice_dof)+1))
-    gibbs_matrix[:, 0:-1] = points
-    gibbs_matrix[:, -1] = energies
-
-    # Strip out the dependent degrees of freedom before finding the hull
-    all_dof = set(range(sum(sublattice_dof)))
-    cur_idx = 0
-    dependent_dof = set()
-    for dof in sublattice_dof:
-        cur_idx += dof
-        dependent_dof.append(cur_idx-1)
-    independent_dof = list(all_dof - dependent_dof)
-    internal_hull = ConvexHull(gibbs_matrix[:, independent_dof])
-
