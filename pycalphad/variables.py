@@ -21,7 +21,11 @@ class SiteFraction(StateVariable):
     def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
         varname = 'y^{'+phase_name.replace('_', '-') + \
             '}_{'+str(subl_index)+'},_{'+species+'}'
-        return StateVariable.__new__(cls, varname) #pylint: disable=E1121
+        new_self = StateVariable.__new__(cls, varname) #pylint: disable=E1121
+        new_self.phase_name = phase_name
+        new_self.sublattice_index = subl_index
+        new_self.species = species
+        return new_self
 
 temperature = T = StateVariable('T')
 entropy = S = StateVariable('S')
