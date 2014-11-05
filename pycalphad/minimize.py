@@ -84,7 +84,7 @@ class CompositionSet(object):
         print(self.variables)
         self.energy = theano_function(self.variables, [self.ast])
 
-def eq(db, comps, phases, **kwargs):
+def eq(db, comps, phases, points_per_phase=10000, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
@@ -98,6 +98,8 @@ def eq(db, comps, phases, **kwargs):
         Names (case-sensitive) of components to consider in the calculation.
     phases : list
         Names (case-sensitive) of phases to consider in the calculation.
+    points_per_phase : int, optional
+        Approximate number of points to sample per phase.
 
     Returns
     -------
@@ -110,7 +112,6 @@ def eq(db, comps, phases, **kwargs):
     # Here we would check for any keyword arguments that are special, i.e.,
     # there may be keyword arguments that aren't state variables
 
-    points_per_phase = 10000
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
     statevars = {v.StateVariable(k): val for k, val in kwargs.items()}

@@ -19,7 +19,8 @@ def isotherm(df, x_variable, y_variable, **statevars):
         point_selector = point_selector & (df[variable] == value)
 
     hull_frame = df.ix[point_selector, [x_variable, y_variable, 'GM', 'Phase']]
-
+    print(hull_frame)
+    point_frame = hull_frame[[x_variable, y_variable]]
     # Calculate the convex hull for the desired points
     hull = scipy.spatial.ConvexHull(
         hull_frame[[x_variable, y_variable, 'GM']].values
@@ -38,21 +39,21 @@ def isotherm(df, x_variable, y_variable, **statevars):
             continue
         if np.any(np.any(
                 np.where(
-                    hull_frame[[x_variable, y_variable]].iloc[simplex] < 1e-3,\
+                    point_frame.iloc[simplex] < 1e-3,\
                     True, False), axis=1
             ), axis=0):
             # this simplex is not part of the energy surface
             continue
         if np.all(np.any(
                 np.where(
-                    hull_frame[[x_variable, y_variable]].iloc[simplex] > 0.98,\
+                    point_frame.iloc[simplex] > 0.98,\
                     True, False), axis=1
             ), axis=0):
             # this simplex is not part of the energy surface
             continue
         distances = \
             scipy.spatial.distance.pdist(
-                hull_frame[[x_variable, y_variable]].iloc[simplex]
+                point_frame.iloc[simplex]
             )
         shortest_distance = np.min(distances)
         simplex_edges = np.asarray(list(itertools.combinations(simplex, 2)))

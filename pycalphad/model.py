@@ -145,21 +145,28 @@ class Model(object):
             # iterate over every sublattice
             for subl_index, comps in enumerate(param['constituent_array']):
                 # consider only active components in sublattice
+                active_comps = set(comps).intersection(self.components)
                 # convert strings to symbols
                 comp_symbols = \
                     [
                         v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in set(comps).intersection(self.components)
+                        for comp in active_comps
                     ]
                 ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
                 mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
-                if len(comp_symbols) > 1 and param['parameter_order'] > 0:
+                # TODO: fix parameter_order handling for ternary params
+                if len(active_comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
                         Add(*comp_symbols[1:]), param['parameter_order'])
+                    mixing_term *= redlich_kister_poly
+                if len(active_comps) == 3:
+                    # 'parameter_order' is an index to a variable when
+                    # we are in the ternary interaction parameter case
+                    mixing_term *= comp_symbols[param['parameter_order']]
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= redlich_kister_poly.subs(
+                    mixing_term = mixing_term.subs(
                         self._Muggianu_correction_dict(comp_symbols)
                     )
                 rk_term += ratio * mixing_term * \
@@ -247,14 +254,22 @@ class Model(object):
                 mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
                 # TODO: fix parameter_order handling for ternary params
-                if len(active_comps) > 1 and param['parameter_order'] > 0:
+                if len(active_comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
                         Add(*comp_symbols[1:]), param['parameter_order'])
+                    mixing_term *= redlich_kister_poly
+                if len(active_comps) == 3:
+                    # 'parameter_order' is an index to a variable when
+                    # we are in the ternary interaction parameter case
+                    mixing_term *= comp_symbols[param['parameter_order']]
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= redlich_kister_poly.subs(
+                    mixing_term = mixing_term.subs(
                         self._Muggianu_correction_dict(comp_symbols)
                     )
+                if len(active_comps) > 3:
+                    raise ValueError('Higher-order interactions (n>3) are \
+                        not yet supported')
                 excess_mixing_term += ratio * mixing_term * \
                     param['parameter'].subs(symbols)
         return excess_mixing_term
