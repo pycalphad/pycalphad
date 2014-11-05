@@ -143,6 +143,7 @@ class Model(object):
         params = param_search(param_query)
         for param in params:
             # iterate over every sublattice
+            mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 # consider only active components in sublattice
                 active_comps = set(comps).intersection(self.components)
@@ -152,8 +153,7 @@ class Model(object):
                         v.SiteFraction(phase.name, subl_index, comp)
                         for comp in active_comps
                     ]
-                ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
-                mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
+                mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
                 # TODO: fix parameter_order handling for ternary params
                 if len(active_comps) == 2 and param['parameter_order'] > 0:
@@ -169,17 +169,27 @@ class Model(object):
                     mixing_term = mixing_term.subs(
                         self._Muggianu_correction_dict(comp_symbols)
                     )
-                rk_term += ratio * mixing_term * \
-                    param['parameter'].subs(symbols)
+            rk_term += mixing_term * \
+                param['parameter'].subs(symbols)
         return rk_term
     def reference_energy(self, phase, symbols, param_search):
         """
         Returns the weighted average of the endmember energies
         in symbolic form.
         """
-        total_mixing_sites = sum(phase.sublattices)
         # TODO: Handle wildcards in constituent array
         pure_energy_term = S.Zero
+        # Normalize site ratios
+        site_ratio_normalization = 0
+        site_ratios = phase.sublattices
+        for idx, sublattice in enumerate(phase.constituents):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            site_ratio_normalization += site_ratios[idx]
+
+        site_ratios = [c/site_ratio_normalization for c in site_ratios]
+        site_ratio_normalization = sum(phase.sublattices)
         pure_param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_order') == 0) & \
@@ -198,18 +208,27 @@ class Model(object):
                 site_fraction_product *= sitefrac
             pure_energy_term += (
                 site_fraction_product * param['parameter'].subs(symbols)
-            ) / total_mixing_sites
+            ) / site_ratio_normalization
         return pure_energy_term
     def ideal_mixing_energy(self, phase, symbols, param_search):
         #pylint: disable=W0613
         """
         Returns the ideal mixing energy in symbolic form.
         """
-        total_mixing_sites = sum(phase.sublattices)
+        # Normalize site ratios
+        site_ratio_normalization = 0
+        site_ratios = phase.sublattices
+        for idx, sublattice in enumerate(phase.constituents):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            site_ratio_normalization += site_ratios[idx]
+
+        site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
-            ratio = phase.sublattices[subl_index] / total_mixing_sites
+            ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
@@ -229,6 +248,8 @@ class Model(object):
         where m is the arity of the interaction parameter
         """
         excess_mixing_term = S.Zero
+        # Normalize site ratios
+        site_ratio_normalization = sum(phase.sublattices)
         interaction_param_query = (
             (where('phase_name') == phase.name) & \
             (
@@ -241,6 +262,7 @@ class Model(object):
         interaction_params = param_search(interaction_param_query)
         for param in interaction_params:
             # iterate over every sublattice
+            mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 # consider only active components in sublattice
                 active_comps = set(comps).intersection(self.components)
@@ -250,8 +272,7 @@ class Model(object):
                         v.SiteFraction(phase.name, subl_index, comp)
                         for comp in active_comps
                     ]
-                ratio = phase.sublattices[subl_index] / sum(phase.sublattices)
-                mixing_term = Mul(*comp_symbols) #pylint: disable=W0142
+                mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
                 # TODO: fix parameter_order handling for ternary params
                 if len(active_comps) == 2 and param['parameter_order'] > 0:
@@ -270,8 +291,8 @@ class Model(object):
                 if len(active_comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
-                excess_mixing_term += ratio * mixing_term * \
-                    param['parameter'].subs(symbols)
+            excess_mixing_term += mixing_term * \
+                param['parameter'].subs(symbols) / site_ratio_normalization
         return excess_mixing_term
     def magnetic_energy(self, phase, symbols, param_search):
         #pylint: disable=C0103
@@ -284,12 +305,14 @@ class Model(object):
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
+        site_ratio_normalization = sum(phase.sublattices)
         # define basic variables
         mean_magnetic_moment = \
             self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
         curie_temp = \
             self._redlich_kister_sum(phase, symbols, 'TC', param_search)
+        print(curie_temp)
         tc = Piecewise(
             (curie_temp, curie_temp > 0),
             (curie_temp/afm_factor, curie_temp <= 0)
@@ -298,10 +321,10 @@ class Model(object):
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
-        A = 518/1125 + (11592/15975)*(1/p - 1)
+        A = 518/1125 + (11692/15975)*(1/p - 1)
         # factor when tau < 1
-        sub_tau = 1 - (1/A) * (79/(140*p)*(tau**(-1)) + (474/497)*(1/p - 1) * \
-                     ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+        sub_tau = 1 - (1/A) * ((79/(140*p))*(tau**(-1)) + (474/497)*(1/p - 1) \
+            * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
                               )
         # factor when tau >= 1
         super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
@@ -312,7 +335,7 @@ class Model(object):
                           ]
 
         g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
-        return v.R * v.T * log(mean_magnetic_moment+1) * g_term
+        return v.R * v.T * log(mean_magnetic_moment+1) * g_term / site_ratio_normalization
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
         Return the atomic ordering energy in symbolic form.
