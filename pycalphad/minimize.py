@@ -147,7 +147,12 @@ def eq(db, comps, phases, points_per_phase=10000, **kwargs):
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
         # Choose a sensible number of compositions to sample
-        num_points = int(points_per_phase**(1/nontrivial_sublattices))
+        num_points = None
+        if nontrivial_sublattices > 0:
+            num_points = int(points_per_phase**(1/nontrivial_sublattices))
+        else:
+            # Fixed stoichiometry
+            num_points = 1
         # Sample composition space
         points = point_sample(sublattice_dof, size=num_points)
         # Allocate space for energies, once calculated
