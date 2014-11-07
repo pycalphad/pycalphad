@@ -4,7 +4,8 @@ The minimize module handles calculation of equilibrium.
 from __future__ import division
 from pycalphad import Model
 import pycalphad.variables as v
-from pycalphad.theanocode import theano_function
+from sympy.printing.theanocode import theano_function
+from sympy.utilities.lambdify import lambdify
 import pandas as pd
 import numpy as np
 from scipy.spatial import ConvexHull
@@ -78,13 +79,34 @@ class CompositionSet(object):
     --------
     None yet.
     """
-    def __init__(self, mod, statevars, variables):
+    def __init__(self, mod, statevars, variables, mode='theano'):
         self.ast = mod.ast.subs(statevars)
         self.variables = variables
         print(self.variables)
-        self.energy = theano_function(self.variables, [self.ast])
+        if mode == 'theano':
+            self.energy = \
+                theano_function(self.variables, [self.ast], \
+                                on_unused_input='ignore')
+        elif mode == 'theano-debug':
+            from theano.compile import DebugMode
+            # We purposefully have NaNs in our computational graph
+            # They are for when no piecewise conditions are met
+            # We have to turn finite-checking off in that case
+            self.energy = \
+                theano_function(self.variables, [self.ast], \
+                                on_unused_input='warn',
+                                mode=DebugMode(check_isfinite=False))
+        elif mode == 'numpy':
+            self.energy = lambdify(tuple(self.variables), self.ast,
+                                   dummify=True,
+                                   modules='numpy')
+        elif mode == 'sympy':
+            self.energy = \
+                lambda *vs: self.ast.subs(zip(self.variables, vs)).evalf()
+        else:
+            raise ValueError('Unsupported function mode: '+mode)
 
-def eq(db, comps, phases, points_per_phase=10000, **kwargs):
+def eq(db, comps, phases, points_per_phase=10000, ast='theano', **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
@@ -100,6 +122,8 @@ def eq(db, comps, phases, points_per_phase=10000, **kwargs):
         Names (case-sensitive) of phases to consider in the calculation.
     points_per_phase : int, optional
         Approximate number of points to sample per phase.
+    ast : ['theano', 'sympy'], optional
+        Specify how we should construct the callable for the energy.
 
     Returns
     -------
@@ -135,7 +159,8 @@ def eq(db, comps, phases, points_per_phase=10000, **kwargs):
             sublattice_dof.append(dof)
 
         # Build the "fast" representation of that model
-        comp_sets[phase_name] = CompositionSet(mod, statevars, variables)
+        comp_sets[phase_name] = CompositionSet(mod, statevars, variables, \
+            mode=ast)
 
         # Make user-friendly site fraction column labels
         var_names = ['Y('+variable.phase_name+',' + \

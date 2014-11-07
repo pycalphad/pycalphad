@@ -3,7 +3,7 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
-from sympy import log, Add, And, Mul, Piecewise, Pow, S
+from sympy import log, Add, Mul, Or, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -228,6 +228,8 @@ class Model(object):
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
+            if len(active_comps) == 1:
+                continue # no mixing if only one species in sublattice
             ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
@@ -305,18 +307,25 @@ class Model(object):
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
-        site_ratio_normalization = sum(phase.sublattices)
+        # Normalize site ratios
+        site_ratio_normalization = 0
+        site_ratios = phase.sublattices
+        for idx, sublattice in enumerate(phase.constituents):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            site_ratio_normalization += site_ratios[idx]
         # define basic variables
         mean_magnetic_moment = \
             self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
         curie_temp = \
             self._redlich_kister_sum(phase, symbols, 'TC', param_search)
-        print(curie_temp)
         tc = Piecewise(
             (curie_temp, curie_temp > 0),
             (curie_temp/afm_factor, curie_temp <= 0)
             )
+        #print(tc)
         tau = v.T / tc
 
         # define model parameters
@@ -329,13 +338,13 @@ class Model(object):
         # factor when tau >= 1
         super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
 
-        expr_cond_pairs = [(0, And(tc < 1e-4, tc > 1e6)),
-                           (sub_tau, v.T < tc),
-                           (super_tau, v.T >= tc)
+        expr_cond_pairs = [(sub_tau, tau < 1),
+                           (super_tau, tau >= 1)
                           ]
 
         g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
-        return v.R * v.T * log(mean_magnetic_moment+1) * g_term / site_ratio_normalization
+        return v.R * v.T * log(mean_magnetic_moment+1) * \
+            g_term / site_ratio_normalization
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
         Return the atomic ordering energy in symbolic form.
