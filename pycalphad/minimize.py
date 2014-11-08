@@ -79,7 +79,7 @@ class CompositionSet(object):
     --------
     None yet.
     """
-    def __init__(self, mod, statevars, variables, mode='theano'):
+    def __init__(self, mod, statevars, variables, mode='numpy'):
         self.ast = mod.ast.subs(statevars)
         self.variables = variables
         print(self.variables)
@@ -88,14 +88,10 @@ class CompositionSet(object):
                 theano_function(self.variables, [self.ast], \
                                 on_unused_input='ignore')
         elif mode == 'theano-debug':
-            from theano.compile import DebugMode
-            # We purposefully have NaNs in our computational graph
-            # They are for when no piecewise conditions are met
-            # We have to turn finite-checking off in that case
             self.energy = \
                 theano_function(self.variables, [self.ast], \
                                 on_unused_input='warn',
-                                mode=DebugMode(check_isfinite=False))
+                                mode='DebugMode')
         elif mode == 'numpy':
             self.energy = lambdify(tuple(self.variables), self.ast,
                                    dummify=True,

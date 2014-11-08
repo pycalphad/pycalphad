@@ -19,7 +19,7 @@ def isotherm(df, x_variable, y_variable, **statevars):
         point_selector = point_selector & (df[variable] == value)
 
     hull_frame = df.ix[point_selector, [x_variable, y_variable, 'GM', 'Phase']]
-    print(hull_frame)
+    #print(hull_frame)
     point_frame = hull_frame[[x_variable, y_variable]]
     # Calculate the convex hull for the desired points
     hull = scipy.spatial.ConvexHull(

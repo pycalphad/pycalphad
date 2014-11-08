@@ -39,7 +39,7 @@ def _make_piecewise_ast(toks):
         )
         cur_tok = cur_tok + 2
     # not sure about having zero as implicit default value
-    #expr_cond_pairs.append((0, True))
+    expr_cond_pairs.append((0, True))
     return Piecewise(*expr_cond_pairs) #pylint: disable=W0142
 
 def _tdb_grammar(): #pylint: disable=R0914

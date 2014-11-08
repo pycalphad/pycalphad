@@ -3,7 +3,7 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
-from sympy import log, Add, Mul, Or, Piecewise, Pow, S
+from sympy import log, Abs, Add, And, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -339,11 +339,13 @@ class Model(object):
         super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
 
         expr_cond_pairs = [(sub_tau, tau < 1),
-                           (super_tau, tau >= 1)
+                           (super_tau, tau >= 1),
+                           (0, True)
                           ]
 
         g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
-        return v.R * v.T * log(mean_magnetic_moment+1) * \
+
+        return v.R * v.T * log(Abs(mean_magnetic_moment)+1) * \
             g_term / site_ratio_normalization
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
