@@ -19,7 +19,7 @@ def isotherm(df, x_variable, y_variable, **statevars):
         point_selector = point_selector & (df[variable] == value)
 
     hull_frame = df.ix[point_selector, [x_variable, y_variable, 'GM', 'Phase']]
-    #print(hull_frame)
+    print(hull_frame)
     point_frame = hull_frame[[x_variable, y_variable]]
     # Calculate the convex hull for the desired points
     hull = scipy.spatial.ConvexHull(
@@ -98,7 +98,6 @@ def isotherm(df, x_variable, y_variable, **statevars):
             # Single-phase region; drop this simplex
             pass
     tie_lines = np.asarray(tie_lines)
-
     # Final plotting setup
     
     # Mask the metastable points
@@ -112,11 +111,12 @@ def isotherm(df, x_variable, y_variable, **statevars):
     plt.xlim([-0.01,1])
     plt.ylim([-0.01,1])
     plt.gca().set_aspect('equal')
-    lc = mc.LineCollection(
-        hull_frame[[x_variable,y_variable]].values[tie_lines], \
-            color=tie_line_colors, linewidth=tie_line_widths
-    )
-    ax.add_collection(lc)
+    if len(tie_lines) > 0:
+        lc = mc.LineCollection(
+            hull_frame[[x_variable,y_variable]].values[tie_lines], \
+                color=tie_line_colors, linewidth=tie_line_widths
+        )
+        ax.add_collection(lc)
     ax.scatter(masked_x, masked_y, color='black')
     
     ax.text(0.3, 0.8, 'T = '+str(statevars['T'])+ ' K',
