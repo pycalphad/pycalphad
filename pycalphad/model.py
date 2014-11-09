@@ -145,23 +145,20 @@ class Model(object):
             # iterate over every sublattice
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
-                # consider only active components in sublattice
-                active_comps = set(comps).intersection(self.components)
                 # convert strings to symbols
                 comp_symbols = \
                     [
                         v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in active_comps
+                        for comp in comps
                     ]
                 mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
-                # TODO: fix parameter_order handling for ternary params
-                if len(active_comps) == 2 and param['parameter_order'] > 0:
+                if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
-                        Add(*comp_symbols[1:]), param['parameter_order'])
+                        comp_symbols[1], param['parameter_order'])
                     mixing_term *= redlich_kister_poly
-                if len(active_comps) == 3:
+                if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
                     mixing_term *= comp_symbols[param['parameter_order']]
@@ -189,7 +186,7 @@ class Model(object):
             site_ratio_normalization += site_ratios[idx]
 
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
-        site_ratio_normalization = sum(phase.sublattices)
+
         pure_param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_order') == 0) & \
@@ -251,7 +248,16 @@ class Model(object):
         """
         excess_mixing_term = S.Zero
         # Normalize site ratios
-        site_ratio_normalization = sum(phase.sublattices)
+        site_ratio_normalization = 0
+        site_ratios = phase.sublattices
+        for idx, sublattice in enumerate(phase.constituents):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            site_ratio_normalization += site_ratios[idx]
+
+        site_ratios = [c/site_ratio_normalization for c in site_ratios]
+
         interaction_param_query = (
             (where('phase_name') == phase.name) & \
             (
@@ -266,23 +272,21 @@ class Model(object):
             # iterate over every sublattice
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
-                # consider only active components in sublattice
-                active_comps = set(comps).intersection(self.components)
                 # convert strings to symbols
                 comp_symbols = \
                     [
                         v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in active_comps
+                        for comp in comps
                     ]
                 mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
                 # TODO: fix parameter_order handling for ternary params
-                if len(active_comps) == 2 and param['parameter_order'] > 0:
+                if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
-                        Add(*comp_symbols[1:]), param['parameter_order'])
+                        comp_symbols[1], param['parameter_order'])
                     mixing_term *= redlich_kister_poly
-                if len(active_comps) == 3:
+                if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
                     mixing_term *= comp_symbols[param['parameter_order']]
@@ -290,7 +294,7 @@ class Model(object):
                     mixing_term = mixing_term.subs(
                         self._Muggianu_correction_dict(comp_symbols)
                     )
-                if len(active_comps) > 3:
+                if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
             excess_mixing_term += mixing_term * \
@@ -316,9 +320,15 @@ class Model(object):
                 continue
             site_ratio_normalization += site_ratios[idx]
         # define basic variables
+        afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
+
         mean_magnetic_moment = \
             self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
-        afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
+        beta = Piecewise(
+            (mean_magnetic_moment, mean_magnetic_moment > 0),
+            (mean_magnetic_moment/afm_factor, mean_magnetic_moment <= 0)
+            )
+
         curie_temp = \
             self._redlich_kister_sum(phase, symbols, 'TC', param_search)
         tc = Piecewise(
@@ -339,13 +349,12 @@ class Model(object):
         super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
 
         expr_cond_pairs = [(sub_tau, tau < 1),
-                           (super_tau, tau >= 1),
-                           (0, True)
+                           (super_tau, tau >= 1)
                           ]
 
         g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
 
-        return v.R * v.T * log(Abs(mean_magnetic_moment)+1) * \
+        return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
