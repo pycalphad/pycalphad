@@ -52,7 +52,23 @@ class Database(object):
             self.constituents = None
             self.sublattices = []
             self.model_hints = {}
-    def __init__(self):
+    def __init__(self, *dbf):
+        """
+        Construct a Database object.
+
+        Parameters
+        ----------
+        dbf: file descriptor or raw data, optional
+            TDB file to load.
+
+        Examples
+        --------
+        >>> mydb = Database(open('crfeni_mie.tdb'))
+        >>> mydb = Database('crfeni_mie.tdb')
+        >>> f = io.StringIO(u'$a complete TDB file as a string\n')
+        >>> mydb = Database(f)
+        """
+        # Should elements be rolled into a special case of species?
         self.elements = set()
         self.species = set()
         self.phases = {}
@@ -63,6 +79,30 @@ class Database(object):
         self.references = {}
         # Note: No public typedefs here (from TDB files)
         # Instead we put that information in the model_hint for phases
+
+        if len(dbf) == 1:
+            # Let's try to load this database file
+            mydb = dbf[0]
+            raw_data = ''
+            # First, let's try to treat it like it's a file descriptor
+            try:
+                raw_data = mydb.read()
+            except AttributeError:
+                # It's not file-like, so it's probably string-like
+                # The question is if it's a filename or the whole raw database
+                # Solution is to check for newlines
+                if mydb.find('\n') == -1:
+                    # Single-line; it's probably a filename
+                    raw_data = open(mydb).read()
+                else:
+                    # Newlines found: probably a full database string
+                    raw_data = mydb
+            # Raw data should be loaded now
+            # File type detection (TDB, etc.) would go here
+            from pycalphad.io.tdb import tdbread
+            tdbread(self, raw_data)
+        elif len(dbf) > 1:
+            raise ValueError('Invalid number of parameters: '+len(dbf))
     def add_structure_entry(self, local_name, global_name):
         """
         Define a relation between the system-local name of a phase and a
