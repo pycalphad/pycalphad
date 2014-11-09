@@ -1,7 +1,7 @@
 pycalphad, a library for the CALculation of PHAse Diagrams
 ==========================================================
 
-Note: Unsolicited pull requests are _happily_ accepted!
+*Note*: Unsolicited pull requests are _happily_ accepted!
 
 pycalphad is a free and open-source Python library for 
 designing thermodynamic models, calculating phase diagrams and 
