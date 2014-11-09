@@ -358,7 +358,12 @@ class Model(object):
             g_term / site_ratio_normalization
     def atomic_ordering_energy(self, phase, symbols, param_search):
         """
-        Return the atomic ordering energy in symbolic form.
+        Return the atomic ordering contribution in symbolic form.
+        Description follows Servant and Ansara, Calphad, 2001.
         """
         ordering_term = S.Zero
+        # So, the other terms have already implicitly constructed the energy
+        # of the ordered phase. What we need to add here is the energy of
+        # the disordered phase, followed by subtracting out the ordered
+        # phase energy for the case when all sublattices are equal.
         return ordering_term

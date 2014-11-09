@@ -112,6 +112,13 @@ def _process_typedef(targetdb, typechar, line):
         targetdb._typedefs[typechar] = {
             'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
         }
+    # GES A_P_D L12_FCC DIS_PART FCC_A1
+    if tokens[3].upper() == 'DIS_PART':
+        # order-disorder model
+        targetdb._typedefs[typechar] = {
+            'disordered_phase': tokens[4],
+            'ordered_phase': tokens[2]
+        }
 
 def _process_phase(targetdb, name, typedefs, subls):
     """
