@@ -17,8 +17,8 @@ FUNCTION STR 300 200000; 6000 N !
  Constituent TEST : H,HE,LI,BE,B,C,N,O,F,NE : !
 
 PARAMETER G(TEST,H,HE,LI;0)     300  STR#;               6000 N !
-#PARAMETER G(TEST,H,HE,LI;1)     300  STR#;               6000 N !
-#PARAMETER G(TEST,H,HE,LI;2)     300  STR#;               6000 N !
+PARAMETER G(TEST,H,HE,LI;1)     300  STR#;               6000 N !
+PARAMETER G(TEST,H,HE,LI;2)     300  STR#;               6000 N !
 PARAMETER G(TEST,H,HE,BE;0)     300  STR#;               6000 N !
 PARAMETER G(TEST,H,HE,BE;1)     300  STR#;               6000 N !
 PARAMETER G(TEST,H,HE,BE;2)     300  STR#;               6000 N !

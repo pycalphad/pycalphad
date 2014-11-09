@@ -61,8 +61,8 @@ $-------------------------------------------------------------------------------
 $-------------------------------------------------------------------------------
 $ PARAMETERS FOR LIQUID PHASE
 $-------------------------------------------------------------------------------
- PHASE LIQUID:L %  1  1.0  !
- CONSTITUENT LIQUID:L :AL,ZN :  !
+ PHASE LIQUID %  1  1.0  !
+ CONSTITUENT LIQUID :AL,ZN :  !
    PARAMETER G(LIQUID,AL;0)      298.15  +GALLIQ#;                      2900 N !
    PARAMETER G(LIQUID,ZN;0)      298.15  +GZNLIQ#;                      1700 N !
    PARAMETER G(LIQUID,AL,ZN;0)   298.15  +10465.5-3.39259*T;            6000 N !
