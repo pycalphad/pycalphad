@@ -25,10 +25,10 @@ def isotherm(df, x_variable, y_variable, **statevars):
     hull = scipy.spatial.ConvexHull(
         hull_frame[[x_variable, y_variable, 'GM']].values
     )
-    point_mask = np.ones(len(hull_frame.index), dtype=bool) # mask all points
+    point_mask = np.ones(len(point_frame.index), dtype=bool) # mask all points
 
     # unmask any point that is an endpoint for a tieline
-    minimum_distance = 0.06
+    minimum_distance = 0.2
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []
