@@ -82,7 +82,7 @@ class CompositionSet(object):
     def __init__(self, mod, statevars, variables, mode='numpy'):
         self.ast = mod.ast.subs(statevars)
         self.variables = variables
-        print(self.variables)
+        #print(self.variables)
         if mode == 'theano':
             self.energy = \
                 theano_function(self.variables, [self.ast], \
@@ -102,7 +102,7 @@ class CompositionSet(object):
         else:
             raise ValueError('Unsupported function mode: '+mode)
 
-def eq(db, comps, phases, points_per_phase=10000, ast='theano', **kwargs):
+def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
