@@ -89,7 +89,6 @@ $
 $ ------------------------------------------------------------------------------
 TYPE_DEFINITION % SEQ * !
 DEFINE_SYSTEM_DEFAULT ELEMENT 3 !
-DEFAULT_COMMAND DEFINE_SYS_ELEMENT VA /- !
 $
 TYPE_DEFINITION ' GES A_P_D BCC_A2 MAGNETIC  -1    0.4  !
 Type_Definition ( GES A_P_D FCC_A1 Magnetic  -3    0.28 !
@@ -110,9 +109,9 @@ $
  PARAMETER G(LIQUID,FE,NI;0)  300  -16911+5.1622*T;       6000 N ! $1993Lee 
  PARAMETER G(LIQUID,FE,NI;1)  300  +10180-4.146656*T;     6000 N ! $1993Lee 
 $
-  PARAMETER G(LIQUID,CR,FE,NI;0) 300 +130000-50*T;         6000 N ! $1999Mie 
-  PARAMETER G(LIQUID,CR,FE,NI;1) 300 +80000-50*T;          6000 N ! $1999Mie 
-  PARAMETER G(LIQUID,CR,FE,NI;2) 300 +60000-50*T;          6000 N ! $1999Mie 
+ PARAMETER G(LIQUID,CR,FE,NI;0) 300 +130000-50*T;         6000 N ! $1999Mie 
+ PARAMETER G(LIQUID,CR,FE,NI;1) 300 +80000-50*T;          6000 N ! $1999Mie 
+ PARAMETER G(LIQUID,CR,FE,NI;2) 300 +60000-50*T;          6000 N ! $1999Mie 
 $
 $ ------------------------------------------------------------------------------
 PHASE BCC_A2  %'  2 1   3 !
