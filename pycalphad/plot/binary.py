@@ -92,12 +92,14 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
                         tie_line_colors.append([1, 0, 0, 1])
                         tie_line_widths.append(2)
 
+                tieline_normals.append(tieline_norm)
+
                 for line in current_tielines:
                     # Green for a tie line
                     tie_lines.append(line)
                     tie_line_colors.append([0, 1, 0, 1])
                     tie_line_widths.append(0.5)
-                tieline_normals.append(tieline_norm)
+
             elif len(new_lines) == 0:
                 # Single-phase region; drop this simplex
                 pass
