@@ -8,7 +8,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 #pylint: disable=E1101
 from matplotlib import collections as mc
-import pandas as pd
 from pycalphad.minimize import eq
 
 def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
@@ -48,7 +47,10 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
         hull = scipy.spatial.ConvexHull(
             hull_frame[[x_variable, 'GM']].values
         )
-        # unmask any point that is an endpoint for a tieline
+        # keep track of tie line orientations
+        # this is for invariant reaction detection
+        tieline_normals = []
+        current_tielines = []
         for simplex, equ in zip(hull.simplices, hull.equations):
             if equ[-2] > -1e-5:
                 # simplex oriented 'upwards' in energy direction
@@ -72,10 +74,30 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
                 # This is a two phase region
                 first_endpoint = [point_frame.iat[new_lines[0][0], 0], temp]
                 second_endpoint = [point_frame.iat[new_lines[0][1], 0], temp]
-                tie_lines.append([first_endpoint, second_endpoint])
-                # Green for a tie line
-                tie_line_colors.append([0, 1, 0, 1])
-                tie_line_widths.append(0.5)
+                current_tielines.append([first_endpoint, second_endpoint])
+                tieline_norm = equ[:-1]/np.linalg.norm(equ[:-1])
+
+                for idx, normal in enumerate(tieline_normals):
+                    dihedral = abs(np.dot(normal, tieline_norm))
+                    if dihedral > 0.99999999999:
+                        # nearly coplanar: we are near a 3-phase boundary
+                        # red for an invariant
+                        tie_lines.append(current_tielines[-1])
+                        tie_lines.append(current_tielines[idx])
+                        # prevent double counting
+                        del current_tielines[idx]
+                        del current_tielines[-1]
+                        tie_line_colors.append([1, 0, 0, 1])
+                        tie_line_widths.append(2)
+                        tie_line_colors.append([1, 0, 0, 1])
+                        tie_line_widths.append(2)
+
+                for line in current_tielines:
+                    # Green for a tie line
+                    tie_lines.append(line)
+                    tie_line_colors.append([0, 1, 0, 1])
+                    tie_line_widths.append(0.5)
+                tieline_normals.append(tieline_norm)
             elif len(new_lines) == 0:
                 # Single-phase region; drop this simplex
                 pass
