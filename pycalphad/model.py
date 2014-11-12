@@ -3,7 +3,7 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
-from sympy import log, Abs, Add, And, Mul, Piecewise, Pow, S
+from sympy import log, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -29,19 +29,19 @@ class Model(object):
     --------
     None yet.
     """
-    def __init__(self, db, comps, phase):
+    def __init__(self, dbe, comps, phase):
         self.components = set(comps)
-        for sublattice in db.phases[phase].constituents:
+        for sublattice in dbe.phases[phase].constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
                 raise ValueError(str(sublattice) + \
                     ' has no components in '+str(self.components))
         # Build the abstract syntax tree
-        self.ast = self._build_phase(db.phases[phase], db.symbols, db.search)
+        self.ast = self.build_phase(dbe, phase, dbe.symbols, dbe.search)
         # Need to do one more substitution to catch symbols that are functions
         # of other symbols
-        self.ast = self.ast.subs(db.symbols)
+        self.ast = self.ast.subs(dbe.symbols)
         self.variables = self.ast.atoms(v.StateVariable)
     def _purity_test(self, constituent_array):
         """
@@ -106,10 +106,11 @@ class Model(object):
         for comp in comps:
             return_dict[comp] = comp + correction_term
         return return_dict
-    def _build_phase(self, phase, symbols, param_search):
+    def build_phase(self, dbe, phase_name, symbols, param_search):
         """
         Apply phase's model hints to build a master SymPy object.
         """
+        phase = dbe.phases[phase_name]
         total_energy = S.Zero
         # First, build the reference energy term
         total_energy += self.reference_energy(phase, symbols, param_search)
@@ -124,8 +125,18 @@ class Model(object):
         total_energy += self.magnetic_energy(phase, symbols, param_search)
 
         # Next, we handle atomic ordering
-        total_energy += \
-            self.atomic_ordering_energy(phase, symbols, param_search)
+        ordered_phase_name = None
+        disordered_phase_name = None
+        try:
+            ordered_phase_name = phase.model_hints['ordered_phase']
+            disordered_phase_name = phase.model_hints['disordered_phase']
+        except KeyError:
+            pass
+        if disordered_phase_name == phase_name:
+            total_energy += \
+                self.atomic_ordering_energy(dbe, disordered_phase_name,
+                                            ordered_phase_name,
+                                            symbols, param_search)
 
         return total_energy
     def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
@@ -280,7 +291,6 @@ class Model(object):
                     ]
                 mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
                 # is this a higher-order interaction parameter?
-                # TODO: fix parameter_order handling for ternary params
                 if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     redlich_kister_poly = Pow(comp_symbols[0] - \
@@ -356,14 +366,72 @@ class Model(object):
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
-    def atomic_ordering_energy(self, phase, symbols, param_search):
+
+    @staticmethod
+    def mole_fraction(species_name, phase_name, constituent_array,
+                      site_ratios):
+        """
+        Return an abstract syntax tree of the mole fraction of the
+        given species as a function of its constituent site fractions.
+        """
+        if species_name == 'VA':
+            raise ValueError('Vacancies cannot be mass balanced')
+
+        # Normalize site ratios
+        site_ratio_normalization = 0
+        numerator = S.Zero
+        for idx, sublattice in enumerate(constituent_array):
+            # sublattices with only vacancies don't count
+            if len(sublattice) == 1 and sublattice[0] == 'VA':
+                continue
+            if species_name not in sublattice:
+                continue
+            site_ratio_normalization += site_ratios[idx]
+            numerator += site_ratios[idx] * \
+                v.SiteFraction(phase_name, idx, species_name)
+
+        return numerator / site_ratio_normalization
+
+    def atomic_ordering_energy(self, dbe, disordered_phase_name,
+                               ordered_phase_name, symbols, param_search):
         """
         Return the atomic ordering contribution in symbolic form.
         Description follows Servant and Ansara, Calphad, 2001.
         """
-        ordering_term = S.Zero
-        # So, the other terms have already implicitly constructed the energy
-        # of the ordered phase. What we need to add here is the energy of
-        # the disordered phase, followed by subtracting out the ordered
+
+        ordered_phase = dbe.phases[ordered_phase_name]
+
+        # What we need to add here is the energy of
+        # the ordered phase, followed by subtracting out the ordered
         # phase energy for the case when all sublattices are equal.
-        return ordering_term
+        ordering_term = self.build_phase(dbe, ordered_phase_name,
+                                         symbols, param_search)
+
+        # Fix variable names
+        variable_rename_dict = {}
+        for atom in ordering_term.atoms(v.SiteFraction):
+            variable_rename_dict[atom] = \
+                v.SiteFraction(
+                    disordered_phase_name, atom.subl_index, atom.species)
+        ordering_term = ordering_term.subs(variable_rename_dict)
+
+        molefraction_dict = {}
+        species_dict = {}
+        for comp in self.components:
+            if comp == 'VA':
+                continue
+            species_dict[comp] = \
+                self.mole_fraction(comp,
+                                   disordered_phase_name,
+                                   ordered_phase.constituent_array,
+                                   ordered_phase.sublattices)
+
+        # Construct a dictionary that replaces every site fraction with its
+        # corresponding mole fraction
+        for sitefrac in ordering_term.atoms(v.SiteFraction):
+            if sitefrac.species == 'VA':
+                continue
+            molefraction_dict[sitefrac] = species_dict[sitefrac.species]
+
+        subl_equal_term = ordering_term.subs(molefraction_dict)
+        return ordering_term - subl_equal_term
