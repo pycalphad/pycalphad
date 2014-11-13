@@ -57,50 +57,48 @@ def point_sample(comp_count, size=10):
     result = list(map(np.concatenate, prod))
     return np.asarray(result)
 
-class CompositionSet(object):
+def make_callable(model, variables, mode='numpy'):
     """
-    CompositionSets are used by equilibrium calculations to represent
-    phases during the calculation.
+    Take a SymPy object and create a callable function.
 
-    Attributes
+    Parameters
     ----------
-    ast, SymPy object
-        Abstract representation of energy function
-    energy, Theano function
-        Compiled energy function optimized for call speed
+    model, SymPy object
+        Abstract representation of function
     variables, list
-        Input variables, ordered in the way 'energy' expects
+        Input variables, ordered in the way the return function will expect
+    mode, ['numpy', 'theano', 'theano-debug', 'sympy'], optional
+        Method to use when 'compiling' the function. SymPy mode is
+        slow and should only be used for debugging. If Theano is installed,
+        then it can offer speed-ups when calling the energy function many
+        times, at a one-time cost of compiling in advance.
 
-    Methods
+    Returns
     -------
-    None yet.
+    Function that takes arguments in the same order as 'variables'
+    and returns the energy according to 'model.'
 
     Examples
     --------
     None yet.
     """
-    def __init__(self, mod, statevars, variables, mode='numpy'):
-        self.ast = mod.ast.subs(statevars)
-        self.variables = variables
-        #print(self.variables)
-        if mode == 'theano':
-            self.energy = \
-                theano_function(self.variables, [self.ast], \
-                                on_unused_input='ignore')
-        elif mode == 'theano-debug':
-            self.energy = \
-                theano_function(self.variables, [self.ast], \
-                                on_unused_input='warn',
-                                mode='DebugMode')
-        elif mode == 'numpy':
-            self.energy = lambdify(tuple(self.variables), self.ast,
-                                   dummify=True,
-                                   modules='numpy')
-        elif mode == 'sympy':
-            self.energy = \
-                lambda *vs: self.ast.subs(zip(self.variables, vs)).evalf()
-        else:
-            raise ValueError('Unsupported function mode: '+mode)
+    energy = None
+    if mode == 'theano':
+        energy = \
+            theano_function(variables, [model.ast], on_unused_input='ignore')
+    elif mode == 'theano-debug':
+        energy = \
+            theano_function(variables, [model.ast], on_unused_input='warn',
+                            mode='DebugMode')
+    elif mode == 'numpy':
+        energy = lambdify(tuple(variables), model.ast, dummify=True,
+                          modules='numpy')
+    elif mode == 'sympy':
+        energy = lambda *vs: model.ast.subs(zip(variables, vs)).evalf()
+    else:
+        raise ValueError('Unsupported function mode: '+mode)
+
+    return energy
 
 def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
     """
@@ -118,7 +116,7 @@ def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
         Names (case-sensitive) of phases to consider in the calculation.
     points_per_phase : int, optional
         Approximate number of points to sample per phase.
-    ast : ['theano', 'sympy'], optional
+    ast : ['theano', 'numpy'], optional
         Specify how we should construct the callable for the energy.
 
     Returns
@@ -155,8 +153,8 @@ def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
             sublattice_dof.append(dof)
 
         # Build the "fast" representation of that model
-        comp_sets[phase_name] = CompositionSet(mod, statevars, variables, \
-            mode=ast)
+        comp_sets[phase_name] = make_callable(mod, \
+            list(statevars.keys()) + variables, mode=ast)
 
         # Make user-friendly site fraction column labels
         var_names = ['Y('+variable.phase_name+',' + \
@@ -191,8 +189,11 @@ def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
 
         # TODO: not very efficient point sampling strategy
         # in principle, this could be parallelized
-        for idx, p in enumerate(points):
-            energies[idx] = comp_sets[phase_name].energy(*p)
+        for idx, point in enumerate(points):
+            energies[idx] = \
+                comp_sets[phase_name](
+                    *(list(statevars.values()) + list(point))
+                )
 
         # Add points and calculated energies to the DataFrame
         data_dict = {'GM':energies, 'Phase':phase_name}

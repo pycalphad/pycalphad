@@ -16,7 +16,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     range.
     """
     assert high_temp > low_temp
-    minimum_distance = 0.1
+    minimum_distance = 0.02
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []
@@ -51,8 +51,9 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
         # this is for invariant reaction detection
         tieline_normals = []
         current_tielines = []
+        #print(hull.equations)
         for simplex, equ in zip(hull.simplices, hull.equations):
-            if equ[-2] > -1e-5:
+            if equ[-2] > -1e-6:
                 # simplex oriented 'upwards' in energy direction
                 # must not be part of the energy surface
                 continue
@@ -75,24 +76,24 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
                 first_endpoint = [point_frame.iat[new_lines[0][0], 0], temp]
                 second_endpoint = [point_frame.iat[new_lines[0][1], 0], temp]
                 current_tielines.append([first_endpoint, second_endpoint])
-                tieline_norm = equ[:-1]/np.linalg.norm(equ[:-1])
+                tieline_norm = equ[:-1]
+                tieline_normals.append(tieline_norm)
 
-                for idx, normal in enumerate(tieline_normals):
-                    dihedral = abs(np.dot(normal, tieline_norm))
-                    if dihedral > 0.99999999999:
+                # enumerate all normals but the one we just added
+                for idx, normal in enumerate(tieline_normals[:-1]):
+                    dihedral = np.dot(normal, tieline_norm)
+                    if dihedral > (1.0 - 1e-11):
                         # nearly coplanar: we are near a 3-phase boundary
                         # red for an invariant
                         tie_lines.append(current_tielines[-1])
                         tie_lines.append(current_tielines[idx])
                         # prevent double counting
-                        del current_tielines[idx]
-                        del current_tielines[-1]
+                        #del current_tielines[idx]
+                        #del current_tielines[-1]
                         tie_line_colors.append([1, 0, 0, 1])
                         tie_line_widths.append(2)
                         tie_line_colors.append([1, 0, 0, 1])
                         tie_line_widths.append(2)
-
-                tieline_normals.append(tieline_norm)
 
                 for line in current_tielines:
                     # Green for a tie line
@@ -118,7 +119,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
             tie_lines, color=tie_line_colors, linewidth=tie_line_widths
         )
         ax.add_collection(lc)
-    ax.scatter(tie_lines[:, :, 0], tie_lines[:, :, 1], color='black')
+        ax.scatter(tie_lines[:, :, 0], tie_lines[:, :, 1], color='black')
 
 
     plt.title('Diagram', fontsize=25)

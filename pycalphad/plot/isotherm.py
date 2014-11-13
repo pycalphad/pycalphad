@@ -37,20 +37,20 @@ def isotherm(df, x_variable, y_variable, **statevars):
             # simplex oriented 'upwards' in energy direction
             # must not be part of the energy surface
             continue
-        if np.any(np.any(
-                np.where(
-                    point_frame.iloc[simplex] < 1e-3,\
-                    True, False), axis=1
-            ), axis=0):
-            # this simplex is not part of the energy surface
-            continue
-        if np.all(np.any(
-                np.where(
-                    point_frame.iloc[simplex] > 0.98,\
-                    True, False), axis=1
-            ), axis=0):
-            # this simplex is not part of the energy surface
-            continue
+        #if np.any(np.any(
+        #        np.where(
+        #            point_frame.iloc[simplex] < 1e-3,\
+        #            True, False), axis=1
+        #    ), axis=0):
+        #    # this simplex is not part of the energy surface
+        #    continue
+        #if np.all(np.any(
+        #        np.where(
+        #            point_frame.iloc[simplex] > 0.98,\
+        #            True, False), axis=1
+        #    ), axis=0):
+        #    # this simplex is not part of the energy surface
+        #    continue
         distances = \
             scipy.spatial.distance.pdist(
                 point_frame.iloc[simplex]

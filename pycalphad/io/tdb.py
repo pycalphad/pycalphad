@@ -48,7 +48,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
     # matching float w/ regex is ugly but is recommended by pyparsing
-    float_number = Regex(r'\d+(\.\d*)?([eE]\d+)?') \
+    float_number = Regex(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?') \
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_', min=1)
@@ -119,6 +119,7 @@ def _process_typedef(targetdb, typechar, line):
             'disordered_phase': tokens[4],
             'ordered_phase': tokens[2]
         }
+        print(targetdb._typedefs[typechar])
 
 def _process_phase(targetdb, name, typedefs, subls):
     """
@@ -192,7 +193,7 @@ def tdbread(targetdb, lines):
             if len(tokens) == 0:
                 continue
             _TDB_PROCESSOR[tokens[0]](targetdb, *tokens[1:])
-        except ParseException:
+        except:
             print("Failed while parsing: "+command)
             raise
 
