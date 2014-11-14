@@ -377,8 +377,6 @@ class Model(object):
         Return an abstract syntax tree of the mole fraction of the
         given species as a function of its constituent site fractions.
         """
-        if species_name == 'VA':
-            raise ValueError('Vacancies cannot be mass balanced')
 
         # Normalize site ratios
         site_ratio_normalization = 0
@@ -391,6 +389,9 @@ class Model(object):
                 site_ratio_normalization += site_ratios[idx]
                 numerator += site_ratios[idx] * \
                     v.SiteFraction(phase_name, idx, species_name)
+
+        if site_ratio_normalization == 0 and species_name == 'VA':
+            return 1
 
         if site_ratio_normalization == 0:
             raise ValueError('Couldn\'t find ' + species_name + ' in ' + \
@@ -428,11 +429,6 @@ class Model(object):
                 variable_rename_dict[atom] = \
                     v.SiteFraction(
                         ordered_phase_name, vacancy_subl_index, atom.species)
-            elif atom.species == 'VA' and len(all_species_in_sublattice) > 1:
-                raise ValueError(
-                    'Sublattice configuration not supported: '+ \
-                    dbe.phases[disordered_phase_name].constituents
-                )
             else:
                 # All other cases: replace site fraction with mole fraction
                 variable_rename_dict[atom] = \
@@ -449,8 +445,6 @@ class Model(object):
         molefraction_dict = {}
         species_dict = {}
         for comp in self.components:
-            if comp == 'VA':
-                continue
             species_dict[comp] = \
                 self.mole_fraction(comp, ordered_phase_name,
                                    dbe.phases[ordered_phase_name].constituents,
@@ -460,8 +454,6 @@ class Model(object):
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction
         for sitefrac in ordered_phase_energy.atoms(v.SiteFraction):
-            if sitefrac.species == 'VA':
-                continue
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
         subl_equal_term = \

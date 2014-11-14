@@ -2,8 +2,8 @@
 Thermo-Calc TDB format.
 """
 
-from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty, LineEnd
-from pyparsing import OneOrMore, Regex, SkipTo
+from pyparsing import CaselessKeyword, CharsNotIn, Combine, Group, Empty
+from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
@@ -81,7 +81,8 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(int_number) + Group(OneOrMore(float_number)) + LineEnd()
     # CONSTITUENT
     cmd_constituent = CaselessKeyword('CONSTITUENT') + symbol_name + \
-        Suppress(':') + constituent_array + Suppress(':') + LineEnd()
+        Suppress(White()) + Suppress(':') + constituent_array + \
+        Suppress(':') + LineEnd()
     # PARAMETER
     cmd_parameter = CaselessKeyword('PARAMETER') + param_types + \
         Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
@@ -135,7 +136,12 @@ def _process_phase(targetdb, name, typedefs, subls):
     """
     Process the PHASE command.
     """
-    targetdb.add_structure_entry(name, name)
+    splitname = name.split(':')
+    phase_name = splitname[0]
+    options = None
+    if len(splitname) > 1:
+        options = splitname[1]
+    targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
     for typedef in list(typedefs):
         if typedef in targetdb._typedefs.keys():
@@ -149,7 +155,7 @@ def _process_phase(targetdb, name, typedefs, subls):
                     targetdb._typedefs[typedef]['ordered_phase']
                 model_hints['disordered_phase'] = \
                     targetdb._typedefs[typedef]['disordered_phase']
-    targetdb.add_phase(name, model_hints, subls)
+    targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
                        constituent_array, param_order, param, ref=None):
@@ -172,7 +178,8 @@ _TDB_PROCESSOR = {
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
     'PHASE': _process_phase,
-    'CONSTITUENT': lambda db, name, c: db.add_phase_constituents(name, c),
+    'CONSTITUENT': \
+        lambda db, name, c: db.add_phase_constituents(name.split(':')[0], c),
     'PARAMETER': _process_parameter
 }
 def tdbread(targetdb, lines):
@@ -209,7 +216,8 @@ def tdbread(targetdb, lines):
                 continue
             _TDB_PROCESSOR[tokens[0]](targetdb, *tokens[1:])
         except:
-            print("Failed while parsing: "+command)
+            print("Failed while parsing: " + command)
+            print("Tokens: " + str(tokens))
             raise
 
 if __name__ == "__main__":
