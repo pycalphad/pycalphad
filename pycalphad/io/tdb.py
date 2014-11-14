@@ -3,7 +3,7 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty, LineEnd
-from pyparsing import OneOrMore, ParseException, Regex, SkipTo
+from pyparsing import OneOrMore, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
@@ -119,6 +119,16 @@ def _process_typedef(targetdb, typechar, line):
             'disordered_phase': tokens[4],
             'ordered_phase': tokens[2]
         }
+        if tokens[2] in targetdb.phases:
+            # Since TDB files do not enforce any kind of ordering
+            # on the specification of ordered and disordered phases,
+            # we need to handle the case of when either phase is specified
+            # first. In this case, we imagine the ordered phase is
+            # specified first. If the disordered phase is specified
+            # first, we will have to catch it in _process_phase().
+            targetdb.phases[tokens[2]].model_hints.update(
+                targetdb._typedefs[typechar]
+            )
         print(targetdb._typedefs[typechar])
 
 def _process_phase(targetdb, name, typedefs, subls):
@@ -134,6 +144,11 @@ def _process_phase(targetdb, name, typedefs, subls):
                     targetdb._typedefs[typedef]['ihj_magnetic'][0]
                 model_hints['ihj_magnetic_structure_factor'] = \
                     targetdb._typedefs[typedef]['ihj_magnetic'][1]
+            if 'ordered_phase' in targetdb._typedefs[typedef].keys():
+                model_hints['ordered_phase'] = \
+                    targetdb._typedefs[typedef]['ordered_phase']
+                model_hints['disordered_phase'] = \
+                    targetdb._typedefs[typedef]['disordered_phase']
     targetdb.add_phase(name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913

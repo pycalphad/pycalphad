@@ -1,0 +1,178 @@
+$ ALFE
+$
+$ -----------------------------------------------------------------------------
+$ 2006.12.21
+$ 2007.02.20 mod  ( 386.15 --> 368.15 )
+$ 
+$ TDB file created by K.Hashimoto and T.Abe,
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ 
+$ e-mail: abe.taichi@nims.go.jp
+$
+$ Copyright (C) NIMS 2007
+$ -----------------------------------------------------------------------------
+$
+$ The parameter set is taken from
+$ COST 507, Thermochemical database for light metal alloys, vol.2
+$ Ed. I.Ansara, A.T.Dinsdale, M.H.Rand, (1998)
+$ ISBN: 92-828-3902-8
+$
+$ -----------------------------------------------------------------------------
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
+ ELEMENT FE   BCC_A2                    55.847      4489        27.28  !  
+
+$
+$--------1---------2---------3---------4---------5---------6---------7---------8
+$
+ FUNCTION UN_ASS     298.15   0;                                 300.00 N !
+ FUNCTION GHSERAL    298.15  -7976.15+137.093038*T-24.3671976*T*LN(T)
+   -.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);              700  Y 
+   -11276.24+223.048446*T-38.5844296*T*LN(T)+.018531982*T**2
+   -5.764227E-06*T**3+74092*T**(-1);                             933.47 Y
+   -11278.378+188.684153*T-31.748192*T*LN(T)-1.230524E+28*T**(-9); 2900 N !
+
+ FUNCTION GHSERFE    298.15  +1225.7+124.134*T-23.5143*T*LN(T)
+     -.00439752*T**2-5.8927E-08*T**3+77359*T**(-1);              1811  Y
+      -25383.581+299.31255*T-46*T*LN(T)+2.29603E+31*T**(-9);     6000  N !
+$
+ FUNCTION GALBCC     298.15  +10083-4.813*T+GHSERAL#;            6000  N !
+ FUNCTION GBCCAL     298.15  +10083-4.813*T+GHSERAL#;            6000  N !
+ FUNCTION GALLIQ     298.15  +11005.029-11.841867*T
+                  +7.934E-20*T**7+GHSERAL#;                      933.47  Y
+       +10482.382-11.253974*T+1.231E+28*T**(-9)+GHSERAL#;        2900 N !
+ FUNCTION GFEFCC     298.15  -1462.4+8.282*T-1.15*T*LN(T)
+     +6.4E-04*T**2+GHSERFE#;                                     1811  Y
+      -1713.815+0.94001*T+0.49251E+31*T**(-9)+GHSERFE#;          6000  N !
+ FUNCTION GFELIQ     298.15  +12040.17-6.55843*T
+     -3.67516E-21*T**7+GHSERFE#;                                 1811  Y
+     +14544.751-8.01055*T-2.29603E+31*T**(-9)+GHSERFE#;          6000  N !
+$
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+$
+PHASE LIQUID %  1  1.0  !
+   CONSTITUENT LIQUID :AL,FE: !
+   PARAMETER G(LIQUID,AL;0)  298.15  +GALLIQ#;            6000 N !
+   PARAMETER G(LIQUID,FE;0)  298.15  +GFELIQ#;            6000 N !
+   PARAMETER G(LIQUID,AL,FE;0) 298.15 -91976.5+22.1314*T; 6000 N !
+   PARAMETER G(LIQUID,AL,FE;1) 298.15 -5672.58+4.8728*T;  6000 N !
+   PARAMETER G(LIQUID,AL,FE;2) 298.15 +121.9;             6000 N !
+
+
+TYPE_DEFINITION & GES A_P_D B2_BCC DIS_PART BCC_A2 ,,,!
+TYPE_DEFINITION - GES A_P_D BCC_A2 MAGNETIC  -1.0    0.4 !
+PHASE BCC_A2  %&-  2 1   3 !
+   CONSTITUENT BCC_A2  :AL,FE: VA :  !
+   PARAMETER G(BCC_A2,AL:VA;0)      298.15  +GALBCC#;      2900 N !
+   PARAMETER G(BCC_A2,FE:VA;0)      298.15  +GHSERFE#;     6000 N !
+   PARAMETER TC(BCC_A2,FE:VA;0)     298.15  1043;          6000 N !
+   PARAMETER BMAGN(BCC_A2,FE:VA;0)  298.15  2.22;          6000 N !
+$  PARAMETER G(BCC_A2,AL,FE:VA;0)   298.15  +4.0*(-30740+7.9972*T);
+   PARAMETER G(BCC_A2,AL,FE:VA;0)   298.15  -122960.+31.9888*T; 6000 N !
+$  PARAMETER G(BCC_A2,AL,FE:VA;1)   298.15  +8.0*(368.15);
+   PARAMETER G(BCC_A2,AL,FE:VA;1)   298.15  +2945.2;       6000 N !
+   PARAMETER TC(BCC_A2,AL,FE:VA;1)  298.15   +504;         6000 N !
+
+$ separate the order and disordered phases 
+$ -2*860*8.31451
+$
+PHASE B2_BCC %&  3 0.5  0.5  3  !
+   CONSTITUENT B2_BCC  :AL,FE:AL,FE:VA:  !
+   PARAMETER G(B2_BCC,AL:AL:VA;0)  298.15  0.0;         6000 N !
+   PARAMETER G(B2_BCC,FE:AL:VA;0)  298.15  -14300.9572; 6000 N !
+   PARAMETER G(B2_BCC,AL:FE:VA;0)  298.15  -14300.9572; 6000 N !
+   PARAMETER G(B2_BCC,FE:FE:VA;0)  298.15  0.0;         6000 N !
+
+
+$ includes the parameters of order + disordered in a single description
+$TYPE_DEFINITION + GES A_P_D BCC_B2 MAGNETIC  -1.0    0.4 !
+$PHASE BCC_B2 %+  3 0.5  0.5  3  !
+$   CONSTITUENT BCC_B2  :AL,FE:AL,FE:VA:  !
+$   PARAMETER G(BCC_B2,AL:AL:VA;0)  298.15  +GBCCAL#;       6000 N !
+$   PARAMETER G(BCC_B2,FE:AL:VA;0)  298.15 
+$             -37890.478+7.9972*T+0.5*GALBCC#+0.5*GHSERFE#; 6000 N !
+$   PARAMETER G(BCC_B2,AL:FE:VA;0)  298.15
+$             -37890.478+7.9972*T+0.5*GALBCC#+0.5*GHSERFE#; 6000 N !
+$   PARAMETER G(BCC_B2,FE:FE:VA;0)  298.15  +GHSERFE#;      6000 N !
+$   PARAMETER TC(BCC_B2,FE:AL:VA;0)     298.15  521.5;      6000 N !
+$   PARAMETER BMAGN(BCC_B2,FE:AL:VA;0)  298.15  1.11;       6000 N !
+$   PARAMETER TC(BCC_B2,AL:FE:VA;0)     298.15  521.5;      6000 N !
+$   PARAMETER BMAGN(BCC_B2,AL:FE:VA;0)  298.15  1.11;       6000 N !
+$   PARAMETER TC(BCC_B2,FE:FE:VA;0)     298.15  1043.0;     6000 N !
+$   PARAMETER BMAGN(BCC_B2,FE:FE:VA;0)  298.15  2.22;       6000 N !
+$   PARAMETER G(BCC_B2,AL,FE:AL:VA;0) 
+$                               298.15 -22485.072+7.9772*T; 6000 N !
+$   PARAMETER G(BCC_B2,AL:AL,FE:VA;0) 
+$                               298.15 -22485.072+7.9772*T; 6000 N !
+$   PARAMETER G(BCC_B2,AL,FE:AL:VA;1)     298.15 +368.15;   6000 N !
+$   PARAMETER G(BCC_B2,AL:AL,FE:VA;1)     298.15 +368.15;   6000 N !
+$   PARAMETER TC(BCC_B2,AL,FE:AL:VA;0)    298.15  189.0;    6000 N !
+$   PARAMETER TC(BCC_B2,AL:AL,FE:VA;0)    298.15  189.0;    6000 N !
+$   PARAMETER TC(BCC_B2,AL,FE:AL:VA;1)    298.15   63.0;    6000 N !
+$   PARAMETER TC(BCC_B2,AL:AL,FE:VA;1)    298.15   63.0;    6000 N !
+$   PARAMETER BMAGN(BCC_B2,AL,FE:AL:VA;0) 298.15    0.0;    6000 N !
+$   PARAMETER BMAGN(BCC_B2,AL:AL,FE:VA;0) 298.15    0.0;    6000 N !
+$   PARAMETER TC(BCC_B2,AL,FE:FE:VA;0)    289.15 -189.0;    6000 N !
+$   PARAMETER TC(BCC_B2,FE:AL,FE:VA;0)    298.15 -189.0;    6000 N !
+$   PARAMETER TC(BCC_B2,AL,FE:FE:VA;1)    298.15   63.0;    6000 N !
+$   PARAMETER TC(BCC_B2,FE:AL,FE:VA;1)    298.15   63.0;    6000 N !
+$   PARAMETER BMAGN(BCC_B2,AL,FE:FE:VA;0) 298.15    0.0;    6000 N !
+$   PARAMETER BMAGN(BCC_B2,FE:AL,FE:VA;0) 298.15    0.0;    6000 N !
+$   PARAMETER G(BCC_B2,AL,FE:FE:VA;0) 
+$                               298.15 -24693.972+7.9772*T; 6000 N !
+$   PARAMETER G(BCC_B2,FE:AL,FE:VA;0) 
+$                               298.15 -24693.972+7.9772*T; 6000 N !
+$   PARAMETER G(BCC_B2,AL,FE:FE:VA;1)     298.15 +368.15;   6000 N !
+$   PARAMETER G(BCC_B2,FE:AL,FE:VA;1)     298.15 +368.15;   6000 N !
+
+TYPE_DEFINITION / GES A_P_D FCC_A1 MAGNETIC  -3.0    2.80000E-01 !
+PHASE FCC_A1  %/  2 1   1 !
+   CONSTITUENT FCC_A1  :AL,FE : VA :  !
+   PARAMETER G(FCC_A1,AL:VA;0)      298.15   +GHSERAL#;       2900 N !
+   PARAMETER G(FCC_A1,FE:VA;0)      298.15   +GFEFCC#;        6000 N !
+   PARAMETER TC(FCC_A1,FE:VA;0)     298.15   +67;             6000 N !
+   PARAMETER BMAGN(FCC_A1,FE:VA;0)  298.15   +0.7;            6000 N !
+   PARAMETER G(FCC_A1,AL,FE:VA;0)   298.15  -76066.1+18.6758*T; 6000 N !
+   PARAMETER G(FCC_A1,AL,FE:VA;1)   298.15  +21167.4+1.3398*T;  6000 N !
+
+TYPE_DEFINITION ) GES A_P_D HCP_A3 MAGNETIC  -3.0    2.80000E-01 !
+PHASE HCP_A3 %) 2 1 .5 !
+   CONSTITUENT HCP_A3  :AL,FE: VA :  !
+   PARAMETER G(HCP_A3,AL:VA;0)  298.15  +5481-1.8*T+GHSERAL#;  2900 N !
+   PARAMETER G(HCP_A3,FE:VA;0)  298.15
+                  -3705.78+12.591*T-1.15*T*LN(T)
+                  +6.4E-04*T**2+GHSERFE#;  1.81100E+03  Y
+                  -3957.199+5.24951*T+4.9251E+30*T**(-9)+GHSERFE#;  6000 N !
+   PARAMETER G(HCP_A3,AL,FE:VA;0)  298.15  -106903.0+20.0*T;        6000 N !
+
+PHASE AL2FE % 2  2  1   !
+   CONSTITUENT AL2FE  :AL:FE:  !
+   PARAMETER G(AL2FE,AL:FE;0)  298.15 
+                              -98097.0+18.7503*T+2*GHSERAL#+GHSERFE#; 6000 N !
+
+PHASE AL13FE4 %  3  0.6275  0.235  0.1375  !
+   CONSTITUENT AL13FE4  :AL:FE:AL,VA:  !
+   PARAMETER G(AL13FE4,AL:FE:AL;0)  298.15
+                   -30714.4+7.44*T+0.765*GHSERAL#+0.235*GHSERFE#;     6000 N !
+   PARAMETER G(AL13FE4,AL:FE:VA;0)  298.15
+                   -27781.3+7.2566*T+0.6275*GHSERAL#+0.235*GHSERFE#;  6000 N !
+
+PHASE AL5FE2 % 2  5  2  !
+   CONSTITUENT AL5FE2  :AL:FE:  !
+   PARAMETER G(AL5FE2,AL:FE;0)  298.15  
+                            -228576+48.99503*T+5*GHSERAL#+2*GHSERFE#; 6000 N !
+
+PHASE AL5FE4 % 1 1.0 !
+   CONSTITUENT AL5FE4  :AL,FE :  !
+   PARAMETER G(AL5FE4,AL;0)     298.15  +12178.90-4.813*T+GHSERAL#;   6000 N !
+   PARAMETER G(AL5FE4,FE;0)     298.15  +5009.03+GHSERFE#;            6000 N !
+   PARAMETER G(AL5FE4,AL,FE;0)  298.15  -131649+29.4833*T;            6000 N !
+   PARAMETER G(AL5FE4,AL,FE;1)  298.15  -18619.5;                     6000 N !
+
+$ALFE-NIMS

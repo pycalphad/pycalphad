@@ -125,6 +125,8 @@ class Model(object):
         total_energy += self.magnetic_energy(phase, symbols, param_search)
 
         # Next, we handle atomic ordering
+        # NOTE: We need to add this one last since it uses the energy
+        # as a parameter to figure out the contribution.
         ordered_phase_name = None
         disordered_phase_name = None
         try:
@@ -132,10 +134,11 @@ class Model(object):
             disordered_phase_name = phase.model_hints['disordered_phase']
         except KeyError:
             pass
-        if disordered_phase_name == phase_name:
+        if ordered_phase_name == phase_name:
             total_energy += \
                 self.atomic_ordering_energy(dbe, disordered_phase_name,
                                             ordered_phase_name,
+                                            total_energy,
                                             symbols, param_search)
 
         return total_energy
@@ -384,54 +387,84 @@ class Model(object):
             # sublattices with only vacancies don't count
             if len(sublattice) == 1 and sublattice[0] == 'VA':
                 continue
-            if species_name not in sublattice:
-                continue
-            site_ratio_normalization += site_ratios[idx]
-            numerator += site_ratios[idx] * \
-                v.SiteFraction(phase_name, idx, species_name)
+            if species_name in list(sublattice):
+                site_ratio_normalization += site_ratios[idx]
+                numerator += site_ratios[idx] * \
+                    v.SiteFraction(phase_name, idx, species_name)
+
+        if site_ratio_normalization == 0:
+            raise ValueError('Couldn\'t find ' + species_name + ' in ' + \
+                str(constituent_array))
 
         return numerator / site_ratio_normalization
 
     def atomic_ordering_energy(self, dbe, disordered_phase_name,
-                               ordered_phase_name, symbols, param_search):
+                               ordered_phase_name, ordered_phase_energy,
+                               symbols, param_search):
         """
         Return the atomic ordering contribution in symbolic form.
         Description follows Servant and Ansara, Calphad, 2001.
         """
 
-        ordered_phase = dbe.phases[ordered_phase_name]
-
         # What we need to add here is the energy of
-        # the ordered phase, followed by subtracting out the ordered
+        # the disordered phase, followed by subtracting out the ordered
         # phase energy for the case when all sublattices are equal.
-        ordering_term = self.build_phase(dbe, ordered_phase_name,
-                                         symbols, param_search)
+        disordered_term = self.build_phase(dbe, disordered_phase_name,
+                                           symbols, param_search)
 
         # Fix variable names
         variable_rename_dict = {}
-        for atom in ordering_term.atoms(v.SiteFraction):
-            variable_rename_dict[atom] = \
-                v.SiteFraction(
-                    disordered_phase_name, atom.subl_index, atom.species)
-        ordering_term = ordering_term.subs(variable_rename_dict)
+        for atom in disordered_term.atoms(v.SiteFraction):
+            # Replace disordered phase site fractions with mole fractions of
+            # ordered phase site fractions.
+            # Special case: Pure vacancy sublattices
+            all_species_in_sublattice = \
+                dbe.phases[disordered_phase_name].constituents[
+                    atom.sublattice_index]
+            if atom.species == 'VA' and len(all_species_in_sublattice) == 1:
+                # Assume: Pure vacancy sublattices are always last
+                vacancy_subl_index = \
+                    len(dbe.phases[ordered_phase_name].constituents)-1
+                variable_rename_dict[atom] = \
+                    v.SiteFraction(
+                        ordered_phase_name, vacancy_subl_index, atom.species)
+            elif atom.species == 'VA' and len(all_species_in_sublattice) > 1:
+                raise ValueError(
+                    'Sublattice configuration not supported: '+ \
+                    dbe.phases[disordered_phase_name].constituents
+                )
+            else:
+                # All other cases: replace site fraction with mole fraction
+                variable_rename_dict[atom] = \
+                    self.mole_fraction(
+                        atom.species,
+                        ordered_phase_name,
+                        dbe.phases[ordered_phase_name].constituents,
+                        dbe.phases[ordered_phase_name].sublattices
+                        )
 
+        disordered_term = disordered_term.subs(variable_rename_dict)
+
+        # Now handle the ordered term for degenerate sublattice case
         molefraction_dict = {}
         species_dict = {}
         for comp in self.components:
             if comp == 'VA':
                 continue
             species_dict[comp] = \
-                self.mole_fraction(comp,
-                                   disordered_phase_name,
-                                   ordered_phase.constituent_array,
-                                   ordered_phase.sublattices)
+                self.mole_fraction(comp, ordered_phase_name,
+                                   dbe.phases[ordered_phase_name].constituents,
+                                   dbe.phases[ordered_phase_name].sublattices
+                                  )
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction
-        for sitefrac in ordering_term.atoms(v.SiteFraction):
+        for sitefrac in ordered_phase_energy.atoms(v.SiteFraction):
             if sitefrac.species == 'VA':
                 continue
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
-        subl_equal_term = ordering_term.subs(molefraction_dict)
-        return ordering_term - subl_equal_term
+        subl_equal_term = \
+            ordered_phase_energy.subs(molefraction_dict, simultaneous=True)
+        
+        return disordered_term - subl_equal_term
