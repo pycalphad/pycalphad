@@ -1,22 +1,11 @@
 """
-The energy test module verifies that the built-in Model class produces the
+The energy test module verifies that the Model class produces the
 correct abstract syntax tree for the energy.
 """
 
-from numpy.testing import assert_almost_equal
 from pycalphad import Database, Model
 from pycalphad.minimize import make_callable
-
-from itertools import chain, combinations
-
-def powerset(iterable):
-    "powerset([1,2,3]) --> () (1,) (2,) (3,) (1,2) (1,3) (2,3) (1,2,3)"
-    sss = list(iterable)
-    return chain.from_iterable(combinations(sss, r) for r in range(len(sss)+1))
-
-def subsets(sss):
-    "Return a list of all subsets of any size from the given iterable."
-    return [list(r) for r in powerset(sss)]
+import pycalphad.variables as v
 
 TDB_TEST_STRING = """
 ELEMENT /-          ELECTRON_GAS         0         0         0 !
@@ -286,20 +275,71 @@ def calculate_energy(model, variables, mode='numpy'):
     # Generate a callable energy function
     # Normally we would use model.subs(variables) here, but we want to ensure
     # our optimization functions are working.
-    energy = make_callable(model, \
-            list(variables.keys()) + variables, mode=mode)
+    energy = make_callable(model, list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
     return energy(*(list(variables.values())))
 
 def check_energy(model, variables, known_value, mode='numpy'):
     "Check that our calculated energy matches the known value."
-    assert_almost_equal(calculate_energy(model, variables, mode), known_value)
+    desired = calculate_energy(model, variables, mode)
+    if abs(known_value) > 0:
+        assert abs(1 - (desired / known_value)) < 1e-5, \
+            "%r != %r, mode=%s for %s" % (desired, known_value, mode, variables)
+    else:
+        assert abs(desired - known_value) < 1e-5, \
+            "%r != %r, mode=%s for %s" % (desired, known_value, mode, variables)
 
-def test_generator():
+def test_pure_sympy():
     """
-    For each phase, generate all subsets of components.
-    Calculate the energy at three points and assert the correct value.
+    Pure component end-members in sympy mode.
     """
     dbf = Database(TDB_TEST_STRING)
-    assert dbf
-    assert Model
+    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+            {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
+        -1.28565e5, mode='sympy')
+    check_energy(Model(dbf, ['AL'], 'B2'), \
+            {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
+             v.SiteFraction('B2', 1, 'AL'): 1}, \
+        -6.57639e4, mode='sympy')
+    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+            {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
+             v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
+        -3.01732e4, mode='sympy')
+
+def test_pure_numpy():
+    """
+    Pure component end-members in numpy mode.
+    """
+    dbf = Database(TDB_TEST_STRING)
+    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+            {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
+        -1.28565e5, mode='numpy')
+    check_energy(Model(dbf, ['AL'], 'B2'), \
+            {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
+             v.SiteFraction('B2', 1, 'AL'): 1}, \
+        -6.57639e4, mode='numpy')
+    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+            {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
+             v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
+        -3.01732e4, mode='numpy')
+
+def test_pure_theano():
+    """
+    Pure component end-members in Theano mode.
+    """
+    dbf = Database(TDB_TEST_STRING)
+    # clear Theano compile cache
+    import theano
+    theano.gof.cc.get_module_cache().clear()
+
+    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+            {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
+        -1.28565e5, mode='theano')
+    check_energy(Model(dbf, ['AL'], 'B2'), \
+            {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
+             v.SiteFraction('B2', 1, 'AL'): 1}, \
+        -6.57639e4, mode='theano')
+    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+            {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
+             v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
+        -3.01732e4, mode='theano')
