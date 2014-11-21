@@ -130,7 +130,6 @@ def _process_typedef(targetdb, typechar, line):
             targetdb.phases[tokens[2]].model_hints.update(
                 targetdb._typedefs[typechar]
             )
-        print(targetdb._typedefs[typechar])
 
 def _process_phase(targetdb, name, typedefs, subls):
     """
