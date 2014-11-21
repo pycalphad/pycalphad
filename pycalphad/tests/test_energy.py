@@ -269,7 +269,7 @@ def calculate_energy(model, variables, mode='numpy'):
     variables, dict
     Dictionary of all input variables.
 
-    mode, ['numpy', 'sympy'], optional
+    mode, ['numpy', 'sympy', 'theano'], optional
     Optimization method for the abstract syntax tree.
     """
     # Generate a callable energy function
@@ -289,10 +289,9 @@ def check_energy(model, variables, known_value, mode='numpy'):
         assert abs(desired - known_value) < 1e-5, \
             "%r != %r, mode=%s for %s" % (desired, known_value, mode, variables)
 
+# PURE COMPONENT TESTS
 def test_pure_sympy():
-    """
-    Pure component end-members in sympy mode.
-    """
+    "Pure component end-members in sympy mode."
     dbf = Database(TDB_TEST_STRING)
     check_energy(Model(dbf, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
@@ -307,9 +306,7 @@ def test_pure_sympy():
         -3.01732e4, mode='sympy')
 
 def test_pure_numpy():
-    """
-    Pure component end-members in numpy mode.
-    """
+    "Pure component end-members in numpy mode."
     dbf = Database(TDB_TEST_STRING)
     check_energy(Model(dbf, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
@@ -324,13 +321,8 @@ def test_pure_numpy():
         -3.01732e4, mode='numpy')
 
 def test_pure_theano():
-    """
-    Pure component end-members in Theano mode.
-    """
+    "Pure component end-members in Theano mode."
     dbf = Database(TDB_TEST_STRING)
-    # clear Theano compile cache
-    import theano
-    theano.gof.cc.get_module_cache().clear()
 
     check_energy(Model(dbf, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
@@ -343,3 +335,141 @@ def test_pure_theano():
             {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='theano')
+
+# BINARY TESTS
+def test_binary_magnetic():
+    "Two-component phase with IHJ magnetic model."
+    dbf = Database(TDB_TEST_STRING)
+    # disordered case
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+            {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}, \
+        -1.68840e4, mode='sympy')
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+            {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}, \
+        -1.68840e4, mode='numpy')
+
+def test_binary_magnetic_ordering():
+    "Two-component phase with IHJ magnetic model and ordering."
+    dbf = Database(TDB_TEST_STRING)
+    # ordered case
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+            {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 6.60348e-2}, \
+        -9.23953e3, mode='sympy')
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+            {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 6.60348e-2}, \
+        -9.23953e3, mode='numpy')
+
+def test_binary_theano():
+    "Two-component phase with IHJ magnetic model and ordering in Theano mode."
+    dbf = Database(TDB_TEST_STRING)
+    # ordered case
+    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+            {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 6.60348e-2}, \
+        -9.23953e3, mode='theano')
+
+def test_binary_dilute():
+    "Dilute binary solution phase."
+    dbf = Database(TDB_TEST_STRING)
+    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
+             v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
+        5.52773e3, mode='sympy')
+    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
+             v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
+        5.52773e3, mode='numpy')
+
+# TERNARY TESTS
+def test_ternary_rkm_solution():
+    "Solution phase with ternary interaction parameters."
+    dbf = Database(TDB_TEST_STRING)
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'LIQUID'), \
+            {v.T: 1500, v.SiteFraction('LIQUID', 0, 'AL'): 0.44,
+             v.SiteFraction('LIQUID', 0, 'CR'): 0.20,
+             v.SiteFraction('LIQUID', 0, 'NI'): 0.36}, \
+        -1.16529e5, mode='sympy')
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'LIQUID'), \
+            {v.T: 1500, v.SiteFraction('LIQUID', 0, 'AL'): 0.44,
+             v.SiteFraction('LIQUID', 0, 'CR'): 0.20,
+             v.SiteFraction('LIQUID', 0, 'NI'): 0.36}, \
+        -1.16529e5, mode='numpy')
+
+def test_ternary_symmetric_param():
+    "Generate the other two ternary parameters if only the zeroth is specified."
+    dbf = Database(TDB_TEST_STRING)
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'FCC_A1'), \
+            {v.T: 300, v.SiteFraction('FCC_A1', 0, 'AL'): 1.97135e-1,
+             v.SiteFraction('FCC_A1', 0, 'CR'): 1.43243e-2,
+             v.SiteFraction('FCC_A1', 0, 'NI'): 7.88541e-1},
+                 -37433.794, mode='sympy')
+
+def test_ternary_ordered_magnetic():
+    "Ternary ordered solution phase with IHJ magnetic model."
+    dbf = Database(TDB_TEST_STRING)
+    # ordered case
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'L12_FCC'), \
+            {v.T: 300, v.SiteFraction('L12_FCC', 0, 'AL'): 5.42883e-8,
+             v.SiteFraction('L12_FCC', 0, 'CR'): 2.07934e-6,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 9.99998e-1,
+             v.SiteFraction('L12_FCC', 1, 'AL'): 7.49998e-1,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 2.50002e-1,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 4.55313e-10}, \
+        -40717.204, mode='sympy')
+    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'L12_FCC'), \
+            {v.T: 300, v.SiteFraction('L12_FCC', 0, 'AL'): 5.42883e-8,
+             v.SiteFraction('L12_FCC', 0, 'CR'): 2.07934e-6,
+             v.SiteFraction('L12_FCC', 0, 'NI'): 9.99998e-1,
+             v.SiteFraction('L12_FCC', 1, 'AL'): 7.49998e-1,
+             v.SiteFraction('L12_FCC', 1, 'CR'): 2.50002e-1,
+             v.SiteFraction('L12_FCC', 1, 'NI'): 4.55313e-10}, \
+        -40717.204, mode='numpy')
+
+# QUATERNARY TESTS
+def test_quaternary():
+    "Quaternary ordered solution phase."
+    dbf = Database(TDB_TEST_STRING)
+    check_energy(Model(dbf, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
+            {v.T: 500, v.SiteFraction('B2', 0, 'AL'): 4.03399e-9,
+             v.SiteFraction('B2', 0, 'CR'): 2.65798e-4,
+             v.SiteFraction('B2', 0, 'NI'): 9.99734e-1,
+             v.SiteFraction('B2', 0, 'VA'): 2.68374e-9,
+             v.SiteFraction('B2', 1, 'AL'): 3.75801e-1,
+             v.SiteFraction('B2', 1, 'CR'): 1.20732e-1,
+             v.SiteFraction('B2', 1, 'NI'): 5.03467e-1,
+             v.SiteFraction('B2', 1, 'VA'): 1e-12}, \
+        -42368.27, mode='sympy')
+    check_energy(Model(dbf, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
+            {v.T: 500, v.SiteFraction('B2', 0, 'AL'): 4.03399e-9,
+             v.SiteFraction('B2', 0, 'CR'): 2.65798e-4,
+             v.SiteFraction('B2', 0, 'NI'): 9.99734e-1,
+             v.SiteFraction('B2', 0, 'VA'): 2.68374e-9,
+             v.SiteFraction('B2', 1, 'AL'): 3.75801e-1,
+             v.SiteFraction('B2', 1, 'CR'): 1.20732e-1,
+             v.SiteFraction('B2', 1, 'NI'): 5.03467e-1,
+             v.SiteFraction('B2', 1, 'VA'): 1e-12}, \
+        -42368.27, mode='numpy')
+
+# EXCEPTION TESTS
+def test_negative_site_fraction():
+    pass
+def test_outside_temp_range():
+    pass
+def test_missing_variable_def():
+    pass
+def test_case_sensitivity():
+    pass

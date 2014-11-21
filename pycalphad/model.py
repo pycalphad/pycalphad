@@ -3,6 +3,7 @@ The Model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
+import copy
 from sympy import log, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
@@ -98,7 +99,7 @@ class Model(object):
         are physically similar.
 
         This procedure is based on an analysis by Hillert, 1980,
-        published in the pycalphad journal.
+        published in the Calphad journal.
         """
         arity = len(comps)
         return_dict = {}
@@ -175,6 +176,42 @@ class Model(object):
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
+
+                    # NOTE: The commercial software packages seem to have
+                    # a "feature" where, if only the zeroth
+                    # parameter_order term of a ternary parameter is specified,
+                    # the other two terms are automatically generated in order
+                    # to make the parameter symmetric.
+                    # In other words, specifying only this parameter:
+                    # PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !
+                    # Actually implies:
+                    # PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !
+                    # PARAMETER G(FCC_A1,AL,CR,NI;1) 298.15  +30300; 6000 N !
+                    # PARAMETER G(FCC_A1,AL,CR,NI;2) 298.15  +30300; 6000 N !
+                    #
+                    # If either 1 or 2 is specified, no implicit parameters are
+                    # generated.
+                    # We need to handle this case.
+                    if param['parameter_order'] == 0:
+                        # are _any_ of the other parameter_orders specified?
+                        ternary_param_query = (
+                            (where('phase_name') == param['phase_name']) & \
+                            (where('parameter_type') == \
+                                param['parameter_type']) & \
+                            (where('constituent_array') == \
+                                param['constituent_array'])
+                        )
+                        other_tern_params = param_search(ternary_param_query)
+                        if len(other_tern_params) == 1 and \
+                            other_tern_params[0] == param:
+                            # only the current parameter is specified
+                            # We need to generate the other two parameters.
+                            order_one = copy.deepcopy(param)
+                            order_one['parameter_order'] = 1
+                            order_two = copy.deepcopy(param)
+                            order_two['parameter_order'] = 2
+                            # Add these parameters to our iteration.
+                            params.extend((order_one, order_two))
                     mixing_term *= comp_symbols[param['parameter_order']]
                     # Perform Muggianu adjustment to site fractions
                     mixing_term = mixing_term.subs(
@@ -302,6 +339,42 @@ class Model(object):
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
+
+                    # NOTE: The commercial software packages seem to have
+                    # a "feature" where, if only the zeroth
+                    # parameter_order term of a ternary parameter is specified,
+                    # the other two terms are automatically generated in order
+                    # to make the parameter symmetric.
+                    # In other words, specifying only this parameter:
+                    # PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !
+                    # Actually implies:
+                    # PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !
+                    # PARAMETER G(FCC_A1,AL,CR,NI;1) 298.15  +30300; 6000 N !
+                    # PARAMETER G(FCC_A1,AL,CR,NI;2) 298.15  +30300; 6000 N !
+                    #
+                    # If either 1 or 2 is specified, no implicit parameters are
+                    # generated.
+                    # We need to handle this case.
+                    if param['parameter_order'] == 0:
+                        # are _any_ of the other parameter_orders specified?
+                        ternary_param_query = (
+                            (where('phase_name') == param['phase_name']) & \
+                            (where('parameter_type') == \
+                                param['parameter_type']) & \
+                            (where('constituent_array') == \
+                                param['constituent_array'])
+                        )
+                        other_tern_params = param_search(ternary_param_query)
+                        if len(other_tern_params) == 1 and \
+                            other_tern_params[0] == param:
+                            # only the current parameter is specified
+                            # We need to generate the other two parameters.
+                            order_one = copy.deepcopy(param)
+                            order_one['parameter_order'] = 1
+                            order_two = copy.deepcopy(param)
+                            order_two['parameter_order'] = 2
+                            # Add these parameters to our iteration.
+                            interaction_params.extend((order_one, order_two))
                     mixing_term *= comp_symbols[param['parameter_order']]
                     # Perform Muggianu adjustment to site fractions
                     mixing_term = mixing_term.subs(
@@ -458,5 +531,5 @@ class Model(object):
 
         subl_equal_term = \
             ordered_phase_energy.subs(molefraction_dict, simultaneous=True)
-        
+
         return disordered_term - subl_equal_term
