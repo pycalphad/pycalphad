@@ -1,6 +1,6 @@
 pycalphad, a library for the CALculation of PHAse Diagrams
 ==========================================================
-
+[![Build Status](https://travis-ci.org/richardotis/pycalphad.svg?branch=master)](https://travis-ci.org/richardotis/pycalphad)
 **Note**: Unsolicited pull requests are _happily_ accepted!
 
 pycalphad is a free and open-source Python library for 
