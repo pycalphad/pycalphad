@@ -19,14 +19,9 @@ before_install:
 install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas theano sympy pyparsing
   - pip install tinydb
-  # Coverage packages are on dan blanchard's binstar channel
-  - conda install --yes -c dan_blanchard python-coveralls nose-cov
   - python setup.py install
  
 # Run test
 script:
-  - nosetests --with-cov --cov pycalphad --cov-config .coveragerc --logging-level=INFO
- 
-# Calculate coverage
-after_success:
-  - coveralls --config_file .coveragerc
+  - nosetests
+
