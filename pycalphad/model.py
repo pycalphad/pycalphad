@@ -383,7 +383,7 @@ class Model(object):
                 param['parameter'].subs(symbols) / site_ratio_normalization
         return excess_mixing_term
     def magnetic_energy(self, phase, symbols, param_search):
-        #pylint: disable=C0103
+        #pylint: disable=C0103, R0914
         """
         Return the energy from magnetic ordering in symbolic form.
         The implemented model is the Inden-Hillert-Jarl formulation.
@@ -395,12 +395,11 @@ class Model(object):
             return S.Zero
         # Normalize site ratios
         site_ratio_normalization = 0
-        site_ratios = phase.sublattices
         for idx, sublattice in enumerate(phase.constituents):
             # sublattices with only vacancies don't count
             if len(sublattice) == 1 and sublattice[0] == 'VA':
                 continue
-            site_ratio_normalization += site_ratios[idx]
+            site_ratio_normalization += phase.sublattices[idx]
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 

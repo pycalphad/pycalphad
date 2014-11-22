@@ -8,7 +8,7 @@ except NameError:
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 
-class Database(object):
+class Database(object): #pylint: disable=R0902
     """
     Structured thermodynamic and/or kinetic data.
     Databases are usually filled by Parsers and read by Models.
