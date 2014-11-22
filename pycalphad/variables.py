@@ -11,7 +11,7 @@ class StateVariable(Symbol):
     and nonnegative.
     """
     def __new__(cls, name):
-        return Symbol.__new__(cls, name, nonnegative=True, real=True)
+        return Symbol.__new__(cls, name.upper(), nonnegative=True, real=True)
 
 class SiteFraction(StateVariable):
     """
@@ -22,9 +22,9 @@ class SiteFraction(StateVariable):
         varname = phase_name + str(subl_index) + species
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname)
-        new_self.phase_name = phase_name
+        new_self.phase_name = phase_name.upper()
         new_self.sublattice_index = subl_index
-        new_self.species = species
+        new_self.species = species.upper()
         return new_self
     def _latex(self):
         #pylint: disable=E1101

@@ -3,6 +3,7 @@ The energy test module verifies that the Model class produces the
 correct abstract syntax tree for the energy.
 """
 
+import nose.tools
 from pycalphad import Database, Model
 from pycalphad.minimize import make_callable
 import pycalphad.variables as v
@@ -237,13 +238,12 @@ $
 
 
 """
+
+DBF = Database(TDB_TEST_STRING)
+
 #
 # DATABASE LOADING TESTS
 #
-def test_load_from_string():
-    "Test database loading from a multi-line string."
-    Database(TDB_TEST_STRING)
-    assert True
 
 def test_load_from_stringio():
     "Test database loading from a StringIO file-like object."
@@ -292,46 +292,42 @@ def check_energy(model, variables, known_value, mode='numpy'):
 # PURE COMPONENT TESTS
 def test_pure_sympy():
     "Pure component end-members in sympy mode."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+    check_energy(Model(DBF, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
         -1.28565e5, mode='sympy')
-    check_energy(Model(dbf, ['AL'], 'B2'), \
+    check_energy(Model(DBF, ['AL'], 'B2'), \
             {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
              v.SiteFraction('B2', 1, 'AL'): 1}, \
         -6.57639e4, mode='sympy')
-    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['AL'], 'L12_FCC'), \
             {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='sympy')
 
 def test_pure_numpy():
     "Pure component end-members in numpy mode."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+    check_energy(Model(DBF, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
         -1.28565e5, mode='numpy')
-    check_energy(Model(dbf, ['AL'], 'B2'), \
+    check_energy(Model(DBF, ['AL'], 'B2'), \
             {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
              v.SiteFraction('B2', 1, 'AL'): 1}, \
         -6.57639e4, mode='numpy')
-    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['AL'], 'L12_FCC'), \
             {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='numpy')
 
 def test_pure_theano():
     "Pure component end-members in Theano mode."
-    dbf = Database(TDB_TEST_STRING)
-
-    check_energy(Model(dbf, ['AL'], 'LIQUID'), \
+    check_energy(Model(DBF, ['AL'], 'LIQUID'), \
             {v.T: 2000, v.SiteFraction('LIQUID', 0, 'AL'): 1}, \
         -1.28565e5, mode='theano')
-    check_energy(Model(dbf, ['AL'], 'B2'), \
+    check_energy(Model(DBF, ['AL'], 'B2'), \
             {v.T: 1400, v.SiteFraction('B2', 0, 'AL'): 1,
              v.SiteFraction('B2', 1, 'AL'): 1}, \
         -6.57639e4, mode='theano')
-    check_energy(Model(dbf, ['AL'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['AL'], 'L12_FCC'), \
             {v.T: 800, v.SiteFraction('L12_FCC', 0, 'AL'): 1,
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='theano')
@@ -339,15 +335,14 @@ def test_pure_theano():
 # BINARY TESTS
 def test_binary_magnetic():
     "Two-component phase with IHJ magnetic model."
-    dbf = Database(TDB_TEST_STRING)
     # disordered case
-    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
              v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}, \
         -1.68840e4, mode='sympy')
-    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
              v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
@@ -356,15 +351,14 @@ def test_binary_magnetic():
 
 def test_binary_magnetic_ordering():
     "Two-component phase with IHJ magnetic model and ordering."
-    dbf = Database(TDB_TEST_STRING)
     # ordered case
-    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
              v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
              v.SiteFraction('L12_FCC', 1, 'NI'): 6.60348e-2}, \
         -9.23953e3, mode='sympy')
-    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
              v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
@@ -373,9 +367,8 @@ def test_binary_magnetic_ordering():
 
 def test_binary_theano():
     "Two-component phase with IHJ magnetic model and ordering in Theano mode."
-    dbf = Database(TDB_TEST_STRING)
     # ordered case
-    check_energy(Model(dbf, ['CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'CR'): 4.86783e-2,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.51322e-1,
              v.SiteFraction('L12_FCC', 1, 'CR'): 9.33965e-1,
@@ -384,12 +377,11 @@ def test_binary_theano():
 
 def test_binary_dilute():
     "Dilute binary solution phase."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
              v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
         5.52773e3, mode='sympy')
-    check_energy(Model(dbf, ['CR', 'NI'], 'LIQUID'), \
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
              v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
         5.52773e3, mode='numpy')
@@ -397,13 +389,12 @@ def test_binary_dilute():
 # TERNARY TESTS
 def test_ternary_rkm_solution():
     "Solution phase with ternary interaction parameters."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'LIQUID'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'LIQUID'), \
             {v.T: 1500, v.SiteFraction('LIQUID', 0, 'AL'): 0.44,
              v.SiteFraction('LIQUID', 0, 'CR'): 0.20,
              v.SiteFraction('LIQUID', 0, 'NI'): 0.36}, \
         -1.16529e5, mode='sympy')
-    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'LIQUID'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'LIQUID'), \
             {v.T: 1500, v.SiteFraction('LIQUID', 0, 'AL'): 0.44,
              v.SiteFraction('LIQUID', 0, 'CR'): 0.20,
              v.SiteFraction('LIQUID', 0, 'NI'): 0.36}, \
@@ -411,8 +402,7 @@ def test_ternary_rkm_solution():
 
 def test_ternary_symmetric_param():
     "Generate the other two ternary parameters if only the zeroth is specified."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'FCC_A1'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'FCC_A1'), \
             {v.T: 300, v.SiteFraction('FCC_A1', 0, 'AL'): 1.97135e-1,
              v.SiteFraction('FCC_A1', 0, 'CR'): 1.43243e-2,
              v.SiteFraction('FCC_A1', 0, 'NI'): 7.88541e-1},
@@ -420,9 +410,8 @@ def test_ternary_symmetric_param():
 
 def test_ternary_ordered_magnetic():
     "Ternary ordered solution phase with IHJ magnetic model."
-    dbf = Database(TDB_TEST_STRING)
     # ordered case
-    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'AL'): 5.42883e-8,
              v.SiteFraction('L12_FCC', 0, 'CR'): 2.07934e-6,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.99998e-1,
@@ -430,7 +419,7 @@ def test_ternary_ordered_magnetic():
              v.SiteFraction('L12_FCC', 1, 'CR'): 2.50002e-1,
              v.SiteFraction('L12_FCC', 1, 'NI'): 4.55313e-10}, \
         -40717.204, mode='sympy')
-    check_energy(Model(dbf, ['AL', 'CR', 'NI'], 'L12_FCC'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI'], 'L12_FCC'), \
             {v.T: 300, v.SiteFraction('L12_FCC', 0, 'AL'): 5.42883e-8,
              v.SiteFraction('L12_FCC', 0, 'CR'): 2.07934e-6,
              v.SiteFraction('L12_FCC', 0, 'NI'): 9.99998e-1,
@@ -442,8 +431,7 @@ def test_ternary_ordered_magnetic():
 # QUATERNARY TESTS
 def test_quaternary():
     "Quaternary ordered solution phase."
-    dbf = Database(TDB_TEST_STRING)
-    check_energy(Model(dbf, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
             {v.T: 500, v.SiteFraction('B2', 0, 'AL'): 4.03399e-9,
              v.SiteFraction('B2', 0, 'CR'): 2.65798e-4,
              v.SiteFraction('B2', 0, 'NI'): 9.99734e-1,
@@ -453,7 +441,7 @@ def test_quaternary():
              v.SiteFraction('B2', 1, 'NI'): 5.03467e-1,
              v.SiteFraction('B2', 1, 'VA'): 1e-12}, \
         -42368.27, mode='sympy')
-    check_energy(Model(dbf, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
+    check_energy(Model(DBF, ['AL', 'CR', 'NI', 'VA'], 'B2'), \
             {v.T: 500, v.SiteFraction('B2', 0, 'AL'): 4.03399e-9,
              v.SiteFraction('B2', 0, 'CR'): 2.65798e-4,
              v.SiteFraction('B2', 0, 'NI'): 9.99734e-1,
@@ -465,11 +453,52 @@ def test_quaternary():
         -42368.27, mode='numpy')
 
 # EXCEPTION TESTS
+@nose.tools.raises(Exception)
 def test_negative_site_fraction():
-    pass
+    "Raise exception on negative site fraction."
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): -0.3,
+             v.SiteFraction('LIQUID', 0, 'NI'): -2}, \
+        5.52773e3, mode='sympy')
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): -0.3,
+             v.SiteFraction('LIQUID', 0, 'NI'): -2}, \
+        5.52773e3, mode='numpy')
+
+@nose.tools.raises(Exception)
 def test_outside_temp_range():
-    pass
+    "Energy at a temperature not defined by the model."
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 8000, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
+             v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
+        0, mode='sympy')
+
+@nose.tools.raises(Exception)
 def test_missing_variable_def():
-    pass
+    "Raise exception when a variable is not defined."
+    check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12}, \
+        5.52773e3, mode='sympy')
+
+# SPECIAL CASES
 def test_case_sensitivity():
-    pass
+    "Case sensitivity of component and phase names."
+    check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
+             v.SiteFraction('liquid', 0, 'ni'): 1}, \
+        5.52773e3, mode='sympy')
+    check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
+             v.SiteFraction('liquid', 0, 'ni'): 1}, \
+        5.52773e3, mode='numpy')
+
+def test_zero_site_fraction():
+    "Energy of a binary solution phase where one site fraction is zero."
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
+             v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
+        5.52773e3, mode='sympy')
+    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
+            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
+             v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
+        5.52773e3, mode='numpy')

@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Add, Mul, Piecewise, Pow, S
+from sympy import log, Abs, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -31,15 +31,16 @@ class Model(object):
     None yet.
     """
     def __init__(self, dbe, comps, phase):
-        self.components = set(comps)
-        for sublattice in dbe.phases[phase].constituents:
+        self.components = set([x.upper() for x in comps])
+        for sublattice in dbe.phases[phase.upper()].constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
                 raise ValueError(str(sublattice) + \
                     ' has no components in '+str(self.components))
         # Build the abstract syntax tree
-        self.ast = self.build_phase(dbe, phase, dbe.symbols, dbe.search)
+        self.ast = self.build_phase(dbe, \
+            phase.upper(), dbe.symbols, dbe.search)
         # Need to do one more substitution to catch symbols that are functions
         # of other symbols
         self.ast = self.ast.subs(dbe.symbols)
@@ -282,10 +283,8 @@ class Model(object):
             for comp in active_comps:
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
-                mixing_term = \
-                    Piecewise((sitefrac * log(sitefrac), sitefrac > 1e-16),
-                              (0, True)
-                             )
+                mixing_term = Piecewise((sitefrac * log(sitefrac), \
+                    Abs(sitefrac) > 1e-16), (0, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
