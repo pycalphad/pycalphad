@@ -5,17 +5,10 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
 from pyparsing import LineEnd, OneOrMore, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList
+from pyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Piecewise
 import pycalphad.variables as v
-
-def sanitize_expr(expr_string):
-    "Sanitize a string representation of a mathematical expression."
-    # It's basically impossible to guarantee that we prevent arbitrary
-    # code execution until sympy.sympify() gets a rewrite, but we can try.
-    if '[' in expr_string or ']' in expr_string:
-        raise ValueError('Malformed parameter expression')
 
 def _make_piecewise_ast(toks):
     """
@@ -37,8 +30,7 @@ def _make_piecewise_ast(toks):
         expr_string = \
             re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                    flags=re.IGNORECASE)
-        # WARNING: sympify uses eval. Don't use it on unsanitized input.
-        sanitize_expr(expr_string)
+        # TODO: sympify uses eval. Don't use it on unsanitized input.
         expr_cond_pairs.append(
             (
                 sympify(expr_string).subs(variable_fixes),
