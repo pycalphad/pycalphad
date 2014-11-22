@@ -19,7 +19,8 @@ before_install:
   - sudo ln -s /run/shm /dev/shm
 # Install packages
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas sympy pyparsing theano
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas sympy pyparsing
+  - conda install -c https://conda.binstar.org/asmeurer theano
   - pip install tinydb
   - python setup.py install
  
