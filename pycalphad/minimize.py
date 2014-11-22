@@ -4,7 +4,13 @@ The minimize module handles calculation of equilibrium.
 from __future__ import division
 from pycalphad import Model
 import pycalphad.variables as v
+# monkey patch for theano/sympy integration
+import theano.tensor as tt
+import sympy
+import sympy.printing.theanocode
 from sympy.printing.theanocode import theano_function
+sympy.printing.theanocode.mapping[sympy.And] = tt.and_
+
 from sympy.utilities.lambdify import lambdify
 import pandas as pd
 import numpy as np

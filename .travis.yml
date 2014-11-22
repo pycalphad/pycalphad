@@ -1,7 +1,9 @@
 language: python
 python:
+  - 2.6
   - 2.7
   - 3.3
+  - 3.4
 notifications:
   email: false
  
@@ -17,11 +19,10 @@ before_install:
   - sudo ln -s /run/shm /dev/shm
 # Install packages
 install:
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas theano sympy pyparsing
-  - pip install tinydb
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing
+  - pip install tinydb theano
   - python setup.py install
  
 # Run test
 script:
   - nosetests
-
