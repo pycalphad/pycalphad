@@ -138,7 +138,8 @@ def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
-    statevars = {v.StateVariable(k): val for k, val in kwargs.items()}
+    statevars = \
+        dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
     active_comps = set(comps)
     # Consider only the active phases
     active_phases = {name: db.phases[name] for name in phases}
