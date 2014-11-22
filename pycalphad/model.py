@@ -230,14 +230,11 @@ class Model(object):
         pure_energy_term = S.Zero
         # Normalize site ratios
         site_ratio_normalization = 0
-        site_ratios = phase.sublattices
         for idx, sublattice in enumerate(phase.constituents):
             # sublattices with only vacancies don't count
             if len(sublattice) == 1 and sublattice[0] == 'VA':
                 continue
-            site_ratio_normalization += site_ratios[idx]
-
-        site_ratios = [c/site_ratio_normalization for c in site_ratios]
+            site_ratio_normalization += phase.sublattices[idx]
 
         pure_param_query = (
             (where('phase_name') == phase.name) & \
