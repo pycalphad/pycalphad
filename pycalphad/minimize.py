@@ -142,7 +142,7 @@ def eq(db, comps, phases, points_per_phase=10000, ast='numpy', **kwargs):
         dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
     active_comps = set(comps)
     # Consider only the active phases
-    active_phases = {name: db.phases[name] for name in phases}
+    active_phases = dict((name, db.phases[name]) for name in phases)
     comp_sets = {}
     # Construct a dataframe to hold all the data
     all_phases_df = pd.DataFrame()
