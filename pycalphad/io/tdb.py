@@ -5,7 +5,7 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
 from pyparsing import LineEnd, OneOrMore, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList, ParseException
+from pyparsing import delimitedList
 import re
 from sympy import sympify, And, Piecewise
 import pycalphad.variables as v
