@@ -72,7 +72,7 @@ class Database(object):
         self.elements = set()
         self.species = set()
         self.phases = {}
-        self._typedefs = {}
+        self.typedefs = {}
         self._structure_dict = {} # System-local phase names to global IDs
         self._parameters = TinyDB(storage=MemoryStorage)
         self.symbols = {}

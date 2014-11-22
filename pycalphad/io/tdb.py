@@ -2,13 +2,19 @@
 Thermo-Calc TDB format.
 """
 
-from pyparsing import CaselessKeyword, CharsNotIn, Combine, Group, Empty
-from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
+from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
+from pyparsing import LineEnd, OneOrMore, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
 from sympy import sympify, And, Piecewise
 import pycalphad.variables as v
+
+def sanitize_expr(expr_string):
+    "Sanitize a string representation of a mathematical expression."
+    # It's basically impossible to guarantee that we prevent arbitrary
+    # code execution until sympy.sympify() gets a rewrite, but we can try.
+    return expr_string.replace('[', '').replace(']', '')
 
 def _make_piecewise_ast(toks):
     """
@@ -24,13 +30,14 @@ def _make_piecewise_ast(toks):
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
         high_temp = toks[cur_tok+2]
-        #TODO: sympify uses eval. Don't use it on unsanitized input.
         expr_string = toks[cur_tok+1].replace('#', '')
         expr_string = \
             re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
         expr_string = \
             re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                    flags=re.IGNORECASE)
+        # WARNING: sympify uses eval. Don't use it on unsanitized input.
+        expr_string = sanitize_expr(expr_string)
         expr_cond_pairs.append(
             (
                 sympify(expr_string).subs(variable_fixes),
@@ -110,13 +117,13 @@ def _process_typedef(targetdb, typechar, line):
         return
     if tokens[3].upper() == 'MAGNETIC':
         # magnetic model (IHJ model assumed by default)
-        targetdb._typedefs[typechar] = {
+        targetdb.typedefs[typechar] = {
             'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
         }
     # GES A_P_D L12_FCC DIS_PART FCC_A1
     if tokens[3].upper() == 'DIS_PART':
         # order-disorder model
-        targetdb._typedefs[typechar] = {
+        targetdb.typedefs[typechar] = {
             'disordered_phase': tokens[4],
             'ordered_phase': tokens[2]
         }
@@ -128,7 +135,7 @@ def _process_typedef(targetdb, typechar, line):
             # specified first. If the disordered phase is specified
             # first, we will have to catch it in _process_phase().
             targetdb.phases[tokens[2]].model_hints.update(
-                targetdb._typedefs[typechar]
+                targetdb.typedefs[typechar]
             )
 
 def _process_phase(targetdb, name, typedefs, subls):
@@ -140,20 +147,21 @@ def _process_phase(targetdb, name, typedefs, subls):
     options = None
     if len(splitname) > 1:
         options = splitname[1]
+        print(options)
     targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
     for typedef in list(typedefs):
-        if typedef in targetdb._typedefs.keys():
-            if 'ihj_magnetic' in targetdb._typedefs[typedef].keys():
+        if typedef in targetdb.typedefs.keys():
+            if 'ihj_magnetic' in targetdb.typedefs[typedef].keys():
                 model_hints['ihj_magnetic_afm_factor'] = \
-                    targetdb._typedefs[typedef]['ihj_magnetic'][0]
+                    targetdb.typedefs[typedef]['ihj_magnetic'][0]
                 model_hints['ihj_magnetic_structure_factor'] = \
-                    targetdb._typedefs[typedef]['ihj_magnetic'][1]
-            if 'ordered_phase' in targetdb._typedefs[typedef].keys():
+                    targetdb.typedefs[typedef]['ihj_magnetic'][1]
+            if 'ordered_phase' in targetdb.typedefs[typedef].keys():
                 model_hints['ordered_phase'] = \
-                    targetdb._typedefs[typedef]['ordered_phase']
+                    targetdb.typedefs[typedef]['ordered_phase']
                 model_hints['disordered_phase'] = \
-                    targetdb._typedefs[typedef]['disordered_phase']
+                    targetdb.typedefs[typedef]['disordered_phase']
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
@@ -210,6 +218,7 @@ def tdbread(targetdb, lines):
 
     for command in commands:
         try:
+            tokens = None
             tokens = _tdb_grammar().parseString(command)
             if len(tokens) == 0:
                 continue
