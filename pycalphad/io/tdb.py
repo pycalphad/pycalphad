@@ -14,7 +14,8 @@ def sanitize_expr(expr_string):
     "Sanitize a string representation of a mathematical expression."
     # It's basically impossible to guarantee that we prevent arbitrary
     # code execution until sympy.sympify() gets a rewrite, but we can try.
-    return expr_string.replace('[', '').replace(']', '')
+    if '[' in expr_string or ']' in expr_string:
+        raise ValueError('Malformed parameter expression')
 
 def _make_piecewise_ast(toks):
     """
@@ -37,7 +38,7 @@ def _make_piecewise_ast(toks):
             re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                    flags=re.IGNORECASE)
         # WARNING: sympify uses eval. Don't use it on unsanitized input.
-        expr_string = sanitize_expr(expr_string)
+        sanitize_expr(expr_string)
         expr_cond_pairs.append(
             (
                 sympify(expr_string).subs(variable_fixes),
