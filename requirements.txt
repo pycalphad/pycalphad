@@ -1,8 +1,0 @@
-numpy
-matplotlib
-pandas
-sympy
-pyparsing
-tinydb
-theano
-scipy
