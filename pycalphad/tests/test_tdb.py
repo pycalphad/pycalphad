@@ -3,9 +3,8 @@ This module tests the functionality of the TDB file parser.
 """
 import nose.tools
 from pycalphad import Database
-from sympy import SympifyError
 
-@nose.tools.raises(SympifyError)
+@nose.tools.raises(ValueError, TypeError)
 def test_tdb_popen_exploit():
     "Prevent execution of arbitrary code using Popen."
     tdb_exploit_string = \
