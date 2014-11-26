@@ -57,8 +57,7 @@ class Composition(StateVariable):
 
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname)
-        if phase_name:
-            new_self.phase_name = phase_name
+        new_self.phase_name = phase_name
         new_self.species = species
         return new_self
     def _latex(self):

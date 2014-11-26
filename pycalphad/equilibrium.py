@@ -55,8 +55,8 @@ class Equilibrium(object):
         self.data = pd.DataFrame()
 
         self._phase_callables = dict()
-        self._variables = []
-        self._varnames = []
+        self._variables = dict()
+        self._varnames = dict()
         self._sublattice_dof = dict()
         # Here we would check for any keyword arguments that are special, i.e.,
         # there may be keyword arguments that aren't state variables
@@ -84,7 +84,8 @@ class Equilibrium(object):
                             ignore_index=True)
         # self.data now contains energy surface information for the system
         # determine column indices for independent degrees of freedom
-        independent_dof = None
+        independent_dof = []
+        independent_dof_values = []
         for cond, value in self.conditions.items():
             if not isinstance(cond, v.Composition):
                 continue
@@ -92,6 +93,7 @@ class Equilibrium(object):
             if cond.phase_name is not None:
                 continue
             independent_dof.append('X(' + cond.species + ')')
+            independent_dof_values.append(value)
 
         independent_dof.append('GM')
         # calculate the convex hull for the independent d.o.f
@@ -100,7 +102,10 @@ class Equilibrium(object):
             self.data[independent_dof].values
         )
         # locate the simplex closest to our desired condition
-        #candidate_simplex = scipy.spatial.tsearch(hull.simplices, xi)
+        tri = scipy.spatial.Delaunay(hull.points[:,:-1])
+        candidate_simplex = tri.find_simplex([independent_dof_values])
+        print(tri.simplices[candidate_simplex])
+        print(self.data.iloc[tri.simplices[candidate_simplex][0]])
         # use simplex values as a starting point; refine with optimization
 
     def _calculate_energy_surface(self, phase_obj, points_per_phase):
@@ -152,12 +157,12 @@ class Equilibrium(object):
             data_dict['X('+comp+')'] = [0 for n in range(len(points))]
 
         for column_idx, data in enumerate(points.T):
-            data_dict[self._varnames[column_idx]] = data
+            data_dict[self._varnames[phase_obj.name][column_idx]] = data
 
         # Now map the internal degrees of freedom to global coordinates
         for p_idx, pts in enumerate(points):
             for idx, coordinate in enumerate(pts):
-                cur_var = self._variables[idx]
+                cur_var = self._variables[phase_obj.name][idx]
                 if cur_var.species == 'VA':
                     continue
                 ratio = site_ratios[cur_var.sublattice_index]
@@ -171,12 +176,12 @@ class Equilibrium(object):
             # Build the symbolic representation of the energy
             mod = Model(dbf, list(self.components), phase_name)
             # Construct an ordered list of the variables
-            self._variables = []
+            self._variables[phase_name] = []
             sublattice_dof = []
             for idx, sublattice in enumerate(phase_obj.constituents):
                 dof = 0
                 for component in set(sublattice).intersection(self.components):
-                    self._variables.append(
+                    self._variables[phase_name].append(
                         v.SiteFraction(phase_name, idx, component)
                         )
                     dof += 1
@@ -184,9 +189,11 @@ class Equilibrium(object):
             self._sublattice_dof[phase_name] = sublattice_dof
             # Build the "fast" representation of that model
             self._phase_callables[phase_name] = make_callable(mod, \
-                list(self.statevars.keys()) + self._variables, mode=ast)
+                list(self.statevars.keys()) + \
+                    self._variables[phase_name], mode=ast)
             # Make user-friendly site fraction column labels
-            self._varnames = ['Y('+variable.phase_name+',' + \
+            self._varnames[phase_name] = ['Y('+variable.phase_name+',' + \
                     str(variable.sublattice_index) + ',' + \
-                    variable.species +')' for variable in self._variables]
+                    variable.species +')' \
+                        for variable in self._variables[phase_name]]
 
