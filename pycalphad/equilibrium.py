@@ -31,6 +31,8 @@ class Equilibrium(object):
         Names (case-sensitive) of components to consider in the calculation.
     phases : list
         Names (case-sensitive) of phases to consider in the calculation.
+    conditions : dict
+        StateVariables and their corresponding value.
     points_per_phase : int, optional
         Approximate number of points to sample per phase.
     ast : ['theano', 'numpy'], optional
@@ -44,9 +46,9 @@ class Equilibrium(object):
     --------
     None yet.
     """
-    def __init__(self, dbf, comps, phases,
+    def __init__(self, dbf, comps, phases, conditions,
                  points_per_phase=10000, ast='numpy', **kwargs):
-        self.conditions = TinyDB(storage=MemoryStorage)
+        self.conditions = conditions
         self.components = set(comps)
         self.phases = dict()
         self.statevars = dict()
@@ -55,7 +57,7 @@ class Equilibrium(object):
         self._phase_callables = dict()
         self._variables = []
         self._varnames = []
-        self._sublattice_dof = []
+        self._sublattice_dof = dict()
         # Here we would check for any keyword arguments that are special, i.e.,
         # there may be keyword arguments that aren't state variables
 
@@ -82,9 +84,15 @@ class Equilibrium(object):
                             ignore_index=True)
         # self.data now contains energy surface information for the system
         # determine column indices for independent degrees of freedom
-        independent_dof = list(self.components)[:-1]
-        for dof_idx, dof_ent in enumerate(independent_dof):
-            independent_dof[dof_idx] = 'X(' + dof_ent + ')'
+        independent_dof = None
+        for cond, value in self.conditions.items():
+            if not isinstance(cond, v.Composition):
+                continue
+            # ignore phase-specific composition conditions
+            if cond.phase_name is not None:
+                continue
+            independent_dof.append('X(' + cond.species + ')')
+
         independent_dof.append('GM')
         # calculate the convex hull for the independent d.o.f
         # TODO: Apply activity conditions here
@@ -99,7 +107,8 @@ class Equilibrium(object):
         "Sample the energy surface of a phase."
         # Calculate the number of components in each sublattice
         nontrivial_sublattices = \
-            len(self._sublattice_dof) - self._sublattice_dof.count(1)
+            len(self._sublattice_dof[phase_obj.name]) - \
+                self._sublattice_dof[phase_obj.name].count(1)
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
         # Choose a sensible number of compositions to sample
@@ -110,7 +119,8 @@ class Equilibrium(object):
             # Fixed stoichiometry
             num_points = 1
         # Sample composition space
-        points = point_sample(self._sublattice_dof, size=num_points)
+        points = point_sample(self._sublattice_dof[phase_obj.name],
+                              size=num_points)
         # Allocate space for energies, once calculated
         energies = np.zeros(len(points))
 
@@ -162,7 +172,7 @@ class Equilibrium(object):
             mod = Model(dbf, list(self.components), phase_name)
             # Construct an ordered list of the variables
             self._variables = []
-            self._sublattice_dof = []
+            sublattice_dof = []
             for idx, sublattice in enumerate(phase_obj.constituents):
                 dof = 0
                 for component in set(sublattice).intersection(self.components):
@@ -170,8 +180,8 @@ class Equilibrium(object):
                         v.SiteFraction(phase_name, idx, component)
                         )
                     dof += 1
-                self._sublattice_dof.append(dof)
-
+                sublattice_dof.append(dof)
+            self._sublattice_dof[phase_name] = sublattice_dof
             # Build the "fast" representation of that model
             self._phase_callables[phase_name] = make_callable(mod, \
                 list(self.statevars.keys()) + self._variables, mode=ast)
