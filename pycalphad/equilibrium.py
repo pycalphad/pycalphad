@@ -3,14 +3,16 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 
-from tinydb import TinyDB
-from tinydb.storages import MemoryStorage
 import pycalphad.variables as v
 from pycalphad.minimize import point_sample, make_callable
 from pycalphad import Model
 import pandas as pd
 import numpy as np
 import scipy.spatial
+import scipy.optimize
+from sympy import diff
+from collections import Counter
+
 try:
     set
 except NameError:
@@ -54,7 +56,9 @@ class Equilibrium(object):
         self.statevars = dict()
         self.data = pd.DataFrame()
 
+        self._phases = dict([[name, dbf.phases[name]] for name in phases])
         self._phase_callables = dict()
+        self._gradient_callables = dict()
         self._variables = dict()
         self._varnames = dict()
         self._sublattice_dof = dict()
@@ -67,12 +71,10 @@ class Equilibrium(object):
         self.statevars = \
             dict((v.StateVariable(key), value) \
                 for (key, value) in kwargs.items())
-        # Consider only the active phases
-        self.phases = dict((name, dbf.phases[name]) for name in phases)
 
         self._build_objective_functions(dbf, ast)
 
-        for phase_obj in self.phases.values():
+        for phase_obj in [dbf.phases[name] for name in phases]:
             data_dict = \
                 self._calculate_energy_surface(phase_obj, points_per_phase)
 
@@ -83,6 +85,12 @@ class Equilibrium(object):
                 pd.concat([self.data, phase_df], axis=0, join='outer', \
                             ignore_index=True)
         # self.data now contains energy surface information for the system
+        # find simplex for a starting point; refine with optimization
+        refined_values = self.minimize(self.get_starting_simplex())
+        print(refined_values)
+
+    def get_starting_simplex(self):
+        "Calculate convex hull and find a suitable starting point."
         # determine column indices for independent degrees of freedom
         independent_dof = []
         independent_dof_values = []
@@ -102,14 +110,87 @@ class Equilibrium(object):
             self.data[independent_dof].values
         )
         # locate the simplex closest to our desired condition
-        tri = scipy.spatial.Delaunay(hull.points[:,:-1])
+        tri = scipy.spatial.Delaunay(hull.points[:, :-1])
         candidate_simplex = tri.find_simplex([independent_dof_values])
-        print(tri.simplices[candidate_simplex])
-        print(self.data.iloc[tri.simplices[candidate_simplex][0]])
-        # use simplex values as a starting point; refine with optimization
+        return self.data.iloc[tri.simplices[candidate_simplex][0]]
+
+
+    def minimize(self, simplex):
+        """
+        Accept a list of simplex vertices and return the values of the
+        variables that minimize the energy under the constraints.
+        """
+        # Generate phase fraction variables
+        # Track the multiplicity of phases with a Counter object
+        composition_sets = Counter()
+        all_variables = []
+        # starting point
+        x_0 = []
+        # a list of tuples for where each phase's variable indices
+        # start and end
+        index_ranges = []
+        for vertex in simplex.T.to_dict().values():
+            # increase multiplicity by one
+            composition_sets[vertex['Phase']] += 1
+            # create new phase fraction variable
+            all_variables.append(
+                v.PhaseFraction(vertex['Phase'],
+                                composition_sets[vertex['Phase']])
+                )
+            start = len(x_0)
+            # default position is centroid of the simplex
+            x_0.append(1/len(list(simplex.iterrows())))
+
+            # add site fraction variables
+            all_variables.extend(self._variables[vertex['Phase']])
+            # add starting point for variable
+            for varname in self._varnames[vertex['Phase']]:
+                x_0.append(vertex[varname])
+
+            index_ranges.append([start, len(x_0)])
+
+        # Define variable bounds
+        bounds = [[0, 1]] * len(x_0)
+
+        # Create master objective function
+        def obj(input_x):
+            "Objective function. Takes x vector as input. Returns scalar."
+            objective = 0
+            for idx, vertex in enumerate(simplex.T.to_dict().values()):
+                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
+                # phase fraction times value of objective for that phase
+                objective += index_ranges[idx][0] * \
+                    self._phase_callables[vertex['Phase']](
+                        *(list(self.statevars.values()) + list(cur_x)))
+            return objective
+
+        # Create master gradient function
+        def gradient(input_x):
+            "Accepts input vector and returns gradient vector."
+            gradient = np.zeros(len(input_x))
+            for idx, vertex in enumerate(simplex.T.to_dict().values()):
+                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
+                # phase fraction derivative is just the phase energy
+                gradient[index_ranges[idx][0]] = \
+                    self._phase_callables[vertex['Phase']](
+                        *(list(self.statevars.values()) + list(cur_x)))
+                # gradient for particular phase's variables
+                # NOTE: We assume all phase d.o.f are independent here,
+                # and we handle any coupling through the constraints
+                for g_idx, grad in \
+                    enumerate(self._gradient_callables[vertex['Phase']]):
+                    gradient[index_ranges[idx][0]+g_idx] = \
+                        input_x[index_ranges[idx][0]] * \
+                            grad(*(list(self.statevars.values()) +list(cur_x)))
+            return gradient
+        # Generate constraint dictionary
+
+        # Run optimization
+        print(scipy.optimize.minimize(obj, x_0, jac=gradient, bounds=bounds))
+
 
     def _calculate_energy_surface(self, phase_obj, points_per_phase):
-        "Sample the energy surface of a phase."
+        "Sample the energy surface of a phase and return a data dictionary"
         # Calculate the number of components in each sublattice
         nontrivial_sublattices = \
             len(self._sublattice_dof[phase_obj.name]) - \
@@ -172,7 +253,7 @@ class Equilibrium(object):
 
     def _build_objective_functions(self, dbf, ast):
         "Construct objective function callables for each phase."
-        for phase_name, phase_obj in self.phases.items():
+        for phase_name, phase_obj in self._phases.items():
             # Build the symbolic representation of the energy
             mod = Model(dbf, list(self.components), phase_name)
             # Construct an ordered list of the variables
@@ -188,7 +269,11 @@ class Equilibrium(object):
                 sublattice_dof.append(dof)
             self._sublattice_dof[phase_name] = sublattice_dof
             # Build the "fast" representation of that model
-            self._phase_callables[phase_name] = make_callable(mod, \
+            self._phase_callables[phase_name] = make_callable(mod.ast, \
+                list(self.statevars.keys()) + \
+                    self._variables[phase_name], mode=ast)
+            self._gradient_callables[phase_name] = \
+                make_callable(list(mod.gradient.values()), \
                 list(self.statevars.keys()) + \
                     self._variables[phase_name], mode=ast)
             # Make user-friendly site fraction column labels

@@ -65,7 +65,7 @@ def make_callable(model, variables, mode='numpy'):
 
     Parameters
     ----------
-    model, SymPy object
+    model, SymPy object or iterable of SymPy objects
         Abstract representation of function
     variables, list
         Input variables, ordered in the way the return function will expect
@@ -87,16 +87,21 @@ def make_callable(model, variables, mode='numpy'):
     energy = None
     if mode == 'theano':
         energy = \
-            theano_function(variables, [model.ast], on_unused_input='ignore')
+            theano_function(variables, [model], on_unused_input='ignore')
     elif mode == 'theano-debug':
         energy = \
-            theano_function(variables, [model.ast], on_unused_input='warn',
+            theano_function(variables, [model], on_unused_input='warn',
                             mode='DebugMode')
     elif mode == 'numpy':
-        energy = lambdify(tuple(variables), model.ast, dummify=True,
-                          modules='numpy')
+        if hasattr(model, "__iter__"):
+            # is iterable, apply lambdify to each element
+            energy = [lambdify(tuple(variables), elem, dummify=True,
+                               modules='numpy') for elem in model]
+        else:
+            energy = lambdify(tuple(variables), model, dummify=True,
+                              modules='numpy')
     elif mode == 'sympy':
-        energy = lambda *vs: model.ast.subs(zip(variables, vs)).evalf()
+        energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     else:
         raise ValueError('Unsupported function mode: '+mode)
 

@@ -275,7 +275,7 @@ def calculate_energy(model, variables, mode='numpy'):
     # Generate a callable energy function
     # Normally we would use model.subs(variables) here, but we want to ensure
     # our optimization functions are working.
-    energy = make_callable(model, list(variables.keys()), mode=mode)
+    energy = make_callable(model.ast, list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
     return energy(*(list(variables.values())))
 

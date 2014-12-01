@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Abs, Add, Mul, Piecewise, Pow, S
+from sympy import diff, log, Abs, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -45,6 +45,8 @@ class Model(object):
         # of other symbols
         self.ast = self.ast.subs(dbe.symbols)
         self.variables = self.ast.atoms(v.StateVariable)
+        self.gradient = dict(
+            [(atom, diff(self.ast, atom)) for atom in self.variables])
     def _purity_test(self, constituent_array):
         """
         Check if constituent array only has one species in its array

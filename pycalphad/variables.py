@@ -32,6 +32,24 @@ class SiteFraction(StateVariable):
         return 'y^{'+self.phase_name.replace('_', '-') + \
             '}_{'+str(self.subl_index)+'},_{'+self.species+'}'
 
+class PhaseFraction(StateVariable):
+    """
+    Phase fractions are symbols with built-in assumptions of being real
+    and nonnegative. The constructor handles formatting of the name.
+    """
+    def __new__(cls, phase_name, multiplicity): #pylint: disable=W0221
+        varname = phase_name + str(multiplicity)
+        #pylint: disable=E1121
+        new_self = StateVariable.__new__(cls, varname)
+        new_self.phase_name = phase_name.upper()
+        new_self.multiplicity = multiplicity
+        return new_self
+    def _latex(self):
+        "LaTeX representation."
+        #pylint: disable=E1101
+        return 'f^{'+self.phase_name.replace('_', '-') + \
+            '}_{'+str(self.multiplicity)+'}'
+
 class Composition(StateVariable):
     """
     Compositions are symbols with built-in assumptions of being real
