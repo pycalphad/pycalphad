@@ -10,8 +10,8 @@ import pandas as pd
 import numpy as np
 import scipy.spatial
 import scipy.optimize
-from sympy import diff
 from collections import Counter
+import copy
 
 try:
     set
@@ -151,6 +151,7 @@ class Equilibrium(object):
 
         # Define variable bounds
         bounds = [[0, 1]] * len(x_0)
+        print(all_variables)
 
         # Create master objective function
         def obj(input_x):
@@ -179,14 +180,128 @@ class Equilibrium(object):
                 # and we handle any coupling through the constraints
                 for g_idx, grad in \
                     enumerate(self._gradient_callables[vertex['Phase']]):
-                    gradient[index_ranges[idx][0]+g_idx] = \
+                    gradient[index_ranges[idx][0]+1+g_idx] = \
                         input_x[index_ranges[idx][0]] * \
                             grad(*(list(self.statevars.values()) +list(cur_x)))
             return gradient
-        # Generate constraint dictionary
+
+        # Generate constraint sequence
+        constraints = []
+
+        # phase fraction constraint
+        def phasefrac_cons(input_x):
+            "Accepts input vector and returns phase fraction constraint."
+            output = sum([input_x[i[0]] for i in index_ranges]) - 1
+            return output
+        def phasefrac_jac(input_x):
+            "Accepts input vector and returns Jacobian of constraint."
+            output_x = np.zeros(len(input_x))
+            for idx_range in index_ranges:
+                output_x[idx_range[0]] = 1
+            return output_x
+        phasefrac_dict = dict()
+        phasefrac_dict['type'] = 'eq'
+        phasefrac_dict['fun'] = phasefrac_cons
+        phasefrac_dict['jac'] = phasefrac_jac
+        constraints.append(phasefrac_dict)
+
+        # site fraction constraints
+        # we use idx_range to force a range of input_x to sum to 1
+        def sitefrac_cons(input_x, idx_range):
+            """
+            Accepts input vector and index range and returns
+            site fraction constraint.
+            """
+            return sum(input_x[idx_range[0]:idx_range[1]]) - 1
+        def sitefrac_jac(input_x, idx_range):
+            """
+            Accepts input vector and index range and returns
+            Jacobian of site fraction constraint.
+            """
+            output_x = np.zeros(len(input_x))
+            for idx in range(idx_range[0], idx_range[1]):
+                output_x[idx] = 1
+            return output_x
+        # Generate all site fraction constraints
+        for idx_range in index_ranges:
+            # need to generate constraint for each sublattice
+            dofs = self._sublattice_dof[all_variables[idx_range[0]].phase_name]
+            cur_idx = idx_range[0]+1
+            for dof in dofs:
+                sitefrac_dict = dict()
+                sitefrac_dict['type'] = 'eq'
+                sitefrac_dict['fun'] = sitefrac_cons
+                sitefrac_dict['jac'] = sitefrac_jac
+                sitefrac_dict['args'] = [[cur_idx, cur_idx+dof]]
+                cur_idx += dof
+                constraints.append(sitefrac_dict)
+
+        def molefrac_cons(input_x, species, fix_val):
+            """
+            Accept input vector, species and fixed value.
+            Returns constraint.
+            """
+            output = -fix_val
+            phase_idx = 0
+            site_ratios = []
+            for idx, variable in enumerate(all_variables):
+                if isinstance(variable, v.PhaseFraction):
+                    phase_idx = idx
+                    # Normalize site ratios
+                    site_ratio_normalization = 0
+                    for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
+                        if species in sublattice:
+                            site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
+            
+                    site_ratios = [c/site_ratio_normalization for c in self._phases[variable.phase_name].sublattices]
+                if isinstance(variable, v.SiteFraction) and \
+                    species == variable.species:
+                    #print(str(all_variables[phase_idx]) +'*'+ \
+                    #    str(site_ratios[variable.sublattice_index])+'*'+str(all_variables[idx]))
+                    output += input_x[phase_idx] * \
+                        site_ratios[variable.sublattice_index] * input_x[idx]
+            print('input_x: '+str(input_x))
+            print('output: '+str(output))
+            return output
+
+        def molefrac_jac(input_x, species, fix_val):
+            """
+            Accept input vector, species and fixed value.
+            Returns Jacobian of constraint.
+            """
+            output_x = np.zeros(len(input_x))
+            phase_idx = 0
+            site_ratios = []
+            for idx, variable in enumerate(all_variables):
+                if isinstance(variable, v.PhaseFraction):
+                    phase_idx = idx
+                    # Normalize site ratios
+                    site_ratio_normalization = 0
+                    for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
+                        if species in sublattice:
+                            site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
+            
+                    site_ratios = [c/site_ratio_normalization for c in self._phases[variable.phase_name].sublattices]
+                if isinstance(variable, v.SiteFraction) and \
+                    species == variable.species:
+                    output_x[idx] += input_x[phase_idx] * \
+                        site_ratios[variable.sublattice_index]
+            return output_x
+
+        # All other constraints, e.g., mass balance
+        for condition, value in self.conditions.items():
+            if isinstance(condition, v.Composition):
+                # mass balance constraint for mole fraction
+                molefrac_dict = dict()
+                molefrac_dict['type'] = 'eq'
+                molefrac_dict['fun'] = molefrac_cons
+                molefrac_dict['jac'] = molefrac_jac
+                molefrac_dict['args'] = [condition.species, value]
+                constraints.append(molefrac_dict)
 
         # Run optimization
-        print(scipy.optimize.minimize(obj, x_0, jac=gradient, bounds=bounds))
+        print(scipy.optimize.minimize(obj, x_0, method='SLSQP', jac=gradient, \
+        bounds=bounds, constraints=constraints, options={'disp':True}))
 
 
     def _calculate_energy_surface(self, phase_obj, points_per_phase):
@@ -272,10 +387,9 @@ class Equilibrium(object):
             self._phase_callables[phase_name] = make_callable(mod.ast, \
                 list(self.statevars.keys()) + \
                     self._variables[phase_name], mode=ast)
-            self._gradient_callables[phase_name] = \
-                make_callable(list(mod.gradient.values()), \
-                list(self.statevars.keys()) + \
-                    self._variables[phase_name], mode=ast)
+            self._gradient_callables[phase_name] = [make_callable(grad_ast, \
+                    list(self.statevars.keys()) + self._variables[phase_name],\
+                    mode=ast) for grad_ast in list(mod.gradient.values())]
             # Make user-friendly site fraction column labels
             self._varnames[phase_name] = ['Y('+variable.phase_name+',' + \
                     str(variable.sublattice_index) + ',' + \
