@@ -110,9 +110,9 @@ class Equilibrium(object):
             self.data[independent_dof].values
         )
         # locate the simplex closest to our desired condition
-        tri = scipy.spatial.Delaunay(hull.points[:, :-1])
+        tri = scipy.spatial.Delaunay(hull.points[hull.vertices][:, :-1])
         candidate_simplex = tri.find_simplex([independent_dof_values])
-        return self.data.iloc[tri.simplices[candidate_simplex][0]]
+        return self.data.iloc[hull.vertices[tri.simplices[candidate_simplex][0]]]
 
 
     def minimize(self, simplex):
@@ -152,6 +152,7 @@ class Equilibrium(object):
         # Define variable bounds
         bounds = [[0, 1]] * len(x_0)
         print(all_variables)
+        print(x_0)
 
         # Create master objective function
         def obj(input_x):
@@ -160,7 +161,7 @@ class Equilibrium(object):
             for idx, vertex in enumerate(simplex.T.to_dict().values()):
                 cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
                 # phase fraction times value of objective for that phase
-                objective += index_ranges[idx][0] * \
+                objective += input_x[index_ranges[idx][0]] * \
                     self._phase_callables[vertex['Phase']](
                         *(list(self.statevars.values()) + list(cur_x)))
             return objective
@@ -250,7 +251,7 @@ class Equilibrium(object):
                     # Normalize site ratios
                     site_ratio_normalization = 0
                     for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
-                        if species in sublattice:
+                        if species in set(sublattice):
                             site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
             
                     site_ratios = [c/site_ratio_normalization for c in self._phases[variable.phase_name].sublattices]
@@ -260,8 +261,6 @@ class Equilibrium(object):
                     #    str(site_ratios[variable.sublattice_index])+'*'+str(all_variables[idx]))
                     output += input_x[phase_idx] * \
                         site_ratios[variable.sublattice_index] * input_x[idx]
-            print('input_x: '+str(input_x))
-            print('output: '+str(output))
             return output
 
         def molefrac_jac(input_x, species, fix_val):
@@ -278,13 +277,17 @@ class Equilibrium(object):
                     # Normalize site ratios
                     site_ratio_normalization = 0
                     for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
-                        if species in sublattice:
+                        if species in set(sublattice):
                             site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
             
-                    site_ratios = [c/site_ratio_normalization for c in self._phases[variable.phase_name].sublattices]
+                    site_ratios = [c/site_ratio_normalization \
+                        for c in self._phases[variable.phase_name].sublattices]
+                    # We add the phase fraction Jacobian contribution below
                 if isinstance(variable, v.SiteFraction) and \
                     species == variable.species:
                     output_x[idx] += input_x[phase_idx] * \
+                        site_ratios[variable.sublattice_index]
+                    output_x[phase_idx] += input_x[idx] * \
                         site_ratios[variable.sublattice_index]
             return output_x
 
@@ -300,8 +303,9 @@ class Equilibrium(object):
                 constraints.append(molefrac_dict)
 
         # Run optimization
-        print(scipy.optimize.minimize(obj, x_0, method='SLSQP', jac=gradient, \
-        bounds=bounds, constraints=constraints, options={'disp':True}))
+        res = scipy.optimize.minimize(obj, x_0, method='SLSQP', jac=gradient, \
+        bounds=bounds, constraints=constraints, options={'disp':True})
+        return res
 
 
     def _calculate_energy_surface(self, phase_obj, points_per_phase):
