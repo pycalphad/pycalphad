@@ -3,11 +3,11 @@ The minimize module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
 # monkey patch for theano/sympy integration
-import theano.tensor as tt
+#import theano.tensor as tt
 import sympy
-import sympy.printing.theanocode
-from sympy.printing.theanocode import theano_function
-sympy.printing.theanocode.mapping[sympy.And] = tt.and_
+#import sympy.printing.theanocode
+#from sympy.printing.theanocode import theano_function
+#sympy.printing.theanocode.mapping[sympy.And] = tt.and_
 
 from sympy.utilities.lambdify import lambdify
 import numpy as np
@@ -85,14 +85,14 @@ def make_callable(model, variables, mode='numpy'):
     None yet.
     """
     energy = None
-    if mode == 'theano':
-        energy = \
-            theano_function(variables, [model], on_unused_input='ignore')
-    elif mode == 'theano-debug':
-        energy = \
-            theano_function(variables, [model], on_unused_input='warn',
-                            mode='DebugMode')
-    elif mode == 'numpy':
+    #if mode == 'theano':
+    #    #energy = \
+    #    #    theano_function(variables, [model], on_unused_input='ignore')
+    #elif mode == 'theano-debug':
+    #    #energy = \
+    #    #    theano_function(variables, [model], on_unused_input='warn',
+    #    #                    mode='DebugMode')
+    if mode == 'numpy':
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules='numpy')
     elif mode == 'sympy':
