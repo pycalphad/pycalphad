@@ -86,11 +86,16 @@ class Equilibrium(object):
                             ignore_index=True)
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
-        refined_values = self.minimize(self.get_starting_simplex())
+        estimates = self.get_starting_simplex()
+        refined_values = self.minimize(estimates[0], estimates[1])
         print(refined_values)
 
     def get_starting_simplex(self):
-        "Calculate convex hull and find a suitable starting point."
+        """
+        Calculate convex hull and find a suitable starting point.
+        Returns iterable: first is a DataFrame of the phase compositions
+                          second is an estimate of the phase fractions
+        """
         # determine column indices for independent degrees of freedom
         independent_dof = []
         independent_dof_values = []
@@ -110,12 +115,20 @@ class Equilibrium(object):
             self.data[independent_dof].values
         )
         # locate the simplex closest to our desired condition
-        tri = scipy.spatial.Delaunay(hull.points[hull.vertices][:, :-1])
-        candidate_simplex = tri.find_simplex([independent_dof_values])
-        return self.data.iloc[hull.vertices[tri.simplices[candidate_simplex][0]]]
+        candidate_simplex = None
+        phase_fracs = None
+        import pycalphad.simplex
+        for equ, simp in zip(hull.equations, hull.simplices):
+            if equ[-2] < 0:
+                new_simp = pycalphad.simplex.Simplex(hull.points[simp,:-1])
+                if new_simp.in_simplex(independent_dof_values):
+                    candidate_simplex = simp
+                    phase_fracs = new_simp.bary_coords(independent_dof_values)
+                    break
+        return [self.data.iloc[candidate_simplex], phase_fracs]
 
 
-    def minimize(self, simplex):
+    def minimize(self, simplex, phase_fractions=None):
         """
         Accept a list of simplex vertices and return the values of the
         variables that minimize the energy under the constraints.
@@ -139,7 +152,11 @@ class Equilibrium(object):
                 )
             start = len(x_0)
             # default position is centroid of the simplex
-            x_0.append(1/len(list(simplex.iterrows())))
+            if phase_fractions is None:
+                x_0.append(1/len(list(simplex.iterrows())))
+            else:
+                # use the provided guess for the phase fraction
+                x_0.append(phase_fractions[len(index_ranges)])
 
             # add site fraction variables
             all_variables.extend(self._variables[vertex['Phase']])
