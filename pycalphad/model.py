@@ -45,9 +45,6 @@ class Model(object):
         # of other symbols
         self.ast = self.ast.subs(dbe.symbols)
         self.variables = self.ast.atoms(v.StateVariable)
-        self.gradient = dict(
-            [(atom, diff(self.ast, atom)) \
-                for atom in self.ast.atoms(v.SiteFraction)])
     def _purity_test(self, constituent_array):
         """
         Check if constituent array only has one species in its array

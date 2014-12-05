@@ -6,12 +6,13 @@ calculated phase equilibria.
 import pycalphad.variables as v
 from pycalphad.minimize import point_sample, make_callable
 from pycalphad import Model
+import pycalphad.simplex
 import pandas as pd
 import numpy as np
 import scipy.spatial
 import scipy.optimize
 from collections import Counter
-import copy
+import itertools
 
 try:
     set
@@ -117,7 +118,6 @@ class Equilibrium(object):
         # locate the simplex closest to our desired condition
         candidate_simplex = None
         phase_fracs = None
-        import pycalphad.simplex
         for equ, simp in zip(hull.equations, hull.simplices):
             if equ[-2] < 0:
                 new_simp = pycalphad.simplex.Simplex(hull.points[simp,:-1])
@@ -125,7 +125,55 @@ class Equilibrium(object):
                     candidate_simplex = simp
                     phase_fracs = new_simp.bary_coords(independent_dof_values)
                     break
-        return [self.data.iloc[candidate_simplex], phase_fracs]
+        phase_compositions = self.data.iloc[candidate_simplex]
+        independent_indices = self.check_degenerate_phases(phase_compositions)
+        # renormalize phase fractions to 1 after eliminating redundant phases
+        phase_fracs = phase_fracs[independent_indices]
+        phase_fracs /= np.sum(phase_fracs)
+        return [phase_compositions.iloc[independent_indices], phase_fracs]
+
+    @staticmethod
+    def check_degenerate_phases(phase_compositions, mindist=0.1):
+        """
+        Because the global minimization procedure returns a simplex as an
+        output, our starting point will always assume the maximum number of
+        phases. In many cases, one or more of these phases will be redundant,
+        i.e., the simplex is narrow. These redundant or degenerate phases can
+        be eliminated from the computation.
+
+        Here we perform edge-wise comparisons of all the simplex vertices.
+        Vertices which are from the same phase and "sufficiently" close to
+        each other in composition space are redundant, and one of them is
+        eliminated from the computation.
+
+        This function accepts a DataFrame of the estimated phase compositions
+        and returns the indices of the "independent" phases in the DataFrame.
+        """
+        output_vertices = set(range(len(phase_compositions)))
+        edges = list(itertools.combinations(output_vertices, 2))
+        sitefrac_columns = \
+            [c for c in phase_compositions.columns.values \
+                if str(c).startswith('Y')]
+        for edge in edges:
+            # check if both end-points are still in output_vertices
+            # if not, we should skip this edge
+            if not set(edge).issubset(output_vertices):
+                continue
+            first_vertex = phase_compositions.iloc[edge[0]]
+            second_vertex = phase_compositions.iloc[edge[1]]
+            if first_vertex.loc['Phase'] != second_vertex.loc['Phase']:
+                    # phases along this edge do not match; leave them alone
+                    continue
+            # phases match; check the distance between their respective
+            # site fractions; if below the threshold, eliminate one of them
+            first_coords = first_vertex.loc[sitefrac_columns].fillna(0)
+            second_coords = second_vertex.loc[sitefrac_columns].fillna(0)
+            edge_length = \
+                scipy.spatial.distance.euclidean(first_coords, second_coords)
+            print('edge_length: '+str(edge_length))
+            if edge_length < mindist and len(output_vertices) > 1:
+                output_vertices.discard(edge[1])
+        return list(output_vertices)
 
 
     def minimize(self, simplex, phase_fractions=None):
@@ -167,7 +215,7 @@ class Equilibrium(object):
             index_ranges.append([start, len(x_0)])
 
         # Define variable bounds
-        bounds = [[0, 1]] * len(x_0)
+        bounds = [[0, 1e12]] * len(x_0)
         print(all_variables)
         print(x_0)
 
@@ -180,7 +228,7 @@ class Equilibrium(object):
                 # phase fraction times value of objective for that phase
                 objective += input_x[index_ranges[idx][0]] * \
                     self._phase_callables[vertex['Phase']](
-                        *(list(self.statevars.values()) + list(cur_x)))
+                        *list(cur_x))
             return objective
 
         # Create master gradient function
@@ -192,7 +240,7 @@ class Equilibrium(object):
                 # phase fraction derivative is just the phase energy
                 gradient[index_ranges[idx][0]] = \
                     self._phase_callables[vertex['Phase']](
-                        *(list(self.statevars.values()) + list(cur_x)))
+                        *list(cur_x))
                 # gradient for particular phase's variables
                 # NOTE: We assume all phase d.o.f are independent here,
                 # and we handle any coupling through the constraints
@@ -200,7 +248,7 @@ class Equilibrium(object):
                     enumerate(self._gradient_callables[vertex['Phase']]):
                     gradient[index_ranges[idx][0]+1+g_idx] = \
                         input_x[index_ranges[idx][0]] * \
-                            grad(*(list(self.statevars.values()) +list(cur_x)))
+                            grad(*list(cur_x))
             return gradient
 
         # Generate constraint sequence
@@ -321,7 +369,8 @@ class Equilibrium(object):
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='SLSQP', jac=gradient, \
-        bounds=bounds, constraints=constraints, options={'disp':True})
+        bounds=bounds, constraints=constraints, \
+        options={'ftol': 1e-3, 'iprint': 5, 'disp':True})
         return res
 
 
@@ -361,7 +410,7 @@ class Equilibrium(object):
         for idx, point in enumerate(points):
             energies[idx] = \
                 self._phase_callables[phase_obj.name](
-                    *(list(self.statevars.values()) + list(point))
+                    *list(point)
                 )
 
         # Add points and calculated energies to the DataFrame
@@ -393,24 +442,26 @@ class Equilibrium(object):
             # Build the symbolic representation of the energy
             mod = Model(dbf, list(self.components), phase_name)
             # Construct an ordered list of the variables
-            self._variables[phase_name] = []
+            self._variables[phase_name] = list(mod.ast.atoms(v.SiteFraction))
             sublattice_dof = []
             for idx, sublattice in enumerate(phase_obj.constituents):
                 dof = 0
                 for component in set(sublattice).intersection(self.components):
-                    self._variables[phase_name].append(
-                        v.SiteFraction(phase_name, idx, component)
-                        )
+                    #self._variables[phase_name].append(
+                    #    v.SiteFraction(phase_name, idx, component)
+                    #    )
                     dof += 1
                 sublattice_dof.append(dof)
             self._sublattice_dof[phase_name] = sublattice_dof
             # Build the "fast" representation of that model
-            self._phase_callables[phase_name] = make_callable(mod.ast, \
-                list(self.statevars.keys()) + \
-                    self._variables[phase_name], mode=ast)
-            self._gradient_callables[phase_name] = [make_callable(grad_ast, \
-                    list(self.statevars.keys()) + self._variables[phase_name],\
-                    mode=ast) for grad_ast in list(mod.gradient.values())]
+            self._phase_callables[phase_name] = \
+                make_callable(mod.ast.subs(self.statevars), \
+                self._variables[phase_name], mode=ast)
+            #print(dict(zip(list(self._variables[phase_name]), [mod.ast.subs(self.statevars).diff(xx) for xx in self._variables[phase_name]])))
+            self._gradient_callables[phase_name] = [ \
+                make_callable(mod.ast.subs(self.statevars).diff(vx), \
+                    self._variables[phase_name], \
+                    mode=ast) for vx in self._variables[phase_name]]
             # Make user-friendly site fraction column labels
             self._varnames[phase_name] = ['Y('+variable.phase_name+',' + \
                     str(variable.sublattice_index) + ',' + \
