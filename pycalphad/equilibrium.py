@@ -120,7 +120,7 @@ class Equilibrium(object):
         phase_fracs = None
         for equ, simp in zip(hull.equations, hull.simplices):
             if equ[-2] < 0:
-                new_simp = pycalphad.simplex.Simplex(hull.points[simp,:-1])
+                new_simp = pycalphad.simplex.Simplex(hull.points[simp, :-1])
                 if new_simp.in_simplex(independent_dof_values):
                     candidate_simplex = simp
                     phase_fracs = new_simp.bary_coords(independent_dof_values)
@@ -170,7 +170,6 @@ class Equilibrium(object):
             second_coords = second_vertex.loc[sitefrac_columns].fillna(0)
             edge_length = \
                 scipy.spatial.distance.euclidean(first_coords, second_coords)
-            print('edge_length: '+str(edge_length))
             if edge_length < mindist and len(output_vertices) > 1:
                 output_vertices.discard(edge[1])
         return list(output_vertices)
@@ -216,8 +215,6 @@ class Equilibrium(object):
 
         # Define variable bounds
         bounds = [[0, 1e12]] * len(x_0)
-        print(all_variables)
-        print(x_0)
 
         # Create master objective function
         def obj(input_x):
@@ -369,8 +366,7 @@ class Equilibrium(object):
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='SLSQP', jac=gradient, \
-        bounds=bounds, constraints=constraints, \
-        options={'ftol': 1e-3, 'iprint': 5, 'disp':True})
+        bounds=bounds, constraints=constraints)
         return res
 
 
