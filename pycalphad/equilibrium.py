@@ -5,6 +5,9 @@ calculated phase equilibria.
 
 import pycalphad.variables as v
 from pycalphad.minimize import point_sample, make_callable
+from pycalphad.minimize import check_degenerate_phases
+from pycalphad.constraints import sitefrac_cons, sitefrac_jac
+from pycalphad.constraints import molefrac_cons, molefrac_jac
 from pycalphad import Model
 import pycalphad.simplex
 import pandas as pd
@@ -12,7 +15,6 @@ import numpy as np
 import scipy.spatial
 import scipy.optimize
 from collections import Counter
-import itertools
 
 try:
     set
@@ -88,8 +90,10 @@ class Equilibrium(object):
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
         estimates = self.get_starting_simplex()
-        refined_values = self.minimize(estimates[0], estimates[1])
-        print(refined_values)
+        self.result = self.minimize(estimates[0], estimates[1])
+
+    def __repr__(self):
+        return str(self.result)
 
     def get_starting_simplex(self):
         """
@@ -126,54 +130,11 @@ class Equilibrium(object):
                     phase_fracs = new_simp.bary_coords(independent_dof_values)
                     break
         phase_compositions = self.data.iloc[candidate_simplex]
-        independent_indices = self.check_degenerate_phases(phase_compositions)
+        independent_indices = check_degenerate_phases(phase_compositions)
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
         return [phase_compositions.iloc[independent_indices], phase_fracs]
-
-    @staticmethod
-    def check_degenerate_phases(phase_compositions, mindist=0.1):
-        """
-        Because the global minimization procedure returns a simplex as an
-        output, our starting point will always assume the maximum number of
-        phases. In many cases, one or more of these phases will be redundant,
-        i.e., the simplex is narrow. These redundant or degenerate phases can
-        be eliminated from the computation.
-
-        Here we perform edge-wise comparisons of all the simplex vertices.
-        Vertices which are from the same phase and "sufficiently" close to
-        each other in composition space are redundant, and one of them is
-        eliminated from the computation.
-
-        This function accepts a DataFrame of the estimated phase compositions
-        and returns the indices of the "independent" phases in the DataFrame.
-        """
-        output_vertices = set(range(len(phase_compositions)))
-        edges = list(itertools.combinations(output_vertices, 2))
-        sitefrac_columns = \
-            [c for c in phase_compositions.columns.values \
-                if str(c).startswith('Y')]
-        for edge in edges:
-            # check if both end-points are still in output_vertices
-            # if not, we should skip this edge
-            if not set(edge).issubset(output_vertices):
-                continue
-            first_vertex = phase_compositions.iloc[edge[0]]
-            second_vertex = phase_compositions.iloc[edge[1]]
-            if first_vertex.loc['Phase'] != second_vertex.loc['Phase']:
-                    # phases along this edge do not match; leave them alone
-                    continue
-            # phases match; check the distance between their respective
-            # site fractions; if below the threshold, eliminate one of them
-            first_coords = first_vertex.loc[sitefrac_columns].fillna(0)
-            second_coords = second_vertex.loc[sitefrac_columns].fillna(0)
-            edge_length = \
-                scipy.spatial.distance.euclidean(first_coords, second_coords)
-            if edge_length < mindist and len(output_vertices) > 1:
-                output_vertices.discard(edge[1])
-        return list(output_vertices)
-
 
     def minimize(self, simplex, phase_fractions=None):
         """
@@ -268,23 +229,6 @@ class Equilibrium(object):
         phasefrac_dict['jac'] = phasefrac_jac
         constraints.append(phasefrac_dict)
 
-        # site fraction constraints
-        # we use idx_range to force a range of input_x to sum to 1
-        def sitefrac_cons(input_x, idx_range):
-            """
-            Accepts input vector and index range and returns
-            site fraction constraint.
-            """
-            return sum(input_x[idx_range[0]:idx_range[1]]) - 1
-        def sitefrac_jac(input_x, idx_range):
-            """
-            Accepts input vector and index range and returns
-            Jacobian of site fraction constraint.
-            """
-            output_x = np.zeros(len(input_x))
-            for idx in range(idx_range[0], idx_range[1]):
-                output_x[idx] = 1
-            return output_x
         # Generate all site fraction constraints
         for idx_range in index_ranges:
             # need to generate constraint for each sublattice
@@ -299,60 +243,6 @@ class Equilibrium(object):
                 cur_idx += dof
                 constraints.append(sitefrac_dict)
 
-        def molefrac_cons(input_x, species, fix_val):
-            """
-            Accept input vector, species and fixed value.
-            Returns constraint.
-            """
-            output = -fix_val
-            phase_idx = 0
-            site_ratios = []
-            for idx, variable in enumerate(all_variables):
-                if isinstance(variable, v.PhaseFraction):
-                    phase_idx = idx
-                    # Normalize site ratios
-                    site_ratio_normalization = 0
-                    for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
-                        if species in set(sublattice):
-                            site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
-            
-                    site_ratios = [c/site_ratio_normalization for c in self._phases[variable.phase_name].sublattices]
-                if isinstance(variable, v.SiteFraction) and \
-                    species == variable.species:
-                    #print(str(all_variables[phase_idx]) +'*'+ \
-                    #    str(site_ratios[variable.sublattice_index])+'*'+str(all_variables[idx]))
-                    output += input_x[phase_idx] * \
-                        site_ratios[variable.sublattice_index] * input_x[idx]
-            return output
-
-        def molefrac_jac(input_x, species, fix_val):
-            """
-            Accept input vector, species and fixed value.
-            Returns Jacobian of constraint.
-            """
-            output_x = np.zeros(len(input_x))
-            phase_idx = 0
-            site_ratios = []
-            for idx, variable in enumerate(all_variables):
-                if isinstance(variable, v.PhaseFraction):
-                    phase_idx = idx
-                    # Normalize site ratios
-                    site_ratio_normalization = 0
-                    for n_idx, sublattice in enumerate(self._phases[variable.phase_name].constituents):
-                        if species in set(sublattice):
-                            site_ratio_normalization += self._phases[variable.phase_name].sublattices[n_idx]
-            
-                    site_ratios = [c/site_ratio_normalization \
-                        for c in self._phases[variable.phase_name].sublattices]
-                    # We add the phase fraction Jacobian contribution below
-                if isinstance(variable, v.SiteFraction) and \
-                    species == variable.species:
-                    output_x[idx] += input_x[phase_idx] * \
-                        site_ratios[variable.sublattice_index]
-                    output_x[phase_idx] += input_x[idx] * \
-                        site_ratios[variable.sublattice_index]
-            return output_x
-
         # All other constraints, e.g., mass balance
         for condition, value in self.conditions.items():
             if isinstance(condition, v.Composition):
@@ -361,7 +251,8 @@ class Equilibrium(object):
                 molefrac_dict['type'] = 'eq'
                 molefrac_dict['fun'] = molefrac_cons
                 molefrac_dict['jac'] = molefrac_jac
-                molefrac_dict['args'] = [condition.species, value]
+                molefrac_dict['args'] = \
+                    [condition.species, value, all_variables, self._phases]
                 constraints.append(molefrac_dict)
 
         # Run optimization
@@ -440,20 +331,14 @@ class Equilibrium(object):
             # Construct an ordered list of the variables
             self._variables[phase_name] = list(mod.ast.atoms(v.SiteFraction))
             sublattice_dof = []
-            for idx, sublattice in enumerate(phase_obj.constituents):
-                dof = 0
-                for component in set(sublattice).intersection(self.components):
-                    #self._variables[phase_name].append(
-                    #    v.SiteFraction(phase_name, idx, component)
-                    #    )
-                    dof += 1
+            for sublattice in phase_obj.constituents:
+                dof = len(set(sublattice).intersection(self.components))
                 sublattice_dof.append(dof)
             self._sublattice_dof[phase_name] = sublattice_dof
             # Build the "fast" representation of that model
             self._phase_callables[phase_name] = \
                 make_callable(mod.ast.subs(self.statevars), \
                 self._variables[phase_name], mode=ast)
-            #print(dict(zip(list(self._variables[phase_name]), [mod.ast.subs(self.statevars).diff(xx) for xx in self._variables[phase_name]])))
             self._gradient_callables[phase_name] = [ \
                 make_callable(mod.ast.subs(self.statevars).diff(vx), \
                     self._variables[phase_name], \
