@@ -6,6 +6,8 @@ import scipy.spatial
 import itertools
 import numpy as np
 import matplotlib.pyplot as plt
+import mpld3
+mpld3.enable_notebook()
 #pylint: disable=E1101
 from matplotlib import collections as mc
 from pycalphad.energy_surf import energy_surf
@@ -26,6 +28,10 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     except KeyError:
         steps = int((high_temp-low_temp) / 10) # Take 10 K steps by default
     temps = np.linspace(low_temp, high_temp, num=steps)
+    try:
+        plotmpld3 = kwargs['mpld3']
+    except KeyError:
+        plotmpld3 = False
 
     ppp = 300 # points per phase
     if 'points_per_phase' not in kwargs:
@@ -108,8 +114,9 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     #print(tie_lines)
     # Final plotting setup
 
-    fig = plt.figure(dpi=600, figsize=(6, 6))
-    ax = fig.gca()
+    #fig = plt.figure(dpi=600, figsize=(6, 6))
+    #ax = fig.gca()
+    fig,ax = plt.subplots()
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.grid(True)
     plt.xlim([0, 1])
@@ -125,4 +132,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     plt.title('Diagram', fontsize=25)
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature", fontsize=20)
-    plt.show()
+    if plotmpld3 == True:
+        return fig
+    else:
+        plt.show()
