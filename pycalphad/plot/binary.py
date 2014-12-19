@@ -47,16 +47,17 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
         # this is for invariant reaction detection
         tieline_normals = []
         current_tielines = []
-        #print(hull.equations)
-        for simplex, equ in zip(hull.simplices, hull.equations):
+
+        # this was factored out of the loop based on profiling
+        coordinates = point_frame.values[hull.simplices]
+
+        for simplex, coords, equ in \
+            zip(hull.simplices, coordinates, hull.equations):
             if equ[-2] > -1e-6:
                 # simplex oriented 'upwards' in energy direction
                 # must not be part of the energy surface
                 continue
-            distances = \
-                scipy.spatial.distance.pdist(
-                    point_frame.iloc[simplex]
-                )
+            distances = scipy.spatial.distance.pdist(coords)
             simplex_edges = \
                 np.asarray(list(itertools.combinations(simplex, 2)))
             phase_edge_list = hull_frame['Phase'].values[simplex_edges]
