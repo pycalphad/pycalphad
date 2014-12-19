@@ -5,7 +5,7 @@ correct abstract syntax tree for the energy.
 
 import nose.tools
 from pycalphad import Database, Model
-from pycalphad.minimize import make_callable
+from pycalphad.eq.utils import make_callable
 import pycalphad.variables as v
 
 TDB_TEST_STRING = """

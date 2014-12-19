@@ -5,7 +5,7 @@ energy surface of a system.
 
 from __future__ import division
 from pycalphad import Model
-from pycalphad.minimize import make_callable, point_sample
+from pycalphad.eq.utils import make_callable, point_sample
 import pycalphad.variables as v
 import pandas as pd
 import numpy as np

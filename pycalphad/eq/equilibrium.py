@@ -4,12 +4,12 @@ calculated phase equilibria.
 """
 
 import pycalphad.variables as v
-from pycalphad.minimize import point_sample, make_callable
-from pycalphad.minimize import check_degenerate_phases
+from pycalphad.eq.utils import point_sample, make_callable
+from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.constraints import sitefrac_cons, sitefrac_jac
 from pycalphad.constraints import molefrac_cons, molefrac_jac
 from pycalphad import Model
-import pycalphad.simplex
+from pycalphad.eq.simplex import Simplex
 import pandas as pd
 import numpy as np
 import scipy.spatial
@@ -124,7 +124,7 @@ class Equilibrium(object):
         phase_fracs = None
         for equ, simp in zip(hull.equations, hull.simplices):
             if equ[-2] < 0:
-                new_simp = pycalphad.simplex.Simplex(hull.points[simp, :-1])
+                new_simp = Simplex(hull.points[simp, :-1])
                 if new_simp.in_simplex(independent_dof_values):
                     candidate_simplex = simp
                     phase_fracs = new_simp.bary_coords(independent_dof_values)

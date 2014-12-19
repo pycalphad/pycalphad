@@ -8,7 +8,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 #pylint: disable=E1101
 from matplotlib import collections as mc
-from pycalphad.energy_surf import energy_surf
+from pycalphad import energy_surf
 
 def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     """
