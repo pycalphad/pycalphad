@@ -10,7 +10,8 @@ import matplotlib.pyplot as plt
 from matplotlib import collections as mc
 from pycalphad import energy_surf
 
-def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
+def binplot(db, comps, phases, x_variable, low_temp, high_temp,
+            steps=None, **kwargs):
     """
     Calculate the binary isobaric phase diagram for the given temperature
     range.
@@ -20,25 +21,20 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp, **kwargs):
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []
-    steps = 0
-    try:
-        steps = kwargs['steps']
-    except KeyError:
-        steps = int((high_temp-low_temp) / 10) # Take 10 K steps by default
-    temps = np.linspace(low_temp, high_temp, num=steps)
+    tsteps = steps or int((high_temp-low_temp) / 10) # Take 10 K steps by def.
+    temps = list(np.linspace(low_temp, high_temp, num=tsteps))
 
     ppp = 300 # points per phase
     if 'points_per_phase' not in kwargs:
         kwargs['points_per_phase'] = ppp
 
+    # Calculate energy surface at each temperature
+    full_df = energy_surf(db, comps, phases, T=temps, **kwargs)
+
     for temp in temps:
-        # Calculate energy surface at each temperature
-        full_df = energy_surf(db, comps, phases, T=temp, **kwargs)
 
         # Select only the P, T, etc., of interest
         point_selector = (full_df['T'] == temp)
-        #for variable, value in statevars.items():
-        #    point_selector = point_selector & (df[variable] == value)
         hull_frame = full_df.ix[point_selector, \
             [x_variable, 'GM', 'Phase', 'T']]
         #print(hull_frame)

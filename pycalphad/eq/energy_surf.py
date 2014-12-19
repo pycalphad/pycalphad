@@ -9,11 +9,22 @@ from pycalphad.eq.utils import make_callable, point_sample
 import pycalphad.variables as v
 import pandas as pd
 import numpy as np
+import itertools
+import collections
+
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
+def _listify(val):
+    "Return val if val is iterable; otherwise return list(val)."
+    if isinstance(val, collections.Iterable):
+        return val
+    else:
+        return [val]
+
+#pylint: disable=W0142
 def energy_surf(db, comps, phases,
                 points_per_phase=10000, ast='numpy', **kwargs):
     """
@@ -46,8 +57,15 @@ def energy_surf(db, comps, phases,
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
-    statevars = \
+    statevar_dict = \
         dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
+    # Generate all combinations of state variables for 'map' calculation
+    # Wrap single values of state variables in lists
+    # Use 'kwargs' because we want state variable names to be stringified
+    statevar_values = [_listify(val) for val in kwargs.values()]
+    statevars_to_map = [dict(zip(kwargs.keys(), prod)) \
+        for prod in itertools.product(*statevar_values)]
+
     active_comps = set(comps)
     # Consider only the active phases
     active_phases = dict((name, db.phases[name]) for name in phases)
@@ -69,7 +87,7 @@ def energy_surf(db, comps, phases,
 
         # Build the "fast" representation of that model
         comp_sets[phase_name] = make_callable(mod.ast, \
-            list(statevars.keys()) + variables, mode=ast)
+            list(statevar_dict.keys()) + variables, mode=ast)
 
         # Make user-friendly site fraction column labels
         var_names = ['Y('+variable.phase_name+',' + \
@@ -87,10 +105,6 @@ def energy_surf(db, comps, phases,
         else:
             # Fixed stoichiometry
             num_points = 1
-        # Sample composition space
-        points = point_sample(sublattice_dof, size=num_points)
-        # Allocate space for energies, once calculated
-        energies = np.zeros(len(points))
 
         # Normalize site ratios
         site_ratio_normalization = 0
@@ -102,40 +116,46 @@ def energy_surf(db, comps, phases,
 
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
 
-        # TODO: not very efficient point sampling strategy
-        # in principle, this could be parallelized
-        for idx, point in enumerate(points):
-            energies[idx] = \
-                comp_sets[phase_name](
-                    *(list(statevars.values()) + list(point))
-                )
+        for statevars in statevars_to_map:
+            # Sample composition space
+            points = point_sample(sublattice_dof, size=num_points)
+            # Allocate space for energies, once calculated
+            energies = np.zeros(len(points))
+            # TODO: not very efficient point sampling strategy
+            # in principle, this could be parallelized
+            for idx, point in enumerate(points):
+                energies[idx] = \
+                    comp_sets[phase_name](
+                        *(list(statevars.values()) + list(point))
+                    )
 
-        # Add points and calculated energies to the DataFrame
-        data_dict = {'GM':energies, 'Phase':phase_name}
-        data_dict.update(kwargs)
+            # Add points and calculated energies to the DataFrame
+            data_dict = {'GM':energies, 'Phase':phase_name}
+            data_dict.update(statevars)
 
-        for comp in sorted(comps):
-            if comp == 'VA':
-                continue
-            data_dict['X('+comp+')'] = [0 for n in range(len(points))]
-
-        for column_idx, data in enumerate(points.T):
-            data_dict[var_names[column_idx]] = data
-
-        # Now map the internal degrees of freedom to global coordinates
-        for p_idx, p in enumerate(points):
-            for idx, coordinate in enumerate(p):
-                cur_var = variables[idx]
-                if cur_var.species == 'VA':
+            for comp in sorted(comps):
+                if comp == 'VA':
                     continue
-                ratio = site_ratios[cur_var.sublattice_index]
-                data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
+                data_dict['X('+comp+')'] = [0 for n in range(len(points))]
 
-        phase_df = pd.DataFrame(data_dict)
-        # Merge dataframe into master dataframe
-        # TODO: Better way to do this than concat (always copies)?
-        all_phases_df = \
-            pd.concat([all_phases_df, phase_df], axis=0, join='outer', \
-                        ignore_index=True)
+            for column_idx, data in enumerate(points.T):
+                data_dict[var_names[column_idx]] = data
+
+            # Now map the internal degrees of freedom to global coordinates
+            for p_idx, p in enumerate(points):
+                for idx, coordinate in enumerate(p):
+                    cur_var = variables[idx]
+                    if cur_var.species == 'VA':
+                        continue
+                    ratio = site_ratios[cur_var.sublattice_index]
+                    data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
+
+            phase_df = pd.DataFrame(data_dict)
+            # Merge dataframe into master dataframe
+            # TODO: Better way to do this than concat (always copies)?
+            all_phases_df = \
+                pd.concat([all_phases_df, phase_df], axis=0, join='outer', \
+                            ignore_index=True)
+
     # all_phases_df now contains energy surface information for the system
     return all_phases_df
