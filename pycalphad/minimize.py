@@ -96,6 +96,9 @@ def make_callable(model, variables, mode='numpy'):
     if mode == 'numpy':
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules='numpy')
+    elif mode == 'numexpr':
+        energy = lambdify(tuple(variables), model, dummify=True,
+                  modules='numexpr')
     elif mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     else:
