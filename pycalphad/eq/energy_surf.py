@@ -116,26 +116,21 @@ def energy_surf(db, comps, phases,
 
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
 
+        # Sample composition space
+        points = point_sample(sublattice_dof, size=num_points)
         for statevars in statevars_to_map:
-            # Sample composition space
-            points = point_sample(sublattice_dof, size=num_points)
-            # Allocate space for energies, once calculated
-            energies = np.zeros(len(points))
-            # TODO: not very efficient point sampling strategy
-            # in principle, this could be parallelized
-            for idx, point in enumerate(points):
-                energies[idx] = \
-                    comp_sets[phase_name](
-                        *(list(statevars.values()) + list(point))
-                    )
+            inputs = np.column_stack(
+                (np.repeat(list(statevars.values()), len(points)), points)
+            )
+            energies = [comp_sets[phase_name](*vx) for vx in inputs]
 
             # Add points and calculated energies to the DataFrame
             data_dict = {'GM':energies, 'Phase':phase_name}
             data_dict.update(statevars)
 
             for comp in sorted(comps):
-                if comp == 'VA':
-                    continue
+                #if comp == 'VA':
+                #    continue
                 data_dict['X('+comp+')'] = [0 for n in range(len(points))]
 
             for column_idx, data in enumerate(points.T):
@@ -145,8 +140,8 @@ def energy_surf(db, comps, phases,
             for p_idx, p in enumerate(points):
                 for idx, coordinate in enumerate(p):
                     cur_var = variables[idx]
-                    if cur_var.species == 'VA':
-                        continue
+                    #if cur_var.species == 'VA':
+                    #    continue
                     ratio = site_ratios[cur_var.sublattice_index]
                     data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
 
