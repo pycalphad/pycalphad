@@ -117,17 +117,17 @@ def _process_typedef(targetdb, typechar, line):
     if tokens[3].upper() == 'DIS_PART':
         # order-disorder model
         targetdb.typedefs[typechar] = {
-            'disordered_phase': tokens[4],
-            'ordered_phase': tokens[2]
+            'disordered_phase': tokens[4].upper(),
+            'ordered_phase': tokens[2].upper()
         }
-        if tokens[2] in targetdb.phases:
+        if tokens[2].upper() in targetdb.phases:
             # Since TDB files do not enforce any kind of ordering
             # on the specification of ordered and disordered phases,
             # we need to handle the case of when either phase is specified
             # first. In this case, we imagine the ordered phase is
             # specified first. If the disordered phase is specified
             # first, we will have to catch it in _process_phase().
-            targetdb.phases[tokens[2]].model_hints.update(
+            targetdb.phases[tokens[2].upper()].model_hints.update(
                 targetdb.typedefs[typechar]
             )
 
@@ -136,7 +136,7 @@ def _process_phase(targetdb, name, typedefs, subls):
     Process the PHASE command.
     """
     splitname = name.split(':')
-    phase_name = splitname[0]
+    phase_name = splitname[0].upper()
     options = None
     if len(splitname) > 1:
         options = splitname[1]
@@ -179,7 +179,8 @@ _TDB_PROCESSOR = {
     'DEFAULT_COMMAND': _unimplemented,
     'PHASE': _process_phase,
     'CONSTITUENT': \
-        lambda db, name, c: db.add_phase_constituents(name.split(':')[0], c),
+        lambda db, name, c: db.add_phase_constituents(
+            name.split(':')[0].upper(), c),
     'PARAMETER': _process_parameter
 }
 def tdbread(targetdb, lines):

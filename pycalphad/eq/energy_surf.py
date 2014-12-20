@@ -68,7 +68,7 @@ def energy_surf(db, comps, phases,
 
     active_comps = set(comps)
     # Consider only the active phases
-    active_phases = dict((name, db.phases[name]) for name in phases)
+    active_phases = dict((name.upper(), db.phases[name.upper()]) for name in phases)
     comp_sets = {}
     # Construct a list to hold all the data
     all_phase_data = []
