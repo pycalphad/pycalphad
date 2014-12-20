@@ -70,8 +70,8 @@ def energy_surf(db, comps, phases,
     # Consider only the active phases
     active_phases = dict((name, db.phases[name]) for name in phases)
     comp_sets = {}
-    # Construct a dataframe to hold all the data
-    all_phases_df = pd.DataFrame()
+    # Construct a list to hold all the data
+    all_phase_data = []
     for phase_name, phase_obj in active_phases.items():
         # Build the symbolic representation of the energy
         mod = Model(db, comps, phase_name)
@@ -150,12 +150,8 @@ def energy_surf(db, comps, phases,
                     ratio = site_ratios[cur_var.sublattice_index]
                     data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
 
-            phase_df = pd.DataFrame(data_dict)
-            # Merge dataframe into master dataframe
-            # TODO: Better way to do this than concat (always copies)?
-            all_phases_df = \
-                pd.concat([all_phases_df, phase_df], axis=0, join='outer', \
-                            ignore_index=True)
+            all_phase_data.append(pd.DataFrame(data_dict))
 
-    # all_phases_df now contains energy surface information for the system
-    return all_phases_df
+    # all_phases_data now contains energy surface information for the system
+    return pd.concat(all_phase_data, axis=0, join='outer', \
+                            ignore_index=True, verify_integrity=False)
