@@ -122,7 +122,7 @@ def energy_surf(db, comps, phases,
             inputs = np.column_stack(
                 (np.repeat(list(statevars.values()), len(points)), points)
             )
-            energies = [comp_sets[phase_name](*vx) for vx in inputs]
+            energies = comp_sets[phase_name](*inputs.T)
 
             # Add points and calculated energies to the DataFrame
             data_dict = {'GM':energies, 'Phase':phase_name}

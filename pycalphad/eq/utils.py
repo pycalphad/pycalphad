@@ -2,21 +2,47 @@
 The minimize module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
-# monkey patch for theano/sympy integration
-#import theano.tensor as tt
-import sympy
 import scipy.spatial.distance
-#import sympy.printing.theanocode
-#from sympy.printing.theanocode import theano_function
-#sympy.printing.theanocode.mapping[sympy.And] = tt.and_
-
 from sympy.utilities.lambdify import lambdify
+from sympy.printing.lambdarepr import LambdaPrinter
 import numpy as np
 import itertools
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
+
+class NumPyPrinter(LambdaPrinter):
+    """
+    Special numpy lambdify printer which handles vectorized
+    piecewise functions.
+    """
+    def _print_seq(self, seq, delimiter=', '):
+        # simplified _print_seq taken from pretty.py
+        s = [self._print(item) for item in seq]
+        if s:
+            return delimiter.join(s)
+        else:
+            return ""
+
+    def _print_Piecewise(self, expr):
+        expr_list = []
+        cond_list = []
+        for arg in expr.args:
+            expr_list.append(self._print(arg.expr))
+            cond_list.append(self._print(arg.cond))
+        exprs = '['+','.join(expr_list)+']'
+        conds = '['+','.join(cond_list)+']'
+        return 'select('+conds+', '+exprs+')'
+
+    def _print_And(self, expr):
+        return self._print_Function(expr)
+
+    def _print_Or(self, expr):
+        return self._print_Function(expr)
+
+    def _print_Function(self, e):
+        return "%s(%s)" % (e.func.__name__, self._print_seq(e.args))
 
 def point_sample(comp_count, size=10):
     """
@@ -86,20 +112,15 @@ def make_callable(model, variables, mode='numpy'):
     None yet.
     """
     energy = None
-    #if mode == 'theano':
-    #    #energy = \
-    #    #    theano_function(variables, [model], on_unused_input='ignore')
-    #elif mode == 'theano-debug':
-    #    #energy = \
-    #    #    theano_function(variables, [model], on_unused_input='warn',
-    #    #                    mode='DebugMode')
-    if mode == 'numpy':
-        energy = lambdify(tuple(variables), model, dummify=True,
-                          modules='numpy')
-    elif mode == 'sympy':
+    if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
+    elif mode == 'numpy':
+        logical_np = [{'And': np.logical_and, 'Or': np.logical_or}, 'numpy']
+        energy = lambdify(tuple(variables), model, dummify=True,
+                          modules=logical_np, printer=NumPyPrinter)        
     else:
-        raise ValueError('Unsupported function mode: '+mode)
+        energy = lambdify(tuple(variables), model, dummify=True,
+                          modules=mode)
 
     return energy
 
