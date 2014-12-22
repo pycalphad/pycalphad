@@ -88,6 +88,8 @@ def energy_surf(db, comps, phases,
         # Build the "fast" representation of that model
         comp_sets[phase_name] = make_callable(mod.ast, \
             list(statevar_dict.keys()) + variables, mode=ast)
+        #import sympy
+        #print(dict(zip(variables, sympy.Matrix([mod.ast]).jacobian(variables))))
 
         # Make user-friendly site fraction column labels
         var_names = ['Y('+variable.phase_name+',' + \

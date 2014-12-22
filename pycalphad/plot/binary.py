@@ -17,7 +17,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
     range.
     """
     assert high_temp > low_temp
-    minimum_distance = 0.02
+    minimum_distance = 0.2
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []

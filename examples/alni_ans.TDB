@@ -1,0 +1,135 @@
+$ALNI
+$ -----------------------------------------------------------------------------
+$ 2008.5.21
+$ 
+$ TDB file created by K.Hashimoto and T.Abe,
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ 
+$ e-mail: abe.taichi@nims.go.jp
+$
+$ Copyright (C) NIMS 2008
+$ -----------------------------------------------------------------------------
+$
+$ The PARAMETER set is taken from
+$       Thermodynamic assessment of the Al-Ni system.
+$       I.Ansara, N.Dupin, H.L.Lukas, B.Sundman 
+$       J.Alloys and Compounds, 247 (1997), 20-30.
+$
+$ Amended PARAMETERs       Their paper      This TDB file
+$ G(B2,AL:VA;0)            +1000-1.0T       +10000-1.0T
+$ G(AL3NI2,AL:AL:VA;0)     +3000-3.0T       +30000-3.0T
+$ Ref. state for B2_AlNi   fcc_Al, fcc_Ni    both bcc
+$
+$ -----------------------------------------------------------------------------
+$
+ELEMENT /-          ELECTRON_GAS         0         0         0 !
+ELEMENT VA                VACUUM         0         0         0 !
+ELEMENT AL                FCC_A1    26.982      4540      28.3 !
+ELEMENT NI                FCC_A1     58.69      4787    29.796 !
+$--------1---------2---------3---------4---------5---------6---------7---------8 
+
+FUNCTION GHSERAL 298.15  -7976.15+137.093*T-24.3672*T*ln(T)-0.00188466*T**2
+      -8.77664e-007*T**3+74092*T**(-1); 700 Y
+      -11276.2+223.048*T-38.5844*T*ln(T)+0.018532*T**2-5.76423e-006*T**3
+      +74092*T**(-1); 933.6 Y
+         -11278.4+188.684*T-31.7482*T*ln(T)-1.231e+028*T**(-9); 6000 N !
+FUNCTION GBCCAL 298.15  10083-4.813*T+GHSERAL; 6000 N !
+FUNCTION GLIQAL 298.15  11005-11.8419*T+7.934e-020*T**7+GHSERAL; 933.6 Y
+                  +10482.4-11.254*T+1.231e+028*T**(-9)+GHSERAL; 6000 N !
+
+FUNCTION GHSERNI 298.15  -5179.16+117.854*T-22.096*T*ln(T)
+       -0.0048407*T**2; 1728 Y
+          -27840.7+279.135*T-43.1*T*ln(T)+1.12754e+031*T**(-9); 6000 N !
+FUNCTION GBCCNI 298.15  8715.08-3.556*T+GHSERNI; 6000 N !
+FUNCTION GLIQNI 298.15  16414.7-9.397*T-3.82318e-021*T**7+GHSERNI; 1728 Y
+                +18290.9-10.537*T-1.12754e+031*T**(-9)+GHSERNI; 6000 N !
+
+FUNCTION U1ALNI              298.15  -13415.515+2.0819247*T;    6000 N !  
+FUNCTION U4ALNI              298.15  +7088.736-3.6868954*T;     6000 N !  
+FUNCTION ZERO                298.15  +0;                        6000 N ! 
+FUNCTION UN_ASS              298.15  +0;                        6000 N ! 
+
+FUNCTION & GES A_P_D BCC_A2   MAGNETIC -1       0.4!
+FUNCTION L GES A_P_D L12_FCC  DIS_PART FCC_A1   ,,,!
+FUNCTION % SEQ *!
+DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+
+PHASE LIQUID % 1 1 !
+CONSTITUENT LIQUID :AL,NI:!
+PARAMETER G(LIQUID,AL;0)     298.15  +GLIQAL;                   6000 N !
+PARAMETER G(LIQUID,NI;0)     298.15  +GLIQNI;                   6000 N !
+PARAMETER G(LIQUID,AL,NI;0)  298.15  -207109.28+41.31501*T;     6000 N !  
+PARAMETER G(LIQUID,AL,NI;1)  298.15  -10185.79+5.87140*T;       6000 N !  
+PARAMETER G(LIQUID,AL,NI;2)  298.15  +81204.81-31.95713*T;      6000 N !  
+PARAMETER G(LIQUID,AL,NI;3)  298.15  +4365.35-2.51632*T;        6000 N !  
+PARAMETER G(LIQUID,AL,NI;4)  298.15  -22101.64+13.16341*T;      6000 N !  
+
+PHASE B2 % 2   1   1 !
+CONSTITUENT B2 :AL,NI:NI,VA:!
+PARAMETER G(B2,AL:NI;0)      298.15  -152397.30+26.40575*T
+                                                +GBCCAL+GBCCNI; 6000 N ! 
+PARAMETER G(B2,AL:VA;0)      298.15  +10000-1.0*T+GBCCAL;       6000 N !  
+PARAMETER G(B2,NI:NI;0)      298.15  +0+2*GBCCNI;               6000 N !  
+PARAMETER G(B2,NI:VA;0)      298.15  +162397.3-27.40575*T
+                                               +GBCCNI;         6000 N !  
+PARAMETER G(B2,AL,NI:NI;0)   298.15  -52440.88+11.30117*T;      6000 N !  
+PARAMETER G(B2,AL,NI:VA;0)   298.15  -52440.88+11.30117*T;      6000 N !  
+PARAMETER G(B2,AL:NI,VA;0)   298.15  -64024.38+26.49419*T;      6000 N !  
+PARAMETER G(B2,NI:NI,VA;0)   298.15  -64024.38+26.49419*T;      6000 N !  
+
+PHASE BCC_A2 %& 1 1 !
+CONSTITUENT BCC_A2 :AL,NI:!
+PARAMETER G(BCC_A2,AL;0)     298.15  +GBCCAL;                   6000 N !
+PARAMETER G(BCC_A2,NI;0)     298.15  +GBCCNI;                   6000 N ! 
+PARAMETER TC(BCC_A2,NI;0)    298.15  +575;                      6000 N !
+PARAMETER BMAGN(BCC_A2,NI;0) 298.15  +0.85;                     6000 N !
+
+PHASE FCC_A1 %L 1 1 !
+CONSTITUENT FCC_A1 :AL,NI:!
+PARAMETER G(FCC_A1,AL;0)     298.15  +GHSERAL;                  6000 N !
+PARAMETER G(FCC_A1,NI;0)     298.15  +GHSERNI;                  6000 N !
+PARAMETER G(FCC_A1,AL,NI;0)  298.15  -162407.750+16.212965*T;   6000 N !  
+PARAMETER G(FCC_A1,AL,NI;1)  298.15  +73417.798-34.914000*T;    6000 N !  
+PARAMETER G(FCC_A1,AL,NI;2)  298.15  +33471.014-9.837000*T;     6000 N !  
+PARAMETER G(FCC_A1,AL,NI;3)  298.15  -30758.010+10.253000*T;    6000 N !  
+
+PHASE L12_FCC %L 2 0.75 0.25 !
+CONSTITUENT L12_FCC :AL,NI:AL,NI:!
+PARAMETER G(L12_FCC,AL:AL;0)    298.15    +0;                   6000 N !  
+PARAMETER G(L12_FCC,AL:NI;0)    298.15  +3*U1ALNI;              6000 N !  
+PARAMETER G(L12_FCC,NI:AL;0)    298.15  +3*U1ALNI;              6000 N !  
+PARAMETER G(L12_FCC,NI:NI;0)    298.15    +0;                   6000 N !  
+PARAMETER G(L12_FCC,AL,NI:AL;0) 298.15  +6*U1ALNI;              6000 N !  
+PARAMETER G(L12_FCC,AL,NI:NI;0) 298.15  +6*U1ALNI;              6000 N !
+PARAMETER G(L12_FCC,AL,NI:AL;1) 298.15  +3*U4ALNI;              6000 N !  
+PARAMETER G(L12_FCC,AL,NI:NI;1) 298.15  +3*U4ALNI;              6000 N !  
+PARAMETER G(L12_FCC,AL:AL,NI;1) 298.15    +U4ALNI;              6000 N !  
+PARAMETER G(L12_FCC,NI:AL,NI;1) 298.15    +U4ALNI;              6000 N !  
+
+PHASE AL3NI2 % 3 3 2 1 !
+CONSTITUENT AL3NI2 :AL:AL,NI:NI,VA:!
+PARAMETER G(AL3NI2,AL:AL:NI;0)  298.15  -39465.978+7.89525*T
+                                           +5*GBCCAL+GBCCNI;    6000 N !  
+PARAMETER G(AL3NI2,AL:NI:NI;0)  298.15  -427191.90+79.21725*T
+                                            +3*GBCCAL+3*GBCCNI; 6000 N !  
+PARAMETER G(AL3NI2,AL:AL:VA;0)  298.15  +30000-3*T+5*GBCCAL;    6000 N !  
+PARAMETER G(AL3NI2,AL:NI:VA;0)  298.15  -357725.92+68.32200*T
+                                            +3*GBCCAL+2*GBCCNI; 6000 N ! 
+PARAMETER G(AL3NI2,AL:AL,NI:NI;0) 298.15 -193484.18+131.79000*T; 6000 N !  
+PARAMETER G(AL3NI2,AL:AL,NI:VA;0) 298.15 -193484.18+131.79000*T; 6000 N !  
+PARAMETER G(AL3NI2,AL:AL:NI,VA;0) 298.15 -22001.70+7.03320*T;    6000 N !  
+PARAMETER G(AL3NI2,AL:NI:NI,VA;0) 298.15 -22001.70+7.03320*T;    6000 N !  
+
+PHASE AL3NI1 % 2 0.75 0.25 !
+CONSTITUENT AL3NI1 :AL:NI:!
+PARAMETER G(AL3NI1,AL:NI;0) 298.15  -48483.73+12.29913*T
+                                    +0.75*GHSERAL+0.25*GHSERNI; 6000 N !  
+PHASE AL3NI5 % 2 0.375 0.625 !
+CONSTITUENT AL3NI5 :AL:NI:!
+PARAMETER G(AL3NI5,AL:NI;0) 298.15  -55507.76+7.2648*T
+                                  +0.375*GHSERAL+0.625*GHSERNI; 6000 N !  
+
+$
+$ALNI-NIMS

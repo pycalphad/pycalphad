@@ -4,13 +4,14 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import diff, log, Abs, Add, Mul, Piecewise, Pow, S
+from sympy import log, Abs, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
+#pylint: disable=W0142
 
 # What about just running all self._model_*?
 class Model(object):
@@ -62,7 +63,8 @@ class Model(object):
         Check that the current array contains only active species.
         """
         for sublattice in constituent_array:
-            valid = set(sublattice).issubset(self.components)
+            valid = set(sublattice).issubset(self.components) \
+                or sublattice[0] == '*'
             if not valid:
                 return False
         return True
@@ -162,12 +164,21 @@ class Model(object):
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 # convert strings to symbols
-                comp_symbols = \
-                    [
-                        v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in comps
-                    ]
-                mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
+                if comps[0] == '*':
+                    # Handle wildcards in constituent array
+                    comp_symbols = \
+                        [
+                            v.SiteFraction(phase.name, subl_index, comp)
+                            for comp in phase.constituents[subl_index]
+                        ]
+                    mixing_term *= Add(*comp_symbols)
+                else:
+                    comp_symbols = \
+                        [
+                            v.SiteFraction(phase.name, subl_index, comp)
+                            for comp in comps
+                        ]
+                    mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
@@ -226,7 +237,6 @@ class Model(object):
         Returns the weighted average of the endmember energies
         in symbolic form.
         """
-        # TODO: Handle wildcards in constituent array
         pure_energy_term = S.Zero
         # Normalize site ratios
         site_ratio_normalization = 0
@@ -249,9 +259,18 @@ class Model(object):
             site_fraction_product = S.One
             for subl_index, comp in enumerate(param['constituent_array']):
                 # We know that comp has one entry, by filtering
-                sitefrac = \
-                    v.SiteFraction(phase.name, subl_index, comp[0])
-                site_fraction_product *= sitefrac
+                if comp[0] == '*':
+                    # Handle wildcards in constituent array
+                    comp_symbols = \
+                        [
+                            v.SiteFraction(phase.name, subl_index, compx)
+                            for compx in phase.constituents[subl_index]
+                        ]
+                    site_fraction_product *= Add(*comp_symbols)
+                else:
+                    comp_symbol = \
+                        v.SiteFraction(phase.name, subl_index, comp[0])
+                    site_fraction_product *= comp_symbol
             pure_energy_term += (
                 site_fraction_product * param['parameter'].subs(symbols)
             ) / site_ratio_normalization
@@ -320,12 +339,21 @@ class Model(object):
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 # convert strings to symbols
-                comp_symbols = \
-                    [
-                        v.SiteFraction(phase.name, subl_index, comp)
-                        for comp in comps
-                    ]
-                mixing_term *= Mul(*comp_symbols) #pylint: disable=W0142
+                if comps[0] == '*':
+                    # Handle wildcards in constituent array
+                    comp_symbols = \
+                        [
+                            v.SiteFraction(phase.name, subl_index, comp)
+                            for comp in phase.constituents[subl_index]
+                        ]
+                    mixing_term *= Add(*comp_symbols)
+                else:
+                    comp_symbols = \
+                        [
+                            v.SiteFraction(phase.name, subl_index, comp)
+                            for comp in comps
+                        ]
+                    mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial

@@ -3,8 +3,10 @@ The minimize module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
 import scipy.spatial.distance
+from sympy.utilities import default_sort_key
 from sympy.utilities.lambdify import lambdify
-from sympy.printing.lambdarepr import LambdaPrinter
+from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
+from sympy import Piecewise
 import numpy as np
 import itertools
 try:
@@ -43,6 +45,46 @@ class NumPyPrinter(LambdaPrinter):
 
     def _print_Function(self, e):
         return "%s(%s)" % (e.func.__name__, self._print_seq(e.args))
+
+class SpecialNumExprPrinter(NumExprPrinter):
+    "numexpr printing for vectorized piecewise functions"
+    def _print_And(self, expr):
+        result = ['(']
+        for arg in sorted(expr.args, key=default_sort_key):
+            result.extend(['(', self._print(arg), ')'])
+            result.append(' & ')
+        result = result[:-1]
+        result.append(')')
+        return ''.join(result)
+
+    def _print_Or(self, expr):
+        result = ['(']
+        for arg in sorted(expr.args, key=default_sort_key):
+            result.extend(['(', self._print(arg), ')'])
+            result.append(' | ')
+        result = result[:-1]
+        result.append(')')
+        return ''.join(result)
+
+    def _print_Piecewise(self, expr, **kwargs):
+        e, cond = expr.args[0].args
+        if len(expr.args) == 1:
+            return 'where(%s, %s, %f)' % (self._print(cond, **kwargs),
+                             self._print(e, **kwargs),
+                             0)
+        return 'where(%s, %s, %s)' % (self._print(cond, **kwargs),
+                         self._print(e, **kwargs),
+                         self._print(Piecewise(*expr.args[1:]), **kwargs))
+
+def walk(num_dims, samples_per_dim):
+    """
+    A generator that returns lattice points on an n-simplex.
+    """
+    max_ = samples_per_dim + num_dims - 1
+    for c in itertools.combinations(range(max_), num_dims):
+        c = list(c)
+        yield [(y - x - 1) / (samples_per_dim - 1)
+               for x, y in zip([-1] + c, c + [max_])]
 
 def point_sample(comp_count, size=10):
     """
@@ -117,7 +159,10 @@ def make_callable(model, variables, mode='numpy'):
     elif mode == 'numpy':
         logical_np = [{'And': np.logical_and, 'Or': np.logical_or}, 'numpy']
         energy = lambdify(tuple(variables), model, dummify=True,
-                          modules=logical_np, printer=NumPyPrinter)        
+                          modules=logical_np, printer=NumPyPrinter)
+    elif mode == 'numexpr':
+        energy = lambdify(tuple(variables), model, dummify=True,
+                          modules='numexpr', printer=SpecialNumExprPrinter)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
