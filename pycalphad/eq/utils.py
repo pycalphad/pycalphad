@@ -2,6 +2,7 @@
 The minimize module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
+import pycalphad.variables as v
 import scipy.spatial.distance
 from sympy.utilities import default_sort_key
 from sympy.utilities.lambdify import lambdify
@@ -99,7 +100,7 @@ def point_sample(comp_count, size=10):
     comp_count : list
         Number of components in each sublattice.
     size : int
-        Number of points to sample _per sublattice_.
+        Number of points to sample _per d.o.f._.
 
     Returns
     -------
@@ -113,7 +114,13 @@ def point_sample(comp_count, size=10):
     subl_points = []
     for ctx in comp_count:
         if ctx > 1:
-            pts = np.random.dirichlet(tuple(np.ones(ctx)), size)
+            # guarantee that all 'pure' endmembers will be included
+            pure = np.zeros(ctx)
+            pure[0] = 1 # now something like [1, 0, 0, ...]
+            # randomly generate points
+            pts = np.random.dirichlet(tuple(np.ones(ctx)), (ctx-1)*size)
+            # add endmembers
+            pts = np.vstack((pts, list(itertools.permutations(pure))))
             subl_points.append(pts)
         elif ctx == 1:
             # only 1 component; no degrees of freedom
@@ -209,3 +216,18 @@ def check_degenerate_phases(phase_compositions, mindist=0.1):
         if edge_length < mindist and len(output_vertices) > 1:
             output_vertices.discard(edge[1])
     return list(output_vertices)
+
+def generate_dof(phase, active_comps):
+    """
+    Accept a Phase object and a set() of the active components.
+    Return a tuple of variable names and the sublattice degrees of freedom.
+    """
+    variables = []
+    sublattice_dof = []
+    for idx, sublattice in enumerate(phase.constituents):
+        dof = 0
+        for component in set(sublattice).intersection(active_comps):
+            variables.append(v.SiteFraction(phase.name, idx, component))
+            dof += 1
+        sublattice_dof.append(dof)
+    return variables, sublattice_dof

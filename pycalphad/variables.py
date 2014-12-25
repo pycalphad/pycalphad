@@ -31,6 +31,11 @@ class SiteFraction(StateVariable):
         #pylint: disable=E1101
         return 'y^{'+self.phase_name.replace('_', '-') + \
             '}_{'+str(self.subl_index)+'},_{'+self.species+'}'
+    def __str__(self):
+        "String representation."
+        #pylint: disable=E1101
+        return 'Y(%s,%d,%s)' % \
+            (self.phase_name, self.sublattice_index, self.species)
 
 class PhaseFraction(StateVariable):
     """
