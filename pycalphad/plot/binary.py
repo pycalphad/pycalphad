@@ -41,44 +41,57 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
         #point_frame = hull_frame[[x_variable]]
         # Calculate the convex hull for the desired points
         hull_points = hull_frame[[x_variable, 'GM']].values
-        np.clip(hull_points, -1e10, 1e10, out=hull_points)
-        hull = scipy.spatial.ConvexHull(
-            hull_points
-        )
+        #np.clip(hull_points, -1e10, 1e4, out=hull_points)
+        np.vstack((hull_points, [0.5, -1e9]))
+        hull = None
+        try:
+            hull = scipy.spatial.ConvexHull(
+                hull_points, qhull_options='QJ Pg QG'+str(len(hull_points)-1)
+            )
+        except RuntimeError:
+            print('temperature: '+str(temp))
+            raise
         # keep track of tie line orientations
         # this is for invariant reaction detection
         tieline_normals = []
         current_tielines = []
 
+        def grouper(iterable, n, fillvalue=None):
+            "Collect data into fixed-length chunks or blocks"
+            # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
+            args = [iter(iterable)] * n
+            return itertools.zip_longest(fillvalue=fillvalue, *args)
         # this was factored out of the loop based on profiling
-        #coordinates = point_frame.values[hull.simplices]
+        coordinates = hull_frame.iloc[np.asarray(hull.simplices).ravel()]
+        coordinates = list(grouper(coordinates.values, len(hull.simplices[0])))
+        columns = list(hull_frame.columns)
 
-        for simplex, equ in \
-            zip(hull.simplices, hull.equations):
+        for simplex, coords, equ in \
+            zip(hull.simplices, coordinates, hull.equations):
             if equ[-2] > -1e-6:
                 # simplex oriented 'upwards' in energy direction
                 # must not be part of the energy surface
                 continue
             #distances = scipy.spatial.distance.pdist(coords)
-            simplex_edges = \
-                np.asarray(list(itertools.combinations(simplex, 2)))
+            #simplex_edges = \
+            #    np.asarray(list(itertools.combinations(simplex, 2)))
             #phase_edge_list = hull_frame['Phase'].values[simplex_edges]
             #edge_phases_match = \
-            #    np.array(phase_edge_list[:, 0] == phase_edge_list[:, 1])
-            new_lines = simplex_edges
+            ##    np.array(phase_edge_list[:, 0] == phase_edge_list[:, 1])
+            #new_lines = simplex_edges
             # Check if this is a two phase region
-            first_endpoint = hull_frame.iloc[new_lines[0][0]]
-            second_endpoint = hull_frame.iloc[new_lines[0][1]]
-            phases_match = first_endpoint.ix['Phase'] == \
-                second_endpoint.ix['Phase']
+            first_endpoint = coords[0]
+            second_endpoint = coords[1]
+            phases_match = first_endpoint[columns.index('Phase')] == \
+                second_endpoint[columns.index('Phase')]
 
             if phases_match:
                 # Is this a miscibility gap region?
                 # Check that the average of the tieline energy is less than
                 # the energy calculated at the midpoint
                 # If not, this is a single-phase region and should be dropped
-                phase_name = first_endpoint.ix['Phase']
-                input_cols = [x for x in hull_frame.columns if phase_name in x]
+                #phase_name = first_endpoint[columns.index('Phase')]
+                #input_cols = [x for x in hull_frame.columns if phase_name in x]
                 #midpoint = np.mean([first_endpoint.ix[input_cols].values, \
                 #    second_endpoint.ix[input_cols].values], axis=0)
                 # chebyshev distance returns maximum difference between any
@@ -87,8 +100,8 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
                 #    first_endpoint.ix[input_cols].values, \
                 #    second_endpoint.ix[input_cols].values)
                 pxd = scipy.spatial.distance.chebyshev(
-                    first_endpoint.ix[x_variable], \
-                    second_endpoint.ix[x_variable])
+                    first_endpoint[columns.index(x_variable)], \
+                    second_endpoint[columns.index(x_variable)])
                 if (pxd < 0.05):
                     continue
                 # energy at midpoint
@@ -102,8 +115,8 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
             # if we get here, this is a miscibility gap region or a
             # two-phase region
             current_tielines.append(
-                [[first_endpoint.ix[x_variable], temp, first_endpoint.ix['Phase']], \
-                    [second_endpoint.ix[x_variable], temp, second_endpoint.ix['Phase']]]
+                [[first_endpoint[columns.index(x_variable)], temp, first_endpoint[columns.index('Phase')]], \
+                    [second_endpoint[columns.index(x_variable)], temp, second_endpoint[columns.index('Phase')]]]
                     )
             tieline_norm = equ[:-1]
             tieline_normals.append(tieline_norm)

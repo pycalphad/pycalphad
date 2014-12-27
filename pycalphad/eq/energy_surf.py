@@ -68,7 +68,8 @@ def energy_surf(db, comps, phases,
 
     active_comps = set(comps)
     # Consider only the active phases
-    active_phases = dict((name.upper(), db.phases[name.upper()]) for name in phases)
+    active_phases = dict((name.upper(), db.phases[name.upper()]) \
+        for name in phases)
     comp_sets = {}
     # Construct a list to hold all the data
     all_phase_data = []
@@ -105,35 +106,36 @@ def energy_surf(db, comps, phases,
             num_points = 1
 
         # Sample composition space
-        points = point_sample(sublattice_dof, size=num_points)
-        for statevars in statevars_to_map:
-            inputs = np.column_stack(
-                (np.repeat(list(statevars.values()), len(points)), points)
-            )
-            energies = comp_sets[phase_name](*inputs.T)
+        points = point_sample(sublattice_dof, size=points_per_phase)
+        # Generate input d.o.f matrix for all state variable combinations
+        statevar_values = [list(statevars.values()) \
+            for statevars in statevars_to_map]
+        inputs_prod = list(itertools.product(statevar_values, points))
+        inputs = np.asarray([np.concatenate(x) for x in inputs_prod])
 
-            # Add points and calculated energies to the DataFrame
-            data_dict = {'GM':energies, 'Phase':phase_name}
-            data_dict.update(statevars)
+        # Calculate energies from input matrix
+        energies = comp_sets[phase_name](*inputs.T)
 
-            for comp in sorted(comps):
-                #if comp == 'VA':
-                #    continue
-                data_dict['X('+comp+')'] = [0 for n in range(len(points))]
+        # Add points and calculated energies to the DataFrame
+        data_dict = {'GM':energies, 'Phase':phase_name}
+        data_dict.update(dict(zip(kwargs.keys(),
+                                  inputs.T[0:len(statevar_dict)])))
 
-            for column_idx, data in enumerate(points.T):
-                data_dict[str(variables[column_idx])] = data
+        # Map the internal degrees of freedom to global coordinates
+        for comp in sorted(comps):
+            if comp == 'VA':
+                continue
+            avector = [float(cur_var.species == comp) * \
+                site_ratios[cur_var.sublattice_index] \
+                for cur_var in variables]
+            data_dict['X('+comp+')'] = np.dot(inputs[:, len(statevar_dict):], \
+            avector)
 
-            # Now map the internal degrees of freedom to global coordinates
-            for p_idx, p in enumerate(points):
-                for idx, coordinate in enumerate(p):
-                    cur_var = variables[idx]
-                    #if cur_var.species == 'VA':
-                    #    continue
-                    ratio = site_ratios[cur_var.sublattice_index]
-                    data_dict['X('+cur_var.species+')'][p_idx] += ratio*coordinate
+        # Copy coordinate information into data_dict
+        for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
+            data_dict[str(variables[column_idx])] = data
 
-            all_phase_data.append(pd.DataFrame(data_dict))
+        all_phase_data.append(pd.DataFrame(data_dict))
 
     # all_phases_data now contains energy surface information for the system
     return pd.concat(all_phase_data, axis=0, join='outer', \

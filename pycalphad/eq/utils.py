@@ -10,6 +10,7 @@ from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
 from sympy import Piecewise
 import numpy as np
 import itertools
+from math import log, floor, ceil, fmod, sqrt
 try:
     set
 except NameError:
@@ -87,11 +88,55 @@ def walk(num_dims, samples_per_dim):
         yield [(y - x - 1) / (samples_per_dim - 1)
                for x, y in zip([-1] + c, c + [max_])]
 
+def _primes(upto):
+    """
+    Return all prime numbers up to `upto`.
+    Reference: http://rebrained.com/?p=458
+    """
+    primes=np.arange(3,upto+1,2)
+    isprime=np.ones((upto-1)/2,dtype=bool)
+    for factor in primes[:int(sqrt(upto))]:
+        if isprime[(factor-2)/2]: isprime[(factor*3-2)/2::factor]=0
+    return np.insert(primes[isprime],0,2)
+
+def halton(dim, nbpts):
+    """
+    Generate `nbpts` points of the `dim`-dimensional Halton sequence.
+    Originally written in C by Sebastien Paris; translated to Python by
+    Josef Perktold.
+    """
+    h = np.empty(nbpts * dim)
+    h.fill(np.nan)
+    p = np.empty(nbpts)
+    p.fill(np.nan)
+    P = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+    if dim > len(P):
+        # For high-dimensional sequences, apply prime-number theorem to
+        # generate additional primes
+        P = _primes(int(dim * np.log(dim)))
+    lognbpts = log(nbpts + 1)
+    for i in range(dim):
+        b = P[i]
+        n = int(ceil(lognbpts / log(b)))
+        for t in range(n):
+            p[t] = pow(b, -(t + 1) )
+
+        for j in range(nbpts):
+            d = j + 1
+            sum_ = fmod(d, b) * p[0]
+            for t in range(1, n):
+                d = floor(d / b)
+                sum_ += fmod(d, b) * p[t]
+
+            h[j*dim + i] = sum_
+
+    return h.reshape(nbpts, dim)
+
 def point_sample(comp_count, size=10):
     """
     Sample 'size' ** len('comp_count') points in composition space
     for the sublattice configuration specified by 'comp_count'.
-    Points are sampled psuedo-randomly from a symmetric Dirichlet distribution.
+    Points are sampled quasi-randomly from a Halton sequence.
     Note: For sublattices with only one component, only one point will be
         returned, regardless of 'size'.
 
@@ -115,12 +160,19 @@ def point_sample(comp_count, size=10):
     for ctx in comp_count:
         if ctx > 1:
             # guarantee that all 'pure' endmembers will be included
-            pure = np.zeros(ctx)
-            pure[0] = 1 # now something like [1, 0, 0, ...]
+            #pure = np.zeros(ctx)
+            #pure[0] = 1 # now something like [1, 0, 0, ...]
             # randomly generate points
-            pts = np.random.dirichlet(tuple(np.ones(ctx)), (ctx-1)*size)
+            #pts = np.random.dirichlet(tuple(np.ones(ctx)), (ctx-1)*size)
             # add endmembers
-            pts = np.vstack((pts, list(itertools.permutations(pure))))
+            #pts = np.vstack((pts, list(itertools.permutations(pure))))
+
+            # sample from Halton sequence
+            pts = halton(ctx, size*ctx)
+            # convert low-discrepancy sequence to normalized exponential
+            # this will be uniformly distributed on the simplex
+            pts = -np.log(pts)
+            pts /= pts.sum(axis=1)[:, None]
             subl_points.append(pts)
         elif ctx == 1:
             # only 1 component; no degrees of freedom
