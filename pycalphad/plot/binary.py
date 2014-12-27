@@ -31,14 +31,9 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
 
     # Calculate energy surface at each temperature
     full_df, nrg = energy_surf(db, comps, phases, T=temps, **kwargs)
-
-    for temp in temps:
-
-        # Select only the P, T, etc., of interest
-        point_selector = (full_df['T'] == temp)
-        hull_frame = full_df.ix[point_selector]
-        #print(hull_frame)
-        #point_frame = hull_frame[[x_variable]]
+    # Select only the P, T, etc., of interest
+    temp_group = full_df.groupby('T', sort=False)
+    for temp, hull_frame in temp_group:
         # Calculate the convex hull for the desired points
         hull_points = hull_frame[[x_variable, 'GM']].values
         #np.clip(hull_points, -1e10, 1e4, out=hull_points)
@@ -102,7 +97,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
                 pxd = scipy.spatial.distance.chebyshev(
                     first_endpoint[columns.index(x_variable)], \
                     second_endpoint[columns.index(x_variable)])
-                if (pxd < 0.05):
+                if pxd < 0.05:
                     continue
                 # energy at midpoint
                 #midpoint_nrg = nrg[phase_name](*midpoint)

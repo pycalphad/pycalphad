@@ -16,20 +16,22 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
-class NumPyPrinter(LambdaPrinter):
+class NumPyPrinter(LambdaPrinter): #pylint: disable=R0903
     """
     Special numpy lambdify printer which handles vectorized
     piecewise functions.
     """
+    #pylint: disable=C0103,W0232
     def _print_seq(self, seq, delimiter=', '):
-        # simplified _print_seq taken from pretty.py
-        s = [self._print(item) for item in seq]
-        if s:
-            return delimiter.join(s)
+        "simplified _print_seq taken from pretty.py"
+        svx = [self._print(item) for item in seq]
+        if svx:
+            return delimiter.join(svx)
         else:
             return ""
 
     def _print_Piecewise(self, expr):
+        "Piecewise function printer"
         expr_list = []
         cond_list = []
         for arg in expr.args:
@@ -40,17 +42,22 @@ class NumPyPrinter(LambdaPrinter):
         return 'select('+conds+', '+exprs+')'
 
     def _print_And(self, expr):
+        "Logical And printer"
         return self._print_Function(expr)
 
     def _print_Or(self, expr):
+        "Logical Or printer"
         return self._print_Function(expr)
 
     def _print_Function(self, e):
+        "Function printer"
         return "%s(%s)" % (e.func.__name__, self._print_seq(e.args))
 
-class SpecialNumExprPrinter(NumExprPrinter):
+class SpecialNumExprPrinter(NumExprPrinter): #pylint: disable=R0903
     "numexpr printing for vectorized piecewise functions"
+    #pylint: disable=C0103,W0232
     def _print_And(self, expr):
+        "Logical And printer"
         result = ['(']
         for arg in sorted(expr.args, key=default_sort_key):
             result.extend(['(', self._print(arg), ')'])
@@ -60,6 +67,7 @@ class SpecialNumExprPrinter(NumExprPrinter):
         return ''.join(result)
 
     def _print_Or(self, expr):
+        "Logical Or printer"
         result = ['(']
         for arg in sorted(expr.args, key=default_sort_key):
             result.extend(['(', self._print(arg), ')'])
@@ -69,35 +77,37 @@ class SpecialNumExprPrinter(NumExprPrinter):
         return ''.join(result)
 
     def _print_Piecewise(self, expr, **kwargs):
+        "Piecewise function printer"
         e, cond = expr.args[0].args
         if len(expr.args) == 1:
             return 'where(%s, %s, %f)' % (self._print(cond, **kwargs),
-                             self._print(e, **kwargs),
-                             0)
+                                          self._print(e, **kwargs), 0)
         return 'where(%s, %s, %s)' % (self._print(cond, **kwargs),
-                         self._print(e, **kwargs),
-                         self._print(Piecewise(*expr.args[1:]), **kwargs))
+                                      self._print(e, **kwargs),
+                                      self._print(Piecewise(*expr.args[1:]), \
+                                      **kwargs))
 
 def walk(num_dims, samples_per_dim):
     """
     A generator that returns lattice points on an n-simplex.
     """
     max_ = samples_per_dim + num_dims - 1
-    for c in itertools.combinations(range(max_), num_dims):
-        c = list(c)
+    for cvx in itertools.combinations(range(max_), num_dims):
+        cvx = list(cvx)
         yield [(y - x - 1) / (samples_per_dim - 1)
-               for x, y in zip([-1] + c, c + [max_])]
+               for x, y in zip([-1] + cvx, cvx + [max_])]
 
 def _primes(upto):
     """
     Return all prime numbers up to `upto`.
     Reference: http://rebrained.com/?p=458
     """
-    primes=np.arange(3,upto+1,2)
-    isprime=np.ones((upto-1)/2,dtype=bool)
+    primes = np.arange(3, upto+1, 2)
+    isprime = np.ones((upto-1)/2, dtype=bool)
     for factor in primes[:int(sqrt(upto))]:
-        if isprime[(factor-2)/2]: isprime[(factor*3-2)/2::factor]=0
-    return np.insert(primes[isprime],0,2)
+        if isprime[(factor-2)/2]:
+            isprime[(factor*3-2)/2::factor] = 0
+    return np.insert(primes[isprime], 0, 2)
 
 def halton(dim, nbpts):
     """
@@ -105,6 +115,7 @@ def halton(dim, nbpts):
     Originally written in C by Sebastien Paris; translated to Python by
     Josef Perktold.
     """
+    #pylint: disable=C0103
     h = np.empty(nbpts * dim)
     h.fill(np.nan)
     p = np.empty(nbpts)
@@ -119,7 +130,7 @@ def halton(dim, nbpts):
         b = P[i]
         n = int(ceil(lognbpts / log(b)))
         for t in range(n):
-            p[t] = pow(b, -(t + 1) )
+            p[t] = pow(b, -(t + 1))
 
         for j in range(nbpts):
             d = j + 1
@@ -257,8 +268,8 @@ def check_degenerate_phases(phase_compositions, mindist=0.1):
         first_vertex = phase_compositions.iloc[edge[0]]
         second_vertex = phase_compositions.iloc[edge[1]]
         if first_vertex.loc['Phase'] != second_vertex.loc['Phase']:
-                # phases along this edge do not match; leave them alone
-                continue
+            # phases along this edge do not match; leave them alone
+            continue
         # phases match; check the distance between their respective
         # site fractions; if below the threshold, eliminate one of them
         first_coords = first_vertex.loc[sitefrac_columns].fillna(0)

@@ -25,7 +25,7 @@ def _listify(val):
         return [val]
 
 #pylint: disable=W0142
-def energy_surf(db, comps, phases,
+def energy_surf(dbf, comps, phases,
                 points_per_phase=100, ast='numpy', **kwargs):
     """
     Calculate the energy surface of a system containing the specified
@@ -33,7 +33,7 @@ def energy_surf(db, comps, phases,
     state variables (T, P, etc.) can be specified as keyword arguments.
     Parameters
     ----------
-    db : Database
+    dbf : Database
         Thermodynamic database containing the relevant parameters.
     comps : list
         Names (case-sensitive) of components to consider in the calculation.
@@ -68,14 +68,14 @@ def energy_surf(db, comps, phases,
 
     active_comps = set(comps)
     # Consider only the active phases
-    active_phases = dict((name.upper(), db.phases[name.upper()]) \
+    active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in phases)
     comp_sets = {}
     # Construct a list to hold all the data
     all_phase_data = []
     for phase_name, phase_obj in active_phases.items():
         # Build the symbolic representation of the energy
-        mod = Model(db, comps, phase_name)
+        mod = Model(dbf, comps, phase_name)
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, active_comps)
 
@@ -140,3 +140,4 @@ def energy_surf(db, comps, phases,
     # all_phases_data now contains energy surface information for the system
     return pd.concat(all_phase_data, axis=0, join='outer', \
                             ignore_index=True, verify_integrity=False), comp_sets
+    #return pd.DataFrame(all_phase_data), comp_sets
