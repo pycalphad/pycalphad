@@ -25,23 +25,26 @@ def _listify(val):
         return [val]
 
 #pylint: disable=W0142
+#import memory_profiler
+#@memory_profiler.profile
 def energy_surf(dbf, comps, phases,
-                points_per_phase=100, ast='numpy', **kwargs):
+                pdens=100, ast='numpy', **kwargs):
     """
     Calculate the energy surface of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
     state variables (T, P, etc.) can be specified as keyword arguments.
+
     Parameters
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
     comps : list
-        Names (case-sensitive) of components to consider in the calculation.
+        Names of components to consider in the calculation.
     phases : list
-        Names (case-sensitive) of phases to consider in the calculation.
-    points_per_phase : int, optional
-        Approximate number of points to sample per phase.
-    ast : ['numpy'], optional
+        Names of phases to consider in the calculation.
+    pdens : int, optional
+        Number of points to sample per sublattice, per degree of freedom.
+    ast : ['numpy', 'numexpr'], optional
         Specify how we should construct the callable for the energy.
 
     Returns
@@ -83,61 +86,75 @@ def energy_surf(dbf, comps, phases,
         comp_sets[phase_name] = make_callable(mod.ast, \
             list(statevar_dict.keys()) + variables, mode=ast)
 
-        # Calculate the number of components in each sublattice
-        nontrivial_sublattices = len(sublattice_dof) - sublattice_dof.count(1)
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
 
-        # Normalize site ratios
-        site_ratio_normalization = 0
-        for idx, sublattice in enumerate(phase_obj.constituents):
-            # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
-                continue
-            site_ratio_normalization += site_ratios[idx]
-
-        site_ratios = [c/site_ratio_normalization for c in site_ratios]
-        # Choose a sensible number of compositions to sample
-        num_points = None
-        if nontrivial_sublattices > 0:
-            num_points = int(points_per_phase**(1/nontrivial_sublattices))
-        else:
-            # Fixed stoichiometry
-            num_points = 1
-
         # Sample composition space
-        points = point_sample(sublattice_dof, size=points_per_phase)
+        points = point_sample(sublattice_dof, size=pdens)
         # Generate input d.o.f matrix for all state variable combinations
-        statevar_values = [list(statevars.values()) \
-            for statevars in statevars_to_map]
-        inputs_prod = list(itertools.product(statevar_values, points))
-        inputs = np.asarray([np.concatenate(x) for x in inputs_prod])
 
+        # Allocate a contiguous block of memory to store the energies
+        energies = np.zeros(len(statevars_to_map) * len(points))
+        statevar_list = [None for x in range(len(statevars_to_map) * len(points))]
         # Calculate energies from input matrix
-        energies = comp_sets[phase_name](*inputs.T)
+        # We don't construct the entire input matrix at once for memory reasons
+        for idx, statevars in enumerate(statevars_to_map):
+            start_idx = idx * len(points)
+            end_idx = (idx + 1) * len(points)
+            inputs = np.array([np.concatenate((list(statevars.values()), point)) \
+                                for point in points])
+            energies[start_idx:end_idx] = comp_sets[phase_name](*inputs.T)
+            statevar_list[start_idx:end_idx] = \
+                np.repeat(list(statevars.values()), len(points))
 
         # Add points and calculated energies to the DataFrame
         data_dict = {'GM':energies, 'Phase':phase_name}
-        data_dict.update(dict(zip(kwargs.keys(),
-                                  inputs.T[0:len(statevar_dict)])))
+        for statevar in kwargs.keys():
+            data_dict[statevar] = statevar_list
+
+        #print([str(key+': '+str(len(val))) for key, val in data_dict.items()])
+        print(data_dict)
+
 
         # Map the internal degrees of freedom to global coordinates
+
+        # Normalize site ratios
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
+        site_ratio_normalization = np.zeros(len(points))
+        for idx, sublattice in enumerate(phase_obj.constituents):
+            vacancy_column = np.ones(len(points))
+            if 'VA' in set(sublattice):
+                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+                vacancy_column -= points[:, var_idx]
+            site_ratio_normalization += site_ratios[idx] * vacancy_column
+
         for comp in sorted(comps):
             if comp == 'VA':
                 continue
             avector = [float(cur_var.species == comp) * \
-                site_ratios[cur_var.sublattice_index] \
-                for cur_var in variables]
-            data_dict['X('+comp+')'] = np.dot(inputs[:, len(statevar_dict):], \
-            avector)
+                site_ratios[cur_var.sublattice_index] for cur_var in variables]
+            data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
+                points[:, :], avector), site_ratio_normalization),
+                                                 len(statevars_to_map))
 
         # Copy coordinate information into data_dict
-        for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
-            data_dict[str(variables[column_idx])] = data
+        #for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
+        #    data_dict[str(variables[column_idx])] = \
+        #        pd.Series(data, dtype='float16')
 
         all_phase_data.append(pd.DataFrame(data_dict))
 
     # all_phases_data now contains energy surface information for the system
     return pd.concat(all_phase_data, axis=0, join='outer', \
-                            ignore_index=True, verify_integrity=False), comp_sets
+                            ignore_index=True, verify_integrity=False), \
+                            comp_sets
     #return pd.DataFrame(all_phase_data), comp_sets
+
+#if __name__ == '__main__':
+#    import pycalphad
+#    db = pycalphad.Database('alfe_sei.TDB')
+#
+#    my_phases = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
+#    energy_surf(db, ['AL', 'FE', 'VA'], my_phases, \
+#    T=np.linspace(300, 2000, num=100), pdens=200, ast='numexpr')

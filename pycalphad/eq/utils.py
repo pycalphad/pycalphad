@@ -179,7 +179,7 @@ def point_sample(comp_count, size=10):
             #pts = np.vstack((pts, list(itertools.permutations(pure))))
 
             # sample from Halton sequence
-            pts = halton(ctx, size*ctx)
+            pts = halton(ctx, size*(ctx-1))
             # convert low-discrepancy sequence to normalized exponential
             # this will be uniformly distributed on the simplex
             pts = -np.log(pts)
@@ -290,7 +290,7 @@ def generate_dof(phase, active_comps):
     for idx, sublattice in enumerate(phase.constituents):
         dof = 0
         for component in set(sublattice).intersection(active_comps):
-            variables.append(v.SiteFraction(phase.name, idx, component))
+            variables.append(v.SiteFraction(phase.name.upper(), idx, component))
             dof += 1
         sublattice_dof.append(dof)
     return variables, sublattice_dof

@@ -10,39 +10,76 @@ import matplotlib.patches as mpatches
 #pylint: disable=E1101
 from matplotlib import collections as mc
 from pycalphad import energy_surf
+#from memory_profiler import profile
 
+#@profile
 def binplot(db, comps, phases, x_variable, low_temp, high_temp,
             steps=None, **kwargs):
     """
     Calculate the binary isobaric phase diagram for the given temperature
     range.
+
+    Parameters
+    ----------
+    db : Database
+        Thermodynamic database containing the relevant parameters.
+    comps : list
+        Names of components to consider in the calculation.
+    phases : list
+        Names of phases to consider in the calculation.
+    x_variable : string
+        Name of the x-axis variable to plot, e.g., 'X(FE)'
+    low_temp : float
+        Lower bound of temperature to calculate.
+    high_temp : float
+        Upper bound of temperature to calculate.
+    steps : int, optional
+        Number of temperature steps to take between `low_temp` and `high_temp`.
+    pdens : int, optional
+        Number of points to sample per sublattice, per degree of freedom.
+    ast : ['numpy', 'numexpr'], optional
+        Specify how we should construct the callable for the energy.
+
+    Returns
+    -------
+    A phase diagram as a figure.
+
+    Examples
+    --------
+    None yet.
     """
     assert high_temp > low_temp
-    minimum_distance = 0.001
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []
     tsteps = steps or int((high_temp-low_temp) / 10) # Take 10 K steps by def.
     temps = list(np.linspace(low_temp, high_temp, num=tsteps))
 
-    ppp = 100 # points per phase
-    if 'points_per_phase' not in kwargs:
-        kwargs['points_per_phase'] = ppp
+    # Convert all phase names to uppercase
+    phases = [phase.upper() for phase in phases]
+
+    ppp = 200 # points per sublattice per d.o.f
+    if 'pdens' not in kwargs:
+        kwargs['pdens'] = ppp
 
     # Calculate energy surface at each temperature
     full_df, nrg = energy_surf(db, comps, phases, T=temps, **kwargs)
     # Select only the P, T, etc., of interest
-    temp_group = full_df.groupby('T', sort=False)
-    for temp, hull_frame in temp_group:
+    full_df = full_df.groupby('T', sort=False)
+    for temp, hull_frame in full_df:
         # Calculate the convex hull for the desired points
         hull_points = hull_frame[[x_variable, 'GM']].values
+        #print(hull_frame)
         #np.clip(hull_points, -1e10, 1e4, out=hull_points)
-        np.vstack((hull_points, [0.5, -1e9]))
+
+        # Use a point at 'negative infinity' to find only the lower hull
+        #hull_points = np.vstack((hull_points, [0.5, -1e12]))
         hull = None
         try:
             hull = scipy.spatial.ConvexHull(
-                hull_points, qhull_options='QJ Pg QG'+str(len(hull_points)-1)
+                hull_points, qhull_options='QJ'# Pg QG'+str(len(hull_points)-1)
             )
+            del hull_points
         except RuntimeError:
             print('temperature: '+str(temp))
             raise
@@ -159,6 +196,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
     phasecount = 0
     legend_handles = []
     for phase in phases:
+        phase = phase.upper()
         colorlist[phase] = "#"+ColorValues[np.mod(phasecount,M)]
         legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
         phasecount = phasecount + 1
@@ -190,3 +228,11 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature (K)", fontsize=20)
     plt.show()
+
+
+#if __name__ == '__main__':
+#    import pycalphad
+#    db = pycalphad.Database('alfe_sei.TDB')
+#
+#    my_phases = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
+#    binplot(db, ['AL', 'FE', 'VA'] , my_phases, 'X(AL)', 300, 2000, steps=100, pdens=200, ast='numexpr')
