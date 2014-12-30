@@ -28,7 +28,7 @@ NumPy, SciPy, SymPy, Pandas, PyParsing, TinyDB
 
 Optional Dependencies:
 Matplotlib (plotting), 
-Theano (calculation speed-up in some situations)
+Numexpr (calculation speed-up for multi-core CPUs)
 
 Examples
 ========

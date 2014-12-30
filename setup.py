@@ -14,11 +14,10 @@ setup(
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
-    packages=['pycalphad', 'pycalphad.eq', 'pycalphad.io', 'pycalphad.plot', 
-'pycalphad.plot.projections'],
+    packages=['pycalphad', 'pycalphad.eq', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.projections'],
     license='MIT',
     long_description=read('README.md'),
     url='https://github.com/richardotis/pycalphad',
-    install_requires=['numpy', 'matplotlib', 'pandas', 'sympy', 'pyparsing', 'tinydb', 'theano', 'scipy'],
+    install_requires=['numpy', 'pandas', 'sympy', 'pyparsing', 'tinydb', 'scipy'],
     classifiers=['Development Status :: 3 - Alpha']
 )
