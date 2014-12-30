@@ -25,10 +25,8 @@ def _listify(val):
         return [val]
 
 #pylint: disable=W0142
-#import memory_profiler
-#@memory_profiler.profile
 def energy_surf(dbf, comps, phases,
-                pdens=100, ast='numpy', **kwargs):
+                pdens=300, ast='numpy', **kwargs):
     """
     Calculate the energy surface of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
@@ -112,10 +110,6 @@ def energy_surf(dbf, comps, phases,
         for statevar in kwargs.keys():
             data_dict[statevar] = statevar_list
 
-        #print([str(key+': '+str(len(val))) for key, val in data_dict.items()])
-        print(data_dict)
-
-
         # Map the internal degrees of freedom to global coordinates
 
         # Normalize site ratios
@@ -136,7 +130,7 @@ def energy_surf(dbf, comps, phases,
                 site_ratios[cur_var.sublattice_index] for cur_var in variables]
             data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
                 points[:, :], avector), site_ratio_normalization),
-                                                 len(statevars_to_map))
+                                               len(statevars_to_map))
 
         # Copy coordinate information into data_dict
         #for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
@@ -149,12 +143,3 @@ def energy_surf(dbf, comps, phases,
     return pd.concat(all_phase_data, axis=0, join='outer', \
                             ignore_index=True, verify_integrity=False), \
                             comp_sets
-    #return pd.DataFrame(all_phase_data), comp_sets
-
-#if __name__ == '__main__':
-#    import pycalphad
-#    db = pycalphad.Database('alfe_sei.TDB')
-#
-#    my_phases = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
-#    energy_surf(db, ['AL', 'FE', 'VA'], my_phases, \
-#    T=np.linspace(300, 2000, num=100), pdens=200, ast='numexpr')

@@ -10,10 +10,9 @@ import matplotlib.patches as mpatches
 #pylint: disable=E1101
 from matplotlib import collections as mc
 from pycalphad import energy_surf
-#from memory_profiler import profile
 
-#@profile
-def binplot(db, comps, phases, x_variable, low_temp, high_temp,
+
+def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
             steps=None, **kwargs):
     """
     Calculate the binary isobaric phase diagram for the given temperature
@@ -21,7 +20,7 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
 
     Parameters
     ----------
-    db : Database
+    dbf : Database
         Thermodynamic database containing the relevant parameters.
     comps : list
         Names of components to consider in the calculation.
@@ -58,12 +57,12 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
     # Convert all phase names to uppercase
     phases = [phase.upper() for phase in phases]
 
-    ppp = 200 # points per sublattice per d.o.f
+    ppp = 1000 # points per sublattice per d.o.f
     if 'pdens' not in kwargs:
         kwargs['pdens'] = ppp
 
     # Calculate energy surface at each temperature
-    full_df, nrg = energy_surf(db, comps, phases, T=temps, **kwargs)
+    full_df, nrg = energy_surf(dbf, comps, phases, T=temps, **kwargs)
     # Select only the P, T, etc., of interest
     full_df = full_df.groupby('T', sort=False)
     for temp, hull_frame in full_df:
@@ -88,10 +87,10 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
         tieline_normals = []
         current_tielines = []
 
-        def grouper(iterable, n, fillvalue=None):
+        def grouper(iterable, nvx, fillvalue=None):
             "Collect data into fixed-length chunks or blocks"
             # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
-            args = [iter(iterable)] * n
+            args = [iter(iterable)] * nvx
             return itertools.zip_longest(fillvalue=fillvalue, *args)
         # this was factored out of the loop based on profiling
         coordinates = hull_frame.iloc[np.asarray(hull.simplices).ravel()]
@@ -147,9 +146,11 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
             # if we get here, this is a miscibility gap region or a
             # two-phase region
             current_tielines.append(
-                [[first_endpoint[columns.index(x_variable)], temp, first_endpoint[columns.index('Phase')]], \
-                    [second_endpoint[columns.index(x_variable)], temp, second_endpoint[columns.index('Phase')]]]
-                    )
+                [[first_endpoint[columns.index(x_variable)], temp, \
+                        first_endpoint[columns.index('Phase')]], \
+                    [second_endpoint[columns.index(x_variable)], temp, \
+                        second_endpoint[columns.index('Phase')]]]
+                )
             tieline_norm = equ[:-1]
             tieline_normals.append(tieline_norm)
 
@@ -183,24 +184,25 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
 
     # colors from Junwei Huang, March 21 2013
     # exclude green and red because of their special meaning on the diagram
-    ColorValues=["0000FF", "FFFF00", "FF00FF", "00FFFF", "000000", 
-            "800000", "008000", "000080", "808000", "800080", "008080", "808080", 
-            "C00000", "00C000", "0000C0", "C0C000", "C000C0", "00C0C0", "C0C0C0", 
-            "400000", "004000", "000040", "404000", "400040", "004040", "404040", 
-            "200000", "002000", "000020", "202000", "200020", "002020", "202020", 
-            "600000", "006000", "000060", "606000", "600060", "006060", "606060", 
-            "A00000", "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0", 
-            "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0", "E0E0E0"]
-    M=len(ColorValues)
-    
+    colorvalues = ["0000FF", "FFFF00", "FF00FF", "00FFFF", "000000",
+                   "800000", "008000", "000080", "808000", "800080", "008080",
+                   "808080", "C00000", "00C000", "0000C0", "C0C000", "C000C0",
+                   "00C0C0", "C0C0C0", "400000", "004000", "000040", "404000",
+                   "400040", "004040", "404040", "200000", "002000", "000020",
+                   "202000", "200020", "002020", "202020", "600000", "006000",
+                   "000060", "606000", "600060", "006060", "606060", "A00000",
+                   "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0",
+                   "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0",
+                   "E0E0E0"]
+
     phasecount = 0
     legend_handles = []
     for phase in phases:
         phase = phase.upper()
-        colorlist[phase] = "#"+ColorValues[np.mod(phasecount,M)]
+        colorlist[phase] = "#"+colorvalues[np.mod(phasecount, len(colorvalues))]
         legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
         phasecount = phasecount + 1
-    
+
     # Get the configured plot colors
     plotcolors = list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], tie_lines[:, :, 2]))
     fig = plt.figure(dpi=600, figsize=(8, 6))
@@ -221,18 +223,11 @@ def binplot(db, comps, phases, x_variable, low_temp, high_temp,
             tie_lines[:, :, 0:2], color=tie_line_colors, linewidth=tie_line_widths, zorder=1
         )
         ax.add_collection(lc)
-        ax.scatter(tie_lines[:, :, 0].ravel(), tie_lines[:, :, 1].ravel(), color=np.asarray(plotcolors).ravel(), s=3, zorder=2)
+        ax.scatter(tie_lines[:, :, 0].ravel(), tie_lines[:, :, 1].ravel(),
+                   color=np.asarray(plotcolors).ravel(), s=3, zorder=2)
 
     plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
     plt.title(plot_title, fontsize=20)
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature (K)", fontsize=20)
     plt.show()
-
-
-#if __name__ == '__main__':
-#    import pycalphad
-#    db = pycalphad.Database('alfe_sei.TDB')
-#
-#    my_phases = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
-#    binplot(db, ['AL', 'FE', 'VA'] , my_phases, 'X(AL)', 300, 2000, steps=100, pdens=200, ast='numexpr')

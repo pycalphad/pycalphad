@@ -145,7 +145,7 @@ def halton(dim, nbpts):
 
 def point_sample(comp_count, size=10):
     """
-    Sample 'size' ** len('comp_count') points in composition space
+    Sample 'size' points in composition space
     for the sublattice configuration specified by 'comp_count'.
     Points are sampled quasi-randomly from a Halton sequence.
     Note: For sublattices with only one component, only one point will be
@@ -167,36 +167,20 @@ def point_sample(comp_count, size=10):
     >>> comps = [8,1] # 8 components in sublattice 1; only 1 in sublattice 2
     >>> pts = point_sample(comps, size=20)
     """
-    subl_points = []
+    # Generate Halton sequence with appropriate dimensions and size
+    pts = halton(sum(comp_count), size * (sum(comp_count)))
+    # Convert low-discrepancy sequence to normalized exponential
+    # This will be uniformly distributed over the simplices
+    pts = -np.log(pts)
+    cur_idx = 0
     for ctx in comp_count:
-        if ctx > 1:
-            # guarantee that all 'pure' endmembers will be included
-            #pure = np.zeros(ctx)
-            #pure[0] = 1 # now something like [1, 0, 0, ...]
-            # randomly generate points
-            #pts = np.random.dirichlet(tuple(np.ones(ctx)), (ctx-1)*size)
-            # add endmembers
-            #pts = np.vstack((pts, list(itertools.permutations(pure))))
+        end_idx = cur_idx + ctx
+        pts[:, cur_idx:end_idx] /= pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
+        cur_idx = end_idx
 
-            # sample from Halton sequence
-            pts = halton(ctx, size*(ctx-1))
-            # convert low-discrepancy sequence to normalized exponential
-            # this will be uniformly distributed on the simplex
-            pts = -np.log(pts)
-            pts /= pts.sum(axis=1)[:, None]
-            subl_points.append(pts)
-        elif ctx == 1:
-            # only 1 component; no degrees of freedom
-            subl_points.append(np.atleast_2d(1))
-        else:
-            raise ValueError('Number of components must be >= 1')
-
-    # Calculate Cartesian product over all sublattices
-    #pylint: disable=W0142
-    prod = itertools.product(*subl_points)
-    # join together the coordinates in each sublattice
-    result = [np.concatenate(x) for x in prod]
-    return np.asarray(result)
+    if len(pts) == 0:
+        pts = np.atleast_2d([1] * len(comp_count))
+    return pts
 
 def make_callable(model, variables, mode='numpy'):
     """
