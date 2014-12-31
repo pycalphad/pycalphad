@@ -13,7 +13,7 @@ from pycalphad import energy_surf
 
 
 def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
-            steps=None, **kwargs):
+            steps=None, ax=None, **kwargs):
     """
     Calculate the binary isobaric phase diagram for the given temperature
     range.
@@ -34,6 +34,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
         Upper bound of temperature to calculate.
     steps : int, optional
         Number of temperature steps to take between `low_temp` and `high_temp`.
+    ax : Matplotlib Axes object, optional
     pdens : int, optional
         Number of points to sample per sublattice, per degree of freedom.
     ast : ['numpy', 'numexpr'], optional
@@ -57,12 +58,14 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     # Convert all phase names to uppercase
     phases = [phase.upper() for phase in phases]
 
-    ppp = 1000 # points per sublattice per d.o.f
-    if 'pdens' not in kwargs:
-        kwargs['pdens'] = ppp
+    try:
+        pdens = kwargs.pop('pdens')
+    except KeyError:
+        pdens = 1000 # points per d.o.f
 
     # Calculate energy surface at each temperature
-    full_df, nrg = energy_surf(dbf, comps, phases, T=temps, **kwargs)
+    full_df, nrg = energy_surf(dbf, comps, phases, T=temps, pdens=pdens,
+                               **kwargs)
     # Select only the P, T, etc., of interest
     full_df = full_df.groupby('T', sort=False)
     for temp, hull_frame in full_df:
@@ -72,7 +75,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
         #np.clip(hull_points, -1e10, 1e4, out=hull_points)
 
         # Use a point at 'negative infinity' to find only the lower hull
-        #hull_points = np.vstack((hull_points, [0.5, -1e12]))
+        #hull_points = np.vstack(([0.5, -1e12], hull_points))
         hull = None
         try:
             hull = scipy.spatial.ConvexHull(
@@ -205,8 +208,8 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
 
     # Get the configured plot colors
     plotcolors = list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], tie_lines[:, :, 2]))
-    fig = plt.figure(dpi=600, figsize=(8, 6))
-    ax = fig.gca()
+    if ax is None:
+        ax = plt.gca()
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.grid(True)
 
@@ -215,8 +218,8 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
 
-    plt.xlim([0, 1])
-    plt.ylim([low_temp, high_temp])
+    ax.set_xlim([0, 1])
+    ax.set_ylim([low_temp, high_temp])
 
     if len(tie_lines) > 0:
         lc = mc.LineCollection(
@@ -227,7 +230,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
                    color=np.asarray(plotcolors).ravel(), s=3, zorder=2)
 
     plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
-    plt.title(plot_title, fontsize=20)
+    ax.set_title(plot_title, fontsize=20)
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature (K)", fontsize=20)
-    plt.show()
+    return ax

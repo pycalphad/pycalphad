@@ -26,9 +26,9 @@ def _listify(val):
 
 #pylint: disable=W0142
 def energy_surf(dbf, comps, phases,
-                pdens=300, ast='numpy', **kwargs):
+                pdens=1000, **kwargs):
     """
-    Calculate the energy surface of a system containing the specified
+    Sample the energy surface of a system containing the specified
     components and phases. Model parameters are taken from 'db' and any
     state variables (T, P, etc.) can be specified as keyword arguments.
 
@@ -41,13 +41,11 @@ def energy_surf(dbf, comps, phases,
     phases : list
         Names of phases to consider in the calculation.
     pdens : int, optional
-        Number of points to sample per sublattice, per degree of freedom.
-    ast : ['numpy', 'numexpr'], optional
-        Specify how we should construct the callable for the energy.
+        Number of points to sample per degree of freedom.
 
     Returns
     -------
-    DataFrame of the energy surface.
+    DataFrame of the energy as a function of composition, temperature, etc.
 
     Examples
     --------
@@ -82,13 +80,13 @@ def energy_surf(dbf, comps, phases,
 
         # Build the "fast" representation of that model
         comp_sets[phase_name] = make_callable(mod.ast, \
-            list(statevar_dict.keys()) + variables, mode=ast)
+            list(statevar_dict.keys()) + variables)
 
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
 
         # Sample composition space
-        points = point_sample(sublattice_dof, size=pdens)
+        points = point_sample(sublattice_dof, pdof=pdens)
         # Generate input d.o.f matrix for all state variable combinations
 
         # Allocate a contiguous block of memory to store the energies

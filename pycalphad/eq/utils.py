@@ -16,6 +16,13 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
+_NUMEXPR = None
+try:
+    from importlib import import_module
+    _NUMEXPR = import_module('numexpr')
+except ImportError:
+    pass
+
 class NumPyPrinter(LambdaPrinter): #pylint: disable=R0903
     """
     Special numpy lambdify printer which handles vectorized
@@ -143,20 +150,23 @@ def halton(dim, nbpts):
 
     return h.reshape(nbpts, dim)
 
-def point_sample(comp_count, size=10):
+def point_sample(comp_count, pdof=10):
     """
-    Sample 'size' points in composition space
-    for the sublattice configuration specified by 'comp_count'.
-    Points are sampled quasi-randomly from a Halton sequence.
-    Note: For sublattices with only one component, only one point will be
-        returned, regardless of 'size'.
+    Sample 'pdof * (sum(comp_count) - len(comp_count))' points in
+    composition space for the sublattice configuration specified
+    by 'comp_count'. Points are sampled quasi-randomly from a Halton sequence.
+    A Halton sequence is like a uniform random distribution, but the
+    result will always be the same for a given 'comp_count' and 'size'.
+    Note: For systems with only one component, only one point will be
+        returned, regardless of 'pdof'. This is because the degrees of freedom
+        are zero for that case.
 
     Parameters
     ----------
     comp_count : list
         Number of components in each sublattice.
-    size : int
-        Number of points to sample _per d.o.f._.
+    pdof : int
+        Number of points to sample per degree of freedom.
 
     Returns
     -------
@@ -165,10 +175,10 @@ def point_sample(comp_count, size=10):
     Examples
     --------
     >>> comps = [8,1] # 8 components in sublattice 1; only 1 in sublattice 2
-    >>> pts = point_sample(comps, size=20)
+    >>> pts = point_sample(comps, pdof=20) # 7 d.o.f, returns a 140x7 ndarray
     """
     # Generate Halton sequence with appropriate dimensions and size
-    pts = halton(sum(comp_count), size * (sum(comp_count)))
+    pts = halton(sum(comp_count), pdof * (sum(comp_count) - len(comp_count)))
     # Convert low-discrepancy sequence to normalized exponential
     # This will be uniformly distributed over the simplices
     pts = -np.log(pts)
@@ -182,7 +192,7 @@ def point_sample(comp_count, size=10):
         pts = np.atleast_2d([1] * len(comp_count))
     return pts
 
-def make_callable(model, variables, mode='numpy'):
+def make_callable(model, variables, mode=None):
     """
     Take a SymPy object and create a callable function.
 
@@ -192,22 +202,29 @@ def make_callable(model, variables, mode='numpy'):
         Abstract representation of function
     variables, list
         Input variables, ordered in the way the return function will expect
-    mode, ['numpy', 'theano', 'theano-debug', 'sympy'], optional
+    mode, ['numpy', 'numexpr', 'sympy'], optional
         Method to use when 'compiling' the function. SymPy mode is
-        slow and should only be used for debugging. If Theano is installed,
-        then it can offer speed-ups when calling the energy function many
-        times, at a one-time cost of compiling in advance.
+        slow and should only be used for debugging. If Numexpr is installed,
+        it can offer speed-ups when calling the energy function many
+        times on multi-core CPUs.
 
     Returns
     -------
     Function that takes arguments in the same order as 'variables'
-    and returns the energy according to 'model.'
+    and returns the energy according to 'model'.
 
     Examples
     --------
     None yet.
     """
     energy = None
+    if mode is None:
+        # no mode specified; use numexpr if available, otherwise numpy
+        if _NUMEXPR:
+            mode = 'numexpr'
+        else:
+            mode = 'numpy'
+
     if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     elif mode == 'numpy':
