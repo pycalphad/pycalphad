@@ -29,7 +29,7 @@ def energy_surf(dbf, comps, phases,
                 pdens=1000, **kwargs):
     """
     Sample the energy surface of a system containing the specified
-    components and phases. Model parameters are taken from 'db' and any
+    components and phases. Model parameters are taken from 'dbf' and any
     state variables (T, P, etc.) can be specified as keyword arguments.
 
     Parameters
@@ -40,7 +40,7 @@ def energy_surf(dbf, comps, phases,
         Names of components to consider in the calculation.
     phases : list
         Names of phases to consider in the calculation.
-    pdens : int, optional
+    pdens : int, a dict of phase names to int, or a list of both, optional
         Number of points to sample per degree of freedom.
 
     Returns
@@ -58,6 +58,23 @@ def energy_surf(dbf, comps, phases,
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = \
         dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
+
+    pdens_dict = collections.defaultdict(lambda: 1000)
+    # pdens is a dict of phase names
+    if isinstance(pdens, collections.Mapping):
+        pdens_dict = pdens
+    # pdens is a list containing a dict and an int to be used as a default
+    elif isinstance(pdens, collections.Iterable):
+        for element in pdens:
+            if isinstance(element, collections.Mapping):
+                pdens_dict.update(element)
+            elif isinstance(element, int):
+                # element=element syntax to silence var-from-loop warning
+                pdens_dict = collections.defaultdict(
+                    lambda element=element: element, pdens_dict)
+    else:
+        pdens_dict = collections.defaultdict(lambda: pdens)
+
     # Generate all combinations of state variables for 'map' calculation
     # Wrap single values of state variables in lists
     # Use 'kwargs' because we want state variable names to be stringified
@@ -86,7 +103,7 @@ def energy_surf(dbf, comps, phases,
         site_ratios = list(phase_obj.sublattices)
 
         # Sample composition space
-        points = point_sample(sublattice_dof, pdof=pdens)
+        points = point_sample(sublattice_dof, pdof=pdens_dict[phase_name])
         # Generate input d.o.f matrix for all state variable combinations
 
         # Allocate a contiguous block of memory to store the energies
