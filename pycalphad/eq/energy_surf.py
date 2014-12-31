@@ -131,6 +131,8 @@ def energy_surf(dbf, comps, phases,
                                                len(statevars_to_map))
 
         # Copy coordinate information into data_dict
+        # TODO: Is there a more memory-efficient way to deal with this?
+        # Perhaps with hierarchical indexing...
         #for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
         #    data_dict[str(variables[column_idx])] = \
         #        pd.Series(data, dtype='float16')
