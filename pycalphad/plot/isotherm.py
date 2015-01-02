@@ -19,7 +19,7 @@ def isotherm(df, x_variable, y_variable, **statevars):
         point_selector = point_selector & (df[variable] == value)
 
     hull_frame = df.ix[point_selector, [x_variable, y_variable, 'GM', 'Phase']]
-    print(hull_frame)
+    #print(hull_frame)
     point_frame = hull_frame[[x_variable, y_variable]]
     # Calculate the convex hull for the desired points
     hull = scipy.spatial.ConvexHull(
@@ -28,7 +28,7 @@ def isotherm(df, x_variable, y_variable, **statevars):
     point_mask = np.ones(len(point_frame.index), dtype=bool) # mask all points
 
     # unmask any point that is an endpoint for a tieline
-    minimum_distance = 0.01
+    minimum_distance = 0.05
     tie_lines = []
     tie_line_colors = []
     tie_line_widths = []

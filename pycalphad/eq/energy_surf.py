@@ -26,7 +26,7 @@ def _listify(val):
 
 #pylint: disable=W0142
 def energy_surf(dbf, comps, phases,
-                pdens=1000, **kwargs):
+                pdens=1000, mode=None, **kwargs):
     """
     Sample the energy surface of a system containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -97,7 +97,7 @@ def energy_surf(dbf, comps, phases,
 
         # Build the "fast" representation of that model
         comp_sets[phase_name] = make_callable(mod.ast, \
-            list(statevar_dict.keys()) + variables)
+            list(statevar_dict.keys()) + variables, mode=mode)
 
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)

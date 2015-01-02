@@ -12,6 +12,53 @@ from matplotlib import collections as mc
 from pycalphad import energy_surf
 
 
+def _binplot_setup(ax, phases, tie_lines, tie_line_colors, tie_line_widths):
+    "Setup the plot for a binary phase diagram."
+    colorlist = {}
+
+    # colors from Junwei Huang, March 21 2013
+    # exclude green and red because of their special meaning on the diagram
+    colorvalues = ["0000FF", "FFFF00", "FF00FF", "00FFFF", "000000",
+                   "800000", "008000", "000080", "808000", "800080", "008080",
+                   "808080", "C00000", "00C000", "0000C0", "C0C000", "C000C0",
+                   "00C0C0", "C0C0C0", "400000", "004000", "000040", "404000",
+                   "400040", "004040", "404040", "200000", "002000", "000020",
+                   "202000", "200020", "002020", "202020", "600000", "006000",
+                   "000060", "606000", "600060", "006060", "606060", "A00000",
+                   "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0",
+                   "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0",
+                   "E0E0E0"]
+
+    phasecount = 0
+    legend_handles = []
+    for phase in phases:
+        phase = phase.upper()
+        colorlist[phase] = "#"+colorvalues[np.mod(phasecount, len(colorvalues))]
+        legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
+        phasecount = phasecount + 1
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    ax.grid(True)
+
+    # Get the configured plot colors
+    plotcolors = list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]],
+                          tie_lines[:, :, 2]))
+    if len(tie_lines) > 0:
+        lc = mc.LineCollection(
+            tie_lines[:, :, 0:2], color=tie_line_colors,
+            linewidth=tie_line_widths, zorder=1
+        )
+        ax.add_collection(lc)
+        ax.scatter(tie_lines[:, :, 0].ravel(), tie_lines[:, :, 1].ravel(),
+                   color=np.asarray(plotcolors).ravel(), s=3, zorder=2)
+
+
+    # position the phase legend
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
+
+    return ax
+
 def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
             steps=None, ax=None, **kwargs):
     """
@@ -181,56 +228,14 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
                 tie_line_widths.append(0.5)
 
     tie_lines = np.asarray(tie_lines)
-    #print(tie_lines)
-    # Final plotting setup
-    colorlist = {}
 
-    # colors from Junwei Huang, March 21 2013
-    # exclude green and red because of their special meaning on the diagram
-    colorvalues = ["0000FF", "FFFF00", "FF00FF", "00FFFF", "000000",
-                   "800000", "008000", "000080", "808000", "800080", "008080",
-                   "808080", "C00000", "00C000", "0000C0", "C0C000", "C000C0",
-                   "00C0C0", "C0C0C0", "400000", "004000", "000040", "404000",
-                   "400040", "004040", "404040", "200000", "002000", "000020",
-                   "202000", "200020", "002020", "202020", "600000", "006000",
-                   "000060", "606000", "600060", "006060", "606060", "A00000",
-                   "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0",
-                   "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0",
-                   "E0E0E0"]
-
-    phasecount = 0
-    legend_handles = []
-    for phase in phases:
-        phase = phase.upper()
-        colorlist[phase] = "#"+colorvalues[np.mod(phasecount, len(colorvalues))]
-        legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
-        phasecount = phasecount + 1
-
-    # Get the configured plot colors
-    plotcolors = list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], tie_lines[:, :, 2]))
     if ax is None:
         ax = plt.gca()
-    ax.tick_params(axis='both', which='major', labelsize=14)
-    ax.grid(True)
-
-    # position the phase legend
-    box = ax.get_position()
-    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-    ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
-
-    ax.set_xlim([0, 1])
-    ax.set_ylim([low_temp, high_temp])
-
-    if len(tie_lines) > 0:
-        lc = mc.LineCollection(
-            tie_lines[:, :, 0:2], color=tie_line_colors, linewidth=tie_line_widths, zorder=1
-        )
-        ax.add_collection(lc)
-        ax.scatter(tie_lines[:, :, 0].ravel(), tie_lines[:, :, 1].ravel(),
-                   color=np.asarray(plotcolors).ravel(), s=3, zorder=2)
-
+    ax = _binplot_setup(ax, phases, tie_lines, tie_line_colors, tie_line_widths)
     plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
     ax.set_title(plot_title, fontsize=20)
+    ax.set_xlim([0, 1])
+    ax.set_ylim([low_temp, high_temp])
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature (K)", fontsize=20)
     return ax
