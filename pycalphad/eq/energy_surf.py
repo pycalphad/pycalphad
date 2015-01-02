@@ -158,5 +158,4 @@ def energy_surf(dbf, comps, phases,
 
     # all_phases_data now contains energy surface information for the system
     return pd.concat(all_phase_data, axis=0, join='outer', \
-                            ignore_index=True, verify_integrity=False), \
-                            comp_sets
+                            ignore_index=True, verify_integrity=False)
