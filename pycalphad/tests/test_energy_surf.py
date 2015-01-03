@@ -241,4 +241,4 @@ DBF = Database(TDB_TEST_STRING)
 
 def test_surface():
     energy_surf(DBF, ['AL', 'CR', 'NI'], ['L12_FCC'],
-                T=1273, points_per_phase=10, ast='numpy')
+                T=1273, pdens=10, mode='numpy')
