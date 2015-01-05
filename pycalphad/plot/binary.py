@@ -3,7 +3,6 @@ The binary module enables plotting of binary
 isobaric phase diagrams.
 """
 import scipy.spatial
-import itertools
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
@@ -137,18 +136,16 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
         tieline_normals = []
         current_tielines = []
 
-        def grouper(iterable, nvx, fillvalue=None):
-            "Collect data into fixed-length chunks or blocks"
-            # grouper('ABCDEFG', 3, 'x') --> ABC DEF Gxx
-            args = [iter(iterable)] * nvx
-            return itertools.zip_longest(fillvalue=fillvalue, *args)
         # this was factored out of the loop based on profiling
-        coordinates = hull_frame.iloc[np.asarray(hull.simplices).ravel()]
-        coordinates = list(grouper(coordinates.values, len(hull.simplices[0])))
+        coordinates = hull_frame.iloc[np.asarray(hull.simplices).ravel()].values
+        # Reshape coordinates into rank 3 ndarray of simplex coordinates
+        # Each point is ordered as: Energy, Phase Name, Coordinates
+        coordinates.shape = (len(hull.simplices), len(hull.simplices[0]),
+                             len(coordinates[0]))
         columns = list(hull_frame.columns)
 
-        for simplex, coords, equ in \
-            zip(hull.simplices, coordinates, hull.equations):
+        for coords, equ in \
+            zip(coordinates, hull.equations):
             if equ[-2] > -1e-6:
                 # simplex oriented 'upwards' in energy direction
                 # must not be part of the energy surface
