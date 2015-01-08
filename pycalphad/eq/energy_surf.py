@@ -7,6 +7,7 @@ from __future__ import division
 from pycalphad import Model
 from pycalphad.eq.utils import make_callable, point_sample, generate_dof
 import pycalphad.variables as v
+import scipy.spatial
 import pandas as pd
 import numpy as np
 import itertools
@@ -23,6 +24,92 @@ def _listify(val):
         return val
     else:
         return [val]
+
+def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
+                       energy_func, max_iterations=1):
+    """
+    Recursively refine the equilibrium energy surface of a phase, starting
+    from some initial points.
+
+    Parameters
+    ----------
+    input_matrix : ndarray
+        Matrix whose rows can be fed into 'energy_callable'
+        Note that 'input_matrix' should only contain one set of values for the
+        state variables, e.g., fixed T, P.
+    energies : ndarray or None
+        One-dimensional array containing energies of 'input_matrix'
+    phase_obj : Phase
+        Phase whose energy surface is being refined
+    comps : list of string
+        Names of active components
+    variables : list of StateVariable
+        Ordered list of degrees of freedom in 'input_matrix'
+    energy_func : callable
+        Function that accepts rows of 'input_matrix' and returns the energy
+    max_iterations : int, optional
+        Number of recursive refinement iterations.
+
+    Returns
+    -------
+    tuple of refined_input_matrix, energies
+    """
+    # If energies is None, calculate energies of input_matrix
+    if energies is None:
+        energies = energy_func(*input_matrix.T)
+    # Normalize site ratios
+    # Normalize by the sum of site ratios times a factor
+    # related to the site fraction of vacancies
+    site_ratio_normalization = np.zeros(len(input_matrix))
+    for idx, sublattice in enumerate(phase_obj.constituents):
+        vacancy_column = np.ones(len(input_matrix))
+        if 'VA' in set(sublattice):
+            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, 'VA'))
+            vacancy_column -= input_matrix[:, var_idx]
+        site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
+
+    comp_list = sorted(list(comps))
+    # We aren't going to calculate mole fraction of vacancies
+    try:
+        comp_list.remove('VA')
+    except ValueError:
+        pass
+    # Remove last component from the list, as it's dependent
+    comp_list.pop()
+    # Map input_matrix to global coordinates (mole fractions)
+    global_matrix = np.zeros((len(input_matrix), len(comp_list)+1))
+    for comp_idx, comp in enumerate(comp_list):
+        avector = [float(cur_var.species == comp) * \
+            phase_obj.sublattices[cur_var.sublattice_index] \
+            for cur_var in variables]
+        global_matrix[:, comp_idx] = np.divide(np.dot(
+            input_matrix[:, :], avector), site_ratio_normalization)
+    global_matrix[:, -1] = energies
+
+    # If this is a stoichiometric phase, we can't calculate a hull
+    # Just return all points and energies
+    if len(global_matrix) < len(comp_list)+1:
+        return input_matrix, energies
+    # Calculate the convex hull of the energy surface in global coordinates
+    hull = scipy.spatial.ConvexHull(global_matrix, qhull_options='QJ')
+    del global_matrix
+    # terminating condition
+    if max_iterations <= 0:
+        return input_matrix[hull.vertices, :], energies[hull.vertices]
+    # For the simplices on the hull, calculate the centroids in internal dof
+    centroid_matrix = input_matrix[np.asarray(hull.simplices).ravel()]
+    centroid_matrix.shape = (len(hull.simplices), len(hull.simplices[0]),
+                     len(input_matrix[0]))
+    centroid_matrix = np.mean(centroid_matrix, axis=1, dtype=np.float64)
+    # Calculate energies of the centroid points
+    centroid_energies = energy_func(*centroid_matrix.T)
+    input_matrix = np.concatenate((input_matrix, centroid_matrix), axis=0)
+    energies = np.concatenate((energies, centroid_energies), axis=0)
+    del centroid_matrix
+    del centroid_energies
+    return refine_energy_surf(input_matrix, energies,
+                              phase_obj, comps, variables,
+                              energy_func, max_iterations=max_iterations-1)
 
 #pylint: disable=W0142
 def energy_surf(dbf, comps, phases,
@@ -104,55 +191,62 @@ def energy_surf(dbf, comps, phases,
 
         # Sample composition space
         points = point_sample(sublattice_dof, pdof=pdens_dict[phase_name])
+
+        data_dict = {'Phase': phase_name}
         # Generate input d.o.f matrix for all state variable combinations
+        for statevars in statevars_to_map:
+            # Prefill the state variable arguments to the energy function
+            energy_func = \
+                lambda *args: comp_sets[phase_name](
+                    *itertools.chain(list(statevars.values()),
+                                     args))
+            # Get the stable points and energies for this configuration
+            refined_points, energies = \
+                refine_energy_surf(points, None, phase_obj, comps,
+                                   variables, energy_func, max_iterations=2)
+            try:
+                data_dict['GM'].extend(energies)
+                for statevar in kwargs.keys():
+                    data_dict[statevar].extend(
+                        list(np.repeat(list(statevars.values()),
+                                       len(refined_points))))
+            except KeyError:
+                data_dict['GM'] = list(energies)
+                for statevar in kwargs.keys():
+                    data_dict[statevar] = \
+                        list(np.repeat(list(statevars.values()),
+                                       len(refined_points)))
 
-        # Allocate a contiguous block of memory to store the energies
-        energies = np.zeros(len(statevars_to_map) * len(points))
-        statevar_list = [None for x in range(len(statevars_to_map) * len(points))]
-        # Calculate energies from input matrix
-        # We don't construct the entire input matrix at once for memory reasons
-        for idx, statevars in enumerate(statevars_to_map):
-            start_idx = idx * len(points)
-            end_idx = (idx + 1) * len(points)
-            inputs = np.array([np.concatenate((list(statevars.values()), point)) \
-                                for point in points])
-            energies[start_idx:end_idx] = comp_sets[phase_name](*inputs.T)
-            statevar_list[start_idx:end_idx] = \
-                np.repeat(list(statevars.values()), len(points))
+            # Map the internal degrees of freedom to global coordinates
 
-        # Add points and calculated energies to the DataFrame
-        data_dict = {'GM':energies, 'Phase':phase_name}
-        for statevar in kwargs.keys():
-            data_dict[statevar] = statevar_list
+            # Normalize site ratios
+            # Normalize by the sum of site ratios times a factor
+            # related to the site fraction of vacancies
+            site_ratio_normalization = np.zeros(len(refined_points))
+            for idx, sublattice in enumerate(phase_obj.constituents):
+                vacancy_column = np.ones(len(refined_points))
+                if 'VA' in set(sublattice):
+                    var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+                    vacancy_column -= refined_points[:, var_idx]
+                site_ratio_normalization += site_ratios[idx] * vacancy_column
 
-        # Map the internal degrees of freedom to global coordinates
-
-        # Normalize site ratios
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        site_ratio_normalization = np.zeros(len(points))
-        for idx, sublattice in enumerate(phase_obj.constituents):
-            vacancy_column = np.ones(len(points))
-            if 'VA' in set(sublattice):
-                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-                vacancy_column -= points[:, var_idx]
-            site_ratio_normalization += site_ratios[idx] * vacancy_column
-
-        for comp in sorted(comps):
-            if comp == 'VA':
-                continue
-            avector = [float(cur_var.species == comp) * \
-                site_ratios[cur_var.sublattice_index] for cur_var in variables]
-            data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
-                points[:, :], avector), site_ratio_normalization),
-                                               len(statevars_to_map))
+            for comp in sorted(comps):
+                if comp == 'VA':
+                    continue
+                avector = [float(cur_var.species == comp) * \
+                    site_ratios[cur_var.sublattice_index] for cur_var in variables]
+                try:
+                    data_dict['X('+comp+')'].extend(list(np.divide(np.dot(
+                        refined_points[:, :], avector), site_ratio_normalization)))
+                except KeyError:
+                    data_dict['X('+comp+')'] = list(np.divide(np.dot(
+                        refined_points[:, :], avector), site_ratio_normalization))
 
         # Copy coordinate information into data_dict
         # TODO: Is there a more memory-efficient way to deal with this?
         # Perhaps with hierarchical indexing...
         #for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
-        #    data_dict[str(variables[column_idx])] = \
-        #        pd.Series(data, dtype='float16')
+        #    data_dict[str(variables[column_idx])] = data
 
         all_phase_data.append(pd.DataFrame(data_dict))
 

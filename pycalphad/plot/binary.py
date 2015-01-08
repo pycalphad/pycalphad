@@ -180,7 +180,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
                 pxd = scipy.spatial.distance.chebyshev(
                     first_endpoint[columns.index(x_variable)], \
                     second_endpoint[columns.index(x_variable)])
-                if pxd < 0.05:
+                if pxd < 0.01:
                     continue
                 # energy at midpoint
                 #midpoint_nrg = nrg[phase_name](*midpoint)

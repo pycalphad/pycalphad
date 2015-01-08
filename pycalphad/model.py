@@ -76,7 +76,8 @@ class Model(object):
         result = False
         for sublattice in constituent_array:
             # check if all elements involved are also active
-            valid = set(sublattice).issubset(self.components)
+            valid = set(sublattice).issubset(self.components) \
+                or sublattice[0] == '*'
             if len(sublattice) > 1 and valid:
                 result = True
             if not valid:
@@ -240,11 +241,14 @@ class Model(object):
         pure_energy_term = S.Zero
         # Normalize site ratios
         site_ratio_normalization = 0
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
         for idx, sublattice in enumerate(phase.constituents):
-            # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
-                continue
-            site_ratio_normalization += phase.sublattices[idx]
+            if 'VA' in set(sublattice):
+                site_ratio_normalization += phase.sublattices[idx] * \
+                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
+            else:
+                site_ratio_normalization += phase.sublattices[idx]
 
         pure_param_query = (
             (where('phase_name') == phase.name) & \
@@ -283,11 +287,15 @@ class Model(object):
         # Normalize site ratios
         site_ratio_normalization = 0
         site_ratios = phase.sublattices
+        # Normalize site ratios
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
         for idx, sublattice in enumerate(phase.constituents):
-            # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
-                continue
-            site_ratio_normalization += site_ratios[idx]
+            if 'VA' in set(sublattice):
+                site_ratio_normalization += site_ratios[idx] * \
+                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
+            else:
+                site_ratio_normalization += site_ratios[idx]
 
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
@@ -316,11 +324,15 @@ class Model(object):
         # Normalize site ratios
         site_ratio_normalization = 0
         site_ratios = phase.sublattices
+        # Normalize site ratios
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
         for idx, sublattice in enumerate(phase.constituents):
-            # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
-                continue
-            site_ratio_normalization += site_ratios[idx]
+            if 'VA' in set(sublattice):
+                site_ratio_normalization += site_ratios[idx] * \
+                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
+            else:
+                site_ratio_normalization += site_ratios[idx]
 
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
 
@@ -334,6 +346,7 @@ class Model(object):
         )
         # search for desired parameters
         interaction_params = param_search(interaction_param_query)
+
         for param in interaction_params:
             # iterate over every sublattice
             mixing_term = S.One
@@ -423,11 +436,14 @@ class Model(object):
             return S.Zero
         # Normalize site ratios
         site_ratio_normalization = 0
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
         for idx, sublattice in enumerate(phase.constituents):
-            # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
-                continue
-            site_ratio_normalization += phase.sublattices[idx]
+            if 'VA' in set(sublattice):
+                site_ratio_normalization += phase.sublattices[idx] * \
+                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
+            else:
+                site_ratio_normalization += phase.sublattices[idx]
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -472,6 +488,14 @@ class Model(object):
         """
         Return an abstract syntax tree of the mole fraction of the
         given species as a function of its constituent site fractions.
+
+        Note that this will treat vacancies the same as any other component,
+        i.e., this will not give the correct _overall_ composition for
+        sublattices containing vacancies with other components by normalizing
+        by a factor of 1 - y_{VA}. This is because we use this routine in the
+        order-disorder model to calculate the disordered site fractions from
+        the ordered site fractions, so we need _all_ site fractions, including
+        VA, to sum to unity.
         """
 
         # Normalize site ratios
@@ -550,6 +574,14 @@ class Model(object):
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction
         for sitefrac in ordered_phase_energy.atoms(v.SiteFraction):
+            all_species_in_sublattice = \
+                dbe.phases[ordered_phase_name].constituents[
+                    sitefrac.sublattice_index]
+            if sitefrac.species == 'VA' and len(all_species_in_sublattice) == 1:
+                # pure-vacancy sublattices should not be replaced
+                # this handles cases like AL,NI,VA:AL,NI,VA:VA and
+                # ensures the VA's don't get mixed up
+                continue
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
         subl_equal_term = \
