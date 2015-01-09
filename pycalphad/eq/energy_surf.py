@@ -57,6 +57,9 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
     # If energies is None, calculate energies of input_matrix
     if energies is None:
         energies = energy_func(*input_matrix.T)
+    # for debugging purposes; return input (do nothing)
+    if max_iterations < 0:
+        return input_matrix, energies
     # Normalize site ratios
     # Normalize by the sum of site ratios times a factor
     # related to the site fraction of vacancies
@@ -69,7 +72,6 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
         site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
 
     comp_list = sorted(list(comps))
-    # We aren't going to calculate mole fraction of vacancies
     try:
         comp_list.remove('VA')
     except ValueError:
@@ -92,21 +94,31 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
         return input_matrix, energies
     # Calculate the convex hull of the energy surface in global coordinates
     hull = scipy.spatial.ConvexHull(global_matrix, qhull_options='QJ')
+    # Filter for real simplices
+    simplices = hull.simplices[hull.equations[:, -1] <= -1e-6]
+    vertices = list(set(np.asarray(simplices).ravel()))
     del global_matrix
     # terminating condition
-    if max_iterations <= 0:
-        return input_matrix[hull.vertices, :], energies[hull.vertices]
+    if max_iterations == 0:
+        return input_matrix[vertices, :], energies[vertices]
     # For the simplices on the hull, calculate the centroids in internal dof
-    centroid_matrix = input_matrix[np.asarray(hull.simplices).ravel()]
-    centroid_matrix.shape = (len(hull.simplices), len(hull.simplices[0]),
-                     len(input_matrix[0]))
+    centroid_matrix = input_matrix[np.asarray(simplices).ravel()]
+    centroid_matrix.shape = (len(simplices), len(simplices[0]),
+                             len(input_matrix[0]))
     centroid_matrix = np.mean(centroid_matrix, axis=1, dtype=np.float64)
+
     # Calculate energies of the centroid points
     centroid_energies = energy_func(*centroid_matrix.T)
-    input_matrix = np.concatenate((input_matrix, centroid_matrix), axis=0)
-    energies = np.concatenate((energies, centroid_energies), axis=0)
+    # Group together the old points and new points
+    input_matrix = np.concatenate((input_matrix[vertices, :],
+                                   centroid_matrix), axis=0)
+    energies = np.concatenate((energies[vertices], centroid_energies),
+                              axis=0)
+    # Save some memory since we already grouped these
     del centroid_matrix
     del centroid_energies
+
+    # Call recursively for next iteration, decrementing max_iterations
     return refine_energy_surf(input_matrix, energies,
                               phase_obj, comps, variables,
                               energy_func, max_iterations=max_iterations-1)
@@ -191,6 +203,23 @@ def energy_surf(dbf, comps, phases,
 
         # Sample composition space
         points = point_sample(sublattice_dof, pdof=pdens_dict[phase_name])
+        # If there are nontrivial sublattices with vacancies in them,
+        # generate a set of points where their fraction is zero and renormalize
+        for idx, sublattice in enumerate(phase_obj.constituents):
+            if 'VA' in set(sublattice) and len(sublattice) > 1:
+                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+                addtl_pts = np.copy(points)
+                # set vacancy fraction to zero
+                addtl_pts[:, var_idx] = float(0)
+                # renormalize site fractions
+                cur_idx = 0
+                for ctx in sublattice_dof:
+                    end_idx = cur_idx + ctx
+                    addtl_pts[:, cur_idx:end_idx] /= \
+                        addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
+                    cur_idx = end_idx
+                # add to points matrix
+                points = np.concatenate((points, addtl_pts), axis=0)
 
         data_dict = {'Phase': phase_name}
         # Generate input d.o.f matrix for all state variable combinations
@@ -203,7 +232,7 @@ def energy_surf(dbf, comps, phases,
             # Get the stable points and energies for this configuration
             refined_points, energies = \
                 refine_energy_surf(points, None, phase_obj, comps,
-                                   variables, energy_func, max_iterations=2)
+                                   variables, energy_func, max_iterations=5)
             try:
                 data_dict['GM'].extend(energies)
                 for statevar in kwargs.keys():
@@ -242,11 +271,15 @@ def energy_surf(dbf, comps, phases,
                     data_dict['X('+comp+')'] = list(np.divide(np.dot(
                         refined_points[:, :], avector), site_ratio_normalization))
 
-        # Copy coordinate information into data_dict
-        # TODO: Is there a more memory-efficient way to deal with this?
-        # Perhaps with hierarchical indexing...
-        #for column_idx, data in enumerate(inputs.T[len(statevar_dict):]):
-        #    data_dict[str(variables[column_idx])] = data
+            # Copy coordinate information into data_dict
+            # TODO: Is there a more memory-efficient way to deal with this?
+            # Perhaps with hierarchical indexing...
+            try:
+                for column_idx, data in enumerate(refined_points.T):
+                    data_dict[str(variables[column_idx])].extend(list(data))
+            except KeyError:
+                for column_idx, data in enumerate(refined_points.T):
+                    data_dict[str(variables[column_idx])] = list(data)
 
         all_phase_data.append(pd.DataFrame(data_dict))
 
