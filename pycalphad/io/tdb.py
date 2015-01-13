@@ -3,7 +3,7 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
-from pyparsing import LineEnd, OneOrMore, Regex, SkipTo
+from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList
 import re
@@ -53,7 +53,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_', min=1)
     # species name, e.g., CO2, AL, FE3+
-    species_name = Word(alphanums+'+-*', min=1)
+    species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
     constituent_array = Group(
         delimitedList(Group(delimitedList(species_name, ',')), ':')
         )
