@@ -10,6 +10,7 @@ from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
 from sympy import Piecewise
 import numpy as np
 import itertools
+import collections
 from math import log, floor, ceil, fmod, sqrt
 try:
     set
@@ -240,7 +241,7 @@ def make_callable(model, variables, mode=None):
 
     return energy
 
-def check_degenerate_phases(phase_compositions, mindist=0.1):
+def check_degenerate_phases(phase_compositions, mindist=0.5):
     """
     Because the global minimization procedure returns a simplex as an
     output, our starting point will always assume the maximum number of
@@ -260,7 +261,7 @@ def check_degenerate_phases(phase_compositions, mindist=0.1):
     edges = list(itertools.combinations(output_vertices, 2))
     sitefrac_columns = \
         [c for c in phase_compositions.columns.values \
-            if str(c).startswith('Y')]
+            if str(c).startswith('X')]
     for edge in edges:
         # check if both end-points are still in output_vertices
         # if not, we should skip this edge
@@ -276,7 +277,7 @@ def check_degenerate_phases(phase_compositions, mindist=0.1):
         first_coords = first_vertex.loc[sitefrac_columns].fillna(0)
         second_coords = second_vertex.loc[sitefrac_columns].fillna(0)
         edge_length = \
-            scipy.spatial.distance.euclidean(first_coords, second_coords)
+            scipy.spatial.distance.chebyshev(first_coords, second_coords)
         if edge_length < mindist and len(output_vertices) > 1:
             output_vertices.discard(edge[1])
     return list(output_vertices)
@@ -290,8 +291,58 @@ def generate_dof(phase, active_comps):
     sublattice_dof = []
     for idx, sublattice in enumerate(phase.constituents):
         dof = 0
-        for component in set(sublattice).intersection(active_comps):
+        for component in list(set(sublattice).intersection(active_comps)):
             variables.append(v.SiteFraction(phase.name.upper(), idx, component))
             dof += 1
         sublattice_dof.append(dof)
     return variables, sublattice_dof
+
+def unpack_kwarg(kwarg_obj, default_arg=None):
+    """
+    Keyword arguments in pycalphad can be passed as a constant value, a
+    dict of phase names and values, or a list containing both of these. If
+    the latter, then the dict is checked first; if the phase of interest is not
+    there, then the constant value is used.
+
+    This function is a way to construct defaultdicts out of keyword arguments.
+
+    Parameters
+    ==========
+    kwarg_obj : dict, iterable, or None
+        Argument to unpack into a defaultdict
+    default_arg : object
+        Default value to use if iterable isn't specified
+
+    Returns
+    =======
+    defaultdict for the keyword argument of interest
+
+    Examples
+    ========
+    >>> test_func = lambda **kwargs: print(unpack_kwarg('opt'))
+    >>> test_func(opt=100)
+    >>> test_func(opt={'FCC_A1': 50, 'BCC_B2': 10})
+    >>> test_func(opt=[{'FCC_A1': 30}, 200])
+    >>> test_func()
+    >>> test_func2 = lambda **kwargs: print(unpack_kwarg('opt', default_arg=1))
+    >>> test_func2()
+    """
+    new_dict = collections.defaultdict(lambda: default_arg)
+
+    if isinstance(kwarg_obj, collections.Mapping):
+        new_dict.update(kwarg_obj)
+    # kwarg_obj is a list containing a dict and a default
+    elif isinstance(kwarg_obj, collections.Iterable):
+        for element in kwarg_obj:
+            if isinstance(element, collections.Mapping):
+                new_dict.update(element)
+            else:
+                # element=element syntax to silence var-from-loop warning
+                new_dict = collections.defaultdict(
+                    lambda element=element: element, new_dict)
+    elif kwarg_obj is None:
+        pass
+    else:
+        new_dict = collections.defaultdict(lambda: kwarg_obj)
+
+    return new_dict

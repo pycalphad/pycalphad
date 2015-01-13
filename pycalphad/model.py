@@ -308,7 +308,7 @@ class Model(object):
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
                 mixing_term = Piecewise((sitefrac * log(sitefrac), \
-                    Abs(sitefrac) > 1e-16), (0, True))
+                    sitefrac > 1e-16), (0, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term

@@ -117,15 +117,10 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     for temp, hull_frame in full_df:
         # Calculate the convex hull for the desired points
         hull_points = hull_frame[[x_variable, 'GM']].values
-        #print(hull_frame)
-        #np.clip(hull_points, -1e10, 1e4, out=hull_points)
-
-        # Use a point at 'negative infinity' to find only the lower hull
-        #hull_points = np.vstack(([0.5, -1e12], hull_points))
         hull = None
         try:
             hull = scipy.spatial.ConvexHull(
-                hull_points, qhull_options='QJ'# Pg QG'+str(len(hull_points)-1)
+                hull_points, qhull_options='QJ'
             )
             del hull_points
         except RuntimeError:
@@ -180,7 +175,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
                 pxd = scipy.spatial.distance.chebyshev(
                     first_endpoint[columns.index(x_variable)], \
                     second_endpoint[columns.index(x_variable)])
-                if pxd < 0.02:
+                if pxd < 0.03:
                     continue
                 # energy at midpoint
                 #midpoint_nrg = nrg[phase_name](*midpoint)

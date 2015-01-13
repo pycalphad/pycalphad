@@ -5,6 +5,30 @@ their Jacobian.
 
 import pycalphad.variables as v
 import numpy as np
+from sympy import S
+
+def msum(iterable):
+    "Full precision summation using multiple floats for intermediate values"
+    # Rounded x+y stored in hi with the round-off stored in lo.  Together
+    # hi+lo are exactly equal to x+y.  The inner loop applies hi/lo summation
+    # to each partial so that the list of partial sums remains exact.
+    # Depends on IEEE-754 arithmetic guarantees.  See proof of correctness at:
+    # www-2.cs.cmu.edu/afs/cs/project/quake/public/papers/robust-arithmetic.ps
+
+    partials = []               # sorted, non-overlapping partial sums
+    for x in iterable:
+        i = 0
+        for y in partials:
+            if abs(x) < abs(y):
+                x, y = y, x
+            hi = x + y
+            lo = y - (hi - x)
+            if lo:
+                partials[i] = lo
+                i += 1
+            x = hi
+        partials[i:] = [x]
+    return sum(partials, 0.0)
 
 # An index range is a list of (ordered pairs of indices).
 def sitefrac_cons(input_x, idx_range):
@@ -12,7 +36,8 @@ def sitefrac_cons(input_x, idx_range):
     Accepts input vector and index range and returns
     site fraction constraint.
     """
-    return sum(input_x[idx_range[0]:idx_range[1]]) - 1
+    print('sitefrac cons '+str(idx_range)+': '+str(sum(input_x[idx_range[0]:idx_range[1]]) - 1))
+    return sum(input_x[idx_range[0]:idx_range[1]]) - 1.0
 
 def sitefrac_jac(input_x, idx_range):
     """
@@ -20,64 +45,28 @@ def sitefrac_jac(input_x, idx_range):
     Jacobian of site fraction constraint.
     """
     output_x = np.zeros(len(input_x))
-    for idx in range(idx_range[0], idx_range[1]):
-        output_x[idx] = 1
+    output_x[idx_range[0]:idx_range[1]] = 1.0
     return output_x
 
-def molefrac_cons(input_x, species, fix_val, all_variables, phases):
+def molefrac_ast(phase, species):
     """
-    Accept input vector, species and fixed value.
-    Returns constraint.
+    Return a SymPy object representing the mole fraction as a function of
+    site fractions.
+    TODO: Assumes all phase constituents are active
     """
-    output = -fix_val
-    phase_idx = 0
-    site_ratios = []
-    for idx, variable in enumerate(all_variables):
-        if isinstance(variable, v.PhaseFraction):
-            phase_idx = idx
-            # Normalize site ratios
-            site_ratio_normalization = 0
-            for n_idx, sublattice in \
-                enumerate(phases[variable.phase_name].constituents):
-                if species in set(sublattice):
-                    site_ratio_normalization += \
-                        phases[variable.phase_name].sublattices[n_idx]
-
-            site_ratios = [c/site_ratio_normalization for c in \
-                phases[variable.phase_name].sublattices]
-        if isinstance(variable, v.SiteFraction) and \
-            species == variable.species:
-            output += input_x[phase_idx] * \
-                site_ratios[variable.sublattice_index] * input_x[idx]
-    return output
-
-#pylint: disable-msg=W0613
-def molefrac_jac(input_x, species, fix_val, all_variables, phases):
-    """
-    Accept input vector, species and fixed value.
-    Returns Jacobian of constraint.
-    """
-    output_x = np.zeros(len(input_x))
-    phase_idx = 0
-    site_ratios = []
-    for idx, variable in enumerate(all_variables):
-        if isinstance(variable, v.PhaseFraction):
-            phase_idx = idx
-            # Normalize site ratios
-            site_ratio_normalization = 0
-            for n_idx, sublattice in \
-                enumerate(phases[variable.phase_name].constituents):
-                if species in set(sublattice):
-                    site_ratio_normalization += \
-                        phases[variable.phase_name].sublattices[n_idx]
-
-            site_ratios = [c/site_ratio_normalization \
-                for c in phases[variable.phase_name].sublattices]
-            # We add the phase fraction Jacobian contribution below
-        if isinstance(variable, v.SiteFraction) and \
-            species == variable.species:
-            output_x[idx] += input_x[phase_idx] * \
-                site_ratios[variable.sublattice_index]
-            output_x[phase_idx] += input_x[idx] * \
-                site_ratios[variable.sublattice_index]
-    return output_x
+    result = S.Zero
+    site_ratio_normalization = S.Zero
+    # Calculate normalization factor
+    for idx, sublattice in enumerate(phase.constituents):
+        if 'VA' in set(sublattice):
+            site_ratio_normalization += phase.sublattices[idx] * \
+                (1.0 - v.SiteFraction(phase.name, idx, 'VA'))
+        else:
+            site_ratio_normalization += phase.sublattices[idx]
+    site_ratios = [c/site_ratio_normalization for c in phase.sublattices]
+    # Sum up site fraction contributions from each sublattice
+    for idx, sublattice in enumerate(phase.constituents):
+        if species in set(sublattice):
+            result += site_ratios[idx] * \
+                v.SiteFraction(phase.name, idx, species)
+    return result

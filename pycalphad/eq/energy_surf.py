@@ -6,6 +6,7 @@ energy surface of a system.
 from __future__ import division
 from pycalphad import Model
 from pycalphad.eq.utils import make_callable, point_sample, generate_dof
+from pycalphad.eq.utils import unpack_kwarg
 import pycalphad.variables as v
 import scipy.spatial
 import pandas as pd
@@ -124,8 +125,7 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
                               energy_func, max_iterations=max_iterations-1)
 
 #pylint: disable=W0142
-def energy_surf(dbf, comps, phases,
-                pdens=1000, mode=None, **kwargs):
+def energy_surf(dbf, comps, phases, mode=None, **kwargs):
     """
     Sample the energy surface of a system containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -150,29 +150,15 @@ def energy_surf(dbf, comps, phases,
     --------
     None yet.
     """
-    # Here we would check for any keyword arguments that are special, i.e.,
+    # Here we check for any keyword arguments that are special, i.e.,
     # there may be keyword arguments that aren't state variables
+    pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
+    model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = \
         dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
-
-    pdens_dict = collections.defaultdict(lambda: 1000)
-    # pdens is a dict of phase names
-    if isinstance(pdens, collections.Mapping):
-        pdens_dict = pdens
-    # pdens is a list containing a dict and an int to be used as a default
-    elif isinstance(pdens, collections.Iterable):
-        for element in pdens:
-            if isinstance(element, collections.Mapping):
-                pdens_dict.update(element)
-            elif isinstance(element, int):
-                # element=element syntax to silence var-from-loop warning
-                pdens_dict = collections.defaultdict(
-                    lambda element=element: element, pdens_dict)
-    else:
-        pdens_dict = collections.defaultdict(lambda: pdens)
 
     # Generate all combinations of state variables for 'map' calculation
     # Wrap single values of state variables in lists
@@ -190,7 +176,10 @@ def energy_surf(dbf, comps, phases,
     all_phase_data = []
     for phase_name, phase_obj in active_phases.items():
         # Build the symbolic representation of the energy
-        mod = Model(dbf, comps, phase_name)
+        mod = model_dict[phase_name]
+        # if this is an object type, we need to construct it
+        if isinstance(mod, type):
+            mod = mod(dbf, comps, phase_name)
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, active_comps)
 
@@ -209,8 +198,8 @@ def energy_surf(dbf, comps, phases,
             if 'VA' in set(sublattice) and len(sublattice) > 1:
                 var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
                 addtl_pts = np.copy(points)
-                # set vacancy fraction to zero
-                addtl_pts[:, var_idx] = float(0)
+                # set vacancy fraction to log-spaced between 1e-10 and 1e-6
+                addtl_pts[:, var_idx] = np.power(10.0, -10.0*(1.0 - addtl_pts[:, var_idx]))
                 # renormalize site fractions
                 cur_idx = 0
                 for ctx in sublattice_dof:
@@ -230,9 +219,11 @@ def energy_surf(dbf, comps, phases,
                     *itertools.chain(list(statevars.values()),
                                      args))
             # Get the stable points and energies for this configuration
+            # Set max refinements equal to the number of independent dof
+            mxr = sum(phase_obj.sublattices) - len(phase_obj.sublattices)
             refined_points, energies = \
                 refine_energy_surf(points, None, phase_obj, comps,
-                                   variables, energy_func, max_iterations=5)
+                                   variables, energy_func, max_iterations=mxr)
             try:
                 data_dict['GM'].extend(energies)
                 for statevar in kwargs.keys():
