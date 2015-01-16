@@ -307,8 +307,9 @@ class Model(object):
             for comp in active_comps:
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
+                # -35.8413*x term is there to keep derivative continuous
                 mixing_term = Piecewise((sitefrac * log(sitefrac), \
-                    sitefrac > 1e-16), (0, True))
+                    sitefrac > 1e-12), ((3.0*log(10.0)/(2.5e11))+(sitefrac-1e-12)*(1.0-log(1e-12))+(5e-11)*(sitefrac-1e-12)**2, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term

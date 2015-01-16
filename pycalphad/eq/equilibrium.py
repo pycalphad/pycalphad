@@ -13,10 +13,10 @@ from pycalphad.eq.energy_surf import energy_surf
 from pycalphad.eq.simplex import Simplex
 import pandas as pd
 import numpy as np
-from sympy import Add
 import scipy.spatial
 import scipy.optimize
 from collections import Counter
+import copy
 
 try:
     set
@@ -119,7 +119,7 @@ class Equilibrium(object):
         candidate_simplex = None
         phase_fracs = None
         for equ, simp in zip(hull.equations, hull.simplices):
-            if equ[-2] < 0:
+            if equ[-2] < -1e-6:
                 new_simp = None
                 try:
                     new_simp = Simplex(hull.points[simp, :-1])
@@ -131,7 +131,8 @@ class Equilibrium(object):
                     phase_fracs = new_simp.bary_coords(independent_dof_values)
                     break
         phase_compositions = self.data.iloc[candidate_simplex]
-        independent_indices = check_degenerate_phases(phase_compositions)
+        independent_indices = check_degenerate_phases(phase_compositions, \
+                                                      mindist=0.01)
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
@@ -148,6 +149,8 @@ class Equilibrium(object):
         all_variables = []
         # starting point
         x_0 = []
+        # scaling factor -- set to minimum energy of starting simplex
+        scaling_factor = abs(simplex['GM'].min())
         # a list of tuples for where each phase's variable indices
         # start and end
         index_ranges = []
@@ -175,13 +178,8 @@ class Equilibrium(object):
             all_variables.extend(self._variables[vertex['Phase']])
             # add starting point for variable
             for varname in self._variables[vertex['Phase']]:
-                print('checking '+str(varname))
                 x_0.append(vertex[str(varname)])
-            print(x_0)
             index_ranges.append([start, len(x_0)])
-
-        # Define variable bounds
-        bounds = [(0.0, 1.0) for x in range(len(x_0))]
 
         # Create master objective function
         def obj(input_x):
@@ -190,12 +188,12 @@ class Equilibrium(object):
             for idx, vertex in enumerate(simplex.iterrows()):
                 vertex = vertex[1]
                 cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-                print('Phase: '+vertex['Phase']+' '+str(cur_x))
+                #print('Phase: '+vertex['Phase']+' '+str(cur_x))
                 # phase fraction times value of objective for that phase
                 objective += input_x[index_ranges[idx][0]] * \
                     self._phase_callables[vertex['Phase']](
                         *list(cur_x))
-            return objective
+            return objective / scaling_factor
 
         # Create master gradient function
         def gradient(input_x):
@@ -204,6 +202,7 @@ class Equilibrium(object):
             for idx, vertex in enumerate(simplex.iterrows()):
                 vertex = vertex[1]
                 cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
+                #print('grad cur_x: '+str(cur_x))
                 # phase fraction derivative is just the phase energy
                 gradient[index_ranges[idx][0]] = \
                     self._phase_callables[vertex['Phase']](
@@ -216,8 +215,8 @@ class Equilibrium(object):
                     gradient[index_ranges[idx][0]+1+g_idx] = \
                         input_x[index_ranges[idx][0]] * \
                             grad(*list(cur_x))
-            print('grad: '+str(gradient))
-            return gradient
+            #print('grad: '+str(gradient / scaling_factor))
+            return gradient / scaling_factor
 
         # Generate constraint sequence
         constraints = []
@@ -225,13 +224,14 @@ class Equilibrium(object):
         # phase fraction constraint
         def phasefrac_cons(input_x):
             "Accepts input vector and returns phase fraction constraint."
-            output = sum([input_x[i[0]] for i in index_ranges]) - 1.0
+            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) ** 2
             return output
         def phasefrac_jac(input_x):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
             for idx_range in index_ranges:
-                output_x[idx_range[0]] = 1.0
+                output_x[idx_range[0]] = \
+                    -2.0*sum([input_x[i[0]] for i in index_ranges])
             return output_x
         phasefrac_dict = dict()
         phasefrac_dict['type'] = 'eq'
@@ -240,35 +240,25 @@ class Equilibrium(object):
         constraints.append(phasefrac_dict)
 
         # bounds constraint
-        def nonneg_cons(input_x, idx, flipped):
+        def nonneg_cons(input_x, idx):
             "Accepts input vector and returns non-negativity constraint."
-            if not flipped:
-                print('nonneg_cons: '+str(input_x[idx]*10000.0))
-                return input_x[idx]
-            else:
-                print('one_cons: '+str(input_x[idx]*10000.0))
-                return 1.0 - input_x[idx]
-        def nonneg_jac(input_x, idx, flipped):
+            output = input_x[idx] * 1000
+            #print('nonneg_cons: '+str(output))
+            return output
+
+        def nonneg_jac(input_x, idx):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
-            if not flipped:
-                output_x[idx] = 1.0
-            else:
-                output_x[idx] = -1.0
+            output_x[idx] = 1000.0
             return output_x
+
         for idx in range(len(all_variables)):
             nonneg_dict = dict()
             nonneg_dict['type'] = 'ineq'
             nonneg_dict['fun'] = nonneg_cons
             nonneg_dict['jac'] = nonneg_jac
-            nonneg_dict['args'] = [idx, False]
-            #constraints.append(nonneg_dict)
-            one_dict = dict()
-            one_dict['type'] = 'ineq'
-            one_dict['fun'] = nonneg_cons
-            one_dict['jac'] = nonneg_jac
-            one_dict['args'] = [idx, True]
-            #constraints.append(one_dict)
+            nonneg_dict['args'] = [idx]
+            constraints.append(nonneg_dict)
 
         # Generate all site fraction constraints
         for idx_range in index_ranges:
@@ -277,12 +267,12 @@ class Equilibrium(object):
             cur_idx = idx_range[0]+1
             for dof in dofs:
                 sitefrac_dict = dict()
-                sitefrac_dict['type'] = 'ineq'
+                sitefrac_dict['type'] = 'eq'
                 sitefrac_dict['fun'] = sitefrac_cons
                 sitefrac_dict['jac'] = sitefrac_jac
-                sitefrac_dict['args'] = [[cur_idx, cur_idx+dof-1]]
-                cur_idx += dof-1
-                if dof > 1:
+                sitefrac_dict['args'] = [[cur_idx, cur_idx+dof]]
+                cur_idx += dof
+                if dof > 0:
                     constraints.append(sitefrac_dict)
 
         # All other constraints, e.g., mass balance
@@ -295,10 +285,9 @@ class Equilibrium(object):
             for idx, vertex in enumerate(simplex.iterrows()):
                 vertex = vertex[1]
                 cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-
                 res = self._molefrac_callables[vertex['Phase']][species](*cur_x)
                 output += input_x[index_ranges[idx][0]] * res
-            print('molefrac_cons: '+str(output))
+            #print('molefrac_cons: '+str(output))
             return output
         def molefrac_jac(input_x, species, fix_val, all_variables, phases):
             "Accepts input vector and returns Jacobian vector."
@@ -307,13 +296,13 @@ class Equilibrium(object):
                 vertex = vertex[1]
                 cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
                 output_x[index_ranges[idx][0]] = \
-                    self._molefrac_callables[vertex['Phase']][species](
-                        *list(cur_x))
+                    self._molefrac_callables[vertex['Phase']][species](*cur_x)
                 for g_idx, grad in \
                     enumerate(self._molefrac_jac_callables[vertex['Phase']][species]):
                     output_x[index_ranges[idx][0]+1+g_idx] = \
                         input_x[index_ranges[idx][0]] * \
                             grad(*list(cur_x))
+            #print('molefrac_jac '+str(output_x))
             return output_x
         for condition, value in self.conditions.items():
             if isinstance(condition, v.Composition):
@@ -328,8 +317,15 @@ class Equilibrium(object):
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
-            bounds=bounds, constraints=constraints, tol=1e-10, \
-            options={'iprint':6, 'ftol': 1e-12, 'eps':1e-12})
+            constraints=constraints)
+        # rescale final values back to original
+        res['raw_fun'] = copy.deepcopy(res['fun'])
+        res['raw_jac'] = copy.deepcopy(res['jac'])
+        res['raw_x'] = copy.deepcopy(res['x'])
+        res['fun'] *= scaling_factor
+        res['jac'] *= scaling_factor
+        # force tiny numerical values to be positive
+        res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
         return res
 
     def _build_objective_functions(self, dbf):
@@ -343,25 +339,6 @@ class Equilibrium(object):
             molefrac_dict = dict([(x, molefrac_ast(phase_obj, x)) \
                 for x in self.components if x != 'VA'])
             molefrac_jac_dict = dict()
-            # Replace dependent variables with 1 - sum(other components)
-            new_ast = mod.ast.subs(self.statevars)
-            for idx, dof in enumerate(self._sublattice_dof[phase_name]):
-                dependent_comp = v.SiteFraction(phase_name, idx, \
-                    dbf.phases[phase_name].constituents[idx][dof-1])
-                dep_idx = self._variables[phase_name].index(dependent_comp)
-                dep_value = 1.0 - \
-                    Add(*self._variables[phase_name][dep_idx-dof+1:dep_idx])
-                print('dep_comp: '+str(dependent_comp))
-                print('dep_value: '+str(dep_value))
-                # Delete variable from consideration
-                del self._variables[phase_name][dep_idx]
-                # Make variable substitution
-                new_ast = new_ast.subs({dependent_comp: dep_value})
-                for comp in self.components:
-                    if comp == 'VA':
-                        continue
-                    molefrac_dict[comp] = \
-                        molefrac_dict[comp].subs({dependent_comp: dep_value})
 
             # Generate callables for the mole fractions
             for comp in self.components:
@@ -374,13 +351,12 @@ class Equilibrium(object):
                 molefrac_dict[comp] = make_callable(molefrac_dict[comp], \
                     self._variables[phase_name])
 
-            print('self variables '+phase_name+ ': '+str(self._variables[phase_name]))
             # Build the "fast" representation of energy model
             self._phase_callables[phase_name] = \
-                make_callable(new_ast.subs(self.statevars), \
+                make_callable(mod.ast.subs(self.statevars), \
                 self._variables[phase_name])
             self._gradient_callables[phase_name] = [ \
-                make_callable(new_ast.subs(self.statevars).diff(vx), \
+                make_callable(mod.ast.subs(self.statevars).diff(vx), \
                     self._variables[phase_name], \
                     ) for vx in self._variables[phase_name]]
             self._molefrac_callables[phase_name] = molefrac_dict
