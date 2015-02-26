@@ -11,6 +11,8 @@ from pycalphad.constraints import molefrac_ast
 from pycalphad import Model
 from pycalphad.eq.energy_surf import energy_surf
 from pycalphad.eq.simplex import Simplex
+from pycalphad.eq.eqresult import PhaseResult, SublatticeResult
+from pycalphad.eq.eqresult import EquilibriumResult
 import pandas as pd
 import numpy as np
 import scipy.spatial
@@ -79,14 +81,7 @@ class Equilibrium(object):
         estimates = self.get_starting_simplex()
         print(estimates)
         self.result = self.minimize(estimates[0], estimates[1])
-
-    def __repr__(self):
-        estimate = self.get_starting_simplex()
-        variables = []
-        for name in estimate[0]['Phase'].values:
-            variables.append(name+'_FRAC')
-            variables.extend(self._variables[name])
-        return str(self.result)+'\n'+str(dict(zip(variables, self.result.x)))
+        print(str(self.result))
 
     def get_starting_simplex(self):
         """
@@ -318,6 +313,8 @@ class Equilibrium(object):
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
             constraints=constraints)
+        if not res['success']:
+            return None
         # rescale final values back to original
         res['raw_fun'] = copy.deepcopy(res['fun'])
         res['raw_jac'] = copy.deepcopy(res['jac'])
@@ -326,7 +323,34 @@ class Equilibrium(object):
         res['jac'] *= scaling_factor
         # force tiny numerical values to be positive
         res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
-        return res
+
+        # Build result object
+        eq_res = EquilibriumResult()
+        eq_res.components = self.components
+        eq_res.conditions = self.conditions
+        eq_res.potentials = self.statevars
+        phase_res = PhaseResult()
+        for variable, value in zip(all_variables, res['x']):
+            if isinstance(variable, v.PhaseFraction):
+                # New phase: Append old one if not empty
+                if phase_res.name is not None:
+                    eq_res.phases.append(copy.deepcopy(phase_res))
+                phase_res = PhaseResult()
+                phase_res.name = variable.phase_name
+                phase_res.multiplicity = variable.multiplicity
+                phase_res.volume_fraction = value
+            elif isinstance(variable, v.SiteFraction):
+                # Add sublattices if this variable has a larger index
+                if variable.sublattice_index >= len(phase_res.sublattices):
+                    phase_res.sublattices.extend(SublatticeResult() \
+                        for i in range(variable.sublattice_index - \
+                            len(phase_res.sublattices) + 1))
+                phase_res.sublattices[
+                    variable.sublattice_index
+                    ].site_fractions[variable.species] = value
+        # Add final phase
+        eq_res.phases.append(copy.deepcopy(phase_res))
+        return eq_res
 
     def _build_objective_functions(self, dbf):
         "Construct objective function callables for each phase."
