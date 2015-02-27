@@ -5,7 +5,7 @@ Thermo-Calc TDB format.
 from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
 from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
-from pyparsing import delimitedList
+from pyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Piecewise
 import pycalphad.variables as v
@@ -96,8 +96,7 @@ def _tdb_grammar(): #pylint: disable=R0914
                     cmd_defcmd | \
                     cmd_phase | \
                     cmd_constituent | \
-                    cmd_parameter | \
-                    Empty()
+                    cmd_parameter
     return all_commands
 
 def _process_typedef(targetdb, typechar, line):
@@ -211,13 +210,13 @@ def tdbread(targetdb, lines):
     commands = [k.strip() for k in commands if not k.startswith("$")]
 
     for command in commands:
+        if len(command) == 0:
+            continue
         try:
             tokens = None
             tokens = _tdb_grammar().parseString(command)
-            if len(tokens) == 0:
-                continue
             _TDB_PROCESSOR[tokens[0]](targetdb, *tokens[1:])
-        except:
+        except ParseException:
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
