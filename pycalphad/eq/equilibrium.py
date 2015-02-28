@@ -11,7 +11,6 @@ from pycalphad.constraints import molefrac_ast
 from pycalphad import Model
 from pycalphad.eq.energy_surf import energy_surf
 from pycalphad.eq.simplex import Simplex
-from pycalphad.eq.eqresult import PhaseResult, SublatticeResult
 from pycalphad.eq.eqresult import EquilibriumResult
 import pandas as pd
 import numpy as np
@@ -79,7 +78,7 @@ class Equilibrium(object):
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
         estimates = self.get_starting_simplex()
-        print(estimates)
+        #print(estimates)
         self.result = self.minimize(estimates[0], estimates[1])
         print(str(self.result))
 
@@ -98,13 +97,13 @@ class Equilibrium(object):
             # ignore phase-specific composition conditions
             if cond.phase_name is not None:
                 continue
+            if cond.species == 'VA':
+                continue
             independent_dof.append('X(' + cond.species + ')')
             independent_dof_values.append(value)
-        if len(independent_dof) > 1:
-            independent_dof.pop()
-            independent_dof_values.pop()
 
         independent_dof.append('GM')
+
         # calculate the convex hull for the independent d.o.f
         # TODO: Apply activity conditions here
         hull = scipy.spatial.ConvexHull(
@@ -127,7 +126,7 @@ class Equilibrium(object):
                     break
         phase_compositions = self.data.iloc[candidate_simplex]
         independent_indices = check_degenerate_phases(phase_compositions, \
-                                                      mindist=0.01)
+                                                      mindist=0.1)
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
@@ -325,31 +324,9 @@ class Equilibrium(object):
         res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
 
         # Build result object
-        eq_res = EquilibriumResult()
-        eq_res.components = self.components
-        eq_res.conditions = self.conditions
-        eq_res.potentials = self.statevars
-        phase_res = PhaseResult()
-        for variable, value in zip(all_variables, res['x']):
-            if isinstance(variable, v.PhaseFraction):
-                # New phase: Append old one if not empty
-                if phase_res.name is not None:
-                    eq_res.phases.append(copy.deepcopy(phase_res))
-                phase_res = PhaseResult()
-                phase_res.name = variable.phase_name
-                phase_res.multiplicity = variable.multiplicity
-                phase_res.volume_fraction = value
-            elif isinstance(variable, v.SiteFraction):
-                # Add sublattices if this variable has a larger index
-                if variable.sublattice_index >= len(phase_res.sublattices):
-                    phase_res.sublattices.extend(SublatticeResult() \
-                        for i in range(variable.sublattice_index - \
-                            len(phase_res.sublattices) + 1))
-                phase_res.sublattices[
-                    variable.sublattice_index
-                    ].site_fractions[variable.species] = value
-        # Add final phase
-        eq_res.phases.append(copy.deepcopy(phase_res))
+        eq_res = EquilibriumResult(self._phases, self.components,
+                                   self.statevars, res['fun'],
+                                   zip(all_variables, res['x']))
         return eq_res
 
     def _build_objective_functions(self, dbf):
