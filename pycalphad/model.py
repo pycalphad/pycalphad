@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Abs, Add, Mul, Piecewise, Pow, S
+from sympy import log, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
 try:
@@ -84,6 +84,23 @@ class Model(object):
                 result = False
                 break
         return result
+
+    def _site_ratio_normalization(self, phase):
+        """
+        Calculates the normalization factor based on the number of sites
+        in each sublattice.
+        """
+        site_ratio_normalization = S.Zero
+        # Normalize by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
+        for idx, sublattice in enumerate(phase.constituents):
+            if ('VA' in set(sublattice)) and ('VA' in self.components):
+                site_ratio_normalization += phase.sublattices[idx] * \
+                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
+            else:
+                site_ratio_normalization += phase.sublattices[idx]
+        return site_ratio_normalization
+
     @staticmethod
     def _Muggianu_correction_dict(comps): #pylint: disable=C0103
         """
@@ -239,16 +256,7 @@ class Model(object):
         in symbolic form.
         """
         pure_energy_term = S.Zero
-        # Normalize site ratios
-        site_ratio_normalization = 0
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        for idx, sublattice in enumerate(phase.constituents):
-            if 'VA' in set(sublattice):
-                site_ratio_normalization += phase.sublattices[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += phase.sublattices[idx]
+        site_ratio_normalization = self._site_ratio_normalization(phase)
 
         pure_param_query = (
             (where('phase_name') == phase.name) & \
@@ -285,18 +293,8 @@ class Model(object):
         Returns the ideal mixing energy in symbolic form.
         """
         # Normalize site ratios
-        site_ratio_normalization = 0
+        site_ratio_normalization = self._site_ratio_normalization(phase)
         site_ratios = phase.sublattices
-        # Normalize site ratios
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        for idx, sublattice in enumerate(phase.constituents):
-            if 'VA' in set(sublattice):
-                site_ratio_normalization += site_ratios[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += site_ratios[idx]
-
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
@@ -309,7 +307,9 @@ class Model(object):
                     v.SiteFraction(phase.name, subl_index, comp)
                 # -35.8413*x term is there to keep derivative continuous
                 mixing_term = Piecewise((sitefrac * log(sitefrac), \
-                    sitefrac > 1e-12), ((3.0*log(10.0)/(2.5e11))+(sitefrac-1e-12)*(1.0-log(1e-12))+(5e-11)*(sitefrac-1e-12)**2, True))
+                    sitefrac > 1e-12), ((3.0*log(10.0)/(2.5e11))+ \
+                    (sitefrac-1e-12)*(1.0-log(1e-12))+(5e-11) * \
+                    (sitefrac-1e-12)**2, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
@@ -323,18 +323,8 @@ class Model(object):
         """
         excess_mixing_term = S.Zero
         # Normalize site ratios
-        site_ratio_normalization = 0
+        site_ratio_normalization = self._site_ratio_normalization(phase)
         site_ratios = phase.sublattices
-        # Normalize site ratios
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        for idx, sublattice in enumerate(phase.constituents):
-            if 'VA' in set(sublattice):
-                site_ratio_normalization += site_ratios[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += site_ratios[idx]
-
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
 
         interaction_param_query = (
@@ -435,16 +425,8 @@ class Model(object):
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
-        # Normalize site ratios
-        site_ratio_normalization = 0
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        for idx, sublattice in enumerate(phase.constituents):
-            if 'VA' in set(sublattice):
-                site_ratio_normalization += phase.sublattices[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += phase.sublattices[idx]
+
+        site_ratio_normalization = self._site_ratio_normalization(phase)
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
