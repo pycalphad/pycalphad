@@ -9,6 +9,7 @@ from pyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Piecewise
 import pycalphad.variables as v
+from pycalphad.io.tdb_keywords import expand_keyword
 
 def _make_piecewise_ast(toks):
     """
@@ -16,24 +17,36 @@ def _make_piecewise_ast(toks):
     """
     cur_tok = 0
     expr_cond_pairs = []
-    variable_fixes = {
-        'T': v.T,
-        'P': v.P
-    }
-    # sympify doesn't recognize LN as ln()
-    while cur_tok < len(toks)-1:
-        low_temp = toks[cur_tok]
-        high_temp = toks[cur_tok+2]
-        expr_string = toks[cur_tok+1].replace('#', '')
+    def sympify_string(math_string):
+        "Convert string into mathematical expression."
+        # drop pound symbols ('#') since they denote function names
+        # we detect those automatically
+        expr_string = math_string.replace('#', '')
+        # sympify doesn't recognize LN as ln()
         expr_string = \
             re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
         expr_string = \
             re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                    flags=re.IGNORECASE)
+        # Convert raw variables into StateVariable objects
+        variable_fixes = {
+            'T': v.T,
+            'P': v.P
+        }
         # TODO: sympify uses eval. Don't use it on unsanitized input.
+        return sympify(expr_string).subs(variable_fixes)
+
+    # Only one token: Not a piecewise function; just return the AST
+    if len(toks) == 1:
+        return sympify_string(toks[0])
+
+    while cur_tok < len(toks)-1:
+        low_temp = toks[cur_tok]
+        high_temp = toks[cur_tok+2]
+
         expr_cond_pairs.append(
             (
-                sympify(expr_string).subs(variable_fixes),
+                sympify_string(toks[cur_tok+1]),
                 And(low_temp <= v.T, v.T < high_temp)
             )
         )
@@ -41,6 +54,29 @@ def _make_piecewise_ast(toks):
     # not sure about having zero as implicit default value
     #expr_cond_pairs.append((0, True))
     return Piecewise(*expr_cond_pairs) #pylint: disable=W0142
+
+class TCCommand(CaselessKeyword): #pylint: disable=R0903
+    """
+    Parser element for dealing with Thermo-Calc command abbreviations.
+    """
+    def parseImpl(self, instring, loc, doActions=True):
+        # Find the end of the keyword by searching for a space or endline
+        start = loc
+        loc = instring.find(' ', start)
+        if loc == -1:
+            loc = len(instring)
+        try:
+            res = expand_keyword([self.match], instring[start:loc])
+            if len(res) > 1:
+                self.errmsg = '{0!r} is ambiguous: matches {1}' \
+                    .format(instring[start:loc], res)
+                raise ParseException(instring, loc, self.errmsg, self)
+            # res[0] is the unambiguous expanded keyword
+            # in principle, res[0] == self.match
+            return loc, res[0]
+        except ValueError:
+            pass
+        raise ParseException(instring, loc, self.errmsg, self)
 
 def _tdb_grammar(): #pylint: disable=R0914
     """
@@ -61,32 +97,33 @@ def _tdb_grammar(): #pylint: disable=R0914
                   CaselessKeyword('TC') | CaselessKeyword('BMAGN')
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
-    func_expr = float_number + OneOrMore(SkipTo(';') \
-        + Suppress(';') + float_number + Suppress(Word('YNyn', exact=1)))
+    func_expr = Optional(float_number) + OneOrMore(SkipTo(';') \
+        + Suppress(';') + Optional(float_number) + \
+        Suppress(Word('YNyn', exact=1)))
     # ELEMENT
-    cmd_element = CaselessKeyword('ELEMENT') + Word(alphas+'/-', min=1, max=2)
+    cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2)
     # TYPE_DEFINITION
-    cmd_typedef = CaselessKeyword('TYPE_DEFINITION') + \
+    cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
     # FUNCTION
-    cmd_function = CaselessKeyword('FUNCTION') + symbol_name + \
+    cmd_function = TCCommand('FUNCTION') + symbol_name + \
         func_expr.setParseAction(_make_piecewise_ast)
     # DEFINE_SYSTEM_DEFAULT
-    cmd_defsysdef = CaselessKeyword('DEFINE_SYSTEM_DEFAULT')
+    cmd_defsysdef = TCCommand('DEFINE_SYSTEM_DEFAULT')
     # DEFAULT_COMMAND
-    cmd_defcmd = CaselessKeyword('DEFAULT_COMMAND')
+    cmd_defcmd = TCCommand('DEFAULT_COMMAND')
     # PHASE
-    cmd_phase = CaselessKeyword('PHASE') + symbol_name + \
+    cmd_phase = TCCommand('PHASE') + symbol_name + \
         Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
         Suppress(int_number) + Group(OneOrMore(float_number)) + LineEnd()
     # CONSTITUENT
-    cmd_constituent = CaselessKeyword('CONSTITUENT') + symbol_name + \
+    cmd_constituent = TCCommand('CONSTITUENT') + symbol_name + \
         Suppress(White()) + Suppress(':') + constituent_array + \
         Suppress(':') + LineEnd()
     # PARAMETER
-    cmd_parameter = CaselessKeyword('PARAMETER') + param_types + \
+    cmd_parameter = TCCommand('PARAMETER') + param_types + \
         Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
-        Suppress(';') + int_number + Suppress(')') + \
+        Optional(Suppress(';') + int_number, default=0) + Suppress(')') + \
         func_expr.setParseAction(_make_piecewise_ast)
     # Now combine the grammar together
     all_commands = cmd_element | \
@@ -270,14 +307,14 @@ $ HCP is added in this file since it is included in 1992Lee. The sigma phase
 $ is modeld with 8-4-18 type taken from [1987And]. 
 $                                                                 T.A.
 $ ------------------------------------------------------------------------------
-Element /-          ELECTRON_GAS         0         0         0  !
+Elem /-          ELECTRON_GAS         0         0         0  !
 Element VA                VACUUM         0         0         0  !
 ELEMENT CR                BCC_A2    51.996      4050    23.560  !
 ELEMENT FE                BCC_A2    55.847      4489    27.28   !
 Element NI                FCC_A1    58.69       4787    29.7955 !
 $--------1---------2---------3---------4---------5---------6---------7---------8 
 $
-FUNCTION GLIQCR  300 +15483.015+146.059775*T-26.908*T*LN(T)
+FUNCT GLIQCR  300 +15483.015+146.059775*T-26.908*T*LN(T)
    +.00189435*T**2-1.47721E-06*T**3+139250*T**(-1)+2.37615E-21*T**7;  2180 Y
    -16459.984+335.616316*T-50*T*LN(T);                                6000 N !
 FUNCTION GBCCCR  300 -8856.94+157.48*T
@@ -288,7 +325,7 @@ FUNCTION GFCCCR  300 -1572.94+157.643*T
   -27585.344+344.343*T-50*T*LN(T)-2.885261E+32*T**(-9);               6000 N !
 Function GHCPCR  300  +4438+GBCCCR;                                   6000 N !
 $
-FUNCTION GBCCFE  300  +1225.7+124.134*T-23.5143*T*LN(T)
+FUN GBCCFE  300  +1225.7+124.134*T-23.5143*T*LN(T)
      -.00439752*T**2-5.8927E-08*T**3+77359*T**(-1);                    1811 Y
       -25383.581+299.31255*T-46*T*LN(T)+2.29603E+31*T**(-9);           6000 N !
 FUNCTION GFCCFE 300 -1462.4+8.282*T-1.15*T*LN(T)+6.4E-4*T**2+GBCCFE;   1811 Y
@@ -313,10 +350,10 @@ FUNCTION UN_ASS     300  +0;                                          6000 N !
 $
 $ ------------------------------------------------------------------------------
 TYPE_DEFINITION % SEQ * !
-DEFINE_SYSTEM_DEFAULT ELEMENT 3 !
+DEF_SYS_DEF ELEMENT 3 !
 DEFAULT_COMMAND DEFINE_SYS_ELEMENT VA /- !
 $
-TYPE_DEFINITION ' GES A_P_D BCC_A2 MAGNETIC  -1    0.4  !
+TYPE_DEF ' GES A_P_D BCC_A2 MAGNETIC  -1    0.4  !
 Type_Definition ( GES A_P_D FCC_A1 Magnetic  -3    0.28 !
 Type_Definition ) GES A_P_D HCP_A3 Magnetic  -3    0.28 !
 $
@@ -324,8 +361,8 @@ $ ------------------------------------------------------------------------------
  Phase LIQUID % 1 1 !
  Constituent LIQUID : CR,FE,NI : !
 
- PARAMETER G(LIQUID,CR;0)     300  +GLIQCR;               6000 N !
- Parameter G(LIQUID,FE;0)     300  +GLIQFE;               6000 N !
+ PARAM G(LIQUID,CR;0)     300  +GLIQCR;               6000 N !
+ Para G(LIQUID,FE;0)     300  +GLIQFE;               6000 N !
  Parameter G(LIQUID,NI;0)     300  +GLIQNI;               6000 N !
 $
  PARAMETER G(LIQUID,CR,FE;0)  300  -17737+7.996546*T;     6000 N ! $1993Lee  

@@ -86,37 +86,36 @@ def expand_keyword(possible, candidate):
 
     Parameters
     ----------
-    possible : list
+    possible : list of str
         Possible keywords for 'candidate' to be matched against.
     candidate : str
         Abbreviated keyword to expand.
 
     Returns
     -------
-    str of expanded keyword
+    list of str of matching expanded keywords
 
     Examples
     --------
     None yet.
     """
     pattern = '^'
-    pattern += '[^_ ]*_'.join(candidate.upper().replace('-', '_').split('_'))
-    pattern += '[^ ]*$'
+    pattern += r'[^_\s]*_'.join(re.escape(candidate.upper().replace('-', '_'))\
+        .split('_'))
+    pattern += r'[^\s]*$'
     matches = [re.match(pattern, pxd) for pxd in possible]
     #pylint: disable=W0141
     matches = list(filter(partial(is_not, None), matches))
     matches = [m.string for m in matches]
     if len(matches) == 0:
         raise ValueError('{0} does not match {1}'.format(candidate, possible))
-    if len(matches) > 1:
-        raise ValueError('{0} is ambiguous; matches {1}'.format(
-            candidate, matches))
 
-    return matches[0]
+    return matches
 
 if __name__ == '__main__':
     TEST_LIST = [
         'PARAMETER',
+        'ELEMENT',
         'CALCULATE_EQUILIBRIUM',
         'CALCULATE_ALL_EQUILIBRIA',
         'LIST_EQUILIBRIUM',
@@ -135,6 +134,8 @@ if __name__ == '__main__':
         'SET_OUTPUT_LEVEL'
     ]
     TEST_INPUT = [
+        'Par',
+        'Elem',
         'PAR',
         'C-E',
         'C-A',

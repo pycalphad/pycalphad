@@ -9,14 +9,14 @@ from pycalphad.eq.utils import make_callable
 import pycalphad.variables as v
 
 TDB_TEST_STRING = """
-ELEMENT /-          ELECTRON_GAS         0         0         0 !
-ELEMENT VA                VACUUM         0         0         0 !
+Elem /-          ELECTRON_GAS         0         0         0 !
+ELEM VA                VACUUM         0         0         0 !
 ELEMENT AL                FCC_A1    26.982      4540      28.3 !
 ELEMENT CR                BCC_A2    51.996      4050    23.543 !
 ELEMENT NI                FCC_A1     58.69      4787    29.796 !
 
 $------------------------------------------------------------------------------
- FUNCTION GHSERAL  298.15    -7976.15+137.093038*T-24.3671976*T*LN(T)
+ FUNCT GHSERAL  298.15    -7976.15+137.093038*T-24.3671976*T*LN(T)
     -1.884662E-3*T**2-0.877664E-6*T**3+74092*T**(-1);                     700 Y
     -11276.24+223.048446*T-38.5844296*T*LN(T)+18.531982E-3*T**2
     -5.764227E-6*T**3+74092*T**(-1);                                   933.47 Y
@@ -99,10 +99,10 @@ $ PARAMETERS FOR LIQUID PHASE
 $------------------------------------------------------------------------------
  PHASE LIQUID % 1 1 !
    CONSTITUENT LIQUID :AL,CR,NI: !
-  PARAMETER G(LIQUID,AL;0)          298.15  +GALLIQ;            6000 N !
-  PARAMETER G(LIQUID,CR;0)          298.15  +GCRLIQ;            6000 N !
-  PARAMETER G(LIQUID,NI;0)          298.15  +GNILIQ;            6000 N !
-  PARAMETER G(LIQUID,AL,CR;0)       298.15  -29000;             6000 N !
+  PARA G(LIQUID,AL)          +GALLIQ;  N !
+  Parameter G(LIQUID,CR;0)          298.15  +GCRLIQ;            6000 N !
+  PARAM G(LIQUID,NI;0)          298.15  +GNILIQ;            6000 N !
+  PAR G(LIQUID,AL,CR;0)       298.15  -29000;             6000 N !
   PARAMETER G(LIQUID,AL,CR;1)       298.15  -11000;             6000 N ! 
   PARAMETER G(LIQUID,AL,NI;0)       298.15  -207109+41.315*T;   6000 N ! 
   PARAMETER G(LIQUID,AL,NI;1)       298.15  -10186+5.871*T;     6000 N ! 
@@ -121,7 +121,7 @@ $------------------------------------------------------------------------------
 
  PHASE BCC_A2 %& 1 1 !
    CONSTITUENT BCC_A2 :AL,CR,NI,VA: !
-  PARAMETER G(BCC_A2,AL;0)        298.15  +GALBCC;              6000 N !
+  Para G(BCC_A2,AL)  +GALBCC; N !
   PARAMETER G(BCC_A2,CR;0)        298.15  +GHSERCR;             6000 N !
   PARAMETER G(BCC_A2,NI;0)        298.15  +GNIBCC;              6000 N !
   PARAMETER G(BCC_A2,VA;0)        298.15  +300;                 6000 N ! 
