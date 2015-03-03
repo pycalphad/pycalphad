@@ -18,6 +18,6 @@ setup(
     license='MIT',
     long_description=read('README.md'),
     url='https://github.com/richardotis/pycalphad',
-    install_requires=['pandas', 'sympy', 'pyparsing', 'tinydb', 'scipy', 'numpy'],
+    install_requires=['matplotlib', 'pandas', 'sympy', 'pyparsing', 'tinydb', 'scipy', 'numpy'],
     classifiers=['Development Status :: 3 - Alpha']
 )
