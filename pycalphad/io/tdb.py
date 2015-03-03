@@ -2,7 +2,7 @@
 Thermo-Calc TDB format.
 """
 
-from pyparsing import CaselessKeyword, CharsNotIn, Group, Empty
+from pyparsing import CaselessKeyword, CharsNotIn, Group
 from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
