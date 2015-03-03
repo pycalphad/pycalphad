@@ -353,11 +353,12 @@ class Equilibrium(object):
                     self._variables[phase_name])
 
             # Build the "fast" representation of energy model
+            subbed_ast = mod.ast.subs(self.statevars)
             self._phase_callables[phase_name] = \
-                make_callable(mod.ast.subs(self.statevars), \
+                make_callable(subbed_ast, \
                 self._variables[phase_name])
             self._gradient_callables[phase_name] = [ \
-                make_callable(mod.ast.subs(self.statevars).diff(vx), \
+                make_callable(subbed_ast.diff(vx), \
                     self._variables[phase_name], \
                     ) for vx in self._variables[phase_name]]
             self._molefrac_callables[phase_name] = molefrac_dict
