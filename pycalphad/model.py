@@ -170,7 +170,7 @@ class Model(object):
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
         """
-        rk_term = S.Zero
+        rk_terms = []
         param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_type') == param_type) & \
@@ -250,9 +250,8 @@ class Model(object):
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True
                     )
-            rk_term += mixing_term * \
-                param['parameter'].subs(symbols)
-        return rk_term
+            rk_terms.append(mixing_term * param['parameter'].subs(symbols))
+        return Add(*rk_terms)
     def reference_energy(self, phase, symbols, param_search):
         """
         Returns the weighted average of the endmember energies
@@ -324,7 +323,7 @@ class Model(object):
         Replace y_i -> y_i + (1 - sum(y involved in parameter)) / m,
         where m is the arity of the interaction parameter
         """
-        excess_mixing_term = S.Zero
+        excess_mixing_terms = []
         # Normalize site ratios
         site_ratio_normalization = self._site_ratio_normalization(phase)
         site_ratios = phase.sublattices
@@ -416,9 +415,9 @@ class Model(object):
                 if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
-            excess_mixing_term += mixing_term * \
-                param['parameter'].subs(symbols) / site_ratio_normalization
-        return excess_mixing_term
+            excess_mixing_terms.append(mixing_term * \
+                param['parameter'].subs(symbols))
+        return Add(*excess_mixing_terms) / site_ratio_normalization
     def magnetic_energy(self, phase, symbols, param_search):
         #pylint: disable=C0103, R0914
         """
