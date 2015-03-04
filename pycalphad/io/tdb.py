@@ -112,6 +112,8 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_defsysdef = TCCommand('DEFINE_SYSTEM_DEFAULT')
     # DEFAULT_COMMAND
     cmd_defcmd = TCCommand('DEFAULT_COMMAND')
+    # LIST_OF_REFERENCES
+    cmd_lor = TCCommand('LIST_OF_REFERENCES')
     # PHASE
     cmd_phase = TCCommand('PHASE') + symbol_name + \
         Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
@@ -131,6 +133,7 @@ def _tdb_grammar(): #pylint: disable=R0914
                     cmd_function | \
                     cmd_defsysdef | \
                     cmd_defcmd | \
+                    cmd_lor | \
                     cmd_phase | \
                     cmd_constituent | \
                     cmd_parameter
@@ -213,6 +216,7 @@ _TDB_PROCESSOR = {
     'FUNCTION': lambda db, name, sym: db.symbols.__setitem__(name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
+    'LIST_OF_REFERENCES': _unimplemented,
     'PHASE': _process_phase,
     'CONSTITUENT': \
         lambda db, name, c: db.add_phase_constituents(

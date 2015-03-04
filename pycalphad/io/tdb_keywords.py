@@ -28,7 +28,7 @@ TDB_KEYWORDS = sorted([
     'TABLE',
     'ASSESSED_SYSTEMS',
     'REFERENCE_FILE',
-    'LIST_OF_REFERENCE',
+    'LIST_OF_REFERENCES',
     'ADD_REFERENCE',
     'CASE',
     'ENDCASE',
