@@ -128,6 +128,7 @@ class Model(object):
         for comp in comps:
             return_dict[comp] = comp + correction_term
         return return_dict
+
     def build_phase(self, dbe, phase_name, symbols, param_search):
         """
         Apply phase's model hints to build a master SymPy object.
@@ -181,6 +182,7 @@ class Model(object):
             # iterate over every sublattice
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
+                comp_symbols = None
                 # convert strings to symbols
                 if comps[0] == '*':
                     # Handle wildcards in constituent array
@@ -242,10 +244,11 @@ class Model(object):
                             order_two['parameter_order'] = 2
                             # Add these parameters to our iteration.
                             params.extend((order_one, order_two))
-                    mixing_term *= comp_symbols[param['parameter_order']]
+                    # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term = mixing_term.subs(
-                        self._Muggianu_correction_dict(comp_symbols)
+                    mixing_term *= comp_symbols[param['parameter_order']].subs(
+                        self._Muggianu_correction_dict(comp_symbols),
+                        simultaneous=True
                     )
             rk_term += mixing_term * \
                 param['parameter'].subs(symbols)
@@ -343,6 +346,7 @@ class Model(object):
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
                 # convert strings to symbols
+                comp_symbols = None
                 if comps[0] == '*':
                     # Handle wildcards in constituent array
                     comp_symbols = \
@@ -403,10 +407,11 @@ class Model(object):
                             order_two['parameter_order'] = 2
                             # Add these parameters to our iteration.
                             interaction_params.extend((order_one, order_two))
-                    mixing_term *= comp_symbols[param['parameter_order']]
+                    # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term = mixing_term.subs(
-                        self._Muggianu_correction_dict(comp_symbols)
+                    mixing_term *= comp_symbols[param['parameter_order']].subs(
+                        self._Muggianu_correction_dict(comp_symbols),
+                        simultaneous=True
                     )
                 if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
