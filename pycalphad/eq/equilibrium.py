@@ -6,6 +6,7 @@ calculated phase equilibria.
 import pycalphad.variables as v
 from pycalphad.eq.utils import make_callable, generate_dof
 from pycalphad.eq.utils import check_degenerate_phases
+from pycalphad.eq.utils import unpack_kwarg
 from pycalphad.constraints import sitefrac_cons, sitefrac_jac
 from pycalphad.constraints import molefrac_ast
 from pycalphad import Model
@@ -71,9 +72,19 @@ class Equilibrium(object):
             except KeyError:
                 pass
 
-        self._build_objective_functions(dbf)
+        # Construct models for each phase; prioritize user models
+        self._models = unpack_kwarg(kwargs.pop('model', Model), \
+            default_arg=Model)
+        for name in phases:
+            mod = self._models[name]
+            if isinstance(mod, type):
+                # Initialize the model
+                self._models[name] = mod(dbf, self.components, name)
 
-        self.data = energy_surf(dbf, comps, phases, **kwargs)
+        self._build_objective_functions()
+
+        self.data = energy_surf(dbf, comps, phases, model=self._models, \
+            **kwargs)
 
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
@@ -91,7 +102,7 @@ class Equilibrium(object):
         phase_compositions, phase_fracs = lower_convex_hull(self.data,
                                                             self.components,
                                                             self.conditions)
-        print(phase_compositions)
+        print(self.data.iloc[phase_compositions])
         independent_indices = \
             check_degenerate_phases(self.data.iloc[phase_compositions],
                                     mindist=0.1)
@@ -114,7 +125,7 @@ class Equilibrium(object):
         # scaling factor -- set to minimum energy of starting simplex
         # Scaling the objective to be of order '10' seems to result in
         # sufficient precision (at least 5 significant figures).
-        scaling_factor = abs(simplex['GM'].min()) / 10
+        scaling_factor = abs(simplex['GM'].min())
         # a list of tuples for where each phase's variable indices
         # start and end
         index_ranges = []
@@ -188,14 +199,14 @@ class Equilibrium(object):
         # phase fraction constraint
         def phasefrac_cons(input_x):
             "Accepts input vector and returns phase fraction constraint."
-            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) #** 2
+            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) ** 2
             return output
         def phasefrac_jac(input_x):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
             for idx_range in index_ranges:
-                output_x[idx_range[0]] = -1.0#\
-                #-2.0*sum([input_x[i[0]] for i in index_ranges])
+                output_x[idx_range[0]] = -1.0 \
+                    -2.0*sum([input_x[i[0]] for i in index_ranges])
             return output_x
         phasefrac_dict = dict()
         phasefrac_dict['type'] = 'eq'
@@ -300,11 +311,11 @@ class Equilibrium(object):
                                    zip(all_variables, res['x']))
         return eq_res
 
-    def _build_objective_functions(self, dbf):
+    def _build_objective_functions(self):
         "Construct objective function callables for each phase."
         for phase_name, phase_obj in self._phases.items():
-            # Build the symbolic representation of the energy
-            mod = Model(dbf, self.components, phase_name)
+            # Get the symbolic representation of the energy
+            mod = self._models[phase_name]
             # Construct an ordered list of the variables
             self._variables[phase_name], self._sublattice_dof[phase_name] = \
                 generate_dof(phase_obj, self.components)
