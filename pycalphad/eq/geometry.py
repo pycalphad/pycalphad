@@ -32,6 +32,7 @@ def lower_convex_hull(data, comps, conditions):
     None yet.
     """
     # determine column indices for degrees of freedom
+    comps = sorted(list(comps))
     dof = ['X({0})'.format(c) for c in comps if c != 'VA']
     dof_values = []
     for cond, value in conditions.items():
@@ -147,4 +148,4 @@ def lower_convex_hull(data, comps, conditions):
     print('Iterations exceeded')
     print('Positive driving force still exists for these points')
     print(np.where(driving_forces > 1e-4)[0])
-    return None
+    return None, None
