@@ -4,9 +4,7 @@ equilibrium calculation.
 """
 
 import pycalphad.variables as v
-from pycalphad.eq.simplex import Simplex
 import numpy as np
-import itertools
 
 def lower_convex_hull(data, comps, conditions):
     """
@@ -55,82 +53,98 @@ def lower_convex_hull(data, comps, conditions):
 
     # Build a fictitious hyperplane which has an energy greater than the max
     # energy in the system
-    # This guarantees our starting point is feasible but
-    # also guarantees it won't be part of the solution
+    # This guarantees our starting point is feasible but also guarantees
+    # it won't be part of the solution
     energy_ceiling = np.amax(dat[:, -1]) + 1
     start_matrix = np.empty([len(dof)-1, len(dof)])
     start_matrix[:, :-1] = np.eye(len(dof)-1)
     start_matrix[:, -1] = energy_ceiling # set energy
     dat = np.concatenate([start_matrix, dat])
 
-    max_iterations = 1000
+    max_iterations = 100
     # Need to choose a feasible starting point
     # initialize simplex as first n points of fictitious hyperplane
-    candidate_simplex = list(range(len(dof)-1))
+    candidate_simplex = np.array(range(len(dof)-1), dtype=np.int)
     # Calculate chemical potentials
     candidate_potentials = np.linalg.solve(dat[candidate_simplex, :-1],
                                            dat[candidate_simplex, -1])
 
     # Calculate driving forces for reducing our candidate potentials
-    driving_forces = dat[:, -1] - np.dot(dat[:, :-1], candidate_potentials)
-    new_points = np.where(driving_forces < 1e-4)[0]
-    # Don't test points in the candidate simplex
-    new_points = np.delete(new_points, candidate_simplex)
-    print(new_points)
+    driving_forces = np.dot(dat[:, :-1], candidate_potentials) - dat[:, -1]
+    # Mask points with negative (or nearly zero) driving force
+    point_mask = driving_forces < 1e-4
+    #print(point_mask)
+    #print(np.array(range(dat.shape[0]), dtype=np.int)[~point_mask])
     candidate_energy = np.dot(candidate_potentials, dof_values)
+    fractions = np.empty(len(dof_values))
     iteration = 0
     found_solution = False
 
     while (found_solution == False) and (iteration < max_iterations):
         iteration += 1
-        for new_point in new_points.copy():
+        for new_point in np.array(range(dat.shape[0]), dtype=np.int)[~point_mask]:
             found_point = False
             # Need to successively replace columns with the new point
             # The goal is to find positive phase fraction values
-            fractions = np.empty(len(dof_values))
             new_simplex = np.empty(dat.shape[1] - 1, dtype=np.int)
             for col in range(dat.shape[1] - 1):
-                print(candidate_simplex)
-                new_simplex[:] = candidate_simplex # deep copy
+                #print(candidate_simplex)
+                new_simplex[:] = candidate_simplex # [:] forces copy
                 new_simplex[col] = new_point
-                print(new_simplex)
-                test_matrix = dat[new_simplex, :-1]
-                fractions[:-1] = np.linalg.solve(test_matrix[:-1, :-1] - \
-                    test_matrix[-1, :-1], dof_values[:-1] - \
-                    test_matrix[-1, :-1])
-                fractions[-1] = 1 - sum(fractions[:-1])
-                print(fractions)
+                #print(new_simplex)
+                fractions = np.linalg.solve(dat[new_simplex, :-1].T, dof_values)
+                #print(fractions)
                 if np.all(fractions > -1e-8):
                     # Positive phase fractions
                     # Do I reduce the energy with this solution?
                     # Recalculate chemical potentials and energy
+                    #print('new matrix: {0}'.format(dat[new_simplex, :-1]))
+                    #print('new energies: {0}'.format(dat[new_simplex, -1]))
                     new_potentials = np.linalg.solve(dat[new_simplex, :-1],
                                                      dat[new_simplex, -1])
+                    #print('new_potentials: {0}'.format(new_potentials))
                     new_energy = np.dot(new_potentials, dof_values)
                     if new_energy < candidate_energy:
-                        print('lol')
+                        #print('New simplex {2} reduces energy from {0} to {1}' \
+                        #    .format(candidate_energy, new_energy, new_simplex))
+                        # [:] notation forces a copy
                         candidate_simplex[:] = new_simplex
                         candidate_potentials[:] = new_potentials
                         candidate_energy = new_energy
-                        # Recalculate driving forces
-                        driving_forces[:] = dat[:, -1] - \
-                            np.dot(dat[:, :-1], candidate_potentials)
-                        new_points = np.where(driving_forces < 1e-4)[0]
-                        # Don't test points in the candidate simplex
-                        new_points = np.delete(new_points, candidate_simplex)
+                        # Recalculate driving forces with new potentials
+                        driving_forces[:] = np.dot(dat[:, :-1], \
+                            candidate_potentials) - dat[:, -1]
+                        point_mask = driving_forces < 1e-4
+                        # Don't test points on the fictitious hyperplane
+                        point_mask[list(range(len(dof)-1))] = True
                         found_point = True
                         break
+                    #else:
+                    #    print('New simplex {2} increases energy from {0} to {1}' \
+                    #        .format(candidate_energy, new_energy, new_simplex))
             if found_point:
+                #print('Found feasible simplex: moving to next iteration')
                 break
+            #else:
+            #    print('{0} is not feasible'.format(new_point))
+            #    print('Driving force: {0}'.format(driving_forces[new_point]))
         # If there is no positive driving force, we have the solution
-        if np.any(new_points) == False:
+        #print('Checking point mask')
+        #print(point_mask)
+        if np.all(point_mask) == True:
             found_solution = True
             print('Solution:')
             print(dat[candidate_simplex])
-            print(candidate_potentials)
+            #print(candidate_potentials)
             print(candidate_energy)
-            return candidate_simplex
+            #print(fractions)
+            # Fix candidate simplex indices to remove fictitious points
+            candidate_simplex = candidate_simplex - (len(dof)-1)
+            check = candidate_simplex < 0
+            if not np.any(check):
+                return candidate_simplex, fractions
 
     print('Iterations exceeded')
-    print(new_points)
+    print('Positive driving force still exists for these points')
+    print(np.where(driving_forces > 1e-4)[0])
     return None
