@@ -10,7 +10,7 @@ from pycalphad.constraints import sitefrac_cons, sitefrac_jac
 from pycalphad.constraints import molefrac_ast
 from pycalphad import Model
 from pycalphad.eq.energy_surf import energy_surf
-from pycalphad.eq.simplex import Simplex
+from pycalphad.eq.geometry import lower_convex_hull
 from pycalphad.eq.eqresult import EquilibriumResult
 import pandas as pd
 import numpy as np
@@ -78,7 +78,7 @@ class Equilibrium(object):
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
         estimates = self.get_starting_simplex()
-        #print(estimates)
+        print(estimates)
         self.result = self.minimize(estimates[0], estimates[1])
         print(str(self.result))
 
@@ -88,49 +88,17 @@ class Equilibrium(object):
         Returns iterable: first is a DataFrame of the phase compositions
                           second is an estimate of the phase fractions
         """
-        # determine column indices for independent degrees of freedom
-        independent_dof = []
-        independent_dof_values = []
-        for cond, value in self.conditions.items():
-            if not isinstance(cond, v.Composition):
-                continue
-            # ignore phase-specific composition conditions
-            if cond.phase_name is not None:
-                continue
-            if cond.species == 'VA':
-                continue
-            independent_dof.append('X(' + cond.species + ')')
-            independent_dof_values.append(value)
-
-        independent_dof.append('GM')
-
-        # calculate the convex hull for the independent d.o.f
-        # TODO: Apply activity conditions here
-        hull = scipy.spatial.ConvexHull(
-            self.data[independent_dof].values, qhull_options='QJ'
-        )
-        # locate the simplex closest to our desired condition
-        candidate_simplex = None
-        phase_fracs = None
-        for equ, simp in zip(hull.equations, hull.simplices):
-            if equ[-2] < -1e-6:
-                new_simp = None
-                try:
-                    new_simp = Simplex(hull.points[simp, :-1])
-                except np.linalg.LinAlgError:
-                    print('skipping '+str(simp))
-                    continue
-                if new_simp.in_simplex(independent_dof_values):
-                    candidate_simplex = simp
-                    phase_fracs = new_simp.bary_coords(independent_dof_values)
-                    break
-        phase_compositions = self.data.iloc[candidate_simplex]
-        independent_indices = check_degenerate_phases(phase_compositions, \
-                                                      mindist=0.1)
+        phase_compositions, phase_fracs = lower_convex_hull(self.data,
+                                                            self.components,
+                                                            self.conditions)
+        print(phase_compositions)
+        independent_indices = \
+            check_degenerate_phases(self.data.iloc[phase_compositions],
+                                    mindist=0.1)
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
-        return [phase_compositions.iloc[independent_indices], phase_fracs]
+        return [self.data.iloc[independent_indices], phase_fracs]
 
     def minimize(self, simplex, phase_fractions=None):
         """
@@ -144,7 +112,9 @@ class Equilibrium(object):
         # starting point
         x_0 = []
         # scaling factor -- set to minimum energy of starting simplex
-        scaling_factor = abs(simplex['GM'].min())
+        # Scaling the objective to be of order '10' seems to result in
+        # sufficient precision (at least 5 significant figures).
+        scaling_factor = abs(simplex['GM'].min()) / 10
         # a list of tuples for where each phase's variable indices
         # start and end
         index_ranges = []
@@ -218,14 +188,14 @@ class Equilibrium(object):
         # phase fraction constraint
         def phasefrac_cons(input_x):
             "Accepts input vector and returns phase fraction constraint."
-            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) ** 2
+            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) #** 2
             return output
         def phasefrac_jac(input_x):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
             for idx_range in index_ranges:
-                output_x[idx_range[0]] = \
-                    -2.0*sum([input_x[i[0]] for i in index_ranges])
+                output_x[idx_range[0]] = -1.0#\
+                #-2.0*sum([input_x[i[0]] for i in index_ranges])
             return output_x
         phasefrac_dict = dict()
         phasefrac_dict['type'] = 'eq'
@@ -236,14 +206,14 @@ class Equilibrium(object):
         # bounds constraint
         def nonneg_cons(input_x, idx):
             "Accepts input vector and returns non-negativity constraint."
-            output = input_x[idx] * 1000
+            output = input_x[idx]
             #print('nonneg_cons: '+str(output))
             return output
 
         def nonneg_jac(input_x, idx):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
-            output_x[idx] = 1000.0
+            output_x[idx] = 1.0
             return output_x
 
         for idx in range(len(all_variables)):
@@ -311,9 +281,7 @@ class Equilibrium(object):
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
-            constraints=constraints)
-        if not res['success']:
-            return None
+            constraints=constraints, options={'ftol': 1e-10, 'maxiter': 1000})
         # rescale final values back to original
         res['raw_fun'] = copy.deepcopy(res['fun'])
         res['raw_jac'] = copy.deepcopy(res['jac'])
@@ -322,6 +290,9 @@ class Equilibrium(object):
         res['jac'] *= scaling_factor
         # force tiny numerical values to be positive
         res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
+        if not res['success']:
+            print(res)
+            return None
 
         # Build result object
         eq_res = EquilibriumResult(self._phases, self.components,
