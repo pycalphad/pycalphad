@@ -96,7 +96,12 @@ class EquilibriumResult(object):
 
     @property
     def mole_fractions(self):
-        pass
+        result = defaultdict(lambda: 0.0)
+        # Sum up phase contributions
+        for phase in self.phases:
+            for component, value in phase.mole_fractions.items():
+                result[component] += phase.volume_fraction * value
+        return result
 
     def __repr__(self):
         return '{0!s}({1!r})'.format(self.__class__, self.__dict__)
@@ -107,6 +112,11 @@ class EquilibriumResult(object):
         res += 'Potentials:\n'
         res += '    '.join(['{0!s}={1}'.format(k, v) \
             for k, v in self.potentials.items()])
+        res += '\n'
+        res += 'Molar Composition:\n'
+        res += '    '.join(['X({0!s})={1:E}'.format(k, v) \
+            for k, v in sorted(list(self.mole_fractions.items()))])
+        res += '\n'
         res += '\n'
         res += '\n'.join([str(ph) for ph in self.phases])
         return res
