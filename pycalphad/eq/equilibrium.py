@@ -109,7 +109,8 @@ class Equilibrium(object):
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
-        return [self.data.iloc[independent_indices], phase_fracs]
+        return [self.data.iloc[phase_compositions[independent_indices]],
+                phase_fracs]
 
     def minimize(self, simplex, phase_fractions=None):
         """
