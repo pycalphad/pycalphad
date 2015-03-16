@@ -5,6 +5,7 @@ equilibrium calculation.
 
 import pycalphad.variables as v
 import numpy as np
+from pycalphad.log import logger
 
 def lower_convex_hull(data, comps, conditions):
     """
@@ -74,8 +75,8 @@ def lower_convex_hull(data, comps, conditions):
     driving_forces = np.dot(dat[:, :-1], candidate_potentials) - dat[:, -1]
     # Mask points with negative (or nearly zero) driving force
     point_mask = driving_forces < 1e-4
-    #print(point_mask)
-    #print(np.array(range(dat.shape[0]), dtype=np.int)[~point_mask])
+    #logger.debug(point_mask)
+    #logger.debug(np.array(range(dat.shape[0]), dtype=np.int)[~point_mask])
     candidate_energy = np.dot(candidate_potentials, dof_values)
     fractions = np.empty(len(dof_values))
     iteration = 0
@@ -99,15 +100,16 @@ def lower_convex_hull(data, comps, conditions):
                     # Positive phase fractions
                     # Do I reduce the energy with this solution?
                     # Recalculate chemical potentials and energy
-                    #print('new matrix: {0}'.format(dat[new_simplex, :-1]))
-                    #print('new energies: {0}'.format(dat[new_simplex, -1]))
+                    logger.debug('new matrix: {0}'.format(dat[new_simplex, :-1]))
+                    logger.debug('new energies: {0}'.format(dat[new_simplex, -1]))
                     new_potentials = np.linalg.solve(dat[new_simplex, :-1],
                                                      dat[new_simplex, -1])
-                    #print('new_potentials: {0}'.format(new_potentials))
+                    logger.debug('new_potentials: {0}'.format(new_potentials))
                     new_energy = np.dot(new_potentials, dof_values)
                     if new_energy < candidate_energy:
-                        #print('New simplex {2} reduces energy from {0} to {1}' \
-                        #    .format(candidate_energy, new_energy, new_simplex))
+                        logger.debug('New simplex {2} reduces energy from \
+                            {0} to {1}'.format(candidate_energy, new_energy, \
+                            new_simplex))
                         # [:] notation forces a copy
                         candidate_simplex[:] = new_simplex
                         candidate_potentials[:] = new_potentials
@@ -120,11 +122,12 @@ def lower_convex_hull(data, comps, conditions):
                         point_mask[list(range(len(dof)-1))] = True
                         found_point = True
                         break
-                    #else:
-                    #    print('New simplex {2} increases energy from {0} to {1}' \
-                    #        .format(candidate_energy, new_energy, new_simplex))
+                    else:
+                        logger.debug('New simplex {2} increases energy from \
+                            {0} to {1}'.format(candidate_energy, new_energy, \
+                            new_simplex))
             if found_point:
-                #print('Found feasible simplex: moving to next iteration')
+                logger.debug('Found feasible simplex: moving to next iteration')
                 break
             #else:
             #    print('{0} is not feasible'.format(new_point))
@@ -134,18 +137,18 @@ def lower_convex_hull(data, comps, conditions):
         #print(point_mask)
         if np.all(point_mask) == True:
             found_solution = True
-            print('Solution:')
-            print(dat[candidate_simplex])
-            #print(candidate_potentials)
-            print(candidate_energy)
-            #print(fractions)
+            logger.debug('Solution:')
+            logger.debug(dat[candidate_simplex])
+            logger.debug(candidate_potentials)
+            logger.debug(candidate_energy)
+            logger.debug(fractions)
             # Fix candidate simplex indices to remove fictitious points
             candidate_simplex = candidate_simplex - (len(dof)-1)
             check = candidate_simplex < 0
             if not np.any(check):
                 return candidate_simplex, fractions
 
-    print('Iterations exceeded')
-    print('Positive driving force still exists for these points')
-    print(np.where(driving_forces > 1e-4)[0])
+    logger.error('Iterations exceeded')
+    logger.debug('Positive driving force still exists for these points')
+    logger.debug(np.where(driving_forces > 1e-4)[0])
     return None, None
