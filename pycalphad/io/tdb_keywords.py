@@ -4,8 +4,6 @@ Note that not all of these keywords are fully supported yet.
 """
 
 import re
-from operator import is_not
-from functools import partial
 
 # Reference: Thermo-Calc Database Manager's Guide
 TDB_KEYWORDS = sorted([
@@ -99,14 +97,15 @@ def expand_keyword(possible, candidate):
     --------
     None yet.
     """
-    pattern = '^'
-    pattern += r'[^_\s]*_'.join(re.escape(candidate.upper().replace('-', '_'))\
-        .split('_'))
+    # Rewritten to escape each token in the split string, instead of the input
+    # The reason is that Python 2.7 will escape underscore characters
+    candidate_pieces = [re.escape(x) for x in \
+        candidate.upper().replace('-', '_').split('_')]
+    pattern = r'^'
+    pattern += r'[^_\s]*_'.join(candidate_pieces)
     pattern += r'[^\s]*$'
     matches = [re.match(pattern, pxd) for pxd in possible]
-    #pylint: disable=W0141
-    matches = list(filter(partial(is_not, None), matches))
-    matches = [m.string for m in matches]
+    matches = [m.string for m in matches if m is not None]
     if len(matches) == 0:
         raise ValueError('{0} does not match {1}'.format(candidate, possible))
 
