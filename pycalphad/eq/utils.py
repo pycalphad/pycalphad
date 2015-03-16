@@ -221,10 +221,14 @@ def make_callable(model, variables, mode=None):
     energy = None
     if mode is None:
         # no mode specified; use numexpr if available, otherwise numpy
-        if _NUMEXPR:
-            mode = 'numexpr'
-        else:
-            mode = 'numpy'
+        # Note: numexpr support appears to break in multi-component situations
+        # See numexpr#167 on GitHub for details
+        # For now, default to numpy until a solution/workaround is available
+        #if _NUMEXPR:
+        #    mode = 'numexpr'
+        #else:
+        #    mode = 'numpy'
+        mode = 'numpy'
 
     if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
