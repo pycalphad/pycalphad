@@ -4,6 +4,7 @@ calculated phase equilibria.
 """
 
 import pycalphad.variables as v
+from pycalphad.log import logger
 from pycalphad.eq.utils import make_callable, generate_dof
 from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.eq.utils import unpack_kwarg
@@ -89,9 +90,11 @@ class Equilibrium(object):
         # self.data now contains energy surface information for the system
         # find simplex for a starting point; refine with optimization
         estimates = self.get_starting_simplex()
-        print(estimates)
+        logger.debug(estimates)
         self.result = self.minimize(estimates[0], estimates[1])
-        print(str(self.result))
+
+    def __str__(self):
+        return str(self.result)
 
     def get_starting_simplex(self):
         """
@@ -102,7 +105,7 @@ class Equilibrium(object):
         phase_compositions, phase_fracs = lower_convex_hull(self.data,
                                                             self.components,
                                                             self.conditions)
-        print(self.data.iloc[phase_compositions])
+        logger.debug(self.data.iloc[phase_compositions])
         independent_indices = \
             check_degenerate_phases(self.data.iloc[phase_compositions],
                                     mindist=0.1)
@@ -303,7 +306,8 @@ class Equilibrium(object):
         # force tiny numerical values to be positive
         res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
         if not res['success']:
-            print(res)
+            logger.error('Energy minimization failed')
+            logger.debug(res)
             return None
 
         # Build result object
