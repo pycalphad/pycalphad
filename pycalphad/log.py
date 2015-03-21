@@ -6,7 +6,7 @@ The log module handles setup for logging errors, debug messages and warnings.
 import logging
 logger = logging.getLogger('pycalphad')
 _h = logging.StreamHandler()
-fmt = '%(name)s %(levelname)s %(asctime)s %(funcName)s %(lineno)d %(message)s'
+fmt = '%(name)s %(levelname)s %(asctime)s [%(funcName)s %(lineno)d] %(message)s'
 _f = logging.Formatter(fmt)
 _h.setFormatter(_f)
 logger.addHandler(_h)
