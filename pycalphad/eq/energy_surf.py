@@ -223,7 +223,7 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
             mxr = sum(phase_obj.sublattices) - len(phase_obj.sublattices)
             refined_points, energies = \
                 refine_energy_surf(points, None, phase_obj, comps,
-                                   variables, energy_func, max_iterations=mxr)
+                                   variables, energy_func, max_iterations=-1)
             try:
                 data_dict['GM'].extend(energies)
                 for statevar in kwargs.keys():
