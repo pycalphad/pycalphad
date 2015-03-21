@@ -129,7 +129,7 @@ class Equilibrium(object):
         # scaling factor -- set to minimum energy of starting simplex
         # Scaling the objective to be of order '10' seems to result in
         # sufficient precision (at least 5 significant figures).
-        scaling_factor = abs(simplex['GM'].min())
+        scaling_factor = abs(simplex['GM'].min()) / 10.0
         # a list of tuples for where each phase's variable indices
         # start and end
         index_ranges = []
