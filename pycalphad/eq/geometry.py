@@ -63,7 +63,7 @@ def lower_convex_hull(data, comps, conditions):
     start_matrix[:, -1] = energy_ceiling # set energy
     dat = np.concatenate([start_matrix, dat])
 
-    max_iterations = 100
+    max_iterations = dat.shape[0]
     # Need to choose a feasible starting point
     # initialize simplex as first n points of fictitious hyperplane
     candidate_simplex = np.array(range(len(dof)-1), dtype=np.int)
@@ -135,6 +135,7 @@ def lower_convex_hull(data, comps, conditions):
         # If there is no positive driving force, we have the solution
         #print('Checking point mask')
         #print(point_mask)
+        logger.debug('Iteration count: {0}'.format(iteration))
         if np.all(point_mask) == True:
             found_solution = True
             logger.debug('Solution:')
