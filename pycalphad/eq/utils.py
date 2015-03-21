@@ -295,7 +295,7 @@ def generate_dof(phase, active_comps):
     sublattice_dof = []
     for idx, sublattice in enumerate(phase.constituents):
         dof = 0
-        for component in list(set(sublattice).intersection(active_comps)):
+        for component in sorted(set(sublattice).intersection(active_comps)):
             variables.append(v.SiteFraction(phase.name.upper(), idx, component))
             dof += 1
         sublattice_dof.append(dof)
