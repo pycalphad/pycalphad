@@ -7,11 +7,15 @@ import copy
 from sympy import log, Add, Mul, Piecewise, Pow, S
 from tinydb import where
 import pycalphad.variables as v
+from pycalphad.log import logger
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
-#pylint: disable=W0142
+
+class DofError(Exception):
+    "Error due to missing degrees of freedom."
+    pass
 
 # What about just running all self._model_*?
 class Model(object):
@@ -32,13 +36,22 @@ class Model(object):
     None yet.
     """
     def __init__(self, dbe, comps, phase):
-        self.components = set([x.upper() for x in comps])
+        # Constrain possible components to those within phase's d.o.f
+        possible_comps = set([x.upper() for x in comps])
+        self.components = set()
+        for sublattice in dbe.phases[phase.upper()].constituents:
+            self.components |= set(sublattice).intersection(possible_comps)
+        logger.debug('Model of %s has components %s', phase, self.components)
+        # Verify that this phase is still possible to build
         for sublattice in dbe.phases[phase.upper()].constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
-                raise ValueError(str(sublattice) + \
-                    ' has no components in '+str(self.components))
+                raise DofError(
+                    '{0}: Sublattice {1} of {2} has no components in {3}' \
+                    .format(phase.upper(), sublattice,
+                            dbe.phases[phase.upper()].constituents,
+                            self.components))
         # Build the abstract syntax tree
         self.ast = self.build_phase(dbe, \
             phase.upper(), dbe.symbols, dbe.search)
@@ -124,7 +137,7 @@ class Model(object):
         """
         arity = len(comps)
         return_dict = {}
-        correction_term = (S.One - Add(*comps)) / arity #pylint: disable=W0142
+        correction_term = (S.One - Add(*comps)) / arity
         for comp in comps:
             return_dict[comp] = comp + correction_term
         return return_dict
@@ -189,14 +202,15 @@ class Model(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in phase.constituents[subl_index]
+                            for comp in set(phase.constituents[subl_index])\
+                                .intersection(self.components)
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in comps
+                            for comp in set(comps).intersection(self.components)
                         ]
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
@@ -278,13 +292,19 @@ class Model(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, compx)
-                            for compx in phase.constituents[subl_index]
+                            for compx in set(phase.constituents[subl_index])\
+                                .intersection(self.components)
                         ]
                     site_fraction_product *= Add(*comp_symbols)
                 else:
-                    comp_symbol = \
-                        v.SiteFraction(phase.name, subl_index, comp[0])
-                    site_fraction_product *= comp_symbol
+                    if comp[0] not in self.components:
+                        # not a valid parameter for these components
+                        # zero out this contribution
+                        site_fraction_product = S.Zero
+                    else:
+                        comp_symbol = \
+                            v.SiteFraction(phase.name, subl_index, comp[0])
+                        site_fraction_product *= comp_symbol
             pure_energy_term += (
                 site_fraction_product * param['parameter'].subs(symbols)
             ) / site_ratio_normalization
@@ -344,21 +364,22 @@ class Model(object):
             # iterate over every sublattice
             mixing_term = S.One
             for subl_index, comps in enumerate(param['constituent_array']):
-                # convert strings to symbols
                 comp_symbols = None
+                # convert strings to symbols
                 if comps[0] == '*':
                     # Handle wildcards in constituent array
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in phase.constituents[subl_index]
+                            for comp in set(phase.constituents[subl_index])\
+                                .intersection(self.components)
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in comps
+                            for comp in set(comps).intersection(self.components)
                         ]
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
@@ -464,7 +485,7 @@ class Model(object):
                            (super_tau, tau >= 1)
                           ]
 
-        g_term = Piecewise(*expr_cond_pairs) #pylint: disable=W0142
+        g_term = Piecewise(*expr_cond_pairs)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
@@ -519,6 +540,8 @@ class Model(object):
         # phase energy for the case when all sublattices are equal.
         disordered_term = self.build_phase(dbe, disordered_phase_name,
                                            symbols, param_search)
+        constituents = [sorted(set(c).intersection(self.components)) \
+                for c in dbe.phases[ordered_phase_name].constituents]
 
         # Fix variable names
         variable_rename_dict = {}
@@ -542,7 +565,7 @@ class Model(object):
                     self.mole_fraction(
                         atom.species,
                         ordered_phase_name,
-                        dbe.phases[ordered_phase_name].constituents,
+                        constituents,
                         dbe.phases[ordered_phase_name].sublattices
                         )
 
@@ -554,7 +577,7 @@ class Model(object):
         for comp in self.components:
             species_dict[comp] = \
                 self.mole_fraction(comp, ordered_phase_name,
-                                   dbe.phases[ordered_phase_name].constituents,
+                                   constituents,
                                    dbe.phases[ordered_phase_name].sublattices
                                   )
 

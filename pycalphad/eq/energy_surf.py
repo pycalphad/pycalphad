@@ -5,8 +5,10 @@ energy surface of a system.
 
 from __future__ import division
 from pycalphad import Model
+from pycalphad.model import DofError
 from pycalphad.eq.utils import make_callable, point_sample, generate_dof
 from pycalphad.eq.utils import unpack_kwarg
+from pycalphad.log import logger
 import pycalphad.variables as v
 import scipy.spatial
 import pandas as pd
@@ -124,7 +126,6 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
                               phase_obj, comps, variables,
                               energy_func, max_iterations=max_iterations-1)
 
-#pylint: disable=W0142
 def energy_surf(dbf, comps, phases, mode=None, **kwargs):
     """
     Sample the energy surface of a system containing the specified
@@ -167,21 +168,29 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
     statevars_to_map = [dict(zip(kwargs.keys(), prod)) \
         for prod in itertools.product(*statevar_values)]
 
-    active_comps = set(comps)
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in phases)
     comp_sets = {}
     # Construct a list to hold all the data
     all_phase_data = []
-    for phase_name, phase_obj in active_phases.items():
+    for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
         # if this is an object type, we need to construct it
         if isinstance(mod, type):
-            mod = mod(dbf, comps, phase_name)
+            try:
+                mod = mod(dbf, comps, phase_name)
+            except DofError:
+                # we can't build the specified phase because the
+                # specified components aren't found in every sublattice
+                # we'll just skip it
+                logger.warning("""Suspending specified phase %s due to
+                some sublattices containing only unspecified components""",
+                               phase_name)
+                continue
         # Construct an ordered list of the variables
-        variables, sublattice_dof = generate_dof(phase_obj, active_comps)
+        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
 
         # Build the "fast" representation of that model
         comp_sets[phase_name] = make_callable(mod.ast, \
