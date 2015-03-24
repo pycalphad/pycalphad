@@ -3,7 +3,7 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group
-from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo
+from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo, ZeroOrMore
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
@@ -42,27 +42,49 @@ def _make_piecewise_ast(toks):
 
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
-        high_temp = toks[cur_tok+2]
+        try:
+            high_temp = toks[cur_tok+2]
+        except IndexError:
+            # No temperature limit specified
+            high_temp = None
 
-        expr_cond_pairs.append(
-            (
-                sympify_string(toks[cur_tok+1]),
-                And(low_temp <= v.T, v.T < high_temp)
+        if high_temp is None:
+            expr_cond_pairs.append(
+                (
+                    sympify_string(toks[cur_tok+1]),
+                    And(low_temp <= v.T)
+                )
             )
-        )
+        else:
+            expr_cond_pairs.append(
+                (
+                    sympify_string(toks[cur_tok+1]),
+                    And(low_temp <= v.T, v.T < high_temp)
+                )
+            )
         cur_tok = cur_tok + 2
     # not sure about having zero as implicit default value
     #expr_cond_pairs.append((0, True))
-    return Piecewise(*expr_cond_pairs) #pylint: disable=W0142
+    return Piecewise(*expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
     """
     Parser element for dealing with Thermo-Calc command abbreviations.
     """
     def parseImpl(self, instring, loc, doActions=True):
-        # Find the end of the keyword by searching for a space or endline
+        # Find the end of the keyword by searching for an end character
         start = loc
-        loc = instring.find(' ', start)
+        endchars = ' ():,'
+        loc = -1
+        for charx in endchars:
+            locx = instring.find(charx, start)
+            if locx != -1:
+                # match the end-character closest to the start character
+                if loc != -1:
+                    loc = min(loc, locx)
+                else:
+                    loc = locx
+        # if no end character found, just match the whole thing
         if loc == -1:
             loc = len(instring)
         try:
@@ -87,18 +109,22 @@ def _tdb_grammar(): #pylint: disable=R0914
     float_number = Regex(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?') \
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
-    symbol_name = Word(alphanums+'_', min=1)
+    symbol_name = Word(alphanums+'_:', min=1)
     # species name, e.g., CO2, AL, FE3+
     species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
+    # constituent arrays are semicolon-delimited
+    # each subarray can be comma- or space-delimited
     constituent_array = Group(
-        delimitedList(Group(delimitedList(species_name, ',')), ':')
+        delimitedList(Group(delimitedList(species_name, ',') & \
+                            ZeroOrMore(species_name)
+                           ), ':')
         )
-    param_types = CaselessKeyword('G') | CaselessKeyword('L') | \
-                  CaselessKeyword('TC') | CaselessKeyword('BMAGN')
+    param_types = TCCommand('G') | TCCommand('L') | \
+                  TCCommand('TC') | TCCommand('BMAGN')
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
     func_expr = Optional(float_number) + OneOrMore(SkipTo(';') \
-        + Suppress(';') + Optional(float_number) + \
+        + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
         Suppress(Word('YNyn', exact=1)))
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2)
@@ -179,7 +205,6 @@ def _process_phase(targetdb, name, typedefs, subls):
     options = None
     if len(splitname) > 1:
         options = splitname[1]
-        print(options)
     targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
     for typedef in list(typedefs):
