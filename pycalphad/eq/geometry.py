@@ -18,14 +18,12 @@ def lower_convex_hull(data, comps, conditions):
         A sample of the energy surface of the system.
     comps : list
         All the components in the system.
-    conditions : dict or (list of dict)
+    conditions : dict
         StateVariables and their corresponding value.
 
     Returns
     -------
     A list of indices corresponding to vertices of the simplex.
-    If 'conditions' is a list, this will return a list (in 'conditions' order)
-    of a list of indices.
     Note: This routine will not check if the simplex is degenerate.
 
     Examples
