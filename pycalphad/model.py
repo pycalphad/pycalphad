@@ -56,12 +56,16 @@ class Model(object):
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
+        # Need to do more substitutions to catch symbols that are functions
+        # of other symbols
+        for name, value in symbols.items():
+            symbols[name] = value.xreplace(symbols)
+        for name, value in symbols.items():
+            symbols[name] = value.xreplace(symbols)
 
         # Build the abstract syntax tree
         self.ast = self.build_phase(dbe, phase.upper(), symbols, dbe.search)
-        # Need to do more substitutions to catch symbols that are functions
-        # of other symbols
-        self.ast = self.ast.xreplace(symbols)
+
         self.ast = self.ast.xreplace(symbols)
         # As a last resort, treat undefined symbols as zero
         # But warn the user when we do this
