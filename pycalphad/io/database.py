@@ -109,6 +109,8 @@ class Database(object): #pylint: disable=R0902
     def __str__(self):
         result = 'Elements: {0}\n'.format(sorted(self.elements))
         result += 'Species: {0}\n'.format(sorted(self.species))
+        for symbol, info in sorted(self.typedefs.items()):
+            result += 'Type Definition \'{0}\': {1}\n'.format(symbol, info)
         for name, phase in sorted(self.phases.items()):
             result += str(phase)+'\n'
         result += '{0} symbols in database\n'.format(len(self.symbols))
