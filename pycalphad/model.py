@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Add, Mul, Piecewise, Pow, S
+from sympy import log, Add, Mul, Piecewise, Pow, S, Symbol
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.log import logger
@@ -52,12 +52,25 @@ class Model(object):
                     .format(phase.upper(), sublattice,
                             dbe.phases[phase.upper()].constituents,
                             self.components))
+
+        # Convert string symbol names to sympy Symbol objects
+        # This makes xreplace work with the symbols dict
+        symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
+
         # Build the abstract syntax tree
-        self.ast = self.build_phase(dbe, \
-            phase.upper(), dbe.symbols, dbe.search)
-        # Need to do one more substitution to catch symbols that are functions
+        self.ast = self.build_phase(dbe, phase.upper(), symbols, dbe.search)
+        # Need to do more substitutions to catch symbols that are functions
         # of other symbols
-        self.ast = self.ast.subs(dbe.symbols)
+        self.ast = self.ast.xreplace(symbols)
+        self.ast = self.ast.xreplace(symbols)
+        # As a last resort, treat undefined symbols as zero
+        # But warn the user when we do this
+        # This is consistent with TC's behavior
+        undefs = list(self.ast.atoms(Symbol) - self.ast.atoms(v.StateVariable))
+        for undef in undefs:
+            self.ast = self.ast.xreplace({undef: float(0)})
+            logger.warning('Setting undefined symbol %s for phase %s to zero',
+                           undef, phase)
         self.variables = self.ast.atoms(v.StateVariable)
     def _purity_test(self, constituent_array):
         """
@@ -260,11 +273,9 @@ class Model(object):
                             params.extend((order_one, order_two))
                     # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= comp_symbols[param['parameter_order']].subs(
-                        self._Muggianu_correction_dict(comp_symbols),
-                        simultaneous=True
-                    )
-            rk_terms.append(mixing_term * param['parameter'].subs(symbols))
+                    mixing_term *= comp_symbols[param['parameter_order']].xreplace(
+                        self._Muggianu_correction_dict(comp_symbols))
+            rk_terms.append(mixing_term * param['parameter'].xreplace(symbols))
         return Add(*rk_terms)
     def reference_energy(self, phase, symbols, param_search):
         """
@@ -306,7 +317,7 @@ class Model(object):
                             v.SiteFraction(phase.name, subl_index, comp[0])
                         site_fraction_product *= comp_symbol
             pure_energy_term += (
-                site_fraction_product * param['parameter'].subs(symbols)
+                site_fraction_product * param['parameter'].xreplace(symbols)
             ) / site_ratio_normalization
         return pure_energy_term
     def ideal_mixing_energy(self, phase, symbols, param_search):
@@ -429,15 +440,13 @@ class Model(object):
                             interaction_params.extend((order_one, order_two))
                     # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= comp_symbols[param['parameter_order']].subs(
-                        self._Muggianu_correction_dict(comp_symbols),
-                        simultaneous=True
-                    )
+                    mixing_term *= comp_symbols[param['parameter_order']].xreplace(
+                        self._Muggianu_correction_dict(comp_symbols))
                 if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
             excess_mixing_terms.append(mixing_term * \
-                param['parameter'].subs(symbols))
+                param['parameter'].xreplace(symbols))
         return Add(*excess_mixing_terms) / site_ratio_normalization
     def magnetic_energy(self, phase, symbols, param_search):
         #pylint: disable=C0103, R0914
@@ -569,7 +578,7 @@ class Model(object):
                         dbe.phases[ordered_phase_name].sublattices
                         )
 
-        disordered_term = disordered_term.subs(variable_rename_dict)
+        disordered_term = disordered_term.xreplace(variable_rename_dict)
 
         # Now handle the ordered term for degenerate sublattice case
         molefraction_dict = {}
@@ -595,6 +604,6 @@ class Model(object):
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
         subl_equal_term = \
-            ordered_phase_energy.subs(molefraction_dict, simultaneous=True)
+            ordered_phase_energy.xreplace(molefraction_dict)
 
         return disordered_term - subl_equal_term
