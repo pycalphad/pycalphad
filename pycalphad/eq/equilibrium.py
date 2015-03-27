@@ -26,6 +26,10 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
+class EquilibriumError(Exception):
+    "Exception related to calculation of equilibrium"
+    pass
+
 class Equilibrium(object):
     """
     Calculate the equilibrium state of a system containing the specified
@@ -105,10 +109,15 @@ class Equilibrium(object):
         phase_compositions, phase_fracs = lower_convex_hull(self.data,
                                                             self.components,
                                                             self.conditions)
+        if phase_compositions is None:
+            logger.error('Unable to find starting point for calculation')
+            raise EquilibriumError('Unable to find starting point for calculation')
         logger.debug(self.data.iloc[phase_compositions])
         independent_indices = \
             check_degenerate_phases(self.data.iloc[phase_compositions],
                                     mindist=0.1)
+        logger.debug('phase_fracs: %s', phase_fracs)
+        logger.debug('independent_indices: %s', independent_indices)
         # renormalize phase fractions to 1 after eliminating redundant phases
         phase_fracs = phase_fracs[independent_indices]
         phase_fracs /= np.sum(phase_fracs)
@@ -203,14 +212,14 @@ class Equilibrium(object):
         # phase fraction constraint
         def phasefrac_cons(input_x):
             "Accepts input vector and returns phase fraction constraint."
-            output = 1.0 - sum([input_x[i[0]] for i in index_ranges]) ** 2
+            output = 1.0 - sum([input_x[i[0]] for i in index_ranges])#** 2
             return output
         def phasefrac_jac(input_x):
             "Accepts input vector and returns Jacobian of constraint."
             output_x = np.zeros(len(input_x))
             for idx_range in index_ranges:
-                output_x[idx_range[0]] = -1.0 \
-                    -2.0*sum([input_x[i[0]] for i in index_ranges])
+                output_x[idx_range[0]] = -1.0 #\
+                #    -2.0*sum([input_x[i[0]] for i in index_ranges])
             return output_x
         phasefrac_dict = dict()
         phasefrac_dict['type'] = 'eq'
@@ -283,16 +292,23 @@ class Equilibrium(object):
                             grad(*list(cur_x))
             #print('molefrac_jac '+str(output_x))
             return output_x
-        for condition, value in self.conditions.items():
-            if isinstance(condition, v.Composition):
-                # mass balance constraint for mole fraction
-                molefrac_dict = dict()
-                molefrac_dict['type'] = 'eq'
-                molefrac_dict['fun'] = molefrac_cons
-                molefrac_dict['jac'] = molefrac_jac
-                molefrac_dict['args'] = \
-                    [condition.species, value, all_variables, self._phases]
-                constraints.append(molefrac_dict)
+
+        eqs = len([x for x in constraints if x['type'] == 'eq'])
+        if eqs < len(x_0):
+            for condition, value in self.conditions.items():
+                if isinstance(condition, v.Composition):
+                    # mass balance constraint for mole fraction
+                    molefrac_dict = dict()
+                    molefrac_dict['type'] = 'eq'
+                    molefrac_dict['fun'] = molefrac_cons
+                    molefrac_dict['jac'] = molefrac_jac
+                    molefrac_dict['args'] = \
+                        [condition.species, value, all_variables,
+                         self._phases]
+                    constraints.append(molefrac_dict)
+        else:
+            logger.warning("""Dropping mass balance constraints due to
+                zero internal degrees of freedom""")
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
