@@ -169,9 +169,9 @@ def _process_typedef(targetdb, typechar, line):
     """
     Process the TYPE_DEFINITION command.
     """
-    # ' GES A_P_D BCC_A2 MAGNETIC  -1    0.4
-    tokens = line.split()
-    if len(tokens) < 6:
+    # GES A_P_D BCC_A2 MAGNETIC  -1    0.4
+    tokens = line.replace(',', '').split()
+    if len(tokens) < 4:
         return
     if tokens[3].upper() == 'MAGNETIC':
         # magnetic model (IHJ model assumed by default)
@@ -226,7 +226,9 @@ def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
     """
     Process the PARAMETER command.
     """
-    targetdb.add_parameter(param_type, phase_name, constituent_array.asList(),
+    targetdb.add_parameter(param_type, phase_name.upper(),
+                           [[c.upper() for c in lx]
+                            for lx in constituent_array.asList()],
                            param_order, param, ref)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
