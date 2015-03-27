@@ -23,7 +23,9 @@ def lower_convex_hull(data, comps, conditions):
 
     Returns
     -------
-    A list of indices corresponding to vertices of the simplex.
+    A tuple containing:
+    (1) A numpy array of indices corresponding to vertices of the simplex.
+    (2) A numpy array corresponding to the phase fractions.
     Note: This routine will not check if the simplex is degenerate.
 
     Examples
@@ -33,7 +35,8 @@ def lower_convex_hull(data, comps, conditions):
     # determine column indices for degrees of freedom
     comps = sorted(list(comps))
     dof = ['X({0})'.format(c) for c in comps if c != 'VA']
-    dof_values = []
+    dof_values = np.zeros(len(dof))
+    marked_dof_values = list(range(len(dof)))
     for cond, value in conditions.items():
         if not isinstance(cond, v.Composition):
             continue
@@ -42,20 +45,29 @@ def lower_convex_hull(data, comps, conditions):
             continue
         if cond.species == 'VA':
             continue
-        dof_values.append(value)
+        dof_values[comps.index(cond.species)] = value
+        marked_dof_values.remove(comps.index(cond.species))
 
     dof.append('GM')
-    dof_values.append(1-sum(dof_values))
-    dof_values = np.array(dof_values)
+
+    if len(marked_dof_values) == 1:
+        dof_values[marked_dof_values[0]] = 1-sum(dof_values)
+    else:
+        logger.error('Not enough composition conditions specified')
+        raise ValueError('Not enough composition conditions specified.')
 
     # convert DataFrame of independent columns to ndarray
     dat = data[dof].values
 
     # Build a fictitious hyperplane which has an energy greater than the max
     # energy in the system
-    # This guarantees our starting point is feasible but also guarantees
+    # This guarantees our starting point is feasible but also makes it likely
     # it won't be part of the solution
-    energy_ceiling = np.amax(dat[:, -1]) + 1
+    energy_ceiling = np.amax(dat[:, -1])
+    if energy_ceiling < 0:
+        energy_ceiling *= 0.1
+    else:
+        energy_ceiling *= 10
     start_matrix = np.empty([len(dof)-1, len(dof)])
     start_matrix[:, :-1] = np.eye(len(dof)-1)
     start_matrix[:, -1] = energy_ceiling # set energy
@@ -93,7 +105,7 @@ def lower_convex_hull(data, comps, conditions):
                 new_simplex[col] = new_point
                 #print(new_simplex)
                 fractions = np.linalg.solve(dat[new_simplex, :-1].T, dof_values)
-                #print(fractions)
+                logger.debug('fractions: %s', fractions)
                 if np.all(fractions > -1e-8):
                     # Positive phase fractions
                     # Do I reduce the energy with this solution?
@@ -104,28 +116,35 @@ def lower_convex_hull(data, comps, conditions):
                                                      dat[new_simplex, -1])
                     logger.debug('new_potentials: {0}'.format(new_potentials))
                     new_energy = np.dot(new_potentials, dof_values)
-                    if new_energy < candidate_energy:
+                    # differences of less than 1mJ/mol are irrelevant
+                    new_energy = np.around(new_energy, decimals=3)
+                    if new_energy <= candidate_energy:
                         logger.debug('New simplex {2} reduces energy from \
                             {0} to {1}'.format(candidate_energy, new_energy, \
                             new_simplex))
                         # [:] notation forces a copy
                         candidate_simplex[:] = new_simplex
                         candidate_potentials[:] = new_potentials
-                        candidate_energy = new_energy
+                        # np.array() forces a copy
+                        candidate_energy = np.array(new_energy)
                         # Recalculate driving forces with new potentials
                         driving_forces[:] = np.dot(dat[:, :-1], \
                             candidate_potentials) - dat[:, -1]
+                        logger.debug('driving_forces: %s', driving_forces)
                         point_mask = driving_forces < 1e-4
                         # Don't test points on the fictitious hyperplane
                         point_mask[list(range(len(dof)-1))] = True
                         found_point = True
                         break
                     else:
-                        logger.debug('New simplex {2} increases energy from \
-                            {0} to {1}'.format(candidate_energy, new_energy, \
-                            new_simplex))
+                        logger.debug('Trial simplex {2} increases energy from {0} to {1}'\
+                                    .format(candidate_energy, new_energy, new_simplex))
+                        logger.debug('%s points with positive driving force remain',
+                                     list(driving_forces >= 1e-4).count(True))
             if found_point:
                 logger.debug('Found feasible simplex: moving to next iteration')
+                logger.debug('%s points with positive driving force remain',
+                             list(driving_forces >= 1e-4).count(True))
                 break
             #else:
             #    print('{0} is not feasible'.format(new_point))
@@ -135,17 +154,29 @@ def lower_convex_hull(data, comps, conditions):
         #print(point_mask)
         logger.debug('Iteration count: {0}'.format(iteration))
         if np.all(point_mask) == True:
-            found_solution = True
-            logger.debug('Solution:')
+            logger.debug('Unadjusted candidate_simplex: %s', candidate_simplex)
             logger.debug(dat[candidate_simplex])
-            logger.debug(candidate_potentials)
-            logger.debug(candidate_energy)
-            logger.debug(fractions)
             # Fix candidate simplex indices to remove fictitious points
             candidate_simplex = candidate_simplex - (len(dof)-1)
-            check = candidate_simplex < 0
-            if not np.any(check):
-                return candidate_simplex, fractions
+            logger.debug('Adjusted candidate_simplex: %s', candidate_simplex)
+            # Remove fictitious points from the candidate simplex
+            # These can inadvertently show up if we only calculate a phase with
+            # limited solubility
+            # Also remove points with very small estimated phase fractions
+            candidate_simplex, fractions = zip(*[(c, f) for c, f in
+                                                 zip(candidate_simplex,
+                                                     fractions)
+                                                 if c >= 0 and f >= 1e-12])
+            candidate_simplex = np.array(candidate_simplex)
+            fractions = np.array(fractions)
+            fractions /= np.sum(fractions)
+            logger.debug('Final candidate_simplex: %s', candidate_simplex)
+            logger.debug('Final phase fractions: %s', fractions)
+            found_solution = True
+            logger.debug('Solution:')
+            logger.debug(candidate_potentials)
+            logger.debug(candidate_energy)
+            return candidate_simplex, fractions
 
     logger.error('Iterations exceeded')
     logger.debug('Positive driving force still exists for these points')
