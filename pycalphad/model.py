@@ -227,7 +227,7 @@ class Model(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in set(comps).intersection(self.components)
+                            for comp in comps
                         ]
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
@@ -277,8 +277,9 @@ class Model(object):
                             params.extend((order_one, order_two))
                     # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= comp_symbols[param['parameter_order']].xreplace(
-                        self._Muggianu_correction_dict(comp_symbols))
+                    mixing_term *= comp_symbols[param['parameter_order']].subs(
+                        self._Muggianu_correction_dict(comp_symbols),
+                        simultaneous=True)
             rk_terms.append(mixing_term * param['parameter'].xreplace(symbols))
         return Add(*rk_terms)
     def reference_energy(self, phase, symbols, param_search):
@@ -391,10 +392,14 @@ class Model(object):
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
+                    # Order of elements in comps matters here!
+                    # This means we can't call set(comps)
+                    # No need to check set intersection here anyway because
+                    # only valid parameters will be returned by our query
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in set(comps).intersection(self.components)
+                            for comp in comps
                         ]
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
@@ -444,8 +449,9 @@ class Model(object):
                             interaction_params.extend((order_one, order_two))
                     # Include variable indicated by parameter order index
                     # Perform Muggianu adjustment to site fractions
-                    mixing_term *= comp_symbols[param['parameter_order']].xreplace(
-                        self._Muggianu_correction_dict(comp_symbols))
+                    mixing_term *= comp_symbols[param['parameter_order']].subs(
+                        self._Muggianu_correction_dict(comp_symbols),
+                        simultaneous=True)
                 if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
@@ -582,7 +588,7 @@ class Model(object):
                         dbe.phases[ordered_phase_name].sublattices
                         )
 
-        disordered_term = disordered_term.xreplace(variable_rename_dict)
+        disordered_term = disordered_term.subs(variable_rename_dict)
 
         # Now handle the ordered term for degenerate sublattice case
         molefraction_dict = {}
@@ -608,6 +614,6 @@ class Model(object):
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
         subl_equal_term = \
-            ordered_phase_energy.xreplace(molefraction_dict)
+            ordered_phase_energy.subs(molefraction_dict, simultaneous=True)
 
         return disordered_term - subl_equal_term
