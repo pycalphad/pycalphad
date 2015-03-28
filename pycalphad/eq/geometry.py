@@ -104,7 +104,15 @@ def lower_convex_hull(data, comps, conditions):
                 new_simplex[:] = candidate_simplex # [:] forces copy
                 new_simplex[col] = new_point
                 #print(new_simplex)
-                fractions = np.linalg.solve(dat[new_simplex, :-1].T, dof_values)
+                logger.debug('trial matrix: %s', dat[new_simplex, :-1].T)
+                try:
+                    fractions = np.linalg.solve(dat[new_simplex, :-1].T,
+                                                dof_values)
+                except np.linalg.LinAlgError:
+                    # singular matrix means the trial simplex is degenerate
+                    # this usually happens due to collisions between points on
+                    # the fictitious hyperplane and the endmembers
+                    continue
                 logger.debug('fractions: %s', fractions)
                 if np.all(fractions > -1e-8):
                     # Positive phase fractions
