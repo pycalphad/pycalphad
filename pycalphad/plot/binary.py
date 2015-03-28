@@ -99,7 +99,8 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     tie_line_colors = []
     tie_line_widths = []
     tsteps = steps or int((high_temp-low_temp) / 10) # Take 10 K steps by def.
-    temps = list(np.linspace(low_temp, high_temp, num=tsteps))
+    temps = np.array(np.linspace(low_temp, high_temp, num=tsteps),
+                     dtype=np.float64)
 
     # Convert all phase names to uppercase
     phases = [phase.upper() for phase in phases]
@@ -226,7 +227,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     ax = _binplot_setup(ax, phases, tie_lines, tie_line_colors, tie_line_widths)
     plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlim([0, 1])
+    ax.set_xlim([-0.01, 1.01])
     ax.set_ylim([low_temp, high_temp])
     ax.set_xlabel(x_variable, labelpad=15, fontsize=20)
     ax.set_ylabel("Temperature (K)", fontsize=20)
