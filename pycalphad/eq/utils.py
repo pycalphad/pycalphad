@@ -9,6 +9,8 @@ from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
 from sympy import Piecewise
 import numpy as np
+import operator
+import functools
 import itertools
 import collections
 from math import log, floor, ceil, fmod, sqrt
@@ -300,6 +302,20 @@ def generate_dof(phase, active_comps):
             dof += 1
         sublattice_dof.append(dof)
     return variables, sublattice_dof
+
+def endmember_matrix(dof):
+    """
+    Accept the number of components in each sublattice.
+    Return a matrix corresponding to the compositions of all endmembers.
+    """
+    total_endmembers = functools.reduce(operator.mul, dof, 1)
+    res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float)
+    dof_arrays = [np.eye(d).tolist() for d in dof]
+    row_idx = 0
+    for row in itertools.product(*dof_arrays):
+        res_matrix[row_idx, :] = np.concatenate(row, axis=0)
+        row_idx += 1
+    return res_matrix
 
 def unpack_kwarg(kwarg_obj, default_arg=None):
     """

@@ -7,7 +7,7 @@ from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
 from pycalphad.eq.utils import make_callable, point_sample, generate_dof
-from pycalphad.eq.utils import unpack_kwarg
+from pycalphad.eq.utils import endmember_matrix, unpack_kwarg
 from pycalphad.log import logger
 import pycalphad.variables as v
 import scipy.spatial
@@ -159,7 +159,8 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = \
-        dict((v.StateVariable(key), value) for (key, value) in kwargs.items())
+        dict((v.StateVariable(key), value) \
+             for (key, value) in kwargs.items())
 
     # Generate all combinations of state variables for 'map' calculation
     # Wrap single values of state variables in lists
@@ -199,8 +200,18 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
 
-        # Sample composition space
-        points = point_sample(sublattice_dof, pdof=pdens_dict[phase_name])
+        # Add all endmembers to guarantee their presence
+        points = endmember_matrix(sublattice_dof)
+
+        # Sample composition space for more points
+        if sum(sublattice_dof) > len(sublattice_dof):
+            points = np.concatenate((points,
+                                     point_sample(sublattice_dof,
+                                                  pdof=pdens_dict[phase_name])
+                                    ))
+
+
+
         # If there are nontrivial sublattices with vacancies in them,
         # generate a set of points where their fraction is zero and renormalize
         for idx, sublattice in enumerate(phase_obj.constituents):
