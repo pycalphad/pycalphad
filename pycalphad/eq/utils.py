@@ -303,10 +303,23 @@ def generate_dof(phase, active_comps):
         sublattice_dof.append(dof)
     return variables, sublattice_dof
 
-def endmember_matrix(dof):
+def endmember_matrix(dof, vacancy_indices=None):
     """
     Accept the number of components in each sublattice.
     Return a matrix corresponding to the compositions of all endmembers.
+
+    Parameters
+    ==========
+    dof : list of int
+        Number of components in each sublattice.
+    vacancy_indices, list of int, optional
+        If vacancies are present in every sublattice, specify their indices
+        in each sublattice to ensure the "pure vacancy" endmember is excluded.
+
+    Examples
+    ========
+    Sublattice configuration like: (AL, NI, VA):(AL, NI, VA):(VA)
+    >>> endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])
     """
     total_endmembers = functools.reduce(operator.mul, dof, 1)
     res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float)
@@ -315,6 +328,12 @@ def endmember_matrix(dof):
     for row in itertools.product(*dof_arrays):
         res_matrix[row_idx, :] = np.concatenate(row, axis=0)
         row_idx += 1
+    if vacancy_indices is not None and len(vacancy_indices) == len(dof):
+        dof_adj = np.array([sum(dof[0:i]) for i in range(len(dof))])
+        indices = np.array(vacancy_indices) + dof_adj
+        row_idx_to_delete = np.where(np.all(res_matrix[:, indices] == 1,
+                                            axis=1))
+        res_matrix = np.delete(res_matrix, (row_idx_to_delete), axis=0)
     return res_matrix
 
 def unpack_kwarg(kwarg_obj, default_arg=None):
