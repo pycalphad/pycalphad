@@ -14,6 +14,7 @@ from pycalphad import Model
 from pycalphad.eq.energy_surf import energy_surf
 from pycalphad.eq.geometry import lower_convex_hull
 from pycalphad.eq.eqresult import EquilibriumResult
+from sympy import Symbol
 import pandas as pd
 import numpy as np
 import scipy.spatial
@@ -106,9 +107,8 @@ class Equilibrium(object):
         Returns iterable: first is a DataFrame of the phase compositions
                           second is an estimate of the phase fractions
         """
-        phase_compositions, phase_fracs = lower_convex_hull(self.data,
-                                                            self.components,
-                                                            self.conditions)
+        phase_compositions, phase_fracs, pots = \
+            lower_convex_hull(self.data, self.components, self.conditions)
         if phase_compositions is None:
             logger.error('Unable to find starting point for calculation')
             raise EquilibriumError('Unable to find starting point for calculation')
@@ -312,7 +312,7 @@ class Equilibrium(object):
 
         # Run optimization
         res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
-            constraints=constraints, options={'ftol': 1e-10, 'maxiter': 1000})
+            constraints=constraints, options={'maxiter': 1000})
         # rescale final values back to original
         res['raw_fun'] = copy.deepcopy(res['fun'])
         res['raw_jac'] = copy.deepcopy(res['jac'])
@@ -321,9 +321,9 @@ class Equilibrium(object):
         res['jac'] *= scaling_factor
         # force tiny numerical values to be positive
         res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
+        logger.debug(res)
         if not res['success']:
             logger.error('Energy minimization failed')
-            logger.debug(res)
             return None
 
         # Build result object
@@ -337,6 +337,11 @@ class Equilibrium(object):
         for phase_name, phase_obj in self._phases.items():
             # Get the symbolic representation of the energy
             mod = self._models[phase_name]
+            undefs = list(mod.ast.atoms(Symbol) - mod.ast.atoms(v.StateVariable))
+            for undef in undefs:
+                mod.ast = mod.ast.xreplace({undef: float(0)})
+                logger.warning('Setting undefined symbol %s for phase %s to zero',
+                           undef, phase_name)
             # Construct an ordered list of the variables
             self._variables[phase_name], self._sublattice_dof[phase_name] = \
                 generate_dof(phase_obj, self.components)
