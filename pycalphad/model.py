@@ -17,15 +17,22 @@ class DofError(Exception):
     "Error due to missing degrees of freedom."
     pass
 
-# What about just running all self._model_*?
 class Model(object):
     """
-    Models use an abstract representation of the energy function
+    Models use an abstract representation of the function
     for calculation of values under specified conditions.
 
-    Attributes
+    Parameters
     ----------
-    None yet.
+    dbf : Database
+        Database containing the relevant parameters.
+    comps : list
+        Names of components to consider in the calculation.
+    phases : list
+        Names of phases to consider in the calculation.
+    parameters : dict
+        Optional dictionary of parameters to be substituted in the model.
+        This will overwrite parameters specified in the database
 
     Methods
     -------
@@ -35,7 +42,7 @@ class Model(object):
     --------
     None yet.
     """
-    def __init__(self, dbe, comps, phase):
+    def __init__(self, dbe, comps, phase, parameters=None):
         # Constrain possible components to those within phase's d.o.f
         possible_comps = set([x.upper() for x in comps])
         self.components = set()
@@ -56,25 +63,26 @@ class Model(object):
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
+        if parameters is not None:
+            symbols.update([(Symbol(s), val) for s, val in parameters.items()])
         # Need to do more substitutions to catch symbols that are functions
         # of other symbols
         for name, value in symbols.items():
-            symbols[name] = value.xreplace(symbols)
+            try:
+                symbols[name] = value.xreplace(symbols)
+            except AttributeError:
+                # Can't use xreplace on a float
+                pass
         for name, value in symbols.items():
-            symbols[name] = value.xreplace(symbols)
+            try:
+                symbols[name] = value.xreplace(symbols)
+            except AttributeError:
+                # Can't use xreplace on a float
+                pass
 
         # Build the abstract syntax tree
         self.ast = self.build_phase(dbe, phase.upper(), symbols, dbe.search)
-
         self.ast = self.ast.xreplace(symbols)
-        # As a last resort, treat undefined symbols as zero
-        # But warn the user when we do this
-        # This is consistent with TC's behavior
-        undefs = list(self.ast.atoms(Symbol) - self.ast.atoms(v.StateVariable))
-        for undef in undefs:
-            self.ast = self.ast.xreplace({undef: float(0)})
-            logger.warning('Setting undefined symbol %s for phase %s to zero',
-                           undef, phase)
         self.variables = self.ast.atoms(v.StateVariable)
     def _purity_test(self, constituent_array):
         """
