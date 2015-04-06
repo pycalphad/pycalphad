@@ -26,6 +26,7 @@ def lower_convex_hull(data, comps, conditions):
     A tuple containing:
     (1) A numpy array of indices corresponding to vertices of the simplex.
     (2) A numpy array corresponding to the phase fractions.
+    (3) A numpy array of chemical potentials in sorted(comps) order (no 'VA')
     Note: This routine will not check if the simplex is degenerate.
 
     Examples
@@ -45,8 +46,8 @@ def lower_convex_hull(data, comps, conditions):
             continue
         if cond.species == 'VA':
             continue
-        dof_values[comps.index(cond.species)] = value
-        marked_dof_values.remove(comps.index(cond.species))
+        dof_values[dof.index('X({0})'.format(cond.species))] = value
+        marked_dof_values.remove(dof.index('X({0})'.format(cond.species)))
 
     dof.append('GM')
 
@@ -91,10 +92,11 @@ def lower_convex_hull(data, comps, conditions):
     fractions = np.empty(len(dof_values))
     iteration = 0
     found_solution = False
+    index_array = np.array(range(dat.shape[0]), dtype=np.int)
 
     while (found_solution == False) and (iteration < max_iterations):
         iteration += 1
-        for new_point in np.array(range(dat.shape[0]), dtype=np.int)[~point_mask]:
+        for new_point in index_array[~point_mask]:
             found_point = False
             # Need to successively replace columns with the new point
             # The goal is to find positive phase fraction values
@@ -118,18 +120,18 @@ def lower_convex_hull(data, comps, conditions):
                     # Positive phase fractions
                     # Do I reduce the energy with this solution?
                     # Recalculate chemical potentials and energy
-                    logger.debug('new matrix: {0}'.format(dat[new_simplex, :-1]))
-                    logger.debug('new energies: {0}'.format(dat[new_simplex, -1]))
+                    #logger.debug('new matrix: {0}'.format(dat[new_simplex, :-1]))
+                    #logger.debug('new energies: {0}'.format(dat[new_simplex, -1]))
                     new_potentials = np.linalg.solve(dat[new_simplex, :-1],
                                                      dat[new_simplex, -1])
-                    logger.debug('new_potentials: {0}'.format(new_potentials))
+                    #logger.debug('new_potentials: {0}'.format(new_potentials))
                     new_energy = np.dot(new_potentials, dof_values)
                     # differences of less than 1mJ/mol are irrelevant
                     new_energy = np.around(new_energy, decimals=3)
                     if new_energy <= candidate_energy:
-                        logger.debug('New simplex {2} reduces energy from \
-                            {0} to {1}'.format(candidate_energy, new_energy, \
-                            new_simplex))
+                        #logger.debug('New simplex {2} reduces energy from \
+                        #    {0} to {1}'.format(candidate_energy, new_energy, \
+                        #    new_simplex))
                         # [:] notation forces a copy
                         candidate_simplex[:] = new_simplex
                         candidate_potentials[:] = new_potentials
@@ -138,7 +140,7 @@ def lower_convex_hull(data, comps, conditions):
                         # Recalculate driving forces with new potentials
                         driving_forces[:] = np.dot(dat[:, :-1], \
                             candidate_potentials) - dat[:, -1]
-                        logger.debug('driving_forces: %s', driving_forces)
+                        #logger.debug('driving_forces: %s', driving_forces)
                         point_mask = driving_forces < 1e-4
                         # Don't test points on the fictitious hyperplane
                         point_mask[list(range(len(dof)-1))] = True
@@ -151,8 +153,8 @@ def lower_convex_hull(data, comps, conditions):
                                      list(driving_forces >= 1e-4).count(True))
             if found_point:
                 logger.debug('Found feasible simplex: moving to next iteration')
-                logger.debug('%s points with positive driving force remain',
-                             list(driving_forces >= 1e-4).count(True))
+                #logger.debug('%s points with positive driving force remain',
+                #             list(driving_forces >= 1e-4).count(True))
                 break
             #else:
             #    print('{0} is not feasible'.format(new_point))
@@ -184,9 +186,9 @@ def lower_convex_hull(data, comps, conditions):
             logger.debug('Solution:')
             logger.debug(candidate_potentials)
             logger.debug(candidate_energy)
-            return candidate_simplex, fractions
+            return candidate_simplex, fractions, candidate_potentials
 
     logger.error('Iterations exceeded')
     logger.debug('Positive driving force still exists for these points')
     logger.debug(np.where(driving_forces > 1e-4)[0])
-    return None, None
+    return None, None, None
