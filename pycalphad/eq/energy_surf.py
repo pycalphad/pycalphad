@@ -10,6 +10,7 @@ from pycalphad.eq.utils import make_callable, point_sample, generate_dof
 from pycalphad.eq.utils import endmember_matrix, unpack_kwarg
 from pycalphad.log import logger
 import pycalphad.variables as v
+from sympy import Symbol
 import scipy.spatial
 import pandas as pd
 import numpy as np
@@ -190,6 +191,14 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
                 some sublattices containing only unspecified components""",
                                phase_name)
                 continue
+        # As a last resort, treat undefined symbols as zero
+        # But warn the user when we do this
+        # This is consistent with TC's behavior
+        undefs = list(mod.ast.atoms(Symbol) - mod.ast.atoms(v.StateVariable))
+        for undef in undefs:
+            mod.ast = mod.ast.xreplace({undef: float(0)})
+            logger.warning('Setting undefined symbol %s for phase %s to zero',
+                           undef, phase_name)
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
 
@@ -200,8 +209,17 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
         # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
 
+        # Eliminate pure vacancy endmembers from the calculation
+        vacancy_indices = list()
+        for idx, sublattice in enumerate(phase_obj.constituents):
+            if 'VA' in sorted(sublattice) and 'VA' in sorted(comps):
+                vacancy_indices.append(sorted(sublattice).index('VA'))
+        if len(vacancy_indices) != len(phase_obj.constituents):
+            vacancy_indices = None
+        logger.debug('vacancy_indices: %s', vacancy_indices)
         # Add all endmembers to guarantee their presence
-        points = endmember_matrix(sublattice_dof)
+        points = endmember_matrix(sublattice_dof,
+                                  vacancy_indices=vacancy_indices)
 
         # Sample composition space for more points
         if sum(sublattice_dof) > len(sublattice_dof):
