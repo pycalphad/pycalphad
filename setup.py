@@ -1,5 +1,11 @@
 from setuptools import setup
 import os
+import versioneer
+versioneer.VCS = 'git'
+versioneer.versionfile_source = 'pycalphad/_version.py'
+versioneer.versionfile_build = 'pycalphad/_version.py'
+versioneer.tag_prefix = '' # tags are like 1.2.0
+versioneer.parentdir_prefix = 'pycalphad-' # dirname like 'myproject-1.2.0'
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -10,7 +16,8 @@ def read(fname):
 
 setup(
     name='pycalphad',
-    version='0.0.1',
+    version=versioneer.get_version(),
+    cmdclass=versioneer.get_cmdclass(),
     author='Richard Otis',
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
