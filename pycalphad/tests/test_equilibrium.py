@@ -4,6 +4,7 @@ correct solution for thermodynamic equilibrium.
 """
 
 import nose.tools
+from unittest.case import SkipTest
 from pycalphad import Database, Equilibrium
 import pycalphad.variables as v
 
@@ -388,6 +389,7 @@ PARAMETER G(TEST,O,F,NE;2)     300  STR#;               6000 N !
 """
 
 ROSE_DBF = Database(ROSE_TEST_STRING)
+ALFE_DBF = Database('examples/alfe_sei.TDB')
 
 
 def check_close(test_value, known_value):
@@ -401,7 +403,9 @@ def check_close(test_value, known_value):
 
 # ROSE DIAGRAM TESTS
 def test_rose_nine():
-    "Nine-component rose diagram point equilibrium calculatiom."
+    "Nine-component rose diagram point equilibrium calculation."
+    raise SkipTest('Metastability checks for multi-component systems'
+                   ' deferred to future release')
     my_phases_rose = ['TEST']
     comps = ['H', 'HE', 'LI', 'BE', 'B', 'C', 'N', 'O', 'F']
     conds = dict()
@@ -410,6 +414,17 @@ def test_rose_nine():
     eqx = Equilibrium(ROSE_DBF, comps, my_phases_rose, conds, T=1000.0,
                       pdens=2000)
     check_close(eqx.result.energy, -5.8351e3)
+
+# OTHER TESTS
+def test_eq_binary():
+    "Binary phase diagram point equilibrium calculation with magnetism."
+    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
+                 'AL2FE', 'AL13FE4', 'AL5FE4']
+    comps = ['AL', 'FE', 'VA']
+    conds = {v.X('AL'): 0.55}
+    eqx = Equilibrium(ALFE_DBF, comps, my_phases, conds, T=1400.0,
+                      pdens=2000)
+    check_close(eqx.result.energy, -9.608807e4)
 
 if __name__ == '__main__':
     import nose
