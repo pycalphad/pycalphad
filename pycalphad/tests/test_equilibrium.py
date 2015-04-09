@@ -407,8 +407,9 @@ def test_rose_nine():
     conds = dict()
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
-    eq = Equilibrium(ROSE_DBF, comps, my_phases_rose, conds, T=1000, pdens=2000)
-    check_close(eq.result.energy, -5.8351e3)
+    eqx = Equilibrium(ROSE_DBF, comps, my_phases_rose, conds, T=1000.0,
+                      pdens=2000)
+    check_close(eqx.result.energy, -5.8351e3)
 
 if __name__ == '__main__':
     import nose
