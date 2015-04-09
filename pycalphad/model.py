@@ -496,7 +496,10 @@ class Model(object):
             (curie_temp/afm_factor, curie_temp <= 0)
             )
         #print(tc)
-        tau = v.T / tc
+        tau = Piecewise(
+             (v.T / tc, tc > 0),
+             (10000., tc == 0) # tau is 'infinity'
+             )
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
