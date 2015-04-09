@@ -41,3 +41,4 @@ lib/
 *.pyc
 *.kate-swp
 .ipynb_checkpoints/
+.coverage
