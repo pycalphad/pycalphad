@@ -29,7 +29,19 @@ Matplotlib, NumPy, SciPy, SymPy, Pandas, PyParsing, TinyDB
 Optional Dependencies:
 Numexpr (calculation speed-up for multi-core CPUs)
 
+Installation
+============
+For the latest stable release:
+```
+pip install pycalphad
+```
+
 Examples
 ========
 IPython notebooks with examples are hosted on NBViewer.
 http://nbviewer.ipython.org/github/richardotis/pycalphad/tree/master/examples/
+
+Documentation
+=============
+Full documentation is a work in progress. Most routines are documented in
+their docstrings, and example code can be found in the 'Examples' section.
