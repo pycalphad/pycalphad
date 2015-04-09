@@ -59,12 +59,15 @@ def lower_convex_hull(data, comps, conditions):
 
     # convert DataFrame of independent columns to ndarray
     dat = data[dof].values
+    temperature = data.at[0, 'T']
 
     # Build a fictitious hyperplane which has an energy greater than the max
     # energy in the system
     # This guarantees our starting point is feasible but also makes it likely
     # it won't be part of the solution
     energy_ceiling = np.amax(dat[:, -1])
+    if np.isnan(energy_ceiling):
+        raise ValueError('Input energy surface contains one or more NaNs.')
     if energy_ceiling < 0:
         energy_ceiling *= 0.1
     else:
@@ -74,7 +77,7 @@ def lower_convex_hull(data, comps, conditions):
     start_matrix[:, -1] = energy_ceiling # set energy
     dat = np.concatenate([start_matrix, dat])
 
-    max_iterations = dat.shape[0]
+    max_iterations = min(100, dat.shape[0])
     # Need to choose a feasible starting point
     # initialize simplex as first n points of fictitious hyperplane
     candidate_simplex = np.array(range(len(dof)-1), dtype=np.int)
@@ -85,7 +88,7 @@ def lower_convex_hull(data, comps, conditions):
     # Calculate driving forces for reducing our candidate potentials
     driving_forces = np.dot(dat[:, :-1], candidate_potentials) - dat[:, -1]
     # Mask points with negative (or nearly zero) driving force
-    point_mask = driving_forces < 1e-4
+    point_mask = driving_forces/(8.3145*temperature) < 1e-4
     #logger.debug(point_mask)
     #logger.debug(np.array(range(dat.shape[0]), dtype=np.int)[~point_mask])
     candidate_energy = np.dot(candidate_potentials, dof_values)
@@ -141,24 +144,21 @@ def lower_convex_hull(data, comps, conditions):
                         driving_forces[:] = np.dot(dat[:, :-1], \
                             candidate_potentials) - dat[:, -1]
                         #logger.debug('driving_forces: %s', driving_forces)
-                        point_mask = driving_forces < 1e-4
+                        point_mask = driving_forces/(8.3145*temperature) < 1e-4
                         # Don't test points on the fictitious hyperplane
                         point_mask[list(range(len(dof)-1))] = True
                         found_point = True
                         break
-                    else:
-                        logger.debug('Trial simplex {2} increases energy from {0} to {1}'\
-                                    .format(candidate_energy, new_energy, new_simplex))
-                        logger.debug('%s points with positive driving force remain',
-                                     list(driving_forces >= 1e-4).count(True))
+                    #else:
+                    #    logger.debug('Trial simplex {2} increases energy from {0} to {1}'\
+                    #                .format(candidate_energy, new_energy, new_simplex))
+                    #    logger.debug('%s points with positive driving force remain',
+                    #                 list(driving_forces >= 1e-4).count(True))
             if found_point:
                 logger.debug('Found feasible simplex: moving to next iteration')
                 #logger.debug('%s points with positive driving force remain',
                 #             list(driving_forces >= 1e-4).count(True))
                 break
-            #else:
-            #    print('{0} is not feasible'.format(new_point))
-            #    print('Driving force: {0}'.format(driving_forces[new_point]))
         # If there is no positive driving force, we have the solution
         #print('Checking point mask')
         #print(point_mask)
@@ -190,5 +190,5 @@ def lower_convex_hull(data, comps, conditions):
 
     logger.error('Iterations exceeded')
     logger.debug('Positive driving force still exists for these points')
-    logger.debug(np.where(driving_forces > 1e-4)[0])
+    logger.debug(np.where(driving_forces/(8.3145*temperature) > 1e-4)[0])
     return None, None, None
