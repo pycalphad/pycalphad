@@ -57,3 +57,7 @@ Documentation
 -------------
 Full documentation is a work in progress. Most routines are documented in
 their docstrings, and example code can be found in the 'Examples' section.
+
+Acknowledgements
+----------------
+Development has been made possible in part through a NASA Space Technology Research Fellowship (NSTRF) grant.
