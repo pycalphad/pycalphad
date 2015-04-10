@@ -23,7 +23,7 @@ setup(
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.eq', 'pycalphad.io', 'pycalphad.plot', 'pycalphad.plot.projections'],
     license='MIT',
-    long_description=read('README.md'),
+    long_description=read('README.rst'),
     url='https://github.com/richardotis/pycalphad',
     install_requires=['matplotlib', 'pandas', 'sympy', 'pyparsing', 'tinydb', 'scipy', 'numpy'],
     classifiers=[

@@ -42,3 +42,4 @@ lib/
 *.kate-swp
 .ipynb_checkpoints/
 .coverage
+MANIFEST

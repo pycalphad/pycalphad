@@ -1,6 +1,21 @@
 pycalphad, a library for the CALculation of PHAse Diagrams
 ==========================================================
-[![Build Status](https://travis-ci.org/richardotis/pycalphad.svg?branch=master)](https://travis-ci.org/richardotis/pycalphad)
+
+.. image:: https://img.shields.io/coveralls/richardotis/pycalphad.svg
+    :target: https://coveralls.io/r/richardotis/pycalphad
+
+.. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
+    :target: https://travis-ci.org/coagulant/coveralls-python
+
+.. image:: https://pypip.in/version/pycalphad/badge.svg
+    :target: https://pypi.python.org/pypi/pycalphad
+
+.. image:: https://pypip.in/py_versions/pycalphad/badge.svg
+    :target: https://pypi.python.org/pypi/pycalphad/
+
+.. image:: https://pypip.in/download/pycalphad/badge.svg
+    :target: https://pypi.python.org/pypi/pycalphad/
+
 **Note**: Unsolicited pull requests are _happily_ accepted!
 
 pycalphad is a free and open-source Python library for 
@@ -30,18 +45,15 @@ Optional Dependencies:
 Numexpr (calculation speed-up for multi-core CPUs)
 
 Installation
-============
-For the latest stable release:
-```
-pip install pycalphad
-```
+------------
+For the latest stable release, use ``pip install pycalphad``
 
 Examples
-========
+--------
 IPython notebooks with examples are hosted on NBViewer.
 http://nbviewer.ipython.org/github/richardotis/pycalphad/tree/master/examples/
 
 Documentation
-=============
+-------------
 Full documentation is a work in progress. Most routines are documented in
 their docstrings, and example code can be found in the 'Examples' section.
