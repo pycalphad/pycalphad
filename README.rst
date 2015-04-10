@@ -3,18 +3,31 @@ pycalphad, a library for the CALculation of PHAse Diagrams
 
 .. image:: https://img.shields.io/coveralls/richardotis/pycalphad.svg
     :target: https://coveralls.io/r/richardotis/pycalphad
+    :alt: Test Coverage
 
 .. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
-    :target: https://travis-ci.org/coagulant/coveralls-python
+    :target: https://travis-ci.org/richardotis/pycalphad
+    :alt: Build Status
+
+.. image:: https://pypip.in/status/pycalphad/badge.svg
+    :target: https://pypi.python.org/pypi/pycalphad/
+    :alt: Development Status
 
 .. image:: https://pypip.in/version/pycalphad/badge.svg
     :target: https://pypi.python.org/pypi/pycalphad
+    :alt: Latest version
 
 .. image:: https://pypip.in/py_versions/pycalphad/badge.svg
     :target: https://pypi.python.org/pypi/pycalphad/
+    :alt: Supported Python versions
 
-.. image:: https://pypip.in/download/pycalphad/badge.svg
+.. image:: https://pypip.in/license/pycalphad/badge.svg
     :target: https://pypi.python.org/pypi/pycalphad/
+    :alt: License
+
+.. image:: https://pypip.in/format/pycalphad/badge.svg
+    :target: https://pypi.python.org/pypi/pycalphad/
+    :alt: Download format
 
 **Note**: Unsolicited pull requests are _happily_ accepted!
 
