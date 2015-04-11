@@ -73,7 +73,7 @@ their docstrings, and example code can be found in the 'Examples' section.
 
 Acknowledgements
 ----------------
-Development has been made possible in part through a NASA Space Technology Research Fellowship (NSTRF) grant, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
+Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
 
 .. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
 .. _Department of Materials Science and Engineering: http://matse.psu.edu/
