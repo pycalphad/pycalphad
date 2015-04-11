@@ -22,6 +22,17 @@ except ImportError:
 __version__ = ver_module.get_versions()['version']
 del ver_loader, ver_module
 
+# Mock all of our complicated dependencies that RTD can't install
+from mock import Mock as MagicMock
+
+class Mock(MagicMock):
+    @classmethod
+    def __getattr__(cls, name):
+            return Mock()
+
+MOCK_NAMES = ['matplotlib', 'sympy', 'pyparsing', 'numpy', 'scipy', 'pandas']
+MOCK_MODULES = dict([(mod_name, Mock()) for mod_name in MOCK_NAMES])
+sys.modules.update(MOCK_MODULES)
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
