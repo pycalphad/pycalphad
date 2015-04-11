@@ -104,8 +104,7 @@ class Equilibrium(object):
     def get_starting_simplex(self):
         """
         Calculate convex hull and find a suitable starting point.
-        Returns iterable: first is a DataFrame of the phase compositions
-                          second is an estimate of the phase fractions
+        Returns (DataFrame of phase compositions, ndarray of phase fractions)
         """
         phase_compositions, phase_fracs, pots = \
             lower_convex_hull(self.data, self.components, self.conditions)
@@ -341,7 +340,7 @@ class Equilibrium(object):
             for undef in undefs:
                 mod.ast = mod.ast.xreplace({undef: float(0)})
                 logger.warning('Setting undefined symbol %s for phase %s to zero',
-                           undef, phase_name)
+                               undef, phase_name)
             # Construct an ordered list of the variables
             self._variables[phase_name], self._sublattice_dof[phase_name] = \
                 generate_dof(phase_obj, self.components)

@@ -159,10 +159,10 @@ def point_sample(comp_count, pdof=10):
     composition space for the sublattice configuration specified
     by 'comp_count'. Points are sampled quasi-randomly from a Halton sequence.
     A Halton sequence is like a uniform random distribution, but the
-    result will always be the same for a given 'comp_count' and 'size'.
+    result will always be the same for a given 'comp_count' and 'pdof'.
     Note: For systems with only one component, only one point will be
-        returned, regardless of 'pdof'. This is because the degrees of freedom
-        are zero for that case.
+    returned, regardless of 'pdof'. This is because the degrees of freedom
+    are zero for that case.
 
     Parameters
     ----------
