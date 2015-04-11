@@ -16,7 +16,10 @@
 import sys
 import os
 import shlex
-from pycalphad import __version__
+from pycalphad._version import get_versions
+__version__ = get_versions()['version']
+del get_versions
+
 
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
