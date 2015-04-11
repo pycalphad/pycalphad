@@ -1,16 +1,10 @@
-import sys
-import os
-import shlex
-
 # Single-source versioning
-# Not a fan of this approach but can't see another way if RTD
-# doesn't have all of pycalphad's dependencies installed
 ver_loader = None
 ver_module = None
 try:
     # Python 3
     import importlib.machinery
-    ver_loader = importlib.machinery.SourceFileLoader('pycalphad._version',
+    ver_loader = importlib.machinery.SourceFileLoader('_version',
                                                       '../pycalphad/_version.py')
     ver_module = ver_loader.load_module()
 except ImportError:
@@ -22,18 +16,6 @@ except ImportError:
 __version__ = ver_module.get_versions()['version']
 del ver_loader, ver_module
 
-# Mock all of our complicated dependencies that RTD can't install
-from mock import Mock as MagicMock
-
-class Mock(MagicMock):
-    @classmethod
-    def __getattr__(cls, name):
-            return Mock()
-
-MOCK_NAMES = ['matplotlib', 'sympy', 'pyparsing', 'numpy', 'scipy', 'pandas']
-MOCK_MODULES = dict([(mod_name, Mock()) for mod_name in MOCK_NAMES])
-sys.modules.update(MOCK_MODULES)
-
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
@@ -42,14 +24,15 @@ sys.modules.update(MOCK_MODULES)
 # -- General configuration ------------------------------------------------
 
 # If your documentation needs a minimal Sphinx version, state it here.
-#needs_sphinx = '1.0'
+#needs_sphinx = '1.2'
 
 # Add any Sphinx extension module names here, as strings. They can be
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
     'sphinx.ext.autodoc',
-    'sphinx.ext.napoleon',
+    'sphinx.ext.autosummary',
+    'numpydoc',
     'sphinx.ext.doctest',
     'sphinx.ext.todo',
     'sphinx.ext.coverage',
