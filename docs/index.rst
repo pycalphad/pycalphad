@@ -1,15 +1,33 @@
 .. pycalphad documentation master file, created by
-   sphinx-quickstart on Fri Apr 10 20:14:40 2015.
+   sphinx-quickstart on Sat Apr 11 16:58:12 2015.
+   You can adapt this file completely to your liking, but it should at least
+   contain the root `toctree` directive.
 
-Welcome to pycalphad's documentation!
-=====================================
+.. |logo| image:: ../logo.png
+          :height: 20pt
+          :width: 20pt
+          :alt: Logo
+
+|logo| pycalphad: Computational Thermodynamics
+==============================================
+
+pycalphad is a Python library for computational thermodynamics using the CALPHAD method.
+
+Because pycalphad is still in the alpha phase of development, documentation is under heavy development.
+
+The latest development version of the source code can be found on `GitHub`_.
+The newest stable version can be found on `PyPI`_.
+
+.. _GitHub: https://github.com/richardotis/pycalphad
+.. _PyPI: https://pypi.python.org/pypi/pycalphad
 
 Contents:
 
 .. toctree::
    :maxdepth: 2
 
-   docs/source/modules
+   README
+   api/modules
 
 Indices and tables
 ==================

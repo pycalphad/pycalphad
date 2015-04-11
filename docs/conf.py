@@ -1,3 +1,6 @@
+import sys
+import os
+
 # Single-source versioning
 ver_loader = None
 ver_module = None
@@ -19,7 +22,7 @@ del ver_loader, ver_module
 # If extensions (or modules to document with autodoc) are in another directory,
 # add these directories to sys.path here. If the directory is relative to the
 # documentation root, use os.path.abspath to make it absolute, like shown here.
-#sys.path.insert(0, os.path.abspath('.'))
+sys.path.insert(0, os.path.abspath('../pycalphad'))
 
 # -- General configuration ------------------------------------------------
 
@@ -34,10 +37,12 @@ extensions = [
     'sphinx.ext.autosummary',
     'numpydoc',
     'sphinx.ext.doctest',
-    'sphinx.ext.todo',
     'sphinx.ext.coverage',
     'sphinx.ext.viewcode',
 ]
+autosummary_generate = True
+numpydoc_class_members_toctree = True
+numpydoc_show_class_members = False
 
 # Add any paths that contain templates here, relative to this directory.
 templates_path = ['_templates']
@@ -55,8 +60,8 @@ master_doc = 'index'
 
 # General information about the project.
 project = 'pycalphad'
-copyright = '2015, Richard Otis'
-author = 'Richard Otis'
+copyright = '2015, pycalphad Development Team'
+author = 'pycalphad Developers'
 
 # The version info for the project you're documenting, acts as replacement for
 # |version| and |release|, also used in various other places throughout the
@@ -82,7 +87,7 @@ language = None
 
 # List of patterns, relative to source directory, that match files and
 # directories to ignore when looking for source files.
-exclude_patterns = ['_build']
+exclude_patterns = ['_build', '_autosummary']
 
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
@@ -231,7 +236,7 @@ latex_elements = {
 #  author, documentclass [howto, manual, or own class]).
 latex_documents = [
   (master_doc, 'pycalphad.tex', 'pycalphad Documentation',
-   'Richard Otis', 'manual'),
+   'pycalphad Developers', 'manual'),
 ]
 
 # The name of an image file (relative to this directory) to place at the top of
@@ -275,7 +280,7 @@ man_pages = [
 #  dir menu entry, description, category)
 texinfo_documents = [
   (master_doc, 'pycalphad', 'pycalphad Documentation',
-   author, 'pycalphad', 'One line description of project.',
+   author, 'pycalphad', 'Computational thermodynamics in Python',
    'Miscellaneous'),
 ]
 
