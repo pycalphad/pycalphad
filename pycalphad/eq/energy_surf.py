@@ -127,9 +127,9 @@ def refine_energy_surf(input_matrix, energies, phase_obj, comps, variables,
                               phase_obj, comps, variables,
                               energy_func, max_iterations=max_iterations-1)
 
-def energy_surf(dbf, comps, phases, mode=None, **kwargs):
+def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
     """
-    Sample the energy surface of a system containing the specified
+    Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
     state variables (T, P, etc.) can be specified as keyword arguments.
 
@@ -141,12 +141,18 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
         Names of components to consider in the calculation.
     phases : list
         Names of phases to consider in the calculation.
+    mode : string, optional
+        See 'make_callable' docstring for details.
+    output : string, optional
+        Model attribute to sample. Default is 'energy'.
     pdens : int, a dict of phase names to int, or a list of both, optional
         Number of points to sample per degree of freedom.
+    model : Model, a dict of phase names to Model, or a list of both, optional
+        Model class to use for each phase.
 
     Returns
     -------
-    DataFrame of the energy as a function of composition, temperature, etc.
+    DataFrame of the output as a function of composition, temperature, etc.
 
     Examples
     --------
@@ -191,19 +197,24 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
                 some sublattices containing only unspecified components""",
                                phase_name)
                 continue
+        try:
+            out = getattr(mod, output)
+        except AttributeError:
+            raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                 .format(output, mod.__class__))
         # As a last resort, treat undefined symbols as zero
         # But warn the user when we do this
         # This is consistent with TC's behavior
-        undefs = list(mod.ast.atoms(Symbol) - mod.ast.atoms(v.StateVariable))
+        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
         for undef in undefs:
-            mod.ast = mod.ast.xreplace({undef: float(0)})
+            out = out.xreplace({undef: float(0)})
             logger.warning('Setting undefined symbol %s for phase %s to zero',
                            undef, phase_name)
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
 
         # Build the "fast" representation of that model
-        comp_sets[phase_name] = make_callable(mod.ast, \
+        comp_sets[phase_name] = make_callable(out, \
             list(statevar_dict.keys()) + variables, mode=mode)
 
         # Get the site ratios in each sublattice
@@ -263,13 +274,13 @@ def energy_surf(dbf, comps, phases, mode=None, **kwargs):
                 refine_energy_surf(points, None, phase_obj, comps,
                                    variables, energy_func, max_iterations=-1)
             try:
-                data_dict['GM'].extend(energies)
+                data_dict[output].extend(energies)
                 for statevar in kwargs.keys():
                     data_dict[statevar].extend(
                         list(np.repeat(list(statevars.values()),
                                        len(refined_points))))
             except KeyError:
-                data_dict['GM'] = list(energies)
+                data_dict[output] = list(energies)
                 for statevar in kwargs.keys():
                     data_dict[statevar] = \
                         list(np.repeat(list(statevars.values()),
