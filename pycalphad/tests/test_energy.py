@@ -318,6 +318,32 @@ def test_pure_numpy():
              v.SiteFraction('L12_FCC', 1, 'AL'): 1}, \
         -3.01732e4, mode='numpy')
 
+def test_degenerate_ordered():
+    "Degenerate sublattice configuration has same energy as disordered phase."
+    mod_l12 = Model(DBF, ['CR', 'NI'], 'L12_FCC')
+    mod_a1 = Model(DBF, ['CR', 'NI'], 'FCC_A1')
+    l12_subs = {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
+                v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}
+    a1_subs = {v.T: 500, v.SiteFraction('FCC_A1', 0, 'CR'): 0.33,
+               v.SiteFraction('FCC_A1', 0, 'NI'): 0.67}
+    l12_energy = mod_l12.energy.xreplace(l12_subs)
+    a1_energy = mod_a1.energy.xreplace(a1_subs)
+    assert l12_energy.evalf() == a1_energy.evalf(), \
+            "%r != %r" % (l12_energy, a1_energy)
+
+def test_degenerate_zero_ordering():
+    "Degenerate sublattice configuration has zero ordering energy."
+    mod = Model(DBF, ['CR', 'NI'], 'L12_FCC')
+    sub_dict = {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
+                v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}
+    #print({x: mod.models[x].subs(sub_dict) for x in mod.models})
+    desired = mod.models['ord'].xreplace(sub_dict).evalf()
+    assert abs(desired - 0) < 1e-5, "%r != %r" % (desired, 0)
+
 # BINARY TESTS
 def test_binary_magnetic():
     "Two-component phase with IHJ magnetic model."

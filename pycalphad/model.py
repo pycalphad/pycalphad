@@ -80,10 +80,27 @@ class Model(object):
                 # Can't use xreplace on a float
                 pass
 
-        # Build the abstract syntax tree
-        self.ast = self.build_phase(dbe, phase.upper(), symbols, dbe.search)
-        self.ast = self.ast.xreplace(symbols)
+        self.models = dict()
+        self.build_phase(dbe, phase.upper(), symbols, dbe.search)
         self.variables = self.ast.atoms(v.StateVariable)
+
+    @property
+    def ast(self):
+        "Return the full abstract syntax tree of the model."
+        return Add(*list(self.models.values()))
+
+    #pylint: disable=C0103
+    # These are standard abbreviations from Thermo-Calc for these quantities
+    energy = GM = property(lambda self: self.ast)
+    entropy = SM = property(lambda self: -self.GM.diff(v.T))
+    enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
+    #pylint: enable=C0103
+    mixing_energy = MIX_GM = property(lambda self: self.GM - self.models['ref'])
+    mixing_enthalpy = MIX_HM = \
+        property(lambda self: self.MIX_GM - v.T*self.MIX_GM.diff(v.T))
+    mixing_entropy = MIX_SM = property(lambda self: -self.MIX_GM.diff(v.T))
+
+
     def _purity_test(self, constituent_array):
         """
         Check if constituent array only has one species in its array
@@ -172,22 +189,19 @@ class Model(object):
         Apply phase's model hints to build a master SymPy object.
         """
         phase = dbe.phases[phase_name]
-        total_energy = S.Zero
-        # First, build the reference energy term
-        total_energy += self.reference_energy(phase, symbols, param_search)
-
-        # Next, add the ideal mixing term
-        total_energy += self.ideal_mixing_energy(phase, symbols, param_search)
-
-        # Next, add the binary, ternary and higher order mixing term
-        total_energy += self.excess_mixing_energy(phase, symbols, param_search)
-
-        # Next, we need to handle contributions from magnetic ordering
-        total_energy += self.magnetic_energy(phase, symbols, param_search)
-
+        self.models['ref'] = self.reference_energy(phase, param_search)
+        self.models['idmix'] = self.ideal_mixing_energy(phase, param_search)
+        self.models['xsmix'] = self.excess_mixing_energy(phase, param_search)
+        self.models['mag'] = self.magnetic_energy(phase, param_search)
+        for name, value in self.models.items():
+            try:
+                self.models[name] = value.xreplace(symbols).xreplace(symbols)
+            except AttributeError:
+                pass
         # Next, we handle atomic ordering
-        # NOTE: We need to add this one last since it uses the energy
-        # as a parameter to figure out the contribution.
+        # NOTE: We need to add this one last since it uses self.models
+        # to figure out the contribution.
+        # It will also MODIFY self.models
         ordered_phase_name = None
         disordered_phase_name = None
         try:
@@ -196,14 +210,11 @@ class Model(object):
         except KeyError:
             pass
         if ordered_phase_name == phase_name:
-            total_energy += \
-                self.atomic_ordering_energy(dbe, disordered_phase_name,
-                                            ordered_phase_name,
-                                            total_energy,
-                                            symbols, param_search)
+            self.models['ord'] = self.atomic_ordering_energy(dbe,
+                                                             disordered_phase_name,
+                                                             ordered_phase_name)
 
-        return total_energy
-    def _redlich_kister_sum(self, phase, symbols, param_type, param_search):
+    def _redlich_kister_sum(self, phase, param_type, param_search):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
@@ -288,9 +299,9 @@ class Model(object):
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True)
-            rk_terms.append(mixing_term * param['parameter'].xreplace(symbols))
+            rk_terms.append(mixing_term * param['parameter'])
         return Add(*rk_terms)
-    def reference_energy(self, phase, symbols, param_search):
+    def reference_energy(self, phase, param_search):
         """
         Returns the weighted average of the endmember energies
         in symbolic form.
@@ -330,10 +341,10 @@ class Model(object):
                             v.SiteFraction(phase.name, subl_index, comp[0])
                         site_fraction_product *= comp_symbol
             pure_energy_term += (
-                site_fraction_product * param['parameter'].xreplace(symbols)
+                site_fraction_product * param['parameter']
             ) / site_ratio_normalization
         return pure_energy_term
-    def ideal_mixing_energy(self, phase, symbols, param_search):
+    def ideal_mixing_energy(self, phase, param_search):
         #pylint: disable=W0613
         """
         Returns the ideal mixing energy in symbolic form.
@@ -359,7 +370,7 @@ class Model(object):
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
-    def excess_mixing_energy(self, phase, symbols, param_search):
+    def excess_mixing_energy(self, phase, param_search):
         """
         Build the binary, ternary and higher order interaction term
         Here we use Redlich-Kister polynomial basis by default
@@ -463,10 +474,9 @@ class Model(object):
                 if len(comps) > 3:
                     raise ValueError('Higher-order interactions (n>3) are \
                         not yet supported')
-            excess_mixing_terms.append(mixing_term * \
-                param['parameter'].xreplace(symbols))
+            excess_mixing_terms.append(mixing_term * param['parameter'])
         return Add(*excess_mixing_terms) / site_ratio_normalization
-    def magnetic_energy(self, phase, symbols, param_search):
+    def magnetic_energy(self, phase, param_search):
         #pylint: disable=C0103, R0914
         """
         Return the energy from magnetic ordering in symbolic form.
@@ -483,23 +493,23 @@ class Model(object):
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
         mean_magnetic_moment = \
-            self._redlich_kister_sum(phase, symbols, 'BMAGN', param_search)
+            self._redlich_kister_sum(phase, 'BMAGN', param_search)
         beta = Piecewise(
             (mean_magnetic_moment, mean_magnetic_moment > 0),
             (mean_magnetic_moment/afm_factor, mean_magnetic_moment <= 0)
             )
 
         curie_temp = \
-            self._redlich_kister_sum(phase, symbols, 'TC', param_search)
+            self._redlich_kister_sum(phase, 'TC', param_search)
         tc = Piecewise(
             (curie_temp, curie_temp > 0),
             (curie_temp/afm_factor, curie_temp <= 0)
             )
         #print(tc)
         tau = Piecewise(
-             (v.T / tc, tc > 0),
-             (10000., tc == 0) # tau is 'infinity'
-             )
+            (v.T / tc, tc > 0),
+            (10000., tc == 0) # tau is 'infinity'
+            )
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
@@ -558,24 +568,19 @@ class Model(object):
         return numerator / site_ratio_normalization
 
     def atomic_ordering_energy(self, dbe, disordered_phase_name,
-                               ordered_phase_name, ordered_phase_energy,
-                               symbols, param_search):
+                               ordered_phase_name):
         """
         Return the atomic ordering contribution in symbolic form.
         Description follows Servant and Ansara, Calphad, 2001.
         """
-
-        # What we need to add here is the energy of
-        # the disordered phase, followed by subtracting out the ordered
-        # phase energy for the case when all sublattices are equal.
-        disordered_term = self.build_phase(dbe, disordered_phase_name,
-                                           symbols, param_search)
+        disordered_model = self.__class__(dbe, self.components,
+                                          disordered_phase_name)
         constituents = [sorted(set(c).intersection(self.components)) \
                 for c in dbe.phases[ordered_phase_name].constituents]
 
         # Fix variable names
         variable_rename_dict = {}
-        for atom in disordered_term.atoms(v.SiteFraction):
+        for atom in disordered_model.energy.atoms(v.SiteFraction):
             # Replace disordered phase site fractions with mole fractions of
             # ordered phase site fractions.
             # Special case: Pure vacancy sublattices
@@ -598,8 +603,13 @@ class Model(object):
                         constituents,
                         dbe.phases[ordered_phase_name].sublattices
                         )
+        # Save all of the ordered energy contributions
+        # This step is why this routine must be called _last_ in build_phase
+        ordered_energy = Add(*list(self.models.values()))
 
-        disordered_term = disordered_term.subs(variable_rename_dict)
+        # Copy the disordered energy contributions into the correct bins
+        for name, value in disordered_model.models.items():
+            self.models[name] = value.xreplace(variable_rename_dict)
 
         # Now handle the ordered term for degenerate sublattice case
         molefraction_dict = {}
@@ -613,7 +623,7 @@ class Model(object):
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction
-        for sitefrac in ordered_phase_energy.atoms(v.SiteFraction):
+        for sitefrac in ordered_energy.atoms(v.SiteFraction):
             all_species_in_sublattice = \
                 dbe.phases[ordered_phase_name].constituents[
                     sitefrac.sublattice_index]
@@ -624,7 +634,5 @@ class Model(object):
                 continue
             molefraction_dict[sitefrac] = species_dict[sitefrac.species]
 
-        subl_equal_term = \
-            ordered_phase_energy.subs(molefraction_dict, simultaneous=True)
-
-        return disordered_term - subl_equal_term
+        return ordered_energy - ordered_energy.subs(molefraction_dict,
+                                                    simultaneous=True)
