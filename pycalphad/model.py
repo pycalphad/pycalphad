@@ -100,6 +100,35 @@ class Model(object):
         property(lambda self: self.MIX_GM - v.T*self.MIX_GM.diff(v.T))
     mixing_entropy = MIX_SM = property(lambda self: -self.MIX_GM.diff(v.T))
 
+    def build_phase(self, dbe, phase_name, symbols, param_search):
+        """
+        Apply phase's model hints to build a master SymPy object.
+        """
+        phase = dbe.phases[phase_name]
+        self.models['ref'] = self.reference_energy(phase, param_search)
+        self.models['idmix'] = self.ideal_mixing_energy(phase, param_search)
+        self.models['xsmix'] = self.excess_mixing_energy(phase, param_search)
+        self.models['mag'] = self.magnetic_energy(phase, param_search)
+        for name, value in self.models.items():
+            try:
+                self.models[name] = value.xreplace(symbols).xreplace(symbols)
+            except AttributeError:
+                pass
+        # Next, we handle atomic ordering
+        # NOTE: We need to add this one last since it uses self.models
+        # to figure out the contribution.
+        # It will also MODIFY self.models
+        ordered_phase_name = None
+        disordered_phase_name = None
+        try:
+            ordered_phase_name = phase.model_hints['ordered_phase']
+            disordered_phase_name = phase.model_hints['disordered_phase']
+        except KeyError:
+            pass
+        if ordered_phase_name == phase_name:
+            self.models['ord'] = self.atomic_ordering_energy(dbe,
+                                                             disordered_phase_name,
+                                                             ordered_phase_name)
 
     def _purity_test(self, constituent_array):
         """
@@ -113,6 +142,7 @@ class Model(object):
                 (sublattice[0] != '*'):
                 return False
         return True
+
     def _array_validity(self, constituent_array):
         """
         Check that the current array contains only active species.
@@ -123,6 +153,7 @@ class Model(object):
             if not valid:
                 return False
         return True
+
     def _interaction_test(self, constituent_array):
         """
         Check if constituent array has more than one active species in
@@ -183,36 +214,6 @@ class Model(object):
         for comp in comps:
             return_dict[comp] = comp + correction_term
         return return_dict
-
-    def build_phase(self, dbe, phase_name, symbols, param_search):
-        """
-        Apply phase's model hints to build a master SymPy object.
-        """
-        phase = dbe.phases[phase_name]
-        self.models['ref'] = self.reference_energy(phase, param_search)
-        self.models['idmix'] = self.ideal_mixing_energy(phase, param_search)
-        self.models['xsmix'] = self.excess_mixing_energy(phase, param_search)
-        self.models['mag'] = self.magnetic_energy(phase, param_search)
-        for name, value in self.models.items():
-            try:
-                self.models[name] = value.xreplace(symbols).xreplace(symbols)
-            except AttributeError:
-                pass
-        # Next, we handle atomic ordering
-        # NOTE: We need to add this one last since it uses self.models
-        # to figure out the contribution.
-        # It will also MODIFY self.models
-        ordered_phase_name = None
-        disordered_phase_name = None
-        try:
-            ordered_phase_name = phase.model_hints['ordered_phase']
-            disordered_phase_name = phase.model_hints['disordered_phase']
-        except KeyError:
-            pass
-        if ordered_phase_name == phase_name:
-            self.models['ord'] = self.atomic_ordering_energy(dbe,
-                                                             disordered_phase_name,
-                                                             ordered_phase_name)
 
     def redlich_kister_sum(self, phase, param_search, param_query):
         """
@@ -296,6 +297,7 @@ class Model(object):
                         simultaneous=True)
             rk_terms.append(mixing_term * param['parameter'])
         return Add(*rk_terms)
+
     def reference_energy(self, phase, param_search):
         """
         Returns the weighted average of the endmember energies
@@ -310,6 +312,7 @@ class Model(object):
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
         return pure_energy_term / self._site_ratio_normalization(phase)
+
     def ideal_mixing_energy(self, phase, param_search):
         #pylint: disable=W0613
         """
@@ -335,6 +338,7 @@ class Model(object):
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
+
     def excess_mixing_energy(self, phase, param_search):
         """
         Build the binary, ternary and higher order interaction term
@@ -351,6 +355,7 @@ class Model(object):
             )
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
         return excess_term / self._site_ratio_normalization(phase)
+
     def magnetic_energy(self, phase, param_search):
         #pylint: disable=C0103, R0914
         """
