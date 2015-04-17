@@ -240,5 +240,12 @@ $
 DBF = Database(TDB_TEST_STRING)
 
 def test_surface():
+    "Bare minimum: calculation produces a result."
     energy_surf(DBF, ['AL', 'CR', 'NI'], ['L12_FCC'],
                 T=1273, pdens=10, mode='numpy')
+
+@nose.tools.raises(AttributeError)
+def test_unknown_model_attribute():
+    "Sampling an unknown model attribute raises exception."
+    energy_surf(DBF, ['AL', 'CR', 'NI'], ['L12_FCC'],
+                T=1400.0, output='_fail_')
