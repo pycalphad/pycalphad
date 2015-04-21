@@ -64,6 +64,7 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
+    callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
@@ -104,23 +105,25 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
         except AttributeError:
             raise AttributeError('Missing Model attribute {0} specified for {1}'
                                  .format(output, mod.__class__))
-        # As a last resort, treat undefined symbols as zero
-        # But warn the user when we do this
-        # This is consistent with TC's behavior
-        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-        for undef in undefs:
-            out = out.xreplace({undef: float(0)})
-            logger.warning('Setting undefined symbol %s for phase %s to zero',
-                           undef, phase_name)
+
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
 
-        # Build the "fast" representation of that model
-        comp_sets[phase_name] = make_callable(out, \
-            list(statevar_dict.keys()) + variables, mode=mode)
-
-        # Get the site ratios in each sublattice
         site_ratios = list(phase_obj.sublattices)
+        # Build the "fast" representation of that model
+        if callable_dict[phase_name] is None:
+            # As a last resort, treat undefined symbols as zero
+            # But warn the user when we do this
+            # This is consistent with TC's behavior
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+                logger.warning('Setting undefined symbol %s for phase %s to zero',
+                               undef, phase_name)
+            comp_sets[phase_name] = make_callable(out, \
+                list(statevar_dict.keys()) + variables, mode=mode)
+        else:
+            comp_sets[phase_name] = callable_dict[phase_name]
 
         # Eliminate pure vacancy endmembers from the calculation
         vacancy_indices = list()
@@ -140,7 +143,6 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
                                      point_sample(sublattice_dof,
                                                   pdof=pdens_dict[phase_name])
                                     ))
-
 
 
         # If there are nontrivial sublattices with vacancies in them,
