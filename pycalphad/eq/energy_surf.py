@@ -15,6 +15,7 @@ import pandas as pd
 import numpy as np
 import itertools
 import collections
+import functools
 
 try:
     set
@@ -164,10 +165,8 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
         # Generate input d.o.f matrix for all state variable combinations
         for statevars in statevars_to_map:
             # Prefill the state variable arguments to the energy function
-            energy_func = \
-                lambda *args: comp_sets[phase_name](
-                    *itertools.chain(list(statevars.values()),
-                                     args))
+            energy_func = functools.partial(comp_sets[phase_name],
+                                            *list(statevars.values()))
             energies = energy_func(*points.T)
             try:
                 data_dict[output].extend(energies)
