@@ -46,7 +46,7 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
     mode : string, optional
         See 'make_callable' docstring for details.
     output : string, optional
-        Model attribute to sample. Default is 'energy'.
+        Model attribute to sample.
     pdens : int, a dict of phase names to int, or a list of both, optional
         Number of points to sample per degree of freedom.
     model : Model, a dict of phase names to Model, or a list of both, optional
