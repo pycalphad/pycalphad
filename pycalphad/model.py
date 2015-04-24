@@ -76,12 +76,16 @@ class Model(object):
 
         self.models = dict()
         self.build_phase(dbe, phase.upper(), symbols, dbe.search)
-        self.variables = self.ast.atoms(v.StateVariable)
 
     @property
     def ast(self):
         "Return the full abstract syntax tree of the model."
         return Add(*list(self.models.values()))
+
+    @property
+    def variables(self):
+        "Return state variables in the model."
+        return self.ast.atoms(v.StateVariables)
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
