@@ -8,6 +8,30 @@ except NameError:
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 
+class Phase(object): #pylint: disable=R0903
+    """
+    Phase in the database.
+
+    Attributes
+    ----------
+    name : string
+        System-local name of the phase.
+    constituents : list of lists
+        Possible sublattice constituents (elements and/or species).
+    sublattices : list
+        Site ratios of sublattices.
+    model_hints : dict
+        Structured "hints" for a Model trying to read this phase.
+        Hints for major constituents and typedefs (Thermo-Calc) go here.
+    """
+    def __init__(self):
+        self.name = None
+        self.constituents = None
+        self.sublattices = []
+        self.model_hints = {}
+    def __repr__(self):
+        return 'Phase({0!r})'.format(self.__dict__)
+
 class Database(object): #pylint: disable=R0902
     """
     Structured thermodynamic and/or kinetic data.
@@ -31,29 +55,6 @@ class Database(object): #pylint: disable=R0902
     None yet.
 
     """
-    class Phase(object): #pylint: disable=R0903
-        """
-        Phase in the database.
-
-        Attributes
-        ----------
-        name : string
-            System-local name of the phase.
-        constituents : list of lists
-            Possible sublattice constituents (elements and/or species).
-        sublattices : list
-            Site ratios of sublattices.
-        model_hints : dict
-            Structured "hints" for a Model trying to read this phase.
-            Hints for major constituents and typedefs (Thermo-Calc) go here.
-        """
-        def __init__(self):
-            self.name = None
-            self.constituents = None
-            self.sublattices = []
-            self.model_hints = {}
-        def __repr__(self):
-            return 'Phase({0!r})'.format(self.__dict__)
     def __init__(self, *dbf):
         """
         Construct a Database object.
@@ -184,7 +185,7 @@ class Database(object): #pylint: disable=R0902
         --------
         None yet.
         """
-        new_phase = Database.Phase()
+        new_phase = Phase()
         new_phase.name = phase_name
         new_phase.sublattices = sublattices
         new_phase.model_hints = model_hints
