@@ -97,28 +97,6 @@ class SpecialNumExprPrinter(NumExprPrinter): #pylint: disable=R0903
                                       self._print(Piecewise(*expr.args[1:]), \
                                       **kwargs))
 
-def walk(num_dims, samples_per_dim):
-    """
-    A generator that returns lattice points on an n-simplex.
-    """
-    max_ = samples_per_dim + num_dims - 1
-    for cvx in itertools.combinations(range(max_), num_dims):
-        cvx = list(cvx)
-        yield [(y - x - 1) / (samples_per_dim - 1)
-               for x, y in zip([-1] + cvx, cvx + [max_])]
-
-def _primes(upto):
-    """
-    Return all prime numbers up to `upto`.
-    Reference: http://rebrained.com/?p=458
-    """
-    primes = np.arange(3, upto+1, 2)
-    isprime = np.ones((upto-1)/2, dtype=bool)
-    for factor in primes[:int(sqrt(upto))]:
-        if isprime[(factor-2)/2]:
-            isprime[(factor*3-2)/2::factor] = 0
-    return np.insert(primes[isprime], 0, 2)
-
 def halton(dim, nbpts):
     """
     Generate 'nbpts' points of the 'dim'-dimensional Halton sequence.
