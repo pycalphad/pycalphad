@@ -13,7 +13,7 @@ import operator
 import functools
 import itertools
 import collections
-from math import log, floor, ceil, fmod, sqrt
+from math import log, ceil
 try:
     set
 except NameError:
@@ -121,37 +121,31 @@ def _primes(upto):
 
 def halton(dim, nbpts):
     """
-    Generate `nbpts` points of the `dim`-dimensional Halton sequence.
+    Generate 'nbpts' points of the 'dim'-dimensional Halton sequence.
     Originally written in C by Sebastien Paris; translated to Python by
     Josef Perktold.
     """
     #pylint: disable=C0103
-    h = np.empty(nbpts * dim)
-    h.fill(np.nan)
-    p = np.empty(nbpts)
-    p.fill(np.nan)
-    P = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31]
+    P = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
+         67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131]
     if dim > len(P):
-        # For high-dimensional sequences, apply prime-number theorem to
-        # generate additional primes
-        P = _primes(int(dim * np.log(dim)))
+        raise ValueError('Halton sequences of more than {} dimensions are '
+                         'unsupported'.format(len(P)))
+    h = np.empty((nbpts, dim), dtype=np.float)
     lognbpts = log(nbpts + 1)
     for i in range(dim):
-        b = P[i]
+        b = float(P[i])
         n = int(ceil(lognbpts / log(b)))
-        for t in range(n):
-            p[t] = pow(b, -(t + 1))
-
-        for j in range(nbpts):
-            d = j + 1
-            sum_ = fmod(d, b) * p[0]
-            for t in range(1, n):
-                d = floor(d / b)
-                sum_ += fmod(d, b) * p[t]
-
-            h[j*dim + i] = sum_
-
-    return h.reshape(nbpts, dim)
+        # need to be careful about precision errors here
+        # cast to long double so that, e.g., halton(3, 10000) will be correct
+        p = np.power(b, -np.arange(1, n+1, dtype=np.longdouble))
+        pt_vector = np.arange(1, nbpts+1)
+        radix_vector = np.power(b, -np.arange(n, dtype=np.longdouble))
+        # we can drop precision after the outer product for a speedup
+        sum_matrix = np.outer(pt_vector, radix_vector).astype(np.float)
+        mod_matrix = np.mod(np.floor(sum_matrix), b)
+        h[:, i] = np.dot(mod_matrix, p)
+    return h
 
 def point_sample(comp_count, pdof=10):
     """
