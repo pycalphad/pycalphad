@@ -59,7 +59,7 @@ def lower_convex_hull(data, comps, conditions):
 
     # convert DataFrame of independent columns to ndarray
     dat = data[dof].values
-    temperature = data.at[0, 'T']
+    temperature = data.iloc[0].loc['T']
 
     # Build a fictitious hyperplane which has an energy greater than the max
     # energy in the system
