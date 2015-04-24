@@ -63,8 +63,6 @@ class Model(object):
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
-        if parameters is not None:
-            symbols.update([(Symbol(s), val) for s, val in parameters.items()])
         # Need to do more substitutions to catch symbols that are functions
         # of other symbols
         for name, value in symbols.items():
@@ -73,12 +71,8 @@ class Model(object):
             except AttributeError:
                 # Can't use xreplace on a float
                 pass
-        for name, value in symbols.items():
-            try:
-                symbols[name] = value.xreplace(symbols)
-            except AttributeError:
-                # Can't use xreplace on a float
-                pass
+        if parameters is not None:
+            symbols.update([(Symbol(s), val) for s, val in parameters.items()])
 
         self.models = dict()
         self.build_phase(dbe, phase.upper(), symbols, dbe.search)
