@@ -69,15 +69,14 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = \
-        dict((v.StateVariable(key), value) \
-             for (key, value) in kwargs.items())
+        collections.OrderedDict((v.StateVariable(key), value) \
+                                for (key, value) in sorted(kwargs.items()))
 
     # Generate all combinations of state variables for 'map' calculation
     # Wrap single values of state variables in lists
     # Use 'kwargs' because we want state variable names to be stringified
-    statevar_values = [_listify(val) for val in kwargs.values()]
-    statevars_to_map = [dict(zip(kwargs.keys(), prod)) \
-        for prod in itertools.product(*statevar_values)]
+    statevar_values = [_listify(val) for val in statevar_dict.values()]
+    statevars_to_map = np.array(list(itertools.product(*statevar_values)))
 
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
@@ -164,60 +163,43 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
                 points = np.concatenate((points, addtl_pts), axis=0)
 
         data_dict = {'Phase': phase_name}
-        # Generate input d.o.f matrix for all state variable combinations
-        for statevars in statevars_to_map:
-            # Prefill the state variable arguments to the energy function
-            energy_func = functools.partial(comp_sets[phase_name],
-                                            *list(statevars.values()))
-            energies = energy_func(*points.T)
-            try:
-                data_dict[output].extend(energies)
-                for statevar in kwargs.keys():
-                    data_dict[statevar].extend(
-                        list(np.repeat(list(statevars.values()),
-                                       len(points))))
-            except KeyError:
-                data_dict[output] = list(energies)
-                for statevar in kwargs.keys():
-                    data_dict[statevar] = \
-                        list(np.repeat(list(statevars.values()),
-                                       len(points)))
+        # Broadcast compositions and state variables along orthogonal axes
+        # This lets us eliminate an expensive Python loop
+        data_dict[output] = \
+            comp_sets[phase_name](*itertools.chain(
+                np.transpose(statevars_to_map[:, :, np.newaxis], (1, 2, 0)),
+                np.transpose(points[:, :, np.newaxis], (1, 0, 2)))).T.ravel()
+        # Save state variables, with values indexed appropriately
+        statevar_vals = np.repeat(statevars_to_map, len(points), axis=0).T
+        data_dict.update({str(statevar): vals for statevar, vals \
+            in zip(statevar_dict.keys(), statevar_vals)})
 
-            # Map the internal degrees of freedom to global coordinates
+        # Map the internal degrees of freedom to global coordinates
 
-            # Normalize site ratios
-            # Normalize by the sum of site ratios times a factor
-            # related to the site fraction of vacancies
-            site_ratio_normalization = np.zeros(len(points))
-            for idx, sublattice in enumerate(phase_obj.constituents):
-                vacancy_column = np.ones(len(points))
-                if 'VA' in set(sublattice):
-                    var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-                    vacancy_column -= points[:, var_idx]
-                site_ratio_normalization += site_ratios[idx] * vacancy_column
+        # Normalize site ratios by the sum of site ratios times a factor
+        # related to the site fraction of vacancies
+        site_ratio_normalization = np.zeros(len(points))
+        for idx, sublattice in enumerate(phase_obj.constituents):
+            vacancy_column = np.ones(len(points))
+            if 'VA' in set(sublattice):
+                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+                vacancy_column -= points[:, var_idx]
+            site_ratio_normalization += site_ratios[idx] * vacancy_column
 
-            for comp in sorted(comps):
-                if comp == 'VA':
-                    continue
-                avector = [float(cur_var.species == comp) * \
-                    site_ratios[cur_var.sublattice_index] for cur_var in variables]
-                try:
-                    data_dict['X('+comp+')'].extend(list(np.divide(np.dot(
-                        points[:, :], avector), site_ratio_normalization)))
-                except KeyError:
-                    data_dict['X('+comp+')'] = list(np.divide(np.dot(
-                        points[:, :], avector), site_ratio_normalization))
+        for comp in sorted(comps):
+            if comp == 'VA':
+                continue
+            avector = [float(vxx.species == comp) * \
+                site_ratios[vxx.sublattice_index] for vxx in variables]
+            data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
+                points[:, :], avector), site_ratio_normalization),
+                                                 statevars_to_map.shape[0])
 
-            # Copy coordinate information into data_dict
-            # TODO: Is there a more memory-efficient way to deal with this?
-            # Perhaps with hierarchical indexing...
-            try:
-                for column_idx, data in enumerate(points.T):
-                    data_dict[str(variables[column_idx])].extend(list(data))
-            except KeyError:
-                for column_idx, data in enumerate(points.T):
-                    data_dict[str(variables[column_idx])] = list(data)
-
+        # Copy coordinate information into data_dict
+        # TODO: Is there a more memory-efficient way to deal with this?
+        # Perhaps with hierarchical indexing...
+        data_dict.update({str(vxx): np.tile(vals, statevars_to_map.shape[0]) \
+            for vxx, vals in zip(variables, points.T)})
         all_phase_data.append(pd.DataFrame(data_dict))
 
     # all_phases_data now contains energy surface information for the system
