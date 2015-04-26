@@ -254,7 +254,18 @@ def test_load_from_stringio():
     Database(StringIO(TDB_TEST_STRING))
     assert True
 
-# from StringIO
+@nose.tools.raises(ValueError)
+def test_sympify_safety():
+    "Parsing malformed strings throws exceptions instead of executing code."
+    from sympy import sympify
+    from pycalphad.io.tdb import _sympify_string
+    teststr = "().__class__.__base__.__subclasses__()[216]('ls')"
+    try:
+        sympify(teststr)
+    except TypeError:
+        # this means we successfully executed some code, but got arguments wrong
+        pass
+    _sympify_string(teststr) # should throw ParseException
 
 
 def calculate_energy(model, variables, mode='numpy'):

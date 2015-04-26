@@ -7,38 +7,94 @@ from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo, ZeroOrMore
 from pyparsing import Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Piecewise
+from sympy import sympify, And, Piecewise, Symbol
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword
+import ast
+import sys
+import inspect
+import functools
 
+_AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
+                  ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
+                  ast.UAdd, ast.UnaryOp, ast.USub]
+
+def _sympify_string(math_string):
+    "Convert math string into SymPy object."
+    # drop pound symbols ('#') since they denote function names
+    # we detect those automatically
+    expr_string = math_string.replace('#', '')
+    # sympify doesn't recognize LN as ln()
+    expr_string = \
+        re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
+    expr_string = \
+        re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
+               flags=re.IGNORECASE)
+    # Convert raw variables into StateVariable objects
+    variable_fixes = {
+        Symbol('T'): v.T,
+        Symbol('P'): v.P
+    }
+    # sympify uses eval, so we need to sanitize the input
+    nodes = ast.parse(expr_string)
+    nodes = ast.Expression(nodes.body[0].value)
+
+    for node in ast.walk(nodes):
+        if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
+            raise ValueError('Expression from TDB file not in whitelist: '
+                             '{}'.format(expr_string))
+    return sympify(expr_string).xreplace(variable_fixes)
+
+def _parse_action(func):
+    """
+    Decorator for pyparsing parse actions to ease debugging.
+
+    pyparsing uses trial & error to deduce the number of arguments a parse
+    action accepts. Unfortunately any ``TypeError`` raised by a parse action
+    confuses that mechanism.
+
+    This decorator replaces the trial & error mechanism with one based on
+    reflection. If the decorated function itself raises a ``TypeError`` then
+    that exception is re-raised if the wrapper is called with less arguments
+    than required. This makes sure that the actual ``TypeError`` bubbles up
+    from the call to the parse action (instead of the one caused by pyparsing's
+    trial & error).
+
+    Modified slightly from the original for Py3 compatibility
+    Source: Florian Brucker on StackOverflow
+    http://stackoverflow.com/questions/10177276/pyparsing-setparseaction-function-is-getting-no-arguments
+    """
+    num_args = len(inspect.getargspec(func).args)
+    if num_args > 3:
+        raise ValueError('Input function must take at most 3 parameters.')
+
+    @functools.wraps(func)
+    def action(*args):
+        "Wrapped function."
+        if len(args) < num_args:
+            if action.exc_info:
+                raise action.exc_info[0](action.exc_info[1], action.exc_info[2])
+        action.exc_info = None
+        try:
+            return func(*args[:-(num_args + 1):-1])
+        except TypeError as err:
+            action.exc_info = sys.exc_info()
+            raise err
+
+    action.exc_info = None
+    return action
+
+@_parse_action
 def _make_piecewise_ast(toks):
     """
     Convenience function for converting tokens into a piecewise sympy AST.
     """
     cur_tok = 0
     expr_cond_pairs = []
-    def sympify_string(math_string):
-        "Convert string into mathematical expression."
-        # drop pound symbols ('#') since they denote function names
-        # we detect those automatically
-        expr_string = math_string.replace('#', '')
-        # sympify doesn't recognize LN as ln()
-        expr_string = \
-            re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
-        expr_string = \
-            re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
-                   flags=re.IGNORECASE)
-        # Convert raw variables into StateVariable objects
-        variable_fixes = {
-            'T': v.T,
-            'P': v.P
-        }
-        # TODO: sympify uses eval. Don't use it on unsanitized input.
-        return sympify(expr_string).subs(variable_fixes)
 
     # Only one token: Not a piecewise function; just return the AST
     if len(toks) == 1:
-        return sympify_string(toks[0])
+        return _sympify_string(toks[0])
 
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
@@ -51,14 +107,14 @@ def _make_piecewise_ast(toks):
         if high_temp is None:
             expr_cond_pairs.append(
                 (
-                    sympify_string(toks[cur_tok+1]),
+                    _sympify_string(toks[cur_tok+1]),
                     And(low_temp <= v.T)
                 )
             )
         else:
             expr_cond_pairs.append(
                 (
-                    sympify_string(toks[cur_tok+1]),
+                    _sympify_string(toks[cur_tok+1]),
                     And(low_temp <= v.T, v.T < high_temp)
                 )
             )
