@@ -80,7 +80,7 @@ def lower_convex_hull(data, comps, conditions):
     max_iterations = min(100, dat.shape[0])
     # Need to choose a feasible starting point
     # initialize simplex as first n points of fictitious hyperplane
-    candidate_simplex = np.array(range(len(dof)-1), dtype=np.int)
+    candidate_simplex = np.arange(len(dof)-1, dtype=np.int)
     # Calculate chemical potentials
     candidate_potentials = np.linalg.solve(dat[candidate_simplex, :-1],
                                            dat[candidate_simplex, -1])
@@ -95,7 +95,7 @@ def lower_convex_hull(data, comps, conditions):
     fractions = np.empty(len(dof_values))
     iteration = 0
     found_solution = False
-    index_array = np.array(range(dat.shape[0]), dtype=np.int)
+    index_array = np.arange(dat.shape[0], dtype=np.int)
 
     while (found_solution == False) and (iteration < max_iterations):
         iteration += 1
@@ -141,12 +141,12 @@ def lower_convex_hull(data, comps, conditions):
                         # np.array() forces a copy
                         candidate_energy = np.array(new_energy)
                         # Recalculate driving forces with new potentials
-                        driving_forces[:] = np.dot(dat[:, :-1], \
+                        driving_forces = np.dot(dat[:, :-1], \
                             candidate_potentials) - dat[:, -1]
                         #logger.debug('driving_forces: %s', driving_forces)
-                        point_mask = driving_forces/(8.3145*temperature) < 1e-4
+                        point_mask = driving_forces < 1e-4*8.3145*temperature
                         # Don't test points on the fictitious hyperplane
-                        point_mask[list(range(len(dof)-1))] = True
+                        point_mask[np.arange(len(dof)-1)] = True
                         found_point = True
                         break
                     #else:
