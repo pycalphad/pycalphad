@@ -193,12 +193,15 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
                 site_ratios[vxx.sublattice_index] for vxx in variables]
             data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
                 points[:, :], avector), site_ratio_normalization),
-                                                 statevars_to_map.shape[0])
+                                               statevars_to_map.shape[0])
 
         # Copy coordinate information into data_dict
         # TODO: Is there a more memory-efficient way to deal with this?
         # Perhaps with hierarchical indexing...
-        data_dict.update({str(vxx): np.tile(vals, statevars_to_map.shape[0]) \
+        var_fmt = 'Y({0},{1},{2})'
+        data_dict.update({var_fmt.format(vxx.phase_name, vxx.sublattice_index,
+                                         vxx.species): \
+            np.tile(vals, statevars_to_map.shape[0]) \
             for vxx, vals in zip(variables, points.T)})
         all_phase_data.append(pd.DataFrame(data_dict))
 
