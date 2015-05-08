@@ -6,6 +6,7 @@ equilibrium calculation.
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.log import logger
+from itertools import chain
 
 def lower_convex_hull(data, comps, conditions):
     """
@@ -58,137 +59,126 @@ def lower_convex_hull(data, comps, conditions):
         raise ValueError('Not enough composition conditions specified.')
 
     # convert DataFrame of independent columns to ndarray
-    dat = data[dof].values
-    temperature = data.iloc[0].loc['T']
-
-    # Build a fictitious hyperplane which has an energy greater than the max
-    # energy in the system
-    # This guarantees our starting point is feasible but also makes it likely
-    # it won't be part of the solution
-    energy_ceiling = np.amax(dat[:, -1])
-    if np.isnan(energy_ceiling):
+    dat_coords = np.concatenate((np.eye(len(dof)-1),
+                                 data[dof].values[:, :-1]), axis=-2)
+    max_energy = np.amax(data[dof].values[:, -1])
+    if np.isnan(max_energy):
         raise ValueError('Input energy surface contains one or more NaNs.')
-    if energy_ceiling < 0:
-        energy_ceiling *= 0.1
+    if max_energy < 0:
+        max_energy *= 0.5
     else:
-        energy_ceiling *= 10
-    start_matrix = np.empty([len(dof)-1, len(dof)])
-    start_matrix[:, :-1] = np.eye(len(dof)-1)
-    start_matrix[:, -1] = energy_ceiling # set energy
-    dat = np.concatenate([start_matrix, dat])
+        max_energy *= 2.0
+    dat_energies = np.concatenate((np.repeat(max_energy, len(dof)-1),
+                                   data[dof].values[:, -1]), axis=-2)
+    temperature = data.iloc[0].loc['T']
+    dof_values = dof_values[np.newaxis, :]
 
-    max_iterations = min(100, dat.shape[0])
-    # Need to choose a feasible starting point
-    # initialize simplex as first n points of fictitious hyperplane
-    candidate_simplex = np.arange(len(dof)-1, dtype=np.int)
-    # Calculate chemical potentials
-    candidate_potentials = np.linalg.solve(dat[candidate_simplex, :-1],
-                                           dat[candidate_simplex, -1])
+    dof_energies = np.empty(dof_values.shape[0:-1], dtype=np.float)
+    dof_energies[...] = np.inf
+    dof_simplices = np.empty(dof_values.shape, dtype=np.int)
+    # Initial simplex for each target point in dof_values will be
+    #     the fictitious hyperplane
+    # This hyperplane sits above the system's energy surface
+    # The reason for this is to guarantee our initial simplex contains
+    #     the target point
+    dof_simplices[..., :] = np.arange(dat_coords.shape[-1])
+    dof_potentials = np.empty(dof_values.shape, dtype=np.float)
+    dof_potentials[...] = np.inf
+    driving_forces = np.empty(tuple(chain(dof_values.shape[0:-1],
+                                          [dat_coords.shape[-2]])),
+                              dtype=np.float)
+    trial_points = np.empty(dof_values.shape[0:-1], dtype=np.int)
+    # Initialize trial points as lowest energy point in the system
+    trial_points[...] = np.argmin(dat_energies, axis=-1)
+    max_iterations = 50
+    iterations = 0
+    while iterations < max_iterations:
+        iterations += 1
+        trial_simplices = np.empty(tuple(chain(dof_values.shape,
+                                               [dat_coords.shape[-1]])),
+                                   dtype=np.int)
+        # Trial simplices based on current best guess simplex for each
+        #     target point in dof_values
+        trial_simplices[..., :, :] = dof_simplices[..., np.newaxis, :]
+        # Trial simplices will be the current simplex with each vertex
+        #     replaced by the trial point
+        # Exactly one of those simplices will contain a given test point,
+        #     excepting edge cases
+        trial_simplices[..., np.arange(dat_coords.shape[-1]),
+                        np.arange(dat_coords.shape[-1])] = \
+            trial_points[..., np.newaxis]
+        trial_matrix = np.swapaxes(dat_coords[trial_simplices], -1, -2)
+        # We have to filter out degenerate simplices before
+        #     phase fraction computation
+        # This is because even one degenerate simplex causes the entire tensor
+        #     to be singular
+        nondegenerate_indices = np.all(np.linalg.svd(trial_matrix,
+                                                     compute_uv=False) > 1e-12,
+                                       axis=-1)
+        nondegenerate_simplices = trial_simplices[nondegenerate_indices]
+        # Determine how many trial simplices remain for each target point
+        # in dof_values. In principle this would always be one simplex per
+        # point, but once some target values reach equilibrium, trial_points starts
+        # to contain points already on our best guess simplex.
+        # This causes trial_simplices to create degenerate simplices.
+        # We can safely filter them out since those target values are
+        # already at equilibrium.
+        dof_sum_array = np.sum(nondegenerate_indices, axis=-1, dtype=np.int)
+        dof_index_array = np.repeat(np.arange(dof_values.shape[-2],
+                                              dtype=np.int),
+                                    dof_sum_array.astype(np.int))
+        fractions = np.linalg.solve(trial_matrix[nondegenerate_indices],
+                                    dof_values[dof_index_array])
+        # A simplex only contains a point if its barycentric coordinates
+        # (phase fractions) are positive.
+        bounding_simplices = np.all(fractions > 0, axis=-1)
+        candidate_simplices = nondegenerate_simplices[bounding_simplices]
+        candidate_potentials = np.linalg.solve(dat_coords[candidate_simplices],
+                                               dat_energies[candidate_simplices])
+        dof_index_array = dof_index_array[bounding_simplices]
 
-    # Calculate driving forces for reducing our candidate potentials
-    driving_forces = np.dot(dat[:, :-1], candidate_potentials) - dat[:, -1]
-    # Mask points with negative (or nearly zero) driving force
-    point_mask = driving_forces/(8.3145*temperature) < 1e-4
-    #logger.debug(point_mask)
-    #logger.debug(np.array(range(dat.shape[0]), dtype=np.int)[~point_mask])
-    candidate_energy = np.dot(candidate_potentials, dof_values)
-    fractions = np.empty(len(dof_values))
-    iteration = 0
-    found_solution = False
-    index_array = np.arange(dat.shape[0], dtype=np.int)
-
-    while (found_solution == False) and (iteration < max_iterations):
-        iteration += 1
-        for new_point in index_array[~point_mask]:
-            found_point = False
-            # Need to successively replace columns with the new point
-            # The goal is to find positive phase fraction values
-            new_simplex = np.empty(dat.shape[1] - 1, dtype=np.int)
-            for col in range(dat.shape[1] - 1):
-                #print(candidate_simplex)
-                new_simplex[:] = candidate_simplex # [:] forces copy
-                new_simplex[col] = new_point
-                #print(new_simplex)
-                logger.debug('trial matrix: %s', dat[new_simplex, :-1].T)
-                try:
-                    fractions = np.linalg.solve(dat[new_simplex, :-1].T,
-                                                dof_values)
-                except np.linalg.LinAlgError:
-                    # singular matrix means the trial simplex is degenerate
-                    # this usually happens due to collisions between points on
-                    # the fictitious hyperplane and the endmembers
-                    continue
-                logger.debug('fractions: %s', fractions)
-                if np.all(fractions > -1e-8):
-                    # Positive phase fractions
-                    # Do I reduce the energy with this solution?
-                    # Recalculate chemical potentials and energy
-                    #logger.debug('new matrix: {0}'.format(dat[new_simplex, :-1]))
-                    #logger.debug('new energies: {0}'.format(dat[new_simplex, -1]))
-                    new_potentials = np.linalg.solve(dat[new_simplex, :-1],
-                                                     dat[new_simplex, -1])
-                    #logger.debug('new_potentials: {0}'.format(new_potentials))
-                    new_energy = np.dot(new_potentials, dof_values)
-                    # differences of less than 1mJ/mol are irrelevant
-                    new_energy = np.around(new_energy, decimals=3)
-                    if new_energy <= candidate_energy:
-                        #logger.debug('New simplex {2} reduces energy from \
-                        #    {0} to {1}'.format(candidate_energy, new_energy, \
-                        #    new_simplex))
-                        # [:] notation forces a copy
-                        candidate_simplex[:] = new_simplex
-                        candidate_potentials[:] = new_potentials
-                        # np.array() forces a copy
-                        candidate_energy = np.array(new_energy)
-                        # Recalculate driving forces with new potentials
-                        driving_forces = np.dot(dat[:, :-1], \
-                            candidate_potentials) - dat[:, -1]
-                        #logger.debug('driving_forces: %s', driving_forces)
-                        point_mask = driving_forces < 1e-4*8.3145*temperature
-                        # Don't test points on the fictitious hyperplane
-                        point_mask[np.arange(len(dof)-1)] = True
-                        found_point = True
-                        break
-                    #else:
-                    #    logger.debug('Trial simplex {2} increases energy from {0} to {1}'\
-                    #                .format(candidate_energy, new_energy, new_simplex))
-                    #    logger.debug('%s points with positive driving force remain',
-                    #                 list(driving_forces >= 1e-4).count(True))
-            if found_point:
-                logger.debug('Found feasible simplex: moving to next iteration')
-                #logger.debug('%s points with positive driving force remain',
-                #             list(driving_forces >= 1e-4).count(True))
-                break
-        # If there is no positive driving force, we have the solution
-        #print('Checking point mask')
-        #print(point_mask)
-        logger.debug('Iteration count: {0}'.format(iteration))
-        if np.all(point_mask) == True:
-            logger.debug('Unadjusted candidate_simplex: %s', candidate_simplex)
-            logger.debug(dat[candidate_simplex])
+        target_values = dof_values[dof_index_array]
+        candidate_energies = np.tensordot(candidate_potentials, target_values, axes=(-1, -1))
+        # Generate a matrix of energies comparing our calculations for this iteration
+        # to each other; one axis is for each trial, the other is for target values
+        # This matrix may not have full rank because some target values had multiple trials
+        # and some target values may not have been computed at all for this iteration
+        # Empty values are filled in with infinity
+        comparison_matrix = np.where(dof_index_array == \
+                                         np.arange(dof_values.shape[-2])[..., np.newaxis],
+                                     candidate_energies, np.inf)
+        # Extract indices for trials with the lowest energy for each target point
+        lowest_candidate_indices = np.argmin(comparison_matrix, axis=-1)
+        # Update simplices and energies when a trial simplex is lower energy for a point
+        # than the current best guess
+        is_lower_energy = (candidate_energies[..., np.arange(dof_values.shape[-2]),
+                                              lowest_candidate_indices] < dof_energies)
+        dof_simplices = np.where(is_lower_energy[..., np.newaxis],
+                                 candidate_simplices[lowest_candidate_indices], dof_simplices)
+        dof_energies = np.minimum(dof_energies,
+                                  candidate_energies[..., np.arange(dof_values.shape[-2]),
+                                                     lowest_candidate_indices])
+        dof_potentials[is_lower_energy] = \
+            np.linalg.solve(dat_coords[dof_simplices[is_lower_energy]],
+                            dat_energies[dof_simplices[is_lower_energy]])
+        driving_forces[is_lower_energy, ...] = \
+            np.tensordot(dof_potentials[is_lower_energy],
+                         dat_coords, axes=(-1, -1)) - dat_energies
+        # Update trial points to choose points with largest remaining driving force
+        trial_points = np.argmax(driving_forces, axis=-1)
+        # If all driving force (within some tolerance) is consumed, we found equilibrium
+        if np.all(driving_forces[..., trial_points] < 1e-4 * 8.3145 * temperature):
+            final_matrix = np.swapaxes(dat_coords[dof_simplices], -1, -2)
+            fractions = np.linalg.solve(final_matrix, dof_values)
             # Fix candidate simplex indices to remove fictitious points
-            candidate_simplex = candidate_simplex - (len(dof)-1)
-            logger.debug('Adjusted candidate_simplex: %s', candidate_simplex)
-            # Remove fictitious points from the candidate simplex
+            dof_simplices = dof_simplices - (len(dof)-1)
+            logger.debug('Adjusted dof_simplices: %s', dof_simplices)
+            # TODO: Remove fictitious points from the candidate simplex
             # These can inadvertently show up if we only calculate a phase with
             # limited solubility
             # Also remove points with very small estimated phase fractions
-            candidate_simplex, fractions = zip(*[(c, f) for c, f in
-                                                 zip(candidate_simplex,
-                                                     fractions)
-                                                 if c >= 0 and f >= 1e-12])
-            candidate_simplex = np.array(candidate_simplex)
-            fractions = np.array(fractions)
-            fractions /= np.sum(fractions)
-            logger.debug('Final candidate_simplex: %s', candidate_simplex)
-            logger.debug('Final phase fractions: %s', fractions)
-            found_solution = True
-            logger.debug('Solution:')
-            logger.debug(candidate_potentials)
-            logger.debug(candidate_energy)
-            return candidate_simplex, fractions, candidate_potentials
+            return dof_simplices, fractions, dof_potentials
 
     logger.error('Iterations exceeded')
-    logger.debug('Positive driving force still exists for these points')
-    logger.debug(np.where(driving_forces/(8.3145*temperature) > 1e-4)[0])
+    logger.debug(driving_forces)
     return None, None, None

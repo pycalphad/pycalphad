@@ -108,6 +108,9 @@ class Equilibrium(object):
         """
         phase_compositions, phase_fracs, pots = \
             lower_convex_hull(self.data, self.components, self.conditions)
+        phase_compositions = phase_compositions[0]
+        phase_fracs = phase_fracs[0]
+        pots = pots[0]
         if phase_compositions is None:
             logger.error('Unable to find starting point for calculation')
             raise EquilibriumError('Unable to find starting point for calculation')
