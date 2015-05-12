@@ -6,7 +6,6 @@ equilibrium calculation.
 import pycalphad.variables as v
 import numpy as np
 from pycalphad.log import logger
-from itertools import chain
 
 def lower_convex_hull(data, comps, conditions):
     """
@@ -84,8 +83,7 @@ def lower_convex_hull(data, comps, conditions):
     dof_simplices[..., :] = np.arange(dat_coords.shape[-1])
     dof_potentials = np.empty(dof_values.shape, dtype=np.float)
     dof_potentials[...] = np.inf
-    driving_forces = np.empty(tuple(chain(dof_values.shape[0:-1],
-                                          [dat_coords.shape[-2]])),
+    driving_forces = np.empty(dof_values.shape[0:-1] + (dat_coords.shape[-2],),
                               dtype=np.float)
     trial_points = np.empty(dof_values.shape[0:-1], dtype=np.int)
     # Initialize trial points as lowest energy point in the system
@@ -94,8 +92,7 @@ def lower_convex_hull(data, comps, conditions):
     iterations = 0
     while iterations < max_iterations:
         iterations += 1
-        trial_simplices = np.empty(tuple(chain(dof_values.shape,
-                                               [dat_coords.shape[-1]])),
+        trial_simplices = np.empty(dof_values.shape + (dat_coords.shape[-1],),
                                    dtype=np.int)
         # Trial simplices based on current best guess simplex for each
         #     target point in dof_values
@@ -131,33 +128,48 @@ def lower_convex_hull(data, comps, conditions):
                                     dof_values[dof_index_array])
         # A simplex only contains a point if its barycentric coordinates
         # (phase fractions) are positive.
-        bounding_simplices = np.all(fractions > 0, axis=-1)
+        bounding_simplices = np.all(fractions >= 0, axis=-1)
         candidate_simplices = nondegenerate_simplices[bounding_simplices]
         candidate_potentials = np.linalg.solve(dat_coords[candidate_simplices],
                                                dat_energies[candidate_simplices])
+        logger.debug('candidate_simplices: %s', candidate_simplices)
         dof_index_array = dof_index_array[bounding_simplices]
 
         target_values = dof_values[dof_index_array]
-        candidate_energies = np.tensordot(candidate_potentials, target_values, axes=(-1, -1))
+        candidate_energies = np.empty(candidate_potentials.shape[0:-1] + (1,))
+        candidate_energies[...] = np.multiply(candidate_potentials,
+                                              target_values).sum(axis=-1,
+                                                                 keepdims=True)
+        #logger.debug('target_values: %s', target_values.shape)
+        #logger.debug('candidate_energies: %s', candidate_energies)
         # Generate a matrix of energies comparing our calculations for this iteration
         # to each other; one axis is for each trial, the other is for target values
         # This matrix may not have full rank because some target values had multiple trials
         # and some target values may not have been computed at all for this iteration
         # Empty values are filled in with infinity
-        comparison_matrix = np.where(dof_index_array == \
-                                         np.arange(dof_values.shape[-2])[..., np.newaxis],
-                                     candidate_energies, np.inf)
+        comparison_matrix = np.empty(dof_values.shape[0:-1] + \
+                                        (candidate_simplices.shape[-2],),
+                                     dtype=np.float)
+        #logger.debug('comparison_matrix shape: %s', comparison_matrix.shape)
+        comparison_matrix[...] = np.inf
+        comparison_matrix[..., np.arange(dof_values.shape[-2]),
+                          dof_index_array] = np.swapaxes(candidate_energies, -1, -2)
         # Extract indices for trials with the lowest energy for each target point
         lowest_candidate_indices = np.argmin(comparison_matrix, axis=-1)
         # Update simplices and energies when a trial simplex is lower energy for a point
         # than the current best guess
         is_lower_energy = (candidate_energies[..., np.arange(dof_values.shape[-2]),
-                                              lowest_candidate_indices] < dof_energies)
+                                              lowest_candidate_indices] <= dof_energies)
+        #logger.debug('is_lower_energy: %s', is_lower_energy)
         dof_simplices = np.where(is_lower_energy[..., np.newaxis],
                                  candidate_simplices[lowest_candidate_indices], dof_simplices)
         dof_energies = np.minimum(dof_energies,
                                   candidate_energies[..., np.arange(dof_values.shape[-2]),
                                                      lowest_candidate_indices])
+        #logger.debug('dof_energies: %s', dof_energies)
+        #logger.debug('dof_simplices: %s', dof_simplices)
+        #logger.debug('dat_coords[dof_simplices[is_lower_energy]].shape: %s',
+        #             dat_coords[dof_simplices[is_lower_energy]].shape)
         dof_potentials[is_lower_energy] = \
             np.linalg.solve(dat_coords[dof_simplices[is_lower_energy]],
                             dat_energies[dof_simplices[is_lower_energy]])
@@ -166,6 +178,7 @@ def lower_convex_hull(data, comps, conditions):
                          dat_coords, axes=(-1, -1)) - dat_energies
         # Update trial points to choose points with largest remaining driving force
         trial_points = np.argmax(driving_forces, axis=-1)
+        logger.debug('trial_points: %s', trial_points)
         # If all driving force (within some tolerance) is consumed, we found equilibrium
         if np.all(driving_forces[..., trial_points] < 1e-4 * 8.3145 * temperature):
             final_matrix = np.swapaxes(dat_coords[dof_simplices], -1, -2)
@@ -180,5 +193,5 @@ def lower_convex_hull(data, comps, conditions):
             return dof_simplices, fractions, dof_potentials
 
     logger.error('Iterations exceeded')
-    logger.debug(driving_forces)
+    logger.debug(driving_forces[..., trial_points])
     return None, None, None
