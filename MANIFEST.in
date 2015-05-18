@@ -1,2 +1,3 @@
 include versioneer.py
 include pycalphad/_version.py
+include README.rst
