@@ -189,12 +189,14 @@ def _tdb_grammar(): #pylint: disable=R0914
     # FUNCTION
     cmd_function = TCCommand('FUNCTION') + symbol_name + \
         func_expr.setParseAction(_make_piecewise_ast)
+    # ASSESSED_SYSTEMS
+    cmd_ass_sys = TCCommand('ASSESSED_SYSTEMS') + SkipTo(LineEnd())
     # DEFINE_SYSTEM_DEFAULT
-    cmd_defsysdef = TCCommand('DEFINE_SYSTEM_DEFAULT')
+    cmd_defsysdef = TCCommand('DEFINE_SYSTEM_DEFAULT') + SkipTo(LineEnd())
     # DEFAULT_COMMAND
-    cmd_defcmd = TCCommand('DEFAULT_COMMAND')
+    cmd_defcmd = TCCommand('DEFAULT_COMMAND') + SkipTo(LineEnd())
     # LIST_OF_REFERENCES
-    cmd_lor = TCCommand('LIST_OF_REFERENCES')
+    cmd_lor = TCCommand('LIST_OF_REFERENCES') + SkipTo(LineEnd())
     # PHASE
     cmd_phase = TCCommand('PHASE') + symbol_name + \
         Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
@@ -212,6 +214,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     all_commands = cmd_element | \
                     cmd_typedef | \
                     cmd_function | \
+                    cmd_ass_sys | \
                     cmd_defsysdef | \
                     cmd_defcmd | \
                     cmd_lor | \
@@ -297,6 +300,7 @@ _TDB_PROCESSOR = {
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: db.symbols.__setitem__(name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
+    'ASSESSED_SYSTEMS': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
     'LIST_OF_REFERENCES': _unimplemented,
     'PHASE': _process_phase,
