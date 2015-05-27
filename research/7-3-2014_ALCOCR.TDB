@@ -13,33 +13,6 @@ $ From database: User data 2014. 7. 2
  ELEMENT CO   HCP_A3                    5.8933E+01  4.7656E+03  3.0040E+01!
  ELEMENT CR   BCC_A2                    5.1996E+01  4.0500E+03  2.3560E+01!
 
-
- DATABASE_INFO '''
- ALCOCR, version 7-3-2014'
-
- '
- ELEMENTS : Al, Co, Cr'
- '
- ASSESSED SYSTEMS :'
- '
- BINARIES'
-        Al-Co, Co-Cr, Al-Cr'
- TERNARIES'
-        Al-Co-Cr'
-'
- MODELLING ORDER/DISORDER:'
-'
- A2/B2 Partitioning'
- !
-
-ASSESSED_SYSTEMS
- AL-CR(;G5 MAJ:BCC_B2/CR:CR:VA ;P3 STP:.75/1200/1)
- AL-CO(;P3 STP:.75/1200/1)
- CO-CR(;G5 MAJ:BCC_B2/CR:CR:VA ;P3 STP:.5/1200/2)
- AL-CO-CR(;G5 MAJ:BCC_B2/CR:CR:VA C_S:BCC_B2/AL:CO:VA
-          ;P3 STP:.45/.01/1/2)
- !
-
  
 $$--SIGMA--PARAMETERS----------------------------------------------------- 
 $$$$--BINARY--CR-AL--$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
@@ -193,7 +166,7 @@ $$$$-------------------------UNARY----------------------------------------
 $$$$-------------------------BINARY---------------------------------------  
  
    PARAMETER G(LIQUID,AL,CO;0)  2.98150E+02  -148800+38.26*T;   6.00000E+03  
-   N REF0 !
+N REF0 !
    PARAMETER G(LIQUID,AL,CO;1)  2.98150E+02  -68193+33.565*T;   6.00000E+03  
    N REF0 !
    PARAMETER G(LIQUID,AL,CO;2)  2.98150E+02  +29760-7.652*T;   6.00000E+03   
@@ -207,12 +180,11 @@ $$$$-------------------------BINARY---------------------------------------
    PARAMETER G(LIQUID,CO,CR;0)  3.00000E+02  -12008.6239+2.2019*T;  
   3.00000E+03  N REF0 !
    PARAMETER G(LIQUID,CO,CR;1)  3.00000E+02  -5836.4696+1.1402*T;  
-  3.00000E+03  N REF0 !
+3.00000E+03  N REF0 !
 
 $$$$-------------------------TERNARY--------------------------------------  
 
-   PARAMETER G(LIQUID,AL,CO,CR;0)  2.98150E+02  +VV66#;   6.00000E+03   N 
-  REF0 !  
+   PARAMETER G(LIQUID,AL,CO,CR;0)  2.98150E+02  +VV66#;   6.00000E+03   N REF0 !  
   
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 
@@ -220,14 +192,13 @@ $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
 $--------------------------------BCC_A2----------------------------------$
 $$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$$
- TYPE_DEFINITION & GES A_P_D BCC_A2 MAGNETIC  -1.0    4.00000E-01 !
+ TYPE_DEFINITION & GES A BCC_A2 MAGNETIC  -1.0    4.00000E-01 !
  PHASE BCC_A2  %&  2 1   3 !
     CONSTITUENT BCC_A2  :AL,CO,CR,VA : VA :  !
 
 $$$$-------------------------UNARY----------------------------------------
 
-   PARAMETER G(BCC_A2,AL:VA;0)  2.98150E+02  +GALBCC#;   6.00000E+03   N 
-  REF0 !	
+   PARAMETER G(BCC_A2,AL:VA;0)  2.98150E+02  +GALBCC#;   6.00000E+03   N REF0 !	
  
    PARAMETER G(BCC_A2,CO:VA;0)  2.98150E+02  +GCOBCC#;   6.00000E+03   N 
   REF0 !
@@ -241,7 +212,7 @@ $$$$-------------------------UNARY----------------------------------------
    PARAMETER BMAGN(BCC_A2,CR:VA;0)  2.98150E+02  -.01;   6.00000E+03   N 
   REF0 !
   
-   PARA G(BCC_A2,VA:VA;0) 298.15 0; 6000 N!  
+   PARAMETER G(BCC_A2,VA:VA;0) 298.15 0; 6000 N!  
 
 $$$$-------------------------BINARY---------------------------------------
 
@@ -296,16 +267,16 @@ $ THIS PHASE HAS A DISORDERED CONTRIBUTION FROM BCC_A2
 
 $$$$-------------------------UNARY----------------------------------------
 
-       PARA G(BCC_B2,AL:AL:VA;0) 298.15 0; 6000 N!
-       PARA G(BCC_B2,CO:CO:VA;0) 298.15 0; 6000 N!	   
-       PARA G(BCC_B2,CR:CR:VA;0) 298.15 0; 6000 N!	
-       PARA G(BCC_B2,VA:VA:VA;0) 298.15 0; 6000 N!
+       PARAMETER G(BCC_B2,AL:AL:VA;0) 298.15 0; 6000 N!
+       PARAMETER G(BCC_B2,CO:CO:VA;0) 298.15 0; 6000 N!	   
+       PARAMETER G(BCC_B2,CR:CR:VA;0) 298.15 0; 6000 N!	
+       PARAMETER G(BCC_B2,VA:VA:VA;0) 298.15 0; 6000 N!
 	   
-   PARA TC(BCC_B2,CO:AL:VA;0)  2.98150E+02  -1450;   6.00000E+03   N REF0 !	 
-   PARA TC(BCC_B2,AL:CO:VA;0)  2.98150E+02  -1450;   6.00000E+03   N REF0 !	    
-   PARA BMAGN(BCC_B2,CO:AL:VA;0)  2.98150E+02  -1.35;   6.00000E+03   
+   PARAMETER TC(BCC_B2,CO:AL:VA;0)  2.98150E+02  -1450;   6.00000E+03   N REF0 !	 
+   PARAMETER TC(BCC_B2,AL:CO:VA;0)  2.98150E+02  -1450;   6.00000E+03   N REF0 !	    
+   PARAMETER BMAGN(BCC_B2,CO:AL:VA;0)  2.98150E+02  -1.35;   6.00000E+03   
    N REF0 !
-   PARA BMAGN(BCC_B2,AL:CO:VA;0)  2.98150E+02  -1.35;   6.00000E+03   
+   PARAMETER BMAGN(BCC_B2,AL:CO:VA;0)  2.98150E+02  -1.35;   6.00000E+03   
    N REF0 !   
 
 $$$$-------------------------BINARY---------------------------------------	 
