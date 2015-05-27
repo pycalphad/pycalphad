@@ -85,7 +85,7 @@ class Model(object):
     @property
     def variables(self):
         "Return state variables in the model."
-        return self.ast.atoms(v.StateVariables)
+        return self.ast.atoms(v.StateVariable)
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
