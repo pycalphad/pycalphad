@@ -7,13 +7,13 @@ import scipy.spatial.distance
 from sympy.utilities import default_sort_key
 from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
+from sympy.printing.precedence import precedence
 from sympy import Piecewise
 import numpy as np
 import operator
 import functools
 import itertools
 import collections
-from math import log, ceil
 try:
     set
 except NameError:
@@ -31,6 +31,10 @@ class NumPyPrinter(LambdaPrinter): #pylint: disable=R0903
     Special numpy lambdify printer which handles vectorized
     piecewise functions.
     """
+    _default_settings = {
+        "order": "none",
+        "full_prec": "auto",
+    }
     #pylint: disable=C0103,W0232
     def _print_seq(self, seq, delimiter=', '):
         "simplified _print_seq taken from pretty.py"
@@ -39,6 +43,40 @@ class NumPyPrinter(LambdaPrinter): #pylint: disable=R0903
             return delimiter.join(svx)
         else:
             return ""
+
+    def _print_Add(self, expr, order=None):
+        terms = list(expr.args)
+
+        PREC = precedence(expr)
+        l = []
+        for term in terms:
+            t = self._print(term)
+            if t.startswith('-'):
+                sign = "-"
+                t = t[1:]
+            else:
+                sign = "+"
+            if precedence(term) < PREC:
+                l.extend([sign, "(%s)" % t])
+            else:
+                l.extend([sign, t])
+        sign = l.pop(0)
+        if sign == '+':
+            sign = ""
+        return sign + ' '.join(l)
+
+    def _print_MatrixBase(self, expr):
+        return "%s(%s)" % ('array', self._print(expr.tolist()))
+
+    _print_SparseMatrix = \
+        _print_MutableSparseMatrix = \
+        _print_ImmutableSparseMatrix = \
+        _print_Matrix = \
+        _print_DenseMatrix = \
+        _print_MutableDenseMatrix = \
+        _print_ImmutableMatrix = \
+        _print_ImmutableDenseMatrix = \
+        _print_MatrixBase
 
     def _print_Piecewise(self, expr):
         "Piecewise function printer"
