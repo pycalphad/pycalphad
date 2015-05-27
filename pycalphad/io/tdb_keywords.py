@@ -70,7 +70,7 @@ TDB_PARAM_TYPES = sorted([
     'G',
     'L',
     'TC',
-    'BMAGN'
+    'BMAGN',
     'MQ',
     'MF',
     'DQ',
