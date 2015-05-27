@@ -337,13 +337,7 @@ class Equilibrium(object):
     def _build_objective_functions(self):
         "Construct objective function callables for each phase."
         for phase_name, phase_obj in self._phases.items():
-            # Get the symbolic representation of the energy
             mod = self._models[phase_name]
-            undefs = list(mod.ast.atoms(Symbol) - mod.ast.atoms(v.StateVariable))
-            for undef in undefs:
-                mod.ast = mod.ast.xreplace({undef: float(0)})
-                logger.warning('Setting undefined symbol %s for phase %s to zero',
-                               undef, phase_name)
             # Construct an ordered list of the variables
             self._variables[phase_name], self._sublattice_dof[phase_name] = \
                 generate_dof(phase_obj, self.components)
