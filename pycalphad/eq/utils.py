@@ -178,7 +178,7 @@ def halton(dim, nbpts, primes=None):
         result[:, i] = np.dot(mod_matrix, powers)
     return result
 
-def point_sample(comp_count, pdof=10):
+def point_sample(comp_count, pdof=10, roll=0):
     """
     Sample 'pdof * (sum(comp_count) - len(comp_count))' points in
     composition space for the sublattice configuration specified
@@ -195,6 +195,8 @@ def point_sample(comp_count, pdof=10):
         Number of components in each sublattice.
     pdof : int
         Number of points to sample per degree of freedom.
+    roll : int, optional
+        Number of positions by which the prime number array should be shifted.
 
     Returns
     -------
@@ -206,7 +208,9 @@ def point_sample(comp_count, pdof=10):
     >>> pts = point_sample(comps, pdof=20) # 7 d.o.f, returns a 140x7 ndarray
     """
     # Generate Halton sequence with appropriate dimensions and size
-    pts = halton(sum(comp_count), pdof * (sum(comp_count) - len(comp_count)))
+    pts = halton(sum(comp_count),
+                 pdof * (sum(comp_count) - len(comp_count)),
+                 primes=np.roll(_PRIMES, roll))
     # Convert low-discrepancy sequence to normalized exponential
     # This will be uniformly distributed over the simplices
     pts = -np.log(pts)
