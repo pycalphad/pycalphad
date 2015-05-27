@@ -135,33 +135,48 @@ class SpecialNumExprPrinter(NumExprPrinter): #pylint: disable=R0903
                                       self._print(Piecewise(*expr.args[1:]), \
                                       **kwargs))
 
-def halton(dim, nbpts):
+_PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
+                    47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
+                    107, 109, 113, 127, 131], dtype=np.float)
+
+def halton(dim, nbpts, primes=None):
     """
-    Generate 'nbpts' points of the 'dim'-dimensional Halton sequence.
-    Originally written in C by Sebastien Paris; translated to Python by
-    Josef Perktold.
+    Generate a multi-dimensional Halton sequence.
+
+    Parameters
+    ----------
+    dim    : int
+        Number of dimensions in the sequence.
+    nbpts  : int
+        Number of points along each dimension.
+    primes : sequence, optional
+        A sequence of at least 'dim' prime numbers. This is for generating
+        shuffled sequences. By default, this is the first 32 primes.
+
+    Returns
+    -------
+    ndarray of shape (nbpts, dim)
     """
-    #pylint: disable=C0103
-    P = [2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43, 47, 53, 59, 61,
-         67, 71, 73, 79, 83, 89, 97, 101, 103, 107, 109, 113, 127, 131]
-    if dim > len(P):
-        raise ValueError('Halton sequences of more than {} dimensions are '
-                         'unsupported'.format(len(P)))
-    h = np.empty((nbpts, dim), dtype=np.float)
-    lognbpts = log(nbpts + 1)
-    for i in range(dim):
-        b = float(P[i])
-        n = int(ceil(lognbpts / log(b)))
+    if primes is None:
+        primes = _PRIMES
+    if dim > len(primes):
+        raise ValueError('A Halton sequence of {0} dimensions cannot be '
+                         'calculated when \'primes\' is shorter than {1}. '
+                         'Use the \'primes\' parameter to pass additional '
+                         'primes.'.format(dim, len(primes)))
+    result = np.empty((nbpts, dim), dtype=np.float)
+    dim_primes = primes[0:dim]
+    for i in np.arange(dim_primes.size):
+        num_powers = np.ceil(np.log(nbpts + 1) / np.log(dim_primes[i])).astype(np.int)
         # need to be careful about precision errors here
         # cast to long double so that, e.g., halton(3, 10000) will be correct
-        p = np.power(b, -np.arange(1, n+1, dtype=np.longdouble))
-        pt_vector = np.arange(1, nbpts+1)
-        radix_vector = np.power(b, -np.arange(n, dtype=np.longdouble))
+        powers = np.power(dim_primes[i], -np.arange(1, num_powers+1, dtype=np.longdouble))
+        radix_vector = np.power(dim_primes[i], -np.arange(num_powers, dtype=np.longdouble))
         # we can drop precision after the outer product for a speedup
-        sum_matrix = np.outer(pt_vector, radix_vector).astype(np.float)
-        mod_matrix = np.mod(np.floor(sum_matrix), b)
-        h[:, i] = np.dot(mod_matrix, p)
-    return h
+        sum_matrix = np.outer(np.arange(1, nbpts+1), radix_vector).astype(np.float)
+        mod_matrix = np.mod(np.floor(sum_matrix), dim_primes[i])
+        result[:, i] = np.dot(mod_matrix, powers)
+    return result
 
 def point_sample(comp_count, pdof=10):
     """
