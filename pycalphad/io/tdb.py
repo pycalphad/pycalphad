@@ -3,13 +3,13 @@ Thermo-Calc TDB format.
 """
 
 from pyparsing import CaselessKeyword, CharsNotIn, Group
-from pyparsing import LineEnd, OneOrMore, Optional, Regex, SkipTo, ZeroOrMore
-from pyparsing import Suppress, White, Word, alphanums, alphas, nums
+from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
+from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Piecewise, Symbol
 import pycalphad.variables as v
-from pycalphad.io.tdb_keywords import expand_keyword
+from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 import ast
 import sys
 import inspect
@@ -175,9 +175,7 @@ def _tdb_grammar(): #pylint: disable=R0914
                             ZeroOrMore(species_name)
                            ), ':')
         )
-    param_types = TCCommand('G') | TCCommand('L') | \
-                  TCCommand('TC') | TCCommand('BMAGN') | \
-                  TCCommand('V0')
+    param_types = MatchFirst([TCCommand(param_type) for param_type in TDB_PARAM_TYPES])
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
     func_expr = Optional(float_number) + OneOrMore(SkipTo(';') \
