@@ -176,7 +176,8 @@ def _tdb_grammar(): #pylint: disable=R0914
                            ), ':')
         )
     param_types = TCCommand('G') | TCCommand('L') | \
-                  TCCommand('TC') | TCCommand('BMAGN')
+                  TCCommand('TC') | TCCommand('BMAGN') | \
+                  TCCommand('V0')
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
     func_expr = Optional(float_number) + OneOrMore(SkipTo(';') \
