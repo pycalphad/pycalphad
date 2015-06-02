@@ -33,7 +33,8 @@ def _sympify_string(math_string):
     # Convert raw variables into StateVariable objects
     variable_fixes = {
         Symbol('T'): v.T,
-        Symbol('P'): v.P
+        Symbol('P'): v.P,
+        Symbol('R'): v.R
     }
     # sympify uses eval, so we need to sanitize the input
     nodes = ast.parse(expr_string)

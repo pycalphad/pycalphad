@@ -13,6 +13,10 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
+# Maximum number of levels deep we check for symbols that are functions of
+# other symbols
+_MAX_PARAM_NESTING = 32
+
 class DofError(Exception):
     "Error due to missing degrees of freedom."
     pass
@@ -68,6 +72,11 @@ class Model(object):
         for name, value in symbols.items():
             try:
                 symbols[name] = value.xreplace(symbols)
+                for iteration in range(_MAX_PARAM_NESTING):
+                    symbols[name] = symbols[name].xreplace(symbols)
+                    undefs = symbols[name].atoms(Symbol) - symbols[name].atoms(v.StateVariable)
+                    if len(undefs) == 0:
+                        break
             except AttributeError:
                 # Can't use xreplace on a float
                 pass
