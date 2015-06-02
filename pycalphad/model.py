@@ -101,6 +101,7 @@ class Model(object):
     energy = GM = property(lambda self: self.ast)
     entropy = SM = property(lambda self: -self.GM.diff(v.T))
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
+    heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
     mixing_energy = MIX_GM = property(lambda self: self.GM - self.models['ref'])
     mixing_enthalpy = MIX_HM = \
