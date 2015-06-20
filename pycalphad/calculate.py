@@ -1,6 +1,6 @@
 """
-The energy_surf module contains a routine for calculating the
-energy surface of a system.
+The calculate module contains a routine for calculating the
+property surface of a system.
 """
 
 from __future__ import division
@@ -11,11 +11,10 @@ from pycalphad.eq.utils import endmember_matrix, unpack_kwarg
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
-import pandas as pd
+import xray
 import numpy as np
 import itertools
 import collections
-import warnings
 
 try:
     set
@@ -29,7 +28,7 @@ def _listify(val):
     else:
         return [val]
 
-def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -54,13 +53,14 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
 
     Returns
     -------
-    DataFrame of the output as a function of composition, temperature, etc.
+    (1) xray.Dataset of the sampled attribute as a function of state variables
+    (2) dict mapping phase names to an xray.DataArray of
+        the internal degrees of freedom (site fractions)
 
     Examples
     --------
     None yet.
     """
-    warnings.warn('Use pycalphad.calculate() instead', DeprecationWarning, stacklevel=2)
     # Here we check for any keyword arguments that are special, i.e.,
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
@@ -72,19 +72,15 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
     statevar_dict = \
         collections.OrderedDict((v.StateVariable(key), value) \
                                 for (key, value) in sorted(kwargs.items()))
-
-    # Generate all combinations of state variables for 'map' calculation
-    # Wrap single values of state variables in lists
-    # Use 'kwargs' because we want state variable names to be stringified
-    statevar_values = [_listify(val) for val in statevar_dict.values()]
-    statevars_to_map = np.array(list(itertools.product(*statevar_values)))
+    str_statevar_dict = kwargs
 
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in phases)
     comp_sets = {}
-    # Construct a list to hold all the data
+    phase_constitutions = {}
     all_phase_data = []
+    point_counter = 0
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
@@ -163,17 +159,22 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
                 # add to points matrix
                 points = np.concatenate((points, addtl_pts), axis=0)
 
-        data_dict = {'Phase': phase_name}
+        point_ids = np.arange(point_counter, point_counter + points.shape[0])
+        # Increase point counter so we can maintain unique IDs across all phases
+        point_counter += points.shape[0]
+        phase_constitutions[phase_name] = \
+            xray.DataArray(points, coords={'constitution': [str(x) for x in variables],
+                                           'points': point_ids},
+                           dims=['points', 'constitution'])
+
         # Broadcast compositions and state variables along orthogonal axes
         # This lets us eliminate an expensive Python loop
-        data_dict[output] = \
-            comp_sets[phase_name](*itertools.chain(
-                np.transpose(statevars_to_map[:, :, np.newaxis], (1, 2, 0)),
-                np.transpose(points[:, :, np.newaxis], (1, 0, 2)))).T.ravel()
-        # Save state variables, with values indexed appropriately
-        statevar_vals = np.repeat(statevars_to_map, len(points), axis=0).T
-        data_dict.update({str(statevar): vals for statevar, vals \
-            in zip(statevar_dict.keys(), statevar_vals)})
+        statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
+                                                     [np.empty(points.shape[0])]),
+                                    sparse=True)[:-1]
+        # Not sure why we have to enforce broadcasting here
+        statevar_grid = np.broadcast_arrays(*statevar_grid)
+        phase_energies = comp_sets[phase_name](*itertools.chain(statevar_grid, points.T))
 
         # Map the internal degrees of freedom to global coordinates
 
@@ -187,25 +188,21 @@ def energy_surf(dbf, comps, phases, mode=None, output='GM', **kwargs):
                 vacancy_column -= points[:, var_idx]
             site_ratio_normalization += site_ratios[idx] * vacancy_column
 
-        for comp in sorted(comps):
-            if comp == 'VA':
-                continue
+        components = [x for x in sorted(comps) if not x.startswith('VA')]
+        phase_compositions = np.empty((points.shape[0], len(components)))
+        for col, comp in enumerate(components):
             avector = [float(vxx.species == comp) * \
                 site_ratios[vxx.sublattice_index] for vxx in variables]
-            data_dict['X('+comp+')'] = np.tile(np.divide(np.dot(
-                points[:, :], avector), site_ratio_normalization),
-                                               statevars_to_map.shape[0])
+            phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
+                                                   site_ratio_normalization)
 
-        # Copy coordinate information into data_dict
-        # TODO: Is there a more memory-efficient way to deal with this?
-        # Perhaps with hierarchical indexing...
-        var_fmt = 'Y({0},{1},{2})'
-        data_dict.update({var_fmt.format(vxx.phase_name, vxx.sublattice_index,
-                                         vxx.species): \
-            np.tile(vals, statevars_to_map.shape[0]) \
-            for vxx, vals in zip(variables, points.T)})
-        all_phase_data.append(pd.DataFrame(data_dict))
+        coordinate_dict = {'Phase': phase_name, 'components': components}
+        coordinate_dict.update(str_statevar_dict)
+        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+        phase_ds = xray.Dataset({'X': (['points', 'components'], phase_compositions),
+                                 output: (output_columns, phase_energies)
+                                }, coords=coordinate_dict)
 
-    # all_phases_data now contains energy surface information for the system
-    return pd.concat(all_phase_data, axis=0, join='outer', \
-                            ignore_index=True, verify_integrity=False)
+        all_phase_data.append(phase_ds)
+
+    return xray.concat(all_phase_data, dim='points'), phase_constitutions
