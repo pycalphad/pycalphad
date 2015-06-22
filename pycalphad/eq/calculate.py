@@ -38,17 +38,17 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
+    comps : str or sequence
         Names of components to consider in the calculation.
-    phases : list
+    phases : str or sequence
         Names of phases to consider in the calculation.
     mode : string, optional
         See 'make_callable' docstring for details.
     output : string, optional
         Model attribute to sample.
-    pdens : int, a dict of phase names to int, or a list of both, optional
+    pdens : int, a dict of phase names to int, or a seq of both, optional
         Number of points to sample per degree of freedom.
-    model : Model, a dict of phase names to Model, or a list of both, optional
+    model : Model, a dict of phase names to Model, or a seq of both, optional
         Model class to use for each phase.
 
     Returns
@@ -66,6 +66,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
+    if isinstance(phases, str):
+        phases = [phases]
+    if isinstance(comps, str):
+        comps = [comps]
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
@@ -171,9 +175,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
         # This lets us eliminate an expensive Python loop
         statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
                                                      [np.empty(points.shape[0])]),
-                                    sparse=True)[:-1]
-        # Not sure why we have to enforce broadcasting here
-        statevar_grid = np.broadcast_arrays(*statevar_grid)
+                                    sparse=True, indexing='ij')[:-1]
         phase_energies = comp_sets[phase_name](*itertools.chain(statevar_grid, points.T))
 
         # Map the internal degrees of freedom to global coordinates

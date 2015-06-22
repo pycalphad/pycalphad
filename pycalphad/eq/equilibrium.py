@@ -5,22 +5,16 @@ calculated phase equilibria.
 
 import pycalphad.variables as v
 from pycalphad.log import logger
-from pycalphad.eq.utils import make_callable, generate_dof
+from pycalphad.eq.utils import make_callable
 from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.eq.utils import unpack_kwarg
-from pycalphad.constraints import sitefrac_cons, sitefrac_jac
-from pycalphad.constraints import molefrac_ast
-from pycalphad import Model
-from pycalphad.eq.energy_surf import energy_surf
+from pycalphad import calculate, Model
 from pycalphad.eq.geometry import lower_convex_hull
 from pycalphad.eq.eqresult import EquilibriumResult
-from sympy import Symbol
-import pandas as pd
+from sympy import Matrix, hessian
+import xray
 import numpy as np
-import scipy.spatial
-import scipy.optimize
-from collections import Counter
-import copy
+from collections import namedtuple, OrderedDict
 
 try:
     set
@@ -31,23 +25,59 @@ class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
 
-class Equilibrium(object):
+def _unpack_condition(tup):
+    """
+    Convert a condition to a list of values.
+    Rules for keys of conditions dicts:
+    (1) If it's numeric, treat as a point value
+    (2) If it's a tuple with one element, treat as a point value
+    (3) If it's a tuple with two elements, treat as lower/upper limits and
+        guess a step size
+    (4) If it's a tuple with three elements, treat as lower/upper/num
+    (5) If it's a list, ndarray or other non-tuple ordered iterable,
+        use those values directly
+    """
+    if isinstance(tup, tuple):
+        if len(tup) == 1:
+            return float(tup[0])
+        elif len(tup) == 2:
+            return np.linspace(float(tup[0]), float(tup[1]), num=20)
+        elif len(tup) == 3:
+            return np.linspace(float(tup[0]), float(tup[1]), num=tup[2])
+        else:
+            raise ValueError('Condition tuple is length {}'.format(len(tup)))
+    else:
+        return tup
+
+def _unpack_phases(phases):
+    "Convert a phases list/dict into a sorted list."
+    if isinstance(phases, list):
+        active_phases = sorted(phases)
+    elif isinstance(phases, dict):
+        active_phases = sorted([phn for phn, status in phases.items() \
+            if status == 'entered'])
+    elif type(phases) is str:
+        active_phases = [phases]
+    return active_phases
+
+def equilibrium(dbf, comps, phases, conditions, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
-    Model parameters are taken from 'db' and any state variables (T, P, etc.)
-    can be specified as keyword arguments.
+    Model parameters are taken from 'dbf'.
 
     Parameters
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
     comps : list
-        Names (case-sensitive) of components to consider in the calculation.
-    phases : list
-        Names (case-sensitive) of phases to consider in the calculation.
-    conditions : dict
+        Names of components to consider in the calculation.
+    phases : list or dict
+        Names of phases to consider in the calculation.
+    conditions : dict or (list of dict)
         StateVariables and their corresponding value.
+    grid_opts : dict, optional
+        Keyword arguments to pass to the initial grid routine.
 
     Returns
     -------
@@ -57,313 +87,112 @@ class Equilibrium(object):
     --------
     None yet.
     """
-    def __init__(self, dbf, comps, phases, conditions, **kwargs):
-        self.conditions = conditions
-        self.components = set(comps)
-        self.phases = dict()
-        self.statevars = dict()
-        self.data = pd.DataFrame()
+    active_phases = _unpack_phases(phases)
+    comps = sorted(set(comps))
+    grid_opts = kwargs.pop('grid_opts', dict())
+    PhaseRecord = namedtuple('PhaseRecord', ['variables', 'obj', 'grad', 'hess'])
+    phase_records = dict()
+    # Construct models for each phase; prioritize user models
+    models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
+    for name in active_phases:
+        mod = models[name]
+        if isinstance(mod, type):
+            mod = mod(dbf, comps, name)
+        variables = sorted(mod.energy.atoms(v.StateVariable), key=str)
+        obj_func = make_callable(mod.energy, variables)
+        grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
+        hess_func = make_callable(hessian(mod.energy, variables), variables)
+        phase_records[name.upper()] = PhaseRecord(variables=variables, obj=obj_func,
+                                                  grad=grad_func, hess=hess_func)
 
-        self._phases = dict([[name, dbf.phases[name]] for name in phases])
-        self._phase_callables = dict()
-        self._gradient_callables = dict()
-        self._molefrac_callables = dict()
-        self._molefrac_jac_callables = dict()
-        self._variables = dict()
-        self._sublattice_dof = dict()
-        self.statevars = dict()
-        for key in ['T', 'P']:
-            try:
-                self.statevars[v.StateVariable(key)] = kwargs[key]
-            except KeyError:
-                pass
+    conds = {key: _unpack_condition(value) for key, value in conditions.items()}
+    str_conds = OrderedDict({str(key): value for key, value in conds.items()})
+    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    # 'calculate' accepts conditions through its keyword arguments
+    grid_opts.update({key: value for key, value in str_conds.items() if key in ['T', 'P']})
+    grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
+                                   model=models, **grid_opts)
+    coord_dict = str_conds.copy()
+    coord_dict['phase'] = np.arange(len(components))
+    fake_shape = np.meshgrid(*coord_dict.values(),
+                             indexing='ij', sparse=False)[0].shape
+    
+    result = xray.Dataset({'NP': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape)),
+                           'MU': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape)),
+                           'points': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape))
+                          },
+                          coords=coord_dict
+                         )
+    # phase_compositions = (..., #phases_from_Gibbs_phase_rule) -- by point ID
+    # phase_fractions = (..., #phases_from_Gibbs_phase_rule) -- by point ID
+    # potentials = (..., #phases_from_Gibbs_phase_rule) -- by point ID
+    return result
+    phase_compositions, phase_fracs, potentials = \
+        lower_convex_hull(grid, comps, conds)
+    if phase_compositions is None:
+                logger.error('Unable to find starting point for calculation')
+                raise EquilibriumError('Unable to find starting point for calculation')
+    # 1. Call energy_surf to sample the entire energy surface at some density (whatever T, P required)
+    # 2. Call lower_convex_hull to find equilibrium simplices/potentials along the calculation path
+    # 3. Perform a driving force calculation and discard all points with driving force less than some amount (save memory).
+    # 4. While any driving force is positive:
+    #       a. Using the determined potentials for each point on the calculation path, find the constrained minimum
+    #          for _all_ phases in the system. This will be done with N-R by an iterative calculation.
+    #       b. If the solver failed to converge, call energy_surf to add more random points for that phase, T, P, etc.
+    #       c. Add all computed points to the global energy surface calculated by energy_surf.
+    #       d. Call lower_convex_hull again, including the added points. These should be the equilibrium values.
+    #       e. Perform a driving force calculation with the new potentials.
+    # 5. Recompute simplices for points where driving force is zero. This is to catch invariant regions.
+    # 6. Return the potentials, simplices and fractions found for the calculation path.
+    points = grid.sel(points=phase_compositions)
+    for iteration in range(10):
+        #print('x: ', points)
+        hess = np.rollaxis(hess_func(*points.T), -1)
+        print('eigenvalues: ', np.linalg.eigvals(hess))
+        gradient = np.transpose(gradient_func(*points.T), (2, 0, 1))
+        energies = energy_func(*points.T)
+        #print('energy: ', energies[..., 0])
+        e_matrix = np.linalg.inv(hess)
+        e_matrix = e_matrix[0, ...]
+        constraint_jac = np.atleast_2d(np.ones(len(comps)))
+        # unconstrained Newton-Raphson solution
+        dy_unconstrained = -np.dot(e_matrix, gradient)
+        # extra terms to handle constraints
+        proj_matrix = np.dot(e_matrix, constraint_jac.T)
+        inv_term = np.linalg.inv(np.dot(constraint_jac, proj_matrix))
+        cons_summation = (points.sum(axis=-1)-1.0) + np.dot(constraint_jac, dy_unconstrained)
+        cons_correction = np.dot(proj_matrix, inv_term).dot(cons_summation)
+        dy = dy_unconstrained - cons_correction
+        driving_force = energies - np.tensordot(points, potentials, axes=(-1, -1))
+        print('DF: ', driving_force)
+        #diff /= np.linalg.norm(diff, ord=1)
+        alpha = 1
+        new_points = points+alpha*dy
+        new_energies = energy_func(*new_points.T)
+        while (new_energies > energies - 0.1*np.dot(dy.T, gradient)) or np.any(new_points < 0):
+            alpha *= 0.5
+            new_points = points+alpha*dy
+            new_energies = energy_func(*new_points.T)
+            if alpha < 1e-6:
+                break
+        points = new_points
+        if np.linalg.norm(alpha*dy) < 1e-12:
+            break
+        #if np.any(points < 0):
+        #    points -= alpha*dy
+        #    break
+        #print('diff ', diff)
+        #print('sum ', diff.sum(axis=-1))
+        #print('new x = ', points)
+    print('iterations: ', iteration)
+    print('x: ', points)
+    print('alpha: ', alpha)
+    print('gradient: ', gradient)
+    
+    print('potentials: ', potentials)
+    print('x_sum_residual: ', 1 - points.sum(axis=-1))
+    print('energy: ', energies[..., 0])
+    print('dy ', dy)
 
-        # Construct models for each phase; prioritize user models
-        self._models = unpack_kwarg(kwargs.pop('model', Model), \
-            default_arg=Model)
-        for name in phases:
-            mod = self._models[name]
-            if isinstance(mod, type):
-                # Initialize the model
-                self._models[name] = mod(dbf, self.components, name)
-
-        self._build_objective_functions()
-
-        self.data = energy_surf(dbf, comps, phases, model=self._models, \
-            **kwargs)
-
-        # self.data now contains energy surface information for the system
-        # find simplex for a starting point; refine with optimization
-        estimates = self.get_starting_simplex()
-        logger.debug(estimates)
-        self.result = self.minimize(estimates[0], estimates[1])
-
-    def __str__(self):
-        return str(self.result)
-
-    def get_starting_simplex(self):
-        """
-        Calculate convex hull and find a suitable starting point.
-        Returns (DataFrame of phase compositions, ndarray of phase fractions)
-        """
-        phase_compositions, phase_fracs, pots = \
-            lower_convex_hull(self.data, self.components, self.conditions)
-        phase_compositions = phase_compositions[0]
-        phase_fracs = phase_fracs[0]
-        pots = pots[0]
-        if phase_compositions is None:
-            logger.error('Unable to find starting point for calculation')
-            raise EquilibriumError('Unable to find starting point for calculation')
-        logger.debug(self.data.iloc[phase_compositions])
-        independent_indices = \
-            check_degenerate_phases(self.data.iloc[phase_compositions],
-                                    mindist=0.1)
-        logger.debug('phase_fracs: %s', phase_fracs)
-        logger.debug('independent_indices: %s', independent_indices)
-        # renormalize phase fractions to 1 after eliminating redundant phases
-        phase_fracs = phase_fracs[independent_indices]
-        phase_fracs /= np.sum(phase_fracs)
-        return [self.data.iloc[phase_compositions[independent_indices]],
-                phase_fracs]
-
-    def minimize(self, simplex, phase_fractions=None):
-        """
-        Accept a list of simplex vertices and return the values of the
-        variables that minimize the energy under the constraints.
-        """
-        # Generate phase fraction variables
-        # Track the multiplicity of phases with a Counter object
-        composition_sets = Counter()
-        all_variables = []
-        # starting point
-        x_0 = []
-        # scaling factor -- set to minimum energy of starting simplex
-        # Scaling the objective to be of order '10' seems to result in
-        # sufficient precision (at least 5 significant figures).
-        scaling_factor = abs(simplex['GM'].min()) / 10.0
-        # a list of tuples for where each phase's variable indices
-        # start and end
-        index_ranges = []
-        #print(list(enumerate(simplex.iterrows())))
-        #print((simplex.iterrows()))
-        #print('END')
-        for m_idx, vertex in enumerate(simplex.iterrows()):
-            vertex = vertex[1]
-            # increase multiplicity by one
-            composition_sets[vertex['Phase']] += 1
-            # create new phase fraction variable
-            all_variables.append(
-                v.PhaseFraction(vertex['Phase'],
-                                composition_sets[vertex['Phase']])
-                )
-            start = len(x_0)
-            # default position is centroid of the simplex
-            if phase_fractions is None:
-                x_0.append(1.0/len(list(simplex.iterrows())))
-            else:
-                # use the provided guess for the phase fraction
-                x_0.append(phase_fractions[m_idx])
-
-            # add site fraction variables
-            all_variables.extend(self._variables[vertex['Phase']])
-            # add starting point for variable
-            for varname in self._variables[vertex['Phase']]:
-                x_0.append(vertex[str(varname)])
-            index_ranges.append([start, len(x_0)])
-
-        # Create master objective function
-        def obj(input_x):
-            "Objective function. Takes x vector as input. Returns scalar."
-            objective = 0.0
-            for idx, vertex in enumerate(simplex.iterrows()):
-                vertex = vertex[1]
-                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-                #print('Phase: '+vertex['Phase']+' '+str(cur_x))
-                # phase fraction times value of objective for that phase
-                objective += input_x[index_ranges[idx][0]] * \
-                    self._phase_callables[vertex['Phase']](
-                        *list(cur_x))
-            return objective / scaling_factor
-
-        # Create master gradient function
-        def gradient(input_x):
-            "Accepts input vector and returns gradient vector."
-            gradient = np.zeros(len(input_x))
-            for idx, vertex in enumerate(simplex.iterrows()):
-                vertex = vertex[1]
-                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-                #print('grad cur_x: '+str(cur_x))
-                # phase fraction derivative is just the phase energy
-                gradient[index_ranges[idx][0]] = \
-                    self._phase_callables[vertex['Phase']](
-                        *list(cur_x))
-                # gradient for particular phase's variables
-                # NOTE: We assume all phase d.o.f are independent here,
-                # and we handle any coupling through the constraints
-                for g_idx, grad in \
-                    enumerate(self._gradient_callables[vertex['Phase']]):
-                    gradient[index_ranges[idx][0]+1+g_idx] = \
-                        input_x[index_ranges[idx][0]] * \
-                            grad(*list(cur_x))
-            #print('grad: '+str(gradient / scaling_factor))
-            return gradient / scaling_factor
-
-        # Generate constraint sequence
-        constraints = []
-
-        # phase fraction constraint
-        def phasefrac_cons(input_x):
-            "Accepts input vector and returns phase fraction constraint."
-            output = 1.0 - sum([input_x[i[0]] for i in index_ranges])#** 2
-            return output
-        def phasefrac_jac(input_x):
-            "Accepts input vector and returns Jacobian of constraint."
-            output_x = np.zeros(len(input_x))
-            for idx_range in index_ranges:
-                output_x[idx_range[0]] = -1.0 #\
-                #    -2.0*sum([input_x[i[0]] for i in index_ranges])
-            return output_x
-        phasefrac_dict = dict()
-        phasefrac_dict['type'] = 'eq'
-        phasefrac_dict['fun'] = phasefrac_cons
-        phasefrac_dict['jac'] = phasefrac_jac
-        constraints.append(phasefrac_dict)
-
-        # bounds constraint
-        def nonneg_cons(input_x, idx):
-            "Accepts input vector and returns non-negativity constraint."
-            output = input_x[idx]
-            #print('nonneg_cons: '+str(output))
-            return output
-
-        def nonneg_jac(input_x, idx):
-            "Accepts input vector and returns Jacobian of constraint."
-            output_x = np.zeros(len(input_x))
-            output_x[idx] = 1.0
-            return output_x
-
-        for idx in range(len(all_variables)):
-            nonneg_dict = dict()
-            nonneg_dict['type'] = 'ineq'
-            nonneg_dict['fun'] = nonneg_cons
-            nonneg_dict['jac'] = nonneg_jac
-            nonneg_dict['args'] = [idx]
-            constraints.append(nonneg_dict)
-
-        # Generate all site fraction constraints
-        for idx_range in index_ranges:
-            # need to generate constraint for each sublattice
-            dofs = self._sublattice_dof[all_variables[idx_range[0]].phase_name]
-            cur_idx = idx_range[0]+1
-            for dof in dofs:
-                sitefrac_dict = dict()
-                sitefrac_dict['type'] = 'eq'
-                sitefrac_dict['fun'] = sitefrac_cons
-                sitefrac_dict['jac'] = sitefrac_jac
-                sitefrac_dict['args'] = [[cur_idx, cur_idx+dof]]
-                cur_idx += dof
-                if dof > 0:
-                    constraints.append(sitefrac_dict)
-
-        # All other constraints, e.g., mass balance
-        def molefrac_cons(input_x, species, fix_val, all_variables, phases):
-            """
-            Accept input vector, species and fixed value.
-            Returns constraint.
-            """
-            output = -fix_val
-            for idx, vertex in enumerate(simplex.iterrows()):
-                vertex = vertex[1]
-                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-                res = self._molefrac_callables[vertex['Phase']][species](*cur_x)
-                output += input_x[index_ranges[idx][0]] * res
-            #print('molefrac_cons: '+str(output))
-            return output
-        def molefrac_jac(input_x, species, fix_val, all_variables, phases):
-            "Accepts input vector and returns Jacobian vector."
-            output_x = np.zeros(len(input_x))
-            for idx, vertex in enumerate(simplex.iterrows()):
-                vertex = vertex[1]
-                cur_x = input_x[index_ranges[idx][0]+1:index_ranges[idx][1]]
-                output_x[index_ranges[idx][0]] = \
-                    self._molefrac_callables[vertex['Phase']][species](*cur_x)
-                for g_idx, grad in \
-                    enumerate(self._molefrac_jac_callables[vertex['Phase']][species]):
-                    output_x[index_ranges[idx][0]+1+g_idx] = \
-                        input_x[index_ranges[idx][0]] * \
-                            grad(*list(cur_x))
-            #print('molefrac_jac '+str(output_x))
-            return output_x
-
-        eqs = len([x for x in constraints if x['type'] == 'eq'])
-        if eqs < len(x_0):
-            for condition, value in self.conditions.items():
-                if isinstance(condition, v.Composition):
-                    # mass balance constraint for mole fraction
-                    molefrac_dict = dict()
-                    molefrac_dict['type'] = 'eq'
-                    molefrac_dict['fun'] = molefrac_cons
-                    molefrac_dict['jac'] = molefrac_jac
-                    molefrac_dict['args'] = \
-                        [condition.species, value, all_variables,
-                         self._phases]
-                    constraints.append(molefrac_dict)
-        else:
-            logger.warning("""Dropping mass balance constraints due to
-                zero internal degrees of freedom""")
-
-        # Run optimization
-        res = scipy.optimize.minimize(obj, x_0, method='slsqp', jac=gradient,\
-            constraints=constraints, options={'maxiter': 1000})
-        # rescale final values back to original
-        res['raw_fun'] = copy.deepcopy(res['fun'])
-        res['raw_jac'] = copy.deepcopy(res['jac'])
-        res['raw_x'] = copy.deepcopy(res['x'])
-        res['fun'] *= scaling_factor
-        res['jac'] *= scaling_factor
-        # force tiny numerical values to be positive
-        res['x'] = np.maximum(res['x'], np.zeros(1, dtype=np.float64))
-        logger.debug(res)
-        if not res['success']:
-            logger.error('Energy minimization failed')
-            return None
-
-        # Build result object
-        eq_res = EquilibriumResult(self._phases, self.components,
-                                   self.statevars, res['fun'],
-                                   zip(all_variables, res['x']))
-        return eq_res
-
-    def _build_objective_functions(self):
-        "Construct objective function callables for each phase."
-        for phase_name, phase_obj in self._phases.items():
-            mod = self._models[phase_name]
-            # Construct an ordered list of the variables
-            self._variables[phase_name], self._sublattice_dof[phase_name] = \
-                generate_dof(phase_obj, self.components)
-            molefrac_dict = dict([(x, molefrac_ast(phase_obj, x)) \
-                for x in self.components if x != 'VA'])
-            molefrac_jac_dict = dict()
-
-            # Generate callables for the mole fractions
-            for comp in self.components:
-                if comp == 'VA':
-                    continue
-                molefrac_jac_dict[comp] = [ \
-                    make_callable(molefrac_dict[comp].diff(vx), \
-                    self._variables[phase_name], \
-                    ) for vx in self._variables[phase_name]]
-                molefrac_dict[comp] = make_callable(molefrac_dict[comp], \
-                    self._variables[phase_name])
-
-            # Build the "fast" representation of energy model
-            subbed_ast = mod.ast.subs(self.statevars)
-            self._phase_callables[phase_name] = \
-                make_callable(subbed_ast, \
-                self._variables[phase_name])
-            self._gradient_callables[phase_name] = [ \
-                make_callable(subbed_ast.diff(vx), \
-                    self._variables[phase_name], \
-                    ) for vx in self._variables[phase_name]]
-            self._molefrac_callables[phase_name] = molefrac_dict
-            self._molefrac_jac_callables[phase_name] = molefrac_jac_dict
+def newton_raphson_solve(grid, guess_simplices, **kwargs):
+    pass
