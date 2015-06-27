@@ -3,74 +3,61 @@ The geometry module handles geometric calculations associated with
 equilibrium calculation.
 """
 
-import pycalphad.variables as v
-import numpy as np
 from pycalphad.log import logger
+import numpy as np
+import xray
 
-def lower_convex_hull(data, comps, conditions):
+def _initialize_array(global_grid, result_array):
+    "Fill in starting values for the energy array."
+    fixed_state = ['points']
+    max_energies = global_grid['GM'].max(dim=fixed_state, skipna=False)
+    if max_energies.isnull().any():
+        raise ValueError('Input energy surface contains one or more NaNs.')
+    max_energies[max_energies < 0] *= 0.5
+    max_energies[max_energies >= 0] *= 2
+    result_array['GM'] = xray.broadcast_arrays(max_energies, result_array['GM'])[0]
+    result_array['MU'] = xray.broadcast_arrays(max_energies, result_array['MU'])[0]
+    result_array['NP'] = xray.broadcast_arrays(max_energies, result_array['NP'])[0]
+
+def lower_convex_hull(global_grid, result_array):
     """
-    Find the simplex on the lower convex hull satisfying the specified
-    conditions.
+    Find the simplices on the lower convex hull satisfying the specified
+    conditions in the result array.
 
     Parameters
     ----------
-    data : DataFrame
+    global_grid : Dataset
         A sample of the energy surface of the system.
-    comps : list
-        All the components in the system.
-    conditions : dict
-        StateVariables and their corresponding value.
+    result_array : Dataset
+        This object will be modified!
+        Coordinates correspond to conditions axes.
 
     Returns
     -------
-    A tuple containing:
-    (1) A numpy array of indices corresponding to vertices of the simplex.
-    (2) A numpy array corresponding to the phase fractions.
-    (3) A numpy array of chemical potentials in sorted(comps) order (no 'VA')
-    Note: This routine will not check if the simplex is degenerate.
+    None. Results are written to result_array.
+
+    Notes
+    -----
+    This routine will not check if any simplex is degenerate.
+    Degenerate simplices will manifest with duplicate or NaN indices.
 
     Examples
     --------
     None yet.
     """
-    # determine column indices for degrees of freedom
-    comps = sorted(list(comps))
-    dof = ['X({0})'.format(c) for c in comps if c != 'VA']
-    dof_values = np.zeros(len(dof))
-    marked_dof_values = list(range(len(dof)))
-    for cond, value in conditions.items():
-        if not isinstance(cond, v.Composition):
-            continue
-        # ignore phase-specific composition conditions
-        if cond.phase_name is not None:
-            continue
-        if cond.species == 'VA':
-            continue
-        dof_values[dof.index('X({0})'.format(cond.species))] = value
-        marked_dof_values.remove(dof.index('X({0})'.format(cond.species)))
-
-    dof.append('GM')
-
-    if len(marked_dof_values) == 1:
-        dof_values[marked_dof_values[0]] = 1-sum(dof_values)
-    else:
-        logger.error('Not enough composition conditions specified')
-        raise ValueError('Not enough composition conditions specified.')
+    conditions = [x for x in result_array.coords.keys() if x not in ['vertex',
+                                                                     'component']]
+    comps = result_array.coords['component']
+    if result_array.attrs['iterations'] == 0:
+        _initialize_array(global_grid, result_array)
+    return
+    # Determine starting combinations of chemical potentials and compositions
+    # Check Gibbs phase rule compliance
 
     # convert DataFrame of independent columns to ndarray
-    dat_coords = np.concatenate((np.eye(len(dof)-1),
-                                 data[dof].values[:, :-1]), axis=-2)
-    max_energy = np.amax(data[dof].values[:, -1])
-    if np.isnan(max_energy):
-        raise ValueError('Input energy surface contains one or more NaNs.')
-    if max_energy < 0:
-        max_energy *= 0.5
-    else:
-        max_energy *= 2.0
+
     dat_energies = np.concatenate((np.repeat(max_energy, len(dof)-1),
                                    data[dof].values[:, -1]), axis=-2)
-    temperature = data.iloc[0].loc['T']
-    dof_values = dof_values[np.newaxis, :]
 
     dof_energies = np.empty(dof_values.shape[0:-1], dtype=np.float)
     dof_energies[...] = np.inf
@@ -80,11 +67,13 @@ def lower_convex_hull(data, comps, conditions):
     # This hyperplane sits above the system's energy surface
     # The reason for this is to guarantee our initial simplex contains
     #     the target point
-    dof_simplices[..., :] = np.arange(dat_coords.shape[-1])
-    dof_potentials = np.empty(dof_values.shape, dtype=np.float)
-    dof_potentials[...] = np.inf
-    driving_forces = np.empty(dof_values.shape[0:-1] + (dat_coords.shape[-2],),
-                              dtype=np.float)
+    coord_dict = result_array['points'].coords.copy()
+    coord_dict['trials'] = np.arange(len(comps))
+    trial_dims = list(result_array.dims.keys()) + ['trials']
+    df_shape = list(result_array.dims.values()) + [len(comps)]
+    driving_forces = xray.DataArray(np.empty(df_shape), coords=coord_dict,
+                                    dims=trial_dims)
+    # global_grid['GM'].min(dims=fixed_state, skipna=True)
     trial_points = np.empty(dof_values.shape[0:-1], dtype=np.int)
     # Initialize trial points as lowest energy point in the system
     trial_points[...] = np.argmin(dat_energies, axis=-1)
@@ -92,11 +81,9 @@ def lower_convex_hull(data, comps, conditions):
     iterations = 0
     while iterations < max_iterations:
         iterations += 1
-        trial_simplices = np.empty(dof_values.shape + (dat_coords.shape[-1],),
-                                   dtype=np.int)
         # Trial simplices based on current best guess simplex for each
         #     target point in dof_values
-        trial_simplices[..., :, :] = dof_simplices[..., np.newaxis, :]
+        trial_simplices = result_array['points'].values[..., np.newaxis]
         # Trial simplices will be the current simplex with each vertex
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,

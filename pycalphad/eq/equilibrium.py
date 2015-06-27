@@ -14,7 +14,7 @@ from pycalphad.eq.eqresult import EquilibriumResult
 from sympy import Matrix, hessian
 import xray
 import numpy as np
-from collections import namedtuple, OrderedDict
+from collections import namedtuple, Iterable, OrderedDict
 
 try:
     set
@@ -39,15 +39,17 @@ def _unpack_condition(tup):
     """
     if isinstance(tup, tuple):
         if len(tup) == 1:
-            return float(tup[0])
+            return [float(tup[0])]
         elif len(tup) == 2:
             return np.linspace(float(tup[0]), float(tup[1]), num=20)
         elif len(tup) == 3:
             return np.linspace(float(tup[0]), float(tup[1]), num=tup[2])
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
-    else:
+    elif isinstance(tup, Iterable):
         return tup
+    else:
+        return [float(tup)]
 
 def _unpack_phases(phases):
     "Convert a phases list/dict into a sorted list."
@@ -101,7 +103,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         variables = sorted(mod.energy.atoms(v.StateVariable), key=str)
         obj_func = make_callable(mod.energy, variables)
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
-        hess_func = make_callable(hessian(mod.energy, variables), variables)
+        hess_func = None
+        #hess_func = make_callable(hessian(mod.energy, variables), variables)
         phase_records[name.upper()] = PhaseRecord(variables=variables, obj=obj_func,
                                                   grad=grad_func, hess=hess_func)
 
@@ -113,28 +116,29 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
                                    model=models, **grid_opts)
     coord_dict = str_conds.copy()
-    coord_dict['phase'] = np.arange(len(components))
+    coord_dict['vertex'] = np.arange(len(components))
     fake_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
-    
-    result = xray.Dataset({'NP': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape)),
-                           'MU': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape)),
-                           'points': (list(str_conds.keys()) + ['phase'], np.zeros(fake_shape))
-                          },
-                          coords=coord_dict
-                         )
-    # phase_compositions = (..., #phases_from_Gibbs_phase_rule) -- by point ID
-    # phase_fractions = (..., #phases_from_Gibbs_phase_rule) -- by point ID
-    # potentials = (..., #phases_from_Gibbs_phase_rule) -- by point ID
-    return result
-    phase_compositions, phase_fracs, potentials = \
-        lower_convex_hull(grid, comps, conds)
-    if phase_compositions is None:
-                logger.error('Unable to find starting point for calculation')
-                raise EquilibriumError('Unable to find starting point for calculation')
+    coord_dict['component'] = components
+
+    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
+                                      np.zeros(fake_shape)),
+                               'GM': (list(str_conds.keys()),
+                                      np.zeros(fake_shape[:-1])),
+                               'MU': (list(str_conds.keys()) + ['component'],
+                                      np.zeros(fake_shape)),
+                               'points': (list(str_conds.keys()) + ['vertex'],
+                                          np.zeros(fake_shape, dtype=np.int))
+                              },
+                              coords=coord_dict,
+                              attrs={'iterations': 0},
+                             )
+    # lower_convex_hull will modify properties
+    lower_convex_hull(grid, properties)
+    return properties
     # 1. Call energy_surf to sample the entire energy surface at some density (whatever T, P required)
     # 2. Call lower_convex_hull to find equilibrium simplices/potentials along the calculation path
-    # 3. Perform a driving force calculation and discard all points with driving force less than some amount (save memory).
+    # 3. Perform a driving force calculation.
     # 4. While any driving force is positive:
     #       a. Using the determined potentials for each point on the calculation path, find the constrained minimum
     #          for _all_ phases in the system. This will be done with N-R by an iterative calculation.

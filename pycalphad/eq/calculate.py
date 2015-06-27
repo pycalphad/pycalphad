@@ -198,10 +198,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
             phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
                                                    site_ratio_normalization)
 
-        coordinate_dict = {'Phase': phase_name, 'components': components}
+        coordinate_dict = {'Phase': phase_name, 'component': components}
         coordinate_dict.update(str_statevar_dict)
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
-        phase_ds = xray.Dataset({'X': (['points', 'components'], phase_compositions),
+        phase_ds = xray.Dataset({'X': (['points', 'component'], phase_compositions),
                                  output: (output_columns, phase_energies)
                                 }, coords=coordinate_dict)
 
