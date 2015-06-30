@@ -114,21 +114,23 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in ['T', 'P']})
     grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
-                                   model=models, **grid_opts)
+                                   model=models, fake_points=True, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
-    fake_shape = np.meshgrid(*coord_dict.values(),
+    grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
+    coord_dict['trial'] = np.arange(len(components))
+    grid_shape = grid_shape + (len(components),)
     coord_dict['component'] = components
 
-    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
-                                      np.zeros(fake_shape)),
-                               'GM': (list(str_conds.keys()),
-                                      np.zeros(fake_shape[:-1])),
-                               'MU': (list(str_conds.keys()) + ['component'],
-                                      np.zeros(fake_shape)),
-                               'points': (list(str_conds.keys()) + ['vertex'],
-                                          np.zeros(fake_shape, dtype=np.int))
+    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['trial', 'vertex'],
+                                      np.empty(grid_shape)),
+                               'GM': (list(str_conds.keys()) + ['trial'],
+                                      np.empty(grid_shape[:-1])),
+                               'MU': (list(str_conds.keys()) + ['trial', 'component'],
+                                      np.empty(grid_shape)),
+                               'points': (list(str_conds.keys()) + ['trial', 'vertex'],
+                                          np.empty(grid_shape, dtype=np.int))
                               },
                               coords=coord_dict,
                               attrs={'iterations': 0},

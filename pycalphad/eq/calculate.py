@@ -28,7 +28,7 @@ def _listify(val):
     else:
         return [val]
 
-def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -46,6 +46,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
         See 'make_callable' docstring for details.
     output : string, optional
         Model attribute to sample.
+    fake_points : bool, optional
+        If True, the first few points of the output surface will be fictitious
+        points used to define an equilibrium hyperplane guaranteed to be above
+        all the other points. This is used for convex hull computations.
     pdens : int, a dict of phase names to int, or a seq of both, optional
         Number of points to sample per degree of freedom.
     model : Model, a dict of phase names to Model, or a seq of both, optional
@@ -70,6 +74,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
         phases = [phases]
     if isinstance(comps, str):
         comps = [comps]
+    components = [x for x in sorted(comps) if not x.startswith('VA')]
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
@@ -77,14 +82,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
         collections.OrderedDict((v.StateVariable(key), value) \
                                 for (key, value) in sorted(kwargs.items()))
     str_statevar_dict = kwargs
+    all_phase_data = []
+    comp_sets = {}
+    phase_constitutions = {}
+    point_counter = 0
+    largest_energy = -np.inf
 
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in phases)
-    comp_sets = {}
-    phase_constitutions = {}
-    all_phase_data = []
-    point_counter = 0
+
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
@@ -177,6 +184,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
                                                      [np.empty(points.shape[0])]),
                                     sparse=True, indexing='ij')[:-1]
         phase_energies = comp_sets[phase_name](*itertools.chain(statevar_grid, points.T))
+        # Roll 'points' dimension up to leading dimension
+        phase_energies = np.rollaxis(phase_energies, -1)
+        largest_energy = max(largest_energy, phase_energies.max())
 
         # Map the internal degrees of freedom to global coordinates
 
@@ -190,7 +200,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
                 vacancy_column -= points[:, var_idx]
             site_ratio_normalization += site_ratios[idx] * vacancy_column
 
-        components = [x for x in sorted(comps) if not x.startswith('VA')]
         phase_compositions = np.empty((points.shape[0], len(components)))
         for col, comp in enumerate(components):
             avector = [float(vxx.species == comp) * \
@@ -200,11 +209,28 @@ def calculate(dbf, comps, phases, mode=None, output='GM', **kwargs):
 
         coordinate_dict = {'Phase': phase_name, 'component': components}
         coordinate_dict.update(str_statevar_dict)
-        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+        output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
         phase_ds = xray.Dataset({'X': (['points', 'component'], phase_compositions),
                                  output: (output_columns, phase_energies)
                                 }, coords=coordinate_dict)
 
         all_phase_data.append(phase_ds)
 
-    return xray.concat(all_phase_data, dim='points'), phase_constitutions
+    if fake_points:
+        coordinate_dict = {'Phase': '_FAKE_', 'component': components}
+        coordinate_dict.update(str_statevar_dict)
+        if largest_energy < 0:
+            largest_energy *= 0.5
+        else:
+            largest_energy *= 2
+        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+        energy_shape = tuple(len(x) for x in statevar_dict.values()) + (len(components),)
+        largest_energy = xray.broadcast_arrays(xray.DataArray(largest_energy),
+                                               xray.DataArray(np.empty((energy_shape))))[0].copy()
+        phase_ds = xray.Dataset({'X': (['points', 'component'], np.eye(len(components))),
+                                 output: (output_columns, largest_energy)
+                                }, coords=coordinate_dict)
+        return xray.concat(itertools.chain([phase_ds], all_phase_data),
+                           dim='points'), phase_constitutions
+    else:
+        return xray.concat(all_phase_data, dim='points'), phase_constitutions
