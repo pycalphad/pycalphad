@@ -26,80 +26,58 @@ try:
 except ImportError:
     pass
 
-class NumPyPrinter(LambdaPrinter): #pylint: disable=R0903
+class NumPyPrinter(LambdaPrinter):
     """
-    Special numpy lambdify printer which handles vectorized
-    piecewise functions.
+    Numpy printer which handles vectorized piecewise functions,
+    logical operators, etc.
     """
     _default_settings = {
         "order": "none",
         "full_prec": "auto",
     }
-    #pylint: disable=C0103,W0232
+
     def _print_seq(self, seq, delimiter=', '):
-        "simplified _print_seq taken from pretty.py"
-        svx = [self._print(item) for item in seq]
-        if svx:
-            return delimiter.join(svx)
-        else:
-            return ""
+        "General sequence printer: converts to tuple"
+        # Print tuples here instead of lists because numba supports
+        #     tuples in nopython mode.
+        return '({},)'.format(delimiter.join(self._print(item) for item in seq))
 
-    def _print_Add(self, expr, order=None):
-        terms = list(expr.args)
-
-        PREC = precedence(expr)
-        l = []
-        for term in terms:
-            t = self._print(term)
-            if t.startswith('-'):
-                sign = "-"
-                t = t[1:]
-            else:
-                sign = "+"
-            if precedence(term) < PREC:
-                l.extend([sign, "(%s)" % t])
-            else:
-                l.extend([sign, t])
-        sign = l.pop(0)
-        if sign == '+':
-            sign = ""
-        return sign + ' '.join(l)
-
-    def _print_MatrixBase(self, expr):
-        return "%s(%s)" % ('array', self._print(expr.tolist()))
-
-    _print_SparseMatrix = \
-        _print_MutableSparseMatrix = \
-        _print_ImmutableSparseMatrix = \
-        _print_Matrix = \
-        _print_DenseMatrix = \
-        _print_MutableDenseMatrix = \
-        _print_ImmutableMatrix = \
-        _print_ImmutableDenseMatrix = \
-        _print_MatrixBase
+    def _print_MatMul(self, expr):
+        "Matrix multiplication printer"
+        return '({0})'.format(').dot('.join(self._print(i) for i in expr.args))
 
     def _print_Piecewise(self, expr):
         "Piecewise function printer"
-        expr_list = []
-        cond_list = []
-        for arg in expr.args:
-            expr_list.append(self._print(arg.expr))
-            cond_list.append(self._print(arg.cond))
-        exprs = '['+','.join(expr_list)+']'
-        conds = '['+','.join(cond_list)+']'
-        return 'select('+conds+', '+exprs+')'
+        # Print tuples here instead of lists because numba may add support
+        #     for select in nopython mode; see numba#1313 on github.
+        exprs = '({0},)'.format(','.join(self._print(arg.expr) for arg in expr.args))
+        conds = '({0},)'.format(','.join(self._print(arg.cond) for arg in expr.args))
+        # If (default_value, True) is a (expr, cond) tuple in a Piecewise object
+        #     it will behave the same as passing the 'default' kwarg to select()
+        #     *as long as* it is the last element in expr.args.
+        # If this is not the case, it may be triggered prematurely.
+        return 'select({0}, {1}, default=nan)'.format(conds, exprs)
 
     def _print_And(self, expr):
         "Logical And printer"
-        return self._print_Function(expr)
+        # We have to override LambdaPrinter because it uses Python 'and' keyword.
+        # If LambdaPrinter didn't define it, we could use StrPrinter's
+        # version of the function and add 'logical_and' to NUMPY_TRANSLATIONS.
+        return '{0}({1})'.format('logical_and', ','.join(self._print(i) for i in expr.args))
 
     def _print_Or(self, expr):
         "Logical Or printer"
-        return self._print_Function(expr)
+        # We have to override LambdaPrinter because it uses Python 'or' keyword.
+        # If LambdaPrinter didn't define it, we could use StrPrinter's
+        # version of the function and add 'logical_or' to NUMPY_TRANSLATIONS.
+        return '{0}({1})'.format('logical_or', ','.join(self._print(i) for i in expr.args))
 
-    def _print_Function(self, e):
-        "Function printer"
-        return "%s(%s)" % (e.func.__name__, self._print_seq(e.args))
+    def _print_Not(self, expr):
+        "Logical Not printer"
+        # We have to override LambdaPrinter because it uses Python 'not' keyword.
+        # If LambdaPrinter didn't define it, we would still have to define our
+        #     own because StrPrinter doesn't define it.
+        return '{0}({1})'.format('logical_not', ','.join(self._print(i) for i in expr.args))
 
 class SpecialNumExprPrinter(NumExprPrinter): #pylint: disable=R0903
     "numexpr printing for vectorized piecewise functions"

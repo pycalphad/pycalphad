@@ -479,14 +479,6 @@ def test_negative_site_fraction():
         5.52773e3, mode='numpy')
 
 @nose.tools.raises(Exception)
-def test_outside_temp_range():
-    "Energy at a temperature not defined by the model."
-    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
-            {v.T: 8000, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
-             v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
-        0, mode='sympy')
-
-@nose.tools.raises(Exception)
 def test_missing_variable_def():
     "Raise exception when a variable is not defined."
     check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \

@@ -2,7 +2,7 @@
 The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
-
+from __future__ import print_function
 import pycalphad.variables as v
 from pycalphad.log import logger
 from pycalphad.eq.utils import make_callable
@@ -78,6 +78,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         Names of phases to consider in the calculation.
     conditions : dict or (list of dict)
         StateVariables and their corresponding value.
+    verbose : bool, optional
+        Show progress of calculations. (Default: True)
     grid_opts : dict, optional
         Keyword arguments to pass to the initial grid routine.
 
@@ -92,10 +94,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     active_phases = _unpack_phases(phases)
     comps = sorted(set(comps))
     grid_opts = kwargs.pop('grid_opts', dict())
+    verbose = kwargs.pop('verbose', True)
     PhaseRecord = namedtuple('PhaseRecord', ['variables', 'obj', 'grad', 'hess'])
     phase_records = dict()
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
+    if verbose:
+        print('Components:', ' '.join(comps))
+        print('Models:', end=' ')
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
@@ -107,34 +113,46 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         #hess_func = make_callable(hessian(mod.energy, variables), variables)
         phase_records[name.upper()] = PhaseRecord(variables=variables, obj=obj_func,
                                                   grad=grad_func, hess=hess_func)
+        if verbose:
+            print(name, end=' ')
+    if verbose:
+        print('[done]', end='\n')
 
     conds = {key: _unpack_condition(value) for key, value in conditions.items()}
     str_conds = OrderedDict({str(key): value for key, value in conds.items()})
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in ['T', 'P']})
-    grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
-                                   model=models, fake_points=True, **grid_opts)
+    if 'pdens' not in grid_opts:
+        grid_opts['pdens'] = 100
+
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
-    coord_dict['trial'] = np.arange(len(components))
-    grid_shape = grid_shape + (len(components),)
     coord_dict['component'] = components
+    if verbose:
+        print('Computing initial grid')
 
-    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['trial', 'vertex'],
+    grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
+                                   model=models, fake_points=True, **grid_opts)
+
+    
+
+    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
                                       np.empty(grid_shape)),
-                               'GM': (list(str_conds.keys()) + ['trial'],
+                               'GM': (list(str_conds.keys()),
                                       np.empty(grid_shape[:-1])),
-                               'MU': (list(str_conds.keys()) + ['trial', 'component'],
+                               'MU': (list(str_conds.keys()) + ['component'],
                                       np.empty(grid_shape)),
-                               'points': (list(str_conds.keys()) + ['trial', 'vertex'],
+                               'points': (list(str_conds.keys()) + ['vertex'],
                                           np.empty(grid_shape, dtype=np.int))
                               },
                               coords=coord_dict,
                               attrs={'iterations': 0},
                              )
+    if verbose:
+        print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
     # lower_convex_hull will modify properties
     lower_convex_hull(grid, properties)
     return properties
