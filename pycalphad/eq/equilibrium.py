@@ -8,6 +8,7 @@ from pycalphad.log import logger
 from pycalphad.eq.utils import make_callable
 from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.eq.utils import unpack_kwarg
+from pycalphad.eq.utils import sizeof_fmt
 from pycalphad import calculate, Model
 from pycalphad.eq.geometry import lower_convex_hull
 from pycalphad.eq.eqresult import EquilibriumResult
@@ -15,11 +16,15 @@ from sympy import Matrix, hessian
 import xray
 import numpy as np
 from collections import namedtuple, Iterable, OrderedDict
+import itertools
 
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
+
+# Refine points within REFINEMENT_DISTANCE J/mol-atom of convex hull
+REFINEMENT_DISTANCE = 10
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
@@ -93,6 +98,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     """
     active_phases = _unpack_phases(phases)
     comps = sorted(set(comps))
+    indep_vars = ['T', 'P']
     grid_opts = kwargs.pop('grid_opts', dict())
     verbose = kwargs.pop('verbose', True)
     PhaseRecord = namedtuple('PhaseRecord', ['variables', 'obj', 'grad', 'hess'])
@@ -105,12 +111,13 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
-            mod = mod(dbf, comps, name)
+            models[name] = mod = mod(dbf, comps, name)
         variables = sorted(mod.energy.atoms(v.StateVariable), key=str)
-        obj_func = make_callable(mod.energy, variables)
+        obj_func = lambda x, f=mod.energy, vxx=variables: make_callable(f, vxx)(*x)
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
-        hess_func = None
-        #hess_func = make_callable(hessian(mod.energy, variables), variables)
+        #grad_func = ndt.Gradient(obj_func)
+        hess_func = make_callable(hessian(mod.energy, variables), variables)
+        #hess_func = ndt.Hessian(obj_func)
         phase_records[name.upper()] = PhaseRecord(variables=variables, obj=obj_func,
                                                   grad=grad_func, hess=hess_func)
         if verbose:
@@ -120,9 +127,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
 
     conds = {key: _unpack_condition(value) for key, value in conditions.items()}
     str_conds = OrderedDict({str(key): value for key, value in conds.items()})
+    indep_vals = list(val for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
-    grid_opts.update({key: value for key, value in str_conds.items() if key in ['T', 'P']})
+    grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 100
 
@@ -132,12 +140,12 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                              indexing='ij', sparse=False)[0].shape
     coord_dict['component'] = components
     if verbose:
-        print('Computing initial grid')
+        print('Computing initial grid', end=' ')
 
-    grid, internal_dof = calculate(dbf, comps, active_phases, output='GM',
-                                   model=models, fake_points=True, **grid_opts)
-
-    
+    grid = calculate(dbf, comps, active_phases, output='GM',
+                     model=models, fake_points=True, **grid_opts)
+    if verbose:
+        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)))
 
     properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
                                       np.empty(grid_shape)),
@@ -155,6 +163,55 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
     # lower_convex_hull will modify properties
     lower_convex_hull(grid, properties)
+
+    if verbose:
+        print('Refining points within {}J/mol of hull'.format(REFINEMENT_DISTANCE))
+    # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
+    energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
+        (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
+    driving_forces = np.inner(properties.MU.values, grid.X.values) - \
+        grid.GM.values.reshape(energy_broadcast_shape)
+    near_stability = driving_forces > -REFINEMENT_DISTANCE
+    # If one point is "close to stability" for even one set of conditions
+    #    we refine it for _all_ conditions. This is very conservative.
+    near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1)))
+
+    for name in active_phases:
+        print(name)
+        # The Y arrays have been padded, so we should slice off the padding
+        dof = len(models[name].energy.atoms(v.SiteFraction))
+        points = grid.Y.values[np.logical_and(near_stability, grid.Phase.values == name),
+                               :dof]
+        if (len(points) == 0) or (np.sum(points[0]) == dof):
+            # No nearly stable points: skip this phase
+            # or
+            # All site fractions are 1, aka zero internal degrees of freedom
+            # Impossible to refine these points, so skip this phase
+            continue
+        num_vars = len(models[name].energy.atoms(v.StateVariable))
+        statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[0])]),
+                                    sparse=True, indexing='ij')[:-1]
+        grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
+        grad.shape = grad.shape[1:]
+        grad = grad.T
+        print('gradient shape', grad.shape)
+        hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
+        if hess.dtype == 'object':
+            # Workaround a bug in zero Hessian entries
+            hess_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
+            for i in np.arange(hess.shape[0]):
+                for j in np.arange(hess.shape[1]):
+                    if isinstance(hess[i,j], int):
+                        hess[i, j] = hess_zeros
+            hess = np.array(hess.tolist(), dtype=np.float)
+        hess = hess.T
+        print('hessian shape', hess.shape)
+        e_matrix = np.linalg.inv(hess)
+        print('e_matrix shape', e_matrix.shape)
+        dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
+        print(dy_unconstrained.shape)
+        print(dy_unconstrained)
+        constraint_jac = None
     return properties
     # 1. Call energy_surf to sample the entire energy surface at some density (whatever T, P required)
     # 2. Call lower_convex_hull to find equilibrium simplices/potentials along the calculation path
@@ -212,7 +269,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     print('x: ', points)
     print('alpha: ', alpha)
     print('gradient: ', gradient)
-    
     print('potentials: ', potentials)
     print('x_sum_residual: ', 1 - points.sum(axis=-1))
     print('energy: ', energies[..., 0])

@@ -7,7 +7,6 @@ import scipy.spatial.distance
 from sympy.utilities import default_sort_key
 from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
-from sympy.printing.precedence import precedence
 from sympy import Piecewise
 import numpy as np
 import operator
@@ -41,6 +40,19 @@ class NumPyPrinter(LambdaPrinter):
         # Print tuples here instead of lists because numba supports
         #     tuples in nopython mode.
         return '({},)'.format(delimiter.join(self._print(item) for item in seq))
+
+    def _print_MatrixBase(self, expr):
+        return "%s(%s)" % ('array', self._print(expr.tolist()))
+
+    _print_SparseMatrix = \
+        _print_MutableSparseMatrix = \
+        _print_ImmutableSparseMatrix = \
+        _print_Matrix = \
+        _print_DenseMatrix = \
+        _print_MutableDenseMatrix = \
+        _print_ImmutableMatrix = \
+        _print_ImmutableDenseMatrix = \
+        _print_MatrixBase
 
     def _print_MatMul(self, expr):
         "Matrix multiplication printer"
@@ -253,6 +265,17 @@ def make_callable(model, variables, mode=None):
                           modules=mode)
 
     return energy
+
+def sizeof_fmt(num, suffix='B'):
+    """
+    Human-readable string for a number of bytes.
+    http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size
+    """
+    for unit in ['', 'K', 'M', 'G', 'T', 'P', 'E', 'Z']:
+        if abs(num) < 1000.0:
+            return "%3.1f%s%s" % (num, unit, suffix)
+        num /= 1000.0
+    return "%.1f%s%s" % (num, 'Y', suffix)
 
 def check_degenerate_phases(phase_compositions, mindist=0.5):
     """

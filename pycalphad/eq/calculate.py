@@ -57,9 +57,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
     Returns
     -------
-    (1) xray.Dataset of the sampled attribute as a function of state variables
-    (2) dict mapping phase names to an xray.DataArray of
-        the internal degrees of freedom (site fractions)
+    xray.Dataset of the sampled attribute as a function of state variables
 
     Examples
     --------
@@ -87,6 +85,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
     phase_constitutions = {}
     point_counter = 0
     largest_energy = -np.inf
+    maximum_internal_dof = 0
 
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
@@ -98,7 +97,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         # if this is an object type, we need to construct it
         if isinstance(mod, type):
             try:
-                mod = mod(dbf, comps, phase_name)
+                model_dict[phase_name] = mod = mod(dbf, comps, phase_name)
             except DofError:
                 # we can't build the specified phase because the
                 # specified components aren't found in every sublattice
@@ -109,12 +108,19 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
                 continue
         try:
             out = getattr(mod, output)
+            maximum_internal_dof = max(maximum_internal_dof, len(out.atoms(v.SiteFraction)))
         except AttributeError:
             raise AttributeError('Missing Model attribute {0} specified for {1}'
                                  .format(output, mod.__class__))
 
+    for phase_name, phase_obj in sorted(active_phases.items()):
+        try:
+            mod = model_dict[phase_name]
+        except KeyError:
+            continue
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
+        out = getattr(mod, output)
 
         site_ratios = list(phase_obj.sublattices)
         # Build the "fast" representation of that model
@@ -207,18 +213,29 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
             phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
                                                    site_ratio_normalization)
 
-        coordinate_dict = {'Phase': phase_name, 'component': components}
+        coordinate_dict = {'component': components}
         coordinate_dict.update(str_statevar_dict)
         output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
-        phase_ds = xray.Dataset({'X': (['points', 'component'], phase_compositions),
-                                 output: (output_columns, phase_energies)
-                                }, coords=coordinate_dict)
+        # Resize 'points' so it has the same number of columns as the maximum
+        # number of internal degrees of freedom of any phase in the calculation.
+        # We do this so that everything is aligned for concat.
+        # Waste of memory? Yes, but the alternatives are unclear.
+        expanded_points = np.empty(points.shape[:-1] + (maximum_internal_dof,))
+        expanded_points.fill(np.nan)
+        expanded_points[..., :points.shape[-1]] = points
+        data_arrays = {'X': (['points', 'component'], phase_compositions),
+                       'Phase': ('points', [phase_name] * points.shape[0]),
+                       'Y': (['points', 'internal_dof'], expanded_points),
+                       output: (output_columns, phase_energies)
+                      }
 
+        phase_ds = xray.Dataset(data_arrays, coords=coordinate_dict)
         all_phase_data.append(phase_ds)
 
     if fake_points:
-        coordinate_dict = {'Phase': '_FAKE_', 'component': components}
+        coordinate_dict = {'component': components}
         coordinate_dict.update(str_statevar_dict)
+
         if largest_energy < 0:
             largest_energy *= 0.5
         else:
@@ -227,10 +244,17 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         energy_shape = tuple(len(x) for x in statevar_dict.values()) + (len(components),)
         largest_energy = xray.broadcast_arrays(xray.DataArray(largest_energy),
                                                xray.DataArray(np.empty((energy_shape))))[0].copy()
-        phase_ds = xray.Dataset({'X': (['points', 'component'], np.eye(len(components))),
-                                 output: (output_columns, largest_energy)
-                                }, coords=coordinate_dict)
+        # The internal dof for the fake points are all NaNs
+        expanded_points = np.empty((len(components), maximum_internal_dof))
+        expanded_points.fill(np.nan)
+        data_arrays = {'X': (['points', 'component'], np.eye(len(components))),
+                       'Y': (['points', 'internal_dof'], expanded_points),
+                       'Phase': ('points', ['_FAKE_'] * len(components)),
+                       output: (output_columns, largest_energy)
+                      }
+        phase_ds = xray.Dataset(data_arrays, coords=coordinate_dict)
+
         return xray.concat(itertools.chain([phase_ds], all_phase_data),
-                           dim='points'), phase_constitutions
+                           dim='points', coords='all')
     else:
-        return xray.concat(all_phase_data, dim='points'), phase_constitutions
+        return xray.concat(all_phase_data, dim='points', coords='all')
