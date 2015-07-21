@@ -284,8 +284,9 @@ def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
     """
     Process the PARAMETER command.
     """
+    # sorting lx is _required_ here: see issue #17 on GitHub
     targetdb.add_parameter(param_type, phase_name.upper(),
-                           [[c.upper() for c in lx]
+                           [[c.upper() for c in sorted(lx)]
                             for lx in constituent_array.asList()],
                            param_order, param, ref)
 
