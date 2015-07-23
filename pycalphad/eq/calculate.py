@@ -46,7 +46,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         See 'make_callable' docstring for details.
     output : string, optional
         Model attribute to sample.
-    fake_points : bool, optional
+    fake_points : bool, optional (Default: False)
         If True, the first few points of the output surface will be fictitious
         points used to define an equilibrium hyperplane guaranteed to be above
         all the other points. This is used for convex hull computations.
