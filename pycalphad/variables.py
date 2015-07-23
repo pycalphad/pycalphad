@@ -7,11 +7,10 @@ from sympy import Float, Symbol
 
 class StateVariable(Symbol):
     """
-    State variables are symbols with built-in assumptions of being real
-    and nonnegative.
+    State variables are symbols with built-in assumptions of being real.
     """
-    def __new__(cls, name):
-        return Symbol.__new__(cls, name.upper(), nonnegative=True, real=True)
+    def __new__(cls, name, **assumptions):
+        return Symbol.__new__(cls, name.upper(), real=True, **assumptions)
 
 class SiteFraction(StateVariable):
     """
@@ -21,7 +20,7 @@ class SiteFraction(StateVariable):
     def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
         varname = phase_name + str(subl_index) + species
         #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname)
+        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name.upper()
         new_self.sublattice_index = subl_index
         new_self.species = species.upper()
@@ -45,7 +44,7 @@ class PhaseFraction(StateVariable):
     def __new__(cls, phase_name, multiplicity): #pylint: disable=W0221
         varname = phase_name + str(multiplicity)
         #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname)
+        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name.upper()
         new_self.multiplicity = multiplicity
         return new_self
@@ -79,7 +78,7 @@ class Composition(StateVariable):
             raise ValueError('Composition not defined for args: '+args)
 
         #pylint: disable=E1121
-        new_self = StateVariable.__new__(cls, varname)
+        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name
         new_self.species = species
         return new_self
@@ -92,6 +91,22 @@ class Composition(StateVariable):
         else:
             return 'x_{'+self.species+'}'
 
+class ChemicalPotential(StateVariable):
+    """
+    Chemical potentials are symbols with built-in assumptions of being real.
+    """
+    def __new__(cls, species, **assumptions):
+        varname = 'MU_' + species.upper()
+        new_self = StateVariable.__new__(cls, varname, **assumptions)
+        new_self.species = species
+        return new_self
+    def _latex(self):
+        "LaTeX representation."
+        return '\mu_{'+self.species+'}'
+    def __str__(self):
+        "String representation."
+        return 'MU(%s)' % self.species
+
 temperature = T = StateVariable('T')
 entropy = S = StateVariable('S')
 pressure = P = StateVariable('P')
@@ -99,4 +114,5 @@ volume = V = StateVariable('V')
 moles = N = StateVariable('N')
 site_fraction = Y = SiteFraction
 X = Composition
+MU = ChemicalPotential
 si_gas_constant = R = Float(8.3145) # ideal gas constant

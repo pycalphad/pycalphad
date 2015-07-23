@@ -4,38 +4,37 @@ their Jacobian.
 """
 
 import pycalphad.variables as v
-import numpy as np
-from sympy import S
+from sympy import S, Add
 
-# An index range is a list of (ordered pairs of indices).
-def sitefrac_cons(input_x, idx_range):
-    """
-    Accepts input vector and index range and returns
-    site fraction constraint.
-    """
-    return 1.0 - sum(input_x[idx_range[0]:idx_range[1]])**2
-
-def sitefrac_jac(input_x, idx_range):
-    """
-    Accepts input vector and index range and returns
-    Jacobian of site fraction constraint.
-    """
-    output_x = np.zeros(len(input_x))
-    output_x[idx_range[0]:idx_range[1]] = \
-        -2.0*sum(input_x[idx_range[0]:idx_range[1]])
-    return output_x
-
-def molefrac_ast(phase, species):
+def mole_fraction(phase, active_comps, species):
     """
     Return a SymPy object representing the mole fraction as a function of
     site fractions.
-    TODO: Assumes all phase constituents are active
+
+    Parameters
+    ----------
+    phase : Phase
+        Phase object corresponding to the phase of interest.
+    active_comps : list of str
+        Names of components to consider.
+    species : str
+        Names of species to consider.
+
+    Returns
+    -------
+    SymPy object representing the mole fraction.
+
+    Examples
+    --------
+    >>> dbf = Database('alfe_sei.TDB')
+    >>> mole_fraction(dbf.phases['FCC_A1'], ['AL', 'FE', 'VA'], 'AL')
     """
     result = S.Zero
     site_ratio_normalization = S.Zero
     # Calculate normalization factor
     for idx, sublattice in enumerate(phase.constituents):
-        if 'VA' in set(sublattice):
+        active = set(sublattice).intersection(set(active_comps))
+        if 'VA' in active:
             site_ratio_normalization += phase.sublattices[idx] * \
                 (1.0 - v.SiteFraction(phase.name, idx, 'VA'))
         else:
@@ -43,7 +42,9 @@ def molefrac_ast(phase, species):
     site_ratios = [c/site_ratio_normalization for c in phase.sublattices]
     # Sum up site fraction contributions from each sublattice
     for idx, sublattice in enumerate(phase.constituents):
-        if species in set(sublattice):
+        active = set(sublattice).intersection(set(active_comps))
+        if species in active:
             result += site_ratios[idx] * \
                 v.SiteFraction(phase.name, idx, species)
     return result
+
