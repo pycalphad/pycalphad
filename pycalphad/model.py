@@ -32,8 +32,8 @@ class Model(object):
         Database containing the relevant parameters.
     comps : list
         Names of components to consider in the calculation.
-    phases : list
-        Names of phases to consider in the calculation.
+    phase : list
+        Name of phase model to build.
     parameters : dict
         Optional dictionary of parameters to be substituted in the model.
         This will overwrite parameters specified in the database
