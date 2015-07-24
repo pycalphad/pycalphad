@@ -42,7 +42,7 @@ def _unpack_condition(tup):
     (2) If it's a tuple with one element, treat as a point value
     (3) If it's a tuple with two elements, treat as lower/upper limits and
         guess a step size
-    (4) If it's a tuple with three elements, treat as lower/upper/num
+    (4) If it's a tuple with three elements, treat as lower/upper/step
     (5) If it's a list, ndarray or other non-tuple ordered iterable,
         use those values directly
     """
@@ -50,9 +50,9 @@ def _unpack_condition(tup):
         if len(tup) == 1:
             return [float(tup[0])]
         elif len(tup) == 2:
-            return np.linspace(float(tup[0]), float(tup[1]), num=20)
+            return np.arange(tup[0], tup[1], dtype=np.float)
         elif len(tup) == 3:
-            return np.linspace(float(tup[0]), float(tup[1]), num=tup[2])
+            return np.arange(tup[0], tup[1], tup[2], dtype=np.float)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
     elif isinstance(tup, Iterable):
@@ -116,7 +116,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
         variables = sorted(mod.energy.atoms(v.StateVariable), key=str)
-        print('variables', variables)
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
         hess_func = make_callable(hessian(mod.energy, variables), variables)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
@@ -200,26 +199,49 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         # This forces numerically zero entries to broadcast correctly
         hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
 
-        plane_grad = make_callable(Matrix([hyperplane]).jacobian(variables),
+        plane_grad = make_callable(Matrix([hyperplane]).jacobian(phase_records[name].variables),
                                    [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-        plane_hess = make_callable(hessian(hyperplane, variables),
+        plane_hess = make_callable(hessian(hyperplane, phase_records[name].variables),
                                    [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
         grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
-        grad.shape = grad.shape[1:]
+        if grad.dtype == 'object':
+            # Workaround a bug in zero gradient entries
+            grad_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
+            for i in np.arange(grad.shape[0]):
+                if isinstance(grad[i], int):
+                    grad[i] = grad_zeros
+            grad = np.array(grad.tolist(), dtype=np.float)
+        # Add additional dimensions to grad so it'll broadcast against cast_grad
+        grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
+        print('grad.shape', grad.shape)
         bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T[..., np.newaxis],
                                                       points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
         print(bcasts[0].shape)
         cast_grad = plane_grad(*itertools.chain(bcasts, [0], [0]))
         print('cast_grad.shape', cast_grad.shape)
-        cast_grad = cast_grad - grad
-        cast_grad = grad
-        grad = grad.T
+        cast_grad = cast_grad.T - grad.T
+        grad = cast_grad
+        grad.shape = grad.shape[:-1] # Remove extraneous dimension
         print('gradient shape', grad.shape)
+        print('gradient dtype', grad.dtype)
         hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
-        cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])) + hess
-        print('cast_hess', cast_hess)
-        hess = hess.T
+        if hess.dtype == 'object':
+            # Workaround a bug in zero Hessian entries
+            hess_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
+            for i in np.arange(hess.shape[0]):
+                for j in np.arange(hess.shape[1]):
+                    if isinstance(hess[i, j], int):
+                        hess[i, j] = hess_zeros
+            hess = np.array(hess.tolist(), dtype=np.float)
+        # Add additional dimensions to hess so it'll broadcast against cast_hess
+        hess.shape = hess.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + hess.shape[2:]
+        print('hess shape', hess.shape)
+        print('hess dtype', hess.dtype)
+        cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
+        #print('cast_hess', cast_hess)
+        hess = cast_hess
         print('hessian shape', hess.shape)
+        print('hessian dtype', hess.dtype)
         e_matrix = np.linalg.inv(hess)
         print('e_matrix shape', e_matrix.shape)
         dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
@@ -254,14 +276,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         print('dy_constrained.shape', dy_constrained.shape)
         alpha = 1
         # TODO: Support for adaptive changing independent variable steps
-        new_points = points + alpha*dy_constrained[..., 1:]
+        new_points = points + alpha*dy_constrained[..., len(indep_vals):]
         while np.any(new_points < 0):
             alpha *= 0.5
-            new_points = points + alpha*dy_constrained[..., 1:]
+            new_points = points + alpha*dy_constrained[..., len(indep_vals):]
             if alpha < 1e-6:
                 break
         #points = new_points
         if np.linalg.norm(alpha*dy_constrained[..., 1:]) < 1e-12:
             break
-        print(new_points)
+        print('new_points.shape', new_points.shape)
     return properties
