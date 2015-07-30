@@ -28,6 +28,109 @@ def _listify(val):
     else:
         return [val]
 
+def _generate_fake_points(components, statevar_dict, largest_energy, output, maximum_internal_dof):
+    """
+    Generate points for a fictitious hyperplane used as a starting point for energy minimization.
+    """
+    coordinate_dict = {'component': components}
+    coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
+
+    if largest_energy < 0:
+        largest_energy *= 0.5
+    else:
+        largest_energy *= 2
+    output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+    energy_shape = tuple(len(x) for x in statevar_dict.values()) + (len(components),)
+    largest_energy = xray.broadcast_arrays(xray.DataArray(largest_energy),
+                                           xray.DataArray(np.empty(energy_shape)))[0].copy()
+    # The internal dof for the fake points are all NaNs
+    expanded_points = np.empty((len(components), maximum_internal_dof))
+    expanded_points.fill(np.nan)
+    data_arrays = {'X': (['points', 'component'], np.eye(len(components))),
+                   'Y': (['points', 'internal_dof'], expanded_points),
+                   'Phase': ('points', ['_FAKE_'] * len(components)),
+                   output: (output_columns, largest_energy)
+                   }
+    return xray.Dataset(data_arrays, coords=coordinate_dict)
+
+def _compute_phase_values(phase_obj, components, variables, statevar_dict,
+                          points, func, output, maximum_internal_dof):
+    """
+    Calculate output values for a particular phase.
+
+    Parameters
+    ----------
+    phase_obj : Phase
+        Phase object from a thermodynamic database.
+    components : list
+        Names of components to consider in the calculation.
+    variables : list
+        Names of variables in the phase's internal degrees of freedom.
+    statevar_dict : OrderedDict {str -> float or sequence}
+        Mapping of state variables to desired values. This will broadcast if necessary.
+    points : ndarray
+        Inputs to 'func', except state variables. Columns should be in 'variables' order.
+    func : callable
+        Function of state variables and 'variables'.
+        See 'make_callable' docstring for details.
+    output : string
+        Desired name of the output result in the Dataset.
+    maximum_internal_dof : int
+        Largest number of internal degrees of freedom of any phase. This is used
+        to guarantee different phase's Datasets can be concatenated.
+
+    Returns
+    -------
+    xray.Dataset of the output attribute as a function of state variables
+
+    Examples
+    --------
+    None yet.
+    """
+    # Broadcast compositions and state variables along orthogonal axes
+    # This lets us eliminate an expensive Python loop
+    statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
+                                                 [np.empty(points.shape[0])]),
+                                sparse=True, indexing='ij')[:-1]
+    # Roll 'points' dimension up to leading dimension
+    phase_output = np.rollaxis(func(*itertools.chain(statevar_grid, points.T)), -1)
+
+    # Map the internal degrees of freedom to global coordinates
+    # Normalize site ratios by the sum of site ratios times a factor
+    # related to the site fraction of vacancies
+    site_ratio_normalization = np.zeros(len(points))
+    for idx, sublattice in enumerate(phase_obj.constituents):
+        vacancy_column = np.ones(len(points))
+        if 'VA' in set(sublattice):
+            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, 'VA'))
+            vacancy_column -= points[:, var_idx]
+        site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
+
+    phase_compositions = np.empty((points.shape[0], len(components)))
+    for col, comp in enumerate(components):
+        avector = [float(vxx.species == comp) * \
+            phase_obj.sublattices[vxx.sublattice_index] for vxx in variables]
+        phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
+                                               site_ratio_normalization)
+
+    coordinate_dict = {'component': components}
+    coordinate_dict.update(statevar_dict)
+    output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
+    # Resize 'points' so it has the same number of columns as the maximum
+    # number of internal degrees of freedom of any phase in the calculation.
+    # We do this so that everything is aligned for concat.
+    # Waste of memory? Yes, but the alternatives are unclear.
+    expanded_points = np.empty(points.shape[:-1] + (maximum_internal_dof,))
+    expanded_points.fill(np.nan)
+    expanded_points[..., :points.shape[-1]] = points
+    data_arrays = {'X': (['points', 'component'], phase_compositions),
+                   'Phase': ('points', [phase_obj.name] * points.shape[0]),
+                   'Y': (['points', 'internal_dof'], expanded_points),
+                   output: (output_columns, phase_output)
+                  }
+
+    return xray.Dataset(data_arrays, coords=coordinate_dict)
+
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
@@ -50,6 +153,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         If True, the first few points of the output surface will be fictitious
         points used to define an equilibrium hyperplane guaranteed to be above
         all the other points. This is used for convex hull computations.
+    points : ndarray or a dict of phase names to ndarray, optional
+        Columns of ndarrays must be internal degrees of freedom, sorted.
+        If this is not specified, points will be generated automatically.
     pdens : int, a dict of phase names to int, or a seq of both, optional
         Number of points to sample per degree of freedom.
     model : Model, a dict of phase names to Model, or a seq of both, optional
@@ -66,6 +172,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
     # Here we check for any keyword arguments that are special, i.e.,
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
+    points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     if isinstance(phases, str):
@@ -76,14 +183,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = \
-        collections.OrderedDict((v.StateVariable(key), value) \
-                                for (key, value) in sorted(kwargs.items()))
-    str_statevar_dict = kwargs
+    statevar_dict = collections.OrderedDict((v.StateVariable(key), value) \
+                                            for (key, value) in sorted(kwargs.items()))
+    str_statevar_dict = collections.OrderedDict((str(key), value) \
+                                                for (key, value) in sorted(kwargs.items()))
     all_phase_data = []
     comp_sets = {}
-    phase_constitutions = {}
-    point_counter = 0
     largest_energy = -np.inf
     maximum_internal_dof = 0
 
@@ -122,7 +227,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
         out = getattr(mod, output)
 
-        site_ratios = list(phase_obj.sublattices)
         # Build the "fast" representation of that model
         if callable_dict[phase_name] is None:
             # As a last resort, treat undefined symbols as zero
@@ -138,123 +242,62 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         else:
             comp_sets[phase_name] = callable_dict[phase_name]
 
-        # Eliminate pure vacancy endmembers from the calculation
-        vacancy_indices = list()
-        for idx, sublattice in enumerate(phase_obj.constituents):
-            if 'VA' in sorted(sublattice) and 'VA' in sorted(comps):
-                vacancy_indices.append(sorted(sublattice).index('VA'))
-        if len(vacancy_indices) != len(phase_obj.constituents):
-            vacancy_indices = None
-        logger.debug('vacancy_indices: %s', vacancy_indices)
-        # Add all endmembers to guarantee their presence
-        points = endmember_matrix(sublattice_dof,
-                                  vacancy_indices=vacancy_indices)
+        points = points_dict[phase_name]
+        if points is None:
+            # Eliminate pure vacancy endmembers from the calculation
+            vacancy_indices = list()
+            for idx, sublattice in enumerate(phase_obj.constituents):
+                if 'VA' in sorted(sublattice) and 'VA' in sorted(comps):
+                    vacancy_indices.append(sorted(sublattice).index('VA'))
+            if len(vacancy_indices) != len(phase_obj.constituents):
+                vacancy_indices = None
+            logger.debug('vacancy_indices: %s', vacancy_indices)
+            # Add all endmembers to guarantee their presence
+            points = endmember_matrix(sublattice_dof,
+                                      vacancy_indices=vacancy_indices)
 
-        # Sample composition space for more points
-        if sum(sublattice_dof) > len(sublattice_dof):
-            points = np.concatenate((points,
-                                     point_sample(sublattice_dof,
-                                                  pdof=pdens_dict[phase_name])
-                                    ))
+            # Sample composition space for more points
+            if sum(sublattice_dof) > len(sublattice_dof):
+                points = np.concatenate((points,
+                                         point_sample(sublattice_dof,
+                                                      pdof=pdens_dict[phase_name])
+                                         ))
 
+            # If there are nontrivial sublattices with vacancies in them,
+            # generate a set of points where their fraction is zero and renormalize
+            for idx, sublattice in enumerate(phase_obj.constituents):
+                if 'VA' in set(sublattice) and len(sublattice) > 1:
+                    var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+                    addtl_pts = np.copy(points)
+                    # set vacancy fraction to log-spaced between 1e-10 and 1e-6
+                    addtl_pts[:, var_idx] = np.power(10.0, -10.0*(1.0 - addtl_pts[:, var_idx]))
+                    # renormalize site fractions
+                    cur_idx = 0
+                    for ctx in sublattice_dof:
+                        end_idx = cur_idx + ctx
+                        addtl_pts[:, cur_idx:end_idx] /= \
+                            addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
+                        cur_idx = end_idx
+                    # add to points matrix
+                    points = np.concatenate((points, addtl_pts), axis=0)
 
-        # If there are nontrivial sublattices with vacancies in them,
-        # generate a set of points where their fraction is zero and renormalize
-        for idx, sublattice in enumerate(phase_obj.constituents):
-            if 'VA' in set(sublattice) and len(sublattice) > 1:
-                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-                addtl_pts = np.copy(points)
-                # set vacancy fraction to log-spaced between 1e-10 and 1e-6
-                addtl_pts[:, var_idx] = np.power(10.0, -10.0*(1.0 - addtl_pts[:, var_idx]))
-                # renormalize site fractions
-                cur_idx = 0
-                for ctx in sublattice_dof:
-                    end_idx = cur_idx + ctx
-                    addtl_pts[:, cur_idx:end_idx] /= \
-                        addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
-                    cur_idx = end_idx
-                # add to points matrix
-                points = np.concatenate((points, addtl_pts), axis=0)
-
-        point_ids = np.arange(point_counter, point_counter + points.shape[0])
-        # Increase point counter so we can maintain unique IDs across all phases
-        point_counter += points.shape[0]
-        phase_constitutions[phase_name] = \
-            xray.DataArray(points, coords={'constitution': [str(x) for x in variables],
-                                           'points': point_ids},
-                           dims=['points', 'constitution'])
-
-        # Broadcast compositions and state variables along orthogonal axes
-        # This lets us eliminate an expensive Python loop
-        statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
-                                                     [np.empty(points.shape[0])]),
-                                    sparse=True, indexing='ij')[:-1]
-        phase_energies = comp_sets[phase_name](*itertools.chain(statevar_grid, points.T))
-        # Roll 'points' dimension up to leading dimension
-        phase_energies = np.rollaxis(phase_energies, -1)
-        largest_energy = max(largest_energy, phase_energies.max())
-
-        # Map the internal degrees of freedom to global coordinates
-
-        # Normalize site ratios by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        site_ratio_normalization = np.zeros(len(points))
-        for idx, sublattice in enumerate(phase_obj.constituents):
-            vacancy_column = np.ones(len(points))
-            if 'VA' in set(sublattice):
-                var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-                vacancy_column -= points[:, var_idx]
-            site_ratio_normalization += site_ratios[idx] * vacancy_column
-
-        phase_compositions = np.empty((points.shape[0], len(components)))
-        for col, comp in enumerate(components):
-            avector = [float(vxx.species == comp) * \
-                site_ratios[vxx.sublattice_index] for vxx in variables]
-            phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
-                                                   site_ratio_normalization)
-
-        coordinate_dict = {'component': components}
-        coordinate_dict.update(str_statevar_dict)
-        output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
-        # Resize 'points' so it has the same number of columns as the maximum
-        # number of internal degrees of freedom of any phase in the calculation.
-        # We do this so that everything is aligned for concat.
-        # Waste of memory? Yes, but the alternatives are unclear.
-        expanded_points = np.empty(points.shape[:-1] + (maximum_internal_dof,))
-        expanded_points.fill(np.nan)
-        expanded_points[..., :points.shape[-1]] = points
-        data_arrays = {'X': (['points', 'component'], phase_compositions),
-                       'Phase': ('points', [phase_name] * points.shape[0]),
-                       'Y': (['points', 'internal_dof'], expanded_points),
-                       output: (output_columns, phase_energies)
-                      }
-
-        phase_ds = xray.Dataset(data_arrays, coords=coordinate_dict)
+        phase_ds = _compute_phase_values(phase_obj, components, variables,
+                                         str_statevar_dict, points,
+                                         comp_sets[phase_name], output,
+                                         maximum_internal_dof)
+        # largest_energy is really only relevant if fake_points is set
+        largest_energy = max(phase_ds[output].max(), largest_energy)
         all_phase_data.append(phase_ds)
 
     if fake_points:
-        coordinate_dict = {'component': components}
-        coordinate_dict.update(str_statevar_dict)
-
-        if largest_energy < 0:
-            largest_energy *= 0.5
-        else:
-            largest_energy *= 2
-        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
-        energy_shape = tuple(len(x) for x in statevar_dict.values()) + (len(components),)
-        largest_energy = xray.broadcast_arrays(xray.DataArray(largest_energy),
-                                               xray.DataArray(np.empty((energy_shape))))[0].copy()
-        # The internal dof for the fake points are all NaNs
-        expanded_points = np.empty((len(components), maximum_internal_dof))
-        expanded_points.fill(np.nan)
-        data_arrays = {'X': (['points', 'component'], np.eye(len(components))),
-                       'Y': (['points', 'internal_dof'], expanded_points),
-                       'Phase': ('points', ['_FAKE_'] * len(components)),
-                       output: (output_columns, largest_energy)
-                      }
-        phase_ds = xray.Dataset(data_arrays, coords=coordinate_dict)
-
-        return xray.concat(itertools.chain([phase_ds], all_phase_data),
-                           dim='points', coords='all')
+        if output != 'GM':
+            raise ValueError('fake_points=True should only be used with output=\'GM\'')
+        phase_ds = _generate_fake_points(components, statevar_dict, largest_energy, output, maximum_internal_dof)
+        final_ds = xray.concat(itertools.chain([phase_ds], all_phase_data),
+                               dim='points')
     else:
-        return xray.concat(all_phase_data, dim='points', coords='all')
+        final_ds = xray.concat(all_phase_data, dim='points')
+
+    # Reset the points dimension to use a single global index
+    final_ds['points'] = np.arange(len(final_ds.points))
+    return final_ds

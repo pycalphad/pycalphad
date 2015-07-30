@@ -9,6 +9,7 @@ from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.eq.utils import unpack_kwarg
 from pycalphad.eq.utils import sizeof_fmt
 from pycalphad import calculate, Model
+from pycalphad.eq.calculate import _compute_phase_values
 from pycalphad.constraints import mole_fraction
 from pycalphad.eq.geometry import lower_convex_hull
 from pycalphad.eq.eqresult import EquilibriumResult
@@ -21,7 +22,7 @@ import itertools
 try:
     set
 except NameError:
-    from sets import Set as set #pylint: disable=W0622
+    from sets import Set as set  #pylint: disable=W0622
 
 # Refine points within REFINEMENT_DISTANCE J/mol-atom of convex hull
 REFINEMENT_DISTANCE = 10
@@ -62,6 +63,7 @@ def _unpack_condition(tup):
 
 def _unpack_phases(phases):
     "Convert a phases list/dict into a sorted list."
+    active_phases = None
     if isinstance(phases, list):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
@@ -106,6 +108,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     grid_opts = kwargs.pop('grid_opts', dict())
     verbose = kwargs.pop('verbose', True)
     phase_records = dict()
+    points_dict = dict()
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     if verbose:
@@ -144,8 +147,9 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
 
     grid = calculate(dbf, comps, active_phases, output='GM',
                      model=models, fake_points=True, **grid_opts)
+
     if verbose:
-        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)))
+        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
 
     properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
                                       np.empty(grid_shape)),
@@ -155,10 +159,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                       np.empty(grid_shape)),
                                'points': (list(str_conds.keys()) + ['vertex'],
                                           np.empty(grid_shape, dtype=np.int))
-                              },
+                               },
                               coords=coord_dict,
-                              attrs={'iterations': 0},
-                             )
+                              attrs={'iterations': 1},
+                              )
     if verbose:
         print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
     # lower_convex_hull will modify properties
@@ -177,17 +181,21 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1)))
 
     for name in active_phases:
-        print(name)
         # The Y arrays have been padded, so we should slice off the padding
         dof = len(models[name].energy.atoms(v.SiteFraction))
         points = grid.Y.values[np.logical_and(near_stability, grid.Phase.values == name),
                                :dof]
-        if (len(points) == 0) or (np.sum(points[0]) == dof):
+        if len(points) == 0:
+            if name in points_dict:
+                del points_dict[name]
             # No nearly stable points: skip this phase
-            # or
+            continue
+        if np.sum(points[0]) == dof:
             # All site fractions are 1, aka zero internal degrees of freedom
             # Impossible to refine these points, so skip this phase
+            points_dict[name] = np.atleast_2d(points)
             continue
+
         num_vars = len(models[name].energy.atoms(v.StateVariable))
         statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[0])]),
                                     sparse=True, indexing='ij')[:-1]
@@ -213,17 +221,17 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             grad = np.array(grad.tolist(), dtype=np.float)
         # Add additional dimensions to grad so it'll broadcast against cast_grad
         grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
-        print('grad.shape', grad.shape)
+        #print('grad.shape', grad.shape)
         bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T[..., np.newaxis],
                                                       points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
-        print(bcasts[0].shape)
+        #print(bcasts[0].shape)
         cast_grad = plane_grad(*itertools.chain(bcasts, [0], [0]))
-        print('cast_grad.shape', cast_grad.shape)
+        #print('cast_grad.shape', cast_grad.shape)
         cast_grad = cast_grad.T - grad.T
         grad = cast_grad
         grad.shape = grad.shape[:-1] # Remove extraneous dimension
-        print('gradient shape', grad.shape)
-        print('gradient dtype', grad.dtype)
+        #print('gradient shape', grad.shape)
+        #print('gradient dtype', grad.dtype)
         hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
         if hess.dtype == 'object':
             # Workaround a bug in zero Hessian entries
@@ -235,17 +243,17 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             hess = np.array(hess.tolist(), dtype=np.float)
         # Add additional dimensions to hess so it'll broadcast against cast_hess
         hess.shape = hess.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + hess.shape[2:]
-        print('hess shape', hess.shape)
-        print('hess dtype', hess.dtype)
+        #print('hess shape', hess.shape)
+        #print('hess dtype', hess.dtype)
         cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
         #print('cast_hess', cast_hess)
         hess = cast_hess
-        print('hessian shape', hess.shape)
-        print('hessian dtype', hess.dtype)
+        #print('hessian shape', hess.shape)
+        #print('hessian dtype', hess.dtype)
         e_matrix = np.linalg.inv(hess)
-        print('e_matrix shape', e_matrix.shape)
+        #print('e_matrix shape', e_matrix.shape)
         dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
-        print('dy_unconstrained.shape', dy_unconstrained.shape)
+        #print('dy_unconstrained.shape', dy_unconstrained.shape)
         # TODO: A more sophisticated treatment of constraints
         num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
         constraint_jac = np.zeros((num_constraints, num_vars))
@@ -258,32 +266,41 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             constraint_jac[len(indep_vals) + idx,
                            var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
             var_idx += len(dbf.phases[name].constituents[idx])
-        print('constraint_jac.shape', constraint_jac.shape)
+        #print('constraint_jac.shape', constraint_jac.shape)
         proj_matrix = np.dot(e_matrix, constraint_jac.T)
-        print('proj_matrix.shape', proj_matrix.shape)
+        #print('proj_matrix.shape', proj_matrix.shape)
         inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
-        print('inv_matrix.shape', inv_matrix.shape)
+        #print('inv_matrix.shape', inv_matrix.shape)
         inv_term = np.linalg.inv(inv_matrix)
         first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
-        print('first_term.shape', first_term.shape)
+        #print('first_term.shape', first_term.shape)
         # Normally a term for the residual here
         # We only choose starting points which obey the constraints, so r = 0
         cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
-        print('cons_summation.shape', cons_summation.shape)
+        #print('cons_summation.shape', cons_summation.shape)
         cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
         dy_constrained = dy_unconstrained - cons_correction
         dy_constrained = np.rollaxis(dy_constrained, 0, -1)
-        print('dy_constrained.shape', dy_constrained.shape)
-        alpha = 1
+        #print('dy_constrained.shape', dy_constrained.shape)
         # TODO: Support for adaptive changing independent variable steps
+        alpha = 1
         new_points = points + alpha*dy_constrained[..., len(indep_vals):]
         while np.any(new_points < 0):
             alpha *= 0.5
             new_points = points + alpha*dy_constrained[..., len(indep_vals):]
             if alpha < 1e-6:
                 break
-        #points = new_points
-        if np.linalg.norm(alpha*dy_constrained[..., 1:]) < 1e-12:
-            break
-        print('new_points.shape', new_points.shape)
+        points_dict[name] = new_points.reshape((-1, new_points.shape[-1]))
+
+    if verbose:
+        print('Rebuilding grid', end=' ')
+    grid = calculate(dbf, comps, active_phases, output='GM',
+                     model=models, fake_points=True, points=points_dict, **grid_opts)
+    if verbose:
+        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
+    properties.attrs['iterations'] += 1
+    if verbose:
+        print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
+    lower_convex_hull(grid, properties)
+
     return properties

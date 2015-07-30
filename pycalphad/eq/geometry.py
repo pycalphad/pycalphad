@@ -65,8 +65,7 @@ def lower_convex_hull(global_grid, result_array):
     # force conditions to have particular ordering
     conditions = indep_conds + pot_conds + comp_conds
     trial_shape = (len(result_array.coords['component']),)
-    if result_array.attrs['iterations'] == 0:
-        _initialize_array(global_grid, result_array)
+    _initialize_array(global_grid, result_array)
 
     # Enforce ordering of shape
     result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
@@ -213,6 +212,6 @@ def lower_convex_hull(global_grid, result_array):
         logger.debug('trial_points: %s', trial_points)
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
-        if np.all(raw_driving_forces < 10):
+        if np.all(raw_driving_forces < 1e-4):
             return
     logger.error('Iterations exceeded')
