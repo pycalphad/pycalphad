@@ -163,144 +163,142 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                               coords=coord_dict,
                               attrs={'iterations': 1},
                               )
-    if verbose:
-        print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
-    # lower_convex_hull will modify properties
-    lower_convex_hull(grid, properties)
 
-    if verbose:
-        print('Refining points within {}J/mol of hull'.format(REFINEMENT_DISTANCE))
-    # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
-    energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
-        (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
-    driving_forces = np.inner(properties.MU.values, grid.X.values) - \
-        grid.GM.values.reshape(energy_broadcast_shape)
-    near_stability = driving_forces > -REFINEMENT_DISTANCE
-    # If one point is "close to stability" for even one set of conditions
-    #    we refine it for _all_ conditions. This is very conservative.
-    near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1)))
+    for iteration in range(10):
+        if verbose:
+            print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
+        # lower_convex_hull will modify properties
+        lower_convex_hull(grid, properties)
+        if verbose:
+            print('Refining points within {}J/mol of hull'.format(REFINEMENT_DISTANCE))
+        # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
+        energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
+            (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
+        driving_forces = np.inner(properties.MU.values, grid.X.values) - \
+            grid.GM.values.reshape(energy_broadcast_shape)
+        #print('driving_forces', driving_forces)
+        #print('grid.GM', grid.GM.values)
+        near_stability = driving_forces > -REFINEMENT_DISTANCE
+        # If one point is "close to stability" for even one set of conditions
+        #    we refine it for _all_ conditions. This is very conservative.
+        near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1)))
+        #print('near_stability', near_stability)
 
-    for name in active_phases:
-        # The Y arrays have been padded, so we should slice off the padding
-        dof = len(models[name].energy.atoms(v.SiteFraction))
-        points = grid.Y.values[np.logical_and(near_stability, grid.Phase.values == name),
-                               :dof]
-        if len(points) == 0:
-            if name in points_dict:
-                del points_dict[name]
-            # No nearly stable points: skip this phase
-            continue
-        if np.sum(points[0]) == dof:
-            # All site fractions are 1, aka zero internal degrees of freedom
-            # Impossible to refine these points, so skip this phase
-            points_dict[name] = np.atleast_2d(points)
-            continue
+        for name in active_phases:
+            # The Y arrays have been padded, so we should slice off the padding
+            dof = len(models[name].energy.atoms(v.SiteFraction))
+            points = grid.Y.values[np.logical_and(near_stability, grid.Phase.values == name),
+                                   :dof]
+            if len(points) == 0:
+                if name in points_dict:
+                    del points_dict[name]
+                # No nearly stable points: skip this phase
+                continue
+            if np.sum(points[0]) == dof:
+                # All site fractions are 1, aka zero internal degrees of freedom
+                # Impossible to refine these points, so skip this phase
+                points_dict[name] = np.atleast_2d(points)
+                continue
 
-        num_vars = len(models[name].energy.atoms(v.StateVariable))
-        statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[0])]),
-                                    sparse=True, indexing='ij')[:-1]
-        # Adjust gradient and Hessian by the approximate chemical potentials
-        plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
-        hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i) \
-                            for i in comps if i != 'VA'])
-        # Workaround an annoying bug with zero gradient/Hessian entries
-        # This forces numerically zero entries to broadcast correctly
-        hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
+            num_vars = len(models[name].energy.atoms(v.StateVariable))
+            statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[0])]),
+                                        sparse=True, indexing='ij')[:-1]
+            # Adjust gradient and Hessian by the approximate chemical potentials
+            plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
+            hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i) \
+                                for i in comps if i != 'VA'])
+            # Workaround an annoying bug with zero gradient/Hessian entries
+            # This forces numerically zero entries to broadcast correctly
+            hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
 
-        plane_grad = make_callable(Matrix([hyperplane]).jacobian(phase_records[name].variables),
-                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-        plane_hess = make_callable(hessian(hyperplane, phase_records[name].variables),
-                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-        grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
-        if grad.dtype == 'object':
-            # Workaround a bug in zero gradient entries
-            grad_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
-            for i in np.arange(grad.shape[0]):
-                if isinstance(grad[i], int):
-                    grad[i] = grad_zeros
-            grad = np.array(grad.tolist(), dtype=np.float)
-        # Add additional dimensions to grad so it'll broadcast against cast_grad
-        grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
-        #print('grad.shape', grad.shape)
-        bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T[..., np.newaxis],
-                                                      points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
-        #print(bcasts[0].shape)
-        cast_grad = plane_grad(*itertools.chain(bcasts, [0], [0]))
-        #print('cast_grad.shape', cast_grad.shape)
-        cast_grad = cast_grad.T - grad.T
-        grad = cast_grad
-        grad.shape = grad.shape[:-1] # Remove extraneous dimension
-        #print('gradient shape', grad.shape)
-        #print('gradient dtype', grad.dtype)
-        hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
-        if hess.dtype == 'object':
-            # Workaround a bug in zero Hessian entries
-            hess_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
-            for i in np.arange(hess.shape[0]):
-                for j in np.arange(hess.shape[1]):
-                    if isinstance(hess[i, j], int):
-                        hess[i, j] = hess_zeros
-            hess = np.array(hess.tolist(), dtype=np.float)
-        # Add additional dimensions to hess so it'll broadcast against cast_hess
-        hess.shape = hess.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + hess.shape[2:]
-        #print('hess shape', hess.shape)
-        #print('hess dtype', hess.dtype)
-        cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
-        #print('cast_hess', cast_hess)
-        hess = cast_hess
-        #print('hessian shape', hess.shape)
-        #print('hessian dtype', hess.dtype)
-        e_matrix = np.linalg.inv(hess)
-        #print('e_matrix shape', e_matrix.shape)
-        dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
-        #print('dy_unconstrained.shape', dy_unconstrained.shape)
-        # TODO: A more sophisticated treatment of constraints
-        num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
-        constraint_jac = np.zeros((num_constraints, num_vars))
-        # Independent variables are always fixed (in this limited implementation)
-        for idx in range(len(indep_vals)):
-            constraint_jac[idx, idx] = 1
-        # This is for site fraction balance constraints
-        var_idx = len(indep_vals)
-        for idx in range(len(dbf.phases[name].sublattices)):
-            constraint_jac[len(indep_vals) + idx,
-                           var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
-            var_idx += len(dbf.phases[name].constituents[idx])
-        #print('constraint_jac.shape', constraint_jac.shape)
-        proj_matrix = np.dot(e_matrix, constraint_jac.T)
-        #print('proj_matrix.shape', proj_matrix.shape)
-        inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
-        #print('inv_matrix.shape', inv_matrix.shape)
-        inv_term = np.linalg.inv(inv_matrix)
-        first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
-        #print('first_term.shape', first_term.shape)
-        # Normally a term for the residual here
-        # We only choose starting points which obey the constraints, so r = 0
-        cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
-        #print('cons_summation.shape', cons_summation.shape)
-        cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
-        dy_constrained = dy_unconstrained - cons_correction
-        dy_constrained = np.rollaxis(dy_constrained, 0, -1)
-        #print('dy_constrained.shape', dy_constrained.shape)
-        # TODO: Support for adaptive changing independent variable steps
-        alpha = 1
-        new_points = points + alpha*dy_constrained[..., len(indep_vals):]
-        while np.any(new_points < 0):
-            alpha *= 0.5
+            plane_grad = make_callable(Matrix([hyperplane]).jacobian(phase_records[name].variables),
+                                       [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
+            plane_hess = make_callable(hessian(hyperplane, phase_records[name].variables),
+                                       [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
+            grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
+            if grad.dtype == 'object':
+                # Workaround a bug in zero gradient entries
+                grad_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
+                for i in np.arange(grad.shape[0]):
+                    if isinstance(grad[i], int):
+                        grad[i] = grad_zeros
+                grad = np.array(grad.tolist(), dtype=np.float)
+            # Add additional dimensions to grad so it'll broadcast against cast_grad
+            grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
+            #print('grad.shape', grad.shape)
+            bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T[..., np.newaxis],
+                                                          points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
+            #print(bcasts[0].shape)
+            cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
+            cast_grad = cast_grad.T + grad.T
+            grad = cast_grad
+            grad.shape = grad.shape[:-1] # Remove extraneous dimension
+            #print('gradient shape', grad.shape)
+            #print('gradient dtype', grad.dtype)
+            hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
+            if hess.dtype == 'object':
+                # Workaround a bug in zero Hessian entries
+                hess_zeros = np.zeros(tuple(len(vals) for vals in indep_vals) + (len(points),), dtype=np.float)
+                for i in np.arange(hess.shape[0]):
+                    for j in np.arange(hess.shape[1]):
+                        if isinstance(hess[i, j], int):
+                            hess[i, j] = hess_zeros
+                hess = np.array(hess.tolist(), dtype=np.float)
+            # Add additional dimensions to hess so it'll broadcast against cast_hess
+            hess.shape = hess.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + hess.shape[2:]
+            #print('hess shape', hess.shape)
+            #print('hess dtype', hess.dtype)
+            cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
+            hess = cast_hess
+            #print('hessian shape', hess.shape)
+            #print('hessian dtype', hess.dtype)
+            e_matrix = np.linalg.inv(hess)
+            #print('e_matrix shape', e_matrix.shape)
+            dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
+            #print('dy_unconstrained.shape', dy_unconstrained.shape)
+            # TODO: A more sophisticated treatment of constraints
+            num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
+            constraint_jac = np.zeros((num_constraints, num_vars))
+            # Independent variables are always fixed (in this limited implementation)
+            for idx in range(len(indep_vals)):
+                constraint_jac[idx, idx] = 1
+            # This is for site fraction balance constraints
+            var_idx = len(indep_vals)
+            for idx in range(len(dbf.phases[name].sublattices)):
+                constraint_jac[len(indep_vals) + idx,
+                               var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
+                var_idx += len(dbf.phases[name].constituents[idx])
+            proj_matrix = np.dot(e_matrix, constraint_jac.T)
+            #print('proj_matrix.shape', proj_matrix.shape)
+            inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
+            inv_term = np.linalg.inv(inv_matrix)
+            first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
+            # Normally a term for the residual here
+            # We only choose starting points which obey the constraints, so r = 0
+            cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
+            cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
+            dy_constrained = dy_unconstrained - cons_correction
+            dy_constrained = np.rollaxis(dy_constrained, 0, -1)
+            print('points', points)
+            print('dy_constrained', dy_constrained)
+            #print('dy_constrained.shape', dy_constrained.shape)
+            # TODO: Support for adaptive changing independent variable steps
+            alpha = 1
             new_points = points + alpha*dy_constrained[..., len(indep_vals):]
-            if alpha < 1e-6:
-                break
-        points_dict[name] = new_points.reshape((-1, new_points.shape[-1]))
+            while np.any(new_points < 0):
+                alpha *= 0.1
+                new_points = points + alpha*dy_constrained[..., len(indep_vals):]
+                if alpha < 1e-6:
+                    break
+            print('alpha =', alpha)
+            points_dict[name] = np.concatenate((points, new_points.reshape((-1, new_points.shape[-1]))), axis=0)
 
-    if verbose:
-        print('Rebuilding grid', end=' ')
-    grid = calculate(dbf, comps, active_phases, output='GM',
-                     model=models, fake_points=True, points=points_dict, **grid_opts)
-    if verbose:
-        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
-    properties.attrs['iterations'] += 1
-    if verbose:
-        print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
-    lower_convex_hull(grid, properties)
+        if verbose:
+            print('Rebuilding grid', end=' ')
+        grid = calculate(dbf, comps, active_phases, output='GM',
+                         model=models, fake_points=True, points=points_dict, **grid_opts)
+        if verbose:
+            print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
+        properties.attrs['iterations'] += 1
 
     return properties
