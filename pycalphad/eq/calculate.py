@@ -114,7 +114,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                                                site_ratio_normalization)
 
     coordinate_dict = {'component': components}
-    coordinate_dict.update(statevar_dict)
+    coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
     output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
