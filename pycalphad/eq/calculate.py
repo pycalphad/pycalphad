@@ -186,7 +186,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
     statevar_dict = collections.OrderedDict((v.StateVariable(key), value) \
                                             for (key, value) in sorted(kwargs.items()))
     str_statevar_dict = collections.OrderedDict((str(key), value) \
-                                                for (key, value) in sorted(kwargs.items()))
+                                                for (key, value) in statevar_dict.items())
     all_phase_data = []
     comp_sets = {}
     largest_energy = -np.inf
