@@ -280,10 +280,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
                         cur_idx = end_idx
                     # add to points matrix
                     points = np.concatenate((points, addtl_pts), axis=0)
+        # Ensure that points has the correct dimensions and dtype
+        points = np.atleast_2d(np.asarray(points, dtype=np.float))
 
-        phase_ds = _compute_phase_values(phase_obj, components, variables,
-                                         str_statevar_dict, points,
-                                         comp_sets[phase_name], output,
+        phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
+                                         points, comp_sets[phase_name], output,
                                          maximum_internal_dof)
         # largest_energy is really only relevant if fake_points is set
         largest_energy = max(phase_ds[output].max(), largest_energy)
