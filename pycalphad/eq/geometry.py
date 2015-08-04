@@ -7,6 +7,7 @@ from pycalphad.log import logger
 from pycalphad.eq.cartesian import cartesian
 import numpy as np
 import xray
+from itertools import chain
 
 def _initialize_array(global_grid, result_array):
     "Fill in starting values for the energy array."
@@ -57,11 +58,11 @@ def lower_convex_hull(global_grid, result_array):
     """
     conditions = [x for x in result_array.coords.keys() if x not in ['vertex',
                                                                      'component']]
-    indep_conds = sorted([x for x in result_array.coords.keys() if x in ['T', 'P']])
+    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P']])
     indep_shape = tuple(len(result_array.coords[x]) for x in indep_conds)
-    comp_conds = sorted([x for x in result_array.coords.keys() if x.startswith('X_')])
+    comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     comp_shape = tuple(len(result_array.coords[x]) for x in comp_conds)
-    pot_conds = sorted([x for x in result_array.coords.keys() if x.startswith('MU_')])
+    pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
     # force conditions to have particular ordering
     conditions = indep_conds + pot_conds + comp_conds
     trial_shape = (len(result_array.coords['component']),)
@@ -158,7 +159,8 @@ def lower_convex_hull(global_grid, result_array):
 
         statevar_indices = np.unravel_index(index_array, trial_simplices.shape[:-1]
                                            )[:len(indep_conds)+len(pot_conds)]
-        aligned_energies = global_grid.GM.values[statevar_indices, candidate_simplices.T].T
+        aligned_indices = np.broadcast_arrays(*chain(statevar_indices, [candidate_simplices.T]))
+        aligned_energies = global_grid.GM.values[aligned_indices].T
         candidate_potentials = np.linalg.solve(global_grid.X.values[candidate_simplices],
                                                aligned_energies)
         logger.debug('candidate_simplices: %s', candidate_simplices)
@@ -201,10 +203,9 @@ def lower_convex_hull(global_grid, result_array):
         result_array['NP'].values[final_multi_indices] = \
             fractions[bounding_indices][is_lower_energy]
 
-        global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)], ...]
+        global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)]]
         raw_driving_forces = np.inner(candidate_potentials[is_lower_energy],
-                                      global_grid.X.values) - \
-            global_energies
+                                      global_grid.X.values) - global_energies
         # In principle, any driving forces not in raw_driving_forces should be zero
         # This is why we only evaluate those points.
         # Update trial points to choose points with largest remaining driving force

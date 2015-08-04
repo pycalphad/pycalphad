@@ -25,7 +25,7 @@ except NameError:
     from sets import Set as set  #pylint: disable=W0622
 
 # Refine points within REFINEMENT_DISTANCE J/mol-atom of convex hull
-REFINEMENT_DISTANCE = 10
+REFINEMENT_DISTANCE = 1e-4
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1
 
@@ -118,7 +118,9 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        variables = sorted(mod.energy.atoms(v.StateVariable), key=str)
+        variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
+        # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
+        models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
         hess_func = make_callable(hessian(mod.energy, variables), variables)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
@@ -128,8 +130,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     if verbose:
         print('[done]', end='\n')
 
-    conds = {key: _unpack_condition(value) for key, value in conditions.items()}
-    str_conds = OrderedDict({str(key): value for key, value in conds.items()})
+    conds = OrderedDict((key, _unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
+    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list(val for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
@@ -164,7 +166,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                               attrs={'iterations': 1},
                               )
 
-    for iteration in range(10):
+    for iteration in range(5):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
@@ -200,7 +202,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 points_dict[name] = np.atleast_2d(points)
                 continue
 
-            num_vars = len(models[name].energy.atoms(v.StateVariable))
+            num_vars = len(phase_records[name].variables)
             statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[0])]),
                                         sparse=True, indexing='ij')[:-1]
             # Adjust gradient and Hessian by the approximate chemical potentials
@@ -226,7 +228,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # Add additional dimensions to grad so it'll broadcast against cast_grad
             grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
             #print('grad.shape', grad.shape)
-            bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T[..., np.newaxis],
+            bcasts = np.broadcast_arrays(*itertools.chain(np.rollaxis(properties.MU.values[np.newaxis], -1, 0),
                                                           points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
             #print(bcasts[0].shape)
             cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
@@ -279,18 +281,15 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
             dy_constrained = dy_unconstrained - cons_correction
             dy_constrained = np.rollaxis(dy_constrained, 0, -1)
-            print('points', points)
-            print('dy_constrained', dy_constrained)
             #print('dy_constrained.shape', dy_constrained.shape)
             # TODO: Support for adaptive changing independent variable steps
-            alpha = 1
+            alpha = int(INITIAL_STEP_SIZE)
             new_points = points + alpha*dy_constrained[..., len(indep_vals):]
             while np.any(new_points < 0):
                 alpha *= 0.1
-                new_points = points + alpha*dy_constrained[..., len(indep_vals):]
                 if alpha < 1e-6:
                     break
-            print('alpha =', alpha)
+                new_points = points + alpha*dy_constrained[..., len(indep_vals):]
             points_dict[name] = np.concatenate((points, new_points.reshape((-1, new_points.shape[-1]))), axis=0)
 
         if verbose:
@@ -301,4 +300,20 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
         properties.attrs['iterations'] += 1
 
+    # One last call to ensure 'properties' and 'grid' are consistent with one another
+    lower_convex_hull(grid, properties)
+    # Copy final point values from the grid and drop the index array
+    # For some reason direct construction doesn't work. We have to create empty and then assign.
+    properties['X'] = xray.DataArray(np.empty_like(grid['X'].values[properties['points'].values]),
+                                     dims=properties['points'].dims + ('component',))
+    properties['X'].values[...] = grid['X'].values[properties['points'].values]
+    properties['Y'] = xray.DataArray(np.empty_like(grid['Y'].values[properties['points'].values]),
+                                     dims=properties['points'].dims + ('internal_dof',))
+    properties['Y'].values[...] = grid['Y'].values[properties['points'].values]
+    # TODO: What about invariant reactions? We should perform a final driving force calculation here.
+    # We can do this in the same post-processing step where we identify single-phase regions.
+    properties['Phase'] = xray.DataArray(np.empty_like(grid['Phase'].values[properties['points'].values]),
+                                     dims=properties['points'].dims)
+    properties['Phase'].values[...] = grid['Phase'].values[properties['points'].values]
+    del properties['points']
     return properties
