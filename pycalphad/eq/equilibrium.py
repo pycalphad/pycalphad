@@ -226,9 +226,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                         grad[i] = grad_zeros
                 grad = np.array(grad.tolist(), dtype=np.float)
             # Add additional dimensions to grad so it'll broadcast against cast_grad
-            grad.shape = grad.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + grad.shape[2:]
+            grad.shape = grad.shape[:2+len(indep_vals)] + (1,) * (len(str_conds) - len(indep_vals)) \
+                + grad.shape[2+len(indep_vals):]
             #print('grad.shape', grad.shape)
-            bcasts = np.broadcast_arrays(*itertools.chain(np.rollaxis(properties.MU.values[np.newaxis], -1, 0),
+            bcasts = np.broadcast_arrays(*itertools.chain(np.rollaxis(properties.MU.values, -1, 0)[..., np.newaxis],
                                                           points.T.reshape((points.T.shape[0],) + (1,) * len(str_conds) + (-1,))))
             #print(bcasts[0].shape)
             cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
@@ -247,7 +248,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                             hess[i, j] = hess_zeros
                 hess = np.array(hess.tolist(), dtype=np.float)
             # Add additional dimensions to hess so it'll broadcast against cast_hess
-            hess.shape = hess.shape[:2] + (1,) * (len(str_conds) - len(indep_vals)) + hess.shape[2:]
+            hess.shape = hess.shape[:2+len(indep_vals)] + (1,) * (len(str_conds) - len(indep_vals)) \
+                + hess.shape[2+len(indep_vals):]
             #print('hess shape', hess.shape)
             #print('hess dtype', hess.dtype)
             cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
