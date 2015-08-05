@@ -13,7 +13,7 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://pypi.python.org/pypi/pycalphad/
     :alt: Development Status
 
-.. image:: https://pypip.in/version/pycalphad/badge.svg
+.. image:: https://img.shields.io/pypi/v/pycalphad.svg
     :target: https://pypi.python.org/pypi/pycalphad/
     :alt: Latest version
 
