@@ -1,6 +1,6 @@
 language: python
+sudo: false
 python:
-#  - 2.6
   - 2.7
   - 3.3
   - 3.4
@@ -17,9 +17,6 @@ before_install:
   - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
   - source activate condaenv
-  # The next couple lines fix a crash with multiprocessing on Travis and are not specific to using Miniconda
-  - sudo rm -rf /dev/shm
-  - sudo ln -s /run/shm /dev/shm
 # Install packages
 install:
   - pip install coveralls
