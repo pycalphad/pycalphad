@@ -12,6 +12,7 @@ from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
 import xray
+from xray.core.npcompat import broadcast_to
 import numpy as np
 import itertools
 import collections
@@ -28,28 +29,26 @@ def _listify(val):
     else:
         return [val]
 
-def _generate_fake_points(components, statevar_dict, largest_energy, output, maximum_internal_dof):
+def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof):
     """
     Generate points for a fictitious hyperplane used as a starting point for energy minimization.
     """
     coordinate_dict = {'component': components}
     coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
-
+    largest_energy = float(energy_limit)
     if largest_energy < 0:
         largest_energy *= 0.5
     else:
         largest_energy *= 2
     output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
-    energy_shape = tuple(len(x) for x in statevar_dict.values()) + (len(components),)
-    largest_energy = xray.broadcast_arrays(xray.DataArray(largest_energy),
-                                           xray.DataArray(np.empty(energy_shape)))[0].copy()
+    statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
     # The internal dof for the fake points are all NaNs
-    expanded_points = np.empty((len(components), maximum_internal_dof))
-    expanded_points.fill(np.nan)
-    data_arrays = {'X': (['points', 'component'], np.eye(len(components))),
-                   'Y': (['points', 'internal_dof'], expanded_points),
-                   'Phase': ('points', ['_FAKE_'] * len(components)),
-                   output: (output_columns, largest_energy)
+    expanded_points = np.full(statevar_shape + (len(components), maximum_internal_dof), np.nan)
+    data_arrays = {'X': (output_columns + ['component'],
+                         broadcast_to(np.eye(len(components)), statevar_shape + (len(components), len(components)))),
+                   'Y': (output_columns + ['internal_dof'], expanded_points),
+                   'Phase': (output_columns, np.full(statevar_shape + (len(components),), '_FAKE_', dtype='S6')),
+                   output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
                    }
     return xray.Dataset(data_arrays, coords=coordinate_dict)
 
@@ -90,44 +89,44 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     # Broadcast compositions and state variables along orthogonal axes
     # This lets us eliminate an expensive Python loop
     statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
-                                                 [np.empty(points.shape[0])]),
+                                                 [np.empty(points.shape[-2])]),
                                 sparse=True, indexing='ij')[:-1]
-    # Roll 'points' dimension up to leading dimension
-    phase_output = np.rollaxis(func(*itertools.chain(statevar_grid, points.T)), -1)
+    points = broadcast_to(points, tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
+    phase_output = func(*itertools.chain(statevar_grid, np.rollaxis(points, -1, start=0)))
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
     # related to the site fraction of vacancies
-    site_ratio_normalization = np.zeros(len(points))
+    site_ratio_normalization = np.zeros(points.shape[:-1])
     for idx, sublattice in enumerate(phase_obj.constituents):
-        vacancy_column = np.ones(len(points))
+        vacancy_column = np.ones(points.shape[:-1])
         if 'VA' in set(sublattice):
             var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, 'VA'))
-            vacancy_column -= points[:, var_idx]
+            vacancy_column -= points[..., :, var_idx]
         site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
 
-    phase_compositions = np.empty((points.shape[0], len(components)))
+    phase_compositions = np.empty(points.shape[:-1] + (len(components),))
     for col, comp in enumerate(components):
         avector = [float(vxx.species == comp) * \
             phase_obj.sublattices[vxx.sublattice_index] for vxx in variables]
-        phase_compositions[:, col] = np.divide(np.dot(points[:, :], avector),
+        phase_compositions[..., :, col] = np.divide(np.dot(points[..., :, :], avector),
                                                site_ratio_normalization)
 
     coordinate_dict = {'component': components}
     coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
-    output_columns = ['points'] + [str(x) for x in statevar_dict.keys()]
+    output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
-    expanded_points = np.empty(points.shape[:-1] + (maximum_internal_dof,))
-    expanded_points.fill(np.nan)
+    expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
     expanded_points[..., :points.shape[-1]] = points
-    data_arrays = {'X': (['points', 'component'], phase_compositions),
-                   'Phase': ('points', [phase_obj.name] * points.shape[0]),
-                   'Y': (['points', 'internal_dof'], expanded_points),
+    data_arrays = {'X': (output_columns + ['component'], phase_compositions),
+                   'Phase': (output_columns,
+                             np.full(points.shape[:-1], phase_obj.name, dtype='S'+str(len(phase_obj.name)))),
+                   'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (output_columns, phase_output)
-                  }
+                   }
 
     return xray.Dataset(data_arrays, coords=coordinate_dict)
 
