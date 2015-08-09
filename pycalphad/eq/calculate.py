@@ -8,6 +8,7 @@ from pycalphad import Model
 from pycalphad.model import DofError
 from pycalphad.eq.utils import make_callable, point_sample, generate_dof
 from pycalphad.eq.utils import endmember_matrix, unpack_kwarg
+from pycalphad.eq.utils import unpack_condition, unpack_phases
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -123,7 +124,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     expanded_points[..., :points.shape[-1]] = points
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
                    'Phase': (output_columns,
-                             np.full(points.shape[:-1], phase_obj.name, dtype='S'+str(len(phase_obj.name)))),
+                             np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (output_columns, phase_output)
                    }
@@ -182,9 +183,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = collections.OrderedDict((v.StateVariable(key), value) \
+    statevar_dict = collections.OrderedDict((v.StateVariable(key), unpack_condition(value)) \
                                             for (key, value) in sorted(kwargs.items()))
-    str_statevar_dict = collections.OrderedDict((str(key), value) \
+    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
     all_phase_data = []
     comp_sets = {}
@@ -193,7 +194,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
     # Consider only the active phases
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
-        for name in phases)
+        for name in unpack_phases(phases))
 
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy

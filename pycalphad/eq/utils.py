@@ -275,6 +275,44 @@ def sizeof_fmt(num, suffix='B'):
         num /= 1000.0
     return "%.1f%s%s" % (num, 'Y', suffix)
 
+def unpack_condition(tup):
+    """
+    Convert a condition to a list of values.
+    Rules for keys of conditions dicts:
+    (1) If it's numeric, treat as a point value
+    (2) If it's a tuple with one element, treat as a point value
+    (3) If it's a tuple with two elements, treat as lower/upper limits and
+        guess a step size
+    (4) If it's a tuple with three elements, treat as lower/upper/step
+    (5) If it's a list, ndarray or other non-tuple ordered iterable,
+        use those values directly
+    """
+    if isinstance(tup, tuple):
+        if len(tup) == 1:
+            return [float(tup[0])]
+        elif len(tup) == 2:
+            return np.arange(tup[0], tup[1], dtype=np.float)
+        elif len(tup) == 3:
+            return np.arange(tup[0], tup[1], tup[2], dtype=np.float)
+        else:
+            raise ValueError('Condition tuple is length {}'.format(len(tup)))
+    elif isinstance(tup, collections.Iterable):
+        return [float(x) for x in tup]
+    else:
+        return [float(tup)]
+
+def unpack_phases(phases):
+    "Convert a phases list/dict into a sorted list."
+    active_phases = None
+    if isinstance(phases, list):
+        active_phases = sorted(phases)
+    elif isinstance(phases, dict):
+        active_phases = sorted([phn for phn, status in phases.items() \
+            if status == 'entered'])
+    elif type(phases) is str:
+        active_phases = [phases]
+    return active_phases
+
 def check_degenerate_phases(phase_compositions, mindist=0.5):
     """
     Because the global minimization procedure returns a simplex as an

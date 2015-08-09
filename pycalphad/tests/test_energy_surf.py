@@ -1,10 +1,10 @@
 """
-The energy surface test module verifies that energy_surf() calculates
-the energy surface correctly.
+The calculate test module verifies that calculate() calculates
+Model quantities correctly.
 """
 
 import nose.tools
-from pycalphad import Database, energy_surf
+from pycalphad import Database, calculate
 
 TDB_TEST_STRING = """
 ELEMENT /-          ELECTRON_GAS         0         0         0 !
@@ -241,11 +241,16 @@ DBF = Database(TDB_TEST_STRING)
 
 def test_surface():
     "Bare minimum: calculation produces a result."
-    energy_surf(DBF, ['AL', 'CR', 'NI'], ['L12_FCC'],
-                T=1273, pdens=10, mode='numpy')
+    calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
+                T=1273., mode='numpy')
 
 @nose.tools.raises(AttributeError)
 def test_unknown_model_attribute():
     "Sampling an unknown model attribute raises exception."
-    energy_surf(DBF, ['AL', 'CR', 'NI'], ['L12_FCC'],
+    calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
                 T=1400.0, output='_fail_')
+
+def test_statevar_upcast():
+    "Integer state variable values are cast to float."
+    calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
+                T=1273, mode='numpy')

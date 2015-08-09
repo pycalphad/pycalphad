@@ -8,6 +8,7 @@ from pycalphad.eq.utils import make_callable
 from pycalphad.eq.utils import check_degenerate_phases
 from pycalphad.eq.utils import unpack_kwarg
 from pycalphad.eq.utils import sizeof_fmt
+from pycalphad.eq.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.eq.calculate import _compute_phase_values
 from pycalphad.constraints import mole_fraction
@@ -16,7 +17,7 @@ from pycalphad.eq.eqresult import EquilibriumResult
 from sympy import Add, Matrix, Mul, hessian
 import xray
 import numpy as np
-from collections import namedtuple, Iterable, OrderedDict
+from collections import namedtuple, OrderedDict
 import itertools
 
 try:
@@ -34,44 +35,6 @@ PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess'])
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
-
-def _unpack_condition(tup):
-    """
-    Convert a condition to a list of values.
-    Rules for keys of conditions dicts:
-    (1) If it's numeric, treat as a point value
-    (2) If it's a tuple with one element, treat as a point value
-    (3) If it's a tuple with two elements, treat as lower/upper limits and
-        guess a step size
-    (4) If it's a tuple with three elements, treat as lower/upper/step
-    (5) If it's a list, ndarray or other non-tuple ordered iterable,
-        use those values directly
-    """
-    if isinstance(tup, tuple):
-        if len(tup) == 1:
-            return [float(tup[0])]
-        elif len(tup) == 2:
-            return np.arange(tup[0], tup[1], dtype=np.float)
-        elif len(tup) == 3:
-            return np.arange(tup[0], tup[1], tup[2], dtype=np.float)
-        else:
-            raise ValueError('Condition tuple is length {}'.format(len(tup)))
-    elif isinstance(tup, Iterable):
-        return tup
-    else:
-        return [float(tup)]
-
-def _unpack_phases(phases):
-    "Convert a phases list/dict into a sorted list."
-    active_phases = None
-    if isinstance(phases, list):
-        active_phases = sorted(phases)
-    elif isinstance(phases, dict):
-        active_phases = sorted([phn for phn, status in phases.items() \
-            if status == 'entered'])
-    elif type(phases) is str:
-        active_phases = [phases]
-    return active_phases
 
 def equilibrium(dbf, comps, phases, conditions, **kwargs):
     """
@@ -102,7 +65,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     --------
     None yet.
     """
-    active_phases = _unpack_phases(phases)
+    active_phases = unpack_phases(phases)
     comps = sorted(set(comps))
     indep_vars = ['T', 'P']
     grid_opts = kwargs.pop('grid_opts', dict())
@@ -130,14 +93,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     if verbose:
         print('[done]', end='\n')
 
-    conds = OrderedDict((key, _unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
+    conds = OrderedDict((key, unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list(val for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 100
+        grid_opts['pdens'] = 10
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -176,21 +139,20 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
         energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
             (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
-        driving_forces = np.inner(properties.MU.values, grid.X.values) - \
+        grid_broadcast_shape = energy_broadcast_shape[:-1] + grid.X.values.shape[-2:]
+        driving_forces = np.multiply(properties.MU.values[..., np.newaxis, :],
+                                     grid.X.values[..., np.newaxis, :, :]).sum(axis=-1) - \
             grid.GM.values.reshape(energy_broadcast_shape)
-        #print('driving_forces', driving_forces)
         #print('grid.GM', grid.GM.values)
         near_stability = driving_forces > -REFINEMENT_DISTANCE
-        # If one point is "close to stability" for even one set of conditions
-        #    we refine it for _all_ conditions. This is very conservative.
-        near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1)))
-        #print('near_stability', near_stability)
+        near_stability = np.any(near_stability, axis=tuple(np.arange(len(near_stability.shape) - 1))[len(indep_vals):])
 
         for name in active_phases:
             # The Y arrays have been padded, so we should slice off the padding
             dof = len(models[name].energy.atoms(v.SiteFraction))
-            points = grid.Y.values[np.logical_and(near_stability, grid.Phase.values == name),
-                                   :dof]
+            ravelled_Y_view = grid.Y.values.view().reshape(-1, grid['Y'].values.shape[-1])
+            selected_indices = np.logical_and(near_stability, grid.Phase.values == name).ravel()
+            points = ravelled_Y_view[selected_indices, :dof]
             if len(points) == 0:
                 if name in points_dict:
                     del points_dict[name]
@@ -283,7 +245,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
             dy_constrained = dy_unconstrained - cons_correction
             dy_constrained = np.rollaxis(dy_constrained, 0, -1)
-            #print('dy_constrained.shape', dy_constrained.shape)
             # TODO: Support for adaptive changing independent variable steps
             alpha = int(INITIAL_STEP_SIZE)
             new_points = points + alpha*dy_constrained[..., len(indep_vals):]
@@ -292,7 +253,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 if alpha < 1e-6:
                     break
                 new_points = points + alpha*dy_constrained[..., len(indep_vals):]
-            points_dict[name] = np.concatenate((points, new_points.reshape((-1, new_points.shape[-1]))), axis=0)
+            points_dict[name] = np.concatenate((points, new_points.reshape(-1, points.shape[-1])), axis=0)
 
         if verbose:
             print('Rebuilding grid', end=' ')
@@ -304,18 +265,21 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
 
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     lower_convex_hull(grid, properties)
+    ravelled_X_view = grid['X'].values.view().reshape(-1, grid['X'].values.shape[-1])
+    ravelled_Y_view = grid['Y'].values.view().reshape(-1, grid['Y'].values.shape[-1])
+    ravelled_Phase_view = grid['Phase'].values.view().reshape(-1)
     # Copy final point values from the grid and drop the index array
     # For some reason direct construction doesn't work. We have to create empty and then assign.
-    properties['X'] = xray.DataArray(np.empty_like(grid['X'].values[properties['points'].values]),
+    properties['X'] = xray.DataArray(np.empty_like(ravelled_X_view[properties['points'].values]),
                                      dims=properties['points'].dims + ('component',))
-    properties['X'].values[...] = grid['X'].values[properties['points'].values]
-    properties['Y'] = xray.DataArray(np.empty_like(grid['Y'].values[properties['points'].values]),
+    properties['X'].values[...] = ravelled_X_view[properties['points'].values]
+    properties['Y'] = xray.DataArray(np.empty_like(ravelled_Y_view[properties['points'].values]),
                                      dims=properties['points'].dims + ('internal_dof',))
-    properties['Y'].values[...] = grid['Y'].values[properties['points'].values]
+    properties['Y'].values[...] = ravelled_Y_view[properties['points'].values]
     # TODO: What about invariant reactions? We should perform a final driving force calculation here.
-    # We can do this in the same post-processing step where we identify single-phase regions.
-    properties['Phase'] = xray.DataArray(np.empty_like(grid['Phase'].values[properties['points'].values]),
+    # We can handle that in the same post-processing step where we identify single-phase regions.
+    properties['Phase'] = xray.DataArray(np.empty_like(ravelled_Phase_view[properties['points'].values]),
                                      dims=properties['points'].dims)
-    properties['Phase'].values[...] = grid['Phase'].values[properties['points'].values]
+    properties['Phase'].values[...] = ravelled_Phase_view[properties['points'].values]
     del properties['points']
     return properties
