@@ -94,15 +94,12 @@ def lower_convex_hull(global_grid, result_array):
         comp_values = np.append(comp_values, 1 - np.sum(comp_values, keepdims=True,
                                                         axis=-1), axis=-1)
 
-
-
     # SECOND CASE: Only chemical potential conditions specified
     # TODO: Implementation of chemical potential
 
     # THIRD CASE: Mixture of composition and chemical potential conditions
     # TODO: Implementation of mixed conditions
 
-    print('global_grid.GM', global_grid.GM)
     max_iterations = 50
     iterations = 0
     while iterations < max_iterations:
@@ -117,10 +114,10 @@ def lower_convex_hull(global_grid, result_array):
         # Exactly one of those simplices will contain a given test point,
         #     excepting edge cases
         trial_simplices.T[np.diag_indices(trial_shape[0])] = trial_points.T
-        print('trial_simplices.shape', trial_simplices.shape)
-        print('global_grid.X.values.shape', global_grid.X.values.shape)
+        #print('trial_simplices.shape', trial_simplices.shape)
+        #print('global_grid.X.values.shape', global_grid.X.values.shape)
         trial_matrix = grid_view[trial_simplices]
-        print('trial_matrix.shape', trial_matrix.shape)
+        #print('trial_matrix.shape', trial_matrix.shape)
         # Partially ravel the array to make indexing operations easier
         trial_matrix.shape = (-1,) + trial_matrix.shape[-2:]
 
@@ -156,7 +153,6 @@ def lower_convex_hull(global_grid, result_array):
 
         raveled_simplices = trial_simplices.reshape((-1,) + trial_simplices.shape[-1:])
         candidate_simplices = raveled_simplices[..., index_array, :]
-        print('candidate_simplices', candidate_simplices)
 
         # We need to convert the flat index arrays into multi-index tuples.
         # These tuples will tell us which state variable combinations are relevant
@@ -172,7 +168,6 @@ def lower_convex_hull(global_grid, result_array):
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
         candidate_energies = np.multiply(candidate_potentials,
                                          comp_values[comp_indices]).sum(axis=-1)
-        print('candidate_energies', candidate_energies)
 
         # Generate a matrix of energies comparing our calculations for this iteration
         # to each other.
@@ -183,7 +178,6 @@ def lower_convex_hull(global_grid, result_array):
         comparison_matrix.fill(np.inf)
         comparison_matrix[np.divide(index_array, trial_shape[0]).astype(np.int),
                           np.mod(index_array, trial_shape[0])] = candidate_energies
-        print('comparison_matrix', comparison_matrix)
 
         # If a condition point is all infinities, it means we did not calculate it
         # We should filter those out from any comparisons
@@ -211,13 +205,13 @@ def lower_convex_hull(global_grid, result_array):
             fractions[bounding_indices][is_lower_energy]
 
         global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)]]
-        print('global_energies.shape', global_energies.shape)
-        print('candidate_potentials[is_lower_energy][..., np.newaxis, :].shape', candidate_potentials[is_lower_energy][..., np.newaxis, :].shape)
-        print('global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape', global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape)
+        #print('global_energies.shape', global_energies.shape)
+        #print('candidate_potentials[is_lower_energy][..., np.newaxis, :].shape', candidate_potentials[is_lower_energy][..., np.newaxis, :].shape)
+        #print('global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape', global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape)
         raw_driving_forces = np.multiply(candidate_potentials[is_lower_energy][..., np.newaxis, :],
                                          global_grid.X.values[final_multi_indices[:len(indep_conds)]]).sum(axis=-1) - \
             global_energies
-        print('raw_driving_forces.shape', raw_driving_forces.shape)
+        #print('raw_driving_forces.shape', raw_driving_forces.shape)
         # In principle, any driving forces not in raw_driving_forces should be zero
         # This is why we only evaluate those points.
         # Update trial points to choose points with largest remaining driving force
