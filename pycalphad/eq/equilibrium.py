@@ -25,8 +25,13 @@ try:
 except NameError:
     from sets import Set as set  #pylint: disable=W0622
 
+# Maximum number of refinements
+MAX_ITERATIONS = 50
 # Refine points within REFINEMENT_DISTANCE J/mol-atom of convex hull
-REFINEMENT_DISTANCE = 1e-4
+REFINEMENT_DISTANCE = 1e-10
+# If the norm of the energy difference between iterations is less than
+# MIN_PROGRESS J/mol-atom, stop the refinement
+MIN_PROGRESS = 1e-4
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1
 
@@ -95,12 +100,13 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
 
     conds = OrderedDict((key, unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    indep_vals = list(val for key, val in str_conds.items() if key in indep_vars)
+    indep_vals = list(np.array(val, dtype=np.float)
+                      for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 10
+        grid_opts['pdens'] = 100
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -128,12 +134,20 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                               coords=coord_dict,
                               attrs={'iterations': 1},
                               )
+    # Store the energies from the previous iteration
+    current_energies = np.zeros(grid_shape[:-1], dtype=np.float)
 
-    for iteration in range(5):
+    for iteration in range(MAX_ITERATIONS):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
+        progress = np.abs((current_energies - properties.GM.values)**2).sum()**0.5
+        print('progress', progress)
+        if progress < MIN_PROGRESS:
+            print('Convergence achieved')
+            break
+        current_energies[...] = properties.GM.values
         if verbose:
             print('Refining points within {}J/mol of hull'.format(REFINEMENT_DISTANCE))
         # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
