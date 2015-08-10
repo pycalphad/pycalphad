@@ -4,7 +4,8 @@ correct solution for thermodynamic equilibrium.
 """
 
 from unittest.case import SkipTest
-from pycalphad import Database, equilibrium
+from numpy.testing import assert_allclose
+from pycalphad import Database, calculate, equilibrium
 import pycalphad.variables as v
 
 ROSE_TEST_STRING = """
@@ -390,16 +391,6 @@ PARAMETER G(TEST,O,F,NE;2)     300  STR#;               6000 N !
 ROSE_DBF = Database(ROSE_TEST_STRING)
 ALFE_DBF = Database('examples/alfe_sei.TDB')
 
-
-def check_close(test_value, known_value):
-    "Check that our calculated value is close to the known value."
-    if abs(test_value) > 0:
-        assert abs(1 - (test_value / known_value)) < 1e-5, \
-            "%r != %r" % (test_value, known_value)
-    else:
-        assert abs(test_value - known_value) < 1e-5, \
-            "%r != %r" % (test_value, known_value)
-
 # ROSE DIAGRAM TESTS
 # This will fail until the equilibrium engine is switched from Newton-Raphson
 @SkipTest
@@ -411,7 +402,7 @@ def test_rose_nine():
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds)
-    check_close(eqx.GM.values, -5.8351e3)
+    assert_allclose(eqx.GM.values, -5.8351e3)
 
 # OTHER TESTS
 def test_eq_binary():
@@ -421,7 +412,17 @@ def test_eq_binary():
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
-    check_close(eqx.GM.values, -9.608807e4)
+    assert_allclose(eqx.GM.values, -9.608807e4)
+
+def test_eq_single_phase():
+    "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
+    res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=1400,
+                    points={'LIQUID': [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7],
+                                       [0.4, 0.6], [0.5, 0.5], [0.6, 0.4],
+                                       [0.7, 0.3], [0.8, 0.2]]})
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
+                     {v.T: 1400, v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]})
+    assert_allclose(eq.GM, res.GM, atol=1e-4)
 
 if __name__ == '__main__':
     import nose
