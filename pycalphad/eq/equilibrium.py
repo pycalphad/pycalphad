@@ -31,7 +31,7 @@ MAX_ITERATIONS = 50
 # MIN_PROGRESS J/mol-atom, stop the refinement
 MIN_PROGRESS = 1e-4
 # initial value of 'alpha' in Newton-Raphson procedure
-INITIAL_STEP_SIZE = 1
+INITIAL_STEP_SIZE = 1.
 
 PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess'])
 
@@ -104,7 +104,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 100
+        grid_opts['pdens'] = 10
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -140,10 +140,11 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
-        progress = np.abs((current_energies - properties.GM.values)).min()
+        progress = np.abs((current_energies - properties.GM.values)).max()
         print('progress', progress)
         if progress < MIN_PROGRESS:
-            print('Convergence achieved')
+            if verbose:
+                print('Convergence achieved')
             break
         current_energies[...] = properties.GM.values
         if verbose:
@@ -152,8 +153,11 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
             (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
         driving_forces = np.multiply(properties.MU.values[..., np.newaxis, :],
-                                     grid.X.values[..., np.newaxis, :, :]).sum(axis=-1) - \
+                                     grid.X.values[np.index_exp[...] +
+                                                   (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
+                                                   np.index_exp[:, :]]).sum(axis=-1) - \
             grid.GM.values.reshape(energy_broadcast_shape)
+        print('grid.Y.values', grid.Y.values)
         print('driving_forces.shape', driving_forces.shape)
 
         for name in active_phases:
@@ -175,15 +179,17 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             trial_indices = np.argpartition(current_phase_driving_forces,
                                             -len(components), axis=-1)[..., -len(components):]
             print('trial_indices', trial_indices)
-            # TODO: FIX HARDCODED VARIABLE HERE
-            current_site_fractions = grid.Y.values[..., current_phase_indices[0, 0], :]
-            points = np.take(current_site_fractions, trial_indices.ravel(), axis=-2)
+            trial_indices = trial_indices.ravel()
+            # Note: This works as long as all points are in the same phase order for all T, P
+            current_site_fractions = grid.Y.values[..., current_phase_indices[(0,) * len(str_conds)], :]
+            statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(properties.MU.values.shape)),
+                                                properties.MU.values.shape)[:len(indep_vals)]
+            points = current_site_fractions[statevar_indices, trial_indices, :]
             points.shape = properties.points.shape[:-1] + (-1, properties.points.shape[-1])
             # The Y arrays have been padded, so we should slice off the padding
-            #print('grid.Y.values', grid.Y.values)
             points = points[..., :dof]
-            #print('points', points)
             print('points.shape', points.shape)
+            print('points', points)
             if len(points) == 0:
                 if name in points_dict:
                     del points_dict[name]
@@ -210,6 +216,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                        [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
             statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[-2])]),
                                         sparse=True, indexing='xy')[:-1]
+            print('statevar_grid[0].shape', statevar_grid[0].shape)
+            print('points.T.shape', points.T.shape)
             grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
             if grad.dtype == 'object':
                 # Workaround a bug in zero gradient entries
@@ -264,22 +272,27 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # We only choose starting points which obey the constraints, so r = 0
             cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
             cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
-            print('cons_correction.shape', cons_correction.shape)
+            #print('cons_correction.shape', cons_correction.shape)
+            #print('cons_correction[..., len(indep_vals):]', cons_correction[..., len(indep_vals)])
+            #print('dy_unconstrained.shape', dy_unconstrained.shape)
+            #print('dy_unconstrained[..., len(indep_vals):]', dy_unconstrained[..., len(indep_vals):])
             dy_constrained = dy_unconstrained - cons_correction
-            print('dy_constrained.shape', dy_constrained.shape)
+            #print('dy_constrained[..., len(indep_vals):]', dy_constrained[..., len(indep_vals):])
             # TODO: Support for adaptive changing independent variable steps
-            alpha = int(INITIAL_STEP_SIZE)
+            alpha = float(INITIAL_STEP_SIZE)
             new_points = points + alpha*dy_constrained[..., len(indep_vals):]
+            #print('new_points', new_points)
+            # TODO: fix the way we handle points near the edge of composition space
             while np.any(new_points < 0):
                 alpha *= 0.1
                 if alpha < 1e-6:
                     new_points = points
                     break
                 new_points = points + alpha*dy_constrained[..., len(indep_vals):]
-            new_points = np.concatenate((points, new_points), axis=-2)
+            #new_points = np.concatenate((points, new_points), axis=-2)
             new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
+            new_points = np.concatenate((current_site_fractions, new_points), axis=-2)
             print('new_points.shape', new_points.shape)
-            #print('new_points', new_points)
             points_dict[name] = new_points
 
         if verbose:
