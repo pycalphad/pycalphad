@@ -120,8 +120,9 @@ def lower_convex_hull(global_grid, result_array):
         #print('global_grid.X.values.shape', global_grid.X.values.shape)
         flat_statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(result_array.MU.values.shape)),
                                                  result_array.MU.values.shape)[:len(indep_conds)]
-        trial_matrix = global_grid.X.values[flat_statevar_indices,
-                                            trial_simplices.reshape(-1, trial_simplices.shape[-1]).T, :]
+        #print('flat_statevar_indices', flat_statevar_indices)
+        trial_matrix = global_grid.X.values[np.index_exp[flat_statevar_indices +
+                                                         (trial_simplices.reshape(-1, trial_simplices.shape[-1]).T,)]]
         trial_matrix = np.rollaxis(trial_matrix, 0, -1)
         #print('trial_matrix', trial_matrix)
         # Partially ravel the array to make indexing operations easier

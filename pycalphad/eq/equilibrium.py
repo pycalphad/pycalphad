@@ -75,6 +75,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     verbose = kwargs.pop('verbose', True)
     phase_records = dict()
     points_dict = dict()
+    maximum_internal_dof = 0
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     if verbose:
@@ -84,6 +85,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
+        maximum_internal_dof = max(maximum_internal_dof, len(mod.energy.atoms(v.SiteFraction)))
         variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
         # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
         models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
@@ -116,7 +118,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
 
     grid = calculate(dbf, comps, active_phases, output='GM',
                      model=models, fake_points=True, **grid_opts)
-
+    #print('grid.Y.values.shape', grid.Y.values.shape)
     if verbose:
         print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
 
@@ -171,7 +173,13 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # This reshape is safe as long as phases have the same number of points at all indep. conditions
             current_phase_driving_forces = driving_forces[current_phase_indices].reshape(
                 current_phase_indices.shape[:-1] + (-1,))
-            #print('current_phase_driving_forces.shape', current_phase_driving_forces.shape)
+            # Note: This works as long as all points are in the same phase order for all T, P
+            current_site_fractions = grid.Y.values[..., current_phase_indices[(0,) * len(str_conds)], :]
+            if np.sum(current_site_fractions[(0,) * len(indep_vals)][..., :dof]) == dof:
+                # All site fractions are 1, aka zero internal degrees of freedom
+                # Impossible to refine these points, so skip this phase
+                points_dict[name] = current_site_fractions[(0,) * len(indep_vals)][..., :dof]
+                continue
             # Find the N points with largest driving force for a given set of conditions
             # Remember that driving force has a sign, so we want the "most positive" values
             # N is the number of components, in this context
@@ -181,12 +189,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                             -len(components), axis=-1)[..., -len(components):]
             #print('trial_indices', trial_indices)
             trial_indices = trial_indices.ravel()
-            # Note: This works as long as all points are in the same phase order for all T, P
-            current_site_fractions = grid.Y.values[..., current_phase_indices[(0,) * len(str_conds)], :]
             statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(properties.MU.values.shape)),
                                                 properties.MU.values.shape)[:len(indep_vals)]
-            points = current_site_fractions[statevar_indices, trial_indices, :]
-            points.shape = properties.points.shape[:-1] + (-1, properties.points.shape[-1])
+            points = current_site_fractions[np.index_exp[statevar_indices + (trial_indices,)]]
+            points.shape = properties.points.shape[:-1] + (-1, maximum_internal_dof)
             # The Y arrays have been padded, so we should slice off the padding
             points = points[..., :dof]
             #print('points.shape', points.shape)
@@ -195,11 +201,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 if name in points_dict:
                     del points_dict[name]
                 # No nearly stable points: skip this phase
-                continue
-            if np.any(np.sum(points, axis=-1) == dof):
-                # All site fractions are 1, aka zero internal degrees of freedom
-                # Impossible to refine these points, so skip this phase
-                points_dict[name] = np.atleast_2d(points)
                 continue
 
             num_vars = len(phase_records[name].variables)
@@ -215,9 +216,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                        [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
             plane_hess = make_callable(hessian(hyperplane, phase_records[name].variables),
                                        [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-            statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[-2])]),
-                                        sparse=True, indexing='xy')[:-1]
-            #print('statevar_grid[0].shape', statevar_grid[0].shape)
+            statevar_grid = np.meshgrid(*itertools.chain(indep_vals), sparse=True, indexing='xy')
+            #print('statevar_grid', statevar_grid)
             #print('points.T.shape', points.T.shape)
             grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
             if grad.dtype == 'object':
@@ -242,11 +242,11 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                         if isinstance(hess[i, j], int):
                             hess[i, j] = hess_zeros
                 hess = np.array(hess.tolist(), dtype=np.float)
-            #print('hess shape', hess.shape)
             #print('hess dtype', hess.dtype)
             cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
             hess = cast_hess
-            #print('hessian shape', hess.shape)
+            #print('hess shape', hess.shape)
+            #print('hessian ', hess)
             #print('hessian dtype', hess.dtype)
             e_matrix = np.linalg.inv(hess)
             #print('e_matrix shape', e_matrix.shape)
@@ -293,7 +293,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             #print('new_points', new_points)
             #new_points = np.concatenate((points, new_points), axis=-2)
             new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
-            new_points = np.concatenate((current_site_fractions, new_points), axis=-2)
+            new_points = np.concatenate((current_site_fractions[..., :dof], new_points), axis=-2)
             points_dict[name] = new_points
 
         if verbose:
