@@ -141,7 +141,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
         progress = np.abs((current_energies - properties.GM.values)).max()
-        print('progress', progress)
+        if verbose:
+            print('progress', progress)
         if progress < MIN_PROGRESS:
             if verbose:
                 print('Convergence achieved')
@@ -157,8 +158,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                                    (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
                                                    np.index_exp[:, :]]).sum(axis=-1) - \
             grid.GM.values.reshape(energy_broadcast_shape)
-        print('grid.Y.values', grid.Y.values)
-        print('driving_forces.shape', driving_forces.shape)
+        #print('grid.Y.values', grid.Y.values)
+        #print('driving_forces.shape', driving_forces)
 
         for name in active_phases:
             dof = len(models[name].energy.atoms(v.SiteFraction))
@@ -166,11 +167,11 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # Broadcast to capture all conditions
             current_phase_indices = np.broadcast_arrays(current_phase_indices,
                                                         np.empty(driving_forces.shape))[0]
-            print('current_phase_indices.shape', current_phase_indices.shape)
+            #print('current_phase_indices.shape', current_phase_indices.shape)
             # This reshape is safe as long as phases have the same number of points at all indep. conditions
             current_phase_driving_forces = driving_forces[current_phase_indices].reshape(
                 current_phase_indices.shape[:-1] + (-1,))
-            print('current_phase_driving_forces.shape', current_phase_driving_forces.shape)
+            #print('current_phase_driving_forces.shape', current_phase_driving_forces.shape)
             # Find the N points with largest driving force for a given set of conditions
             # Remember that driving force has a sign, so we want the "most positive" values
             # N is the number of components, in this context
@@ -178,7 +179,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # We also need to restrict ourselves to one phase at a time
             trial_indices = np.argpartition(current_phase_driving_forces,
                                             -len(components), axis=-1)[..., -len(components):]
-            print('trial_indices', trial_indices)
+            #print('trial_indices', trial_indices)
             trial_indices = trial_indices.ravel()
             # Note: This works as long as all points are in the same phase order for all T, P
             current_site_fractions = grid.Y.values[..., current_phase_indices[(0,) * len(str_conds)], :]
@@ -188,8 +189,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             points.shape = properties.points.shape[:-1] + (-1, properties.points.shape[-1])
             # The Y arrays have been padded, so we should slice off the padding
             points = points[..., :dof]
-            print('points.shape', points.shape)
-            print('points', points)
+            #print('points.shape', points.shape)
+            #print('points', points)
             if len(points) == 0:
                 if name in points_dict:
                     del points_dict[name]
@@ -216,8 +217,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                        [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
             statevar_grid = np.meshgrid(*itertools.chain(indep_vals, [np.empty(points.shape[-2])]),
                                         sparse=True, indexing='xy')[:-1]
-            print('statevar_grid[0].shape', statevar_grid[0].shape)
-            print('points.T.shape', points.T.shape)
+            #print('statevar_grid[0].shape', statevar_grid[0].shape)
+            #print('points.T.shape', points.T.shape)
             grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
             if grad.dtype == 'object':
                 # Workaround a bug in zero gradient entries
@@ -231,7 +232,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             cast_grad = cast_grad.T + grad.T
             grad = cast_grad
             grad.shape = grad.shape[:-1]  # Remove extraneous dimension
-            print('grad.shape', grad.shape)
+            #print('grad.shape', grad.shape)
             hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
             if hess.dtype == 'object':
                 # Workaround a bug in zero Hessian entries
@@ -241,16 +242,16 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                         if isinstance(hess[i, j], int):
                             hess[i, j] = hess_zeros
                 hess = np.array(hess.tolist(), dtype=np.float)
-            print('hess shape', hess.shape)
+            #print('hess shape', hess.shape)
             #print('hess dtype', hess.dtype)
             cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
             hess = cast_hess
-            print('hessian shape', hess.shape)
+            #print('hessian shape', hess.shape)
             #print('hessian dtype', hess.dtype)
             e_matrix = np.linalg.inv(hess)
-            print('e_matrix shape', e_matrix.shape)
+            #print('e_matrix shape', e_matrix.shape)
             dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
-            print('dy_unconstrained.shape', dy_unconstrained.shape)
+            #print('dy_unconstrained.shape', dy_unconstrained.shape)
             # TODO: A more sophisticated treatment of constraints
             num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
             constraint_jac = np.zeros((num_constraints, num_vars))
@@ -264,7 +265,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
                 var_idx += len(dbf.phases[name].constituents[idx])
             proj_matrix = np.dot(e_matrix, constraint_jac.T)
-            print('proj_matrix.shape', proj_matrix.shape)
+            #print('proj_matrix.shape', proj_matrix.shape)
             inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
             inv_term = np.linalg.inv(inv_matrix)
             first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
@@ -279,20 +280,20 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             dy_constrained = dy_unconstrained - cons_correction
             #print('dy_constrained[..., len(indep_vals):]', dy_constrained[..., len(indep_vals):])
             # TODO: Support for adaptive changing independent variable steps
-            alpha = float(INITIAL_STEP_SIZE)
-            new_points = points + alpha*dy_constrained[..., len(indep_vals):]
+            # Backtracking line search
+            new_points = points + INITIAL_STEP_SIZE*dy_constrained[..., len(indep_vals):]
+            alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
+            negative_points = np.any(new_points < 0., axis=-1)
+            while np.any(negative_points):
+                alpha[negative_points] *= 0.1
+                new_points = points + alpha[..., np.newaxis]*dy_constrained[..., len(indep_vals):]
+                negative_points = np.any(new_points < 0., axis=-1)
+            #print('points', points)
+            #print('alpha', alpha)
             #print('new_points', new_points)
-            # TODO: fix the way we handle points near the edge of composition space
-            while np.any(new_points < 0):
-                alpha *= 0.1
-                if alpha < 1e-6:
-                    new_points = points
-                    break
-                new_points = points + alpha*dy_constrained[..., len(indep_vals):]
             #new_points = np.concatenate((points, new_points), axis=-2)
             new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
             new_points = np.concatenate((current_site_fractions, new_points), axis=-2)
-            print('new_points.shape', new_points.shape)
             points_dict[name] = new_points
 
         if verbose:

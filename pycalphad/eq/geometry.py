@@ -69,8 +69,8 @@ def lower_convex_hull(global_grid, result_array):
     _initialize_array(global_grid, result_array)
     # Simplify indexing by partially ravelling the array
     grid_view = global_grid.X.values.view().reshape(-1, global_grid.X.values.shape[-1])
-    print('global_grid.X.values', global_grid.X.values)
-    print('global_grid.GM.values', global_grid.GM.values)
+    #print('global_grid.X.values', global_grid.X.values)
+    #print('global_grid.GM.values', global_grid.GM.values)
 
     # Enforce ordering of shape
     result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
@@ -123,7 +123,7 @@ def lower_convex_hull(global_grid, result_array):
         trial_matrix = global_grid.X.values[flat_statevar_indices,
                                             trial_simplices.reshape(-1, trial_simplices.shape[-1]).T, :]
         trial_matrix = np.rollaxis(trial_matrix, 0, -1)
-        print('trial_matrix', trial_matrix)
+        #print('trial_matrix', trial_matrix)
         # Partially ravel the array to make indexing operations easier
         trial_matrix.shape = (-1,) + trial_matrix.shape[-2:]
 
@@ -159,32 +159,29 @@ def lower_convex_hull(global_grid, result_array):
 
         raveled_simplices = trial_simplices.reshape((-1,) + trial_simplices.shape[-1:])
         candidate_simplices = raveled_simplices[index_array, :]
-        print('candidate_simplices', candidate_simplices)
+        #print('candidate_simplices', candidate_simplices)
 
         # We need to convert the flat index arrays into multi-index tuples.
         # These tuples will tell us which state variable combinations are relevant
         # for the calculation. We can drop the last dimension, 'trial'.
-        print('trial_simplices.shape[:-1]', trial_simplices.shape[:-1])
+        #print('trial_simplices.shape[:-1]', trial_simplices.shape[:-1])
         statevar_indices = np.unravel_index(index_array, trial_simplices.shape[:-1]
                                             )[:len(indep_conds)+len(pot_conds)]
         aligned_energies = global_grid.GM.values[statevar_indices + (candidate_simplices.T,)].T
         statevar_indices = tuple(x[..., np.newaxis] for x in statevar_indices)
-        print('statevar_indices', statevar_indices)
-        # TODO: fix energy alignment issue
-        aligned_indices = np.index_exp[statevar_indices + (candidate_simplices.T,)]
-        print('aligned_indices', aligned_indices)
+        #print('statevar_indices', statevar_indices)
         aligned_compositions = global_grid.X.values[np.index_exp[statevar_indices + (candidate_simplices,)]]
-        print('aligned_compositions', aligned_compositions)
-        print('aligned_energies', aligned_energies)
+        #print('aligned_compositions', aligned_compositions)
+        #print('aligned_energies', aligned_energies)
         candidate_potentials = np.linalg.solve(aligned_compositions,
                                                aligned_energies)
-        print('candidate_potentials', candidate_potentials)
+        #print('candidate_potentials', candidate_potentials)
         logger.debug('candidate_simplices: %s', candidate_simplices)
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
-        print('comp_values[comp_indices]', comp_values[comp_indices])
+        #print('comp_values[comp_indices]', comp_values[comp_indices])
         candidate_energies = np.multiply(candidate_potentials,
                                          comp_values[comp_indices]).sum(axis=-1)
-        print('candidate_energies', candidate_energies)
+        #print('candidate_energies', candidate_energies)
 
         # Generate a matrix of energies comparing our calculations for this iteration
         # to each other.
@@ -195,7 +192,7 @@ def lower_convex_hull(global_grid, result_array):
         comparison_matrix.fill(np.inf)
         comparison_matrix[np.divide(index_array, trial_shape[0]).astype(np.int),
                           np.mod(index_array, trial_shape[0])] = candidate_energies
-        print('comparison_matrix', comparison_matrix)
+        #print('comparison_matrix', comparison_matrix)
 
         # If a condition point is all infinities, it means we did not calculate it
         # We should filter those out from any comparisons
@@ -206,16 +203,16 @@ def lower_convex_hull(global_grid, result_array):
         # Filter conditions down to only those calculated this iteration
         calculated_conditions_indices = np.arange(comparison_matrix.shape[0])[calculated_indices]
 
-        print('comparison_matrix[calculated_conditions_indices,lowest_energy_indices]',comparison_matrix[calculated_conditions_indices,
-                                            lowest_energy_indices])
+        #print('comparison_matrix[calculated_conditions_indices,lowest_energy_indices]',comparison_matrix[calculated_conditions_indices,
+        #                                    lowest_energy_indices])
         is_lower_energy = comparison_matrix[calculated_conditions_indices,
                                             lowest_energy_indices] < \
             result_array['GM'].values.flat[calculated_conditions_indices]
-        print('is_lower_energy', is_lower_energy)
+        #print('is_lower_energy', is_lower_energy)
 
         # These are the conditions we will update this iteration
         final_indices = calculated_conditions_indices[is_lower_energy]
-        print('final_indices', final_indices)
+        #print('final_indices', final_indices)
         # Convert to multi-index form so we can index the result array
         final_multi_indices = np.unravel_index(final_indices,
                                                result_array['GM'].values.shape)
@@ -225,7 +222,7 @@ def lower_convex_hull(global_grid, result_array):
         result_array['MU'].values[final_multi_indices] = candidate_potentials[is_lower_energy]
         result_array['NP'].values[final_multi_indices] = \
             fractions[bounding_indices][is_lower_energy]
-        print('result_array.GM.values', result_array.GM.values)
+        #print('result_array.GM.values', result_array.GM.values)
 
         global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)]]
         #print('global_energies.shape', global_energies.shape)
@@ -236,11 +233,11 @@ def lower_convex_hull(global_grid, result_array):
                                          (np.newaxis,) * (len(comp_conds)) +
                                          np.index_exp[:, :]]).sum(axis=-1) - \
             global_grid.GM.values[np.index_exp[...] + (np.newaxis,) * (len(comp_conds)) + np.index_exp[:]]
-        print('largest DF', raw_driving_forces.max())
-        print('raw_driving_forces.shape', raw_driving_forces.shape)
+        #print('largest DF', raw_driving_forces.max())
+        #print('raw_driving_forces.shape', raw_driving_forces.shape)
         # Update trial points to choose points with largest remaining driving force
         trial_points = np.argmax(raw_driving_forces, axis=-1)
-        print('trial_points', trial_points)
+        #print('trial_points', trial_points)
         logger.debug('trial_points: %s', trial_points)
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
