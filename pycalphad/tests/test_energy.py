@@ -260,11 +260,6 @@ def test_sympify_safety():
     from sympy import sympify
     from pycalphad.io.tdb import _sympify_string
     teststr = "().__class__.__base__.__subclasses__()[216]('ls')"
-    try:
-        sympify(teststr)
-    except TypeError:
-        # this means we successfully executed some code, but got arguments wrong
-        pass
     _sympify_string(teststr) # should throw ParseException
 
 
