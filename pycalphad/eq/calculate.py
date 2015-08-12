@@ -38,9 +38,9 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
     coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
     largest_energy = float(energy_limit)
     if largest_energy < 0:
-        largest_energy *= 0.5
+        largest_energy *= 0.99
     else:
-        largest_energy *= 2
+        largest_energy *= 1.01
     output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
     # The internal dof for the fake points are all NaNs
