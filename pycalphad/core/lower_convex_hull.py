@@ -1,5 +1,5 @@
 """
-The geometry module handles geometric calculations associated with
+The lower_convex_hull module handles geometric calculations associated with
 equilibrium calculation.
 """
 
