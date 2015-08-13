@@ -6,8 +6,8 @@ energy surface of a system.
 from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
-from pycalphad.eq.utils import make_callable, point_sample, generate_dof
-from pycalphad.eq.utils import endmember_matrix, unpack_kwarg
+from pycalphad.core.utils import make_callable, point_sample, generate_dof
+from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol

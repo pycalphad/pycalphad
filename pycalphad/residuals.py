@@ -3,10 +3,10 @@ The residuals module contains routines for calculating residuals of
 experimental data for regression of thermodynamic models.
 """
 from pycalphad import Model
-from pycalphad.eq.energy_surf import energy_surf
-from pycalphad.eq.geometry import lower_convex_hull
-from pycalphad.eq.equilibrium import EquilibriumError
-from pycalphad.eq.utils import generate_dof, make_callable
+from pycalphad.core.energy_surf import energy_surf
+from pycalphad.core.geometry import lower_convex_hull
+from pycalphad.core.equilibrium import EquilibriumError
+from pycalphad.core.utils import generate_dof, make_callable
 import pycalphad.variables as v
 import lmfit
 from scipy.optimize import leastsq

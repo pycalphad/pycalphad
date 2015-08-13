@@ -4,16 +4,16 @@ calculated phase equilibria.
 """
 from __future__ import print_function
 import pycalphad.variables as v
-from pycalphad.eq.utils import make_callable
-from pycalphad.eq.utils import check_degenerate_phases
-from pycalphad.eq.utils import unpack_kwarg
-from pycalphad.eq.utils import sizeof_fmt
-from pycalphad.eq.utils import unpack_condition, unpack_phases
+from pycalphad.core.utils import make_callable
+from pycalphad.core.utils import check_degenerate_phases
+from pycalphad.core.utils import unpack_kwarg
+from pycalphad.core.utils import sizeof_fmt
+from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
-from pycalphad.eq.calculate import _compute_phase_values
+from pycalphad.core.calculate import _compute_phase_values
 from pycalphad.constraints import mole_fraction
-from pycalphad.eq.geometry import lower_convex_hull
-from pycalphad.eq.eqresult import EquilibriumResult
+from pycalphad.core.geometry import lower_convex_hull
+from pycalphad.core.eqresult import EquilibriumResult
 from sympy import Add, Matrix, Mul, hessian
 import xray
 import numpy as np

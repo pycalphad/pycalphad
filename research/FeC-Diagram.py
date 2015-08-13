@@ -1,6 +1,6 @@
 import matplotlib.pyplot as plt
 from pycalphad import Database, Model, binplot
-from pycalphad.eq.utils import make_callable
+from pycalphad.core.utils import make_callable
 import pycalphad.variables as v
 
 db = Database('Fe-C_Fei_Brosh_2014_09.TDB')

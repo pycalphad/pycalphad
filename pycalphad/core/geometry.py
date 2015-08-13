@@ -4,7 +4,7 @@ equilibrium calculation.
 """
 
 from pycalphad.log import logger
-from pycalphad.eq.cartesian import cartesian
+from pycalphad.core.cartesian import cartesian
 import numpy as np
 import xray
 from itertools import chain
