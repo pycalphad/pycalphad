@@ -74,6 +74,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     grid_opts = kwargs.pop('grid_opts', dict())
     verbose = kwargs.pop('verbose', True)
     phase_records = dict()
+    callable_dict = dict()
     points_dict = dict()
     maximum_internal_dof = 0
     # Construct models for each phase; prioritize user models
@@ -85,10 +86,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        maximum_internal_dof = max(maximum_internal_dof, len(mod.energy.atoms(v.SiteFraction)))
+        site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
+        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
         # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
         models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
+        # callable_dict takes variables in a different order due to calculate() pecularities
+        callable_dict[name] = make_callable(models[name].energy,
+                                            sorted(key for key in conditions.keys() if key in [v.T, v.P]) + site_fracs)
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
         hess_func = make_callable(hessian(mod.energy, variables), variables)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
@@ -117,8 +122,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         print('Computing initial grid', end=' ')
 
     grid = calculate(dbf, comps, active_phases, output='GM',
-                     model=models, fake_points=True, **grid_opts)
-    #print('grid.Y.values.shape', grid.Y.values.shape)
+                     model=models, callables=callable_dict, fake_points=True, **grid_opts)
+
     if verbose:
         print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
 
@@ -155,11 +160,12 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
         energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
             (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
-        driving_forces = np.multiply(properties.MU.values[..., np.newaxis, :],
-                                     grid.X.values[np.index_exp[...] +
-                                                   (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
-                                                   np.index_exp[:, :]]).sum(axis=-1) - \
-            grid.GM.values.reshape(energy_broadcast_shape)
+        driving_forces = np.einsum('...i,...i',
+                                   properties.MU.values[..., np.newaxis, :],
+                                   grid.X.values[np.index_exp[...] +
+                                                 (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
+                                                 np.index_exp[:, :]]) - \
+            grid.GM.values.view().reshape(energy_broadcast_shape)
         #print('grid.Y.values', grid.Y.values)
         #print('driving_forces.shape', driving_forces)
 
@@ -299,7 +305,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         if verbose:
             print('Rebuilding grid', end=' ')
         grid = calculate(dbf, comps, active_phases, output='GM',
-                         model=models, fake_points=True, points=points_dict, **grid_opts)
+                         model=models, callables=callable_dict,
+                         fake_points=True, points=points_dict, **grid_opts)
         if verbose:
             print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
         properties.attrs['iterations'] += 1

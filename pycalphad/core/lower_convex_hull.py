@@ -67,10 +67,6 @@ def lower_convex_hull(global_grid, result_array):
     conditions = indep_conds + pot_conds + comp_conds
     trial_shape = (len(result_array.coords['component']),)
     _initialize_array(global_grid, result_array)
-    # Simplify indexing by partially ravelling the array
-    grid_view = global_grid.X.values.view().reshape(-1, global_grid.X.values.shape[-1])
-    #print('global_grid.X.values', global_grid.X.values)
-    #print('global_grid.GM.values', global_grid.GM.values)
 
     # Enforce ordering of shape
     result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
@@ -78,7 +74,7 @@ def lower_convex_hull(global_grid, result_array):
     result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
 
     # Determine starting combinations of chemical potentials and compositions
-    # Check Gibbs phase rule compliance
+    # TODO: Check Gibbs phase rule compliance
 
     if len(pot_conds) > 0:
         raise NotImplementedError('Chemical potential conditions are not yet supported')
@@ -101,6 +97,9 @@ def lower_convex_hull(global_grid, result_array):
 
     # THIRD CASE: Mixture of composition and chemical potential conditions
     # TODO: Implementation of mixed conditions
+
+    driving_forces = np.zeros(result_array.GM.values.shape + (len(global_grid.points),),
+                                   dtype=np.float)
 
     max_iterations = 50
     iterations = 0
@@ -218,31 +217,30 @@ def lower_convex_hull(global_grid, result_array):
         final_multi_indices = np.unravel_index(final_indices,
                                                result_array['GM'].values.shape)
 
+        updated_potentials = candidate_potentials[is_lower_energy]
         result_array['points'].values[final_multi_indices] = candidate_simplices[is_lower_energy]
         result_array['GM'].values[final_multi_indices] = candidate_energies[is_lower_energy]
-        result_array['MU'].values[final_multi_indices] = candidate_potentials[is_lower_energy]
+        result_array['MU'].values[final_multi_indices] = updated_potentials
         result_array['NP'].values[final_multi_indices] = \
             fractions[bounding_indices][is_lower_energy]
         #print('result_array.GM.values', result_array.GM.values)
 
         global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)]]
-        #print('global_energies.shape', global_energies.shape)
-        #print('candidate_potentials[is_lower_energy][..., np.newaxis, :].shape', candidate_potentials[is_lower_energy][..., np.newaxis, :].shape)
-        #print('global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape', global_grid.X.values[final_multi_indices[:len(indep_conds)]].shape)
-        raw_driving_forces = np.multiply(result_array.MU.values[..., np.newaxis, :],
-                                         global_grid.X.values[np.index_exp[...] +
-                                         (np.newaxis,) * (len(comp_conds)) +
-                                         np.index_exp[:, :]]).sum(axis=-1) - \
-            global_grid.GM.values[np.index_exp[...] + (np.newaxis,) * (len(comp_conds)) + np.index_exp[:]]
-        #print('largest DF', raw_driving_forces.max())
-        #print('raw_driving_forces.shape', raw_driving_forces.shape)
+        updated_grids = global_grid.X.values[final_multi_indices[:len(indep_conds)]]
+
+        # We cut time in this function by ~30% using einsum versus multiply().sum()
+        driving_forces[final_multi_indices] = np.einsum('...i,...i',
+                                                        updated_potentials[..., np.newaxis, :],
+                                                        updated_grids) - \
+            global_energies
+
         # Update trial points to choose points with largest remaining driving force
-        trial_points = np.argmax(raw_driving_forces, axis=-1)
+        trial_points = np.argmax(driving_forces, axis=-1)
         #print('trial_points', trial_points)
         logger.debug('trial_points: %s', trial_points)
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
-        if np.all(raw_driving_forces < 1e-4):
+        if np.all(driving_forces < 1e-4):
             return
     #raise ValueError
     logger.error('Iterations exceeded')
