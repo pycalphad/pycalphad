@@ -23,12 +23,6 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
-def _listify(val):
-    "Return val if val is iterable; otherwise return list(val)."
-    if isinstance(val, collections.Iterable):
-        return val
-    else:
-        return [val]
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof):
     """
@@ -52,6 +46,7 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
                    output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
                    }
     return xray.Dataset(data_arrays, coords=coordinate_dict)
+
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                           points, func, output, maximum_internal_dof):
@@ -130,6 +125,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                    }
 
     return xray.Dataset(data_arrays, coords=coordinate_dict)
+
 
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **kwargs):
     """
