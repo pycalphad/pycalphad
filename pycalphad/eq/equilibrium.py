@@ -134,22 +134,22 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                               coords=coord_dict,
                               attrs={'iterations': 1},
                               )
-    # Store the energies from the previous iteration
-    current_energies = np.zeros(grid_shape[:-1], dtype=np.float)
+    # Store the potentials from the previous iteration
+    current_potentials = np.zeros(grid_shape, dtype=np.float)
 
     for iteration in range(MAX_ITERATIONS):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
-        progress = np.abs((current_energies - properties.GM.values)).max()
+        progress = np.abs((current_potentials - properties.MU.values)).max()
         if verbose:
             print('progress', progress)
         if progress < MIN_PROGRESS:
             if verbose:
                 print('Convergence achieved')
             break
-        current_energies[...] = properties.GM.values
+        current_potentials[...] = properties.MU.values
         if verbose:
             print('Refining convex hull')
         # Insert extra dimensions for non-T,P conditions so GM broadcasts correctly
