@@ -4,7 +4,7 @@ experimental data for regression of thermodynamic models.
 """
 from pycalphad import Model
 from pycalphad.core.energy_surf import energy_surf
-from pycalphad.core.geometry import lower_convex_hull
+from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.equilibrium import EquilibriumError
 from pycalphad.core.utils import generate_dof, make_callable
 import pycalphad.variables as v

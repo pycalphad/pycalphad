@@ -12,7 +12,7 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.core.calculate import _compute_phase_values
 from pycalphad.constraints import mole_fraction
-from pycalphad.core.geometry import lower_convex_hull
+from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.eqresult import EquilibriumResult
 from sympy import Add, Matrix, Mul, hessian
 import xray
