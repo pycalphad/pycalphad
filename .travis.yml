@@ -17,6 +17,8 @@ before_install:
   - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
   - source activate condaenv
+  - export DISPLAY=:99.0
+  - sh -e /etc/init.d/xvfb start
 # Install packages
 install:
   - pip install coveralls
