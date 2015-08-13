@@ -2,6 +2,10 @@
 The plotting test module verifies that plotting routines produce a result.
 """
 
+# This is needed to ensure this test will run on Travis-CI
+import matplotlib
+matplotlib.use('Agg')
+
 from pycalphad import Database, binplot
 
 TDB_ALFE_STRING = """
