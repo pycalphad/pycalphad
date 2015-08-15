@@ -4,36 +4,35 @@ calculated phase equilibria.
 """
 from __future__ import print_function
 import pycalphad.variables as v
+from pycalphad.core.utils import broadcast_to
 from pycalphad.core.utils import make_callable
-from pycalphad.core.utils import check_degenerate_phases
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import sizeof_fmt
 from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
-from pycalphad.core.calculate import _compute_phase_values
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.eqresult import EquilibriumResult
 from sympy import Add, Matrix, Mul, hessian
 import xray
 import numpy as np
 from collections import namedtuple, OrderedDict
 import itertools
 
-try:
-    set
-except NameError:
-    from sets import Set as set  #pylint: disable=W0622
-
 # Maximum number of refinements
 MAX_ITERATIONS = 50
-# If the norm of the energy difference between iterations is less than
-# MIN_PROGRESS J/mol-atom, stop the refinement
-MIN_PROGRESS = 1e-4
+# Maximum number of Newton steps to take
+MAX_NEWTON_ITERATIONS = 50
+# If the max of the energy difference/RT between iterations is less than
+# MIN_PROGRESS, stop the refinement
+MIN_PROGRESS = 1e-3
+# Minimum length of a Newton step before procedure is stopped
+MIN_STEP_LENGTH = 1e-12
+# Force zero values to this amount, for numerical stability
+MIN_SITE_FRACTION = 1e-16
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1.
 
-PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess'])
+PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'plane_grad', 'plane_hess'])
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
@@ -69,7 +68,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     None yet.
     """
     active_phases = unpack_phases(phases)
-    comps = sorted(set(comps))
+    comps = sorted(comps)
     indep_vars = ['T', 'P']
     grid_opts = kwargs.pop('grid_opts', dict())
     verbose = kwargs.pop('verbose', True)
@@ -93,11 +92,25 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
         # callable_dict takes variables in a different order due to calculate() pecularities
         callable_dict[name] = make_callable(models[name].energy,
-                                            sorted(key for key in conditions.keys() if key in [v.T, v.P]) + site_fracs)
+                                            sorted((key for key in conditions.keys() if key in [v.T, v.P]),
+                                                   key=str) + site_fracs)
         grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
-        hess_func = make_callable(hessian(mod.energy, variables), variables)
+        # Adjust gradient by the approximate chemical potentials
+        plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
+        hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
+                           for i in comps if i != 'VA'])
+        # Workaround an annoying bug with zero gradient entries
+        # This forces numerically zero entries to broadcast correctly
+        hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
+
+        plane_grad = make_callable(Matrix([hyperplane]).jacobian(variables),
+                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
+        plane_hess = make_callable(hessian(hyperplane, variables),
+                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
         phase_records[name.upper()] = PhaseRecord(variables=variables,
-                                                  grad=grad_func, hess=hess_func)
+                                                  grad=grad_func,
+                                                  plane_grad=plane_grad,
+                                                  plane_hess=plane_hess)
         if verbose:
             print(name, end=' ')
     if verbose:
@@ -140,14 +153,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                               attrs={'iterations': 1},
                               )
     # Store the potentials from the previous iteration
-    current_potentials = np.zeros(grid_shape, dtype=np.float)
+    current_potentials = properties.MU.copy()
 
     for iteration in range(MAX_ITERATIONS):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
-        progress = np.abs((current_potentials - properties.MU.values)).max()
+        progress = np.abs((current_potentials - properties.MU) / (8.3145 * properties['T'])).max().values
         if verbose:
             print('progress', progress)
         if progress < MIN_PROGRESS:
@@ -166,8 +179,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                                  (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
                                                  np.index_exp[:, :]]) - \
             grid.GM.values.view().reshape(energy_broadcast_shape)
-        #print('grid.Y.values', grid.Y.values)
-        #print('driving_forces.shape', driving_forces)
 
         for name in active_phases:
             dof = len(models[name].energy.atoms(v.SiteFraction))
@@ -175,7 +186,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # Broadcast to capture all conditions
             current_phase_indices = np.broadcast_arrays(current_phase_indices,
                                                         np.empty(driving_forces.shape))[0]
-            #print('current_phase_indices.shape', current_phase_indices.shape)
             # This reshape is safe as long as phases have the same number of points at all indep. conditions
             current_phase_driving_forces = driving_forces[current_phase_indices].reshape(
                 current_phase_indices.shape[:-1] + (-1,))
@@ -193,16 +203,15 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # We also need to restrict ourselves to one phase at a time
             trial_indices = np.argpartition(current_phase_driving_forces,
                                             -len(components), axis=-1)[..., -len(components):]
-            #print('trial_indices', trial_indices)
             trial_indices = trial_indices.ravel()
-            statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(properties.MU.values.shape)),
-                                                properties.MU.values.shape)[:len(indep_vals)]
+            statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(properties.GM.values.shape + (len(components),))),
+                                                properties.GM.values.shape + (len(components),))[:len(indep_vals)]
             points = current_site_fractions[np.index_exp[statevar_indices + (trial_indices,)]]
             points.shape = properties.points.shape[:-1] + (-1, maximum_internal_dof)
             # The Y arrays have been padded, so we should slice off the padding
             points = points[..., :dof]
-            #print('points.shape', points.shape)
-            #print('points', points)
+            # Workaround for derivative issues at endmembers
+            points[points == 0.] = MIN_SITE_FRACTION
             if len(points) == 0:
                 if name in points_dict:
                     del points_dict[name]
@@ -210,21 +219,22 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 continue
 
             num_vars = len(phase_records[name].variables)
-            # Adjust gradient and Hessian by the approximate chemical potentials
-            plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
-            hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
-                               for i in comps if i != 'VA'])
-            # Workaround an annoying bug with zero gradient/Hessian entries
-            # This forces numerically zero entries to broadcast correctly
-            hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
-
-            plane_grad = make_callable(Matrix([hyperplane]).jacobian(phase_records[name].variables),
-                                       [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-            plane_hess = make_callable(hessian(hyperplane, phase_records[name].variables),
-                                       [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
+            plane_grad = phase_records[name].plane_grad
+            plane_hess = phase_records[name].plane_hess
             statevar_grid = np.meshgrid(*itertools.chain(indep_vals), sparse=True, indexing='xy')
-            #print('statevar_grid', statevar_grid)
-            #print('points.T.shape', points.T.shape)
+            # TODO: A more sophisticated treatment of constraints
+            num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
+            constraint_jac = np.zeros((num_constraints, num_vars))
+            # Independent variables are always fixed (in this limited implementation)
+            for idx in range(len(indep_vals)):
+                constraint_jac[idx, idx] = 1
+            # This is for site fraction balance constraints
+            var_idx = len(indep_vals)
+            for idx in range(len(dbf.phases[name].sublattices)):
+                constraint_jac[len(indep_vals) + idx,
+                               var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
+                var_idx += len(dbf.phases[name].constituents[idx])
+
             grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
             if grad.dtype == 'object':
                 # Workaround a bug in zero gradient entries
@@ -238,66 +248,75 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             cast_grad = cast_grad.T + grad.T
             grad = cast_grad
             grad.shape = grad.shape[:-1]  # Remove extraneous dimension
-            #print('grad.shape', grad.shape)
-            hess = phase_records[name].hess(*itertools.chain(statevar_grid, points.T))
-            if hess.dtype == 'object':
-                # Workaround a bug in zero Hessian entries
-                hess_zeros = np.zeros(points.T.shape[1:], dtype=np.float)
-                for i in np.arange(hess.shape[0]):
-                    for j in np.arange(hess.shape[1]):
-                        if isinstance(hess[i, j], int):
-                            hess[i, j] = hess_zeros
-                hess = np.array(hess.tolist(), dtype=np.float)
-            #print('hess dtype', hess.dtype)
-            cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess.T
-            hess = cast_hess
-            #print('hess shape', hess.shape)
-            #print('hessian ', hess)
-            #print('hessian dtype', hess.dtype)
-            e_matrix = np.linalg.inv(hess)
-            #print('e_matrix shape', e_matrix.shape)
-            dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
-            #print('dy_unconstrained.shape', dy_unconstrained.shape)
-            # TODO: A more sophisticated treatment of constraints
-            num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
-            constraint_jac = np.zeros((num_constraints, num_vars))
-            # Independent variables are always fixed (in this limited implementation)
-            for idx in range(len(indep_vals)):
-                constraint_jac[idx, idx] = 1
-            # This is for site fraction balance constraints
-            var_idx = len(indep_vals)
-            for idx in range(len(dbf.phases[name].sublattices)):
-                constraint_jac[len(indep_vals) + idx,
-                               var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
-                var_idx += len(dbf.phases[name].constituents[idx])
-            proj_matrix = np.dot(e_matrix, constraint_jac.T)
-            #print('proj_matrix.shape', proj_matrix.shape)
-            inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
-            inv_term = np.linalg.inv(inv_matrix)
-            first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
-            # Normally a term for the residual here
-            # We only choose starting points which obey the constraints, so r = 0
-            cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
-            cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
-            #print('cons_correction.shape', cons_correction.shape)
-            #print('cons_correction[..., len(indep_vals):]', cons_correction[..., len(indep_vals)])
-            #print('dy_unconstrained.shape', dy_unconstrained.shape)
-            #print('dy_unconstrained[..., len(indep_vals):]', dy_unconstrained[..., len(indep_vals):])
-            dy_constrained = dy_unconstrained - cons_correction
-            #print('dy_constrained[..., len(indep_vals):]', dy_constrained[..., len(indep_vals):])
-            # TODO: Support for adaptive changing independent variable steps
-            # Backtracking line search
-            new_points = points + INITIAL_STEP_SIZE*dy_constrained[..., len(indep_vals):]
-            alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
-            negative_points = np.any(new_points < 0., axis=-1)
-            while np.any(negative_points):
-                alpha[negative_points] *= 0.1
-                new_points = points + alpha[..., np.newaxis]*dy_constrained[..., len(indep_vals):]
+            # This Hessian is an approximation updated using the BFGS method
+            # See Nocedal and Wright, ch.3, p. 198
+            # Initialize as identity matrix
+            hess = broadcast_to(np.eye(num_vars), grad.shape + (grad.shape[-1],)).copy()
+            newton_iteration = 0
+            while newton_iteration < MAX_NEWTON_ITERATIONS:
+                e_matrix = np.linalg.inv(hess)
+                dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
+                proj_matrix = np.dot(e_matrix, constraint_jac.T)
+                inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
+                inv_term = np.linalg.inv(inv_matrix)
+                first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
+                # Normally a term for the residual here
+                # We only choose starting points which obey the constraints, so r = 0
+                cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
+                cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
+                dy_constrained = dy_unconstrained - cons_correction
+                # TODO: Support for adaptive changing independent variable steps
+                new_direction = dy_constrained[..., len(indep_vals):]
+                # Backtracking line search
+                new_points = points + INITIAL_STEP_SIZE * new_direction
+                alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
                 negative_points = np.any(new_points < 0., axis=-1)
-            #print('points', points)
-            #print('alpha', alpha)
-            #print('new_points', new_points)
-            #new_points = np.concatenate((points, new_points), axis=-2)
+                while np.any(negative_points):
+                    alpha[negative_points] *= 0.1
+                    new_points = points + alpha[..., np.newaxis] * new_direction
+                    negative_points = np.any(new_points < 0., axis=-1)
+                # If we made "near" zero progress on any points, don't update the Hessian until
+                # we've rebuilt the convex hull
+                # Nocedal and Wright recommend against skipping Hessian updates
+                # They recommend using a damped update approach, pp. 538-539 of their book
+                # TODO: Check the projected gradient norm, not the step length
+                if np.any(np.max(np.abs(alpha[..., np.newaxis] * new_direction), axis=-1) < MIN_STEP_LENGTH):
+                    break
+                # Workaround for derivative issues at endmembers
+                new_points[new_points == 0.] = 1e-16
+                # BFGS update to Hessian
+                new_grad = phase_records[name].grad(*itertools.chain(statevar_grid, new_points.T))
+                if new_grad.dtype == 'object':
+                    # Workaround a bug in zero gradient entries
+                    grad_zeros = np.zeros(new_points.T.shape[1:], dtype=np.float)
+                    for i in np.arange(new_grad.shape[0]):
+                        if isinstance(new_grad[i], int):
+                            new_grad[i] = grad_zeros
+                    new_grad = np.array(new_grad.tolist(), dtype=np.float)
+                bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T, new_points.T))
+                cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
+                cast_grad = cast_grad.T + new_grad.T
+                new_grad = cast_grad
+                new_grad.shape = new_grad.shape[:-1]  # Remove extraneous dimension
+                # Notation used here consistent with Nocedal and Wright
+                s_k = np.empty(points.shape[:-1] + (points.shape[-1] + len(indep_vals),))
+                # Zero out independent variable changes for now
+                s_k[..., :len(indep_vals)] = 0
+                s_k[..., len(indep_vals):] = new_points - points
+                y_k = new_grad - grad
+                s_s_term = np.einsum('...j,...k->...jk', s_k, s_k)
+                s_b_s_term = np.einsum('...i,...ij,...j', s_k, hess, s_k)
+                y_y_y_s_term = np.einsum('...j,...k->...jk', y_k, y_k) / \
+                    np.einsum('...i,...i', y_k, s_k)[..., np.newaxis, np.newaxis]
+                update = np.einsum('...ij,...jk,...kl->...il', hess, s_s_term, hess) / \
+                    s_b_s_term[..., np.newaxis, np.newaxis] + y_y_y_s_term
+                hess = hess - update
+                cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess
+                hess = -cast_hess #TODO: Why does this fix things?
+                # TODO: Verify that the chosen step lengths reduce the energy
+                points = new_points
+                grad = new_grad
+                newton_iteration += 1
             new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
             new_points = np.concatenate((current_site_fractions[..., :dof], new_points), axis=-2)
             points_dict[name] = new_points
@@ -327,7 +346,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     # TODO: What about invariant reactions? We should perform a final driving force calculation here.
     # We can handle that in the same post-processing step where we identify single-phase regions.
     properties['Phase'] = xray.DataArray(np.empty_like(ravelled_Phase_view[properties['points'].values]),
-                                     dims=properties['points'].dims)
+                                         dims=properties['points'].dims)
     properties['Phase'].values[...] = ravelled_Phase_view[properties['points'].values]
     del properties['points']
     return properties
