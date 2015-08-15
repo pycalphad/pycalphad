@@ -9,6 +9,9 @@ import numpy as np
 import xray
 from itertools import chain
 
+# The energetic difference, in J/mol-atom, below which is considered 'zero'
+DRIVING_FORCE_TOLERANCE = 1e-7
+
 def _initialize_array(global_grid, result_array):
     "Fill in starting values for the energy array."
     max_energies = global_grid['GM'].max(dim='points', skipna=False)
@@ -240,7 +243,8 @@ def lower_convex_hull(global_grid, result_array):
         logger.debug('trial_points: %s', trial_points)
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
-        if np.all(driving_forces < 1e-4):
+        if np.all(driving_forces <= DRIVING_FORCE_TOLERANCE):
             return
     #raise ValueError
+    print('Iterations exceeded. Remaining driving force: ', driving_forces.max())
     logger.error('Iterations exceeded')
