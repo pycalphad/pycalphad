@@ -12,11 +12,15 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from sympy import Add, Matrix, Mul, hessian
+from sympy import Add, Matrix, Mul, Symbol, hessian
 import xray
 import numpy as np
 from collections import namedtuple, OrderedDict
 import itertools
+try:
+    set
+except NameError:
+    from sets import Set as set #pylint: disable=W0622
 
 # Maximum number of refinements
 MAX_ITERATIONS = 50
@@ -85,16 +89,20 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
-        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
         # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
         models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
+        out = mod.energy
+        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+        for undef in undefs:
+            out = out.xreplace({undef: float(0)})
+        site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
+        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         # callable_dict takes variables in a different order due to calculate() pecularities
-        callable_dict[name] = make_callable(models[name].energy,
+        callable_dict[name] = make_callable(out,
                                             sorted((key for key in conditions.keys() if key in [v.T, v.P]),
                                                    key=str) + site_fracs)
-        grad_func = make_callable(Matrix([mod.energy]).jacobian(variables), variables)
+        grad_func = make_callable(Matrix([out]).jacobian(variables), variables)
         # Adjust gradient by the approximate chemical potentials
         plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
@@ -231,9 +239,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # This is for site fraction balance constraints
             var_idx = len(indep_vals)
             for idx in range(len(dbf.phases[name].sublattices)):
+                active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
                 constraint_jac[len(indep_vals) + idx,
-                               var_idx:var_idx + len(dbf.phases[name].constituents[idx])] = 1
-                var_idx += len(dbf.phases[name].constituents[idx])
+                               var_idx:var_idx + len(active_in_subl)] = 1
+                var_idx += len(active_in_subl)
 
             grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
             if grad.dtype == 'object':
