@@ -243,8 +243,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
             # Eliminate pure vacancy endmembers from the calculation
             vacancy_indices = list()
             for idx, sublattice in enumerate(phase_obj.constituents):
-                if 'VA' in sorted(sublattice) and 'VA' in sorted(comps):
-                    vacancy_indices.append(sorted(sublattice).index('VA'))
+                active_in_subl = sorted(set(phase_obj.constituents[idx]).intersection(comps))
+                if 'VA' in active_in_subl and 'VA' in sorted(comps):
+                    vacancy_indices.append(active_in_subl.index('VA'))
             if len(vacancy_indices) != len(phase_obj.constituents):
                 vacancy_indices = None
             logger.debug('vacancy_indices: %s', vacancy_indices)
