@@ -77,7 +77,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     grid_opts = kwargs.pop('grid_opts', dict())
     verbose = kwargs.pop('verbose', True)
     phase_records = dict()
-    callable_dict = dict()
+    callable_dict = kwargs.pop('callables', dict())
+    grad_callable_dict = kwargs.pop('grad_callables', dict())
     points_dict = dict()
     maximum_internal_dof = 0
     # Construct models for each phase; prioritize user models
@@ -90,19 +91,23 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
         variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
-        # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
-        models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
-        out = mod.energy
-        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-        for undef in undefs:
-            out = out.xreplace({undef: float(0)})
         site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
-        # callable_dict takes variables in a different order due to calculate() pecularities
-        callable_dict[name] = make_callable(out,
-                                            sorted((key for key in conditions.keys() if key in [v.T, v.P]),
-                                                   key=str) + site_fracs)
-        grad_func = make_callable(Matrix([out]).jacobian(variables), variables)
+        # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
+        models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
+        out = models[name].energy
+        if name not in callable_dict:
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+            # callable_dict takes variables in a different order due to calculate() pecularities
+            callable_dict[name] = make_callable(out,
+                                                sorted((key for key in conditions.keys() if key in [v.T, v.P]),
+                                                       key=str) + site_fracs)
+        if name not in grad_callable_dict:
+            grad_func = make_callable(Matrix([out]).jacobian(variables), variables)
+        else:
+            grad_func = grad_callable_dict[name]
         # Adjust gradient by the approximate chemical potentials
         plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
