@@ -1,7 +1,5 @@
-API Documentation
-=================
-
-This documentation is automatically generated from docstrings in the source code.
+pycalphad
+=========
 
 .. toctree::
    :maxdepth: 4

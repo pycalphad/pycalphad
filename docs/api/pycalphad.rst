@@ -6,7 +6,7 @@ Subpackages
 
 .. toctree::
 
-    pycalphad.eq
+    pycalphad.core
     pycalphad.io
     pycalphad.plot
 
@@ -37,12 +37,22 @@ pycalphad.model module
     :undoc-members:
     :show-inheritance:
 
+pycalphad.residuals module
+--------------------------
+
+.. automodule:: pycalphad.residuals
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycalphad.variables module
 --------------------------
 
 .. automodule:: pycalphad.variables
     :members:
     :undoc-members:
+    :show-inheritance:
+
 
 Module contents
 ---------------
