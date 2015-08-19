@@ -1421,7 +1421,7 @@ def test_eq_binary():
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
-    assert_allclose(eqx.GM.values, -9.608807e4)
+    assert_allclose(eqx.GM.values, -9.608807e4, atol=1e-4)
 
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
