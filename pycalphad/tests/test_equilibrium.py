@@ -1421,6 +1421,7 @@ def test_eq_binary():
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
+    # Why is this very low tolerance required for the test to pass on py33?
     assert_allclose(eqx.GM.values, -9.608807e4, atol=0.1)
 
 def test_eq_single_phase():
