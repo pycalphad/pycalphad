@@ -28,7 +28,7 @@ MAX_ITERATIONS = 50
 MAX_NEWTON_ITERATIONS = 50
 # If the max of the energy difference/RT between iterations is less than
 # MIN_PROGRESS, stop the refinement
-MIN_PROGRESS = 1e-3
+MIN_PROGRESS = 1e-5
 # Minimum length of a Newton step before procedure is stopped
 MIN_STEP_LENGTH = 1e-12
 # Force zero values to this amount, for numerical stability
