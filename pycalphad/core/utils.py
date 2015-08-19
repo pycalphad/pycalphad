@@ -255,16 +255,6 @@ def make_callable(model, variables, mode=None):
         logical_np = [{'And': np.logical_and, 'Or': np.logical_or}, 'numpy']
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=logical_np, printer=NumPyPrinter)
-    elif mode == 'theano':
-        # Hot patch required for sympy<0.7.7
-        from theano import tensor as tt
-        import sympy.printing.theanocode
-        sympy.printing.theanocode.mapping[sympy.And] = tt.and_
-        sympy.printing.theanocode.mapping[sympy.Or] = tt.or_
-        from sympy.printing.theanocode import theano_function
-        if not isinstance(model, collections.Iterable):
-            model = [model]
-        energy = theano_function(variables, model, dim=2)
     elif mode == 'numexpr':
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules='numexpr', printer=SpecialNumExprPrinter)
