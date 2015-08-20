@@ -456,3 +456,21 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
 def broadcast_to(arr, shape):
     "Broadcast an array to a desired shape. Returns a view."
     return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
+
+
+def fast_aba(a, b):
+    """
+    Vectorized a@b@a matrix product.
+    Source: @dhirschfeld on numpy Gitter chat
+    """
+    old_shape = a.shape
+    c = np.empty(a.size, dtype=np.float64)
+    tmp = np.empty(old_shape[-2:], dtype=np.float64)
+    shape = (-1,) + old_shape[-2:]
+    a = a.reshape(*shape)
+    b = b.reshape(*shape)
+    c = c.reshape(*shape)
+    for a_, b_, c_ in zip(a, b, c):
+        np.dot(a_, b_, out=tmp)
+        np.dot(tmp, a_, out=c_)
+    return c.reshape(*old_shape)
