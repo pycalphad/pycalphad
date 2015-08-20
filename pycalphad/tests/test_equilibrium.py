@@ -1407,7 +1407,7 @@ def test_rose_nine():
     "Nine-component rose diagram point equilibrium calculation."
     my_phases_rose = ['TEST']
     comps = ['H', 'HE', 'LI', 'BE', 'B', 'C', 'N', 'O', 'F']
-    conds = dict({v.T: 1000})
+    conds = dict({v.T: 1000, v.P: 101325})
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds)
@@ -1419,19 +1419,20 @@ def test_eq_binary():
     my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
-    conds = {v.T: 1400, v.X('AL'): 0.55}
+    conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
     # Why is this very low tolerance required for the test to pass on py33?
     assert_allclose(eqx.GM.values, -9.608807e4, atol=0.1)
 
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
-    res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500],
+    res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
                     points={'LIQUID': [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7],
                                        [0.4, 0.6], [0.5, 0.5], [0.6, 0.4],
                                        [0.7, 0.3], [0.8, 0.2]]})
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
-                     {v.T: [1400, 2500], v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]})
+                     {v.T: [1400, 2500], v.P: 101325,
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]})
     assert_allclose(eq.GM, res.GM, atol=1e-4)
 
 
@@ -1440,7 +1441,7 @@ def test_eq_b2_without_all_comps():
     All-vacancy endmembers are correctly excluded from the computation when fewer than
     all components in a Database are selected for the calculation.
     """
-    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.T: 1200})
+    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200})
 
 if __name__ == '__main__':
     import nose
