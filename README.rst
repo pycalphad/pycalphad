@@ -56,7 +56,7 @@ matplotlib, numpy, scipy, sympy, xray, pyparsing, tinydb
 
 Installation
 ------------
-For the latest stable release, use ``pip install pycalphad``
+See `Installation Instructions`.
 
 Examples
 --------
@@ -72,6 +72,7 @@ Acknowledgements
 ----------------
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
 
+.. _Installation Instructions: INSTALLING.rst
 .. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
 .. _Department of Materials Science and Engineering: http://matse.psu.edu/
 .. _Pennsylvania State University: http://www.psu.edu/
