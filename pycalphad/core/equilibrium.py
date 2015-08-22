@@ -23,12 +23,12 @@ except NameError:
     from sets import Set as set #pylint: disable=W0622
 
 # Maximum number of refinements
-MAX_ITERATIONS = 50
+MAX_ITERATIONS = 100
 # Maximum number of Newton steps to take
 MAX_NEWTON_ITERATIONS = 50
-# If the max of the energy difference/RT between iterations is less than
-# MIN_PROGRESS, stop the refinement
-MIN_PROGRESS = 1e-5
+# If the max of the potential difference between iterations is less than
+# MIN_PROGRESS J/mol-atom, stop the refinement
+MIN_PROGRESS = 1e-4
 # Minimum length of a Newton step before procedure is stopped
 MIN_STEP_LENGTH = 1e-12
 # Force zero values to this amount, for numerical stability
@@ -173,7 +173,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
-        progress = np.abs((current_potentials - properties.MU) / (8.3145 * properties['T'])).max().values
+        progress = np.abs(current_potentials - properties.MU).max().values
         if verbose:
             print('progress', progress)
         if progress < MIN_PROGRESS:
