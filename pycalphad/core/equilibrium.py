@@ -71,7 +71,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     --------
     None yet.
     """
-    active_phases = unpack_phases(phases)
+    active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
     indep_vars = ['T', 'P']
     grid_opts = kwargs.pop('grid_opts', dict())
