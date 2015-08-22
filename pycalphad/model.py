@@ -67,24 +67,25 @@ class Model(object):
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
         symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
-        # Need to do more substitutions to catch symbols that are functions
-        # of other symbols
-        for name, value in symbols.items():
-            try:
-                symbols[name] = value.xreplace(symbols)
-                for iteration in range(_MAX_PARAM_NESTING):
-                    symbols[name] = symbols[name].xreplace(symbols)
-                    undefs = symbols[name].atoms(Symbol) - symbols[name].atoms(v.StateVariable)
-                    if len(undefs) == 0:
-                        break
-            except AttributeError:
-                # Can't use xreplace on a float
-                pass
+
         if parameters is not None:
             symbols.update([(Symbol(s), val) for s, val in parameters.items()])
 
         self.models = dict()
         self.build_phase(dbe, phase.upper(), symbols, dbe.search)
+
+        # Need to do more substitutions to catch symbols that are functions
+        # of other symbols
+        for name, value in self.models.items():
+            try:
+                for iteration in range(_MAX_PARAM_NESTING):
+                    self.models[name] = self.models[name].xreplace(symbols)
+                    undefs = self.models[name].atoms(Symbol) - self.models[name].atoms(v.StateVariable)
+                    if len(undefs) == 0:
+                        break
+            except AttributeError:
+                # Can't use xreplace on a float
+                pass
 
     @property
     def ast(self):
@@ -117,11 +118,7 @@ class Model(object):
         self.models['idmix'] = self.ideal_mixing_energy(phase, param_search)
         self.models['xsmix'] = self.excess_mixing_energy(phase, param_search)
         self.models['mag'] = self.magnetic_energy(phase, param_search)
-        for name, value in self.models.items():
-            try:
-                self.models[name] = value.xreplace(symbols).xreplace(symbols)
-            except AttributeError:
-                pass
+
         # Next, we handle atomic ordering
         # NOTE: We need to add this one last since it uses self.models
         # to figure out the contribution.
