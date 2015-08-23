@@ -27,8 +27,6 @@ The newest stable version can be found on `PyPI`_.
 .. _GitHub: https://github.com/richardotis/pycalphad
 .. _PyPI: https://pypi.python.org/pypi/pycalphad
 
-Contents:
-
 .. toctree::
    :maxdepth: 2
 
