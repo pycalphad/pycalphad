@@ -32,15 +32,22 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   README
+   INSTALLING
    examples/index
    api/modules
    CHANGES
+
+Acknowledgements
+================
+Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
+
+.. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
+.. _Department of Materials Science and Engineering: http://matse.psu.edu/
+.. _Pennsylvania State University: http://www.psu.edu/
 
 Indices and tables
 ==================
 
 * :ref:`genindex`
 * :ref:`modindex`
-* :ref:`search`
 
