@@ -35,6 +35,7 @@ sys.path.insert(0, os.path.abspath('../pycalphad'))
 extensions = [
     'sphinx.ext.autodoc',
     'sphinx.ext.autosummary',
+    'sphinx.ext.extlinks',
     'sphinx.ext.mathjax',
     'sphinx.ext.napoleon',
     'sphinx.ext.doctest',
@@ -90,6 +91,9 @@ language = None
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build', '_autosummary']
 
+extlinks = {'issue': ('https://github.com/richardotis/pycalphad/issues/%s',
+                      'issue ')}
+
 # The reST default role (used for this markup: `text`) to use for all
 # documents.
 #default_role = None
@@ -106,7 +110,7 @@ exclude_patterns = ['_build', '_autosummary']
 #show_authors = False
 
 # The name of the Pygments (syntax highlighting) style to use.
-pygments_style = 'sphinx'
+pygments_style = 'colorful'
 
 # A list of ignored prefixes for module index sorting.
 #modindex_common_prefix = []
