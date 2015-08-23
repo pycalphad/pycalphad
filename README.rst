@@ -56,15 +56,15 @@ Required Dependencies:
 
 Installation
 ------------
-See `Installation Instructions`.
+See `Installation Instructions`_.
 
 Examples
 --------
-IPython notebooks with examples are available on `NBViewer` and `ReadTheDocs`.
+IPython notebooks with examples are available on `NBViewer`_ and `ReadTheDocs`_.
 
 Documentation
 -------------
-See the documentation on `ReadTheDocs`.
+See the documentation on `ReadTheDocs`_.
 
 Acknowledgements
 ----------------
