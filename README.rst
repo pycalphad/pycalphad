@@ -60,19 +60,19 @@ See `Installation Instructions`.
 
 Examples
 --------
-IPython notebooks with examples are available on NBViewer.
-http://nbviewer.ipython.org/github/richardotis/pycalphad/tree/master/examples/
+IPython notebooks with examples are available on `NBViewer` and `ReadTheDocs`.
 
 Documentation
 -------------
-Full documentation is a work in progress. Most routines are documented in
-their docstrings, and example code can be found in the 'Examples' section.
+See the documentation on `ReadTheDocs`.
 
 Acknowledgements
 ----------------
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
 
-.. _Installation Instructions: INSTALLING.rst
+.. _Installation Instructions: http://pycalphad.readthedocs.org/en/latest/INSTALLING.html
+.. _NBViewer: http://nbviewer.ipython.org/github/richardotis/pycalphad/tree/master/examples/
+.. _ReadTheDocs: http://pycalphad.readthedocs.org/
 .. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
 .. _Department of Materials Science and Engineering: http://matse.psu.edu/
 .. _Pennsylvania State University: http://www.psu.edu/
