@@ -11,9 +11,15 @@
 |logo| pycalphad: Computational Thermodynamics
 ==============================================
 
-pycalphad is a Python library for computational thermodynamics using the CALPHAD method.
+.. figure:: examples/BinaryExamples_files/BinaryExamples_7_1.png
+    :width: 500px
+    :align: center
+    :height: 250px
+    :alt: Al-Fe Phase Diagram (M.Seiersten et al., 1991)
+    :figclass: align-center
 
-Because pycalphad is still in the alpha phase of development, documentation is under heavy development.
+
+pycalphad is a Python library for computational thermodynamics using the CALPHAD method. Because pycalphad is still in the alpha phase of development, documentation is a work in progress.
 
 The latest development version of the source code can be found on `GitHub`_.
 The newest stable version can be found on `PyPI`_.
@@ -26,9 +32,10 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
-   examples
    README
+   examples/index
    api/modules
+   CHANGES
 
 Indices and tables
 ==================

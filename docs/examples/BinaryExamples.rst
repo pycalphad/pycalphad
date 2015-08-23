@@ -16,7 +16,7 @@ are not drawn on the diagram.
     from pycalphad import Database, binplot
 
 Al-Zn (S. Mey, 1993)
-====================
+--------------------
 
 The miscibility gap in the fcc phase is included in the Al-Zn diagram,
 shown below.
@@ -40,7 +40,7 @@ shown below.
 
 
 Al-Fe (M.Seiersten et al., 1991)
-================================
+--------------------------------
 
 .. code-block:: python
 
@@ -64,7 +64,7 @@ Al-Fe (M.Seiersten et al., 1991)
 
 
 Al-Ni (Work in progress) (N. Dupin et al., 2001)
-================================================
+------------------------------------------------
 
 .. code-block:: python
 
@@ -109,7 +109,7 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 
 
 Nb-Re (X. L. Liu et al., 2013)
-==============================
+------------------------------
 
 .. code-block:: python
 
