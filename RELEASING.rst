@@ -15,11 +15,14 @@ When releasing a new version of pycalphad:
    Run ``sphinx-build -b html . _build/html`` to do a spot check on the docs before pushing.
 8. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
    A minor release can be done later if something important is missed.
-9. ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **0161A98D**.
+9. ``git stash``
+   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **0161A98D**.
 
    ``git show 0.2`` to ensure the correct commit was tagged and signed
 
    ``git tag -v 0.2`` to verify the GPG signature
 
    ``git push origin master --tags``
+
+   ``git stash pop``
 10.The new version is tagged in the repository. Now the public package must be built and distributed.
