@@ -26,6 +26,7 @@ Contents:
 .. toctree::
    :maxdepth: 2
 
+   examples
    README
    api/modules
 
