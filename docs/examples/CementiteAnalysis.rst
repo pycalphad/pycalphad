@@ -9,7 +9,7 @@ The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad's TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.
 
-.. code:: python
+.. code-block:: python
 
     TDB = """
      ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 ! 
@@ -31,7 +31,7 @@ are omitted. The numerical results should be the same.
 
 Do some initial setup, including reading the database.
 
-.. code:: python
+.. code-block:: python
 
     %matplotlib inline
     import matplotlib.pyplot as plt
@@ -46,11 +46,11 @@ Do some initial setup, including reading the database.
 Compute the molar heat capacity at all temperatures from 1K to 2000K
 with a step size of 0.5K.
 
-.. code:: python
+.. code-block:: python
 
     result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='CPM')
 
-.. code:: python
+.. code-block:: python
 
     # Note: 4 moles of atoms per formula unit (Fe3C1). That's why we multiply times 4
     plt.xlabel('Temperature (K)')
@@ -63,11 +63,11 @@ with a step size of 0.5K.
 .. image:: CementiteAnalysis_files/CementiteAnalysis_7_0.png
 
 
-.. code:: python
+.. code-block:: python
 
     result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='SM')
 
-.. code:: python
+.. code-block:: python
 
     plt.xlabel('Temperature (K)')
     plt.ylabel('Formula-Molar Entropy (J/mol-K)')

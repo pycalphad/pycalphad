@@ -9,7 +9,7 @@ Note that, at the time of writing, invariant reactions (three-phase
 'regions' on binary diagrams) are not yet automatically detected so they
 are not drawn on the diagram.
 
-.. code:: python
+.. code-block:: python
 
     %matplotlib inline
     import matplotlib.pyplot as plt
@@ -21,7 +21,7 @@ Al-Zn (S. Mey, 1993)
 The miscibility gap in the fcc phase is included in the Al-Zn diagram,
 shown below.
 
-.. code:: python
+.. code-block:: python
 
     db_alzn = Database('alzn_mey.tdb')
     my_phases_alzn = ['LIQUID', 'FCC_A1', 'HCP_A3']
@@ -42,7 +42,7 @@ shown below.
 Al-Fe (M.Seiersten et al., 1991)
 ================================
 
-.. code:: python
+.. code-block:: python
 
     db_alfe = Database('alfe_sei.TDB')
     my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
@@ -66,7 +66,7 @@ Al-Fe (M.Seiersten et al., 1991)
 Al-Ni (Work in progress) (N. Dupin et al., 2001)
 ================================================
 
-.. code:: python
+.. code-block:: python
 
     db_alni = Database('NI_AL_DUPIN_2001.TDB')
     my_phases_alni = ['LIQUID', 'FCC_L12', 'BCC_B2', 'AL3NI5', 'AL3NI2', 'AL3NI1']
@@ -85,7 +85,7 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 .. image:: BinaryExamples_files/BinaryExamples_9_1.png
 
 
-.. code:: python
+.. code-block:: python
 
     from pycalphad import calculate
     from pycalphad.plot.utils import phase_legend
@@ -111,7 +111,7 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 Nb-Re (X. L. Liu et al., 2013)
 ==============================
 
-.. code:: python
+.. code-block:: python
 
     db_nbre = Database('nbre_liu.tdb')
     my_phases_nbre = ['CHI_RENB', 'SIGMARENB', 'FCC_RENB', 'LIQUID_RENB', 'BCC_RENB', 'HCP_RENB']
@@ -148,7 +148,7 @@ equilibrium phase diagram.
 In the future this code will be rolled into a pycalphad routine so that
 it is simpler for the user.
 
-.. code:: python
+.. code-block:: python
 
     from pycalphad import calculate
     from pycalphad.plot.utils import phase_legend
