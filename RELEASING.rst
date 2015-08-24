@@ -16,6 +16,7 @@ When releasing a new version of pycalphad:
 8. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
    A minor release can be done later if something important is missed.
 9. ``git stash``
+
    ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **0161A98D**.
    If you are using a hardware token on Linux, you may need to ``killall -1 gpg-agent`` for it to be detected.
 
@@ -43,11 +44,12 @@ Uploading to Anaconda.org
 -------------------------
 Eventually we'd like to pull directly from GitHub using tags. This is a temporary solution.
 These instructions are adapted from https://github.com/menpo/menpo/wiki/Build-pure-Python-conda-package-from-PyPI-for-all-platforms,-2.7-3.4
+
 1. In a directory not in the repository, after pushing to PyPI: ``conda skeleton pypi pycalphad``
 2. Modify the meta.yaml file to have ``nose`` and ``mock`` in the build dependencies.
-2. ``conda build --python 2.7 ./pycalphad``
-3. ``conda build --python 3.3 ./pycalphad``
-4. ``conda build --python 3.4 ./pycalphad``
-5. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-0.2-py*.tar.bz2 -o ./out``
+3. ``conda build --python 2.7 ./pycalphad``
+4. ``conda build --python 3.3 ./pycalphad``
+5. ``conda build --python 3.4 ./pycalphad``
+6. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-0.2-py*.tar.bz2 -o ./out``
    Replace 0.2 with the new version.
-6. ``anaconda upload -u richardotis ./out/*/pycalphad-0.2-*.tar.bz2``
+7. ``anaconda upload -u richardotis ./out/*/pycalphad-0.2-*.tar.bz2``
