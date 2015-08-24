@@ -27,3 +27,14 @@ When releasing a new version of pycalphad:
 
    ``git stash pop``
 10.The new version is tagged in the repository. Now the public package must be built and distributed.
+
+Uploading to PyPI
+-----------------
+1. Delete all old files from the dist directory, if necessary.
+2. With the commit checked out which was tagged with the new version:
+   ``python setup.py sdist bdist_wheel``
+
+   **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
+
+   Assuming a correctly configured `.pypirc``:
+   ``twine upload -r pypi --sign -u rotis -i 0161A98D dist/*``
