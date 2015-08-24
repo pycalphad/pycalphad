@@ -36,5 +36,18 @@ Uploading to PyPI
 
    **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
 
-   Assuming a correctly configured `.pypirc``:
+   Assuming a correctly configured .pypirc:
    ``twine upload -r pypi --sign -u rotis -i 0161A98D dist/*``
+
+Uploading to Anaconda.org
+-------------------------
+Eventually we'd like to pull directly from GitHub using tags. This is a temporary solution.
+These instructions are adapted from https://github.com/menpo/menpo/wiki/Build-pure-Python-conda-package-from-PyPI-for-all-platforms,-2.7-3.4
+1. In a directory not in the repository, after pushing to PyPI: ``conda skeleton pypi pycalphad``
+2. Modify the meta.yaml file to have ``nose`` and ``mock`` in the build dependencies.
+2. ``conda build --python 2.7 ./pycalphad``
+3. ``conda build --python 3.3 ./pycalphad``
+4. ``conda build --python 3.4 ./pycalphad``
+5. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-0.2-py*.tar.bz2 -o ./out``
+   Replace 0.2 with the new version.
+6. ``anaconda upload -u richardotis ./out/*/pycalphad-0.2-*.tar.bz2``

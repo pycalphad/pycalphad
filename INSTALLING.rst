@@ -4,8 +4,8 @@ Installation Instructions
 Windows (Anaconda)
 ------------------
 The Anaconda_ scientific Python distribution by Continuum Analytics is recommended
-for Windows users.
-TODO: Anaconda.org upload
+for Windows users. After you have installed either Anaconda or Miniconda, use
+``conda install -c https://conda.anaconda.org/richardotis pycalphad`` to install.
 
 Mac OSX
 -------
