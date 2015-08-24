@@ -1,0 +1,55 @@
+package:
+  name: pycalphad
+  # If we're past a tag, build a dev version for CI purposes
+  {% if environ.get('GIT_DESCRIBE_NUMBER', 0) > 0 %}
+  version: {{ environ['GIT_DESCRIBE_TAG'] }}+{{ environ['GIT_DESCRIBE_NUMBER'] }}.g{{ environ['GIT_FULL_HASH'][:7] }}
+  {% else %}
+  # We're on a tag: render the version as-is
+  version: {{ environ['GIT_DESCRIBE_TAG'] }}
+  {% endif %}
+
+source:
+  git_url: ./
+
+requirements:
+  build:
+    - python
+    - setuptools
+    - matplotlib
+    - pandas
+    - nose
+    - mock
+    - xray
+    - sympy
+    - pyparsing
+    - tinydb
+    - scipy
+    - numpy >=1.9
+
+  run:
+    - python
+    - matplotlib
+    - pandas
+    - xray
+    - sympy
+    - pyparsing
+    - tinydb
+    - scipy
+    - numpy >=1.9
+
+build:
+  script: python setup.py build && python setup.py install
+
+test:
+  # Python imports
+  imports:
+    - pycalphad
+    - pycalphad.core
+    - pycalphad.io
+    - pycalphad.plot
+    - pycalphad.plot.projections
+
+about:
+  home: https://github.com/richardotis/pycalphad
+  license: MIT
+  summary: 'CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.'
