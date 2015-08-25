@@ -1,0 +1,4 @@
+package: pycalphad
+script:
+    - conda build .
+build_targets: conda
