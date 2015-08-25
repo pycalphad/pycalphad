@@ -43,6 +43,7 @@ Uploading to PyPI
 Uploading to Anaconda.org
 -------------------------
 Start with the commit checked out which was tagged with the new version.
+
 1. ``rm /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2`` on Linux/OSX (use ``del`` and correct path on Windows)
 2. ``rm dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 3. ``conda build --python 2.7 --python 3.3 --python 3.4  .``
