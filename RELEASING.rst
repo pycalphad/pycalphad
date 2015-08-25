@@ -31,7 +31,7 @@ When releasing a new version of pycalphad:
 
 Uploading to PyPI
 -----------------
-1. Delete all old files from the dist directory, if necessary.
+1. ``rm dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 2. With the commit checked out which was tagged with the new version:
    ``python setup.py sdist bdist_wheel``
 
@@ -42,14 +42,9 @@ Uploading to PyPI
 
 Uploading to Anaconda.org
 -------------------------
-Eventually we'd like to pull directly from GitHub using tags. This is a temporary solution.
-These instructions are adapted from https://github.com/menpo/menpo/wiki/Build-pure-Python-conda-package-from-PyPI-for-all-platforms,-2.7-3.4
-
-1. In a directory not in the repository, after pushing to PyPI: ``conda skeleton pypi pycalphad``
-2. Modify the meta.yaml file to have ``nose`` and ``mock`` in the build dependencies.
-3. ``conda build --python 2.7 ./pycalphad``
-4. ``conda build --python 3.3 ./pycalphad``
-5. ``conda build --python 3.4 ./pycalphad``
-6. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-0.2-py*.tar.bz2 -o ./out``
-   Replace 0.2 with the new version.
-7. ``anaconda upload -u richardotis ./out/*/pycalphad-0.2-*.tar.bz2``
+1. With the commit checked out which was tagged with the new version:
+   ``conda clean -t``
+2. ``rm dist/*`` on Linux/OSX or ``del dist/*`` on Windows
+3. ``conda build --python 2.7 --python 3.3 --python 3.4  .``
+4. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2 -o ./dist``
+5. ``anaconda upload -u richardotis dist/*``
