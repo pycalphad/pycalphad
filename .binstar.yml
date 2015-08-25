@@ -1,4 +1,5 @@
 package: pycalphad
 script:
+    - conda install -c https://conda.anaconda.org/richardotis tinydb
     - conda build .
 build_targets: conda
