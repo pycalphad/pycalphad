@@ -10,6 +10,7 @@ platform:
 #  - win-32
 #  - win-64
 script:
-    - conda install -n root -c https://conda.anaconda.org/richardotis tinydb
+    - source activate /home/binstar/env
+    - conda install -c https://conda.anaconda.org/richardotis tinydb
     - conda build .
 build_targets: conda
