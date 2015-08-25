@@ -1,4 +1,14 @@
 package: pycalphad
+engine:
+  - python=2.7
+  - python=3.3
+  - python=3.4
+platform:
+  - linux-32
+  - linux-64
+  - osx-64
+  - win-32
+  - win-64
 script:
     - conda install -c https://conda.anaconda.org/richardotis tinydb
     - conda build .
