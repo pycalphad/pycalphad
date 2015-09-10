@@ -31,7 +31,7 @@ When releasing a new version of pycalphad:
 
 Uploading to PyPI
 -----------------
-1. ``rm dist/*`` on Linux/OSX or ``del dist/*`` on Windows
+1. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 2. With the commit checked out which was tagged with the new version:
    ``python setup.py sdist bdist_wheel``
 
@@ -45,7 +45,7 @@ Uploading to Anaconda.org
 Start with the commit checked out which was tagged with the new version.
 
 1. ``rm /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2`` on Linux/OSX (use ``del`` and correct path on Windows)
-2. ``rm dist/*`` on Linux/OSX or ``del dist/*`` on Windows
-3. ``conda build --python 2.7 --python 3.3 --python 3.4  .``
+2. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
+3. ``conda build --python 2.7 --python 3.3 --python 3.4 conda_recipe/``
 4. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2 -o ./dist``
-5. ``anaconda upload -u richardotis dist/*``
+5. ``anaconda upload -u richardotis dist/*/*``
