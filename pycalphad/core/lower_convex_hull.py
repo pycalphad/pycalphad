@@ -7,7 +7,6 @@ from pycalphad.log import logger
 from pycalphad.core.cartesian import cartesian
 import numpy as np
 import xray
-from itertools import chain
 
 # The energetic difference, in J/mol-atom, below which is considered 'zero'
 DRIVING_FORCE_TOLERANCE = 1e-7
@@ -69,6 +68,7 @@ def lower_convex_hull(global_grid, result_array):
     # force conditions to have particular ordering
     conditions = indep_conds + pot_conds + comp_conds
     trial_shape = (len(result_array.coords['component']),)
+    trial_points = None
     _initialize_array(global_grid, result_array)
 
     # Enforce ordering of shape
@@ -92,14 +92,26 @@ def lower_convex_hull(global_grid, result_array):
         trial_points = trial_points.T
         comp_values = cartesian([result_array.coords[cond] for cond in comp_conds])
         # Insert dependent composition value
-        comp_values = np.append(comp_values, 1 - np.sum(comp_values, keepdims=True,
-                                                        axis=-1), axis=-1)
+        # TODO: Handle W(comp) as well as X(comp) here
+        specified_components = set([x[2:] for x in comp_conds])
+        dependent_component = set(result_array.coords['component'].values) - specified_components
+        dependent_component = list(dependent_component)
+        if len(dependent_component) != 1:
+            raise ValueError('Number of dependent components is different from one')
+        insert_idx = sorted(result_array.coords['component'].values).index(dependent_component[0])
+        comp_values = np.concatenate((comp_values[..., :insert_idx],
+                                      1 - np.sum(comp_values, keepdims=True, axis=-1),
+                                      comp_values[..., insert_idx:]),
+                                     axis=-1)
 
     # SECOND CASE: Only chemical potential conditions specified
     # TODO: Implementation of chemical potential
 
     # THIRD CASE: Mixture of composition and chemical potential conditions
     # TODO: Implementation of mixed conditions
+
+    if trial_points is None:
+        raise ValueError('Invalid conditions')
 
     driving_forces = np.zeros(result_array.GM.values.shape + (len(global_grid.points),),
                                    dtype=np.float)

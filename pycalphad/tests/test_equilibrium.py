@@ -4,6 +4,7 @@ correct solution for thermodynamic equilibrium.
 """
 
 from unittest.case import SkipTest
+from nose.tools import raises
 from numpy.testing import assert_allclose
 from pycalphad import Database, calculate, equilibrium
 import pycalphad.variables as v
@@ -1442,6 +1443,40 @@ def test_eq_b2_without_all_comps():
     all components in a Database are selected for the calculation.
     """
     equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200})
+
+
+@raises(ValueError)
+def test_eq_underdetermined_comps():
+    """
+    The number of composition conditions should yield exactly one dependent component.
+    This is the underdetermined case.
+    """
+    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
+
+
+@raises(ValueError)
+def test_eq_overdetermined_comps():
+    """
+    The number of composition conditions should yield exactly one dependent component.
+    This is the overdetermined case.
+    """
+    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
+                                                   v.X('FE'): 0.2, v.X('AL'): 0.8})
+
+
+def test_eq_composition_cond_sorting():
+    """
+    Composition conditions are correctly constructed when the dependent component does not
+    come last in alphabetical order (gh-21).
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
+                     {v.T: 2000, v.P: 101325, v.X('FE'): 0.2})
+    # Values computed by Thermo-Calc
+    tc_energy = -143913.3
+    tc_mu_fe = -184306.01
+    tc_mu_al = -133815.12
+    assert_allclose(eq.GM.values, tc_energy)
+    assert_allclose(eq.MU.values, [[[[tc_mu_al, tc_mu_fe]]]], rtol=1e-6)
 
 if __name__ == '__main__':
     import nose
