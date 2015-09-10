@@ -10,10 +10,10 @@ package:
 
 source:
   {% if not environ.get('BINSTAR_PLATFORM', None) %}
-  git_url: ./
+  git_url: ../
   {% else %}
   # we're building on binstar, we already have the repo; treat as local path
-  path: ./
+  path: ../
   {% endif %}
 
 requirements:
