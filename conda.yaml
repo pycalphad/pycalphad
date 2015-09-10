@@ -1,7 +1,7 @@
 package:
   name: pycalphad
   # If we're past a tag, build a dev version for CI purposes
-  {% if environ.get('GIT_DESCRIBE_NUMBER', 0) > 0 %}
+  {% if environ.get('GIT_DESCRIBE_NUMBER', None) %}
   version: {{ environ['GIT_DESCRIBE_TAG'] }}+{{ environ['GIT_DESCRIBE_NUMBER'] }}.g{{ environ['GIT_FULL_HASH'][:7] }}
   {% else %}
   # We're on a tag: render the version as-is
