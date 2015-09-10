@@ -1,6 +1,15 @@
 What's New
 ==========
 
+0.2.1 (2015-09-10)
+------------------
+
+This is a minor bugfix release.
+
+* Composition conditions are correctly constructed when the dependent component does not come
+  last in alphabetical order ( :issue:`21` ).
+
+
 0.2 (2015-08-23)
 ----------------
 
