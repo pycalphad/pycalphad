@@ -307,7 +307,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 cast_grad = cast_grad.T + new_grad.T
                 new_grad = cast_grad
                 new_grad.shape = new_grad.shape[:-1]  # Remove extraneous dimension
-                new_grad = new_grad.astype(np.float)
+                new_grad = new_grad.astype(np.float, copy=False)
                 # BFGS update to Hessian
                 # Notation used here consistent with Nocedal and Wright
                 s_k = np.empty(points.shape[:-1] + (points.shape[-1] + len(indep_vals),))
