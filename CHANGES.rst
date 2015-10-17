@@ -1,6 +1,17 @@
 What's New
 ==========
 
+0.2.2 (2015-09-10)
+------------------
+
+This is a minor bugfix release.
+
+* Numerical stability improvements to the energy minimizer ( :issue:`23` ).
+  If you're still getting singular matrix errors occasionally, you can try adjusting
+  the value of `pycalphad.core.equilibrium.MIN_STEP_LENGTH` as discussed in the issue above.
+  Please report these numerical issues if you run into them because they are difficult to find through automated testing.
+* Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( :issue:`24` ).
+
 0.2.1 (2015-09-10)
 ------------------
 
