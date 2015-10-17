@@ -187,10 +187,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         energy_broadcast_shape = grid.GM.values.shape[:len(indep_vals)] + \
             (1,) * (len(str_conds) - len(indep_vals)) + (grid.GM.values.shape[-1],)
         driving_forces = np.einsum('...i,...i',
-                                   properties.MU.values[..., np.newaxis, :],
+                                   properties.MU.values[..., np.newaxis, :].astype(np.float),
                                    grid.X.values[np.index_exp[...] +
                                                  (np.newaxis,) * (len(str_conds) - len(indep_vals)) +
-                                                 np.index_exp[:, :]]) - \
+                                                 np.index_exp[:, :]].astype(np.float)) - \
             grid.GM.values.view().reshape(energy_broadcast_shape)
 
         for name in active_phases:
@@ -262,10 +262,12 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             cast_grad = cast_grad.T + grad.T
             grad = cast_grad
             grad.shape = grad.shape[:-1]  # Remove extraneous dimension
+            grad = grad.astype(np.float, copy=False)
             # This Hessian is an approximation updated using the BFGS method
             # See Nocedal and Wright, ch.3, p. 198
             # Initialize as identity matrix
             hess = broadcast_to(np.eye(num_vars), grad.shape + (grad.shape[-1],)).copy()
+            hess = hess.astype(np.float, copy=False)
             newton_iteration = 0
             while newton_iteration < MAX_NEWTON_ITERATIONS:
                 e_matrix = np.linalg.inv(hess)
@@ -305,6 +307,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 cast_grad = cast_grad.T + new_grad.T
                 new_grad = cast_grad
                 new_grad.shape = new_grad.shape[:-1]  # Remove extraneous dimension
+                new_grad = new_grad.astype(np.float)
                 # BFGS update to Hessian
                 # Notation used here consistent with Nocedal and Wright
                 s_k = np.empty(points.shape[:-1] + (points.shape[-1] + len(indep_vals),))
@@ -327,7 +330,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                     update[tiny_step_filter] = 0
                     hess = hess - update
                     cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess
-                    hess = -cast_hess #TODO: Why does this fix things?
+                    hess = -cast_hess.astype(np.float, copy=False) #TODO: Why does this fix things?
 
                 points = new_points
                 grad = new_grad

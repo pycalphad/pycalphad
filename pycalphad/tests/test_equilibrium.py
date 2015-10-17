@@ -1412,7 +1412,7 @@ def test_rose_nine():
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds)
-    assert_allclose(eqx.GM.values, -5.8351e3)
+    assert_allclose(eqx.GM.values.flat[0], -5.8351e3)
 
 # OTHER TESTS
 def test_eq_binary():
@@ -1422,8 +1422,7 @@ def test_eq_binary():
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
-    # Why is this very low tolerance required for the test to pass on py33?
-    assert_allclose(eqx.GM.values, -9.608807e4)
+    assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."

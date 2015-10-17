@@ -188,8 +188,8 @@ def lower_convex_hull(global_grid, result_array):
         aligned_compositions = global_grid.X.values[np.index_exp[statevar_indices + (candidate_simplices,)]]
         #print('aligned_compositions', aligned_compositions)
         #print('aligned_energies', aligned_energies)
-        candidate_potentials = np.linalg.solve(aligned_compositions,
-                                               aligned_energies)
+        candidate_potentials = np.linalg.solve(aligned_compositions.astype(np.float, copy=False),
+                                               aligned_energies.astype(np.float, copy=False))
         #print('candidate_potentials', candidate_potentials)
         logger.debug('candidate_simplices: %s', candidate_simplices)
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
