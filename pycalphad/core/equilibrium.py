@@ -29,8 +29,8 @@ MAX_NEWTON_ITERATIONS = 50
 # If the max of the potential difference between iterations is less than
 # MIN_PROGRESS J/mol-atom, stop the refinement
 MIN_PROGRESS = 1e-4
-# Minimum length of a Newton step before procedure is stopped
-MIN_STEP_LENGTH = 1e-12
+# Minimum length of a Newton step before Hessian update is skipped
+MIN_STEP_LENGTH = 1e-09
 # Force zero values to this amount, for numerical stability
 MIN_SITE_FRACTION = 1e-16
 # initial value of 'alpha' in Newton-Raphson procedure
@@ -289,16 +289,9 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                     alpha[negative_points] *= 0.1
                     new_points = points + alpha[..., np.newaxis] * new_direction
                     negative_points = np.any(new_points < 0., axis=-1)
-                # If we made "near" zero progress on any points, don't update the Hessian until
-                # we've rebuilt the convex hull
-                # Nocedal and Wright recommend against skipping Hessian updates
-                # They recommend using a damped update approach, pp. 538-539 of their book
-                # TODO: Check the projected gradient norm, not the step length
-                if np.any(np.max(np.abs(alpha[..., np.newaxis] * new_direction), axis=-1) < MIN_STEP_LENGTH):
-                    break
+
                 # Workaround for derivative issues at endmembers
                 new_points[new_points == 0.] = 1e-16
-                # BFGS update to Hessian
                 new_grad = phase_records[name].grad(*itertools.chain(statevar_grid, new_points.T))
                 if new_grad.dtype == 'object':
                     # Workaround a bug in zero gradient entries
@@ -312,22 +305,30 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 cast_grad = cast_grad.T + new_grad.T
                 new_grad = cast_grad
                 new_grad.shape = new_grad.shape[:-1]  # Remove extraneous dimension
+                # BFGS update to Hessian
                 # Notation used here consistent with Nocedal and Wright
                 s_k = np.empty(points.shape[:-1] + (points.shape[-1] + len(indep_vals),))
                 # Zero out independent variable changes for now
                 s_k[..., :len(indep_vals)] = 0
                 s_k[..., len(indep_vals):] = new_points - points
-                y_k = new_grad - grad
-                s_s_term = np.einsum('...j,...k->...jk', s_k, s_k)
-                s_b_s_term = np.einsum('...i,...ij,...j', s_k, hess, s_k)
-                y_y_y_s_term = np.einsum('...j,...k->...jk', y_k, y_k) / \
-                    np.einsum('...i,...i', y_k, s_k)[..., np.newaxis, np.newaxis]
-                update = np.einsum('...ij,...jk,...kl->...il', hess, s_s_term, hess) / \
-                    s_b_s_term[..., np.newaxis, np.newaxis] + y_y_y_s_term
-                hess = hess - update
-                cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess
-                hess = -cast_hess #TODO: Why does this fix things?
-                # TODO: Verify that the chosen step lengths reduce the energy
+                tiny_step_filter = np.abs(s_k) < MIN_STEP_LENGTH
+                # if all steps were too small, skip all Hessian updating
+                # Nocedal and Wright recommend against skipping Hessian updates
+                # They recommend using a damped update approach, pp. 538-539 of their book
+                if ~np.all(tiny_step_filter):
+                    y_k = new_grad - grad
+                    s_s_term = np.einsum('...j,...k->...jk', s_k, s_k)
+                    s_b_s_term = np.einsum('...i,...ij,...j', s_k, hess, s_k)
+                    y_y_y_s_term = np.einsum('...j,...k->...jk', y_k, y_k) / \
+                        np.einsum('...i,...i', y_k, s_k)[..., np.newaxis, np.newaxis]
+                    update = np.einsum('...ij,...jk,...kl->...il', hess, s_s_term, hess) / \
+                        s_b_s_term[..., np.newaxis, np.newaxis] + y_y_y_s_term
+                    # Skip Hessian updates where step was too small to compute update
+                    update[tiny_step_filter] = 0
+                    hess = hess - update
+                    cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess
+                    hess = -cast_hess #TODO: Why does this fix things?
+
                 points = new_points
                 grad = new_grad
                 newton_iteration += 1

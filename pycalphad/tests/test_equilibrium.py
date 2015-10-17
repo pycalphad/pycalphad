@@ -1423,7 +1423,7 @@ def test_eq_binary():
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
     # Why is this very low tolerance required for the test to pass on py33?
-    assert_allclose(eqx.GM.values, -9.608807e4, atol=0.1)
+    assert_allclose(eqx.GM.values, -9.608807e4)
 
 def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
@@ -1462,6 +1462,19 @@ def test_eq_overdetermined_comps():
     """
     equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
+def test_eq_illcond_hessian():
+    """
+    Prevent BFGS updates using ill-conditioned Hessians.
+    This is difficult to reproduce so we only include some known examples here (gh-23).
+    """
+    # This set of conditions is known to trigger the issue
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
+                     {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5})
+    assert_allclose(eq.GM.values, [[[-16507.22325998]]])
+    # chemical potentials were checked in TC and accurate to 1 J/mol
+    # pycalphad values used for more significant figures
+    # once again, py33 converges to a slightly different value versus every other python
+    assert_allclose(eq.MU.values, [[[[-55612.12912246,  -2767.66174073]]]], atol=0.1)
 
 
 def test_eq_composition_cond_sorting():
