@@ -47,8 +47,12 @@ Start with the commit checked out which was tagged with the new version.
 1. ``rm /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2`` on Linux/OSX (use ``del`` and correct path on Windows)
 2. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 3. ``conda build --python 2.7 conda_recipe/``
+
    ``conda build --python 3.3 conda_recipe/``
+
    ``conda build --python 3.4 conda_recipe/``
+
    ``conda build --python 3.5 conda_recipe/``
+
 4. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2 -o ./dist``
 5. ``anaconda upload -u richardotis dist/*/*``
