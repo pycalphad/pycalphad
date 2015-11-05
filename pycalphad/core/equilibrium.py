@@ -5,14 +5,15 @@ calculated phase equilibria.
 from __future__ import print_function
 import pycalphad.variables as v
 from pycalphad.core.utils import broadcast_to
-from pycalphad.core.utils import make_callable
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import sizeof_fmt
 from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from sympy import Add, Matrix, Mul, Symbol, hessian
+from pycalphad.core.autograd_utils import build_functions
+from sympy import Add, Mul, Symbol
+
 import xray
 import numpy as np
 from collections import namedtuple, OrderedDict
@@ -36,7 +37,7 @@ MIN_SITE_FRACTION = 1e-16
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1.
 
-PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'plane_grad', 'plane_hess'])
+PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess', 'plane_grad', 'plane_hess'])
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
@@ -79,8 +80,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     phase_records = dict()
     callable_dict = kwargs.pop('callables', dict())
     grad_callable_dict = kwargs.pop('grad_callables', dict())
+    hess_callable_dict = kwargs.pop('hess_callables', dict())
     points_dict = dict()
     maximum_internal_dof = 0
+    conds = OrderedDict((key, unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
+    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
+    indep_vals = list([float(x) for x in np.atleast_1d(val)]
+                      for key, val in str_conds.items() if key in indep_vars)
+    components = [x for x in sorted(comps) if not x.startswith('VA')]
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     if verbose:
@@ -96,32 +103,19 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
         models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
         out = models[name].energy
-        if name not in callable_dict:
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
-            # callable_dict takes variables in a different order due to calculate() pecularities
-            callable_dict[name] = make_callable(out,
-                                                sorted((key for key in conditions.keys() if key in [v.T, v.P]),
-                                                       key=str) + site_fracs)
-        if name not in grad_callable_dict:
-            grad_func = make_callable(Matrix([out]).jacobian(variables), variables)
-        else:
-            grad_func = grad_callable_dict[name]
+        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+        for undef in undefs:
+            out = out.xreplace({undef: float(0)})
+        callable_dict[name], grad_callable_dict[name], hess_callable_dict[name] = \
+            build_functions(out, [v.P, v.T] + site_fracs)
+
         # Adjust gradient by the approximate chemical potentials
-        plane_vars = sorted(models[name].energy.atoms(v.SiteFraction), key=str)
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
                            for i in comps if i != 'VA'])
-        # Workaround an annoying bug with zero gradient entries
-        # This forces numerically zero entries to broadcast correctly
-        hyperplane += 1e-100 * Mul(*([v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])) ** 3
-
-        plane_grad = make_callable(Matrix([hyperplane]).jacobian(variables),
-                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
-        plane_hess = make_callable(hessian(hyperplane, variables),
-                                   [v.MU(i) for i in comps if i != 'VA'] + plane_vars + [v.T, v.P])
+        plane_obj, plane_grad, plane_hess = build_functions(hyperplane, [v.MU(i) for i in comps if i != 'VA']+site_fracs)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
-                                                  grad=grad_func,
+                                                  grad=grad_callable_dict[name],
+                                                  hess=hess_callable_dict[name],
                                                   plane_grad=plane_grad,
                                                   plane_hess=plane_hess)
         if verbose:
@@ -129,11 +123,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     if verbose:
         print('[done]', end='\n')
 
-    conds = OrderedDict((key, unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
-    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    indep_vals = list([float(x) for x in np.atleast_1d(val)]
-                      for key, val in str_conds.items() if key in indep_vars)
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
@@ -172,11 +161,16 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
+        if np.isnan(grid.GM.values).any():
+            print(grid.Y.values[np.isnan(grid.GM.values)])
+            print(grid.Phase.values[np.isnan(grid.GM.values)])
+
         lower_convex_hull(grid, properties)
-        progress = np.abs(current_potentials - properties.MU).max().values
+        progress = np.abs(current_potentials - properties.MU).values
+        converged = (progress < MIN_PROGRESS).all(axis=-1)
         if verbose:
-            print('progress', progress)
-        if progress < MIN_PROGRESS:
+            print('progress', progress.max(), '[{} conditions updated]'.format(np.sum(~converged)))
+        if progress.max() < MIN_PROGRESS:
             if verbose:
                 print('Convergence achieved')
             break
@@ -223,8 +217,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             points.shape = properties.points.shape[:-1] + (-1, maximum_internal_dof)
             # The Y arrays have been padded, so we should slice off the padding
             points = points[..., :dof]
-            # Workaround for derivative issues at endmembers
-            points[points == 0.] = MIN_SITE_FRACTION
+            #print('Starting points shape: ', points.shape)
+            #print(points)
             if len(points) == 0:
                 if name in points_dict:
                     del points_dict[name]
@@ -234,108 +228,198 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             num_vars = len(phase_records[name].variables)
             plane_grad = phase_records[name].plane_grad
             plane_hess = phase_records[name].plane_hess
-            statevar_grid = np.meshgrid(*itertools.chain(indep_vals), sparse=True, indexing='xy')
+            statevar_grid = np.meshgrid(*itertools.chain(indep_vals), sparse=True, indexing='ij')
             # TODO: A more sophisticated treatment of constraints
-            num_constraints = len(indep_vals) + len(dbf.phases[name].sublattices)
-            constraint_jac = np.zeros((num_constraints, num_vars))
+            num_constraints = len(dbf.phases[name].sublattices)
+            constraint_jac = np.zeros((num_constraints, num_vars-len(indep_vars)))
             # Independent variables are always fixed (in this limited implementation)
-            for idx in range(len(indep_vals)):
-                constraint_jac[idx, idx] = 1
+            #for idx in range(len(indep_vals)):
+            #    constraint_jac[idx, idx] = 1
             # This is for site fraction balance constraints
-            var_idx = len(indep_vals)
+            var_idx = 0#len(indep_vals)
             for idx in range(len(dbf.phases[name].sublattices)):
                 active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-                constraint_jac[len(indep_vals) + idx,
+                constraint_jac[idx,
                                var_idx:var_idx + len(active_in_subl)] = 1
                 var_idx += len(active_in_subl)
 
-            grad = phase_records[name].grad(*itertools.chain(statevar_grid, points.T))
-            if grad.dtype == 'object':
-                # Workaround a bug in zero gradient entries
-                grad_zeros = np.zeros(points.T.shape[1:], dtype=np.float)
-                for i in np.arange(grad.shape[0]):
-                    if isinstance(grad[i], int):
-                        grad[i] = grad_zeros
-                grad = np.array(grad.tolist(), dtype=np.float)
-            bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T, points.T))
-            cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
-            cast_grad = cast_grad.T + grad.T
-            grad = cast_grad
-            grad.shape = grad.shape[:-1]  # Remove extraneous dimension
-            grad = grad.astype(np.float, copy=False)
-            # This Hessian is an approximation updated using the BFGS method
-            # See Nocedal and Wright, ch.3, p. 198
-            # Initialize as identity matrix
-            hess = broadcast_to(np.eye(num_vars), grad.shape + (grad.shape[-1],)).copy()
-            hess = hess.astype(np.float, copy=False)
+            # Theano functions require the same number of dimensions for variables as initially defined
+            # It's easier to flatten and reshape after the fact
+            #print('points.shape', points.shape)
+            flattened_points = points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1]))
+            #print('Starting flattened points shape:', flattened_points.shape)
+            #print('flattened_points.shape', flattened_points.shape)
+            grad_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                        [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+            grad = np.array(phase_records[name].grad(*grad_args), dtype=np.float)
+            # Remove derivatives wrt T,P
+            grad = grad[..., len(indep_vars):]
+            grad.shape = points.shape
+            hess_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                        [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+            hess = np.array(phase_records[name].hess(*hess_args), dtype=np.float)
+            # Remove derivatives wrt T,P
+            hess = hess[..., len(indep_vars):, len(indep_vars):]
+            hess.shape = points.shape + (hess.shape[-1],)
+            #print(grad)
+            #print('Grad check: ', np.isnan(grad).any())
+            if np.isnan(grad).any():
+                print(points)
+            if np.isnan(hess).any():
+                print(points)
+            #print('after reshape', grad.shape)
+            #print([properties.MU.values[..., i][..., None].shape for i in range(properties.MU.shape[-1])])
+            #print([points[..., i].shape for i in range(points.shape[-1])])
+            plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                         [points[..., i] for i in range(points.shape[-1])])
+            cast_grad = np.array(plane_grad(*plane_args), dtype=np.float)
+            # Remove derivatives wrt chemical potentials
+            #print('cast_grad_before.shape', cast_grad.shape)
+            #print('cast_grad_before', cast_grad)
+            cast_grad = cast_grad[..., properties.MU.shape[-1]:]
+            #print('properties.MU.values', properties.MU.values)
+            #print('new_points', points)
+            #print('cast_grad', cast_grad)
+            grad = grad - cast_grad
+            grad[np.isnan(grad).any(axis=-1)] = 0  # This is necessary for gradients on the edge of composition space
+            plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                         [points[..., i] for i in range(points.shape[-1])])
+            cast_hess = np.array(plane_hess(*plane_args), dtype=np.float)
+            # Remove derivatives wrt chemical potentials
+            cast_hess = cast_hess[..., properties.MU.shape[-1]:, properties.MU.shape[-1]:]
+            hess = hess - cast_hess
+            hess[np.isnan(hess).any(axis=(-2, -1))] = np.eye(hess.shape[-1])
+            #print(grad)
+            #print(grad.shape)
             newton_iteration = 0
             while newton_iteration < MAX_NEWTON_ITERATIONS:
-                e_matrix = np.linalg.inv(hess)
+                try:
+                    e_matrix = np.linalg.inv(hess)
+                except np.linalg.LinAlgError:
+                    print(hess)
+                    raise
+                current = calculate(dbf, comps, name, output='GM',
+                                    model=models, callables=callable_dict,
+                                    fake_points=False,
+                                    points=points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1])),
+                                    **grid_opts)
+                current_plane = np.multiply(current.X.values.reshape(points.shape[:-1] + (len(components),)),
+                                            properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
+                current_df = current.GM.values.reshape(points.shape[:-1]) - current_plane
+                #print('Inv hess check: ', np.isnan(e_matrix).any())
+                #print('grad check: ', np.isnan(grad).any())
                 dy_unconstrained = -np.einsum('...ij,...j->...i', e_matrix, grad)
+                #print('dy_unconstrained check: ', np.isnan(dy_unconstrained).any())
                 proj_matrix = np.dot(e_matrix, constraint_jac.T)
                 inv_matrix = np.rollaxis(np.dot(constraint_jac, proj_matrix), 0, -1)
                 inv_term = np.linalg.inv(inv_matrix)
+                #print('inv_term check: ', np.isnan(inv_term).any())
                 first_term = np.einsum('...ij,...jk->...ik', proj_matrix, inv_term)
+                #print('first_term check: ', np.isnan(first_term).any())
                 # Normally a term for the residual here
                 # We only choose starting points which obey the constraints, so r = 0
                 cons_summation = np.einsum('...i,...ji->...j', dy_unconstrained, constraint_jac)
+                #print('cons_summation check: ', np.isnan(cons_summation).any())
                 cons_correction = np.einsum('...ij,...j->...i', first_term, cons_summation)
+                #print('cons_correction check: ', np.isnan(cons_correction).any())
                 dy_constrained = dy_unconstrained - cons_correction
+                #print('dy_constrained check: ', np.isnan(dy_constrained).any())
                 # TODO: Support for adaptive changing independent variable steps
-                new_direction = dy_constrained[..., len(indep_vals):]
+                new_direction = dy_constrained
+                #print('new_direction', new_direction)
+                #print('points', points)
                 # Backtracking line search
+                if np.isnan(new_direction).any():
+                    print('new_direction', new_direction)
                 new_points = points + INITIAL_STEP_SIZE * new_direction
+                # TODO: Breakpoint for if new_direction gets tiny
+                #print('new_points check: ', np.isnan(new_points).any())
                 alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
+                alpha[np.all(np.abs(new_direction) < 1e-12, axis=-1)] = 0
                 negative_points = np.any(new_points < 0., axis=-1)
                 while np.any(negative_points):
-                    alpha[negative_points] *= 0.1
+                    alpha[negative_points] *= 0.5
                     new_points = points + alpha[..., np.newaxis] * new_direction
                     negative_points = np.any(new_points < 0., axis=-1)
+                # Backtracking line search
+                # alpha now contains maximum possible values that keep us inside the space
+                # but we don't just want to take the biggest step; we want the biggest step which reduces energy
+                new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
+                candidates = calculate(dbf, comps, name, output='GM',
+                                       model=models, callables=callable_dict,
+                                       fake_points=False, points=new_points, **grid_opts)
+                candidate_plane = np.multiply(candidates.X.values.reshape(points.shape[:-1] + (len(components),)),
+                                              properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
+                energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
+                new_points.shape = new_direction.shape
+                bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
+                safe_break = 0
+                #print('points', points)
+                while np.any(bad_steps):
+                    safe_break += 1
+                    if safe_break > 500:
+                        print('SAFE BREAK')
+                        break
+                    alpha[bad_steps] *= 0.5
+                    new_points = points + alpha[..., np.newaxis] * new_direction
+                    #print('new_points', new_points)
+                    #print('bad_steps', bad_steps)
+                    new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
+                    candidates = calculate(dbf, comps, name, output='GM',
+                                           model=models, callables=callable_dict,
+                                           fake_points=False, points=new_points, **grid_opts)
+                    candidate_plane = np.multiply(candidates.X.values.reshape(points.shape[:-1] + (len(components),)),
+                                                  properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
+                    energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
+                    #print('energy_diff', energy_diff)
+                    new_points.shape = new_direction.shape
+                    bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
+                biggest_step = np.max(np.linalg.norm(new_points - points, axis=-1))
+                if biggest_step < 1e-12:
+                    if verbose:
+                        print('N-R convergence on mini-iteration', newton_iteration)
+                    points = new_points
+                    break
+                if verbose:
+                    #print('Biggest step:', biggest_step)
+                    #print('points', points)
+                    #print('grad of points', grad)
+                    #print('cast grad', cast_grad)
+                    #print('alpha', alpha)
+                    #print('new_points', new_points)
+                    pass
 
-                # Workaround for derivative issues at endmembers
-                new_points[new_points == 0.] = 1e-16
-                new_grad = phase_records[name].grad(*itertools.chain(statevar_grid, new_points.T))
-                if new_grad.dtype == 'object':
-                    # Workaround a bug in zero gradient entries
-                    grad_zeros = np.zeros(new_points.T.shape[1:], dtype=np.float)
-                    for i in np.arange(new_grad.shape[0]):
-                        if isinstance(new_grad[i], int):
-                            new_grad[i] = grad_zeros
-                    new_grad = np.array(new_grad.tolist(), dtype=np.float)
-                bcasts = np.broadcast_arrays(*itertools.chain(properties.MU.values.T, new_points.T))
-                cast_grad = -plane_grad(*itertools.chain(bcasts, [0], [0]))
-                cast_grad = cast_grad.T + new_grad.T
-                new_grad = cast_grad
-                new_grad.shape = new_grad.shape[:-1]  # Remove extraneous dimension
-                new_grad = new_grad.astype(np.float, copy=False)
-                # BFGS update to Hessian
-                # Notation used here consistent with Nocedal and Wright
-                s_k = np.empty(points.shape[:-1] + (points.shape[-1] + len(indep_vals),))
-                # Zero out independent variable changes for now
-                s_k[..., :len(indep_vals)] = 0
-                s_k[..., len(indep_vals):] = new_points - points
-                tiny_step_filter = np.abs(s_k) < MIN_STEP_LENGTH
-                # if all steps were too small, skip all Hessian updating
-                # Nocedal and Wright recommend against skipping Hessian updates
-                # They recommend using a damped update approach, pp. 538-539 of their book
-                if ~np.all(tiny_step_filter):
-                    y_k = new_grad - grad
-                    s_s_term = np.einsum('...j,...k->...jk', s_k, s_k)
-                    s_b_s_term = np.einsum('...i,...ij,...j', s_k, hess, s_k)
-                    y_y_y_s_term = np.einsum('...j,...k->...jk', y_k, y_k) / \
-                        np.einsum('...i,...i', y_k, s_k)[..., np.newaxis, np.newaxis]
-                    update = np.einsum('...ij,...jk,...kl->...il', hess, s_s_term, hess) / \
-                        s_b_s_term[..., np.newaxis, np.newaxis] + y_y_y_s_term
-                    # Skip Hessian updates where step was too small to compute update
-                    update[tiny_step_filter] = 0
-                    hess = hess - update
-                    cast_hess = -plane_hess(*itertools.chain(bcasts, [0], [0])).T + hess
-                    hess = -cast_hess.astype(np.float, copy=False) #TODO: Why does this fix things?
-
+                flattened_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
+                grad_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+                grad = np.array(phase_records[name].grad(*grad_args), dtype=np.float)
+                # Remove derivatives wrt T,P
+                grad = grad[..., len(indep_vars):]
+                grad.shape = new_points.shape
+                grad[np.isnan(grad).any(axis=-1)] = 0  # This is necessary for gradients on the edge of composition space
+                hess_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+                hess = np.array(phase_records[name].hess(*hess_args), dtype=np.float)
+                # Remove derivatives wrt T,P
+                hess = hess[..., len(indep_vars):, len(indep_vars):]
+                hess.shape = new_points.shape + (hess.shape[-1],)
+                hess[np.isnan(hess).any(axis=(-2, -1))] = np.eye(hess.shape[-1])
+                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                             [new_points[..., i] for i in range(new_points.shape[-1])])
+                cast_grad = np.array(plane_grad(*plane_args), dtype=np.float)
+                # Remove derivatives wrt chemical potentials
+                cast_grad = cast_grad[..., properties.MU.shape[-1]:]
+                grad = grad - cast_grad
+                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                             [new_points[..., i] for i in range(new_points.shape[-1])])
+                cast_hess = np.array(plane_hess(*plane_args), dtype=np.float)
+                # Remove derivatives wrt chemical potentials
+                cast_hess = cast_hess[..., properties.MU.shape[-1]:, properties.MU.shape[-1]:]
+                cast_hess = -cast_hess + hess
+                hess = cast_hess.astype(np.float, copy=False)
                 points = new_points
-                grad = new_grad
                 newton_iteration += 1
-            new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
+            new_points = points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1]))
             new_points = np.concatenate((current_site_fractions[..., :dof], new_points), axis=-2)
             points_dict[name] = new_points
 
