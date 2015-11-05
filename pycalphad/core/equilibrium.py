@@ -101,7 +101,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         # Extra factor '1e-100...' is to work around an annoying broadcasting bug for zero gradient entries
-        models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
+        #models[name].models['_broadcaster'] = 1e-100 * Mul(*variables) ** 3
         out = models[name].energy
         undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
         for undef in undefs:
@@ -126,7 +126,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 10
+        grid_opts['pdens'] = 50
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -263,10 +263,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             hess.shape = points.shape + (hess.shape[-1],)
             #print(grad)
             #print('Grad check: ', np.isnan(grad).any())
-            if np.isnan(grad).any():
-                print(points)
-            if np.isnan(hess).any():
-                print(points)
             #print('after reshape', grad.shape)
             #print([properties.MU.values[..., i][..., None].shape for i in range(properties.MU.shape[-1])])
             #print([points[..., i].shape for i in range(points.shape[-1])])
@@ -332,8 +328,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 if np.isnan(new_direction).any():
                     print('new_direction', new_direction)
                 new_points = points + INITIAL_STEP_SIZE * new_direction
-                # TODO: Breakpoint for if new_direction gets tiny
-                #print('new_points check: ', np.isnan(new_points).any())
                 alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
                 alpha[np.all(np.abs(new_direction) < 1e-12, axis=-1)] = 0
                 negative_points = np.any(new_points < 0., axis=-1)
@@ -352,15 +346,14 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                               properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
                 energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
                 new_points.shape = new_direction.shape
-                bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
+                bad_steps = energy_diff > alpha * 1. * (new_direction * grad).sum(axis=-1)
                 safe_break = 0
-                #print('points', points)
                 while np.any(bad_steps):
                     safe_break += 1
-                    if safe_break > 500:
+                    if safe_break > 50:
                         print('SAFE BREAK')
                         break
-                    alpha[bad_steps] *= 0.5
+                    alpha[bad_steps] *= 0.9
                     new_points = points + alpha[..., np.newaxis] * new_direction
                     #print('new_points', new_points)
                     #print('bad_steps', bad_steps)
@@ -373,18 +366,18 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                     energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
                     #print('energy_diff', energy_diff)
                     new_points.shape = new_direction.shape
-                    bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
+                    bad_steps = energy_diff > alpha * 0.05 * (new_direction * grad).sum(axis=-1)
                 biggest_step = np.max(np.linalg.norm(new_points - points, axis=-1))
-                if biggest_step < 1e-12:
+                if biggest_step < 1e-4:
                     if verbose:
                         print('N-R convergence on mini-iteration', newton_iteration)
                     points = new_points
                     break
                 if verbose:
-                    #print('Biggest step:', biggest_step)
+                    print('Biggest step:', biggest_step)
                     #print('points', points)
                     #print('grad of points', grad)
-                    #print('cast grad', cast_grad)
+                    #print('new_direction', new_direction)
                     #print('alpha', alpha)
                     #print('new_points', new_points)
                     pass
