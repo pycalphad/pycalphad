@@ -35,4 +35,4 @@ install:
 build: false
 
 test_script:
-  - "nosetests >nosetests.log & type nosetests.log"
+  - "nosetests --nocapture"
