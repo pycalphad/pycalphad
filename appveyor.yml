@@ -26,8 +26,7 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
 
   # install pycalphad and depenencies
-  - "conda install --yes --quiet pip nose numpy pandas scipy sympy pyparsing matplotlib xray"
-  - "conda install --yes -c richardotis autograd"
+  - "conda install --yes -c richardotis --quiet pip autograd setuptools nose numpy pandas scipy sympy pyparsing matplotlib xray"
   - "python setup.py install"
 
 build: false
