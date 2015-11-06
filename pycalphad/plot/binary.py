@@ -2,12 +2,13 @@
 The binary module enables plotting of binary
 isobaric phase diagrams.
 """
+import scipy.spatial
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
+#pylint: disable=E1101
 from matplotlib import collections as mc
-from pycalphad import equilibrium
-import pycalphad.variables as v
+from pycalphad import energy_surf
 
 
 def _binplot_setup(ax, phases, tie_lines, tie_line_colors, tie_line_widths):
@@ -72,7 +73,7 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     phases : list
         Names of phases to consider in the calculation.
     x_variable : string
-        Name of the x-axis composition variable to plot, e.g., 'FE'
+        Name of the x-axis variable to plot, e.g., 'X(FE)'
     low_temp : float
         Lower bound of temperature to calculate.
     high_temp : float
@@ -109,12 +110,9 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     except KeyError:
         pdens = 1000 # points per d.o.f
 
-    # Calculate equilibria at each temperature
-    # TODO: This needs more sophisticated conditions support
-    # or else a better plotting routine for the general case
-    full_ds = equilibrium(dbf, comps, phases, {v.T: temps, v.P: 101325, v.X(x_variable): (1e-4, 1.-1e-4, 0.01)})
-    print (full_ds)
-    return
+    # Calculate energy surface at each temperature
+    full_df = energy_surf(dbf, comps, phases, T=temps, pdens=pdens,
+                          **kwargs)
     # Select only the P, T, etc., of interest
     full_df = full_df.groupby('T', sort=False)
     for temp, hull_frame in full_df:
