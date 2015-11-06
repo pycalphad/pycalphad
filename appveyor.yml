@@ -27,11 +27,11 @@ install:
   - "conda create --yes -n condaenv python=%PYTHON_VERSION%"
   - "activate condaenv"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xray"
+  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib tinydb xray"
   - "conda install --yes -n condaenv --quiet -c richardotis autograd"
   - "pip install -e ."
 
 build: false
 
 test_script:
-  - "nosetests"
+  - "nosetests >nosetests.log & type nosetests.log"
