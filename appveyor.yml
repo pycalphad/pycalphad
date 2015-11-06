@@ -24,11 +24,9 @@ install:
   # Check that we have the expected version and architecture for Python
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-  - "conda update --yes conda"
-  - "conda install --yes --quiet pip setuptools"
+  # install pycalphad and dependencies
+  - "conda install --yes --quiet pip nose numpy pandas scipy sympy pyparsing matplotlib xray"
   - "conda install --yes --quiet -c richardotis autograd"
-  # install pycalphad and depenencies
-  - "conda install --yes --quiet nose numpy pandas scipy sympy pyparsing matplotlib xray"
   - "python setup.py install"
 
 build: false
