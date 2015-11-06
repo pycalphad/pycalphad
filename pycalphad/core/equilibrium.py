@@ -23,15 +23,17 @@ try:
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
-# Maximum number of refinements
+# Maximum number of solver iterations
 MAX_ITERATIONS = 100
+# Maximum number of backtracking iterations
+MAX_BACKTRACKING = 5
 # Maximum number of Newton steps to take
 MAX_NEWTON_ITERATIONS = 50
 # If the max of the potential difference between iterations is less than
 # MIN_PROGRESS J/mol-atom, stop the refinement
 MIN_PROGRESS = 1e-4
-# Minimum length of a Newton step before Hessian update is skipped
-MIN_STEP_LENGTH = 1e-09
+# Minimum norm of a Newton direction before it's "zero"
+MIN_DIRECTION_NORM = 1e-12
 # Force zero values to this amount, for numerical stability
 MIN_SITE_FRACTION = 1e-16
 # initial value of 'alpha' in Newton-Raphson procedure
@@ -243,52 +245,36 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                var_idx:var_idx + len(active_in_subl)] = 1
                 var_idx += len(active_in_subl)
 
-            # Theano functions require the same number of dimensions for variables as initially defined
-            # It's easier to flatten and reshape after the fact
-            #print('points.shape', points.shape)
-            flattened_points = points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1]))
-            #print('Starting flattened points shape:', flattened_points.shape)
-            #print('flattened_points.shape', flattened_points.shape)
-            grad_args = itertools.chain([i[..., None] for i in statevar_grid],
-                                        [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
-            grad = np.array(phase_records[name].grad(*grad_args), dtype=np.float)
-            # Remove derivatives wrt T,P
-            grad = grad[..., len(indep_vars):]
-            grad.shape = points.shape
-            hess_args = itertools.chain([i[..., None] for i in statevar_grid],
-                                        [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
-            hess = np.array(phase_records[name].hess(*hess_args), dtype=np.float)
-            # Remove derivatives wrt T,P
-            hess = hess[..., len(indep_vars):, len(indep_vars):]
-            hess.shape = points.shape + (hess.shape[-1],)
-            #print(grad)
-            #print('Grad check: ', np.isnan(grad).any())
-            #print('after reshape', grad.shape)
-            #print([properties.MU.values[..., i][..., None].shape for i in range(properties.MU.shape[-1])])
-            #print([points[..., i].shape for i in range(points.shape[-1])])
-            plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
-                                         [points[..., i] for i in range(points.shape[-1])])
-            cast_grad = np.array(plane_grad(*plane_args), dtype=np.float)
-            # Remove derivatives wrt chemical potentials
-            #print('cast_grad_before.shape', cast_grad.shape)
-            #print('cast_grad_before', cast_grad)
-            cast_grad = cast_grad[..., properties.MU.shape[-1]:]
-            #print('properties.MU.values', properties.MU.values)
-            #print('new_points', points)
-            #print('cast_grad', cast_grad)
-            grad = grad - cast_grad
-            grad[np.isnan(grad).any(axis=-1)] = 0  # This is necessary for gradients on the edge of composition space
-            plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
-                                         [points[..., i] for i in range(points.shape[-1])])
-            cast_hess = np.array(plane_hess(*plane_args), dtype=np.float)
-            # Remove derivatives wrt chemical potentials
-            cast_hess = cast_hess[..., properties.MU.shape[-1]:, properties.MU.shape[-1]:]
-            hess = hess - cast_hess
-            hess[np.isnan(hess).any(axis=(-2, -1))] = np.eye(hess.shape[-1])
-            #print(grad)
-            #print(grad.shape)
             newton_iteration = 0
             while newton_iteration < MAX_NEWTON_ITERATIONS:
+                flattened_points = points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1]))
+                grad_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+                grad = np.array(phase_records[name].grad(*grad_args), dtype=np.float)
+                # Remove derivatives wrt T,P
+                grad = grad[..., len(indep_vars):]
+                grad.shape = points.shape
+                grad[np.isnan(grad).any(axis=-1)] = 0  # This is necessary for gradients on the edge of space
+                hess_args = itertools.chain([i[..., None] for i in statevar_grid],
+                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
+                hess = np.array(phase_records[name].hess(*hess_args), dtype=np.float)
+                # Remove derivatives wrt T,P
+                hess = hess[..., len(indep_vars):, len(indep_vars):]
+                hess.shape = points.shape + (hess.shape[-1],)
+                hess[np.isnan(hess).any(axis=(-2, -1))] = np.eye(hess.shape[-1])
+                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                             [points[..., i] for i in range(points.shape[-1])])
+                cast_grad = np.array(plane_grad(*plane_args), dtype=np.float)
+                # Remove derivatives wrt chemical potentials
+                cast_grad = cast_grad[..., properties.MU.shape[-1]:]
+                grad = grad - cast_grad
+                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
+                                             [points[..., i] for i in range(points.shape[-1])])
+                cast_hess = np.array(plane_hess(*plane_args), dtype=np.float)
+                # Remove derivatives wrt chemical potentials
+                cast_hess = cast_hess[..., properties.MU.shape[-1]:, properties.MU.shape[-1]:]
+                cast_hess = -cast_hess + hess
+                hess = cast_hess.astype(np.float, copy=False)
                 try:
                     e_matrix = np.linalg.inv(hess)
                 except np.linalg.LinAlgError:
@@ -327,9 +313,10 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 # Backtracking line search
                 if np.isnan(new_direction).any():
                     print('new_direction', new_direction)
+                #print('Convergence angle:', -(grad*new_direction).sum(axis=-1) / (np.linalg.norm(grad, axis=-1) * np.linalg.norm(new_direction, axis=-1)))
                 new_points = points + INITIAL_STEP_SIZE * new_direction
                 alpha = np.full(new_points.shape[:-1], INITIAL_STEP_SIZE, dtype=np.float)
-                alpha[np.all(np.abs(new_direction) < 1e-12, axis=-1)] = 0
+                alpha[np.all(np.linalg.norm(new_direction, axis=-1) < MIN_DIRECTION_NORM, axis=-1)] = 0
                 negative_points = np.any(new_points < 0., axis=-1)
                 while np.any(negative_points):
                     alpha[negative_points] *= 0.5
@@ -346,13 +333,9 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                               properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
                 energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
                 new_points.shape = new_direction.shape
-                bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
-                safe_break = 0
+                bad_steps = energy_diff > alpha * 1e-4 * (new_direction * grad).sum(axis=-1)
+                backtracking_iterations = 0
                 while np.any(bad_steps):
-                    safe_break += 1
-                    if safe_break > 5:
-                        print('SAFE BREAK')
-                        break
                     alpha[bad_steps] *= 0.5
                     new_points = points + alpha[..., np.newaxis] * new_direction
                     #print('new_points', new_points)
@@ -366,50 +349,24 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                     energy_diff = (candidates.GM.values.reshape(new_direction.shape[:-1]) - candidate_plane) - current_df
                     #print('energy_diff', energy_diff)
                     new_points.shape = new_direction.shape
-                    bad_steps = energy_diff > alpha * 0.5 * (new_direction * grad).sum(axis=-1)
+                    bad_steps = energy_diff > alpha * 1e-4 * (new_direction * grad).sum(axis=-1)
+                    backtracking_iterations += 1
+                    if backtracking_iterations > MAX_BACKTRACKING:
+                        break
                 biggest_step = np.max(np.linalg.norm(new_points - points, axis=-1))
                 if biggest_step < 1e-2:
                     if verbose:
-                        print('N-R convergence on mini-iteration', newton_iteration)
+                        print('N-R convergence on mini-iteration', newton_iteration, '[{}]'.format(name))
                     points = new_points
                     break
                 if verbose:
-                    print('Biggest step:', biggest_step)
+                    #print('Biggest step:', biggest_step)
                     #print('points', points)
                     #print('grad of points', grad)
                     #print('new_direction', new_direction)
                     #print('alpha', alpha)
                     #print('new_points', new_points)
                     pass
-
-                flattened_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
-                grad_args = itertools.chain([i[..., None] for i in statevar_grid],
-                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
-                grad = np.array(phase_records[name].grad(*grad_args), dtype=np.float)
-                # Remove derivatives wrt T,P
-                grad = grad[..., len(indep_vars):]
-                grad.shape = new_points.shape
-                grad[np.isnan(grad).any(axis=-1)] = 0  # This is necessary for gradients on the edge of composition space
-                hess_args = itertools.chain([i[..., None] for i in statevar_grid],
-                                            [flattened_points[..., i] for i in range(flattened_points.shape[-1])])
-                hess = np.array(phase_records[name].hess(*hess_args), dtype=np.float)
-                # Remove derivatives wrt T,P
-                hess = hess[..., len(indep_vars):, len(indep_vars):]
-                hess.shape = new_points.shape + (hess.shape[-1],)
-                hess[np.isnan(hess).any(axis=(-2, -1))] = np.eye(hess.shape[-1])
-                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
-                                             [new_points[..., i] for i in range(new_points.shape[-1])])
-                cast_grad = np.array(plane_grad(*plane_args), dtype=np.float)
-                # Remove derivatives wrt chemical potentials
-                cast_grad = cast_grad[..., properties.MU.shape[-1]:]
-                grad = grad - cast_grad
-                plane_args = itertools.chain([properties.MU.values[..., i][..., None] for i in range(properties.MU.shape[-1])],
-                                             [new_points[..., i] for i in range(new_points.shape[-1])])
-                cast_hess = np.array(plane_hess(*plane_args), dtype=np.float)
-                # Remove derivatives wrt chemical potentials
-                cast_hess = cast_hess[..., properties.MU.shape[-1]:, properties.MU.shape[-1]:]
-                cast_hess = -cast_hess + hess
-                hess = cast_hess.astype(np.float, copy=False)
                 points = new_points
                 newton_iteration += 1
             new_points = points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1]))
