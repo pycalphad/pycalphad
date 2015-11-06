@@ -27,9 +27,9 @@ install:
   - "conda create --yes -n condaenv python=%PYTHON_VERSION%"
   - "activate condaenv"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet nose numpy pandas scipy sympy pyparsing matplotlib xray"
+  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xray"
   - "conda install --yes -n condaenv --quiet -c richardotis autograd"
-  - "python setup.py install --no-deps"
+  - "pip install -e ."
 
 build: false
 
