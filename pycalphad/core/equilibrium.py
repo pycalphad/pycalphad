@@ -163,10 +163,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
         # lower_convex_hull will modify properties
-        if np.isnan(grid.GM.values).any():
-            print(grid.Y.values[np.isnan(grid.GM.values)])
-            print(grid.Phase.values[np.isnan(grid.GM.values)])
-
         lower_convex_hull(grid, properties)
         progress = np.abs(current_potentials - properties.MU).values
         converged = (progress < MIN_PROGRESS).all(axis=-1)
