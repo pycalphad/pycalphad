@@ -35,4 +35,4 @@ install:
 build: false
 
 test_script:
-  - "nosetests --nocapture"
+  - "nosetests -v 2>&1"
