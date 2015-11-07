@@ -34,4 +34,4 @@ install:
 build: false
 
 test_script:
-  - "nosetests -v 2>&1"
+  - "nosetests -s -v 2>&1"
