@@ -37,7 +37,7 @@ install:
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing
   - conda install --yes xray
   - conda install --yes -c richardotis autograd
-  - python setup.py install
+  - pip install -e .
  
 # Run test
 script:
