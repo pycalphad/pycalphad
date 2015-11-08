@@ -55,8 +55,9 @@ pycalphad is licensed under the MIT License.
 See LICENSE.txt for details.
 
 Required Dependencies:
+
 * Python 2.7+ or 3.3+ (Python 2.6 is not supported)
-* matplotlib, numpy, scipy, sympy, xray, pyparsing, tinydb
+* matplotlib, numpy, scipy, sympy, xray, pyparsing, tinydb, autograd
 
 Installation
 ------------
