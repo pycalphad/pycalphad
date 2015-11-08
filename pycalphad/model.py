@@ -402,7 +402,7 @@ class Model(object):
             )
         #print(tc)
         # 1e-6 used to prevent singularity
-        tau = v.T / (tc + 1e-6)
+        tau = v.T / (tc + 1e-4)
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
