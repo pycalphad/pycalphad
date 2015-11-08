@@ -34,4 +34,4 @@ install:
 build: false
 
 test_script:
-  - "python -c \"import nose ; nose.run()\""
+  - "python -c \"import nose ; nose.main()\" -s -v pycalphad"
