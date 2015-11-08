@@ -2,9 +2,6 @@ language: python
 sudo: false
 notifications:
   email: false
-cache:
-  directories:
-    - $HOME/miniconda2/pkgs
 
 matrix:
     include:
