@@ -41,6 +41,10 @@ class NumPyPrinter(LambdaPrinter):
         #     tuples in nopython mode.
         return '({},)'.format(delimiter.join(self._print(item) for item in seq))
 
+    def _print_Integer(self, expr):
+        # Upcast to work around an integer overflow bug
+        return 'asarray({0}, dtype=float)'.format(expr)
+
     def _print_MatrixBase(self, expr):
         return "%s(%s)" % ('array', self._print(expr.tolist()))
 
