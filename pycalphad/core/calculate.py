@@ -277,6 +277,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
                         cur_idx = end_idx
                     # add to points matrix
                     points = np.concatenate((points, addtl_pts), axis=0)
+            # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
+            # Issues with this appear to be platform-dependent
+            points = points[~np.isnan(points).any(axis=-1)]
         # Ensure that points has the correct dimensions and dtype
         points = np.atleast_2d(np.asarray(points, dtype=np.float))
 

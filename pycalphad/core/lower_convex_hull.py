@@ -16,8 +16,6 @@ def _initialize_array(global_grid, result_array):
     max_energies = global_grid['GM'].max(dim='points', skipna=False)
     len_comps = result_array.dims['component']
     if max_energies.isnull().any():
-        print(global_grid.GM.values)
-        print(global_grid.Y.values)
         raise ValueError('Input energy surface contains one or more NaNs.')
     result_array['GM'] = xray.broadcast_arrays(max_energies, result_array['GM'])[0].copy()
     result_array['MU'] = xray.broadcast_arrays(max_energies, result_array['MU'])[0].copy()

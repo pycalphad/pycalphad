@@ -3,6 +3,7 @@ The plotting test module verifies that plotting routines produce a result.
 """
 
 from pycalphad import Database, binplot
+import nose
 
 TDB_ALFE_STRING = """
 $ ALFE
@@ -188,13 +189,10 @@ $ALFE-NIMS
 
 DBF_ALFE = Database(TDB_ALFE_STRING)
 
-import nose
 
-
-@nose.SkipTest
 def test_binplot_minimum():
     "Bare minimum: binplot produces a result with no errors."
-    # Purposefully dropping BCC_B2 here because it takes too long to compute
-    # Future versions of binplot will address this and check for correctness
+    # This test breaks on a lot of buildbots
+    raise nose.SkipTest
     my_phases_alfe = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
     binplot(DBF_ALFE, ['AL', 'FE', 'VA'], my_phases_alfe, 'X(AL)', 300, 2000)
