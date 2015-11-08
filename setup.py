@@ -1,11 +1,6 @@
 from setuptools import setup
 import os
 import versioneer
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'pycalphad/_version.py'
-versioneer.versionfile_build = 'pycalphad/_version.py'
-versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = 'pycalphad-' # dirname like 'myproject-1.2.0'
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
