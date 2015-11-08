@@ -1,7 +1,24 @@
 What's New
 ==========
 
-0.2.2 (2015-09-10)
+0.2.3 (2015-11-08)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* Autograd is now a required dependency. It should be automatically installed on upgrade.
+* The magnetic contribution to the energy has been improved in performance.
+  For some users (mainly Fe or Ni systems), the difference will be dramatic.
+* Numerical stability improvements to the energy minimizer ( :issue:`23` ).
+  The minimizer now solves using exact Hessians and is generally more robust.
+  `pycalphad.core.equilibrium.MIN_STEP_LENGTH` has been removed.
+  There are still issues computing dilute compositions; these will continue to be addressed.
+  Please report these numerical issues if you run into them because they are difficult to find through automated testing.
+* Automated testing is now enabled for Mac OSX and Windows, as well as Linux (previously enabled).
+  This should help to find tricky bugs more quickly. (Note that this runs entirely on separate
+  infrastructure and is not collecting information from users.)
+
+0.2.2 (2015-10-17)
 ------------------
 
 This is a minor bugfix release.
