@@ -37,7 +37,7 @@ def get_config():
     cfg.VCS = "git"
     cfg.style = "pep440"
     cfg.tag_prefix = ""
-    cfg.parentdir_prefix = ""pycalphad-""
+    cfg.parentdir_prefix = "pycalphad-"
     cfg.versionfile_source = "pycalphad/_version.py"
     cfg.verbose = False
     return cfg
