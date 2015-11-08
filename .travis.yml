@@ -34,7 +34,7 @@ before_install:
 # Install packages
 install:
   - pip install coveralls
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION atlas numpy scipy matplotlib nose pandas sympy pyparsing
+  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing
   - conda install --yes xray
   - conda install --yes -c richardotis autograd
   - python setup.py install
