@@ -9,7 +9,7 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://coveralls.io/github/richardotis/pycalphad?branch=master
     :alt: Test Coverage
 
-.. image:: https://ci.appveyor.com/project/richardotis/pycalphad/branch/develop
+.. image:: https://ci.appveyor.com/api/projects/status/ua1hya8isg588fyp/branch/develop?svg=true
     :target: https://ci.appveyor.com/project/richardotis/pycalphad
     :alt: Windows Test Coverage
 
