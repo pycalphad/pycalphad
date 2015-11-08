@@ -2,6 +2,9 @@ language: python
 sudo: false
 notifications:
   email: false
+cache:
+  directories:
+    - $HOME/miniconda2/pkgs
 
 matrix:
     include:
@@ -12,6 +15,15 @@ matrix:
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
+        - language: generic
+          os: osx
+          env: TRAVIS_PYTHON_VERSION=3.3
+        - language: generic
+          os: osx
+          env: TRAVIS_PYTHON_VERSION=3.4
+        - language: generic
+          os: osx
+          env: TRAVIS_PYTHON_VERSION=3.5
 
 # Setup anaconda
 before_install:
