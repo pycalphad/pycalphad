@@ -188,7 +188,10 @@ $ALFE-NIMS
 
 DBF_ALFE = Database(TDB_ALFE_STRING)
 
+import nose
 
+
+@nose.SkipTest
 def test_binplot_minimum():
     "Bare minimum: binplot produces a result with no errors."
     # Purposefully dropping BCC_B2 here because it takes too long to compute
