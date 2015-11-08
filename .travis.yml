@@ -23,7 +23,7 @@ before_install:
       fi
   - chmod +x miniconda.sh
   - ./miniconda.sh -b
-  - export PATH=/home/travis/miniconda2/bin:$PATH
+  - export PATH=$HOME/miniconda2/bin:$PATH
   - conda update --yes conda
   - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
