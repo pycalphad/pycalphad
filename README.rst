@@ -5,9 +5,13 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://gitter.im/richardotis/pycalphad
     :alt: Join the chat at https://gitter.im/richardotis/pycalphad
 
-.. image:: https://coveralls.io/repos/richardotis/pycalphad/badge.svg?branch=master&service=github
+.. image:: https://coveralls.io/repos/richardotis/pycalphad/badge.svg?branch=develop&service=github
     :target: https://coveralls.io/github/richardotis/pycalphad?branch=master
     :alt: Test Coverage
+
+.. image:: https://ci.appveyor.com/project/richardotis/pycalphad/branch/develop
+    :target: https://ci.appveyor.com/project/richardotis/pycalphad
+    :alt: Windows Test Coverage
 
 .. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
     :target: https://travis-ci.org/richardotis/pycalphad
