@@ -389,22 +389,20 @@ class Model(object):
 
         mean_magnetic_moment = \
             self.redlich_kister_sum(phase, param_search, bm_param_query)
-        beta = Piecewise(
-            (mean_magnetic_moment, mean_magnetic_moment > 0),
-            (mean_magnetic_moment/afm_factor, mean_magnetic_moment <= 0),
+        beta = mean_magnetic_moment / Piecewise(
+            (afm_factor, mean_magnetic_moment <= 0),
+            (1., True)
             )
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
-        tc = Piecewise(
-            (curie_temp, curie_temp > 0),
-            (curie_temp/afm_factor, curie_temp <= 0),
+        tc = curie_temp / Piecewise(
+            (afm_factor, curie_temp <= 0),
+            (1., True)
             )
         #print(tc)
-        tau = Piecewise(
-            (v.T / tc, tc > 0),
-            (10000., tc == 0) # tau is 'infinity',
-            )
+        # 1e-6 used to prevent singularity
+        tau = v.T / (tc + 1e-6)
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
@@ -417,10 +415,8 @@ class Model(object):
         super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
 
         expr_cond_pairs = [(sub_tau, tau < 1),
-                           (super_tau, tau >= 1),
-                           (0., True)
-                          ]
-
+                           (super_tau, True)
+                           ]
         g_term = Piecewise(*expr_cond_pairs)
 
         return v.R * v.T * log(beta+1) * \

@@ -5,9 +5,13 @@ pycalphad, a library for the CALculation of PHAse Diagrams
     :target: https://gitter.im/richardotis/pycalphad
     :alt: Join the chat at https://gitter.im/richardotis/pycalphad
 
-.. image:: https://coveralls.io/repos/richardotis/pycalphad/badge.svg?branch=master&service=github
+.. image:: https://coveralls.io/repos/richardotis/pycalphad/badge.svg?branch=develop&service=github
     :target: https://coveralls.io/github/richardotis/pycalphad?branch=master
     :alt: Test Coverage
+
+.. image:: https://ci.appveyor.com/api/projects/status/ua1hya8isg588fyp/branch/develop?svg=true
+    :target: https://ci.appveyor.com/project/richardotis/pycalphad
+    :alt: Windows Test Coverage
 
 .. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
     :target: https://travis-ci.org/richardotis/pycalphad
@@ -51,8 +55,9 @@ pycalphad is licensed under the MIT License.
 See LICENSE.txt for details.
 
 Required Dependencies:
+
 * Python 2.7+ or 3.3+ (Python 2.6 is not supported)
-* matplotlib, numpy, scipy, sympy, xray, pyparsing, tinydb
+* matplotlib, numpy, scipy, sympy, xray, pyparsing, tinydb, autograd
 
 Installation
 ------------

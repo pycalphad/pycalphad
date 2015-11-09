@@ -2,7 +2,7 @@
 The lower_convex_hull module handles geometric calculations associated with
 equilibrium calculation.
 """
-
+from __future__ import print_function
 from pycalphad.log import logger
 from pycalphad.core.cartesian import cartesian
 import numpy as np

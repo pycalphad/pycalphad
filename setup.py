@@ -1,11 +1,6 @@
 from setuptools import setup
 import os
 import versioneer
-versioneer.VCS = 'git'
-versioneer.versionfile_source = 'pycalphad/_version.py'
-versioneer.versionfile_build = 'pycalphad/_version.py'
-versioneer.tag_prefix = '' # tags are like 1.2.0
-versioneer.parentdir_prefix = 'pycalphad-' # dirname like 'myproject-1.2.0'
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -26,7 +21,7 @@ setup(
     long_description=read('README.rst'),
     url='https://github.com/richardotis/pycalphad',
     install_requires=['matplotlib', 'pandas', 'xray', 'sympy', 'pyparsing',
-                      'tinydb', 'scipy', 'numpy>=1.9'],
+                      'autograd', 'tinydb', 'scipy', 'numpy>=1.9'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
