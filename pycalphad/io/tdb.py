@@ -120,7 +120,7 @@ def _make_piecewise_ast(toks):
                 )
             )
         cur_tok = cur_tok + 2
-    expr_cond_pairs.append((0., True))
+    #expr_cond_pairs.append((0., True))
     return Piecewise(*expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903

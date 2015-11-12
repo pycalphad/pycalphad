@@ -1,1 +1,2 @@
 autograd
+pandas>=0.15.0

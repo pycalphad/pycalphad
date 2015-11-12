@@ -41,9 +41,9 @@ class NumPyPrinter(LambdaPrinter):
         #     tuples in nopython mode.
         return '({},)'.format(delimiter.join(self._print(item) for item in seq))
 
-    def _print_Integer(self, expr):
-        # Upcast to work around an integer overflow bug
-        return 'asarray({0}, dtype=float)'.format(expr)
+    #def _print_Integer(self, expr):
+    #    # Upcast to work around an integer overflow bug
+    #    return 'asarray({0}, dtype=float)'.format(expr)
 
     def _print_MatrixBase(self, expr):
         return "%s(%s)" % ('array', self._print(expr.tolist()))
@@ -64,13 +64,16 @@ class NumPyPrinter(LambdaPrinter):
 
     def _print_Piecewise(self, expr):
         "Piecewise function printer"
-        exprs = '[{0}]'.format(','.join(self._print(arg.expr) for arg in expr.args))
-        conds = '[{0}]'.format(','.join(self._print(arg.cond) for arg in expr.args))
-        # If (default_value, True) is a (expr, cond) tuple in a Piecewise object
-        #     it will behave the same as passing the 'default' kwarg to select()
-        #     *as long as* it is the last element in expr.args.
-        # If this is not the case, it may be triggered prematurely.
-        return 'select({0}, {1}, default=nan)'.format(conds, exprs)
+        exprs = [self._print(arg.expr) for arg in expr.args]
+        conds = [self._print(arg.cond) for arg in expr.args]
+        # We expect exprs and conds to be in order here
+        # First condition to evaluate to True is returned
+        # Default result: float zero
+        result = 'where({0}, {1}, ones(1)*0.)'.format(conds[-1], exprs[-1])
+        for expr, cond in reversed(zip(exprs[:-1], conds[:-1])):
+            result = 'where({0}, {1}, {2})'.format(cond, expr, result)
+
+        return result
 
     def _print_And(self, expr):
         "Logical And printer"
@@ -259,6 +262,11 @@ def make_callable(model, variables, mode=None):
         logical_np = [{'And': np.logical_and, 'Or': np.logical_or}, 'numpy']
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=logical_np, printer=NumPyPrinter)
+        #energy = lambdify(tuple(variables), model, dummify=True,
+        #                  modules='numpy', printer=LambdaPrinter)
+        #import numba
+        #varsig = list([numba.float64] * len(tuple(variables)))
+        #energy = numba.vectorize([numba.float64(*varsig)], nopython=True, target='parallel')(energy)
     elif mode == 'numexpr':
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules='numexpr', printer=SpecialNumExprPrinter)
