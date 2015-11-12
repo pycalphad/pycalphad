@@ -70,7 +70,7 @@ class NumPyPrinter(LambdaPrinter):
         # First condition to evaluate to True is returned
         # Default result: float zero
         result = 'where({0}, {1}, ones(1)*0.)'.format(conds[-1], exprs[-1])
-        for expr, cond in reversed(zip(exprs[:-1], conds[:-1])):
+        for expr, cond in reversed(list(zip(exprs[:-1], conds[:-1]))):
             result = 'where({0}, {1}, {2})'.format(cond, expr, result)
 
         return result
