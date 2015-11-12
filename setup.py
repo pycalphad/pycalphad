@@ -26,7 +26,7 @@ setup(
     long_description=read('README.rst'),
     url='https://github.com/richardotis/pycalphad',
     install_requires=['matplotlib', 'pandas', 'xray', 'sympy', 'pyparsing',
-                      'tinydb', 'scipy', 'numpy>=1.9'],
+                      'autograd', 'tinydb', 'scipy', 'numpy>=1.9'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
