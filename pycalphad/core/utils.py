@@ -17,11 +17,19 @@ try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
+from importlib import import_module
 
-_NUMEXPR = None
+_NUMBA = None
+
 try:
-    from importlib import import_module
-    _NUMEXPR = import_module('numexpr')
+    _NUMBA = import_module('numba')
+
+    @_NUMBA.vectorize
+    def nbwhere(condition, x, y):
+        if condition:
+            return x
+        else:
+            return y
 except ImportError:
     pass
 
@@ -69,7 +77,7 @@ class NumPyPrinter(LambdaPrinter):
         # We expect exprs and conds to be in order here
         # First condition to evaluate to True is returned
         # Default result: float zero
-        result = 'where({0}, {1}, ones(1)*0.)'.format(conds[-1], exprs[-1])
+        result = 'where({0}, {1}, 0.)'.format(conds[-1], exprs[-1])
         for expr, cond in reversed(list(zip(exprs[:-1], conds[:-1]))):
             result = 'where({0}, {1}, {2})'.format(cond, expr, result)
 
@@ -95,40 +103,6 @@ class NumPyPrinter(LambdaPrinter):
         # If LambdaPrinter didn't define it, we would still have to define our
         #     own because StrPrinter doesn't define it.
         return '{0}({1})'.format('logical_not', ','.join(self._print(i) for i in expr.args))
-
-class SpecialNumExprPrinter(NumExprPrinter): #pylint: disable=R0903
-    "numexpr printing for vectorized piecewise functions"
-    #pylint: disable=C0103,W0232
-    def _print_And(self, expr):
-        "Logical And printer"
-        result = ['(']
-        for arg in sorted(expr.args, key=default_sort_key):
-            result.extend(['(', self._print(arg), ')'])
-            result.append(' & ')
-        result = result[:-1]
-        result.append(')')
-        return ''.join(result)
-
-    def _print_Or(self, expr):
-        "Logical Or printer"
-        result = ['(']
-        for arg in sorted(expr.args, key=default_sort_key):
-            result.extend(['(', self._print(arg), ')'])
-            result.append(' | ')
-        result = result[:-1]
-        result.append(')')
-        return ''.join(result)
-
-    def _print_Piecewise(self, expr, **kwargs):
-        "Piecewise function printer"
-        e, cond = expr.args[0].args
-        if len(expr.args) == 1:
-            return 'where(%s, %s, %f)' % (self._print(cond, **kwargs),
-                                          self._print(e, **kwargs), 0)
-        return 'where(%s, %s, %s)' % (self._print(cond, **kwargs),
-                                      self._print(e, **kwargs),
-                                      self._print(Piecewise(*expr.args[1:]), \
-                                      **kwargs))
 
 _PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
                     47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
@@ -246,30 +220,24 @@ def make_callable(model, variables, mode=None):
     """
     energy = None
     if mode is None:
-        # no mode specified; use numexpr if available, otherwise numpy
-        # Note: numexpr support appears to break in multi-component situations
-        # See numexpr#167 on GitHub for details
-        # For now, default to numpy until a solution/workaround is available
-        #if _NUMEXPR:
-        #    mode = 'numexpr'
-        #else:
-        #    mode = 'numpy'
-        mode = 'numpy'
+        # no mode specified; use numba if available, otherwise numpy
+        if _NUMBA:
+            mode = 'numba'
+        else:
+            mode = 'numpy'
 
     if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     elif mode == 'numpy':
-        logical_np = [{'And': np.logical_and, 'Or': np.logical_or}, 'numpy']
         energy = lambdify(tuple(variables), model, dummify=True,
-                          modules=logical_np, printer=NumPyPrinter)
-        #energy = lambdify(tuple(variables), model, dummify=True,
-        #                  modules='numpy', printer=LambdaPrinter)
-        #import numba
-        #varsig = list([numba.float64] * len(tuple(variables)))
-        #energy = numba.vectorize([numba.float64(*varsig)], nopython=True, target='parallel')(energy)
-    elif mode == 'numexpr':
-        energy = lambdify(tuple(variables), model, dummify=True,
-                          modules='numexpr', printer=SpecialNumExprPrinter)
+                          modules=[{'where': np.where}, 'numpy'], printer=NumPyPrinter)
+    elif mode == 'numba':
+        variables = tuple(variables)
+        varsig = 'float64({})'.format(','.join(['float64'] * len(variables)))
+        energy = lambdify(variables, model, dummify=True,
+                          modules=[{'where': nbwhere}, 'numpy'], printer=NumPyPrinter)
+        # target=parallel seems to incur too much overhead on small arrays
+        energy = _NUMBA.vectorize([varsig], nopython=True, target='cpu')(energy)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
