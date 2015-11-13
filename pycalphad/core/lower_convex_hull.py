@@ -204,6 +204,7 @@ def lower_convex_hull(global_grid, result_array):
         # Empty values are filled in with infinity
         comparison_matrix = np.empty([trial_matrix.shape[0] / trial_shape[0],
                                       trial_shape[0]])
+        assert comparison_matrix.shape[0] == aligned_compositions.shape[0]
         comparison_matrix.fill(np.inf)
         comparison_matrix[np.divide(index_array, trial_shape[0]).astype(np.int),
                           np.mod(index_array, trial_shape[0])] = candidate_energies
