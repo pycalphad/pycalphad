@@ -121,7 +121,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                    'Phase': (output_columns,
                              np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
-                   output: (output_columns, phase_output)
+                   output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
                    }
 
     return xray.Dataset(data_arrays, coords=coordinate_dict)
@@ -207,12 +207,15 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
                 some sublattices containing only unspecified components""",
                                phase_name)
                 continue
-        try:
-            out = getattr(mod, output)
-            maximum_internal_dof = max(maximum_internal_dof, len(out.atoms(v.SiteFraction)))
-        except AttributeError:
-            raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                 .format(output, mod.__class__))
+        if points_dict[phase_name] is None:
+            try:
+                out = getattr(mod, output)
+                maximum_internal_dof = max(maximum_internal_dof, len(out.atoms(v.SiteFraction)))
+            except AttributeError:
+                raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                     .format(output, mod.__class__))
+        else:
+            maximum_internal_dof = max(maximum_internal_dof, np.asarray(points_dict[phase_name]).shape[-1])
 
     for phase_name, phase_obj in sorted(active_phases.items()):
         try:
@@ -221,10 +224,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
             continue
         # Construct an ordered list of the variables
         variables, sublattice_dof = generate_dof(phase_obj, mod.components)
-        out = getattr(mod, output)
 
         # Build the "fast" representation of that model
         if callable_dict[phase_name] is None:
+            out = getattr(mod, output)
             # As a last resort, treat undefined symbols as zero
             # But warn the user when we do this
             # This is consistent with TC's behavior
@@ -287,7 +290,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
                                          points, comp_sets[phase_name], output,
                                          maximum_internal_dof)
         # largest_energy is really only relevant if fake_points is set
-        largest_energy = max(phase_ds[output].max(), largest_energy)
+        if fake_points:
+            largest_energy = max(phase_ds[output].max(), largest_energy)
         all_phase_data.append(phase_ds)
 
     if fake_points:
@@ -297,8 +301,15 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         final_ds = xray.concat(itertools.chain([phase_ds], all_phase_data),
                                dim='points')
     else:
-        final_ds = xray.concat(all_phase_data, dim='points')
+        # speedup for single-phase case (found by profiling)
+        if len(all_phase_data) > 1:
+            final_ds = xray.concat(all_phase_data, dim='points')
+        else:
+            final_ds = all_phase_data[0]
 
-    # Reset the points dimension to use a single global index
-    final_ds['points'] = np.arange(len(final_ds.points))
+    if (not fake_points) and (len(all_phase_data) == 1):
+        pass
+    else:
+        # Reset the points dimension to use a single global index
+        final_ds['points'] = np.arange(len(final_ds.points))
     return final_ds
