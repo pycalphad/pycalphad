@@ -241,14 +241,17 @@ def lower_convex_hull(global_grid, result_array):
             fractions[bounding_indices][is_lower_energy]
         #print('result_array.GM.values', result_array.GM.values)
 
-        global_energies = global_grid.GM.values[final_multi_indices[:len(indep_conds)]]
-        updated_grids = global_grid.X.values[final_multi_indices[:len(indep_conds)]]
+        # By profiling, it's faster to recompute all driving forces in-place
+        # versus doing fancy indexing to only update "changed" driving forces
+        # This avoids the creation of expensive temporaries
+        np.einsum('...i,...i',
+                  result_array.MU.values[..., np.newaxis, :],
+                  global_grid.X.values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:, :]],
+                  out=driving_forces)
+        np.subtract(driving_forces,
+                    global_grid.GM.values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:]],
+                    out=driving_forces)
 
-        # We cut time in this function by ~30% using einsum versus multiply().sum()
-        driving_forces[final_multi_indices] = np.einsum('...i,...i',
-                                                        updated_potentials[..., np.newaxis, :],
-                                                        updated_grids) - \
-            global_energies
 
         # Update trial points to choose points with largest remaining driving force
         trial_points = np.argmax(driving_forces, axis=-1)
