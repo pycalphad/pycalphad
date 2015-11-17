@@ -8,6 +8,11 @@ except NameError:
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 
+
+def _to_tuple(lst):
+    "Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow"
+    return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
+
 class Phase(object): #pylint: disable=R0903
     """
     Phase in the database.
@@ -159,7 +164,7 @@ class Database(object): #pylint: disable=R0902
         """
         new_parameter = {
             'phase_name': phase_name,
-            'constituent_array': constituent_array,
+            'constituent_array': _to_tuple(constituent_array),  # must be hashable type
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
