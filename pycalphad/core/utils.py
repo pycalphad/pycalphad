@@ -74,6 +74,8 @@ class NumPyPrinter(LambdaPrinter):
         "Piecewise function printer"
         exprs = [self._print(arg.expr) for arg in expr.args]
         conds = [self._print(arg.cond) for arg in expr.args]
+        if (len(conds) == 1) and exprs[0] == '0':
+            return '0'
         # We expect exprs and conds to be in order here
         # First condition to evaluate to True is returned
         # Default result: float zero
