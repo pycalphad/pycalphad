@@ -150,7 +150,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         points used to define an equilibrium hyperplane guaranteed to be above
         all the other points. This is used for convex hull computations.
     points : ndarray or a dict of phase names to ndarray, optional
-        Columns of ndarrays must be internal degrees of freedom, sorted.
+        Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
         If this is not specified, points will be generated automatically.
     pdens : int, a dict of phase names to int, or a seq of both, optional
         Number of points to sample per degree of freedom.
