@@ -205,9 +205,9 @@ def make_callable(model, variables, mode=None):
         Abstract representation of function
     variables, list
         Input variables, ordered in the way the return function will expect
-    mode, ['numpy', 'numexpr', 'sympy'], optional
+    mode, ['numpy', 'numba', 'sympy'], optional
         Method to use when 'compiling' the function. SymPy mode is
-        slow and should only be used for debugging. If Numexpr is installed,
+        slow and should only be used for debugging. If Numba is installed,
         it can offer speed-ups when calling the energy function many
         times on multi-core CPUs.
 
@@ -357,7 +357,7 @@ def endmember_matrix(dof, vacancy_indices=None):
     Return a matrix corresponding to the compositions of all endmembers.
 
     Parameters
-    ==========
+    ----------
     dof : list of int
         Number of components in each sublattice.
     vacancy_indices, list of int, optional
@@ -365,8 +365,8 @@ def endmember_matrix(dof, vacancy_indices=None):
         in each sublattice to ensure the "pure vacancy" endmember is excluded.
 
     Examples
-    ========
-    Sublattice configuration like: (AL, NI, VA):(AL, NI, VA):(VA)
+    --------
+    Sublattice configuration like: `(AL, NI, VA):(AL, NI, VA):(VA)`
     >>> endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])
     """
     total_endmembers = functools.reduce(operator.mul, dof, 1)
@@ -394,18 +394,18 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     This function is a way to construct defaultdicts out of keyword arguments.
 
     Parameters
-    ==========
+    ----------
     kwarg_obj : dict, iterable, or None
         Argument to unpack into a defaultdict
     default_arg : object
         Default value to use if iterable isn't specified
 
     Returns
-    =======
+    -------
     defaultdict for the keyword argument of interest
 
     Examples
-    ========
+    --------
     >>> test_func = lambda **kwargs: print(unpack_kwarg('opt'))
     >>> test_func(opt=100)
     >>> test_func(opt={'FCC_A1': 50, 'BCC_B2': 10})
