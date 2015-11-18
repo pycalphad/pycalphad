@@ -1,6 +1,29 @@
 What's New
 ==========
 
+0.2.4 (2015-11-18)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* Optional, experimental support for numba_ has been added to ``calculate``.
+  If numba>=0.22 is installed and ``calculate`` is directly called without the `mode`
+  keyword argument, a numba-optimized function will be generated for the calculation.
+  You can force the old behavior with `mode='numpy'`.
+  ``equilibrium`` does not currently use this code path regardless.
+* A performance improvement to how ``lower_convex_hull`` computes driving force
+  gives a nice speedup when calling ``equilibrium``.
+  There's still a lot of room for improvement, especially for step/map calculations.
+* Piecewise-defined functions are now lazily-evaluated, meaning only the values necessary
+  for the given conditions will be computed. Before, all values were always computed.
+  Users will notice the biggest difference when calculating phases with the magnetic model.
+* Fix a small but serious bug when running tinydb v3 with pycalphad ( :issue:`30` ).
+* Fix a platform-dependent crash bug when using ``binplot`` ( :issue:`31` ).
+* Support for numexpr has been removed.
+* The documentation on ReadTheDocs should be building properly again ( :issue:`26` ).
+
+.. _numba: http://numba.pydata.org/
+
 0.2.3 (2015-11-08)
 ------------------
 
