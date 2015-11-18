@@ -118,6 +118,8 @@ def binplot(dbf, comps, phases, x_variable, low_temp, high_temp,
     for temp, hull_frame in full_df:
         # Calculate the convex hull for the desired points
         hull_points = hull_frame[[x_variable, 'GM']].values
+        # If we don't filter nan's we may cause a crash on some platforms (gh-31)
+        hull_points = hull_points[~np.isnan(hull_points).any(axis=-1)]
         hull = None
         try:
             hull = scipy.spatial.ConvexHull(
