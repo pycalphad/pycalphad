@@ -1463,7 +1463,7 @@ def test_eq_overdetermined_comps():
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
 def test_eq_illcond_hessian():
     """
-    Prevent BFGS updates using ill-conditioned Hessians.
+    Check equilibrium of a system with an ill-conditioned Hessian.
     This is difficult to reproduce so we only include some known examples here (gh-23).
     """
     # This set of conditions is known to trigger the issue
@@ -1473,7 +1473,7 @@ def test_eq_illcond_hessian():
     # chemical potentials were checked in TC and accurate to 1 J/mol
     # pycalphad values used for more significant figures
     # once again, py33 converges to a slightly different value versus every other python
-    assert_allclose(eq.MU.values, [[[[-55612.12912246,  -2767.66174073]]]], atol=0.1)
+    assert_allclose(eq.MU.values, [[[[-55611.954141,  -2767.72322]]]], atol=0.1)
 
 
 def test_eq_composition_cond_sorting():

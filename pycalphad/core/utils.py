@@ -3,11 +3,10 @@ The minimize module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
 import pycalphad.variables as v
+from pycalphad.core.halton import halton
 import scipy.spatial.distance
-from sympy.utilities import default_sort_key
 from sympy.utilities.lambdify import lambdify
-from sympy.printing.lambdarepr import LambdaPrinter, NumExprPrinter
-from sympy import Piecewise
+from sympy.printing.lambdarepr import LambdaPrinter
 import numpy as np
 import operator
 import functools
@@ -106,50 +105,8 @@ class NumPyPrinter(LambdaPrinter):
         #     own because StrPrinter doesn't define it.
         return '{0}({1})'.format('logical_not', ','.join(self._print(i) for i in expr.args))
 
-_PRIMES = np.array([2, 3, 5, 7, 11, 13, 17, 19, 23, 29, 31, 37, 41, 43,
-                    47, 53, 59, 61, 67, 71, 73, 79, 83, 89, 97, 101, 103,
-                    107, 109, 113, 127, 131], dtype=np.float)
 
-def halton(dim, nbpts, primes=None):
-    """
-    Generate a multi-dimensional Halton sequence.
-
-    Parameters
-    ----------
-    dim    : int
-        Number of dimensions in the sequence.
-    nbpts  : int
-        Number of points along each dimension.
-    primes : sequence, optional
-        A sequence of at least 'dim' prime numbers. This is for generating
-        shuffled sequences. By default, this is the first 32 primes.
-
-    Returns
-    -------
-    ndarray of shape (nbpts, dim)
-    """
-    if primes is None:
-        primes = _PRIMES
-    if dim > len(primes):
-        raise ValueError('A Halton sequence of {0} dimensions cannot be '
-                         'calculated when \'primes\' is shorter than {1}. '
-                         'Use the \'primes\' parameter to pass additional '
-                         'primes.'.format(dim, len(primes)))
-    result = np.empty((nbpts, dim), dtype=np.float)
-    dim_primes = primes[0:dim]
-    for i in np.arange(dim_primes.size):
-        num_powers = np.ceil(np.log(nbpts + 1) / np.log(dim_primes[i])).astype(np.int)
-        # need to be careful about precision errors here
-        # cast to long double so that, e.g., halton(3, 10000) will be correct
-        powers = np.power(dim_primes[i], -np.arange(1, num_powers+1, dtype=np.longdouble))
-        radix_vector = np.power(dim_primes[i], -np.arange(num_powers, dtype=np.longdouble))
-        # we can drop precision after the outer product for a speedup
-        sum_matrix = np.outer(np.arange(1, nbpts+1), radix_vector).astype(np.float)
-        mod_matrix = np.mod(np.floor(sum_matrix), dim_primes[i])
-        result[:, i] = np.dot(mod_matrix, powers)
-    return result
-
-def point_sample(comp_count, pdof=10, roll=0):
+def point_sample(comp_count, pdof=10):
     """
     Sample 'pdof * (sum(comp_count) - len(comp_count))' points in
     composition space for the sublattice configuration specified
@@ -166,8 +123,6 @@ def point_sample(comp_count, pdof=10, roll=0):
         Number of components in each sublattice.
     pdof : int
         Number of points to sample per degree of freedom.
-    roll : int, optional
-        Number of positions by which the prime number array should be shifted.
 
     Returns
     -------
@@ -180,8 +135,7 @@ def point_sample(comp_count, pdof=10, roll=0):
     """
     # Generate Halton sequence with appropriate dimensions and size
     pts = halton(sum(comp_count),
-                 pdof * (sum(comp_count) - len(comp_count)),
-                 primes=np.roll(_PRIMES, roll))
+                 pdof * (sum(comp_count) - len(comp_count)), scramble=True)
     # Convert low-discrepancy sequence to normalized exponential
     # This will be uniformly distributed over the simplices
     pts = -np.log(pts)
