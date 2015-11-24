@@ -56,3 +56,56 @@ def setup_dataset(file_obj, dbf, params):
         return result
 
     return compute_error, compute_values, exp_values
+
+
+def build_pymc_model(dbf, dataset_names, params):
+    """
+    Build a pymc (2.x) Model using the specified data and parameters.
+
+    Parameters
+    ----------
+    dbf : Database
+        Database with defined parameters, except for params.
+    dataset_names : list of str
+        List of paths to pycalphad JSON files.
+    params : list of pymc.Stochastic
+        Parameters to fit.
+
+    Returns
+    -------
+    pymc.Model
+    """
+    # TODO: Figure out a better solution than hiding an import here
+    import pymc
+    params = sorted(params, key=str)
+    # Should users be able to specify their own variance parameter?
+    # Ideally this prior would come from the dataset itself
+    dataset_variance = pymc.Gamma('dataset_variance',
+                                  alpha=np.full_like(dataset_names, 0.1, dtype=np.float),
+                                  beta=np.full_like(dataset_names, 0.1, dtype=np.float),
+                                  size=len(dataset_names))
+    dataset_error_funcs = []
+    function_namespace = {'zeros_like': np.zeros_like, 'square': np.square, 'divide': np.divide,
+                          'dataset_variance': dataset_variance, 'dataset_names': dataset_names}
+    # TODO: Is there a security issue with passing the output of str(x) to exec?
+    function_namespace.update([(str(param), param) for param in params])
+    param_kwarg_names = ','.join([str(param) + '=' + str(param) for param in params+[dataset_variance]])
+    param_arg_names = ','.join([str(param) for param in params])
+    for idx, fname in enumerate(dataset_names):
+        with open(fname) as file_:
+            error_func, calc_func, exp_data = setup_dataset(file_, dbf, params)
+            dataset_error_funcs.append(error_func)
+    function_namespace.update({'dataset_error_funcs': dataset_error_funcs})
+    # Now we have to do some metaprogramming to get the variable names to bind properly
+    # This code doesn't yet allow custom distributions for the error
+    error_func_code = """def error({0}):
+    result = zeros_like(dataset_names, dtype='float')
+    for idx in range(len(dataset_names)):
+        result[idx] = divide(square(dataset_error_funcs[idx]({1})).mean(), dataset_variance[idx])
+    return -result""".format(param_kwarg_names, param_arg_names)
+    error_func_code = compile(error_func_code, '<string>', 'exec')
+    exec(error_func_code, function_namespace)
+    error = pymc.potential(function_namespace['error'])
+    mod = pymc.Model([function_namespace[str(param)] for param in params] + [function_namespace['dataset_variance'],
+                     error])
+    return mod
