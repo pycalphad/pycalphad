@@ -34,7 +34,7 @@ def setup_dataset(file_obj, dbf, params):
                                      itertools.chain(param_vars, indep_vars, site_fracs[name]))
                  for name, mod in fit_models.items()}
     extra_conds = OrderedDict({key: np.atleast_1d(value) for key, value in data['conditions'].items()})
-    exp_values = xray.DataArray(np.array(data['values'], dtype=np.float)[..., None],
+    exp_values = xray.DataArray(np.array(data['values'], dtype=np.float),
                                 dims=list(extra_conds.keys())+['points'], coords=extra_conds)
 
     def compute_error(*args):
