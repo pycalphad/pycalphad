@@ -4,18 +4,19 @@ This module contains routines for fitting new CALPHAD models.
 
 import numpy as np
 import xray
-from pycalphad import calculate, Model
+from pycalphad import calculate, Model, Database
 from pycalphad.core.utils import make_callable
 import pycalphad.variables as v
 from sympy import Symbol
+import matplotlib.pyplot as plt
 import itertools
 import functools
-from collections import OrderedDict
+from collections import OrderedDict, namedtuple
 import json
 
 
 def setup_dataset(file_obj, dbf, params):
-    # params should be a list of pymc3 variables corresponding to parameters
+    # params should be a list of pymc variables corresponding to parameters
     data = json.load(file_obj)
     if data['solver']['mode'] != 'manual':
         raise NotImplemented
@@ -55,7 +56,9 @@ def setup_dataset(file_obj, dbf, params):
                            callables=prefill_callables, model=fit_models, **extra_conds)
         return result
 
-    return compute_error, compute_values, exp_values
+    return compute_error, compute_values, exp_values, data
+
+Dataset = namedtuple('Dataset', ['error_func', 'calc_func', 'exp_data', 'json'])
 
 
 def build_pymc_model(dbf, dataset_names, params):
@@ -73,39 +76,87 @@ def build_pymc_model(dbf, dataset_names, params):
 
     Returns
     -------
-    pymc.Model
+    (pymc.Model, dict of Dataset)
     """
     # TODO: Figure out a better solution than hiding an import here
     import pymc
     params = sorted(params, key=str)
-    # Should users be able to specify their own variance parameter?
-    # Ideally this prior would come from the dataset itself
-    dataset_variance = pymc.Gamma('dataset_variance',
-                                  alpha=np.full_like(dataset_names, 0.1, dtype=np.float),
-                                  beta=np.full_like(dataset_names, 0.1, dtype=np.float),
-                                  size=len(dataset_names))
     dataset_error_funcs = []
-    function_namespace = {'zeros_like': np.zeros_like, 'square': np.square, 'divide': np.divide,
-                          'dataset_variance': dataset_variance, 'dataset_names': dataset_names}
-    # TODO: Is there a security issue with passing the output of str(x) to exec?
-    function_namespace.update([(str(param), param) for param in params])
-    param_kwarg_names = ','.join([str(param) + '=' + str(param) for param in params+[dataset_variance]])
-    param_arg_names = ','.join([str(param) for param in params])
+    dataset_est_variances = []
+    datasets = []
     for idx, fname in enumerate(dataset_names):
         with open(fname) as file_:
-            error_func, calc_func, exp_data = setup_dataset(file_, dbf, params)
-            dataset_error_funcs.append(error_func)
+            datasets.append(Dataset(*setup_dataset(file_, dbf, params)))
+            dataset_est_variances.append(np.var(datasets[-1].exp_data.values))
+            dataset_error_funcs.append(datasets[-1].error_func)
+    # For 1/var**2, choose gamma(alpha=10*est_var, beta=10)
+    #dataset_variance = pymc.Gamma('dataset_variance',
+    #                              alpha=np.asarray(dataset_est_variances, dtype=np.float),
+    #                              beta=np.asarray(dataset_est_variances, dtype=np.float),
+    #                              size=len(dataset_names))
+    function_namespace = {'zeros_like': np.zeros_like, 'square': np.square, 'divide': np.divide,
+                          'dataset_est_variances': dataset_est_variances, 'dataset_names': dataset_names}
+    # TODO: Is there a security issue with passing the output of str(x) to exec?
+    function_namespace.update([(str(param), param) for param in params])
+    param_kwarg_names = ','.join([str(param) + '=' + str(param) for param in params])
+    param_arg_names = ','.join([str(param) for param in params])
+
     function_namespace.update({'dataset_error_funcs': dataset_error_funcs})
     # Now we have to do some metaprogramming to get the variable names to bind properly
     # This code doesn't yet allow custom distributions for the error
     error_func_code = """def error({0}):
     result = zeros_like(dataset_names, dtype='float')
     for idx in range(len(dataset_names)):
-        result[idx] = divide(square(dataset_error_funcs[idx]({1})).mean(), dataset_variance[idx])
-    return -result""".format(param_kwarg_names, param_arg_names)
+        result[idx] = divide(square(dataset_error_funcs[idx]({1})).mean(), dataset_est_variances[idx])
+    return -result.sum()""".format(param_kwarg_names, param_arg_names)
     error_func_code = compile(error_func_code, '<string>', 'exec')
     exec(error_func_code, function_namespace)
     error = pymc.potential(function_namespace['error'])
-    mod = pymc.Model([function_namespace[str(param)] for param in params] + [function_namespace['dataset_variance'],
-                     error])
-    return mod
+    mod = pymc.Model([function_namespace[str(param)] for param in params] + [error])
+    return mod, datasets
+
+
+def plot_results(datasets, params, databases=None):
+    """
+    Generate figures using the datasets and trace of the parameters.
+    A dict of label->Database objects may be provided as a kwarg.
+    """
+    # Add extra broadcast dimensions for T, P, and 'points'
+    param_tr = [i.trace()[None, None, None].T for i in params]
+
+    def plot_key(obj):
+        plot = obj.json.get('plot', None)
+        return (plot['x'], plot['y']) if plot else None
+
+    datasets = sorted(datasets, key=plot_key)
+    for plot_data_type, data_group in itertools.groupby(datasets, key=plot_key):
+        if plot_data_type is None:
+            continue
+        figure = plt.figure(figsize=(15,12))
+        data_group = list(data_group)
+        x, y = plot_data_type
+        # All of data_group should be calculating the same thing...
+        # Don't show fits below 300 K since they're currently meaningless
+        # TODO: Calls to flatten() should actually be slicing operations
+        # We can get away with it for now since all datasets will be 2D
+        fit = data_group[0].calc_func(*param_tr).sel(T=slice(300, None))
+        mu = fit[y].values.mean(axis=0).flatten()
+        sigma = 2 * fit[y].values.std(axis=0).flatten()
+        figure.gca().plot(fit[x].values.flatten(), mu, '-k', label='This work')
+        figure.gca().fill_between(fit[x].values.flatten(), mu - sigma, mu + sigma, color='lightgray')
+        for data in data_group:
+            plot_label = data.json['plot'].get('name', None)
+            figure.gca().plot(data.exp_data[x].values, data.exp_data.values.flatten(), label=plot_label)
+        label_mapping = dict(x=x, y=y)
+        label_mapping['CPM'] = 'Molar Heat Capacity (J/mol-atom-K)'
+        label_mapping['SM'] = 'Molar Entropy (J/mol-atom-K)'
+        label_mapping['HM'] = 'Molar Enthalpy (J/mol-atom)'
+        label_mapping['T'] = 'Temperature (K)'
+        label_mapping['P'] = 'Pressure (Pa)'
+        figure.gca().set_xlabel(label_mapping[x], fontsize=20)
+        figure.gca().set_ylabel(label_mapping[y], fontsize=20)
+        figure.gca().tick_params(axis='both', which='major', labelsize=20)
+        figure.gca().legend(loc='best', fontsize=16)
+        figure.canvas.draw()
+        yield figure
+    plt.show()
