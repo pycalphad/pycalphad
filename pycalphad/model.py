@@ -104,12 +104,12 @@ class Model(object):
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
-    formation_energy = GM_FORM = property(lambda self: self.GM - self.models['ref'])
-    formation_enthalpy = HM_FORM = \
-        property(lambda self: self.GM_FORM - v.T*self.GM_FORM.diff(v.T))
-    formation_entropy = SM_FORM = property(lambda self: -self.GM_FORM.diff(v.T))
-    formation_heat_capacity = CPM_FORM = \
-        property(lambda self: -v.T*self.GM_FORM.diff(v.T, v.T))
+    mixing_energy = GM_MIX = property(lambda self: self.GM - self.models['ref'])
+    mixing_enthalpy = HM_MIX = \
+        property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
+    mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
+    mixing_heat_capacity = CPM_MIX = \
+        property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
     def build_phase(self, dbe, phase_name, symbols, param_search):
         """
