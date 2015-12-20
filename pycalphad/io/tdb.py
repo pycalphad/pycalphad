@@ -7,13 +7,20 @@ from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Piecewise, Symbol
+from sympy import sympify, And, Or, Not, Intersection, Union, Complement, EmptySet, Interval, S, Piecewise
+from sympy import GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Symbol
+from sympy.printing.str import StrPrinter
+from pycalphad import Database
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
+from collections import defaultdict, namedtuple
 import ast
 import sys
 import inspect
 import functools
+import itertools
+import getpass
+import datetime
 
 _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
                   ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
@@ -231,13 +238,16 @@ def _process_typedef(targetdb, typechar, line):
     tokens = line.replace(',', '').split()
     if len(tokens) < 4:
         return
-    if tokens[3].upper() == 'MAGNETIC':
+    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
+    if len(keyword) == 0:
+        raise ValueError('Unknown keyword: {}'.format(tokens[3]))
+    if keyword == 'MAGNETIC':
         # magnetic model (IHJ model assumed by default)
         targetdb.typedefs[typechar] = {
             'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
         }
     # GES A_P_D L12_FCC DIS_PART FCC_A1
-    if tokens[3].upper() == 'DIS_PART':
+    if keyword == 'DISORDERED_PART':
         # order-disorder model
         targetdb.typedefs[typechar] = {
             'disordered_phase': tokens[4].upper(),
@@ -310,17 +320,283 @@ _TDB_PROCESSOR = {
             name.split(':')[0].upper(), c),
     'PARAMETER': _process_parameter
 }
-def tdbread(targetdb, lines):
+
+def to_interval(relational):
+    if isinstance(relational, And):
+        return Intersection([to_interval(i) for i in relational.args])
+    elif isinstance(relational, Or):
+        return Union([to_interval(i) for i in relational.args])
+    elif isinstance(relational, Not):
+        return Complement([to_interval(i) for i in relational.args])
+
+    if len(relational.free_symbols) != 1:
+        raise ValueError('Relational must only have one free symbol')
+    if len(relational.args) != 2:
+        raise ValueError('Relational must only have two arguments')
+    free_symbol = list(relational.free_symbols)[0]
+    lhs = relational.args[0]
+    rhs = relational.args[1]
+    if isinstance(relational, GreaterThan):
+        if lhs == free_symbol:
+            return Interval(rhs, S.Infinity, left_open=False)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=False)
+    elif isinstance(relational, StrictGreaterThan):
+        if lhs == free_symbol:
+            return Interval(rhs, S.Infinity, left_open=True)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=True)
+    elif isinstance(relational, LessThan):
+        if lhs != free_symbol:
+            return Interval(rhs, S.Infinity, left_open=False)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=False)
+    elif isinstance(relational, StrictLessThan):
+        if lhs != free_symbol:
+            return Interval(rhs, S.Infinity, left_open=True)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=True)
+    else:
+        raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
+
+class TCPrinter(StrPrinter):
+    """
+    Prints Thermo-Calc style function expressions.
+    """
+    def _print_Piecewise(self, expr):
+        exprs = [self._print(arg.expr) for arg in expr.args]
+        if (len(expr.args) == 1) and exprs[0] == '0':
+            # clip temperatures to be between 0.01 and 6000 K in TDB files
+            return '0.01 0; 6000 N'
+        # Only a small subset of piecewise functions can be represented
+        # Need to verify that each cond's highlim equals the next cond's lowlim
+        intervals = [to_interval(i.cond) for i in expr.args]
+        if (len(intervals) > 1) and Intersection(intervals) != EmptySet():
+            raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
+        if not isinstance(Union(intervals), Interval):
+            raise ValueError('Piecewise intervals must be continuous')
+        if not all([arg.cond.free_symbols == {v.T} for arg in expr.args]):
+            raise ValueError('Only temperature-dependent piecewise conditions are supported')
+        # Clip temperatures to be between 0.01 and 6000 K in TDB files
+        intervals = [Intersection(i, Interval(0.01, 6000)) for i in intervals]
+        # Sort expressions based on intervals
+        sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].start)]
+        exprs = [exprs[idx] for idx in sortindices]
+        intervals = [intervals[idx] for idx in sortindices]
+
+        if len(exprs) > 1:
+            result = '{1} {0}; {2} Y'.format(exprs[0], self._print(intervals[0].start),
+                                             self._print(intervals[0].end))
+            result += 'Y'.join([' {0}; {1} '.format(expr,
+                                                   self._print(i.end)) for i, expr in zip(intervals[1:], exprs[1:])])
+            result += 'N'
+        else:
+            result = '{0} {1}; {2} N'.format(self._print(intervals[0].start), exprs[0],
+                                             self._print(intervals[0].end))
+
+        return result
+
+    def _print_Function(self, expr):
+        func_translations = {'log': 'ln', 'exp': 'exp'}
+        if expr.func.__name__ in func_translations:
+            return func_translations[expr.func.__name__] + "(%s)" % self.stringify(expr.args, ", ")
+        else:
+            raise TypeError("Unable to represent function: %s" %
+                             expr.func.__name__)
+
+    def blacklisted(self, expr):
+        raise TypeError("Unable to represent expression: %s" %
+                        expr.__class__.__name__)
+
+
+    # blacklist all Matrix printing
+    _print_SparseMatrix = \
+    _print_MutableSparseMatrix = \
+    _print_ImmutableSparseMatrix = \
+    _print_Matrix = \
+    _print_DenseMatrix = \
+    _print_MutableDenseMatrix = \
+    _print_ImmutableMatrix = \
+    _print_ImmutableDenseMatrix = \
+    blacklisted
+    # blacklist other operations
+    _print_Derivative = \
+    _print_Integral = \
+    blacklisted
+    # blacklist some logical operations
+    # These should never show up outside a piecewise function
+    # Piecewise handles them directly
+    _print_And = \
+    _print_Or = \
+    _print_Not = \
+    blacklisted
+    # blacklist some python expressions
+    _print_list = \
+    _print_tuple = \
+    _print_Tuple = \
+    _print_dict = \
+    _print_Dict = \
+    blacklisted
+
+
+def reflow_text(text, linewidth=80):
+    """
+    Add line breaks to ensure text doesn't exceed a certain line width.
+
+    Parameters
+    ----------
+    text : str
+    linewidth : int, optional
+
+    Returns
+    -------
+    reflowed_text : str
+    """
+    ""
+    lines = text.split("\n")
+    linebreak_chars = [" "]
+    output_lines = []
+    for line in lines:
+        if len(line) <= linewidth:
+            output_lines.append(line)
+        else:
+            while len(line) > linewidth:
+                linebreak_idx = linewidth-1
+                while line[linebreak_idx] not in linebreak_chars:
+                    linebreak_idx -= 1
+                output_lines.append(line[:linebreak_idx])
+                line = "  " + line[linebreak_idx:]
+            output_lines.append(line)
+    return "\n".join(output_lines)
+
+
+def write_tdb(dbf, fd):
+    """
+    Write a TDB file from a pycalphad Database object.
+
+    Parameters
+    ----------
+    dbf : Database
+        A pycalphad Database.
+    fd : file-like
+        File descriptor.
+    """
+    writetime = datetime.datetime.now()
+    output = ""
+    # Comment header block
+    # Import here to prevent circular imports
+    from pycalphad import __version__
+    output += ("$" * 80) + "\n"
+    output += "$ Date: {}\n".format(writetime.strftime("%Y-%m-%d %H:%M"))
+    output += "$ Components: {}\n".format(', '.join(sorted(dbf.elements)))
+    output += "$ Phases: {}\n".format(', '.join(sorted(dbf.phases.keys())))
+    output += "$ Generated by {} (pycalphad {})\n".format(getpass.getuser(), __version__)
+    output += ("$" * 80) + "\n\n"
+    for element in sorted(dbf.elements):
+        output += "ELEMENT {0} BLANK 0 0 0 !\n".format(element.upper())
+    if len(dbf.elements) > 0:
+        output += "\n"
+    for species in sorted(dbf.species):
+        output += "SPECIES {0} !\n".format(species.upper())
+    if len(dbf.species) > 0:
+        output += "\n"
+    # Write FUNCTION block
+    for name, expr in sorted(dbf.symbols.items()):
+        expr = TCPrinter().doprint(expr).upper()
+        if ';' not in expr:
+            expr += '; N'
+        output += "FUNCTION {0} {1} !\n".format(name.upper(), expr)
+    output += "\n"
+    # Boilerplate code
+    output += "TYPE_DEFINITION % SEQ * !\n"
+    output += "DEFINE_SYSTEM_DEFAULT ELEMENT 2 !\n"
+    default_elements = [i.upper() for i in sorted(dbf.elements) if i.upper() == 'VA' or i.upper() == '/-']
+    if len(default_elements) > 0:
+        output += 'DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT {} !\n'.format(' '.join(default_elements))
+    output += "\n"
+    typedef_chars = list("^&*()'ABCDEFGHIJKLMNOPQSRTUVWXYZ")[::-1]
+    for name, phase_obj in sorted(dbf.phases.items()):
+        #  Write necessary TYPE_DEF based on model hints
+        typedefs = ["%"]
+        model_hints = phase_obj.model_hints.copy()
+        if ('ordered_phase' in model_hints.keys()) and (model_hints['ordered_phase'] == name):
+            new_char = typedef_chars.pop()
+            typedefs.append(new_char)
+            output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} DISORDERED_PART {} !\n'\
+                .format(new_char, model_hints['ordered_phase'].upper(),
+                        model_hints['disordered_phase'].upper())
+            del model_hints['ordered_phase']
+            del model_hints['disordered_phase']
+        if 'ihj_magnetic_afm_factor' in model_hints.keys():
+            new_char = typedef_chars.pop()
+            typedefs.append(new_char)
+            output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} MAGNETIC {} {} !\n'\
+                .format(new_char, name.upper(), model_hints['ihj_magnetic_afm_factor'],
+                        model_hints['ihj_magnetic_structure_factor'])
+            del model_hints['ihj_magnetic_afm_factor']
+            del model_hints['ihj_magnetic_structure_factor']
+        if len(model_hints) > 0:
+            # Some model hints were not properly consumed
+            raise ValueError('Not all model hints are supported: {}'.format(model_hints))
+        output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs),
+                                                      len(phase_obj.sublattices),
+                                                      ' '.join([str(i) for i in phase_obj.sublattices]))
+        constituents = ':'.join([','.join(sorted(subl)) for subl in phase_obj.constituents])
+        output += "CONSTITUENT {0} :{1}: !\n".format(name.upper(), constituents)
+        output += "\n"
+
+    # PARAMETERs by subsystem
+    param_sorted = defaultdict(lambda: list())
+    paramtuple = namedtuple('ParamTuple', ['phase_name', 'parameter_type', 'complexity', 'constituent_array',
+                                           'parameter_order', 'parameter', 'reference'])
+    for param in dbf._parameters.all():
+        components = set()
+        for subl in param['constituent_array']:
+            components |= set(subl)
+        components = tuple(sorted([c.upper() for c in components]))
+        # We use the complexity parameter to help with sorting the parameters logically
+        param_sorted[components].append(paramtuple(param['phase_name'], param['parameter_type'],
+                                                   sum([len(i) for i in param['constituent_array']]),
+                                                   param['constituent_array'], param['parameter_order'],
+                                                   param['parameter'], param['reference']))
+    for num_elements in range(1, len(dbf.elements)+1):
+        subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
+        for subsystem in subsystems:
+            parameters = sorted(param_sorted[subsystem])
+            if len(parameters) > 0:
+                output += "\n\n"
+                output += "$" * 80 + "\n"
+                output += "$ {}".format('-'.join(sorted(subsystem)).center(80, " ")[2:-1]) + "$\n"
+                output += "$" * 80 + "\n"
+                output += "\n"
+            for parameter in parameters:
+                constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
+                                         for subl in parameter.constituent_array])
+                # TODO: Handle references
+                expr = TCPrinter().doprint(parameter.parameter).upper()
+                if ';' not in expr:
+                    expr += '; N'
+                output += "PARAMETER {}({},{};{}) {} !\n".format(parameter.parameter_type.upper(),
+                                                                 parameter.phase_name.upper(),
+                                                                 constituents,
+                                                                 parameter.parameter_order,
+                                                                 expr)
+    # Reflow text to respect 80 character limit per line
+    fd.write(reflow_text(output, linewidth=80))
+
+
+def read_tdb(dbf, fd):
     """
     Parse a TDB file into a pycalphad Database object.
 
     Parameters
     ----------
-    targetdb : Database
-        A pypycalphad Database.
-    lines : string
-        A raw TDB file.
+    dbf : Database
+        A pycalphad Database.
+    fd : file-like
+        File descriptor.
     """
+    lines = fd.read()
     lines = lines.replace('\t', ' ')
     lines = lines.strip()
     # Split the string by newlines
@@ -340,14 +616,18 @@ def tdbread(targetdb, lines):
     for command in commands:
         if len(command) == 0:
             continue
+        tokens = None
         try:
-            tokens = None
             tokens = _tdb_grammar().parseString(command)
-            _TDB_PROCESSOR[tokens[0]](targetdb, *tokens[1:])
+            _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
         except ParseException:
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+
+
+Database.register("tdb", read=read_tdb, write=write_tdb)
+
 
 if __name__ == "__main__":
     MYTDB = '''
@@ -588,5 +868,4 @@ $CRFENI-NIMS
 
 '''
     from pycalphad.io.database import Database
-    TESTDB = Database()
-    tdbread(TESTDB, MYTDB)
+    TESTDB = Database.from_file(MYTDB, fmt='tdb')

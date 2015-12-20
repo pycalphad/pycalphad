@@ -1,6 +1,10 @@
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database
+
+# Trigger format extension hooks
+import pycalphad.io.tdb
+
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
 from pycalphad.core.energy_surf import energy_surf

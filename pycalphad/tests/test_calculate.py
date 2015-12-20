@@ -5,6 +5,12 @@ Model quantities correctly.
 
 import nose.tools
 from pycalphad import Database, calculate
+try:
+    # Python 2
+    from StringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
 
 TDB_TEST_STRING = """
 ELEMENT /-          ELECTRON_GAS         0         0         0 !

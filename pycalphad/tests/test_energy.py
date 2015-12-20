@@ -251,8 +251,10 @@ def test_load_from_stringio():
         from StringIO import StringIO #python2
     except ImportError:
         from io import StringIO #python3
-    Database(StringIO(TDB_TEST_STRING))
-    assert True
+    dbf = Database(StringIO(TDB_TEST_STRING))
+    exported_tdb = StringIO()
+    dbf.to_file(exported_tdb, fmt='tdb')
+    Database.from_file(exported_tdb.getvalue(), fmt='tdb')
 
 @nose.tools.raises(ValueError)
 def test_sympify_safety():
@@ -366,6 +368,22 @@ def test_binary_magnetic():
              v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
              v.SiteFraction('L12_FCC', 1, 'NI'): 0.67}, \
         -1.68840e4, mode='numpy')
+
+def test_binary_magnetic_reimported():
+    "Export and re-import a TDB before the calculation."
+    try:
+        from StringIO import StringIO #python2
+    except ImportError:
+        from io import StringIO #python3
+    exported_tdb = StringIO()
+    DBF.to_file(exported_tdb, fmt='tdb')
+    dbf_imported = Database.from_file(exported_tdb.getvalue(), fmt='tdb')
+    check_energy(Model(dbf_imported, ['CR', 'NI'], 'L12_FCC'),
+                {v.T: 500, v.SiteFraction('L12_FCC', 0, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 0, 'NI'): 0.67,
+                v.SiteFraction('L12_FCC', 1, 'CR'): 0.33,
+                v.SiteFraction('L12_FCC', 1, 'NI'): 0.67},
+                -1.68840e4, mode='numpy')
 
 def test_binary_magnetic_ordering():
     "Two-component phase with IHJ magnetic model and ordering."
