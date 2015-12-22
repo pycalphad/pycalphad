@@ -11,7 +11,7 @@ pycalphad, a library for the CALculation of PHAse Diagrams
 
 .. image:: https://ci.appveyor.com/api/projects/status/ua1hya8isg588fyp/branch/develop?svg=true
     :target: https://ci.appveyor.com/project/richardotis/pycalphad
-    :alt: Windows Test Coverage
+    :alt: Windows Build Status
 
 .. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
     :target: https://travis-ci.org/richardotis/pycalphad
