@@ -4,18 +4,22 @@ Releasing pycalphad
 When releasing a new version of pycalphad:
 
 1. All pull requests / issues tagged with the upcoming version milestone should be resolved or deferred.
-2. Check Travis-CI and ensure that all tests pass on master. Feature tests which are deferred to a future
+2. Ensure that all tests pass locally on develop. Feature tests which are deferred to a future
    milestone should be marked with the ``SkipTest`` decorator.
 3. Regenerate the API documentation with ``sphinx-apidoc -o docs/api/ pycalphad/``
-4. Resolve differences and commit the updated API documentation to the master branch of the repository.
-5. Generate a list of commits since the last version with ``git log --oneline --decorate --color 0.1^..origin/master``
+4. Resolve differences and commit the updated API documentation to the develop branch of the repository.
+5. ``git push`` and verify all tests pass on all CI services.
+6. Generate a list of commits since the last version with ``git log --oneline --decorate --color 0.1^..origin/develop``
    Replace ``0.1`` with the tag of the last public version.
-6. Condense the change list into something user-readable. Update and commit CHANGES.rst with the release date.
-7. If you have Sphinx installed in a virtualenv with pycalphad, change to the docs directory.
+7. Condense the change list into something user-readable. Update and commit CHANGES.rst with the release date.
+8. If you have Sphinx installed in a virtual environment with pycalphad, change to the docs directory.
    Run ``sphinx-build -b html . _build/html`` to do a spot check on the docs before pushing.
-8. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
+9. ``git checkout master``
+
+   ``git merge develop`` (merge commits unnecessary for now)
+10. ``git pull`` to make sure you haven't missed any last-minute commits. **After this point, nothing else is making it into this version.**
    A minor release can be done later if something important is missed.
-9. ``git stash``
+11. ``git stash``
 
    ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **0161A98D**.
    If you are using a hardware token on Linux, you may need to ``killall -1 gpg-agent`` for it to be detected.
@@ -27,7 +31,7 @@ When releasing a new version of pycalphad:
    ``git push origin master --tags``
 
    ``git stash pop``
-10.The new version is tagged in the repository. Now the public package must be built and distributed.
+12.The new version is tagged in the repository. Now the public package must be built and distributed.
 
 Uploading to PyPI
 -----------------
