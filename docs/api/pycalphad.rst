@@ -9,6 +9,7 @@ Subpackages
     pycalphad.core
     pycalphad.io
     pycalphad.plot
+    pycalphad.tests
 
 Submodules
 ----------
@@ -17,6 +18,14 @@ pycalphad.constraints module
 ----------------------------
 
 .. automodule:: pycalphad.constraints
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.fitting module
+------------------------
+
+.. automodule:: pycalphad.fitting
     :members:
     :undoc-members:
     :show-inheritance:
@@ -33,6 +42,14 @@ pycalphad.model module
 ----------------------
 
 .. automodule:: pycalphad.model
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.refstates module
+--------------------------
+
+.. automodule:: pycalphad.refstates
     :members:
     :undoc-members:
     :show-inheritance:

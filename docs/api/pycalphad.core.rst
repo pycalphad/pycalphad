@@ -4,6 +4,14 @@ pycalphad.core package
 Submodules
 ----------
 
+pycalphad.core.autograd_utils module
+------------------------------------
+
+.. automodule:: pycalphad.core.autograd_utils
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycalphad.core.calculate module
 -------------------------------
 
@@ -40,6 +48,14 @@ pycalphad.core.equilibrium module
 ---------------------------------
 
 .. automodule:: pycalphad.core.equilibrium
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.core.halton module
+----------------------------
+
+.. automodule:: pycalphad.core.halton
     :members:
     :undoc-members:
     :show-inheritance:
