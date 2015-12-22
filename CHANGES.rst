@@ -1,6 +1,28 @@
 What's New
 ==========
 
+0.2.5 (2015-12-22)
+------------------
+
+This is a minor release with new features and bug fixes.
+
+* **Breaking change** in ``Model``: All mixing attributes have been renamed from ``MIX_{attr}`` to ``{attr}_MIX``.
+* Early support for reference states has been added to the ``refstates`` module. The reference molar Gibbs energies
+  of the pure elements according to the 1991 SGTE standard can be found in ``pycalphad.refstates.SGTE91``.
+* ``Database`` now has file import/export support with ``to_file``, ``from_file``, ``from_string`` and ``to_string``.
+  Currently TDB is the only supported format, but more can now easily be added in the future.
+  The function for extending pycalphad with new formats is ``Database.register_format``.
+  Loading databases with the default constructor, i.e., ``Database('file.tdb')``, will continue to work.
+* Equivalence comparison support for ``Database`` and ``Model``.
+  For example, if ``dbf`` is a ``Database``, ``dbf == Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')``.
+  Equivalent ``Database``s should always produce equivalent ``Model``s.
+  We have tests for this, but if you find a case where this isn't true, it's a bug and can be reported on the issue tracker.
+* A new sampling algorithm for equilibrium calculation, based on the scrambled Halton sequence, has been implemented.
+  It should improve performance for multi-component systems once some other improvements have been finalized.
+  For now, users will probably not notice a difference.
+* ``Model``: Added ``CPM_MIX`` attribute for molar isobaric heat capacity of mixing.
+* Many unit tests have been cleaned up and streamlined, with test coverage back up above 80%.
+
 0.2.4 (2015-11-18)
 ------------------
 
