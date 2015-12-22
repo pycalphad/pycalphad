@@ -8,7 +8,7 @@ from pycalphad import Database, Model
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB
 import pycalphad.variables as v
-import numpy
+import numpy as np
 
 DBF = Database(ALCRNI_TDB)
 
@@ -45,7 +45,9 @@ def calculate_energy(model, variables, mode='numpy'):
 def check_energy(model, variables, known_value, mode='numpy'):
     "Check that our calculated energy matches the known value."
     desired = calculate_energy(model, variables, mode)
-    numpy.testing.assert_allclose(float(known_value), float(desired), rtol=1e-5)
+    known_value = np.array(known_value, dtype=np.complex)
+    desired = np.array(desired, dtype=np.complex)
+    np.testing.assert_allclose(known_value, desired, rtol=1e-5)
 
 # PURE COMPONENT TESTS
 def test_pure_sympy():
@@ -221,14 +223,6 @@ def test_quaternary():
              v.SiteFraction('B2', 1, 'NI'): 5.03467e-1,
              v.SiteFraction('B2', 1, 'VA'): 1e-12}, \
         -42368.27, mode='numpy')
-
-# EXCEPTION TESTS
-@nose.tools.raises(ValueError)
-def test_negative_site_fraction_numpy():
-    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
-            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): -0.3,
-             v.SiteFraction('LIQUID', 0, 'NI'): -2}, \
-        5.52773e3, mode='numpy')
 
 # SPECIAL CASES
 def test_case_sensitivity():

@@ -98,6 +98,9 @@ class Model(object):
     def __ne__(self, other):
         return not self.__eq__(other)
 
+    def __hash__(self):
+        return hash(repr(self))
+
     @property
     def ast(self):
         "Return the full abstract syntax tree of the model."
