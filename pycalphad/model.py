@@ -87,6 +87,17 @@ class Model(object):
                 # Can't use xreplace on a float
                 pass
 
+    def __eq__(self, other):
+        if self is other:
+            return True
+        elif type(self) != type(other):
+            return False
+        else:
+            return self.__dict__ == other.__dict__
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
+
     @property
     def ast(self):
         "Return the full abstract syntax tree of the model."

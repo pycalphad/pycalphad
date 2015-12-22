@@ -365,9 +365,6 @@ class TCPrinter(StrPrinter):
     """
     def _print_Piecewise(self, expr):
         exprs = [self._print(arg.expr) for arg in expr.args]
-        if (len(expr.args) == 1) and exprs[0] == '0':
-            # clip temperatures to be between 0.01 and 6000 K in TDB files
-            return '0.01 0; 6000 N'
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         intervals = [to_interval(i.cond) for i in expr.args]
@@ -377,8 +374,6 @@ class TCPrinter(StrPrinter):
             raise ValueError('Piecewise intervals must be continuous')
         if not all([arg.cond.free_symbols == {v.T} for arg in expr.args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')
-        # Clip temperatures to be between 0.01 and 6000 K in TDB files
-        intervals = [Intersection(i, Interval(0.01, 6000)) for i in intervals]
         # Sort expressions based on intervals
         sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].start)]
         exprs = [exprs[idx] for idx in sortindices]

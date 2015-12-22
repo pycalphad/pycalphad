@@ -39,6 +39,13 @@ class Phase(object): #pylint: disable=R0903
         self.constituents = None
         self.sublattices = []
         self.model_hints = {}
+    def __eq__(self, other):
+        if type(self) == type(other):
+            return self.__dict__ == other.__dict__
+        else:
+            return False
+    def __ne__(self, other):
+        return not self.__eq__(other)
     def __repr__(self):
         return 'Phase({0!r})'.format(self.__dict__)
 
@@ -110,7 +117,15 @@ class Database(object): #pylint: disable=R0902
                     fmt = ext[1:].lower()
             except AttributeError:
                 pass
-            return cls.from_file(fname, fmt=fmt)
+            if hasattr(fname, 'read'):
+                # File descriptor
+                return cls.from_file(fname, fmt=fmt)
+            elif fname.find('\n') == -1:
+                # Single-line string; it's probably a filename
+                return cls.from_file(fname, fmt=fmt)
+            else:
+                # Newlines found: probably a full database string
+                return cls.from_string(fname, fmt=fmt)
         else:
             raise ValueError('Invalid number of parameters: '+len(args))
 
@@ -167,25 +182,17 @@ class Database(object): #pylint: disable=R0902
         else:
             fmt = fmt.lower()
         if fmt not in format_registry or format_registry[fmt].read is None:
-            supported_reads = [i for i in format_registry.keys() if i.read is not None]
+            supported_reads = [key for key, value in format_registry.items() if value.read is not None]
             raise NotImplementedError('Unsupported read format \'{0}\'. Supported formats: {1}'.format(fmt,
                                                                                                         supported_reads))
-        # First, let's try to treat it like it's a file descriptor
-        try:
-            fname.read
+        # Is it a file descriptor?
+        if hasattr(fname, 'read'):
             fd = fname
             need_to_close = False
-        except AttributeError:
-            # It's not file-like, so it's probably string-like
-            # The question is if it's a filename or the whole raw database
-            # Solution is to check for newlines
+        else:
+            # It's not file-like, so it's probably a filename
             need_to_close = True
-            if fname.find('\n') == -1:
-                # Single-line; it's probably a filename
-                fd = open(fname, mode='r')
-            else:
-                # Newlines found: probably a full database string
-                fd = StringIO(fname)
+            fd = open(fname, mode='r')
         try:
             dbf = Database()
             format_registry[fmt.lower()].read(dbf, fd)
@@ -196,6 +203,25 @@ class Database(object): #pylint: disable=R0902
                 fd.close()
 
         return dbf
+
+    @classmethod
+    def from_string(cls, data, **kwargs):
+        """
+        Returns Database from a string in the specified format.
+        This function is a wrapper for calling `from_file` with StringIO.
+
+        Parameters
+        ----------
+        data : str
+            Raw database string in the specified format.
+        kwargs : optional
+            See keyword arguments for `from_file`.
+
+        Returns
+        -------
+        dbf : Database
+        """
+        return cls.from_file(StringIO(data), **kwargs)
 
     def to_file(self, fname, fmt=None, if_exists='raise'):
         """
@@ -212,7 +238,7 @@ class Database(object): #pylint: disable=R0902
             The 'raise' option (default) will raise a FileExistsError.
             The 'rename' option will append the date/time to the filename.
             The 'overwrite' option will overwrite the file.
-            This option is ignored if 'fname' is file-like.
+            This argument is ignored if 'fname' is file-like.
 
         Examples
         --------
@@ -230,7 +256,7 @@ class Database(object): #pylint: disable=R0902
         else:
             fmt = fmt.lower()
         if fmt not in format_registry or format_registry[fmt].write is None:
-            supported_writes = [i for i in format_registry.keys() if i.write is not None]
+            supported_writes = [key for key, value in format_registry.items() if value.write is not None]
             raise NotImplementedError('Unsupported write format \'{0}\'. Supported formats: {1}'.format(fmt,
                                                                                                         supported_writes))
         # Is this a file descriptor?
@@ -247,6 +273,24 @@ class Database(object): #pylint: disable=R0902
             with open(fname, mode='w') as fd:
                 format_registry[fmt].write(self, fd)
 
+    def to_string(self, **kwargs):
+        """
+        Returns Database as a string.
+        This function is a wrapper for calling `to_file` with StringIO.
+
+        Parameters
+        ----------
+        kwargs : optional
+            See keyword arguments for `to_file`.
+
+        Returns
+        -------
+        result : str
+        """
+        result = StringIO()
+        self.to_file(result, **kwargs)
+        return result.getvalue()
+
     def __str__(self):
         result = 'Elements: {0}\n'.format(sorted(self.elements))
         result += 'Species: {0}\n'.format(sorted(self.species))
@@ -257,6 +301,34 @@ class Database(object): #pylint: disable=R0902
         result += '{0} symbols in database\n'.format(len(self.symbols))
         result += '{0} parameters in database\n'.format(len(self._parameters))
         return result
+
+    def __eq__(self, other):
+        if self is other:
+            return True
+        elif type(self) != type(other):
+            return False
+        elif sorted(self.__dict__.keys()) != sorted(other.__dict__.keys()):
+            return False
+        else:
+            def param_sort_key(x):
+                return x['phase_name'], x['parameter_type'], x['constituent_array'], x['parameter_order']
+            for key in self.__dict__.keys():
+                if key == '_parameters':
+                    # Special handling for TinyDB objects
+                    if sorted(self._parameters.all(), key=param_sort_key) != sorted(other._parameters.all(),
+                                                                                    key=param_sort_key):
+                        return False
+                elif key == 'typedefs':
+                    # Don't compare typedef character equality; only check that all typedefs "mean" the same
+                    # This is sufficient since we check 'phases' for equality
+                    if sorted(self.typedefs.values()) != sorted(other.typedefs.values()):
+                        return False
+                elif self.__dict__[key] != other.__dict__[key]:
+                    return False
+            return True
+
+    def __ne__(self, other):
+        return not self.__eq__(other)
 
     def add_structure_entry(self, local_name, global_name):
         """
@@ -327,7 +399,8 @@ class Database(object): #pylint: disable=R0902
         """
         new_phase = Phase()
         new_phase.name = phase_name
-        new_phase.sublattices = sublattices
+        # Need to convert from ParseResults or else equality testing will break
+        new_phase.sublattices = tuple(sublattices)
         new_phase.model_hints = model_hints
         self.phases[phase_name] = new_phase
     def add_phase_constituents(self, phase_name, constituents):
@@ -346,7 +419,9 @@ class Database(object): #pylint: disable=R0902
         None yet.
         """
         try:
-            self.phases[phase_name].constituents = constituents
+            # Need to convert constituents from ParseResults
+            # Otherwise equality testing will be broken
+            self.phases[phase_name].constituents = tuple(map(list, constituents))
         except KeyError:
             print("Undefined phase "+phase_name)
             raise
