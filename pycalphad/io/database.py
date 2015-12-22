@@ -130,7 +130,7 @@ class Database(object): #pylint: disable=R0902
             raise ValueError('Invalid number of parameters: '+len(args))
 
     @staticmethod
-    def register(fmt, read=None, write=None):
+    def register_format(fmt, read=None, write=None):
         """
         Add support for reading and/or writing the specified format.
 
@@ -442,6 +442,3 @@ class Database(object): #pylint: disable=R0902
         >>>> db.search(where('eid') == eid)
         """
         return self._parameters.search(query)
-
-if __name__ == "__main__":
-    pass
