@@ -312,6 +312,11 @@ class Database(object): #pylint: disable=R0902
         else:
             def param_sort_key(x):
                 return x['phase_name'], x['parameter_type'], x['constituent_array'], x['parameter_order']
+            def typedef_sort_key(x):
+                if isinstance(x, dict):
+                    return sorted([(typedef_sort_key(key), typedef_sort_key(value)) for key, value in x.items()])
+                else:
+                    return x
             for key in self.__dict__.keys():
                 if key == '_parameters':
                     # Special handling for TinyDB objects
@@ -321,7 +326,11 @@ class Database(object): #pylint: disable=R0902
                 elif key == 'typedefs':
                     # Don't compare typedef character equality; only check that all typedefs "mean" the same
                     # This is sufficient since we check 'phases' for equality
-                    if sorted(self.typedefs.values()) != sorted(other.typedefs.values()):
+                    self_typedefs = sorted(self.typedefs.values(), key=typedef_sort_key)
+                    other_typedefs = sorted(other.typedefs.values(), key=typedef_sort_key)
+                    print(self_typedefs)
+                    print(other_typedefs)
+                    if self_typedefs != other_typedefs:
                         return False
                 elif self.__dict__[key] != other.__dict__[key]:
                     return False

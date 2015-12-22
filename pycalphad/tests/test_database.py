@@ -91,7 +91,7 @@ def test_unspecified_format_to_file():
 @nose.tools.raises(NotImplementedError)
 def test_unknown_format_from_file():
     "from_string: Unknown import file format raises NotImplementedError."
-    Database.from_string(StringIO(ALCRNI_TDB), fmt='_fail_')
+    Database.from_string(ALCRNI_TDB, fmt='_fail_')
 
 @nose.tools.raises(NotImplementedError)
 def test_unknown_format_to_file():
