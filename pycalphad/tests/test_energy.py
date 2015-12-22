@@ -8,13 +8,13 @@ from pycalphad import Database, Model
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB
 import pycalphad.variables as v
+import numpy
 
 DBF = Database(ALCRNI_TDB)
 
 @nose.tools.raises(ValueError)
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
-    from sympy import sympify
     from pycalphad.io.tdb import _sympify_string
     teststr = "().__class__.__base__.__subclasses__()[216]('ls')"
     _sympify_string(teststr) # should throw ParseException
@@ -27,13 +27,13 @@ def calculate_energy(model, variables, mode='numpy'):
     Parameters
     ----------
     model, Model
-    Energy model for a phase.
+        Energy model for a phase.
 
     variables, dict
-    Dictionary of all input variables.
+        Dictionary of all input variables.
 
     mode, ['numpy', 'sympy'], optional
-    Optimization method for the abstract syntax tree.
+        Optimization method for the abstract syntax tree.
     """
     # Generate a callable energy function
     # Normally we would use model.subs(variables) here, but we want to ensure
@@ -45,12 +45,7 @@ def calculate_energy(model, variables, mode='numpy'):
 def check_energy(model, variables, known_value, mode='numpy'):
     "Check that our calculated energy matches the known value."
     desired = calculate_energy(model, variables, mode)
-    if abs(known_value) > 0:
-        assert abs(1 - (desired / known_value)) < 1e-5, \
-            "%r != %r, mode=%s for %s" % (desired, known_value, mode, variables)
-    else:
-        assert abs(desired - known_value) < 1e-5, \
-            "%r != %r, mode=%s for %s" % (desired, known_value, mode, variables)
+    numpy.testing.assert_allclose(float(known_value), float(desired), rtol=1e-5)
 
 # PURE COMPONENT TESTS
 def test_pure_sympy():
@@ -228,24 +223,12 @@ def test_quaternary():
         -42368.27, mode='numpy')
 
 # EXCEPTION TESTS
-@nose.tools.raises(Exception)
-def test_negative_site_fraction():
-    "Raise exception on negative site fraction."
-    check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
-            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): -0.3,
-             v.SiteFraction('LIQUID', 0, 'NI'): -2}, \
-        5.52773e3, mode='sympy')
+@nose.tools.raises(ValueError)
+def test_negative_site_fraction_numpy():
     check_energy(Model(DBF, ['CR', 'NI'], 'LIQUID'), \
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): -0.3,
              v.SiteFraction('LIQUID', 0, 'NI'): -2}, \
         5.52773e3, mode='numpy')
-
-@nose.tools.raises(Exception)
-def test_missing_variable_def():
-    "Raise exception when a variable is not defined."
-    check_energy(Model(DBF, ['Cr', 'nI'], 'Liquid'), \
-            {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12}, \
-        5.52773e3, mode='sympy')
 
 # SPECIAL CASES
 def test_case_sensitivity():

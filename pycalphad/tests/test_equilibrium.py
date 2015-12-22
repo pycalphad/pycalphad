@@ -102,6 +102,3 @@ def test_eq_composition_cond_sorting():
     assert_allclose(eq.GM.values, tc_energy)
     assert_allclose(eq.MU.values, [[[[tc_mu_al, tc_mu_fe]]]], rtol=1e-6)
 
-if __name__ == '__main__':
-    import nose
-    nose.run(defaultTest=__name__)

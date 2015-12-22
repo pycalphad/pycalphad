@@ -3,6 +3,7 @@ The test_database module contains tests for the Database object.
 """
 from __future__ import print_function
 from pycalphad import Database, Model
+from pycalphad.io.tdb import expand_keyword
 from pycalphad.tests.datasets import ALCRNI_TDB, ROSE_TDB
 import nose.tools
 try:
@@ -96,3 +97,50 @@ def test_unknown_format_from_file():
 def test_unknown_format_to_file():
     "to_file: Unknown export file format raises NotImplementedError."
     REFERENCE_DBF.to_file(StringIO(), fmt='_fail_')
+
+def test_expand_keyword():
+    "expand_keyword expands command abbreviations."
+    test_list = [
+        'PARAMETER',
+        'ELEMENT',
+        'CALCULATE_EQUILIBRIUM',
+        'CALCULATE_ALL_EQUILIBRIA',
+        'LIST_EQUILIBRIUM',
+        'LIST_INITIAL_EQUILIBRIUM',
+        'LOAD_INITIAL_EQUILIBRIUM',
+        'LIST_PHASE_DATA',
+        'SET_ALL_START_VALUES',
+        'SET_AXIS_VARIABLE',
+        'SET_START_CONSTITUENT',
+        'SET_START_VALUE',
+        'SET_AXIS_PLOT_STATUS',
+        'SET_AXIS_TEXT_STATUS',
+        'SET_AXIS_TYPE',
+        'SET_OPTIMIZING_CONDITION',
+        'SET_OPTIMIZING_VARIABLE',
+        'SET_OUTPUT_LEVEL'
+    ]
+    test_input = [
+        ('Par', ['PARAMETER']),
+        ('Elem', ['ELEMENT']),
+        ('PAR', ['PARAMETER']),
+        ('C-E', ['CALCULATE_EQUILIBRIUM']),
+        ('C-A', ['CALCULATE_ALL_EQUILIBRIA']),
+        ('LI-I-E', ['LIST_INITIAL_EQUILIBRIUM']),
+        ('LO-I-E', ['LOAD_INITIAL_EQUILIBRIUM']),
+        ('L-P-D', ['LIST_PHASE_DATA']),
+        ('S-A-S', ['SET_ALL_START_VALUES']),
+        ('S-AL', ['SET_ALL_START_VALUES']),
+        ('S-A-V', ['SET_AXIS_VARIABLE']),
+        ('S-S-C', ['SET_START_CONSTITUENT']),
+        ('S-S-V', ['SET_START_VALUE']),
+        ('S-A-P', ['SET_AXIS_PLOT_STATUS']),
+        ('S-A-T-S', ['SET_AXIS_TEXT_STATUS']),
+        ('S-A-TE', ['SET_AXIS_TEXT_STATUS']),
+        ('S-A-TY', ['SET_AXIS_TYPE']),
+        ('S-O-C', ['SET_OPTIMIZING_CONDITION']),
+        ('S-O-V', ['SET_OPTIMIZING_VARIABLE']),
+        ('S-O-L', ['SET_OUTPUT_LEVEL']),
+        ('S-OU', ['SET_OUTPUT_LEVEL'])
+    ]
+    assert all([full == expand_keyword(test_list, abbrev) for abbrev, full in test_input])
