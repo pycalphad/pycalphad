@@ -15,7 +15,7 @@ This is a minor release with new features and bug fixes.
   Loading databases with the default constructor, i.e., ``Database('file.tdb')``, will continue to work.
 * Equivalence comparison support for ``Database`` and ``Model``.
   For example, if ``dbf`` is a ``Database``, ``dbf == Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')``.
-  Equivalent ``Database``s should always produce equivalent ``Model``s.
+  Equivalent ``Database`` objects should always produce equivalent ``Model`` objects.
   We have tests for this, but if you find a case where this isn't true, it's a bug and can be reported on the issue tracker.
 * A new sampling algorithm for equilibrium calculation, based on the scrambled Halton sequence, has been implemented.
   It should improve performance for multi-component systems once some other improvements have been finalized.

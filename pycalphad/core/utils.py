@@ -214,14 +214,16 @@ def sizeof_fmt(num, suffix='B'):
 def unpack_condition(tup):
     """
     Convert a condition to a list of values.
+
+    Notes
+    -----
     Rules for keys of conditions dicts:
     (1) If it's numeric, treat as a point value
     (2) If it's a tuple with one element, treat as a point value
-    (3) If it's a tuple with two elements, treat as lower/upper limits and
-        guess a step size
+    (3) If it's a tuple with two elements, treat as lower/upper limits and guess a step size.
     (4) If it's a tuple with three elements, treat as lower/upper/step
-    (5) If it's a list, ndarray or other non-tuple ordered iterable,
-        use those values directly
+    (5) If it's a list, ndarray or other non-tuple ordered iterable, use those values directly.
+
     """
     if isinstance(tup, tuple):
         if len(tup) == 1:

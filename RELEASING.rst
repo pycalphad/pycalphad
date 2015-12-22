@@ -12,8 +12,8 @@ When releasing a new version of pycalphad:
 6. Generate a list of commits since the last version with ``git log --oneline --decorate --color 0.1^..origin/develop``
    Replace ``0.1`` with the tag of the last public version.
 7. Condense the change list into something user-readable. Update and commit CHANGES.rst with the release date.
-8. If you have Sphinx installed in a virtual environment with pycalphad, change to the docs directory.
-   Run ``sphinx-build -b html . _build/html`` to do a spot check on the docs before pushing.
+8. If you have Sphinx installed in a virtual environment with pycalphad:
+   Run ``sphinx-build -b html ~/git/pycalphad/docs docs/_build/html`` to do a spot check on the docs before pushing.
 9. ``git checkout master``
 
    ``git merge develop`` (merge commits unnecessary for now)

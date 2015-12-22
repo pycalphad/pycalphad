@@ -56,7 +56,6 @@ format_registry = {}
 class Database(object): #pylint: disable=R0902
     """
     Structured thermodynamic and/or kinetic data.
-    Databases are usually filled by Parsers and read by Models.
 
     Attributes
     ----------
@@ -71,27 +70,14 @@ class Database(object): #pylint: disable=R0902
     references : dict
         Reference objects indexed by their system-local identifier.
 
-    Methods
-    -------
-    None yet.
-
+    Examples
+    --------
+    >>> mydb = Database(open('crfeni_mie.tdb'))
+    >>> mydb = Database('crfeni_mie.tdb')
+    >>> f = StringIO(u'$a complete TDB file as a string\n')
+    >>> mydb = Database(f)
     """
     def __new__(cls, *args):
-        """
-        Construct a Database object.
-
-        Parameters
-        ----------
-        args: file descriptor or raw data, optional
-              File to load.
-
-        Examples
-        --------
-        >>> mydb = Database(open('crfeni_mie.tdb'))
-        >>> mydb = Database('crfeni_mie.tdb')
-        >>> f = StringIO(u'$a complete TDB file as a string\n')
-        >>> mydb = Database(f)
-        """
         if len(args) == 0:
             obj = super(Database, cls).__new__(cls, *args)
             # Should elements be rolled into a special case of species?
