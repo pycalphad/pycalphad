@@ -7,8 +7,8 @@ from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Intersection, Union, EmptySet, Interval, Piecewise
-from sympy import Symbol
+from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
+from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
 from sympy.printing.str import StrPrinter
 from pycalphad import Database
 import pycalphad.variables as v
@@ -321,6 +321,44 @@ _TDB_PROCESSOR = {
     'PARAMETER': _process_parameter
 }
 
+def to_interval(relational):
+    if isinstance(relational, And):
+        return Intersection([to_interval(i) for i in relational.args])
+    elif isinstance(relational, Or):
+        return Union([to_interval(i) for i in relational.args])
+    elif isinstance(relational, Not):
+        return Complement([to_interval(i) for i in relational.args])
+
+    if len(relational.free_symbols) != 1:
+        raise ValueError('Relational must only have one free symbol')
+    if len(relational.args) != 2:
+        raise ValueError('Relational must only have two arguments')
+    free_symbol = list(relational.free_symbols)[0]
+    lhs = relational.args[0]
+    rhs = relational.args[1]
+    if isinstance(relational, GreaterThan):
+        if lhs == free_symbol:
+            return Interval(rhs, S.Infinity, left_open=False)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=False)
+    elif isinstance(relational, StrictGreaterThan):
+        if lhs == free_symbol:
+            return Interval(rhs, S.Infinity, left_open=True)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=True)
+    elif isinstance(relational, LessThan):
+        if lhs != free_symbol:
+            return Interval(rhs, S.Infinity, left_open=False)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=False)
+    elif isinstance(relational, StrictLessThan):
+        if lhs != free_symbol:
+            return Interval(rhs, S.Infinity, left_open=True)
+        else:
+            return Interval(S.NegativeInfinity, rhs, right_open=True)
+    else:
+        raise ValueError('Unsupported Relational: {}'.format(relational.__class__.__name__))
+
 class TCPrinter(StrPrinter):
     """
     Prints Thermo-Calc style function expressions.
@@ -329,7 +367,7 @@ class TCPrinter(StrPrinter):
         exprs = [self._print(arg.expr) for arg in expr.args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
-        intervals = [i.cond.as_set() for i in expr.args]
+        intervals = [to_interval(i.cond) for i in expr.args]
         if (len(intervals) > 1) and Intersection(intervals) != EmptySet():
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
         if not isinstance(Union(intervals), Interval):
