@@ -295,11 +295,6 @@ class Database(object): #pylint: disable=R0902
         else:
             def param_sort_key(x):
                 return x['phase_name'], x['parameter_type'], x['constituent_array'], x['parameter_order']
-            def typedef_sort_key(x):
-                if isinstance(x, dict):
-                    return sorted([(typedef_sort_key(key), typedef_sort_key(value)) for key, value in x.items()])
-                else:
-                    return x
             for key in self.__dict__.keys():
                 if key == '_parameters':
                     # Special handling for TinyDB objects
