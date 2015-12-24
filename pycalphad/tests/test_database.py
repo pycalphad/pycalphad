@@ -4,7 +4,7 @@ The test_database module contains tests for the Database object.
 from __future__ import print_function
 from pycalphad import Database, Model
 from pycalphad.io.tdb import expand_keyword
-from pycalphad.tests.datasets import ALCRNI_TDB, ROSE_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ROSE_TDB
 import nose.tools
 try:
     # Python 2
@@ -55,8 +55,8 @@ def test_load_from_string():
 
 def test_export_import():
     "Equivalence of re-imported database to original."
-    test_dbf = Database.from_string(REFERENCE_DBF.to_string(fmt='tdb'), fmt='tdb')
-    assert test_dbf == REFERENCE_DBF
+    test_dbf = Database(ALNIPT_TDB)
+    assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
 @nose.tools.raises(ValueError)
 def test_unspecified_format_from_string():

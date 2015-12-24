@@ -367,6 +367,7 @@ class TCPrinter(StrPrinter):
         exprs = [self._print(arg.expr) for arg in expr.args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
+        # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
         intervals = [to_interval(i.cond) for i in expr.args]
         if (len(intervals) > 1) and Intersection(intervals) != EmptySet():
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
@@ -390,6 +391,10 @@ class TCPrinter(StrPrinter):
                                              self._print(intervals[0].end))
 
         return result
+
+    def _print_Infinity(self, expr):
+        # Return "default value"
+        return ","
 
     def _print_Function(self, expr):
         func_translations = {'log': 'ln', 'exp': 'exp'}
@@ -449,7 +454,7 @@ def reflow_text(text, linewidth=80):
     """
     ""
     lines = text.split("\n")
-    linebreak_chars = [" "]
+    linebreak_chars = [" ", "$"]
     output_lines = []
     for line in lines:
         if len(line) <= linewidth:
@@ -460,7 +465,11 @@ def reflow_text(text, linewidth=80):
                 while line[linebreak_idx] not in linebreak_chars:
                     linebreak_idx -= 1
                 output_lines.append(line[:linebreak_idx])
-                line = "  " + line[linebreak_idx:]
+                if "$" in line:
+                    # previous line was a comment
+                    line = "$ " + line[linebreak_idx:]
+                else:
+                    line = "  " + line[linebreak_idx:]
             output_lines.append(line)
     return "\n".join(output_lines)
 
@@ -548,6 +557,8 @@ def write_tdb(dbf, fd):
         components = set()
         for subl in param['constituent_array']:
             components |= set(subl)
+        # Wildcard operator is not a component
+        components -= {'*'}
         components = tuple(sorted([c.upper() for c in components]))
         # We use the complexity parameter to help with sorting the parameters logically
         param_sorted[components].append(paramtuple(param['phase_name'], param['parameter_type'],

@@ -26,7 +26,7 @@ class Phase(object): #pylint: disable=R0903
     ----------
     name : string
         System-local name of the phase.
-    constituents : list of lists
+    constituents : tuple of frozenset
         Possible sublattice constituents (elements and/or species).
     sublattices : list
         Site ratios of sublattices.
@@ -298,8 +298,11 @@ class Database(object): #pylint: disable=R0902
             for key in self.__dict__.keys():
                 if key == '_parameters':
                     # Special handling for TinyDB objects
-                    if sorted(self._parameters.all(), key=param_sort_key) != sorted(other._parameters.all(),
-                                                                                    key=param_sort_key):
+                    if len(self._parameters.all()) != len(other._parameters.all()):
+                        return False
+                    self_params = sorted(self._parameters.all(), key=param_sort_key)
+                    other_params = sorted(other._parameters.all(), key=param_sort_key)
+                    if self_params != other_params:
                         return False
                 elif self.__dict__[key] != other.__dict__[key]:
                     return False
@@ -403,7 +406,7 @@ class Database(object): #pylint: disable=R0902
         try:
             # Need to convert constituents from ParseResults
             # Otherwise equality testing will be broken
-            self.phases[phase_name].constituents = tuple(map(list, constituents))
+            self.phases[phase_name].constituents = tuple(map(frozenset, constituents))
         except KeyError:
             print("Undefined phase "+phase_name)
             raise
