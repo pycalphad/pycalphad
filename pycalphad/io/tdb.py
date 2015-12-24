@@ -7,8 +7,8 @@ from pyparsing import LineEnd, MatchFirst, OneOrMore, Optional, Regex, SkipTo
 from pyparsing import ZeroOrMore, Suppress, White, Word, alphanums, alphas, nums
 from pyparsing import delimitedList, ParseException
 import re
-from sympy import sympify, And, Or, Not, Intersection, Union, Complement, EmptySet, Interval, S, Piecewise
-from sympy import GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Symbol
+from sympy import sympify, And, Intersection, Union, EmptySet, Interval, Piecewise
+from sympy import Symbol
 from sympy.printing.str import StrPrinter
 from pycalphad import Database
 import pycalphad.variables as v
@@ -243,13 +243,13 @@ def _process_typedef(targetdb, typechar, line):
         raise ValueError('Unknown keyword: {}'.format(tokens[3]))
     if keyword == 'MAGNETIC':
         # magnetic model (IHJ model assumed by default)
-        targetdb.typedefs[typechar] = {
+        targetdb.tdbtypedefs[typechar] = {
             'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
         }
     # GES A_P_D L12_FCC DIS_PART FCC_A1
     if keyword == 'DISORDERED_PART':
         # order-disorder model
-        targetdb.typedefs[typechar] = {
+        targetdb.tdbtypedefs[typechar] = {
             'disordered_phase': tokens[4].upper(),
             'ordered_phase': tokens[2].upper()
         }
@@ -261,7 +261,7 @@ def _process_typedef(targetdb, typechar, line):
             # specified first. If the disordered phase is specified
             # first, we will have to catch it in _process_phase().
             targetdb.phases[tokens[2].upper()].model_hints.update(
-                targetdb.typedefs[typechar]
+                targetdb.tdbtypedefs[typechar]
             )
 
 def _process_phase(targetdb, name, typedefs, subls):
@@ -276,17 +276,17 @@ def _process_phase(targetdb, name, typedefs, subls):
     targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
     for typedef in list(typedefs):
-        if typedef in targetdb.typedefs.keys():
-            if 'ihj_magnetic' in targetdb.typedefs[typedef].keys():
+        if typedef in targetdb.tdbtypedefs.keys():
+            if 'ihj_magnetic' in targetdb.tdbtypedefs[typedef].keys():
                 model_hints['ihj_magnetic_afm_factor'] = \
-                    targetdb.typedefs[typedef]['ihj_magnetic'][0]
+                    targetdb.tdbtypedefs[typedef]['ihj_magnetic'][0]
                 model_hints['ihj_magnetic_structure_factor'] = \
-                    targetdb.typedefs[typedef]['ihj_magnetic'][1]
-            if 'ordered_phase' in targetdb.typedefs[typedef].keys():
+                    targetdb.tdbtypedefs[typedef]['ihj_magnetic'][1]
+            if 'ordered_phase' in targetdb.tdbtypedefs[typedef].keys():
                 model_hints['ordered_phase'] = \
-                    targetdb.typedefs[typedef]['ordered_phase']
+                    targetdb.tdbtypedefs[typedef]['ordered_phase']
                 model_hints['disordered_phase'] = \
-                    targetdb.typedefs[typedef]['disordered_phase']
+                    targetdb.tdbtypedefs[typedef]['disordered_phase']
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
@@ -570,6 +570,9 @@ def read_tdb(dbf, fd):
     # It's possible they were at the end of a command
     commands = [k.strip() for k in commands if not k.startswith("$")]
 
+    # Temporary storage while we process type definitions
+    dbf.tdbtypedefs = {}
+
     for command in commands:
         if len(command) == 0:
             continue
@@ -581,6 +584,7 @@ def read_tdb(dbf, fd):
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+    del dbf.tdbtypedefs
 
 
 Database.register_format("tdb", read=read_tdb, write=write_tdb)

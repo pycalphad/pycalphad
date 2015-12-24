@@ -84,7 +84,6 @@ class Database(object): #pylint: disable=R0902
             obj.elements = set()
             obj.species = set()
             obj.phases = {}
-            obj.typedefs = {}
             obj._structure_dict = {} # System-local phase names to global IDs
             obj._parameters = TinyDB(storage=MemoryStorage)
             obj.symbols = {}
@@ -280,8 +279,6 @@ class Database(object): #pylint: disable=R0902
     def __str__(self):
         result = 'Elements: {0}\n'.format(sorted(self.elements))
         result += 'Species: {0}\n'.format(sorted(self.species))
-        for symbol, info in sorted(self.typedefs.items()):
-            result += 'Type Definition \'{0}\': {1}\n'.format(symbol, info)
         for name, phase in sorted(self.phases.items()):
             result += str(phase)+'\n'
         result += '{0} symbols in database\n'.format(len(self.symbols))
@@ -308,15 +305,6 @@ class Database(object): #pylint: disable=R0902
                     # Special handling for TinyDB objects
                     if sorted(self._parameters.all(), key=param_sort_key) != sorted(other._parameters.all(),
                                                                                     key=param_sort_key):
-                        return False
-                elif key == 'typedefs':
-                    # Don't compare typedef character equality; only check that all typedefs "mean" the same
-                    # This is sufficient since we check 'phases' for equality
-                    self_typedefs = sorted(self.typedefs.values(), key=typedef_sort_key)
-                    other_typedefs = sorted(other.typedefs.values(), key=typedef_sort_key)
-                    print(self_typedefs)
-                    print(other_typedefs)
-                    if self_typedefs != other_typedefs:
                         return False
                 elif self.__dict__[key] != other.__dict__[key]:
                     return False
@@ -353,12 +341,16 @@ class Database(object): #pylint: disable=R0902
         ----------
         param_type : str
             Type name of the parameter, e.g., G, L, BMAGN.
-        phase_name : string
+        phase_name : str
             Name of the phase.
         constituent_array : list
             Configuration of the sublattices (elements and/or species).
-        symbol : object
+        param_order : int
+            Polynomial order of the parameter.
+        param : object
             Abstract representation of the parameter, e.g., in SymPy format.
+        ref : str, optional
+            Reference for the parameter.
 
         Examples
         --------
