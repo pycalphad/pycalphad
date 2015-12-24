@@ -3,9 +3,10 @@ The test_model module contains unit tests for the Model object.
 """
 from __future__ import print_function
 from pycalphad import Database, Model
-from pycalphad.tests.datasets import ALCRNI_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
+ALNIPT_DBF = Database(ALNIPT_TDB)
 
 def test_model_eq():
     "Model equality comparison."
@@ -33,6 +34,6 @@ def test_model_ne():
 
 def test_export_import():
     "Equivalence of Model using re-imported database."
-    test_model = Model(Database.from_string(ALCRNI_DBF.to_string(fmt='tdb'), fmt='tdb'), ['CR', 'NI'], 'L12_FCC')
-    ref_model = Model(ALCRNI_DBF, ['CR', 'NI'], 'L12_FCC')
+    test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
+    ref_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
     assert test_model == ref_model
