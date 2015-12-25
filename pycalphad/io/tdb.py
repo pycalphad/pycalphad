@@ -306,10 +306,15 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
+def _setitem_raise_duplicates(dictionary, key, value):
+    if key in dictionary:
+        raise ValueError("TDB contains duplicate FUNCTION {}".format(key))
+    dictionary[key] = value
+
 _TDB_PROCESSOR = {
     'ELEMENT': lambda db, el: db.elements.add(el),
     'TYPE_DEFINITION': _process_typedef,
-    'FUNCTION': lambda db, name, sym: db.symbols.__setitem__(name, sym),
+    'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'ASSESSED_SYSTEMS': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
