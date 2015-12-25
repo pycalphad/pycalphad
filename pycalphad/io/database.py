@@ -208,7 +208,7 @@ class Database(object): #pylint: disable=R0902
         """
         return cls.from_file(StringIO(data), **kwargs)
 
-    def to_file(self, fname, fmt=None, if_exists='raise'):
+    def to_file(self, fname, fmt=None, if_exists='raise', **write_kwargs):
         """
         Write the Database to a file.
 
@@ -224,6 +224,8 @@ class Database(object): #pylint: disable=R0902
             The 'rename' option will append the date/time to the filename.
             The 'overwrite' option will overwrite the file.
             This argument is ignored if 'fname' is file-like.
+        write_kwargs : optional
+            Keyword arguments to pass to write function.
 
         Examples
         --------
@@ -246,7 +248,7 @@ class Database(object): #pylint: disable=R0902
                                                                                                         supported_writes))
         # Is this a file descriptor?
         if hasattr(fname, 'write'):
-            format_registry[fmt].write(self, fname)
+            format_registry[fmt].write(self, fname, **write_kwargs)
         else:
             if os.path.exists(fname) and if_exists != 'overwrite':
                 if if_exists == 'raise':
@@ -256,7 +258,7 @@ class Database(object): #pylint: disable=R0902
                     fname = os.path.splitext(fname)
                     fname = fname[0] + "." + writetime.strftime("%Y-%m-%d-%H-%M") + fname[1]
             with open(fname, mode='w') as fd:
-                format_registry[fmt].write(self, fd)
+                format_registry[fmt].write(self, fd, **write_kwargs)
 
     def to_string(self, **kwargs):
         """

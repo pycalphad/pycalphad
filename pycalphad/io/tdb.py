@@ -479,7 +479,7 @@ def reflow_text(text, linewidth=80):
     return "\n".join(output_lines)
 
 
-def write_tdb(dbf, fd):
+def write_tdb(dbf, fd, groupby='subsystem'):
     """
     Write a TDB file from a pycalphad Database object.
 
@@ -489,6 +489,8 @@ def write_tdb(dbf, fd):
         A pycalphad Database.
     fd : file-like
         File descriptor.
+    groupby : ['subsystem', 'phase'], optional
+        Desired grouping of parameters in the file.
     """
     writetime = datetime.datetime.now()
     output = ""
@@ -559,39 +561,65 @@ def write_tdb(dbf, fd):
     paramtuple = namedtuple('ParamTuple', ['phase_name', 'parameter_type', 'complexity', 'constituent_array',
                                            'parameter_order', 'parameter', 'reference'])
     for param in dbf._parameters.all():
-        components = set()
-        for subl in param['constituent_array']:
-            components |= set(subl)
-        # Wildcard operator is not a component
-        components -= {'*'}
-        components = tuple(sorted([c.upper() for c in components]))
+        if groupby == 'subsystem':
+            components = set()
+            for subl in param['constituent_array']:
+                components |= set(subl)
+            # Wildcard operator is not a component
+            components -= {'*'}
+            # Remove vacancy if it's not the only component (pure vacancy endmember)
+            if len(components) > 1:
+                components -= {'VA'}
+            components = tuple(sorted([c.upper() for c in components]))
+            grouping = components
+        elif groupby == 'phase':
+            grouping = param['phase_name'].upper()
+        else:
+            raise ValueError('Unknown groupby attribute \'{}\''.format(groupby))
         # We use the complexity parameter to help with sorting the parameters logically
-        param_sorted[components].append(paramtuple(param['phase_name'], param['parameter_type'],
-                                                   sum([len(i) for i in param['constituent_array']]),
-                                                   param['constituent_array'], param['parameter_order'],
-                                                   param['parameter'], param['reference']))
-    for num_elements in range(1, len(dbf.elements)+1):
-        subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
-        for subsystem in subsystems:
-            parameters = sorted(param_sorted[subsystem])
+        param_sorted[grouping].append(paramtuple(param['phase_name'], param['parameter_type'],
+                                                 sum([len(i) for i in param['constituent_array']]),
+                                                 param['constituent_array'], param['parameter_order'],
+                                                 param['parameter'], param['reference']))
+
+    def write_parameter(param_to_write):
+        constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
+                         for subl in param_to_write.constituent_array])
+        # TODO: Handle references
+        expr = TCPrinter().doprint(param_to_write.parameter).upper()
+        if ';' not in expr:
+            expr += '; N'
+        return "PARAMETER {}({},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),
+                                                      param_to_write.phase_name.upper(),
+                                                      constituents,
+                                                      param_to_write.parameter_order,
+                                                      expr)
+    if groupby == 'subsystem':
+        for num_elements in range(1, len(dbf.elements)+1):
+            subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
+            for subsystem in subsystems:
+                parameters = sorted(param_sorted[subsystem])
+                if len(parameters) > 0:
+                    output += "\n\n"
+                    output += "$" * 80 + "\n"
+                    output += "$ {}".format('-'.join(sorted(subsystem)).center(80, " ")[2:-1]) + "$\n"
+                    output += "$" * 80 + "\n"
+                    output += "\n"
+                for parameter in parameters:
+                    output += write_parameter(parameter)
+    elif groupby == 'phase':
+        for phase_name in sorted(dbf.phases.keys()):
+            parameters = sorted(param_sorted[phase_name])
             if len(parameters) > 0:
                 output += "\n\n"
                 output += "$" * 80 + "\n"
-                output += "$ {}".format('-'.join(sorted(subsystem)).center(80, " ")[2:-1]) + "$\n"
+                output += "$ {}".format(phase_name.upper().center(80, " ")[2:-1]) + "$\n"
                 output += "$" * 80 + "\n"
                 output += "\n"
             for parameter in parameters:
-                constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
-                                         for subl in parameter.constituent_array])
-                # TODO: Handle references
-                expr = TCPrinter().doprint(parameter.parameter).upper()
-                if ';' not in expr:
-                    expr += '; N'
-                output += "PARAMETER {}({},{};{}) {} !\n".format(parameter.parameter_type.upper(),
-                                                                 parameter.phase_name.upper(),
-                                                                 constituents,
-                                                                 parameter.parameter_order,
-                                                                 expr)
+                output += write_parameter(parameter)
+    else:
+        raise ValueError('Unknown groupby attribute {}'.format(groupby))
     # Reflow text to respect 80 character limit per line
     fd.write(reflow_text(output, linewidth=80))
 
