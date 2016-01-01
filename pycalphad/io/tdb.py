@@ -9,7 +9,10 @@ from pyparsing import delimitedList, ParseException
 import re
 from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
 from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
+from sympy import Mul, Pow, Rational
 from sympy.printing.str import StrPrinter
+from sympy.core.mul import _keep_coeff
+from sympy.printing.precedence import precedence
 from pycalphad import Database
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
@@ -397,6 +400,68 @@ class TCPrinter(StrPrinter):
 
         return result
 
+    def _print_Mul(self, expr):
+        "Copied from sympy StrPrinter and modified to remove division."
+
+        prec = precedence(expr)
+
+        c, e = expr.as_coeff_Mul()
+        if c < 0:
+            expr = _keep_coeff(-c, e)
+            sign = "-"
+        else:
+            sign = ""
+
+        a = []  # items in the numerator
+        b = []  # items that are in the denominator (if any)
+
+        if self.order not in ('old', 'none'):
+            args = expr.as_ordered_factors()
+        else:
+            # use make_args in case expr was something like -x -> x
+            args = Mul.make_args(expr)
+
+        # Gather args for numerator/denominator
+        for item in args:
+            if item.is_commutative and item.is_Pow and item.exp.is_Rational and item.exp.is_negative:
+                if item.exp != -1:
+                    b.append(Pow(item.base, -item.exp, evaluate=False))
+                else:
+                    b.append(Pow(item.base, -item.exp))
+            elif item.is_Rational and item is not S.Infinity:
+                if item.p != 1:
+                    a.append(Rational(item.p))
+                if item.q != 1:
+                    b.append(Rational(item.q))
+            else:
+                a.append(item)
+
+        a = a or [S.One]
+
+        a_str = [self.parenthesize(x, prec) for x in a]
+        b_str = [self.parenthesize(x, prec) for x in b]
+
+        if len(b) == 0:
+            return sign + '*'.join(a_str)
+        elif len(b) == 1:
+            # Thermo-Calc's parser can't handle division operators
+            return sign + '*'.join(a_str) + "*%s" % self.parenthesize(b[0]**(-1), prec)
+        else:
+            # TODO: Make this Thermo-Calc compatible by removing division operation
+            return sign + '*'.join(a_str) + "/(%s)" % '*'.join(b_str)
+
+    def _print_Pow(self, expr, rational=False):
+        "Copied from sympy StrPrinter to remove TC-incompatible Pow simplifications."
+        PREC = precedence(expr)
+
+        e = self.parenthesize(expr.exp, PREC)
+        if self.printmethod == '_sympyrepr' and expr.exp.is_Rational and expr.exp.q != 1:
+            # the parenthesized exp should be '(Rational(a, b))' so strip parens,
+            # but just check to be sure.
+            if e.startswith('(Rational'):
+                return '%s**%s' % (self.parenthesize(expr.base, PREC), e[1:-1])
+        return '%s**%s' % (self.parenthesize(expr.base, PREC), e)
+
     def _print_Infinity(self, expr):
         # Return "default value"
         return ","
@@ -586,14 +651,19 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
                          for subl in param_to_write.constituent_array])
         # TODO: Handle references
-        expr = TCPrinter().doprint(param_to_write.parameter).upper()
-        if ';' not in expr:
-            expr += '; N'
+        paramx = param_to_write.parameter
+        if not isinstance(paramx, Piecewise):
+            # Non-piecewise parameters need to be wrapped to print correctly
+            # Otherwise TC's TDB parser will fail
+            paramx = Piecewise((paramx, v.T > 1))
+        exprx = TCPrinter().doprint(paramx).upper()
+        if ';' not in exprx:
+            exprx += '; N'
         return "PARAMETER {}({},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),
                                                       param_to_write.phase_name.upper(),
                                                       constituents,
                                                       param_to_write.parameter_order,
-                                                      expr)
+                                                      exprx)
     if groupby == 'subsystem':
         for num_elements in range(1, len(dbf.elements)+1):
             subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
