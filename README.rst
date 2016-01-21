@@ -2,19 +2,19 @@ pycalphad, a library for the CALculation of PHAse Diagrams
 ==========================================================
 
 .. image:: https://badges.gitter.im/Join%20Chat.svg
-    :target: https://gitter.im/richardotis/pycalphad
-    :alt: Join the chat at https://gitter.im/richardotis/pycalphad
+    :target: https://gitter.im/pycalphad/pycalphad
+    :alt: Join the chat at https://gitter.im/pycalphad/pycalphad
 
-.. image:: https://coveralls.io/repos/richardotis/pycalphad/badge.svg?branch=develop&service=github
-    :target: https://coveralls.io/github/richardotis/pycalphad?branch=master
+.. image:: https://coveralls.io/repos/pycalphad/pycalphad/badge.svg?branch=develop&service=github
+    :target: https://coveralls.io/github/pycalphad/pycalphad?branch=master
     :alt: Test Coverage
 
 .. image:: https://ci.appveyor.com/api/projects/status/ua1hya8isg588fyp/branch/develop?svg=true
-    :target: https://ci.appveyor.com/project/richardotis/pycalphad
+    :target: https://ci.appveyor.com/project/pycalphad/pycalphad
     :alt: Windows Build Status
 
-.. image:: https://img.shields.io/travis/richardotis/pycalphad/master.svg
-    :target: https://travis-ci.org/richardotis/pycalphad
+.. image:: https://img.shields.io/travis/pycalphad/pycalphad/master.svg
+    :target: https://travis-ci.org/pycalphad/pycalphad
     :alt: Build Status
 
 .. image:: https://img.shields.io/pypi/status/pycalphad.svg
@@ -76,7 +76,7 @@ Acknowledgements
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
 
 .. _Installation Instructions: http://pycalphad.readthedocs.org/en/latest/INSTALLING.html
-.. _NBViewer: http://nbviewer.ipython.org/github/richardotis/pycalphad/tree/master/examples/
+.. _NBViewer: http://nbviewer.ipython.org/github/pycalphad/pycalphad/tree/master/examples/
 .. _ReadTheDocs: http://pycalphad.readthedocs.org/
 .. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
 .. _Department of Materials Science and Engineering: http://matse.psu.edu/
