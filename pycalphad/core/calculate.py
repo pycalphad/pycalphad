@@ -156,6 +156,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         Number of points to sample per degree of freedom.
     model : Model, a dict of phase names to Model, or a seq of both, optional
         Model class to use for each phase.
+    sampler : callable, a dict of phase names to callable, or a seq of both, optional
+        Function to sample phase constitution space.
+        Must have same signature as 'pycalphad.core.utils.point_sample'
 
     Returns
     -------
@@ -171,6 +174,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
+    sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     if isinstance(phases, str):
         phases = [phases]
     if isinstance(comps, str):
@@ -258,9 +262,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
             # Sample composition space for more points
             if sum(sublattice_dof) > len(sublattice_dof):
+                sampler = sampler_dict[phase_name]
+                if sampler is None:
+                    sampler = point_sample
                 points = np.concatenate((points,
-                                         point_sample(sublattice_dof,
-                                                      pdof=pdens_dict[phase_name])
+                                         sampler(sublattice_dof,
+                                                 pdof=pdens_dict[phase_name])
                                          ))
 
             # If there are nontrivial sublattices with vacancies in them,
