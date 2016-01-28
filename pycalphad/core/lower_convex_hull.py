@@ -72,10 +72,11 @@ def lower_convex_hull(global_grid, result_array):
     trial_points = None
     _initialize_array(global_grid, result_array)
 
-    # Enforce ordering of shape
-    result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
-    result_array['GM'] = result_array['GM'].transpose(*(conditions))
-    result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
+    # Enforce ordering of shape if this is the first iteration
+    if result_array.attrs['iterations'] == 1:
+        result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
+        result_array['GM'] = result_array['GM'].transpose(*conditions)
+        result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
 
     # Determine starting combinations of chemical potentials and compositions
     # TODO: Check Gibbs phase rule compliance
