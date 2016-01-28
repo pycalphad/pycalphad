@@ -13,14 +13,17 @@ DRIVING_FORCE_TOLERANCE = 1e-7
 
 def _initialize_array(global_grid, result_array):
     "Fill in starting values for the energy array."
-    max_energies = global_grid['GM'].max(dim='points', skipna=False)
+    # Profiling says it's way faster to compute one global max_energy value
+    # than to compute it per condition and do a broadcast assignment
+    # This will cause some minor differences in the driving force for the first few iterations
+    # but it shouldn't be a big deal
+    max_energy = global_grid['GM'].values.max()
     len_comps = result_array.dims['component']
-    if max_energies.isnull().any():
+    if max_energy == np.nan:
         raise ValueError('Input energy surface contains one or more NaNs.')
-    result_array['GM'] = xray.broadcast_arrays(max_energies, result_array['GM'])[0].copy()
-    result_array['MU'] = xray.broadcast_arrays(max_energies, result_array['MU'])[0].copy()
-    result_array['MU'].values[:] = np.nan
-    result_array['NP'] = xray.broadcast_arrays(xray.DataArray(np.nan), result_array['NP'])[0].copy()
+    result_array['GM'].values[...] = max_energy
+    result_array['MU'].values[...] = np.nan
+    result_array['NP'].values[...] = np.nan
     # Initial simplex for each target point in will be
     #     the fictitious hyperplane
     # This hyperplane sits above the system's energy surface
@@ -28,9 +31,7 @@ def _initialize_array(global_grid, result_array):
     #     the target point
     # Note: We're assuming that the max energy is in the first few, presumably
     # fictitious points instead of more rigorously checking with argmax.
-    result_array['points'] = xray.broadcast_arrays(xray.DataArray(np.arange(len_comps),
-                                                                  dims='vertex'),
-                                                   result_array['points'])[0].copy()
+    result_array['points'].values[...] = np.arange(len_comps)
 
 def lower_convex_hull(global_grid, result_array):
     """
