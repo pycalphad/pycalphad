@@ -3,7 +3,7 @@ This module contains routines for fitting new CALPHAD models.
 """
 
 import numpy as np
-import xray
+import xarray
 from pycalphad import calculate, equilibrium, Model, Database
 from pycalphad.core.utils import make_callable, generate_dof
 import pycalphad.variables as v
@@ -35,7 +35,7 @@ def setup_dataset(file_obj, dbf, params, mode=None):
                                      itertools.chain(param_vars, indep_vars, site_fracs[name]), mode=mode)
                  for name, mod in fit_models.items()}
     extra_conds = OrderedDict({key: np.atleast_1d(value) for key, value in data['conditions'].items()})
-    exp_values = xray.DataArray(np.array(data['values'], dtype=np.float),
+    exp_values = xarray.DataArray(np.array(data['values'], dtype=np.float),
                                 dims=list(extra_conds.keys())+['points'], coords=extra_conds)
 
     def compute_error(*args):

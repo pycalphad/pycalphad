@@ -6,7 +6,6 @@ from __future__ import print_function
 from pycalphad.log import logger
 from pycalphad.core.cartesian import cartesian
 import numpy as np
-import xray
 
 # The energetic difference, in J/mol-atom, below which is considered 'zero'
 DRIVING_FORCE_TOLERANCE = 1e-7

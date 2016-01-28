@@ -14,7 +14,7 @@ from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions
 from sympy import Add, Mul, Symbol
 
-import xray
+from xarray import Dataset, DataArray
 import numpy as np
 from collections import namedtuple, OrderedDict
 import itertools
@@ -144,18 +144,18 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     if verbose:
         print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
 
-    properties = xray.Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
-                                      np.empty(grid_shape)),
-                               'GM': (list(str_conds.keys()),
-                                      np.empty(grid_shape[:-1])),
-                               'MU': (list(str_conds.keys()) + ['component'],
-                                      np.empty(grid_shape)),
-                               'points': (list(str_conds.keys()) + ['vertex'],
-                                          np.empty(grid_shape, dtype=np.int))
-                               },
-                              coords=coord_dict,
-                              attrs={'iterations': 1},
-                              )
+    properties = Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
+                                 np.empty(grid_shape)),
+                          'GM': (list(str_conds.keys()),
+                                 np.empty(grid_shape[:-1])),
+                          'MU': (list(str_conds.keys()) + ['component'],
+                                 np.empty(grid_shape)),
+                          'points': (list(str_conds.keys()) + ['vertex'],
+                                     np.empty(grid_shape, dtype=np.int))
+                          },
+                          coords=coord_dict,
+                          attrs={'iterations': 1},
+                         )
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
 
@@ -385,16 +385,16 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     ravelled_Phase_view = grid['Phase'].values.view().reshape(-1)
     # Copy final point values from the grid and drop the index array
     # For some reason direct construction doesn't work. We have to create empty and then assign.
-    properties['X'] = xray.DataArray(np.empty_like(ravelled_X_view[properties['points'].values]),
-                                     dims=properties['points'].dims + ('component',))
+    properties['X'] = DataArray(np.empty_like(ravelled_X_view[properties['points'].values]),
+                                dims=properties['points'].dims + ('component',))
     properties['X'].values[...] = ravelled_X_view[properties['points'].values]
-    properties['Y'] = xray.DataArray(np.empty_like(ravelled_Y_view[properties['points'].values]),
-                                     dims=properties['points'].dims + ('internal_dof',))
+    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view[properties['points'].values]),
+                                dims=properties['points'].dims + ('internal_dof',))
     properties['Y'].values[...] = ravelled_Y_view[properties['points'].values]
     # TODO: What about invariant reactions? We should perform a final driving force calculation here.
     # We can handle that in the same post-processing step where we identify single-phase regions.
-    properties['Phase'] = xray.DataArray(np.empty_like(ravelled_Phase_view[properties['points'].values]),
-                                         dims=properties['points'].dims)
+    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view[properties['points'].values]),
+                                    dims=properties['points'].dims)
     properties['Phase'].values[...] = ravelled_Phase_view[properties['points'].values]
     del properties['points']
     return properties

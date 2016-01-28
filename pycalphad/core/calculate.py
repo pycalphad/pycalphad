@@ -12,8 +12,8 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
-import xray
-from xray.core.npcompat import broadcast_to
+from xarray import concat, Dataset, DataArray
+from xarray.core.npcompat import broadcast_to
 import numpy as np
 import itertools
 import collections
@@ -45,7 +45,7 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
                    'Phase': (output_columns, np.full(statevar_shape + (len(components),), '_FAKE_', dtype='S6')),
                    output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
                    }
-    return xray.Dataset(data_arrays, coords=coordinate_dict)
+    return Dataset(data_arrays, coords=coordinate_dict)
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
@@ -76,7 +76,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     Returns
     -------
-    xray.Dataset of the output attribute as a function of state variables
+    Dataset of the output attribute as a function of state variables
 
     Examples
     --------
@@ -124,7 +124,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
                    }
 
-    return xray.Dataset(data_arrays, coords=coordinate_dict)
+    return Dataset(data_arrays, coords=coordinate_dict)
 
 
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **kwargs):
@@ -162,7 +162,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
     Returns
     -------
-    xray.Dataset of the sampled attribute as a function of state variables
+    Dataset of the sampled attribute as a function of state variables
 
     Examples
     --------
@@ -305,12 +305,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         if output != 'GM':
             raise ValueError('fake_points=True should only be used with output=\'GM\'')
         phase_ds = _generate_fake_points(components, statevar_dict, largest_energy, output, maximum_internal_dof)
-        final_ds = xray.concat(itertools.chain([phase_ds], all_phase_data),
-                               dim='points')
+        final_ds = concat(itertools.chain([phase_ds], all_phase_data),
+                          dim='points')
     else:
         # speedup for single-phase case (found by profiling)
         if len(all_phase_data) > 1:
-            final_ds = xray.concat(all_phase_data, dim='points')
+            final_ds = concat(all_phase_data, dim='points')
         else:
             final_ds = all_phase_data[0]
 
