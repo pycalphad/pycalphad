@@ -8,7 +8,7 @@ from pycalphad.core.cartesian import cartesian
 import numpy as np
 
 # The energetic difference, in J/mol-atom, below which is considered 'zero'
-DRIVING_FORCE_TOLERANCE = 1e-7
+DRIVING_FORCE_TOLERANCE = 1e-3
 
 def _initialize_array(global_grid, result_array):
     "Fill in starting values for the energy array."

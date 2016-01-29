@@ -44,8 +44,8 @@ def test_eq_single_phase():
                                        [0.7, 0.3], [0.8, 0.2]]})
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
-                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]})
-    assert_allclose(eq.GM, res.GM, atol=1e-4)
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=False)
+    assert_allclose(eq.GM, res.GM, atol=0.1)
 
 
 def test_eq_b2_without_all_comps():
@@ -53,7 +53,7 @@ def test_eq_b2_without_all_comps():
     All-vacancy endmembers are correctly excluded from the computation when fewer than
     all components in a Database are selected for the calculation.
     """
-    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200})
+    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200}, verbose=False)
 
 
 @raises(ValueError)
