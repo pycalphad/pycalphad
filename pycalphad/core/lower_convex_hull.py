@@ -72,7 +72,7 @@ def lower_convex_hull(global_grid, result_array):
     _initialize_array(global_grid, result_array)
 
     # Enforce ordering of shape if this is the first iteration
-    if result_array.attrs['iterations'] == 1:
+    if result_array.attrs['hull_iterations'] == 1:
         result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
         result_array['GM'] = result_array['GM'].transpose(*conditions)
         result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
@@ -117,7 +117,7 @@ def lower_convex_hull(global_grid, result_array):
     driving_forces = np.zeros(result_array.GM.values.shape + (len(global_grid.points),),
                                    dtype=np.float)
 
-    max_iterations = 50
+    max_iterations = 200
     iterations = 0
     while iterations < max_iterations:
         iterations += 1

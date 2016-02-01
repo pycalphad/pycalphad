@@ -15,28 +15,33 @@ from sympy import Add, Mul, Symbol
 
 from xarray import Dataset, DataArray
 import numpy as np
+import scipy.spatial
 from collections import defaultdict, namedtuple, OrderedDict
 import itertools
+import copy
+import sys
 try:
     set
 except NameError:
     from sets import Set as set #pylint: disable=W0622
 
 # Maximum number of global search iterations
-MAX_SEARCH_ITERATIONS = 5
+MAX_SEARCH_ITERATIONS = 10
 # Maximum number of multi-phase solver iterations
 MAX_SOLVE_ITERATIONS = 30
 # Minimum step norm size to stop solver
 MIN_SOLVE_STEP_NORM = 1e-6
+# Minimum step multiplier to stop line search
+MIN_SOLVE_ALPHA = 1e-6
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-2
+MIN_SOLVE_ENERGY_PROGRESS = 1e-1
 # Maximum number of backtracking iterations
 MAX_BACKTRACKING = 5
 # Maximum number of Newton steps to take
-MAX_NEWTON_ITERATIONS = 3
+MAX_NEWTON_ITERATIONS = 1
 # If the max of the potential difference between iterations is less than
-# MIN_PROGRESS J/mol-atom, stop the refinement
-MIN_PROGRESS = 1
+# MIN_SEARCH_PROGRESS J/mol-atom, stop the global search
+MIN_SEARCH_PROGRESS = 1000
 # Minimum norm of a Newton direction before it's "zero"
 MIN_DIRECTION_NORM = 1e-12
 # Force zero values to this amount, for numerical stability
@@ -50,6 +55,82 @@ PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess', 'plane_gra
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
+
+
+def remove_degenerate_phases(properties, multi_index):
+    """
+    For each phase pair with composition difference below tolerance,
+    eliminate phase with largest index.
+
+    Parameters
+    ----------
+    properties : xarray.Dataset
+        Equilibrium calculation data. This will be modified!
+    multi_index : tuple
+        Index into 'properties' of the condition set of interest.
+
+    """
+    phases = list(properties['Phase'].values[multi_index])
+    # Are there already removed phases?
+    if '' in phases:
+        num_phases = phases.index('')
+    else:
+        num_phases = len(phases)
+    phases = properties['Phase'].values[multi_index + np.index_exp[:num_phases]]
+    # Group phases into multiple composition sets
+    phase_indices = defaultdict(lambda: list())
+    for phase_idx, name in enumerate(phases):
+        phase_indices[name].append(phase_idx)
+    # Compute pairwise distances between compositions of like phases
+    for name, indices in phase_indices.items():
+        if len(indices) == 1:
+            # Phase is unique
+            continue
+        # The reason we don't do this based on Y fractions is because
+        # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
+        # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
+        comp_matrix = properties['X'].values[multi_index + np.index_exp[indices]]
+        comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
+        # For each phase pair with composition difference below tolerance, eliminate phase with largest index
+        COMP_DIFFERENCE_TOL = 0.03
+        redundant_phases = set()
+        redundant_phases |= {indices[0]}
+        for i in range(len(indices)):
+            for j in range(i, len(indices)):
+                if i == j:
+                    continue
+                if comp_distances[i, j] < COMP_DIFFERENCE_TOL:
+                    redundant_phases |= {indices[i], indices[j]}
+        redundant_phases = sorted(redundant_phases)
+        kept_phase = redundant_phases[0]
+        removed_phases = redundant_phases[1:]
+        # Their NP values will be added to redundant_phases[0]
+        # and they will be nulled out
+        for redundant in removed_phases:
+            properties['NP'].values[multi_index + np.index_exp[kept_phase]] += \
+                properties['NP'].values[multi_index + np.index_exp[redundant]]
+            properties['Phase'].values[multi_index + np.index_exp[redundant]] = ''
+    # Rewrite properties to delete all the nulled out phase entries
+    # Then put them at the end
+    # That will let us rewrite 'phases' to have only the independent phases
+    # And still preserve convenient indexing of 'properties' with phase_idx
+    saved_indices = properties['Phase'].values[multi_index] != ''
+    saved_indices = np.arange(len(saved_indices))[saved_indices]
+    # TODO: Assumes N=1 always
+    properties['NP'].values[multi_index + np.index_exp[:len(saved_indices)]] = \
+        properties['NP'].values[multi_index + np.index_exp[saved_indices]] / \
+        np.sum(properties['NP'].values[multi_index + np.index_exp[saved_indices]])
+    properties['NP'].values[multi_index + np.index_exp[len(saved_indices):]] = np.nan
+    properties['Phase'].values[multi_index + np.index_exp[:len(saved_indices)]] = \
+        properties['Phase'].values[multi_index + np.index_exp[saved_indices]]
+    properties['Phase'].values[multi_index + np.index_exp[len(saved_indices):]] = ''
+    properties['X'].values[multi_index + np.index_exp[:len(saved_indices), :]] = \
+        properties['X'].values[multi_index + np.index_exp[saved_indices, :]]
+    properties['X'].values[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
+    properties['Y'].values[multi_index + np.index_exp[:len(saved_indices), :]] = \
+        properties['Y'].values[multi_index + np.index_exp[saved_indices, :]]
+    properties['Y'].values[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
+
 
 def equilibrium(dbf, comps, phases, conditions, **kwargs):
     """
@@ -166,21 +247,21 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                      np.empty(grid_shape, dtype=np.int))
                           },
                           coords=coord_dict,
-                          attrs={'iterations': 1},
+                          attrs={'hull_iterations': 1, 'solve_iterations': 0},
                          )
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
 
     for iteration in range(MAX_SEARCH_ITERATIONS):
         if verbose:
-            print('Computing convex hull [iteration {}]'.format(properties.attrs['iterations']))
+            print('Computing convex hull [iteration {}]'.format(properties.attrs['hull_iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties)
         progress = np.abs(current_potentials - properties.MU).values
-        converged = (progress < MIN_PROGRESS).all(axis=-1)
+        converged = (progress < MIN_SEARCH_PROGRESS).all(axis=-1)
         if verbose:
             print('progress', progress.max(), '[{} conditions updated]'.format(np.sum(~converged)))
-        if progress.max() < MIN_PROGRESS:
+        if progress.max() < MIN_SEARCH_PROGRESS:
             if verbose:
                 print('Global search complete')
             break
@@ -388,8 +469,11 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                          fake_points=True, points=points_dict, **grid_opts)
         if verbose:
             print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
-        properties.attrs['iterations'] += 1
-
+        properties.attrs['hull_iterations'] += 1
+    # Make sure all the verbose output appears to the user
+    if verbose:
+        print('Refining equilibrium')
+        sys.stdout.flush()
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     lower_convex_hull(grid, properties)
     ravelled_X_view = grid['X'].values.view().reshape(-1, grid['X'].values.shape[-1])
@@ -409,13 +493,8 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                                     dims=properties['points'].dims)
     properties['Phase'].values[...] = ravelled_Phase_view[properties['points'].values]
     del properties['points']
-    # TODO: apply full multi-phase formulation
-    # TODO: Then refine with multi-phase matrix
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
     mole_fractions = {}
-    #cond_grid = np.meshgrid(*properties['GM'].coords.values(), indexing='ij', sparse=True)
-    # Send leading axis all the way back
-    #cond_grid = np.rollaxis(cond_grid, 0, len(properties['GM'].coords.keys())+1)
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         cur_conds = OrderedDict(zip(properties['GM'].coords.keys(),
@@ -424,25 +503,32 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         indep_sum = sum([val for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
             raise ValueError('Sum of independent component mole fractions greater than one')
-        phases = properties['Phase'].values[it.multi_index]
-        num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
         dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
         if len(dependent_comp) == 1:
             dependent_comp = list(dependent_comp)[0]
         else:
             raise ValueError('Number of dependent components different from one')
-
-        # Also need to mass balance the dependent component
-        num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-        num_constraints = num_sitefrac_bals + num_mass_bals
-        l_multipliers = np.zeros(num_constraints, dtype=np.float)
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
-            phase_fracs = properties['NP'].values[it.multi_index]
+            remove_degenerate_phases(properties, it.multi_index)
+            phases = list(properties['Phase'].values[it.multi_index])
+            # Are there removed phases?
+            if '' in phases:
+                num_phases = phases.index('')
+            else:
+                num_phases = len(phases)
+            phases = properties['Phase'].values[it.multi_index + np.index_exp[:num_phases]]
+            num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
+            num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
+            num_constraints = num_sitefrac_bals + num_mass_bals
+            l_multipliers = np.zeros(num_constraints, dtype=np.float)
+            phase_fracs = properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]]
+            phase_dof = [len(set(phase_records[name].variables)-{v.T, v.P}) for name in phases]
             # Flatten site fractions array and remove nan padding
             site_fracs = properties['Y'].values[it.multi_index].ravel()
             # That *should* give us the internal dof
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
+            site_fracs[site_fracs < 1e-7] = 1e-7
             chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
             # TODO: A more sophisticated treatment of constraints
             # TODO: Allow T, P to be minimized wrt constraints
@@ -462,7 +548,6 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # First: Site fraction balance constraints
             var_idx = 0
             constraint_offset = 0
-            phase_dof = [len(set(phase_records[name].variables)-{v.T, v.P}) for name in phases]
             for name in phases:
                 for idx in range(len(dbf.phases[name].sublattices)):
                     active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
@@ -503,24 +588,17 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             var_offset = 0
             phase_idx = 0
             for name, phase_frac in zip(phases, phase_fracs):
-                mass_obj, mass_grad = phase_records[name].mass_obj, phase_records[name].mass_grad
                 obj = callable_dict[name]
                 hess = phase_records[name].hess
                 grad = phase_records[name].grad
-                #constraint_jac[constraint_offset,
-                #               var_offset:var_offset+phase_dof[phase_idx]] = \
-                #    phase_frac * np.squeeze(mass_grad(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                #constraint_jac[constraint_offset, len(site_fracs)+phase_idx] += \
-                #    np.squeeze(mass_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                #l_constraints[constraint_offset] += \
-                #    phase_frac * np.squeeze(mass_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
                 obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
                                                site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
                              )
-                gradient_term[var_offset:var_offset+phase_dof[phase_idx]] = \
-                    -phase_frac * np.squeeze(grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
+                grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
                                                   site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                                                 ))[2:] # Remove P,T grad part
+                                                 )
+                gradient_term[var_offset:var_offset+phase_dof[phase_idx]] = \
+                    -phase_frac * np.squeeze(grad_res)[2:] # Remove P,T grad part
                 gradient_term[len(site_fracs)+phase_idx] = -obj_res
                 l_hessian[var_offset:var_offset+phase_dof[phase_idx],
                           var_offset:var_offset+phase_dof[phase_idx]] = \
@@ -530,9 +608,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
                 # Phase fraction / site fraction cross derivative
                 l_hessian[len(site_fracs)+phase_idx, var_offset:var_offset+phase_dof[phase_idx]] = \
                 l_hessian[var_offset:var_offset+phase_dof[phase_idx], len(site_fracs)+phase_idx] = \
-                    np.squeeze(grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                     site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                                   ))[2:] # Remove P,T grad part
+                    np.squeeze(grad_res)[2:] # Remove P,T grad part
                 var_offset += phase_dof[phase_idx]
                 phase_idx += 1
             # TODO: N=1 fixed by default
@@ -541,46 +617,76 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             l_hessian[num_vars:, :num_vars] = constraint_jac
             gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
             gradient_term[num_vars:] = l_constraints
-            step = np.linalg.solve(l_hessian, gradient_term)
+            try:
+                step = np.linalg.solve(l_hessian, gradient_term)
+            except np.linalg.LinAlgError:
+                print('Failed to compute ', cur_conds)
+                properties['GM'].values[it.multi_index] = np.nan
+                break
+            # Backtracking line search
+            # First restrict alpha to steps in the feasible region
             alpha = 1
-            while np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0) and alpha > 1e-6:
+            while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0) or
+                   np.any(phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0) and
+                   alpha > MIN_SOLVE_ALPHA):
                 alpha *= 0.5
+            # Take the largest step which reduces the energy
+            old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
+            #print('STARTING ALPHA', alpha)
+            while ((old_energy + 1e-4*alpha*(gradient_term*step).sum(0)) >= properties['GM'].values[it.multi_index])\
+                    and (alpha > MIN_SOLVE_ALPHA):
+                new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
+                properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = \
+                    phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]
+                var_offset = 0
+                properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
+                #print('OLD ENERGY', old_energy)
+                properties['GM'].values[it.multi_index] = 0
+                for phase_idx in range(len(phases)):
+                    properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
+                        new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]
+                    for comp_idx, comp in enumerate(comps):
+                        if comp == 'VA':
+                            continue
+                        properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
+                            mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                    obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                              new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                                 )
+                    properties['GM'].values[it.multi_index] += \
+                        properties['NP'].values[it.multi_index + np.index_exp[phase_idx]] * obj_res
+                    var_offset += phase_dof[phase_idx]
+                # We want to take the largest step which reduces the energy
+                #print('NEW ENERGY', properties['GM'].values[it.multi_index])
+                if (properties['GM'].values[it.multi_index] - MIN_SOLVE_ENERGY_PROGRESS) < old_energy:
+                    #print('ALPHA', alpha)
+                    break
+                else:
+                    alpha *= 0.5
+                    properties['GM'].values[it.multi_index] = old_energy
+                    #print('Updating alpha to ', alpha)
 
-            # Copy stepped values back to relevant arrays and loop again
-            # First, site fractions -- neglect mole fractions since we can just update them at the very end
-            new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
-            var_offset = 0
-            properties['X'].values[it.multi_index + np.index_exp[...]] = 0
-            old_energy = properties['GM'].values[it.multi_index]
-            properties['GM'].values[it.multi_index] = 0
-            for phase_idx in range(len(phases)):
-                properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
-                    new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]
-                for comp_idx, comp in enumerate(comps):
-                    if comp == 'VA':
-                        continue
-                    properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
-                        mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                          new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                             )
-                properties['GM'].values[it.multi_index] += phase_fracs[phase_idx] * obj_res
-                var_offset += phase_dof[phase_idx]
-            # Next, phase fractions
-            properties['NP'].values[it.multi_index] = \
-                phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]
-            # Then chemical potentials
+            if np.any(np.isnan(step)):
+                print(phases)
+                print(l_hessian)
+                raise ValueError('Bad step: '+str(step))
+
+            # Update chemical potentials
             l_multipliers += alpha * step[num_vars:]
             new_chem_pots = l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
             new_chem_pots = OrderedDict(zip([c for c in comps if c != 'VA'], new_chem_pots))
             chem_pots.update(new_chem_pots)
-            old_chem_pots = properties['MU'].values[it.multi_index]
+            old_chem_pots = properties['MU'].values[it.multi_index].copy()
             properties['MU'].values[it.multi_index] = list(chem_pots.values())
-            if np.linalg.norm(alpha * step) < MIN_SOLVE_STEP_NORM:
-                break
-            no_progress = np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots) < MIN_SOLVE_ENERGY_PROGRESS
+            properties.attrs['solve_iterations'] += 1
+            if verbose:
+                print('Chem pot progress', np.linalg.norm(np.array(list(new_chem_pots.values())) - old_chem_pots, ord=np.inf))
+                print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
+            no_progress = np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf) < 1
             no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             if no_progress:
+                if verbose:
+                    print('No progress')
                 break
         it.iternext()
 
