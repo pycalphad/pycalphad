@@ -657,9 +657,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                 for phase_idx in range(len(phases)):
                     properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
                         new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]
-                    for comp_idx, comp in enumerate(comps):
-                        if comp == 'VA':
-                            continue
+                    for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
                         properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
                             mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
                     obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
