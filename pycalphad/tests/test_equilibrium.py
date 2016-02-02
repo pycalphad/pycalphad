@@ -6,6 +6,7 @@ correct solution for thermodynamic equilibrium.
 from unittest.case import SkipTest
 from nose.tools import raises
 from numpy.testing import assert_allclose
+import numpy as np
 from pycalphad import Database, calculate, equilibrium
 import pycalphad.variables as v
 from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB
@@ -73,6 +74,17 @@ def test_eq_overdetermined_comps():
     """
     equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
+
+def test_dilute_condition():
+    """
+    'Zero' and dilute composition conditions are correctly handled.
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0})
+    assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8})
+    assert_allclose(np.squeeze(eq.GM.values), -64415.84069827)
+    assert_allclose(eq.MU.values, [[[[-335723.04320981,  -64415.8379852]]]], atol=0.1)
+
 def test_eq_illcond_hessian():
     """
     Check equilibrium of a system with an ill-conditioned Hessian.

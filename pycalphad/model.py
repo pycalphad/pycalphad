@@ -355,7 +355,7 @@ class Model(object):
                     v.SiteFraction(phase.name, subl_index, comp)
                 # We lose some precision here, but this makes the limit behave nicely
                 # We're okay until fractions of about 1e-16
-                mixing_term = log(sitefrac**sitefrac)
+                mixing_term = Piecewise((sitefrac*log(sitefrac), sitefrac > 1e-16), (0, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term

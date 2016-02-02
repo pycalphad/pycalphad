@@ -132,7 +132,18 @@ def remove_degenerate_phases(properties, multi_index):
     properties['Y'].values[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
 
 
-def equilibrium(dbf, comps, phases, conditions, **kwargs):
+def _adjust_conditions(conds):
+    "Adjust conditions values to be within the numerical limit of the solver."
+    new_conds = OrderedDict()
+    for key, value in sorted(conds.items(), key=str):
+        if isinstance(key, v.Composition):
+            new_conds[key] = [max(val, np.sqrt(MIN_SITE_FRACTION)) for val in unpack_condition(value)]
+        else:
+            new_conds[key] = unpack_condition(value)
+    return new_conds
+
+
+def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -148,7 +159,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
         Names of phases to consider in the calculation.
     conditions : dict or (list of dict)
         StateVariables and their corresponding value.
-    verbose : bool, optional (Default: True)
+    verbose : bool, optional
         Show progress of calculations.
     grid_opts : dict, optional
         Keyword arguments to pass to the initial grid routine.
@@ -164,15 +175,16 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
     indep_vars = ['T', 'P']
-    grid_opts = kwargs.pop('grid_opts', dict())
-    verbose = kwargs.pop('verbose', True)
+    grid_opts = grid_opts if grid_opts is not None else dict()
     phase_records = dict()
     callable_dict = kwargs.pop('callables', dict())
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
     points_dict = dict()
     maximum_internal_dof = 0
-    conds = OrderedDict((key, unpack_condition(value)) for key, value in sorted(conditions.items(), key=str))
+    # Modify conditions values to be within numerical limits, e.g., X(AL)=0
+    # Also wrap single-valued conditions with lists
+    conds = _adjust_conditions(conditions)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
@@ -528,7 +540,7 @@ def equilibrium(dbf, comps, phases, conditions, **kwargs):
             # That *should* give us the internal dof
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
-            site_fracs[site_fracs < 1e-7] = 1e-7
+            site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
             # TODO: A more sophisticated treatment of constraints
             # TODO: Allow T, P to be minimized wrt constraints
