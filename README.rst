@@ -74,6 +74,7 @@ See the documentation on `ReadTheDocs`_.
 Acknowledgements
 ----------------
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
+We would also like to acknowledge technical assistance on array computations from Denis Lisov.
 
 .. _Installation Instructions: http://pycalphad.readthedocs.org/en/latest/INSTALLING.html
 .. _NBViewer: http://nbviewer.ipython.org/github/pycalphad/pycalphad/tree/master/examples/

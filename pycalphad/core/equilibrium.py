@@ -232,7 +232,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 100
+        grid_opts['pdens'] = 10
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -488,22 +488,34 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
         sys.stdout.flush()
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     lower_convex_hull(grid, properties)
-    ravelled_X_view = grid['X'].values.view().reshape(-1, grid['X'].values.shape[-1])
-    ravelled_Y_view = grid['Y'].values.view().reshape(-1, grid['Y'].values.shape[-1])
-    ravelled_Phase_view = grid['Phase'].values.view().reshape(-1)
+    indexer = []
+    for idx, vals in enumerate(indep_vals):
+        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
+                                                          (len(indep_vals)+2-idx) * (np.newaxis,)])
+    indexer.append(properties['points'].values[..., np.newaxis])
+    indexer.append(np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(indep_vals)+1) * (np.newaxis,) + np.index_exp[:]])
+    ravelled_X_view = grid['X'].values[tuple(indexer)]
+    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[(len(indep_vals)+1) * (np.newaxis,) + np.index_exp[:]]
+    ravelled_Y_view = grid['Y'].values[tuple(indexer)]
+    indexer = []
+    for idx, vals in enumerate(indep_vals):
+        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
+                                                          (len(indep_vals)+1-idx) * (np.newaxis,)])
+    indexer.append(properties['points'].values)
+    ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
     # Copy final point values from the grid and drop the index array
     # For some reason direct construction doesn't work. We have to create empty and then assign.
-    properties['X'] = DataArray(np.empty_like(ravelled_X_view[properties['points'].values]),
+    properties['X'] = DataArray(np.empty_like(ravelled_X_view),
                                 dims=properties['points'].dims + ('component',))
-    properties['X'].values[...] = ravelled_X_view[properties['points'].values]
-    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view[properties['points'].values]),
+    properties['X'].values[...] = ravelled_X_view
+    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view),
                                 dims=properties['points'].dims + ('internal_dof',))
-    properties['Y'].values[...] = ravelled_Y_view[properties['points'].values]
+    properties['Y'].values[...] = ravelled_Y_view
     # TODO: What about invariant reactions? We should perform a final driving force calculation here.
     # We can handle that in the same post-processing step where we identify single-phase regions.
-    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view[properties['points'].values]),
+    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view),
                                     dims=properties['points'].dims)
-    properties['Phase'].values[...] = ravelled_Phase_view[properties['points'].values]
+    properties['Phase'].values[...] = ravelled_Phase_view
     del properties['points']
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
     mole_fractions = {}
@@ -520,9 +532,19 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             dependent_comp = list(dependent_comp)[0]
         else:
             raise ValueError('Number of dependent components different from one')
+        chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
+            phases = list(properties['Phase'].values[it.multi_index])
+            if '' in phases:
+                old_phase_length = phases.index('')
+            else:
+                old_phase_length = -1
             remove_degenerate_phases(properties, it.multi_index)
             phases = list(properties['Phase'].values[it.multi_index])
+            if '' in phases:
+                new_phase_length = phases.index('')
+            else:
+                new_phase_length = -1
             # Are there removed phases?
             if '' in phases:
                 num_phases = phases.index('')
@@ -532,7 +554,8 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             num_constraints = num_sitefrac_bals + num_mass_bals
-            l_multipliers = np.zeros(num_constraints, dtype=np.float)
+            if (old_phase_length != new_phase_length) or (cur_iter == 0):
+                l_multipliers = np.zeros(num_constraints, dtype=np.float)
             phase_fracs = properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]]
             phase_dof = [len(set(phase_records[name].variables)-{v.T, v.P}) for name in phases]
             # Flatten site fractions array and remove nan padding
@@ -541,7 +564,6 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
             site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
-            chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
             # TODO: A more sophisticated treatment of constraints
             # TODO: Allow T, P to be minimized wrt constraints
             # Site fraction balance for each sublattice for each phase
@@ -644,12 +666,21 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                 alpha *= 0.5
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
+            old_chem_pots = properties['MU'].values[it.multi_index].copy()
+            new_l_multipliers = l_multipliers.copy()
+            new_l_constraints = np.zeros_like(l_constraints, dtype=np.float)
+            new_site_fracs = site_fracs.copy()
             #print('STARTING ALPHA', alpha)
-            while ((old_energy + 1e-4*alpha*(gradient_term*step).sum(0)) >= properties['GM'].values[it.multi_index])\
+            while ((old_energy-np.dot(l_multipliers, l_constraints)) + 1e-4 > (properties['GM'].values[it.multi_index]-np.dot(new_l_multipliers, new_l_constraints)))\
                     and (alpha > MIN_SOLVE_ALPHA):
                 new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
+                new_l_multipliers = l_multipliers + alpha * step[num_vars:]
+                new_chem_pots = new_l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
+                new_chem_pots = OrderedDict(zip([c for c in comps if c != 'VA'], new_chem_pots))
+                chem_pots.update(new_chem_pots)
+                properties['MU'].values[it.multi_index] = list(chem_pots.values())
                 properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = \
-                    phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]
+                    phase_fracs + alpha * step[len(new_site_fracs):len(new_site_fracs)+len(phases)]
                 var_offset = 0
                 properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
                 #print('OLD ENERGY', old_energy)
@@ -666,31 +697,63 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                     properties['GM'].values[it.multi_index] += \
                         properties['NP'].values[it.multi_index + np.index_exp[phase_idx]] * obj_res
                     var_offset += phase_dof[phase_idx]
-                # We want to take the largest step which reduces the energy
-                #print('NEW ENERGY', properties['GM'].values[it.multi_index])
-                if (properties['GM'].values[it.multi_index] - MIN_SOLVE_ENERGY_PROGRESS) < old_energy:
-                    #print('ALPHA', alpha)
-                    break
-                else:
-                    alpha *= 0.5
-                    properties['GM'].values[it.multi_index] = old_energy
-                    #print('Updating alpha to ', alpha)
+                var_idx = 0
+                constraint_offset = 0
+                for name in phases:
+                    for idx in range(len(dbf.phases[name].sublattices)):
+                        active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+                        new_l_constraints[constraint_offset] = \
+                            -(sum(new_site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
+                        var_idx += len(active_in_subl)
+                    constraint_offset += len(dbf.phases[name].sublattices)
+                # Second: Mass balance of each component
+                for comp in [c for c in comps if c != 'VA']:
+                    var_offset = 0
+                    phase_idx = 0
+                    for name, phase_frac in zip(phases, properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]]):
+                        if mole_fractions.get((name, comp), None) is None:
+                            mole_fractions[(name, comp)] = build_functions(mole_fraction(dbf.phases[name], comps, comp),
+                                                                           sorted(set(phase_records[name].variables)-{v.T, v.P},
+                                                                           key=str))
+                        comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
+                        new_l_constraints[constraint_offset] += \
+                            phase_frac * np.squeeze(comp_obj(*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
+                        var_offset += phase_dof[phase_idx]
+                        phase_idx += 1
+                    if comp != dependent_comp:
+                        new_l_constraints[constraint_offset] -= cur_conds['X_'+comp]
+                    else:
+                        # TODO: Assuming N=1 (fixed for dependent component)
+                        new_l_constraints[constraint_offset] -= (1-indep_sum)
+                    new_l_constraints[constraint_offset] *= -1
+                    constraint_offset += 1
+                alpha *= 0.5
+            var_offset = 0
+            properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
+            properties['GM'].values[it.multi_index] = 0
+            for phase_idx in range(len(phases)):
+                properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
+                    new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]
+                for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
+                    properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
+                        mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                          new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                             )
+                properties['GM'].values[it.multi_index] += \
+                    properties['NP'].values[it.multi_index + np.index_exp[phase_idx]] * obj_res
+                var_offset += phase_dof[phase_idx]
+            l_multipliers = new_l_multipliers
 
             if np.any(np.isnan(step)):
                 print(phases)
+                print(new_site_fracs)
                 print(l_hessian)
                 raise ValueError('Bad step: '+str(step))
 
-            # Update chemical potentials
-            l_multipliers += alpha * step[num_vars:]
-            new_chem_pots = l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
-            new_chem_pots = OrderedDict(zip([c for c in comps if c != 'VA'], new_chem_pots))
-            chem_pots.update(new_chem_pots)
-            old_chem_pots = properties['MU'].values[it.multi_index].copy()
-            properties['MU'].values[it.multi_index] = list(chem_pots.values())
             properties.attrs['solve_iterations'] += 1
             if verbose:
-                print('Chem pot progress', np.linalg.norm(np.array(list(new_chem_pots.values())) - old_chem_pots, ord=np.inf))
+                print('Chem pot progress', np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf))
                 print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
             no_progress = np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf) < 1
             no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS

@@ -7,9 +7,8 @@ import pycalphad.io.tdb
 
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
-from pycalphad.core.energy_surf import energy_surf
-from pycalphad.plot.isotherm import isotherm
 from pycalphad.plot.binary import binplot
+from pycalphad.plot.eqplot import eqplot
 from ._version import get_versions
 __version__ = get_versions()['version']
 del get_versions
