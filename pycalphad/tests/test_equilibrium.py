@@ -45,7 +45,7 @@ def test_eq_single_phase():
                                        [0.7, 0.3], [0.8, 0.2]]})
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
-                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=False)
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=True)
     assert_allclose(eq.GM, res.GM, atol=0.1)
 
 
@@ -54,7 +54,7 @@ def test_eq_b2_without_all_comps():
     All-vacancy endmembers are correctly excluded from the computation when fewer than
     all components in a Database are selected for the calculation.
     """
-    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200}, verbose=False)
+    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200}, verbose=True)
 
 
 @raises(ValueError)
@@ -98,6 +98,16 @@ def test_eq_illcond_hessian():
     # pycalphad values used for more significant figures
     # once again, py33 converges to a slightly different value versus every other python
     assert_allclose(eq.MU.values, [[[[-55611.954141,  -2767.72322]]]], atol=0.1)
+
+def test_eq_illcond_magnetic_hessian():
+    """
+    Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
+    This is difficult to reproduce so we only include some known examples here.
+    """
+    # This set of conditions is known to trigger the issue
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
+                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5})
+    assert_allclose(eq.GM.values, [[[-31414.46677]]])
 
 
 def test_eq_composition_cond_sorting():

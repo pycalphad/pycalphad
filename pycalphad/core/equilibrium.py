@@ -34,18 +34,18 @@ MIN_SOLVE_STEP_NORM = 1e-6
 # Minimum step multiplier to stop line search
 MIN_SOLVE_ALPHA = 1e-6
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-1
+MIN_SOLVE_ENERGY_PROGRESS = 1e-4
 # Maximum number of backtracking iterations
 MAX_BACKTRACKING = 5
 # Maximum number of Newton steps to take
-MAX_NEWTON_ITERATIONS = 1
+MAX_NEWTON_ITERATIONS = 5
 # If the max of the potential difference between iterations is less than
 # MIN_SEARCH_PROGRESS J/mol-atom, stop the global search
 MIN_SEARCH_PROGRESS = 1000
 # Minimum norm of a Newton direction before it's "zero"
 MIN_DIRECTION_NORM = 1e-12
 # Force zero values to this amount, for numerical stability
-MIN_SITE_FRACTION = 1e-16
+MIN_SITE_FRACTION = 1e-12
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1.
 
@@ -137,7 +137,7 @@ def _adjust_conditions(conds):
     new_conds = OrderedDict()
     for key, value in sorted(conds.items(), key=str):
         if isinstance(key, v.Composition):
-            new_conds[key] = [max(val, np.sqrt(MIN_SITE_FRACTION)) for val in unpack_condition(value)]
+            new_conds[key] = [max(val, MIN_SITE_FRACTION*10) for val in unpack_condition(value)]
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
@@ -232,7 +232,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 10
+        grid_opts['pdens'] = 100
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -564,6 +564,13 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
             site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+            var_idx = 0
+            for name in phases:
+                for idx in range(len(dbf.phases[name].sublattices)):
+                    active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+                    site_fracs[var_idx:var_idx + len(active_in_subl)] /= \
+                        np.sum(site_fracs[var_idx:var_idx +len(active_in_subl)], keepdims=True)
+                    var_idx += len(active_in_subl)
             # TODO: A more sophisticated treatment of constraints
             # TODO: Allow T, P to be minimized wrt constraints
             # Site fraction balance for each sublattice for each phase
@@ -663,7 +670,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0) or
                    np.any(phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0) and
                    alpha > MIN_SOLVE_ALPHA):
-                alpha *= 0.5
+                alpha *= 0.9
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
@@ -671,8 +678,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             new_l_constraints = np.zeros_like(l_constraints, dtype=np.float)
             new_site_fracs = site_fracs.copy()
             #print('STARTING ALPHA', alpha)
-            while ((old_energy-np.dot(l_multipliers, l_constraints)) + 1e-4 > (properties['GM'].values[it.multi_index]-np.dot(new_l_multipliers, new_l_constraints)))\
-                    and (alpha > MIN_SOLVE_ALPHA):
+            while alpha > MIN_SOLVE_ALPHA:
                 new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
                 new_l_multipliers = l_multipliers + alpha * step[num_vars:]
                 new_chem_pots = new_l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
@@ -727,6 +733,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                         new_l_constraints[constraint_offset] -= (1-indep_sum)
                     new_l_constraints[constraint_offset] *= -1
                     constraint_offset += 1
+                break
                 alpha *= 0.5
             var_offset = 0
             properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
@@ -747,7 +754,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
 
             if np.any(np.isnan(step)):
                 print(phases)
-                print(new_site_fracs)
+                print(site_fracs)
                 print(l_hessian)
                 raise ValueError('Bad step: '+str(step))
 
