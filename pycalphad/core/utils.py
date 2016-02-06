@@ -4,7 +4,6 @@ The minimize module handles helper routines for equilibrium calculation.
 from __future__ import division
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
-import scipy.spatial.distance
 from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter
 import numpy as np
@@ -12,10 +11,6 @@ import operator
 import functools
 import itertools
 import collections
-try:
-    set
-except NameError:
-    from sets import Set as set #pylint: disable=W0622
 from importlib import import_module
 
 _NUMBA = None
@@ -251,47 +246,6 @@ def unpack_phases(phases):
         active_phases = [phases]
     return active_phases
 
-def check_degenerate_phases(phase_compositions, mindist=0.5):
-    """
-    Because the global minimization procedure returns a simplex as an
-    output, our starting point will always assume the maximum number of
-    phases. In many cases, one or more of these phases will be redundant,
-    i.e., the simplex is narrow. These redundant or degenerate phases can
-    be eliminated from the computation.
-
-    Here we perform edge-wise comparisons of all the simplex vertices.
-    Vertices which are from the same phase and "sufficiently" close to
-    each other in composition space are redundant, and one of them is
-    eliminated from the computation.
-
-    This function accepts a DataFrame of the estimated phase compositions
-    and returns the indices of the "independent" phases in the DataFrame.
-    """
-    output_vertices = set(range(len(phase_compositions)))
-    edges = list(itertools.combinations(output_vertices, 2))
-    sitefrac_columns = \
-        [c for c in phase_compositions.columns.values \
-            if str(c).startswith('X')]
-    for edge in edges:
-        # check if both end-points are still in output_vertices
-        # if not, we should skip this edge
-        if not set(edge).issubset(output_vertices):
-            continue
-        first_vertex = phase_compositions.iloc[edge[0]]
-        second_vertex = phase_compositions.iloc[edge[1]]
-        if first_vertex.loc['Phase'] != second_vertex.loc['Phase']:
-            # phases along this edge do not match; leave them alone
-            continue
-        # phases match; check the distance between their respective
-        # site fractions; if below the threshold, eliminate one of them
-        first_coords = first_vertex.loc[sitefrac_columns].fillna(0)
-        second_coords = second_vertex.loc[sitefrac_columns].fillna(0)
-        edge_length = \
-            scipy.spatial.distance.chebyshev(first_coords, second_coords)
-        if edge_length < mindist and len(output_vertices) > 1:
-            output_vertices.discard(edge[1])
-    return list(output_vertices)
-
 def generate_dof(phase, active_comps):
     """
     Accept a Phase object and a set() of the active components.
@@ -395,20 +349,3 @@ def broadcast_to(arr, shape):
     "Broadcast an array to a desired shape. Returns a view."
     return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
 
-
-def fast_aba(a, b):
-    """
-    Vectorized a@b@a matrix product.
-    Source: @dhirschfeld on numpy Gitter chat
-    """
-    old_shape = a.shape
-    c = np.empty(a.size, dtype=np.float64)
-    tmp = np.empty(old_shape[-2:], dtype=np.float64)
-    shape = (-1,) + old_shape[-2:]
-    a = a.reshape(*shape)
-    b = b.reshape(*shape)
-    c = c.reshape(*shape)
-    for a_, b_, c_ in zip(a, b, c):
-        np.dot(a_, b_, out=tmp)
-        np.dot(tmp, a_, out=c_)
-    return c.reshape(*old_shape)
