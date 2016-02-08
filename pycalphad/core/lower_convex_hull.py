@@ -176,7 +176,7 @@ def lower_convex_hull(global_grid, result_array):
         # then just choose the first one. This addresses gh-28.
         multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) > 1
         if np.any(multiple_success_trials):
-            saved_trial = np.argmin(bounding_indices, axis=-1)
+            saved_trial = np.argmax(bounding_indices, axis=-1)
             bounding_indices[np.nonzero(multiple_success_trials)] = False
             bounding_indices[..., saved_trial] = True
         fractions.shape = (-1, fractions.shape[-1])
