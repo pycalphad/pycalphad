@@ -164,14 +164,24 @@ def lower_convex_hull(global_grid, result_array):
                      (comp_values.shape[0], trial_simplices.shape[-2])
 
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
-
-        fractions = np.linalg.solve(np.swapaxes(trial_matrix[index_array], -2, -1),
-                                    comp_values[comp_indices])
-
+        fractions = np.full(result_array['points'].values.shape + \
+                            (result_array['points'].values.shape[-1],), -1.)
+        fractions[np.unravel_index(index_array, fractions.shape[:-1])] = \
+            np.linalg.solve(np.swapaxes(trial_matrix[index_array], -2, -1),
+                            comp_values[comp_indices])
         # A simplex only contains a point if its barycentric coordinates
-        # (phase fractions) are positive.
+        # (phase fractions) are non-negative.
         bounding_indices = np.all(fractions >= 0, axis=-1)
-        index_array = np.atleast_1d(index_array[bounding_indices])
+        # If more than one trial simplex satisfies the non-negativity criteria
+        # then just choose the first one. This addresses gh-28.
+        multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) > 1
+        if np.any(multiple_success_trials):
+            saved_trial = np.argmin(bounding_indices, axis=-1)
+            bounding_indices[np.nonzero(multiple_success_trials)] = False
+            bounding_indices[..., saved_trial] = True
+        fractions.shape = (-1, fractions.shape[-1])
+        bounding_indices.shape = (-1,)
+        index_array = np.arange(trial_matrix.shape[0], dtype=np.int)[bounding_indices]
 
         raveled_simplices = trial_simplices.reshape((-1,) + trial_simplices.shape[-1:])
         candidate_simplices = raveled_simplices[index_array, :]
@@ -205,7 +215,10 @@ def lower_convex_hull(global_grid, result_array):
         # Empty values are filled in with infinity
         comparison_matrix = np.empty([trial_matrix.shape[0] / trial_shape[0],
                                       trial_shape[0]])
-        assert comparison_matrix.shape[0] == aligned_compositions.shape[0]
+        if comparison_matrix.shape[0] != aligned_compositions.shape[0]:
+            raise ValueError('Arrays have become misaligned. This is a bug. Try perturbing your composition conditions '
+                             'by a small amount (1e-4). If you would like, you can report this issue to the development'
+                             ' team and they will fix it for future versions.')
         comparison_matrix.fill(np.inf)
         comparison_matrix[np.divide(index_array, trial_shape[0]).astype(np.int),
                           np.mod(index_array, trial_shape[0])] = candidate_energies
@@ -222,8 +235,11 @@ def lower_convex_hull(global_grid, result_array):
 
         #print('comparison_matrix[calculated_conditions_indices,lowest_energy_indices]',comparison_matrix[calculated_conditions_indices,
         #                                    lowest_energy_indices])
+        # This has to be greater-than-or-equal because, in the case where
+        # the desired condition is right on top of a simplex vertex (gh-28), there
+        # will be no change in energy changing a "_FAKE_" vertex to a real one.
         is_lower_energy = comparison_matrix[calculated_conditions_indices,
-                                            lowest_energy_indices] < \
+                                            lowest_energy_indices] <= \
             result_array['GM'].values.flat[calculated_conditions_indices]
         #print('is_lower_energy', is_lower_energy)
 
@@ -239,7 +255,7 @@ def lower_convex_hull(global_grid, result_array):
         result_array['GM'].values[final_multi_indices] = candidate_energies[is_lower_energy]
         result_array['MU'].values[final_multi_indices] = updated_potentials
         result_array['NP'].values[final_multi_indices] = \
-            fractions[bounding_indices][is_lower_energy]
+            fractions[np.nonzero(bounding_indices)][is_lower_energy]
         #print('result_array.GM.values', result_array.GM.values)
 
         # By profiling, it's faster to recompute all driving forces in-place

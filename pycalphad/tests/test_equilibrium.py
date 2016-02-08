@@ -124,3 +124,11 @@ def test_eq_composition_cond_sorting():
     assert_allclose(eq.GM.values, tc_energy)
     assert_allclose(eq.MU.values, [[[[tc_mu_al, tc_mu_fe]]]], rtol=1e-6)
 
+def test_eq_on_endmember():
+    """
+    When the composition condition is right on top of an end-member
+    the convex hull is still correctly constructed (gh-28).
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC',
+                     {v.T: 300, v.P: 101325, v.X('AL'): 0.5})
+
