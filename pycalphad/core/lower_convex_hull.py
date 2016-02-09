@@ -32,7 +32,7 @@ def _initialize_array(global_grid, result_array):
     # fictitious points instead of more rigorously checking with argmax.
     result_array['points'].values[...] = np.arange(len_comps)
 
-def lower_convex_hull(global_grid, result_array):
+def lower_convex_hull(global_grid, result_array, verbose=False):
     """
     Find the simplices on the lower convex hull satisfying the specified
     conditions in the result array.
@@ -44,6 +44,8 @@ def lower_convex_hull(global_grid, result_array):
     result_array : Dataset
         This object will be modified!
         Coordinates correspond to conditions axes.
+    verbose : bool
+        Display details to stdout. Useful for debugging.
 
     Returns
     -------
@@ -172,13 +174,25 @@ def lower_convex_hull(global_grid, result_array):
         # A simplex only contains a point if its barycentric coordinates
         # (phase fractions) are non-negative.
         bounding_indices = np.all(fractions >= 0, axis=-1)
+        #print('BOUNDING INDICES', bounding_indices)
+        #zero_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) == 0
+        #if np.any(zero_success_trials):
+        #    print(trial_matrix[np.nonzero(zero_success_trials)[:-1]])
         # If more than one trial simplex satisfies the non-negativity criteria
         # then just choose the first one. This addresses gh-28.
-        multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) > 1
+        # There is also the possibility that *none* of the trials were successful.
+        # This is usually due to numerical problems at the limit of composition space.
+        # We will sidestep the issue here by forcing the first trial simplex to match in that case.
+        multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) != 1
+        #print('MULTIPLE SUCCESS TRIALS SHAPE', np.nonzero(multiple_success_trials))
         if np.any(multiple_success_trials):
-            saved_trial = np.argmax(bounding_indices, axis=-1)
+            saved_trial = np.argmax(bounding_indices[np.nonzero(multiple_success_trials)], axis=-1)
+            #print('SAVED TRIAL', saved_trial)
+            #print('BOUNDING INDICES BEFORE', bounding_indices)
             bounding_indices[np.nonzero(multiple_success_trials)] = False
-            bounding_indices[..., saved_trial] = True
+            #print('BOUNDING INDICES FALSE', bounding_indices)
+            bounding_indices[np.nonzero(multiple_success_trials) + np.index_exp[saved_trial]] = True
+            #print('BOUNDING INDICES AFTER', bounding_indices)
         fractions.shape = (-1, fractions.shape[-1])
         bounding_indices.shape = (-1,)
         index_array = np.arange(trial_matrix.shape[0], dtype=np.int)[bounding_indices]
@@ -278,6 +292,5 @@ def lower_convex_hull(global_grid, result_array):
         # If all driving force (within some tolerance) is consumed, we found equilibrium
         if np.all(driving_forces <= DRIVING_FORCE_TOLERANCE):
             return
-    #raise ValueError
-    print('Iterations exceeded. Remaining driving force: ', driving_forces.max())
-    logger.error('Iterations exceeded')
+    if verbose:
+        print('Max hull iterations exceeded. Remaining driving force: ', driving_forces.max())

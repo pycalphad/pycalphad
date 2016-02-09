@@ -4,6 +4,7 @@ The minimize module handles helper routines for equilibrium calculation.
 from __future__ import division
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
+from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter
 import numpy as np
@@ -292,6 +293,13 @@ def endmember_matrix(dof, vacancy_indices=None):
         row_idx_to_delete = np.where(np.all(res_matrix[:, indices] == 1,
                                             axis=1))
         res_matrix = np.delete(res_matrix, (row_idx_to_delete), axis=0)
+    # Adjust site fractions to the numerical limit
+    cur_idx = 0
+    res_matrix[res_matrix == 0] = MIN_SITE_FRACTION
+    for ctx in dof:
+        end_idx = cur_idx + ctx
+        res_matrix[:, cur_idx:end_idx] /= res_matrix[:, cur_idx:end_idx].sum(axis=1)[:, None]
+        cur_idx = end_idx
     return res_matrix
 
 def unpack_kwarg(kwarg_obj, default_arg=None):

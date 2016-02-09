@@ -129,6 +129,6 @@ def test_eq_on_endmember():
     When the composition condition is right on top of an end-member
     the convex hull is still correctly constructed (gh-28).
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC',
-                     {v.T: 300, v.P: 101325, v.X('AL'): 0.5})
+    equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
 

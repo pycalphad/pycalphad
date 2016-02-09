@@ -11,6 +11,7 @@ from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions
+from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy import Add, Mul, Symbol
 
 from xarray import Dataset, DataArray
@@ -44,8 +45,6 @@ MAX_NEWTON_ITERATIONS = 5
 MIN_SEARCH_PROGRESS = 1000
 # Minimum norm of a Newton direction before it's "zero"
 MIN_DIRECTION_NORM = 1e-12
-# Force zero values to this amount, for numerical stability
-MIN_SITE_FRACTION = 1e-12
 # initial value of 'alpha' in Newton-Raphson procedure
 INITIAL_STEP_SIZE = 1.
 
@@ -110,6 +109,10 @@ def remove_degenerate_phases(properties, multi_index):
             properties['NP'].values[multi_index + np.index_exp[kept_phase]] += \
                 properties['NP'].values[multi_index + np.index_exp[redundant]]
             properties['Phase'].values[multi_index + np.index_exp[redundant]] = ''
+    # Eliminate any 'fake points' that made it through the convex hull routine
+    # These can show up from phases which aren't defined over all of composition space
+    properties['NP'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = np.nan
+    properties['Phase'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = ''
     # Rewrite properties to delete all the nulled out phase entries
     # Then put them at the end
     # That will let us rewrite 'phases' to have only the independent phases
@@ -268,7 +271,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['hull_iterations']))
         # lower_convex_hull will modify properties
-        lower_convex_hull(grid, properties)
+        lower_convex_hull(grid, properties, verbose=verbose)
         progress = np.abs(current_potentials - properties.MU).values
         converged = (progress < MIN_SEARCH_PROGRESS).all(axis=-1)
         if verbose:
@@ -487,7 +490,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
         print('Refining equilibrium')
         sys.stdout.flush()
     # One last call to ensure 'properties' and 'grid' are consistent with one another
-    lower_convex_hull(grid, properties)
+    lower_convex_hull(grid, properties, verbose=verbose)
     indexer = []
     for idx, vals in enumerate(indep_vals):
         indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
