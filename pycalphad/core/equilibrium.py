@@ -32,7 +32,7 @@ MIN_SOLVE_STEP_NORM = 1e-6
 # Minimum step multiplier to stop line search
 MIN_SOLVE_ALPHA = 1e-6
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-4
+MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum number of backtracking iterations
 MAX_BACKTRACKING = 5
 # Maximum number of Newton steps to take
@@ -580,54 +580,55 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             # Mass balance for each component
             num_vars = len(site_fracs) + len(phases)
             l_hessian = np.zeros((num_vars+num_constraints, num_vars+num_constraints), dtype=np.float)
-            gradient_term = np.zeros((num_vars+num_constraints), dtype=np.float)
-            l_constraints = np.zeros(num_constraints, dtype=np.float)
-            # Insert chemical potentials as Lagrange multipliers of mass balance constraints
-            l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-                          sum([len(dbf.phases[i].sublattices) for i in phases])+num_mass_bals] = \
-                [chem_pots[i] for i in comps if i != 'VA']
-            constraint_jac = np.zeros((num_constraints, num_vars), dtype=np.float)
-            # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
-            # Ordering of constraints by column: site fractions of each phase, then phase fractions
-            # First: Site fraction balance constraints
-            var_idx = 0
-            constraint_offset = 0
-            for name in phases:
-                for idx in range(len(dbf.phases[name].sublattices)):
-                    active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-                    constraint_jac[constraint_offset+idx,
-                                   var_idx:var_idx + len(active_in_subl)] = 1
-                    l_constraints[constraint_offset] = \
-                        -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
-                    var_idx += len(active_in_subl)
-                constraint_offset += len(dbf.phases[name].sublattices)
-            # Second: Mass balance of each component
-            for comp in [c for c in comps if c != 'VA']:
-                var_offset = 0
-                phase_idx = 0
-                for name, phase_frac in zip(phases, phase_fracs):
-                    if mole_fractions.get((name, comp), None) is None:
-                        mole_fractions[(name, comp)] = build_functions(mole_fraction(dbf.phases[name], comps, comp),
-                                                                       sorted(set(phase_records[name].variables)-{v.T, v.P},
-                                                                       key=str))
-                    comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
-                    # current phase frac times the comp_grad
-                    constraint_jac[constraint_offset,
-                                   var_offset:var_offset+phase_dof[phase_idx]] = \
-                        phase_frac * np.squeeze(comp_grad(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                    constraint_jac[constraint_offset, len(site_fracs)+phase_idx] += \
-                        np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                    l_constraints[constraint_offset] += \
-                        phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                    var_offset += phase_dof[phase_idx]
-                    phase_idx += 1
-                if comp != dependent_comp:
-                    l_constraints[constraint_offset] -= cur_conds['X_'+comp]
-                else:
-                    # TODO: Assuming N=1 (fixed for dependent component)
-                    l_constraints[constraint_offset] -= (1-indep_sum)
-                l_constraints[constraint_offset] *= -1
-                constraint_offset += 1
+            if (old_phase_length != new_phase_length) or (cur_iter == 0):
+                gradient_term = np.zeros((num_vars+num_constraints), dtype=np.float)
+                l_constraints = np.zeros(num_constraints, dtype=np.float)
+                # Insert chemical potentials as Lagrange multipliers of mass balance constraints
+                l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
+                              sum([len(dbf.phases[i].sublattices) for i in phases])+num_mass_bals] = \
+                    [chem_pots[i] for i in comps if i != 'VA']
+                constraint_jac = np.zeros((num_constraints, num_vars), dtype=np.float)
+                # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
+                # Ordering of constraints by column: site fractions of each phase, then phase fractions
+                # First: Site fraction balance constraints
+                var_idx = 0
+                constraint_offset = 0
+                for name in phases:
+                    for idx in range(len(dbf.phases[name].sublattices)):
+                        active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+                        constraint_jac[constraint_offset+idx,
+                                       var_idx:var_idx + len(active_in_subl)] = 1
+                        l_constraints[constraint_offset] = \
+                            -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
+                        var_idx += len(active_in_subl)
+                    constraint_offset += len(dbf.phases[name].sublattices)
+                # Second: Mass balance of each component
+                for comp in [c for c in comps if c != 'VA']:
+                    var_offset = 0
+                    phase_idx = 0
+                    for name, phase_frac in zip(phases, phase_fracs):
+                        if mole_fractions.get((name, comp), None) is None:
+                            mole_fractions[(name, comp)] = build_functions(mole_fraction(dbf.phases[name], comps, comp),
+                                                                           sorted(set(phase_records[name].variables)-{v.T, v.P},
+                                                                           key=str))
+                        comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
+                        # current phase frac times the comp_grad
+                        constraint_jac[constraint_offset,
+                                       var_offset:var_offset+phase_dof[phase_idx]] = \
+                            phase_frac * np.squeeze(comp_grad(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
+                        constraint_jac[constraint_offset, len(site_fracs)+phase_idx] += \
+                            np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
+                        l_constraints[constraint_offset] += \
+                            phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
+                        var_offset += phase_dof[phase_idx]
+                        phase_idx += 1
+                    if comp != dependent_comp:
+                        l_constraints[constraint_offset] -= cur_conds['X_'+comp]
+                    else:
+                        # TODO: Assuming N=1 (fixed for dependent component)
+                        l_constraints[constraint_offset] -= (1-indep_sum)
+                    l_constraints[constraint_offset] *= -1
+                    constraint_offset += 1
             # Now build objective Hessian and gradient terms
             var_offset = 0
             phase_idx = 0
@@ -635,15 +636,16 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                 obj = callable_dict[name]
                 hess = phase_records[name].hess
                 grad = phase_records[name].grad
-                obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                               site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                             )
-                grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                  site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                                                 )
-                gradient_term[var_offset:var_offset+phase_dof[phase_idx]] = \
-                    -phase_frac * np.squeeze(grad_res)[2:] # Remove P,T grad part
-                gradient_term[len(site_fracs)+phase_idx] = -obj_res
+                if (old_phase_length != new_phase_length) or (cur_iter == 0):
+                    obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                   site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                                 )
+                    grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                      site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                                                     )
+                    gradient_term[var_offset:var_offset+phase_dof[phase_idx]] = \
+                        -phase_frac * np.squeeze(grad_res)[2:] # Remove P,T grad part
+                    gradient_term[len(site_fracs)+phase_idx] = -obj_res
                 l_hessian[var_offset:var_offset+phase_dof[phase_idx],
                           var_offset:var_offset+phase_dof[phase_idx]] = \
                     phase_frac * np.squeeze(hess(*itertools.chain([cur_conds['P'], cur_conds['T']],
@@ -652,15 +654,16 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                 # Phase fraction / site fraction cross derivative
                 l_hessian[len(site_fracs)+phase_idx, var_offset:var_offset+phase_dof[phase_idx]] = \
                 l_hessian[var_offset:var_offset+phase_dof[phase_idx], len(site_fracs)+phase_idx] = \
-                    np.squeeze(grad_res)[2:] # Remove P,T grad part
+                    (gradient_term[var_offset:var_offset+phase_dof[phase_idx]] / -phase_frac)
                 var_offset += phase_dof[phase_idx]
                 phase_idx += 1
             # TODO: N=1 fixed by default
             #l_constraints[constraint_offset] -= 1
             l_hessian[:num_vars, num_vars:] = -constraint_jac.T
             l_hessian[num_vars:, :num_vars] = constraint_jac
-            gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
-            gradient_term[num_vars:] = l_constraints
+            if (old_phase_length != new_phase_length) or (cur_iter == 0):
+                gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
+                gradient_term[num_vars:] = l_constraints
             try:
                 step = np.linalg.solve(l_hessian, gradient_term)
             except np.linalg.LinAlgError:
@@ -670,6 +673,9 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
             alpha = 1
+            # Notation for Wolfe conditions from Nocedal and Wright
+            wolfe_c1 = 1e-8
+            wolfe_c2 = 0.5
             while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0) or
                    np.any(phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0) and
                    alpha > MIN_SOLVE_ALPHA):
@@ -678,11 +684,12 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             new_l_multipliers = l_multipliers.copy()
-            new_l_constraints = np.zeros_like(l_constraints, dtype=np.float)
-            new_site_fracs = site_fracs.copy()
             #print('STARTING ALPHA', alpha)
-            while alpha > MIN_SOLVE_ALPHA:
+            while True:
                 new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
+                new_l_constraints = np.zeros_like(l_constraints, dtype=np.float)
+                new_constraint_jac = np.zeros_like(constraint_jac, dtype=np.float)
+                new_gradient_term = np.zeros_like(gradient_term, dtype=np.float)
                 new_l_multipliers = l_multipliers + alpha * step[num_vars:]
                 new_chem_pots = new_l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
                 new_chem_pots = OrderedDict(zip([c for c in comps if c != 'VA'], new_chem_pots))
@@ -700,17 +707,21 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                     for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
                         properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
                             mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                    obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                              new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                                 )
-                    properties['GM'].values[it.multi_index] += \
-                        properties['NP'].values[it.multi_index + np.index_exp[phase_idx]] * obj_res
                     var_offset += phase_dof[phase_idx]
+                # Insert chemical potentials as Lagrange multipliers of mass balance constraints
+                new_l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
+                              sum([len(dbf.phases[i].sublattices) for i in phases])+num_mass_bals] = \
+                    [chem_pots[i] for i in comps if i != 'VA']
+                # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
+                # Ordering of constraints by column: site fractions of each phase, then phase fractions
+                # First: Site fraction balance constraints
                 var_idx = 0
                 constraint_offset = 0
                 for name in phases:
                     for idx in range(len(dbf.phases[name].sublattices)):
                         active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+                        new_constraint_jac[constraint_offset+idx,
+                                       var_idx:var_idx + len(active_in_subl)] = 1
                         new_l_constraints[constraint_offset] = \
                             -(sum(new_site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
                         var_idx += len(active_in_subl)
@@ -725,6 +736,12 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                                                                            sorted(set(phase_records[name].variables)-{v.T, v.P},
                                                                            key=str))
                         comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
+                        # current phase frac times the comp_grad
+                        new_constraint_jac[constraint_offset,
+                                           var_offset:var_offset+phase_dof[phase_idx]] = \
+                            phase_frac * np.squeeze(comp_grad(*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
+                        new_constraint_jac[constraint_offset, len(new_site_fracs)+phase_idx] += \
+                            np.squeeze(comp_obj(*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
                         new_l_constraints[constraint_offset] += \
                             phase_frac * np.squeeze(comp_obj(*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
                         var_offset += phase_dof[phase_idx]
@@ -736,24 +753,54 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                         new_l_constraints[constraint_offset] -= (1-indep_sum)
                     new_l_constraints[constraint_offset] *= -1
                     constraint_offset += 1
-                break
-                alpha *= 0.5
-            var_offset = 0
-            properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
-            properties['GM'].values[it.multi_index] = 0
-            for phase_idx in range(len(phases)):
-                properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
-                    new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]]
-                for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
-                    properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
-                        mole_fractions[(phases[phase_idx], comp)][0](*new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                obj_res = callable_dict[phases[phase_idx]](*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                          new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                             )
-                properties['GM'].values[it.multi_index] += \
-                    properties['NP'].values[it.multi_index + np.index_exp[phase_idx]] * obj_res
-                var_offset += phase_dof[phase_idx]
+                # Now build gradient term
+                var_offset = 0
+                phase_idx = 0
+                for name, phase_frac in zip(phases, properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]]):
+                    obj = callable_dict[name]
+                    grad = phase_records[name].grad
+                    obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                   new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                                 )
+                    grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
+                                                      new_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                                                     )
+                    properties['GM'].values[it.multi_index] += phase_frac * obj_res
+                    new_gradient_term[var_offset:var_offset+phase_dof[phase_idx]] = \
+                        -phase_frac * np.squeeze(grad_res)[2:] # Remove P,T grad part
+                    new_gradient_term[len(new_site_fracs)+phase_idx] = -obj_res
+                    var_offset += phase_dof[phase_idx]
+                    phase_idx += 1
+                new_gradient_term[:num_vars] += np.dot(new_constraint_jac.T, new_l_multipliers)
+                new_gradient_term[num_vars:] = new_l_constraints
+                # Check if strong Wolfe conditions are satisfied
+                armijo = properties['GM'].values[it.multi_index] <= old_energy + wolfe_c1*alpha*np.dot(step, gradient_term)
+                curvature = np.abs(np.dot(step, new_gradient_term)) <= wolfe_c2*np.abs(np.dot(step, gradient_term))
+                #curvature = True
+                # This is a modification of the strong Wolfe conditions to allow chemical potential updates
+                # as long as doing so does not increase the energy too much
+                chempot_update = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() >= 1e-4
+                chempot_update &= old_energy - properties['GM'].values[it.multi_index] >= -1e-5
+                #print('ARMIJO ', armijo)
+                #print('CURVATURE', curvature)
+                #print('CHEMPOT_UPDATE', chempot_update)
+                #print('ALPHA', alpha)
+                #print('NEW_L_MULTIPLIERS', new_l_multipliers)
+                #print('OLD ENERGY', old_energy)
+                #print('NEW ENERGY', properties['GM'].values[it.multi_index])
+                #print('---')
+                if (armijo and curvature) or chempot_update:
+                    break
+                elif alpha == 0:
+                    break
+                else:
+                    alpha *= 0.5
+                    if alpha < MIN_SOLVE_ALPHA:
+                        alpha = 0
             l_multipliers = new_l_multipliers
+            gradient_term = new_gradient_term
+            l_constraints = new_l_constraints
+            constraint_jac = new_constraint_jac
 
             if np.any(np.isnan(step)):
                 print(phases)
@@ -765,8 +812,9 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             if verbose:
                 print('Chem pot progress', np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf))
                 print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
-            no_progress = np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf) < 1
-            no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            no_progress = alpha <= MIN_SOLVE_ALPHA
+            #no_progress = np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf) < 1
+            #no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             if no_progress:
                 if verbose:
                     print('No progress')
