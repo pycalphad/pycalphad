@@ -20,11 +20,8 @@ import scipy.spatial
 from collections import defaultdict, namedtuple, OrderedDict
 import itertools
 import copy
+from datetime import datetime
 import sys
-try:
-    set
-except NameError:
-    from sets import Set as set #pylint: disable=W0622
 
 # Maximum number of global search iterations
 MAX_SEARCH_ITERATIONS = 10
@@ -175,6 +172,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     --------
     None yet.
     """
+    from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
     indep_vars = ['T', 'P']
@@ -262,7 +260,9 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                                      np.empty(grid_shape, dtype=np.int))
                           },
                           coords=coord_dict,
-                          attrs={'hull_iterations': 1, 'solve_iterations': 0},
+                          attrs={'hull_iterations': 1, 'solve_iterations': 0,
+                                 'engine': 'pycalphad %s' % pycalphad_version,
+                                 'created': datetime.utcnow()},
                          )
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
