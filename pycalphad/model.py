@@ -9,10 +9,6 @@ from tinydb import where
 import pycalphad.variables as v
 from pycalphad.log import logger
 import numpy as np
-try:
-    set
-except NameError:
-    from sets import Set as set #pylint: disable=W0622
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols

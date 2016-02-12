@@ -8,20 +8,14 @@ from pycalphad import Model
 from pycalphad.model import DofError
 from pycalphad.core.utils import make_callable, point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import unpack_condition, unpack_phases
+from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
 from xarray import concat, Dataset, DataArray
-from xarray.core.npcompat import broadcast_to
 import numpy as np
 import itertools
 import collections
-
-try:
-    set
-except NameError:
-    from sets import Set as set #pylint: disable=W0622
 
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof):

@@ -28,6 +28,15 @@ try:
 except ImportError:
     pass
 
+try:
+    # Only available in numpy 1.10 and newer
+    from numpy import broadcast_to
+except ImportError:
+    def broadcast_to(arr, shape):
+        "Broadcast an array to a desired shape. Returns a view."
+        return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
+
+
 class NumPyPrinter(LambdaPrinter):
     """
     Numpy printer which handles vectorized piecewise functions,
@@ -351,9 +360,4 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
         new_dict = collections.defaultdict(lambda: kwarg_obj)
 
     return new_dict
-
-
-def broadcast_to(arr, shape):
-    "Broadcast an array to a desired shape. Returns a view."
-    return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
 
