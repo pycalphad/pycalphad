@@ -803,9 +803,10 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             constraint_jac = new_constraint_jac
 
             if np.any(np.isnan(step)):
-                print(phases)
-                print(site_fracs)
-                print(l_hessian)
+                print('PHASES: ', phases)
+                print('SITE FRACTIONS: ', site_fracs)
+                print('HESSIAN CONDITION NUMBER: ', np.linalg.cond(l_hessian))
+                print('HESSIAN: ', l_hessian)
                 raise ValueError('Bad step: '+str(step))
 
             properties.attrs['solve_iterations'] += 1
