@@ -567,6 +567,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
             site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+            phase_fracs[phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             var_idx = 0
             for name in phases:
                 for idx in range(len(dbf.phases[name].sublattices)):
@@ -670,13 +671,19 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
                 print('Failed to compute ', cur_conds)
                 properties['GM'].values[it.multi_index] = np.nan
                 break
+            if np.any(np.isnan(step)):
+                print('PHASES: ', phases)
+                print('SITE FRACTIONS: ', site_fracs)
+                print('PHASE FRACTIONS: ', phase_fracs)
+                print('HESSIAN: ', l_hessian)
+                raise ValueError('Bad step: '+str(step))
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
             alpha = 1
             # Notation for Wolfe conditions from Nocedal and Wright
             wolfe_c1 = 1e-8
             wolfe_c2 = 0.5
-            while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0) or
+            while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < MIN_SITE_FRACTION) or
                    np.any(phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0) and
                    alpha > MIN_SOLVE_ALPHA):
                 alpha *= 0.9
@@ -801,12 +808,6 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             gradient_term = new_gradient_term
             l_constraints = new_l_constraints
             constraint_jac = new_constraint_jac
-
-            if np.any(np.isnan(step)):
-                print('PHASES: ', phases)
-                print('SITE FRACTIONS: ', site_fracs)
-                print('HESSIAN: ', l_hessian)
-                raise ValueError('Bad step: '+str(step))
 
             properties.attrs['solve_iterations'] += 1
             if verbose:
