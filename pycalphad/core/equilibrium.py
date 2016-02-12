@@ -13,7 +13,7 @@ from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy import Add, Mul, Symbol
-
+from tqdm import tqdm as progressbar
 from xarray import Dataset, DataArray
 import numpy as np
 import scipy.spatial
@@ -143,7 +143,7 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **kwargs):
+def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_opts=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -160,7 +160,9 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     conditions : dict or (list of dict)
         StateVariables and their corresponding value.
     verbose : bool, optional
-        Show progress of calculations.
+        Print details of calculations. Useful for debugging.
+    pbar : bool, optional
+        Show a progress bar.
     grid_opts : dict, optional
         Keyword arguments to pass to the initial grid routine.
 
@@ -195,7 +197,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
-    for name in active_phases:
+    for name in progressbar(active_phases, desc='Initialize (1/3)', unit='phase', disable=not pbar):
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
@@ -267,7 +269,8 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
 
-    for iteration in range(MAX_SEARCH_ITERATIONS):
+    convex_progress = progressbar(range(MAX_SEARCH_ITERATIONS), desc='Global Search (2/3)', disable=not pbar)
+    for iteration in convex_progress:
         if verbose:
             print('Computing convex hull [iteration {}]'.format(properties.attrs['hull_iterations']))
         # lower_convex_hull will modify properties
@@ -279,6 +282,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
         if progress.max() < MIN_SEARCH_PROGRESS:
             if verbose:
                 print('Global search complete')
+            convex_progress.close()
             break
         current_potentials[...] = properties.MU.values
         if verbose:
@@ -522,6 +526,10 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
     del properties['points']
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
     mole_fractions = {}
+    num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
+    # For single-condition calculations, don't generate a separate progress bar
+    multi_phase_progress = progressbar(desc='Solve (3/3)', total=num_conds,
+                                       unit='cond', disable=(num_conds==1) or (not pbar))
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         cur_conds = OrderedDict(zip(properties['GM'].coords.keys(),
@@ -529,14 +537,19 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
         # sum of independently specified components
         indep_sum = sum([val for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
+            multi_phase_progress.close()
             raise ValueError('Sum of independent component mole fractions greater than one')
         dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
         if len(dependent_comp) == 1:
             dependent_comp = list(dependent_comp)[0]
         else:
+            multi_phase_progress.close()
             raise ValueError('Number of dependent components different from one')
         chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
-        for cur_iter in range(MAX_SOLVE_ITERATIONS):
+        # For single-condition calculations, make a progress bar for the individual solve
+        solve_progress = progressbar(range(MAX_SOLVE_ITERATIONS), desc='Solve (3/3',
+                                     disable=(num_conds>1) or (not pbar))
+        for cur_iter in solve_progress:
             phases = list(properties['Phase'].values[it.multi_index])
             if '' in phases:
                 old_phase_length = phases.index('')
@@ -670,12 +683,14 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             except np.linalg.LinAlgError:
                 print('Failed to compute ', cur_conds)
                 properties['GM'].values[it.multi_index] = np.nan
+                solve_progress.close()
                 break
             if np.any(np.isnan(step)):
                 print('PHASES: ', phases)
                 print('SITE FRACTIONS: ', site_fracs)
                 print('PHASE FRACTIONS: ', phase_fracs)
                 print('HESSIAN: ', l_hessian)
+                solve_progress.close()
                 raise ValueError('Bad step: '+str(step))
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
@@ -819,7 +834,10 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             if no_progress:
                 if verbose:
                     print('No progress')
+                solve_progress.close()
                 break
+        multi_phase_progress.update()
         it.iternext()
+    multi_phase_progress.close()
 
     return properties
