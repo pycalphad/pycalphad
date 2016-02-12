@@ -7,6 +7,7 @@ import copy
 from sympy import log, Add, Mul, Piecewise, Pow, S, sin, Symbol
 from tinydb import where
 import pycalphad.variables as v
+from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.log import logger
 import numpy as np
 
@@ -350,8 +351,8 @@ class Model(object):
                 sitefrac = \
                     v.SiteFraction(phase.name, subl_index, comp)
                 # We lose some precision here, but this makes the limit behave nicely
-                # We're okay until fractions of about 1e-16
-                mixing_term = Piecewise((sitefrac*log(sitefrac), sitefrac > 1e-16), (0, True))
+                # We're okay until fractions of about 1e-12 (platform-dependent)
+                mixing_term = Piecewise((sitefrac*log(sitefrac), sitefrac > MIN_SITE_FRACTION/10.), (0, True))
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term

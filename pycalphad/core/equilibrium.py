@@ -805,7 +805,6 @@ def equilibrium(dbf, comps, phases, conditions, verbose=True, grid_opts=None, **
             if np.any(np.isnan(step)):
                 print('PHASES: ', phases)
                 print('SITE FRACTIONS: ', site_fracs)
-                print('HESSIAN CONDITION NUMBER: ', np.linalg.cond(l_hessian))
                 print('HESSIAN: ', l_hessian)
                 raise ValueError('Bad step: '+str(step))
 
