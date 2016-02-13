@@ -1,5 +1,5 @@
 """
-The refstates module contains pure-element reference state data.
+The refdata module contains pure-element reference state data.
 """
 
 from sympy import And, Piecewise, Symbol, log
