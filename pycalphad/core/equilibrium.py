@@ -141,11 +141,11 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_opts=None, **kwargs):
+def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
+                verbose=False, pbar=True, calc_opts=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
-    Model parameters are taken from 'dbf'.
 
     Parameters
     ----------
@@ -157,12 +157,17 @@ def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_o
         Names of phases to consider in the calculation.
     conditions : dict or (list of dict)
         StateVariables and their corresponding value.
+    output : str or list of str, optional
+        Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
+        These must be defined as attributes in the Model class of each phase.
+    model : Model, a dict of phase names to Model, or a seq of both, optional
+        Model class to use for each phase.
     verbose : bool, optional
         Print details of calculations. Useful for debugging.
     pbar : bool, optional
         Show a progress bar.
-    grid_opts : dict, optional
-        Keyword arguments to pass to the initial grid routine.
+    calc_opts : dict, optional
+        Keyword arguments to pass to `calculate`, the energy/property calculation routine.
 
     Returns
     -------
@@ -176,7 +181,8 @@ def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_o
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
     indep_vars = ['T', 'P']
-    grid_opts = grid_opts if grid_opts is not None else dict()
+    calc_opts = calc_opts if calc_opts is not None else dict()
+    model = model if model is not None else Model
     phase_records = dict()
     callable_dict = kwargs.pop('callables', dict())
     grad_callable_dict = kwargs.pop('grad_callables', dict())
@@ -191,7 +197,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_o
                       for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
+    models = unpack_kwarg(model, default_arg=Model)
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
@@ -231,6 +237,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_o
         print('[done]', end='\n')
 
     # 'calculate' accepts conditions through its keyword arguments
+    grid_opts = calc_opts.copy()
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 100
@@ -837,5 +844,7 @@ def equilibrium(dbf, comps, phases, conditions, verbose=False, pbar=True, grid_o
         multi_phase_progress.update()
         it.iternext()
     multi_phase_progress.close()
+
+    # TODO: Compute equilibrium values of any additional user-specified properties
 
     return properties
