@@ -11,7 +11,7 @@ from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions
-from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Mul, Symbol
 from tqdm import tqdm as progressbar
 from xarray import Dataset, DataArray
@@ -87,8 +87,6 @@ def remove_degenerate_phases(properties, multi_index):
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
         comp_matrix = properties['X'].values[multi_index + np.index_exp[indices]]
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
-        # For each phase pair with composition difference below tolerance, eliminate phase with largest index
-        COMP_DIFFERENCE_TOL = 0.03
         redundant_phases = set()
         redundant_phases |= {indices[0]}
         for i in range(len(indices)):
