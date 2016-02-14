@@ -1,5 +1,5 @@
 """
-The minimize module handles helper routines for equilibrium calculation.
+The utils module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
 import pycalphad.variables as v
