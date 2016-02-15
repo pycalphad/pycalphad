@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Add, Mul, Piecewise, Pow, S, sin, Symbol
+from sympy import log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -48,6 +48,9 @@ class Model(object):
         # Constrain possible components to those within phase's d.o.f
         possible_comps = set([x.upper() for x in comps])
         self.components = set()
+        self.constituents = []
+        self.phase_name = phase.upper()
+        self.site_ratios = dbe.phases[phase.upper()].sublattices
         for sublattice in dbe.phases[phase.upper()].constituents:
             self.components |= set(sublattice).intersection(possible_comps)
         logger.debug('Model of %s has components %s', phase, self.components)
@@ -61,6 +64,7 @@ class Model(object):
                     .format(phase.upper(), sublattice,
                             dbe.phases[phase.upper()].constituents,
                             self.components))
+            self.constituents.append(set(sublattice).intersection(self.components))
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -71,6 +75,7 @@ class Model(object):
 
         self.models = dict()
         self.build_phase(dbe, phase.upper(), symbols, dbe.search)
+        self.site_fractions = sorted(self.ast.atoms(v.SiteFraction), key=str)
 
         # Need to do more substitutions to catch symbols that are functions
         # of other symbols
@@ -99,6 +104,27 @@ class Model(object):
     def __hash__(self):
         return hash(repr(self))
 
+    def standard_mole_fraction(self, species):
+        "Mole fraction which correctly normalizes for vacancies."
+        result = S.Zero
+        site_ratio_normalization = S.Zero
+        # Calculate normalization factor
+        for idx, sublattice in enumerate(self.constituents):
+            active = set(sublattice).intersection(self.components)
+            if 'VA' in active:
+                site_ratio_normalization += self.site_ratios[idx] * \
+                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
+            else:
+                site_ratio_normalization += self.site_ratios[idx]
+        site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
+        # Sum up site fraction contributions from each component sublattice
+        for idx, sublattice in enumerate(self.constituents):
+            active = set(sublattice).intersection(set(self.components))
+            if species in active:
+                result += site_ratios[idx] * \
+                    v.SiteFraction(self.phase_name, idx, species)
+        return result
+
     @property
     def ast(self):
         "Return the full abstract syntax tree of the model."
@@ -108,6 +134,29 @@ class Model(object):
     def variables(self):
         "Return state variables in the model."
         return sorted(self.ast.atoms(v.StateVariable), key=str)
+
+    @property
+    def degree_of_ordering(self):
+        result = S.Zero
+        site_ratio_normalization = S.Zero
+        # Calculate normalization factor
+        for idx, sublattice in enumerate(self.constituents):
+            active = set(sublattice).intersection(self.components)
+            if 'VA' in active:
+                site_ratio_normalization += self.site_ratios[idx] * \
+                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
+            else:
+                site_ratio_normalization += self.site_ratios[idx]
+        site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
+        for comp in sorted([c for c in self.components if c != 'VA']):
+            comp_result = S.Zero
+            for idx, sublattice in enumerate(self.constituents):
+                active = set(sublattice).intersection(set(self.components))
+                if comp in active:
+                    comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.standard_mole_fraction(comp)) / self.standard_mole_fraction(comp)
+            result += comp_result
+        return result / len([c for c in self.components if c != 'VA'])
+    DOO = degree_of_ordering
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
