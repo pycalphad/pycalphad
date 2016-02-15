@@ -93,7 +93,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                 raise ValueError('Length of state variable list and number of given points must be equal when '
                                  'broadcast=False.')
     phase_output = func(*itertools.chain(statevars, np.rollaxis(points, -1, start=0)))
-    phase_output = np.atleast_1d(np.asarray(phase_output))
+    if isinstance(phase_output, (float, int)):
+        phase_output = broadcast_to(phase_output, points.shape[:-1])
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
