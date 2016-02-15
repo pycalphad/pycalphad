@@ -43,7 +43,7 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
-                          points, func, output, maximum_internal_dof):
+                          points, func, output, maximum_internal_dof, broadcast=True):
     """
     Calculate output values for a particular phase.
 
@@ -67,6 +67,9 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     maximum_internal_dof : int
         Largest number of internal degrees of freedom of any phase. This is used
         to guarantee different phase's Datasets can be concatenated.
+    broadcast : bool
+        If True, broadcast state variables against each other to create a grid.
+        If False, assume state variables are given as equal-length lists.
 
     Returns
     -------
@@ -76,13 +79,21 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     --------
     None yet.
     """
-    # Broadcast compositions and state variables along orthogonal axes
-    # This lets us eliminate an expensive Python loop
-    statevar_grid = np.meshgrid(*itertools.chain(statevar_dict.values(),
-                                                 [np.empty(points.shape[-2])]),
-                                sparse=True, indexing='ij')[:-1]
-    points = broadcast_to(points, tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
-    phase_output = func(*itertools.chain(statevar_grid, np.rollaxis(points, -1, start=0)))
+    if broadcast:
+        # Broadcast compositions and state variables along orthogonal axes
+        # This lets us eliminate an expensive Python loop
+        statevars = np.meshgrid(*itertools.chain(statevar_dict.values(),
+                                                     [np.empty(points.shape[-2])]),
+                                    sparse=True, indexing='ij')[:-1]
+        points = broadcast_to(points, tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
+    else:
+        statevars = list(np.atleast_1d(x) for x in statevar_dict.values())
+        for statevar in statevars:
+            if len(statevar) != len(points):
+                raise ValueError('Length of state variable list and number of given points must be equal when '
+                                 'broadcast=False.')
+    phase_output = func(*itertools.chain(statevars, np.rollaxis(points, -1, start=0)))
+    phase_output = np.atleast_1d(np.asarray(phase_output))
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
@@ -103,25 +114,32 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                                                site_ratio_normalization)
 
     coordinate_dict = {'component': components}
-    coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
-    output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
     expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
     expanded_points[..., :points.shape[-1]] = points
+    if broadcast:
+        coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
+        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+    else:
+        output_columns = ['points']
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
                    'Phase': (output_columns,
                              np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
                    }
+    if not broadcast:
+        # Add state variables as data variables rather than as coordinates
+        for sym, vals in zip(statevar_dict.keys(), statevars):
+            data_arrays.update({sym: (output_columns, vals)})
 
     return Dataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -143,6 +161,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         If True, the first few points of the output surface will be fictitious
         points used to define an equilibrium hyperplane guaranteed to be above
         all the other points. This is used for convex hull computations.
+    broadcast : bool, optional
+        If True, broadcast given state variable lists against each other to create a grid.
+        If False, assume state variables are given as equal-length lists.
     points : ndarray or a dict of phase names to ndarray, optional
         Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
         If this is not specified, points will be generated automatically.
@@ -173,6 +194,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
         phases = [phases]
     if isinstance(comps, str):
         comps = [comps]
+    if points_dict is None and broadcast is False:
+        raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     components = [x for x in sorted(comps) if not x.startswith('VA')]
 
     # Convert keyword strings to proper state variable objects
@@ -289,7 +312,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, **k
 
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, comp_sets[phase_name], output,
-                                         maximum_internal_dof)
+                                         maximum_internal_dof, broadcast=broadcast)
         # largest_energy is really only relevant if fake_points is set
         if fake_points:
             largest_energy = max(phase_ds[output].max(), largest_energy)

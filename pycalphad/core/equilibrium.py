@@ -140,6 +140,88 @@ def _adjust_conditions(conds):
             new_conds[key] = unpack_condition(value)
     return new_conds
 
+def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
+    """
+    WARNING: API/calling convention not finalized.
+    Compute the *equilibrium value* of a property.
+    This function differs from `calculate` in that it computes
+    thermodynamic equilibrium instead of randomly sampling the
+    internal degrees of freedom of a phase.
+    Because of that, it's slower than `calculate`.
+    This plugs in the equilibrium phase and site fractions
+    to compute a thermodynamic property defined in a Model.
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing the relevant parameters.
+    comps : list
+        Names of components to consider in the calculation.
+    phases : list or dict
+        Names of phases to consider in the calculation.
+    conditions : dict or (list of dict)
+        StateVariables and their corresponding value.
+    output : str
+        Equilibrium model property (e.g., CPM, HM, etc.) to compute.
+        This must be defined as an attribute in the Model class of each phase.
+    data : Dataset, optional
+        Previous result of call to `equilibrium`.
+        Should contain the equilibrium configurations at the conditions of interest.
+        If the databases are not the same as in the original calculation,
+        the results may be meaningless. If None, `equilibrium` will be called.
+        Specifying this keyword argument can save the user some time if several properties
+        need to be calculated in succession.
+    per_phase : bool, optional
+        If True, compute and return the property for each phase present.
+        If False, return the total system value, weighted by the phase fractions.
+    kwargs
+        Passed to `calculate`.
+
+    Returns
+    -------
+    Dataset of property as a function of equilibrium conditions
+    """
+    if data is None:
+        data = equilibrium(dbf, comps, phases, conditions)
+    active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
+    conds = _adjust_conditions(conditions)
+    indep_vars = ['P', 'T']
+    # TODO: Rewrite this to use the coord dict from 'data'
+    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
+    indep_vals = list([float(x) for x in np.atleast_1d(val)]
+                      for key, val in str_conds.items() if key in indep_vars)
+    coord_dict = str_conds.copy()
+    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    coord_dict['vertex'] = np.arange(len(components))
+    grid_shape = np.meshgrid(*coord_dict.values(),
+                             indexing='ij', sparse=False)[0].shape
+    prop_shape = grid_shape
+    prop_dims = list(str_conds.keys()) + ['vertex']
+
+    result = Dataset({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
+    # For each phase select all conditions where that phase exists
+    # Perform the appropriate calculation and then write the result back
+    for phase in active_phases:
+        dof = sum([len(x) for x in dbf.phases[phase].constituents])
+        current_phase_indices = (data.Phase.values == phase)
+        if ~np.any(current_phase_indices):
+            continue
+        points = data.Y.values[np.nonzero(current_phase_indices)][..., :dof]
+        statevar_indices = np.nonzero(current_phase_indices)[:len(indep_vals)]
+        statevars = {key: np.take(np.asarray(vals), idx)
+                     for key, vals, idx in zip(indep_vars, indep_vals, statevar_indices)}
+        statevars.update(kwargs)
+        if statevars.get('mode', None) is None:
+            statevars['mode'] = 'numpy'
+        calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False, **statevars)
+        result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
+    if not per_phase:
+        result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
+    else:
+        result['Phase'] = data['Phase'].copy()
+        result['NP'] = data['NP'].copy()
+    return result
+
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, pbar=True, calc_opts=None, **kwargs):
@@ -268,8 +350,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                           },
                           coords=coord_dict,
                           attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                 'engine': 'pycalphad %s' % pycalphad_version,
-                                 'created': datetime.utcnow()},
+                                 'engine': 'pycalphad %s' % pycalphad_version},
                          )
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
@@ -845,6 +926,21 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         it.iternext()
     multi_phase_progress.close()
 
-    # TODO: Compute equilibrium values of any additional user-specified properties
+    # Compute equilibrium values of any additional user-specified properties
+    output = output if isinstance(output, (list, tuple, set)) else [output]
+    # We already computed these properties so don't recompute them
+    output = sorted(set(output) - {'GM', 'MU'})
+    for out in output:
+        if (out is None) or (len(out) == 0):
+            continue
+        # TODO: How do we know if a specified property should be per_phase or not?
+        # For now, we make a best guess
+        if (out == 'degree_of_ordering') or (out == 'DOO'):
+            per_phase = True
+        else:
+            per_phase = False
+        properties.merge(_eqcalculate(dbf, comps, phases, conditions, out,
+                                      data=properties, per_phase=per_phase, **calc_opts), inplace=True, compat='equals')
+    properties.attrs['created'] = datetime.utcnow()
 
     return properties

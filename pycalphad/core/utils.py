@@ -346,7 +346,9 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     if isinstance(kwarg_obj, collections.Mapping):
         new_dict.update(kwarg_obj)
     # kwarg_obj is a list containing a dict and a default
-    elif isinstance(kwarg_obj, collections.Iterable):
+    # For now at least, we don't treat ndarrays the same as other iterables
+    # ndarrays are assumed to be numeric arrays containing "default values", so don't match here
+    elif isinstance(kwarg_obj, collections.Iterable) and not isinstance(kwarg_obj, np.ndarray):
         for element in kwarg_obj:
             if isinstance(element, collections.Mapping):
                 new_dict.update(element)
