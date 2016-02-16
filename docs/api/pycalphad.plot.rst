@@ -1,13 +1,6 @@
 pycalphad.plot package
 ======================
 
-Subpackages
------------
-
-.. toctree::
-
-    pycalphad.plot.projections
-
 Submodules
 ----------
 
@@ -19,10 +12,10 @@ pycalphad.plot.binary module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.plot.isotherm module
-------------------------------
+pycalphad.plot.eqplot module
+----------------------------
 
-.. automodule:: pycalphad.plot.isotherm
+.. automodule:: pycalphad.plot.eqplot
     :members:
     :undoc-members:
     :show-inheritance:

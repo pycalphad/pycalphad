@@ -46,18 +46,10 @@ pycalphad.model module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.refstates module
---------------------------
+pycalphad.refdata module
+------------------------
 
-.. automodule:: pycalphad.refstates
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycalphad.residuals module
---------------------------
-
-.. automodule:: pycalphad.residuals
+.. automodule:: pycalphad.refdata
     :members:
     :undoc-members:
     :show-inheritance:

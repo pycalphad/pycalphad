@@ -28,10 +28,10 @@ pycalphad.core.cartesian module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.core.energy_surf module
----------------------------------
+pycalphad.core.constants module
+-------------------------------
 
-.. automodule:: pycalphad.core.energy_surf
+.. automodule:: pycalphad.core.constants
     :members:
     :undoc-members:
     :show-inheritance:

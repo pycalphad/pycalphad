@@ -36,14 +36,6 @@ pycalphad.tests.test_energy module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.tests.test_energy_surf module
----------------------------------------
-
-.. automodule:: pycalphad.tests.test_energy_surf
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad.tests.test_equilibrium module
 ---------------------------------------
 
@@ -56,14 +48,6 @@ pycalphad.tests.test_model module
 ---------------------------------
 
 .. automodule:: pycalphad.tests.test_model
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycalphad.tests.test_plotting module
-------------------------------------
-
-.. automodule:: pycalphad.tests.test_plotting
     :members:
     :undoc-members:
     :show-inheritance:
