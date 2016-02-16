@@ -1,6 +1,38 @@
 What's New
 ==========
 
+0.3 (2016-02-XX)
+----------------
+
+This is a major release with new features and fixes. It is very likely that
+if you will need to update code to be compatible with this version.
+
+* **Breaking change**: Removed ``residuals`` module and the deprecated ``energy_surf`` routine.
+* **Breaking change**: Removed ternary isotherm plotting for now, pending a rewrite.
+* **Breaking change**: The ``refstates`` module has been renamed to ``refdata``.
+* **Breaking change** in ``Database``: Removed ``typedefs`` member.
+* ``binplot``:
+  Completely rewritten to use the new equilibrium engine. See also the new companion function ``eqplot``.
+  **Breaking change**: The API for calling ``binplot`` has also been completely changed.
+* ``Database``:
+  ``to_file`` learned a ``groupby`` keyword argument for changing how PARAMETERs are sorted.
+  Loading a TDB will now raise ``ValueError`` if the file contains duplicate FUNCTIONs.
+  The TDB writer now generates output more conformant with Thermo-Calc.
+* ``equilibrium``:
+  Substantively rewritten for robustness and accuracy. Users will notice a difference, especially for dilute calculations.
+  Unfortunately it's still a bit slow; fixing that will be a focus of the 0.3.x cycle. See :issue:`37`.
+  Learned a ``output`` keyword argument for specifying additional equilibrium properties to compute.
+* The ``tqdm`` library is now a dependency. It adds progress bar support to ``equilibrium``.
+* ``Model``:
+  Added ``constituents``, ``phase_name`` and ``site_ratios`` attributes, in analogy with ``Phase`` objects.
+  This makes it easier to interact with the sublattice model without having to keep ``Database`` objects around.
+  Added a ``degree_of_ordering`` (abbreviation ``DOO``) property. Only has meaning for phases with ordering.
+* ``calculate``:
+  Learned a ``broadcast`` boolean keyword argument for turning broadcasting off. This is useful
+  for computing many different system configurations in a pointwise fashion, when there's no
+  obvious way of expressing the calculation as a traditional "step" or "map".
+* The ``xray`` dependency was renamed to ``xarray``. The change should be transparent to users when updating.
+
 0.2.5 (2015-12-22)
 ------------------
 
