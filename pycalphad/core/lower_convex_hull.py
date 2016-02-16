@@ -179,14 +179,15 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         #if np.any(zero_success_trials):
         #    print(trial_matrix[np.nonzero(zero_success_trials)[:-1]])
         # If more than one trial simplex satisfies the non-negativity criteria
-        # then just choose the first one. This addresses gh-28.
+        # then just choose the last one. This addresses gh-28.
         # There is also the possibility that *none* of the trials were successful.
         # This is usually due to numerical problems at the limit of composition space.
-        # We will sidestep the issue here by forcing the first trial simplex to match in that case.
+        # We will sidestep the issue here by forcing the last trial simplex to match in that case.
         multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) != 1
         #print('MULTIPLE SUCCESS TRIALS SHAPE', np.nonzero(multiple_success_trials))
         if np.any(multiple_success_trials):
-            saved_trial = np.argmax(bounding_indices[np.nonzero(multiple_success_trials)], axis=-1)
+            saved_trial = (bounding_indices.shape[-1] - 1) - \
+                          np.argmax(bounding_indices[np.nonzero(multiple_success_trials)][..., :-1:], axis=-1)
             #print('SAVED TRIAL', saved_trial)
             #print('BOUNDING INDICES BEFORE', bounding_indices)
             bounding_indices[np.nonzero(multiple_success_trials)] = False
