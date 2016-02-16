@@ -24,7 +24,7 @@ def test_rose_nine():
     conds = dict({v.T: 1000, v.P: 101325})
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
-    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds)
+    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, pbar=False)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3)
 
 # OTHER TESTS
@@ -34,7 +34,7 @@ def test_eq_binary():
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, pbar=False)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 def test_eq_single_phase():
@@ -42,10 +42,10 @@ def test_eq_single_phase():
     res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
                     points={'LIQUID': [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7],
                                        [0.4, 0.6], [0.5, 0.5], [0.6, 0.4],
-                                       [0.7, 0.3], [0.8, 0.2]]})
+                                       [0.7, 0.3], [0.8, 0.2]]}, pbar=False)
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
-                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=True)
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=True, pbar=False)
     assert_allclose(eq.GM, res.GM, atol=0.1)
 
 
@@ -54,7 +54,8 @@ def test_eq_b2_without_all_comps():
     All-vacancy endmembers are correctly excluded from the computation when fewer than
     all components in a Database are selected for the calculation.
     """
-    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200}, verbose=True)
+    equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200},
+                verbose=True, pbar=False)
 
 
 @raises(ValueError)
@@ -63,7 +64,7 @@ def test_eq_underdetermined_comps():
     The number of composition conditions should yield exactly one dependent component.
     This is the underdetermined case.
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
+    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325}, pbar=False)
 
 
 @raises(ValueError)
@@ -73,15 +74,15 @@ def test_eq_overdetermined_comps():
     This is the overdetermined case.
     """
     equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
-                                                   v.X('FE'): 0.2, v.X('AL'): 0.8})
+                                                   v.X('FE'): 0.2, v.X('AL'): 0.8}, pbar=False)
 
 def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0})
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, pbar=False)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8})
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8}, pbar=False)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84069827)
     assert_allclose(eq.MU.values, [[[[-335723.04320981,  -64415.8379852]]]], atol=0.1)
 
@@ -92,7 +93,7 @@ def test_eq_illcond_hessian():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
-                     {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5})
+                     {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5}, pbar=False)
     assert_allclose(eq.GM.values, [[[-16507.22325998]]])
     # chemical potentials were checked in TC and accurate to 1 J/mol
     # pycalphad values used for more significant figures
@@ -106,7 +107,7 @@ def test_eq_illcond_magnetic_hessian():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
-                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5})
+                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, pbar=False)
     assert_allclose(eq.GM.values, [[[-31414.46677]]])
 
 
@@ -116,7 +117,7 @@ def test_eq_composition_cond_sorting():
     come last in alphabetical order (gh-21).
     """
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
-                     {v.T: 2000, v.P: 101325, v.X('FE'): 0.2})
+                     {v.T: 2000, v.P: 101325, v.X('FE'): 0.2}, pbar=False)
     # Values computed by Thermo-Calc
     tc_energy = -143913.3
     tc_mu_fe = -184306.01
@@ -130,7 +131,7 @@ def test_eq_output_property():
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): 0.25, v.T: (300, 2000, 500), v.P: 101325},
-                output=['heat_capacity', 'degree_of_ordering'])
+                output=['heat_capacity', 'degree_of_ordering'], pbar=False)
 
 def test_eq_on_endmember():
     """
@@ -138,5 +139,5 @@ def test_eq_on_endmember():
     the convex hull is still correctly constructed (gh-28).
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
-                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, pbar=False)
 
