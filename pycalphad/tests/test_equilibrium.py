@@ -9,10 +9,10 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium
 import pycalphad.variables as v
-from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB, ALFE_TDB
 
 ROSE_DBF = Database(ROSE_TDB)
-ALFE_DBF = Database('examples/alfe_sei.TDB')
+ALFE_DBF = Database(ALFE_TDB)
 
 # ROSE DIAGRAM TESTS
 # This will fail until the equilibrium engine is switched from Newton-Raphson
