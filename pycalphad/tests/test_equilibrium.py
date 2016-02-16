@@ -41,11 +41,10 @@ def test_eq_single_phase():
     "Equilibrium energy should be the same as for a single phase with no miscibility gaps."
     res = calculate(ALFE_DBF, ['AL', 'FE'], 'LIQUID', T=[1400, 2500], P=101325,
                     points={'LIQUID': [[0.1, 0.9], [0.2, 0.8], [0.3, 0.7],
-                                       [0.4, 0.6], [0.5, 0.5], [0.6, 0.4],
-                                       [0.7, 0.3], [0.8, 0.2]]}, pbar=False)
+                                       [0.7, 0.3], [0.8, 0.2]]})
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
-                      v.X('AL'): [0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8]}, verbose=True, pbar=False)
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True, pbar=False)
     assert_allclose(eq.GM, res.GM, atol=0.1)
 
 
