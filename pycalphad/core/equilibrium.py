@@ -135,7 +135,7 @@ def _adjust_conditions(conds):
     new_conds = OrderedDict()
     for key, value in sorted(conds.items(), key=str):
         if isinstance(key, v.Composition):
-            new_conds[key] = [max(val, MIN_SITE_FRACTION*10) for val in unpack_condition(value)]
+            new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
