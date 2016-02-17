@@ -642,6 +642,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             else:
                 old_phase_length = -1
             remove_degenerate_phases(properties, it.multi_index)
+            # TODO: This is a temporary workaround to allow phase diagram calculation to work decently
+            if kwargs.get('_approx', None) is not None:
+                break
             phases = list(properties['Phase'].values[it.multi_index])
             if '' in phases:
                 new_phase_length = phases.index('')

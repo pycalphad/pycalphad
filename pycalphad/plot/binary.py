@@ -39,6 +39,8 @@ def binplot(dbf, comps, phases, conds, eq_kwargs=None, **plot_kwargs):
     None yet.
     """
     eq_kwargs = eq_kwargs if eq_kwargs is not None else dict()
+    # TODO: Temporarily disable refinement until we improve the algorithm
+    eq_kwargs['_approx'] = True
     indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if ((key == v.T) or (key == v.P)) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comp) != 1) or (len(indep_pot) != 1):
