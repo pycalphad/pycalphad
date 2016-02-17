@@ -158,6 +158,8 @@ class Model(object):
         return result / len([c for c in self.components if c != 'VA'])
     DOO = degree_of_ordering
 
+    curie_temperature = TC = property(lambda self: self._curietemp)
+
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
     energy = GM = property(lambda self: self.ast)
@@ -430,6 +432,7 @@ class Model(object):
         The implemented model is the Inden-Hillert-Jarl formulation.
         The approach follows from the background section of W. Xiong, 2011.
         """
+        self._curietemp = S.Zero
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
@@ -463,6 +466,7 @@ class Model(object):
             (afm_factor, curie_temp <= 0),
             (1., True)
             )
+        self._curietemp = tc
         #print(tc)
         # 0.1 used to prevent singularity
         tau = v.T / (tc + 0.1)
