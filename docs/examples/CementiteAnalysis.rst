@@ -2,13 +2,13 @@
 Thermodynamic Calculation of Cementite (:math:`Fe_3C`)
 ======================================================
 
-Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski, Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, http://dx.doi.org/10.1016/j.calphad.2010.01.004. (http://www.sciencedirect.com/science/article/pii/S0364591610000052)
+Bengt Hallstedt, Dejan Djurovic, Jorg von Appen, Richard Dronskowski, Alexey Dick, Fritz Karmann, Tilmann Hickel, Jorg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, http://dx.doi.org/10.1016/j.calphad.2010.01.004. (http://www.sciencedirect.com/science/article/pii/S0364591610000052)
 
 The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad's TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.
 
-.. code-block:: python
+.. code:: python
 
     TDB = """
      ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 ! 
@@ -30,51 +30,42 @@ are omitted. The numerical results should be the same.
 
 Do some initial setup, including reading the database.
 
-.. code-block:: python
+.. code:: python
 
-    %matplotlib inline
+    # Optional plot styling
+    import matplotlib
+    matplotlib.style.use('fivethirtyeight')
+
+.. code:: python
+
     import matplotlib.pyplot as plt
-    from matplotlib.pyplot import rcParams
-    rcParams['figure.figsize'] = 9, 6
-    import numpy as np
     from pycalphad import Database, calculate
-    import pycalphad.variables as v
     
     db = Database(TDB)
 
 Compute the molar heat capacity at all temperatures from 1K to 2000K
 with a step size of 0.5K.
 
-.. code-block:: python
+We do this with the ``calculate`` routine instead of ``equilibrium``
+because the cementite phase has zero internal degrees of freedom. Since
+there's nothing to minimize, we can do the computation faster with
+``calculate``.
 
-    result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='CPM')
+.. code:: python
 
-.. code-block:: python
+    result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='heat_capacity')
+
+.. code:: python
 
     # Note: 4 moles of atoms per formula unit (Fe3C1). That's why we multiply times 4
-    plt.xlabel('Temperature (K)')
-    plt.ylabel('Formula-Molar Isobaric Heat Capacity (J/mol-K)')
-    plt.plot(result['T'], 4.0 * result['CPM'])
+    fig = plt.figure(figsize=(9,6))
+    fig.gca().set_xlabel('Temperature (K)')
+    fig.gca().set_ylabel('Isobaric Heat Capacity (J/mol-formula-K)')
+    fig.gca().plot(result['T'], 4.0 * result['heat_capacity'])
     plt.show()
 
 
 
-.. image:: CementiteAnalysis_files/CementiteAnalysis_7_0.png
-
-
-.. code-block:: python
-
-    result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='SM')
-
-.. code-block:: python
-
-    plt.xlabel('Temperature (K)')
-    plt.ylabel('Formula-Molar Entropy (J/mol-K)')
-    plt.plot(result['T'], 4.0 * result['SM'])
-    plt.show()
-
-
-
-.. image:: CementiteAnalysis_files/CementiteAnalysis_9_0.png
+.. image:: CementiteAnalysis_files/CementiteAnalysis_8_0.png
 
 

@@ -6,4 +6,4 @@ Examples
 
    BinaryExamples
    CementiteAnalysis
-   Equilibrium2Test
+   EquilibriumWithOrdering
