@@ -4,10 +4,13 @@ Installation Instructions
 Windows (Anaconda)
 ------------------
 The Anaconda_ scientific Python distribution by Continuum Analytics is recommended
-for Windows users. After you have installed either Anaconda or Miniconda, use
+for Windows users. You can use pycalphad with Python 2 or Python 3, but we recommend
+Python 3 for the best experience. After you have installed either Anaconda or Miniconda, use
 ``conda install -c richardotis pycalphad`` to install.
 To install the package into an isolated environment, use ``conda create -c richardotis -n [envname] pycalphad``
 Then use ``source activate [envname]`` on Linux/OSX or ``activate [envname]`` on Windows to enter the environment.
+
+For interactive pycalphad sessions, we recommend installing the `Jupyter Notebook`_.
 
 Mac OSX
 -------
@@ -27,7 +30,7 @@ If you are using Anaconda, see the Windows instructions.
 
 Development Versions (Advanced Users)
 -------------------------------------
-* ``git clone https://github.com/richardotis/pycalphad.git pycalphad/``
+* ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
 * Using conda:
     * ``conda create -c richardotis -n [envname] pycalphad``
     * ``conda develop -n [envname] pycalphad/``
@@ -35,3 +38,4 @@ Development Versions (Advanced Users)
 * Or, inside a virtualenv: ``python setup.py develop``
 
 .. _Anaconda: http://continuum.io/downloads/
+.. _`Jupyter Notebook`: http://jupyter.readthedocs.org/en/latest/install.html
