@@ -1,7 +1,7 @@
 What's New
 ==========
 
-0.3 (2016-02-XX)
+0.3 (2016-02-17)
 ----------------
 
 This is a major release with new features and fixes. It is very likely that
@@ -26,7 +26,8 @@ if you will need to update code to be compatible with this version.
 * ``Model``:
   Added ``constituents``, ``phase_name`` and ``site_ratios`` attributes, in analogy with ``Phase`` objects.
   This makes it easier to interact with the sublattice model without having to keep ``Database`` objects around.
-  Added a ``degree_of_ordering`` (abbreviation ``DOO``) property. Only has meaning for phases with ordering.
+  Added a ``degree_of_ordering`` (abbreviation ``DOO``) property. Only has meaning for phases with sublattice ordering.
+  Added a ``curie_temperature`` (abbreviation ``TC``) property. Only nonzero for phases with magnetic ordering.
 * ``calculate``:
   Learned a ``broadcast`` boolean keyword argument for turning broadcasting off. This is useful
   for computing many different system configurations in a pointwise fashion, when there's no
