@@ -942,7 +942,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        properties.merge(_eqcalculate(dbf, comps, phases, conditions, out,
+        properties.merge(_eqcalculate(dbf, comps, active_phases, conditions, out,
                                       data=properties, per_phase=per_phase, **calc_opts), inplace=True, compat='equals')
     properties.attrs['created'] = datetime.utcnow()
 
