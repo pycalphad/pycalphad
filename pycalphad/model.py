@@ -158,7 +158,8 @@ class Model(object):
         return result / len([c for c in self.components if c != 'VA'])
     DOO = degree_of_ordering
 
-    curie_temperature = TC = property(lambda self: self._curietemp)
+    # Note: In order-disorder phases, TC will always be the *disordered* value of TC
+    curie_temperature = TC = S.Zero
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
@@ -432,7 +433,7 @@ class Model(object):
         The implemented model is the Inden-Hillert-Jarl formulation.
         The approach follows from the background section of W. Xiong, 2011.
         """
-        self._curietemp = S.Zero
+        self.TC = self.curie_temperature = S.Zero
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
@@ -466,7 +467,7 @@ class Model(object):
             (afm_factor, curie_temp <= 0),
             (1., True)
             )
-        self._curietemp = tc
+        self.TC = self.curie_temperature = tc
         #print(tc)
         # 0.1 used to prevent singularity
         tau = v.T / (tc + 0.1)
@@ -569,6 +570,9 @@ class Model(object):
         # Copy the disordered energy contributions into the correct bins
         for name, value in disordered_model.models.items():
             self.models[name] = value.xreplace(variable_rename_dict)
+        # All magnetic parameters will be defined in the disordered model
+        self.TC = self._curie_temperature = disordered_model.TC
+        self.TC = self.curie_temperature = self.TC.xreplace(variable_rename_dict)
 
         molefraction_dict = {}
 
