@@ -1,6 +1,14 @@
 What's New
 ==========
 
+0.3.1 (2016-02-18)
+------------------
+
+This is a minor bug fix release.
+
+* ``Model``: Make the ``curie_temperature`` attribute work when dealing with the order-disorder model.
+* ``equilibrium``: Fix a bug involving the ``output`` keyword argument in multi-phase calculations.
+
 0.3 (2016-02-17)
 ----------------
 
