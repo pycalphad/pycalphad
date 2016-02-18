@@ -571,7 +571,7 @@ class Model(object):
         for name, value in disordered_model.models.items():
             self.models[name] = value.xreplace(variable_rename_dict)
         # All magnetic parameters will be defined in the disordered model
-        self.TC = self._curie_temperature = disordered_model.TC
+        self.TC = self.curie_temperature = disordered_model.TC
         self.TC = self.curie_temperature = self.TC.xreplace(variable_rename_dict)
 
         molefraction_dict = {}
