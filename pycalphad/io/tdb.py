@@ -178,7 +178,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     symbol_name = Word(alphanums+'_:', min=1)
     # species name, e.g., CO2, AL, FE3+
     species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
-    # constituent arrays are semicolon-delimited
+    # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
     constituent_array = Group(
         delimitedList(Group(delimitedList(species_name, ',') & \
