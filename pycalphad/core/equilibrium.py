@@ -584,16 +584,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     indexer = []
     for idx, vals in enumerate(indep_vals):
         indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(indep_vals)+2-idx) * (np.newaxis,)])
+                                                          (len(conds.keys())-idx+1) * (np.newaxis,)])
     indexer.append(properties['points'].values[..., np.newaxis])
-    indexer.append(np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(indep_vals)+1) * (np.newaxis,) + np.index_exp[:]])
+    indexer.append(np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]])
     ravelled_X_view = grid['X'].values[tuple(indexer)]
-    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[(len(indep_vals)+1) * (np.newaxis,) + np.index_exp[:]]
+    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]]
     ravelled_Y_view = grid['Y'].values[tuple(indexer)]
     indexer = []
     for idx, vals in enumerate(indep_vals):
         indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(indep_vals)+1-idx) * (np.newaxis,)])
+                                                          (len(conds.keys())-idx) * (np.newaxis,)])
     indexer.append(properties['points'].values)
     ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
     # Copy final point values from the grid and drop the index array
