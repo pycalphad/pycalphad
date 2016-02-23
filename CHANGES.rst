@@ -1,6 +1,18 @@
 What's New
 ==========
 
+0.3.2 (2016-02-22)
+------------------
+
+This is a minor bug fix release.
+
+* ``equilibrium``: Fix a bug causing calculations at multiple temperatures to fail in multi-component systems.
+  Thanks to Ali for reporting.
+* ``equilibrium``: More numerical robustness improvements.
+  (Global search now satisfies the strong Wolfe conditions on every iteration.)
+  Further performance improvements will come to this soon.
+* pycalphad now depends on pyparsing<2.1.0 pending resolution of :issue:`38`.
+
 0.3.1 (2016-02-18)
 ------------------
 
