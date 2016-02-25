@@ -247,7 +247,7 @@ def unpack_condition(tup):
 def unpack_phases(phases):
     "Convert a phases list/dict into a sorted list."
     active_phases = None
-    if isinstance(phases, list):
+    if isinstance(phases, (list, tuple, set)):
         active_phases = sorted(phases)
     elif isinstance(phases, dict):
         active_phases = sorted([phn for phn, status in phases.items() \
