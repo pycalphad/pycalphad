@@ -224,7 +224,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, pbar=True, calc_opts=None, **kwargs):
+                verbose=False, pbar=True, broadcast=True, calc_opts=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -248,6 +248,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Print details of calculations. Useful for debugging.
     pbar : bool, optional
         Show a progress bar.
+    broadcast : bool
+        If True, broadcast conditions against each other. This will compute all combinations.
+        If False, each condition should be an equal-length list (or single-valued).
+        Disabling broadcasting is useful for calculating equilibrium at selected conditions,
+        when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
 
@@ -259,6 +264,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     --------
     None yet.
     """
+    if not broadcast:
+        raise NotImplementedError('Broadcasting cannot yet be disabled')
     from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
