@@ -18,27 +18,43 @@ import itertools
 import collections
 
 
-def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof):
+def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
     """
     Generate points for a fictitious hyperplane used as a starting point for energy minimization.
     """
     coordinate_dict = {'component': components}
-    coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
     largest_energy = float(energy_limit)
     if largest_energy < 0:
         largest_energy *= 0.99
     else:
         largest_energy *= 1.01
-    output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
-    statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
-    # The internal dof for the fake points are all NaNs
-    expanded_points = np.full(statevar_shape + (len(components), maximum_internal_dof), np.nan)
-    data_arrays = {'X': (output_columns + ['component'],
-                         broadcast_to(np.eye(len(components)), statevar_shape + (len(components), len(components)))),
-                   'Y': (output_columns + ['internal_dof'], expanded_points),
-                   'Phase': (output_columns, np.full(statevar_shape + (len(components),), '_FAKE_', dtype='S6')),
-                   output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
-                   }
+    if broadcast:
+        output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
+        statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
+        coordinate_dict.update({str(key): value for key, value in statevar_dict.items()})
+        # The internal dof for the fake points are all NaNs
+        expanded_points = np.full(statevar_shape + (len(components), maximum_internal_dof), np.nan)
+        data_arrays = {'X': (output_columns + ['component'],
+                             broadcast_to(np.eye(len(components)), statevar_shape + (len(components), len(components)))),
+                       'Y': (output_columns + ['internal_dof'], expanded_points),
+                       'Phase': (output_columns, np.full(statevar_shape + (len(components),), '_FAKE_', dtype='S6')),
+                       output: (output_columns, np.full(statevar_shape + (len(components),), largest_energy))
+                       }
+    else:
+        output_columns = ['points']
+        statevar_shape = (len(components) * max([len(np.atleast_1d(x)) for x in statevar_dict.values()]),)
+        # The internal dof for the fake points are all NaNs
+        expanded_points = np.full(statevar_shape + (maximum_internal_dof,), np.nan)
+        data_arrays = {'X': (output_columns + ['component'],
+                             broadcast_to(np.tile(np.eye(len(components)), (statevar_shape[0] / len(components), 1)),
+                                                  statevar_shape + (len(components),))),
+                       'Y': (output_columns + ['internal_dof'], expanded_points),
+                       'Phase': (output_columns, np.full(statevar_shape, '_FAKE_', dtype='S6')),
+                       output: (output_columns, np.full(statevar_shape, largest_energy))
+                       }
+        # Add state variables as data variables if broadcast=False
+        data_arrays.update({str(key): (output_columns, np.repeat(value, len(components)))
+                            for key, value in statevar_dict.items()})
     return Dataset(data_arrays, coords=coordinate_dict)
 
 
@@ -69,7 +85,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         to guarantee different phase's Datasets can be concatenated.
     broadcast : bool
         If True, broadcast state variables against each other to create a grid.
-        If False, assume state variables are given as equal-length lists.
+        If False, assume state variables are given as equal-length lists (or single-valued).
 
     Returns
     -------
@@ -88,10 +104,15 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         points = broadcast_to(points, tuple(len(np.atleast_1d(x)) for x in statevar_dict.values()) + points.shape[-2:])
     else:
         statevars = list(np.atleast_1d(x) for x in statevar_dict.values())
+        statevars_ = []
         for statevar in statevars:
-            if len(statevar) != len(points):
+            if (len(statevar) != len(points)) and (len(statevar) == 1):
+                statevar = np.repeat(statevar, len(points))
+            if (len(statevar) != len(points)) and (len(statevar) != 1):
                 raise ValueError('Length of state variable list and number of given points must be equal when '
                                  'broadcast=False.')
+            statevars_.append(statevar)
+        statevars = statevars_
     phase_output = func(*itertools.chain(statevars, np.rollaxis(points, -1, start=0)))
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
@@ -322,7 +343,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if fake_points:
         if output != 'GM':
             raise ValueError('fake_points=True should only be used with output=\'GM\'')
-        phase_ds = _generate_fake_points(components, statevar_dict, largest_energy, output, maximum_internal_dof)
+        phase_ds = _generate_fake_points(components, statevar_dict, largest_energy, output,
+                                         maximum_internal_dof, broadcast)
         final_ds = concat(itertools.chain([phase_ds], all_phase_data),
                           dim='points')
     else:
