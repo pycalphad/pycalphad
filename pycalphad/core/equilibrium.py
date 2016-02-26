@@ -331,57 +331,34 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 100
 
+    coord_dict = str_conds.copy()
+    coord_dict['vertex'] = np.arange(len(components))
+    grid_shape = np.meshgrid(*coord_dict.values(),
+                             indexing='ij', sparse=False)[0].shape
+    coord_dict['component'] = components
     if verbose:
         print('Computing initial grid', end=' ')
     # TODO: vectorize this entire calculation over the conditions
     # TODO: Every condition-set should have its own grid
     grid = calculate(dbf, comps, active_phases, output='GM',
-                     model=models, callables=callable_dict, fake_points=True, broadcast=True, **grid_opts)
-    if broadcast:
-        coord_dict = str_conds.copy()
-        coord_dict['vertex'] = np.arange(len(components))
-        coord_dict['component'] = components
-        grid_shape = np.meshgrid(*coord_dict.values(),
-                                 indexing='ij', sparse=False)[0].shape
-        properties = Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
-                                     np.empty(grid_shape)),
-                              'GM': (list(str_conds.keys()),
-                                     np.empty(grid_shape[:-1])),
-                              'MU': (list(str_conds.keys()) + ['component'],
-                                     np.empty(grid_shape)),
-                              'points': (list(str_conds.keys()) + ['vertex'],
-                                         np.empty(grid_shape, dtype=np.int))
-                              },
-                              coords=coord_dict,
-                              attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                     'engine': 'pycalphad %s' % pycalphad_version},
-                             )
-    else:
-        coord_dict = {'vertex': np.arange(len(components)), 'component': components}
-        grid_shape = (max([len(np.atleast_1d(x)) for x in str_conds.values()]),)
-        data_arrays = {'NP': (['result', 'vertex'],
-                              np.empty(grid_shape + (len(components),))),
-                       'GM': (['result'],
-                              np.empty(grid_shape)),
-                       'MU': (['result', 'component'],
-                              np.empty(grid_shape + (len(components),))),
-                       'points': (['result', 'vertex'],
-                                  np.empty(grid_shape + (len(components),), dtype=np.int))
-                       }
-        for key, value in str_conds.items():
-            if len(value) == 1:
-                data_arrays.update({key: (['result'], np.repeat(value, grid_shape[0]))})
-            else:
-                data_arrays.update({key: (['result'], value)})
-        properties = Dataset(data_arrays,
-                              coords=coord_dict,
-                              attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                     'engine': 'pycalphad %s' % pycalphad_version},
-                             )
+                     model=models, callables=callable_dict, fake_points=True, **grid_opts)
 
     if verbose:
         print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
 
+    properties = Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
+                                 np.empty(grid_shape)),
+                          'GM': (list(str_conds.keys()),
+                                 np.empty(grid_shape[:-1])),
+                          'MU': (list(str_conds.keys()) + ['component'],
+                                 np.empty(grid_shape)),
+                          'points': (list(str_conds.keys()) + ['vertex'],
+                                     np.empty(grid_shape, dtype=np.int))
+                          },
+                          coords=coord_dict,
+                          attrs={'hull_iterations': 1, 'solve_iterations': 0,
+                                 'engine': 'pycalphad %s' % pycalphad_version},
+                         )
     # Store the potentials from the previous iteration
     current_potentials = properties.MU.copy()
 
