@@ -827,7 +827,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 print('PHASE FRACTIONS: ', phase_fracs)
                 print('HESSIAN: ', l_hessian)
                 solve_progress.close()
-                raise ValueError('Bad step: '+str(step))
+                print('Bad step: '+str(step))
+                break
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
             alpha = 1
