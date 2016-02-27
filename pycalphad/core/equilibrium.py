@@ -702,6 +702,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 num_phases = phases.index('')
             else:
                 num_phases = len(phases)
+            zero_dof = np.all((properties['Y'].values[it.multi_index] == 1.) | np.isnan(properties['Y'].values[it.multi_index]))
+            if (num_phases == 1) and zero_dof:
+                # Single phase with zero internal degrees of freedom, can't do any refinement
+                # TODO: In the future we may be able to refine other degrees of freedom like temperature
+                # Chemical potentials have no meaning for this case
+                properties['MU'].values[it.multi_index] = np.nan
+                break
             phases = properties['Phase'].values[it.multi_index + np.index_exp[:num_phases]]
             num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
