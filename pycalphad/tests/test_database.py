@@ -50,7 +50,10 @@ def test_database_ne():
 
 def test_database_diffusion():
     "Diffusion database support."
-    assert Database(DIFFUSION_TDB) == Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb')
+    assert Database(DIFFUSION_TDB).phases == \
+           Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb').phases
+    # Won't work until sympy/sympy#10560 is fixed to prevent precision loss
+    #assert Database(DIFFUSION_TDB) == Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb')
 
 def test_load_from_string():
     "Test database loading from a string."
@@ -60,6 +63,8 @@ def test_load_from_string():
 def test_export_import():
     "Equivalence of re-imported database to original."
     test_dbf = Database(ALNIPT_TDB)
+    assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
+    test_dbf = Database(ALFE_TDB)
     assert Database.from_string(test_dbf.to_string(fmt='tdb'), fmt='tdb') == test_dbf
 
 @nose.tools.raises(ValueError)

@@ -105,7 +105,7 @@ def _make_piecewise_ast(toks):
 
     # Only one token: Not a piecewise function; just return the AST
     if len(toks) == 1:
-        return _sympify_string(toks[0])
+        return _sympify_string(toks[0].strip(' ,'))
 
     while cur_tok < len(toks)-1:
         low_temp = toks[cur_tok]
@@ -292,6 +292,10 @@ def _process_phase(targetdb, name, typedefs, subls):
                     targetdb.tdbtypedefs[typedef]['ordered_phase']
                 model_hints['disordered_phase'] = \
                     targetdb.tdbtypedefs[typedef]['disordered_phase']
+                if model_hints['disordered_phase'] in targetdb.phases:
+                    targetdb.phases[model_hints['disordered_phase']]\
+                        .model_hints.update({'ordered_phase': model_hints['ordered_phase'],
+                                             'disordered_phase': model_hints['disordered_phase']})
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
@@ -607,21 +611,26 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         output += 'DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT {} !\n'.format(' '.join(default_elements))
     output += "\n"
     typedef_chars = list("^&*()'ABCDEFGHIJKLMNOPQSRTUVWXYZ")[::-1]
+    #  Write necessary TYPE_DEF based on model hints
+    typedefs = defaultdict(lambda: ["%"])
     for name, phase_obj in sorted(dbf.phases.items()):
-        #  Write necessary TYPE_DEF based on model hints
-        typedefs = ["%"]
         model_hints = phase_obj.model_hints.copy()
         if ('ordered_phase' in model_hints.keys()) and (model_hints['ordered_phase'] == name):
             new_char = typedef_chars.pop()
-            typedefs.append(new_char)
+            typedefs[name].append(new_char)
+            typedefs[model_hints['disordered_phase']].append(new_char)
             output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} DISORDERED_PART {} !\n'\
                 .format(new_char, model_hints['ordered_phase'].upper(),
                         model_hints['disordered_phase'].upper())
             del model_hints['ordered_phase']
             del model_hints['disordered_phase']
+        if ('disordered_phase' in model_hints.keys()) and (model_hints['disordered_phase'] == name):
+            # We handle adding the correct typedef when we write the ordered phase
+            del model_hints['ordered_phase']
+            del model_hints['disordered_phase']
         if 'ihj_magnetic_afm_factor' in model_hints.keys():
             new_char = typedef_chars.pop()
-            typedefs.append(new_char)
+            typedefs[name].append(new_char)
             output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION {} MAGNETIC {} {} !\n'\
                 .format(new_char, name.upper(), model_hints['ihj_magnetic_afm_factor'],
                         model_hints['ihj_magnetic_structure_factor'])
@@ -630,7 +639,9 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
-        output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs),
+    # Perform a second loop now that all typedefs / model hints are consistent
+    for name, phase_obj in sorted(dbf.phases.items()):
+        output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
         constituents = ':'.join([','.join(sorted(subl)) for subl in phase_obj.constituents])
@@ -671,11 +682,11 @@ def write_tdb(dbf, fd, groupby='subsystem'):
                          for subl in param_to_write.constituent_array])
         # TODO: Handle references
         paramx = param_to_write.parameter
+        exprx = TCPrinter().doprint(paramx).upper()
         if not isinstance(paramx, Piecewise):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
-            paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
-        exprx = TCPrinter().doprint(paramx).upper()
+            exprx = ', ' + exprx + ' ,'
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species is not None:
@@ -689,7 +700,7 @@ def write_tdb(dbf, fd, groupby='subsystem'):
                                                         param_to_write.parameter_order,
                                                         exprx)
     if groupby == 'subsystem':
-        for num_elements in range(1, len(dbf.elements)+1):
+        for num_elements in range(1, 5):
             subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
             for subsystem in subsystems:
                 parameters = sorted(param_sorted[subsystem])
@@ -699,6 +710,13 @@ def write_tdb(dbf, fd, groupby='subsystem'):
                     output += "$ {}".format('-'.join(sorted(subsystem)).center(maxlen, " ")[2:-1]) + "$\n"
                     output += "$" * maxlen + "\n"
                     output += "\n"
+                    for parameter in parameters:
+                        output += write_parameter(parameter)
+        # Don't generate combinatorics for multi-component subsystems or we'll run out of memory
+        if len(dbf.elements) > 4:
+            subsystems = [k for k in param_sorted.keys() if len(k) > 4]
+            for subsystem in subsystems:
+                parameters = sorted(param_sorted[subsystem])
                 for parameter in parameters:
                     output += write_parameter(parameter)
     elif groupby == 'phase':
@@ -710,8 +728,8 @@ def write_tdb(dbf, fd, groupby='subsystem'):
                 output += "$ {}".format(phase_name.upper().center(maxlen, " ")[2:-1]) + "$\n"
                 output += "$" * maxlen + "\n"
                 output += "\n"
-            for parameter in parameters:
-                output += write_parameter(parameter)
+                for parameter in parameters:
+                    output += write_parameter(parameter)
     else:
         raise ValueError('Unknown groupby attribute {}'.format(groupby))
     # Reflow text to respect character limit per line
