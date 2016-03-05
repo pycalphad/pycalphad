@@ -296,7 +296,8 @@ class Database(object): #pylint: disable=R0902
             return False
         else:
             def param_sort_key(x):
-                return x['phase_name'], x['parameter_type'], x['constituent_array'], x['parameter_order']
+                return x['phase_name'], x['parameter_type'], x['constituent_array'], \
+                       x['parameter_order'], x['diffusing_species']
             for key in self.__dict__.keys():
                 if key == '_parameters':
                     # Special handling for TinyDB objects
@@ -333,7 +334,7 @@ class Database(object): #pylint: disable=R0902
         self._structure_dict[local_name] = global_name
     def add_parameter(self, param_type, phase_name, #pylint: disable=R0913
                       constituent_array, param_order,
-                      param, ref=None):
+                      param, ref=None, diffusing_species=None):
         """
         Add a parameter.
 
@@ -351,6 +352,8 @@ class Database(object): #pylint: disable=R0902
             Abstract representation of the parameter, e.g., in SymPy format.
         ref : str, optional
             Reference for the parameter.
+        diffusing_species : str, optional
+            (If kinetic parameter) Diffusing species for this parameter.
 
         Examples
         --------
@@ -362,6 +365,7 @@ class Database(object): #pylint: disable=R0902
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
+            'diffusing_species': diffusing_species,
             'reference': ref
         }
         param_id = self._parameters.insert(new_parameter)

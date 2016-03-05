@@ -4,7 +4,7 @@ The test_database module contains tests for the Database object.
 from __future__ import print_function
 from pycalphad import Database, Model
 from pycalphad.io.tdb import expand_keyword
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ROSE_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
 import nose.tools
 try:
     # Python 2
@@ -47,6 +47,10 @@ def test_database_ne():
     assert test_dbf != None
     assert None != test_dbf
     assert 42 != test_dbf
+
+def test_database_diffusion():
+    "Diffusion database support."
+    assert Database(DIFFUSION_TDB) == Database.from_string(Database(DIFFUSION_TDB).to_string(fmt='tdb'), fmt='tdb')
 
 def test_load_from_string():
     "Test database loading from a string."

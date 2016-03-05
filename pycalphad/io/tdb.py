@@ -217,9 +217,11 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(':') + LineEnd()
     # PARAMETER
     cmd_parameter = TCCommand('PARAMETER') + param_types + \
-        Suppress('(') + symbol_name + Suppress(',') + constituent_array + \
-        Optional(Suppress(';') + int_number, default=0) + Suppress(')') + \
-        func_expr.setParseAction(_make_piecewise_ast)
+        Suppress('(') + symbol_name + \
+        Optional(Suppress('&') + Word(alphas+'/-', min=1, max=2), default=None) + \
+        Suppress(',') + constituent_array + \
+        Optional(Suppress(';') + int_number, default=0) + \
+        Suppress(')') + func_expr.setParseAction(_make_piecewise_ast)
     # Now combine the grammar together
     all_commands = cmd_element | \
                     cmd_typedef | \
@@ -292,7 +294,7 @@ def _process_phase(targetdb, name, typedefs, subls):
                     targetdb.tdbtypedefs[typedef]['disordered_phase']
     targetdb.add_phase(phase_name, model_hints, subls)
 
-def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
+def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
                        constituent_array, param_order, param, ref=None):
     """
     Process the PARAMETER command.
@@ -301,7 +303,7 @@ def _process_parameter(targetdb, param_type, phase_name, #pylint: disable=R0913
     targetdb.add_parameter(param_type, phase_name.upper(),
                            [[c.upper() for c in sorted(lx)]
                             for lx in constituent_array.asList()],
-                           param_order, param, ref)
+                           param_order, param, ref, diffusing_species)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
@@ -638,12 +640,14 @@ def write_tdb(dbf, fd, groupby='subsystem'):
     # PARAMETERs by subsystem
     param_sorted = defaultdict(lambda: list())
     paramtuple = namedtuple('ParamTuple', ['phase_name', 'parameter_type', 'complexity', 'constituent_array',
-                                           'parameter_order', 'parameter', 'reference'])
+                                           'parameter_order', 'diffusing_species', 'parameter', 'reference'])
     for param in dbf._parameters.all():
         if groupby == 'subsystem':
             components = set()
             for subl in param['constituent_array']:
                 components |= set(subl)
+            if param['diffusing_species'] is not None:
+                components |= {param['diffusing_species']}
             # Wildcard operator is not a component
             components -= {'*'}
             # Remove vacancy if it's not the only component (pure vacancy endmember)
@@ -659,7 +663,8 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         param_sorted[grouping].append(paramtuple(param['phase_name'], param['parameter_type'],
                                                  sum([len(i) for i in param['constituent_array']]),
                                                  param['constituent_array'], param['parameter_order'],
-                                                 param['parameter'], param['reference']))
+                                                 param['diffusing_species'], param['parameter'],
+                                                 param['reference']))
 
     def write_parameter(param_to_write):
         constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
@@ -673,11 +678,16 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         exprx = TCPrinter().doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
-        return "PARAMETER {}({},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),
-                                                      param_to_write.phase_name.upper(),
-                                                      constituents,
-                                                      param_to_write.parameter_order,
-                                                      exprx)
+        if param_to_write.diffusing_species is not None:
+            ds = "&" + param_to_write.diffusing_species
+        else:
+            ds = ""
+        return "PARAMETER {}({}{},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),
+                                                        param_to_write.phase_name.upper(),
+                                                        ds,
+                                                        constituents,
+                                                        param_to_write.parameter_order,
+                                                        exprx)
     if groupby == 'subsystem':
         for num_elements in range(1, len(dbf.elements)+1):
             subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
