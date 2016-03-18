@@ -682,11 +682,11 @@ def write_tdb(dbf, fd, groupby='subsystem'):
                          for subl in param_to_write.constituent_array])
         # TODO: Handle references
         paramx = param_to_write.parameter
-        exprx = TCPrinter().doprint(paramx).upper()
         if not isinstance(paramx, Piecewise):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
-            exprx = ', ' + exprx + ' ,'
+            paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
+        exprx = TCPrinter().doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species is not None:
