@@ -749,7 +749,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
                           sum([len(dbf.phases[i].sublattices) for i in phases])+num_mass_bals] = \
                 [chem_pots[i] for i in comps if i != 'VA']
-            print('L_MULTIPLIERS', l_multipliers)
+            #print('L_MULTIPLIERS', l_multipliers)
             constraint_jac = np.zeros((num_constraints, num_vars), dtype=np.float)
             # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
             # Ordering of constraints by column: site fractions of each phase, then phase fractions
@@ -761,7 +761,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                     active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
                     constraint_jac[constraint_offset+idx,
                                    var_idx:var_idx + len(active_in_subl)] = 1
-                    print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
+                    #print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
                     l_constraints[constraint_offset+idx] = \
                         -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
                     var_idx += len(active_in_subl)
@@ -784,18 +784,18 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                         np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
                     l_constraints[constraint_offset] += \
                         phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))
-                    print('L_CONSTRAINTS[{}] += {}'.format(constraint_offset, phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))))
+                    #print('L_CONSTRAINTS[{}] += {}'.format(constraint_offset, phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))))
                     var_offset += phase_dof[phase_idx]
                     phase_idx += 1
                 if comp != dependent_comp:
                     l_constraints[constraint_offset] -= float(cur_conds['X_'+comp])
-                    print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, float(cur_conds['X_'+comp])))
+                    #print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, float(cur_conds['X_'+comp])))
                 else:
                     # TODO: Assuming N=1 (fixed for dependent component)
                     l_constraints[constraint_offset] -= (1-indep_sum)
-                    print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, (1-indep_sum)))
+                    #print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, (1-indep_sum)))
                 l_constraints[constraint_offset] *= -1
-                print('L_CONSTRAINTS[{}] *= -1'.format(constraint_offset))
+                #print('L_CONSTRAINTS[{}] *= -1'.format(constraint_offset))
                 constraint_offset += 1
             # Now build objective Hessian and gradient terms
             var_offset = 0
@@ -861,25 +861,25 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 alpha *= 0.9
             #if alpha <= MIN_SOLVE_ALPHA:
             #    alpha = 0
-            print('CHOSEN ALPHA', alpha)
+            #print('CHOSEN ALPHA', alpha)
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             #print('STARTING ALPHA', alpha)
             new_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
             l_multipliers += step[num_vars:]
-            print('UNSCALED STEP LMUL', step[num_vars:])
+            #print('UNSCALED STEP LMUL', step[num_vars:])
             new_chem_pots = l_multipliers[num_sitefrac_bals:num_sitefrac_bals+num_mass_bals]
             new_chem_pots = OrderedDict(zip([c for c in comps if c != 'VA'], new_chem_pots))
-            print('OLD_CHEM_POTS', old_chem_pots)
-            print('NEW_CHEM_POTS', new_chem_pots)
+            #print('OLD_CHEM_POTS', old_chem_pots)
+            #print('NEW_CHEM_POTS', new_chem_pots)
             chem_pots.update(new_chem_pots)
             properties['MU'].values[it.multi_index] = list(chem_pots.values())
             properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = \
                 phase_fracs + alpha * step[len(new_site_fracs):len(new_site_fracs)+len(phases)]
             var_offset = 0
             properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
-            print('OLD ENERGY', old_energy)
+            #print('OLD ENERGY', old_energy)
             properties['GM'].values[it.multi_index] = 0
             for phase_idx in range(len(phases)):
                 properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
