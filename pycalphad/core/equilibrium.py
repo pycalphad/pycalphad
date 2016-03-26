@@ -684,7 +684,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         solve_progress = progressbar(range(MAX_SOLVE_ITERATIONS), desc='Solve (3/3',
                                      disable=(num_conds>1) or (not pbar))
         for cur_iter in solve_progress:
-            print('CUR_ITER:', cur_iter)
+            #print('CUR_ITER:', cur_iter)
             phases = list(properties['Phase'].values[it.multi_index])
             if '' in phases:
                 old_phase_length = phases.index('')
@@ -826,14 +826,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 phase_idx += 1
             # TODO: N=1 fixed by default
             #l_constraints[constraint_offset] -= 1
-            print('L_CONSTRAINTS', l_constraints.astype(np.longfloat))
-            print('CONSTRAINT_JAC', constraint_jac)
+            #print('L_CONSTRAINTS', l_constraints.astype(np.longfloat))
+            #print('CONSTRAINT_JAC', constraint_jac)
             l_hessian[:num_vars, num_vars:] = -constraint_jac.T
             l_hessian[num_vars:, :num_vars] = constraint_jac
-            print('PURE GRADIENT', gradient_term)
+            #print('PURE GRADIENT', gradient_term)
             gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
             gradient_term[num_vars:] = l_constraints
-            print('FULL GRADIENT', gradient_term)
+            #print('FULL GRADIENT', gradient_term)
             try:
                 step = np.linalg.solve(l_hessian, gradient_term)
             except np.linalg.LinAlgError:
