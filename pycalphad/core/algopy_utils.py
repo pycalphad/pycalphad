@@ -49,7 +49,8 @@ def build_functions(sympy_graph, variables):
                    modules=logical_np, printer=NumPyPrinter)
 
     def grad_func(*args):
-        inp_arr = np.rollaxis(np.array(np.broadcast_arrays(*args), dtype=np.float), 0, 0)
+        inp_arr = np.array(np.broadcast_arrays(*args), dtype=np.float)
+        inp_arr = inp_arr.transpose(tuple(range(len(inp_arr.shape)))[1:] + (0,))
         orig_shape = tuple(inp_arr.shape)
         inp_arr.shape = (-1, len(args))
         N = len(args)
@@ -58,10 +59,12 @@ def build_functions(sympy_graph, variables):
         x.data[1, :, :] = np.eye(N)
 
         y = trace_func(*[x[..., i] for i in range(N)])
-        return y.data[1, :, :].T.reshape(orig_shape[1:] + (N,))
+        return y.data[1, :, :].reshape(orig_shape[:-1] + (N,))
 
     def hess_func(*args):
-        inp_arr = np.rollaxis(np.array(np.broadcast_arrays(*args), dtype=np.float), 0, 0)
+        inp_arr = np.array(np.broadcast_arrays(*args), dtype=np.float)
+        inp_arr = inp_arr.transpose(tuple(range(len(inp_arr.shape)))[1:] + (0,))
+        print(inp_arr)
         orig_shape = tuple(inp_arr.shape)
         inp_arr.shape = (-1, len(args))
         # generate directions
@@ -82,6 +85,6 @@ def build_functions(sympy_graph, variables):
         x.data[1, :, :] = S
 
         y = trace_func(*[x[..., i] for i in range(N)])
-        return extract_hessian(N, y).reshape(orig_shape[1:] + (N,N))
+        return extract_hessian(N, y).reshape(orig_shape[:-1] + (N,N))
 
     return obj, grad_func, hess_func
