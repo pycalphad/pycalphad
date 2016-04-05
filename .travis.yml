@@ -46,7 +46,7 @@ install:
   - pip install coveralls
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing
   - conda install --yes -c richardotis xarray tqdm
-  - conda install --yes -c richardotis autograd
+  - conda install --yes -c richardotis autograd algopy
   - pip install -e .
  
 # Run test

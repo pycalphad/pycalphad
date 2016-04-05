@@ -28,7 +28,7 @@ install:
   - "activate condaenv"
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray"
-  - "conda install --yes -n condaenv --quiet -c richardotis tinydb autograd tqdm"
+  - "conda install --yes -n condaenv --quiet -c richardotis tinydb autograd tqdm algopy"
   - "pip install -e ."
 
 build: false
