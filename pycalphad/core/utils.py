@@ -94,21 +94,36 @@ class NumPyPrinter(LambdaPrinter):
         # We have to override LambdaPrinter because it uses Python 'and' keyword.
         # If LambdaPrinter didn't define it, we could use StrPrinter's
         # version of the function and add 'logical_and' to NUMPY_TRANSLATIONS.
-        return '{0}({1})'.format('logical_and', ','.join(self._print(i) for i in expr.args))
+        if len(expr.args) == 1:
+            return self._print(expr.args[0])
+        result = 'logical_and({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
+        for arg in reversed(expr.args[:-2]):
+            result = 'logical_and({0}, {1})'.format(self._print(arg), result)
+        return  result
 
     def _print_Or(self, expr):
         "Logical Or printer"
         # We have to override LambdaPrinter because it uses Python 'or' keyword.
         # If LambdaPrinter didn't define it, we could use StrPrinter's
         # version of the function and add 'logical_or' to NUMPY_TRANSLATIONS.
-        return '{0}({1})'.format('logical_or', ','.join(self._print(i) for i in expr.args))
+        if len(expr.args) == 1:
+            return self._print(expr.args[0])
+        result = 'logical_or({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
+        for arg in reversed(expr.args[:-2]):
+            result = 'logical_or({0}, {1})'.format(self._print(arg), result)
+        return  result
 
     def _print_Not(self, expr):
         "Logical Not printer"
         # We have to override LambdaPrinter because it uses Python 'not' keyword.
         # If LambdaPrinter didn't define it, we would still have to define our
         #     own because StrPrinter doesn't define it.
-        return '{0}({1})'.format('logical_not', ','.join(self._print(i) for i in expr.args))
+        if len(expr.args) == 1:
+            return self._print(expr.args[0])
+        result = 'logical_not({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
+        for arg in reversed(expr.args[:-2]):
+            result = 'logical_not({0}, {1})'.format(self._print(arg), result)
+        return  result
 
 
 def point_sample(comp_count, pdof=10):
