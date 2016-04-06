@@ -89,6 +89,7 @@ class Model(object):
             except AttributeError:
                 # Can't use xreplace on a float
                 pass
+        self.gradient = [self.ast.diff(vv) for vv in self.variables]
 
     def __eq__(self, other):
         if self is other:
@@ -157,6 +158,9 @@ class Model(object):
             result += comp_result
         return result / len([c for c in self.components if c != 'VA'])
     DOO = degree_of_ordering
+
+    # Can be defined as a list of pre-computed first derivatives
+    gradient = None
 
     # Note: In order-disorder phases, TC will always be the *disordered* value of TC
     curie_temperature = TC = S.Zero
