@@ -10,7 +10,7 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.algopy_utils import build_functions
+from pycalphad.core.autograd_utils import build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Mul, Symbol
 from tqdm import tqdm as progressbar
@@ -490,14 +490,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 try:
                     e_matrix = np.linalg.inv(hess)
                 except np.linalg.LinAlgError:
-                    try:
-                        # Try to stabilize the matrix with an axis-aligned parabola
-                        hess[..., np.arange(hess.shape[-1]), np.arange(hess.shape[-1])] += 1
-                        e_matrix = np.linalg.inv(hess)
-                    except np.linalg.LinAlgError:
-                        print(hess)
-                        print(points)
-                        raise
+                    print(hess)
+                    print(points)
+                    raise
                 current = calculate(dbf, comps, name, output='GM',
                                     model=models, callables=callable_dict,
                                     fake_points=False,

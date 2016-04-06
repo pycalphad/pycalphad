@@ -64,7 +64,6 @@ def build_functions(sympy_graph, variables):
     def hess_func(*args):
         inp_arr = np.array(np.broadcast_arrays(*args), dtype=np.float)
         inp_arr = inp_arr.transpose(tuple(range(len(inp_arr.shape)))[1:] + (0,))
-        print(inp_arr)
         orig_shape = tuple(inp_arr.shape)
         inp_arr.shape = (-1, len(args))
         # generate directions
