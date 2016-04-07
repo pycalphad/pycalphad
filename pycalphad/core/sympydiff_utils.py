@@ -5,6 +5,7 @@ from sympy import lambdify
 from pycalphad.core.utils import NumPyPrinter
 import numba
 import numpy as np
+import itertools
 
 @numba.jit('float64(boolean, float64, float64)')
 def where(condition, x, y):
@@ -13,20 +14,28 @@ def where(condition, x, y):
     else:
         return y
 
-def make_gradient_from_graph(mod):
-    wrt = tuple(mod.variables)
+def get_broadcast_shape(*shapes):
+    """
+    Given a set of array shapes, return the shape of the output when arrays of those
+    shapes are broadcast together.
+    Source: http://stackoverflow.com/questions/27196672/numpy-broadcast-indices-from-shape
+    """
+    max_nim = max(len(s) for s in shapes)
+    equal_len_shapes = np.array([(1, )*(max_nim-len(s))+s for s in shapes])
+    max_dim_shapes = np.max(equal_len_shapes, axis = 0)
+    assert np.all(np.bitwise_or(equal_len_shapes==1, equal_len_shapes == max_dim_shapes[None, :])), \
+        'Shapes %s are not broadcastable together' % (shapes, )
+    return tuple(max_dim_shapes)
+
+def make_gradient_from_graph(sympy_graph, variables):
+    wrt = tuple(variables)
     grads = np.empty((len(wrt)), dtype=object)
-    #hess_indices = []
     namespace = {}
-    for i, mgrad in zip(range(len(wrt)), mod.gradient):
+    for i, mgrad in enumerate(sympy_graph.diff(vv) for vv in variables):
         grads[i] = mgrad
-        #for j in range(i, len(wrt)):
-        #    namespace['hess_{0}{1}'.format(i, j)] = numba.vectorize(lambdify(tuple(wrt), grads[i].diff(wrt[j]), dummify=True,
-        #                                                      modules=[{'where': nbwhere}, 'numpy'], printer=NumPyPrinter))
-        #    hess_indices.append((i, j))
         namespace['grad_{0}'.format(i)] = numba.vectorize(nopython=True)\
             (lambdify(tuple(wrt), grads[i], dummify=True, modules=[{'where': where}, 'numpy'], printer=NumPyPrinter))
-    # Build the gradient and Hessian using compile() and exec
+    # Build the gradient using compile() and exec
     # We do this because Numba needs "static" information about the arguments and functions
     call_args = ','.join(['_x{0}'.format(i) for i in range(len(wrt))])
     call_passed_args = ','.join(['_x{0}[0]'.format(i) for i in range(len(wrt))])
@@ -36,26 +45,12 @@ def make_gradient_from_graph(mod):
     grad_code = grad_code + '\n' + '\n'.join(grad_list)
 
     grad_code = compile(grad_code, '<string>', 'exec')
-    try:
-        exec(grad_code, namespace)
-    except SyntaxError:
-        exec (grad_code in namespace)
-
-    # Now construct the Hessian
-    #hess_code = 'def hess_func({0}, lengthfix, result):'.format(call_args)
-    #hess_list = ['    result[{0},{1}] = result[{1}, {0}] = hess_{0}{1}({2})'.format(i, j, call_passed_args) for i, j in hess_indices]
-    #hess_code = hess_code + '\n' + '\n'.join(hess_list)
-    #print(hess_code)
-
-    #hess_code = compile(hess_code, '<string>', 'exec')
-    #try:
-    #    exec hess_code in namespace
-    #except SyntaxError:
-    #    exec(hess_code, namespace)
-
+    exec(grad_code, namespace)
     grad_func = numba.guvectorize([','.join(['float64[:]'] * (len(wrt)+2))],
                                    ','.join(['()'] * len(wrt)) + ',(n)->(n)', nopython=True)(namespace['grad_func'])
-    #hess_func = None
-    #hess_func = numba.guvectorize([','.join(['float64[:]'] * (len(wrt)+1)) + ',float64[:,:]'],
-    #                               ','.join(['()'] * len(wrt)) + ',(n)->(n,n)', nopython=True)(namespace['hess_func'])
-    return grad_func#, hess_func
+    def argwrapper(*args, out=None):
+        result_shape = get_broadcast_shape(*[np.asarray(arg).shape for arg in args])
+        result_shape = result_shape + (len(args),)
+        result = out if out is not None else np.zeros(result_shape, dtype=np.float)
+        return grad_func(*list(itertools.chain(args, [np.empty(len(args)), result])))
+    return argwrapper

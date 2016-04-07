@@ -89,7 +89,6 @@ class Model(object):
             except AttributeError:
                 # Can't use xreplace on a float
                 pass
-        self.gradient = [self.ast.diff(vv) for vv in self.variables]
 
     def __eq__(self, other):
         if self is other:
