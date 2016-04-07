@@ -24,8 +24,8 @@ def make_gradient_from_graph(mod):
         #    namespace['hess_{0}{1}'.format(i, j)] = numba.vectorize(lambdify(tuple(wrt), grads[i].diff(wrt[j]), dummify=True,
         #                                                      modules=[{'where': nbwhere}, 'numpy'], printer=NumPyPrinter))
         #    hess_indices.append((i, j))
-        namespace['grad_{0}'.format(i)] = numba.vectorize(nopython=True)(lambdify(tuple(wrt), grads[i], dummify=True,
-                                                          modules=[{'where': where}, 'numpy'], printer=NumPyPrinter))
+        namespace['grad_{0}'.format(i)] = numba.vectorize(nopython=True)\
+            (lambdify(tuple(wrt), grads[i], dummify=True, modules=[{'where': where}, 'numpy'], printer=NumPyPrinter))
     # Build the gradient and Hessian using compile() and exec
     # We do this because Numba needs "static" information about the arguments and functions
     call_args = ','.join(['_x{0}'.format(i) for i in range(len(wrt))])
