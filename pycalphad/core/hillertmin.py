@@ -13,13 +13,14 @@ import numba
 
 
 
-def hillertmin(temperature, pressure, chemical_potentials, obj_func, grad_func, initial_grid_points):
+def hillertmin(temperature, pressure, chemical_potentials, obj_func, grad_func, initial_grid_points, active_in_subl):
     # Minimize subject to given chemical potentials
-    # For each phase
-    # Generate a grid (or use initial_grid_points)
-    # Compute chemical potentials based on initial grid
+    # Compute constraint residual and Jacobian from sublattice configuration
+    # Sublattice site fraction balance should be all that matters here
     points = initial_grid_points
-    hess = np.zeros((1 + initial_grid_points.shape[-1], 1 + initial_grid_points.shape[-1]))
+    constraint_residual = np.zeros(len(active_in_subl))
+    constraint_jacobian = np.zeros(len(active_in_subl), sum(active_in_subl) + 2)
+    hess = np.zeros((sum(active_in_subl) + 2, sum(active_in_subl) + 2 + constraint_residual.shape[0]))
     pass
 
 @numba.guvectorize(['float64[:,:], float64[:], float64[:]'], '(k,l),(m)->(m)')

@@ -25,9 +25,9 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
     coordinate_dict = {'component': components}
     largest_energy = float(energy_limit)
     if largest_energy < 0:
-        largest_energy *= 0.99
+        largest_energy *= 0.01
     else:
-        largest_energy *= 1.01
+        largest_energy *= 10
     if broadcast:
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
         statevar_shape = tuple(len(np.atleast_1d(x)) for x in statevar_dict.values())
@@ -302,8 +302,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             # These constitution space edges are often the equilibrium points!
             em_pairs = list(itertools.combinations(points, 2))
             for first_em, second_em in em_pairs:
-                extra_points = first_em * np.linspace(0, 1, 100)[np.newaxis].T + \
-                               second_em * np.linspace(0, 1, 100)[::-1][np.newaxis].T
+                extra_points = first_em * np.linspace(0, 1, pdens_dict[phase_name])[np.newaxis].T + \
+                               second_em * np.linspace(0, 1, pdens_dict[phase_name])[::-1][np.newaxis].T
                 points = np.concatenate((points, extra_points))
 
 
