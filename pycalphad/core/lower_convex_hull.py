@@ -228,7 +228,7 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         # to each other.
         # 'conditions' axis followed by a 'trial' axis
         # Empty values are filled in with infinity
-        comparison_matrix = np.empty([trial_matrix.shape[0] / trial_shape[0],
+        comparison_matrix = np.empty([int(trial_matrix.shape[0] / trial_shape[0]),
                                       trial_shape[0]])
         if comparison_matrix.shape[0] != aligned_compositions.shape[0]:
             raise ValueError('Arrays have become misaligned. This is a bug. Try perturbing your composition conditions '
