@@ -426,6 +426,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
+    return_grids : bool, optional
+        If True, return a tuple of (equilibrium result, grids), where grids is a list of
+        Datasets containing the global point set at each hull iteration.
+        Mainly useful for teaching and debugging.
 
     Returns
     -------
@@ -459,7 +463,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=Model)
     # for debugging
-    intermediate_grids = []
+    if return_grids:
+        intermediate_grids = []
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
@@ -516,7 +521,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # TODO: Every condition-set should have its own grid
     grid = calculate(dbf, comps, active_phases, output='GM',
                      model=models, callables=callable_dict, fake_points=True, **grid_opts)
-    intermediate_grids.append(grid)
+    if return_grids:
+        intermediate_grids.append(grid)
 
     if verbose:
         print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
@@ -809,7 +815,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         grid = calculate(dbf, comps, active_phases, output='GM',
                          model=models, callables=callable_dict,
                          fake_points=True, points=points_dict, **grid_opts)
-        intermediate_grids.append(grid)
+        if return_grids:
+            intermediate_grids.append(grid)
         if verbose:
             print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
         properties.attrs['hull_iterations'] += 1
