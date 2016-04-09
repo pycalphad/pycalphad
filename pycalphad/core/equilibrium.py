@@ -12,7 +12,7 @@ from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
-from sympy import Add, Mul, Symbol
+from sympy import Add, Symbol
 from tqdm import tqdm as progressbar
 from xarray import Dataset, DataArray
 import numpy as np
@@ -856,7 +856,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     properties['Phase'].values[...] = ravelled_Phase_view
     del properties['points']
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
-    mole_fractions = {}
     num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
     # For single-condition calculations, don't generate a separate progress bar
     multi_phase_progress = progressbar(desc='Solve (3/3)', total=num_conds,
