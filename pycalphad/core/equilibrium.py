@@ -1038,9 +1038,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 alpha *= 0.5
             #print('RESULT ALPHA', alpha)
             #print('WOLFE CONDITIONS', wolfe_conditions)
+            # Chemical potentials always update
+            properties['MU'].values[it.multi_index] = candidate_chem_pots
             if wolfe_conditions:
                 # We updated degrees of freedom this iteration
-                properties['MU'].values[it.multi_index] = candidate_chem_pots
                 properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
                 properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
                 properties['GM'].values[it.multi_index] = candidate_energy
