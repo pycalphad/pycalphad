@@ -946,41 +946,69 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
             alpha = 1
-            while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < MIN_SITE_FRACTION) or
-                   np.any((phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0)) and
-                   alpha > MIN_SOLVE_ALPHA):
-                alpha *= 0.9
+            #while ((np.any((site_fracs + alpha * step[:len(site_fracs)]) < 0.1*MIN_SITE_FRACTION) or
+            #       np.any((phase_fracs + alpha * step[len(site_fracs):len(site_fracs)+len(phases)]) < 0)) and
+            #       alpha > MIN_SOLVE_ALPHA):
+            #    alpha *= 0.999
             #if alpha <= MIN_SOLVE_ALPHA:
             #    alpha = 0
             #print('INITIAL ALPHA', alpha)
+            #print('STEP', step)
+            #print('SITE FRACS', site_fracs)
+            #print('PHASE FRACS', phase_fracs)
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             #print('OLD ENERGY', old_energy)
-            old_constrained_objective = old_energy - np.multiply(l_multipliers, l_constraints).sum()
+            old_constrained_objective = old_energy + np.abs(l_multipliers * l_constraints).sum()
             #print('OLD OBJ', old_constrained_objective)
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             #print('STARTING ALPHA', alpha)
             wolfe_conditions = False
             while alpha > MIN_SOLVE_ALPHA:
+                #print('ALPHA', alpha)
                 candidate_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
+                candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+                candidate_site_fracs[candidate_site_fracs > 1] = 1
                 candidate_l_multipliers = l_multipliers + step[num_vars:]
+                #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 candidate_phase_fracs = phase_fracs + \
                                        alpha * step[len(candidate_site_fracs):len(candidate_site_fracs)+len(phases)]
+                candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+                candidate_phase_fracs[candidate_phase_fracs > 1] = 1
+                if len(phases) == len([c for c in comps if c != 'VA']):
+                    # We have the maximum number of phases
+                    # Compute the chemical potentials exactly from the tangent hyperplane
+                    phase_compositions = np.zeros((len(phases), len([c for c in comps if c != 'VA'])))
+                    phase_energies = np.zeros((len(phases)))
+                    var_offset = 0
+                    for phase_idx in range(len(phases)):
+                        for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
+                            phase_compositions[phase_idx, comp_idx] = \
+                                mole_fraction_funcs[(phases[phase_idx], comp)][0](*candidate_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                        phase_energies[phase_idx] = callable_dict[phases[phase_idx]](
+                            *itertools.chain([cur_conds['P'], cur_conds['T']],
+                                             candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+                        var_offset += phase_dof[phase_idx]
+                    exact_chempots = np.linalg.solve(phase_compositions, phase_energies)
+                else:
+                    exact_chempots = None
                 (candidate_l_constraints, candidate_constraint_jac, candidate_l_multipliers, candidate_chem_pots,
                 mole_fraction_funcs) = \
                     _compute_constraints(dbf, comps, phases, cur_conds,
                                          candidate_site_fracs, candidate_phase_fracs, phase_records,
-                                         l_multipliers=candidate_l_multipliers)
+                                         l_multipliers=candidate_l_multipliers, chem_pots=exact_chempots)
+                #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
+                #print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
+                #print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
                 candidate_energy = _compute_multiphase_objective(dbf, comps, phases, cur_conds, candidate_site_fracs,
                                                                  candidate_phase_fracs,
                                                                  callable_dict)
-                candidate_constrained_objective = candidate_energy - np.multiply(candidate_l_multipliers,
-                                                                                 candidate_l_constraints).sum()
+                candidate_constrained_objective = candidate_energy + np.abs(candidate_l_multipliers * \
+                                                                            candidate_l_constraints).sum()
                 #candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
-                #                                                     cur_conds, site_fracs, phase_fracs,
+                #                                                     cur_conds, candidate_site_fracs, candidate_phase_fracs,
                 #                                                     l_constraints, constraint_jac,
                 #                                                     l_multipliers, callable_dict, phase_records)
-                #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 #print('CANDIDATE CHEM POTS', candidate_chem_pots)
                 #print('CANDIDATE ENERGY', candidate_energy)
                 #print('CANDIDATE OBJ', candidate_constrained_objective)
@@ -988,17 +1016,20 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 #print('GRADIENT TERM', gradient_term)
                 #print('CANDIDATE GRADIENT', candidate_gradient_term)
                 wolfe_conditions = (candidate_constrained_objective - old_constrained_objective) <= \
-                                   alpha * 1e-4 * (step * gradient_term).sum(axis=-1)
+                                   alpha * 1e-4 * (step[:num_vars] * gradient_term[:num_vars]).sum(axis=-1)
                 #print('WOLFE CONDITION 1', wolfe_conditions)
-                #wolfe_conditions &= np.abs(np.multiply(step, candidate_gradient_term).sum(axis=-1)) <= \
-                #                    0.9*np.abs(np.multiply(step, gradient_term).sum(axis=-1))
+                #print('CANDIDATE GRAD SUM', np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum())
+                #print('OLD GRAD SUM', np.multiply(step[:num_vars], gradient_term[:num_vars]).sum())
+                #wolfe_conditions &= np.abs(np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum(axis=-1)) <= \
+                #                    0.9*np.abs(np.multiply(step[:num_vars], gradient_term[:num_vars]).sum(axis=-1))
                 # Also allow chemical potential updates, which is outside the purview of the Wolfe conditions
-                chempot_update = np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
+                chempot_update = (candidate_constrained_objective - old_constrained_objective) <= 0
+                chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
                 wolfe_conditions |= chempot_update
                 #print('WOLFE CONDITION 1&2', wolfe_conditions)
                 if wolfe_conditions:
                     break
-                alpha *= 0.7
+                alpha *= 0.5
             #print('RESULT ALPHA', alpha)
             #print('WOLFE CONDITIONS', wolfe_conditions)
             if wolfe_conditions:
