@@ -9,10 +9,11 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium
 import pycalphad.variables as v
-from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB, ALFE_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
+ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 
 # ROSE DIAGRAM TESTS
 # This will fail until the equilibrium engine is switched from Newton-Raphson
@@ -140,3 +141,12 @@ def test_eq_on_endmember():
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, pbar=False)
 
+def test_eq_four_sublattice():
+    """
+    Balancing mass in a multi-sublattice phase in a single-phase configuration.
+    """
+    eq = equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], 'FCC_L12',
+                     {v.T: 1073, v.X('NI'): 0.7601, v.P: 101325}, pbar=False)
+    assert_allclose(np.squeeze(eq.X.sel(vertex=0).values), [1-.7601, .7601])
+    # Not a strict equality here because we can't yet reach TC's value of -87260.6
+    assert eq.GM.values < -87256.3
