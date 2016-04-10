@@ -1034,7 +1034,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                     wolfe_conditions &= np.abs(np.multiply(step, -candidate_gradient_term).sum(axis=-1)) <= \
                                         0.9*np.abs(np.multiply(step, -gradient_term).sum(axis=-1))
                 # Seems to be necessary for some unit tests to explicitly allow chemical potential updates
-                chempot_update = (candidate_constrained_objective - old_constrained_objective) <= 0
+                chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
                 chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
                 wolfe_conditions |= chempot_update
                 print('WOLFE CONDITION 1&2', wolfe_conditions)
