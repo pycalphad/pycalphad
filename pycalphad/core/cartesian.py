@@ -49,7 +49,7 @@ def cartesian(arrays, out=None):
     if out is None:
         out = np.zeros([n, len(arrays)], dtype=dtype)
 
-    m = n / arrays[0].size
+    m = int(n / arrays[0].size)
     out[:, 0] = np.repeat(arrays[0], m)
     if arrays[1:]:
         cartesian(arrays[1:], out=out[0:m, 1:])
