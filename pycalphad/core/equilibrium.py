@@ -975,7 +975,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 candidate_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
                 candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                 candidate_site_fracs[candidate_site_fracs > 1] = 1
-                candidate_l_multipliers = l_multipliers + step[num_vars:]
+                candidate_l_multipliers = l_multipliers + alpha * step[num_vars:]
                 #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 candidate_phase_fracs = phase_fracs + \
                                        alpha * step[len(candidate_site_fracs):len(candidate_site_fracs)+len(phases)]
@@ -1011,24 +1011,29 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                                  callable_dict)
                 candidate_constrained_objective = candidate_energy + np.abs(candidate_l_multipliers * \
                                                                             candidate_l_constraints).sum()
-                #candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
-                #                                                     cur_conds, candidate_site_fracs, candidate_phase_fracs,
-                #                                                     l_constraints, constraint_jac,
-                #                                                     l_multipliers, callable_dict, phase_records)
                 #print('CANDIDATE CHEM POTS', candidate_chem_pots)
                 #print('CANDIDATE ENERGY', candidate_energy)
                 #print('CANDIDATE OBJ', candidate_constrained_objective)
                 #print('STEP', step[:num_vars])
                 #print('GRADIENT TERM', gradient_term)
                 #print('CANDIDATE GRADIENT', candidate_gradient_term)
+
+                # Remember that 'gradient_term' is actually the NEGATIVE of the gradient
                 wolfe_conditions = (candidate_constrained_objective - old_constrained_objective) <= \
-                                   alpha * 1e-4 * (step[:num_vars] * gradient_term[:num_vars]).sum(axis=-1)
+                                   alpha * 1e-4 * (step * -gradient_term).sum(axis=-1)
                 #print('WOLFE CONDITION 1', wolfe_conditions)
-                #print('CANDIDATE GRAD SUM', np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum())
-                #print('OLD GRAD SUM', np.multiply(step[:num_vars], gradient_term[:num_vars]).sum())
-                #wolfe_conditions &= np.abs(np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum(axis=-1)) <= \
-                #                    0.9*np.abs(np.multiply(step[:num_vars], gradient_term[:num_vars]).sum(axis=-1))
-                # Also allow chemical potential updates, which is outside the purview of the Wolfe conditions
+                # Optimization to avoid costly gradient calculation if Wolfe conditions won't be met anyway
+                if wolfe_conditions:
+                    candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
+                                                                         cur_conds, candidate_site_fracs,
+                                                                         candidate_phase_fracs,
+                                                                         l_constraints, constraint_jac,
+                                                                         l_multipliers, callable_dict, phase_records)
+                    #print('CANDIDATE GRAD SUM', np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum())
+                    #print('OLD GRAD SUM', np.multiply(step[:num_vars], gradient_term[:num_vars]).sum())
+                    wolfe_conditions &= np.abs(np.multiply(step, -candidate_gradient_term).sum(axis=-1)) <= \
+                                        0.9*np.abs(np.multiply(step, -gradient_term).sum(axis=-1))
+                # Seems to be necessary for some unit tests to explicitly allow chemical potential updates
                 chempot_update = (candidate_constrained_objective - old_constrained_objective) <= 0
                 chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
                 wolfe_conditions |= chempot_update
@@ -1038,10 +1043,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 alpha *= 0.5
             #print('RESULT ALPHA', alpha)
             #print('WOLFE CONDITIONS', wolfe_conditions)
-            # Chemical potentials always update
-            properties['MU'].values[it.multi_index] = candidate_chem_pots
             if wolfe_conditions:
                 # We updated degrees of freedom this iteration
+                properties['MU'].values[it.multi_index] = candidate_chem_pots
                 properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
                 properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
                 properties['GM'].values[it.multi_index] = candidate_energy
@@ -1058,8 +1062,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if verbose:
                 print('Chem pot progress', np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf))
                 print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
-            #no_progress = ~wolfe_conditions
-            no_progress = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() < 0.1
+            no_progress = ~wolfe_conditions
+            #no_progress = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() < 0.1
             #no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             if no_progress:
                 if verbose:
