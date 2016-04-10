@@ -975,9 +975,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 candidate_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
                 candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                 candidate_site_fracs[candidate_site_fracs > 1] = 1
-                # Always take the full chemical potential / Lagrange multiplier step
-                # That seems to fix platform-dependent convergence issues
-                candidate_l_multipliers = l_multipliers + step[num_vars:]
+                candidate_l_multipliers = l_multipliers + alpha * step[num_vars:]
                 #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 candidate_phase_fracs = phase_fracs + \
                                        alpha * step[len(candidate_site_fracs):len(candidate_site_fracs)+len(phases)]
