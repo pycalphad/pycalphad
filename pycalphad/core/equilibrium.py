@@ -981,28 +981,28 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                        alpha * step[len(candidate_site_fracs):len(candidate_site_fracs)+len(phases)]
                 candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                 candidate_phase_fracs[candidate_phase_fracs > 1] = 1
-                if len(phases) == len([c for c in comps if c != 'VA']):
-                    # We have the maximum number of phases
-                    # Compute the chemical potentials exactly from the tangent hyperplane
-                    phase_compositions = np.zeros((len(phases), len([c for c in comps if c != 'VA'])))
-                    phase_energies = np.zeros((len(phases)))
-                    var_offset = 0
-                    for phase_idx in range(len(phases)):
-                        for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
-                            phase_compositions[phase_idx, comp_idx] = \
-                                mole_fraction_funcs[(phases[phase_idx], comp)][0](*candidate_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
-                        phase_energies[phase_idx] = callable_dict[phases[phase_idx]](
-                            *itertools.chain([cur_conds['P'], cur_conds['T']],
-                                             candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
-                        var_offset += phase_dof[phase_idx]
-                    exact_chempots = np.linalg.solve(phase_compositions, phase_energies)
-                else:
-                    exact_chempots = None
+                #if len(phases) == len([c for c in comps if c != 'VA']):
+                #    # We have the maximum number of phases
+                #    # Compute the chemical potentials exactly from the tangent hyperplane
+                #    phase_compositions = np.zeros((len(phases), len([c for c in comps if c != 'VA'])))
+                #    phase_energies = np.zeros((len(phases)))
+                #    var_offset = 0
+                #    for phase_idx in range(len(phases)):
+                #        for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
+                #            phase_compositions[phase_idx, comp_idx] = \
+                #                mole_fraction_funcs[(phases[phase_idx], comp)][0](*candidate_site_fracs[var_offset:var_offset+phase_dof[phase_idx]])
+                #        phase_energies[phase_idx] = callable_dict[phases[phase_idx]](
+                #            *itertools.chain([cur_conds['P'], cur_conds['T']],
+                #                             candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+                #        var_offset += phase_dof[phase_idx]
+                #    exact_chempots = np.linalg.solve(phase_compositions, phase_energies)
+                #else:
+                #    exact_chempots = None
                 (candidate_l_constraints, candidate_constraint_jac, candidate_l_multipliers, candidate_chem_pots,
                 mole_fraction_funcs) = \
                     _compute_constraints(dbf, comps, phases, cur_conds,
                                          candidate_site_fracs, candidate_phase_fracs, phase_records,
-                                         l_multipliers=candidate_l_multipliers, chem_pots=exact_chempots)
+                                         l_multipliers=candidate_l_multipliers)
                 #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 #print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
                 #print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
