@@ -966,17 +966,17 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             #print('OLD ENERGY', old_energy)
             old_constrained_objective = old_energy + np.abs(l_multipliers * l_constraints).sum()
-            print('OLD OBJ', old_constrained_objective)
+            #print('OLD OBJ', old_constrained_objective)
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             #print('STARTING ALPHA', alpha)
             wolfe_conditions = False
             while alpha > MIN_SOLVE_ALPHA:
-                print('ALPHA', alpha)
+                #print('ALPHA', alpha)
                 candidate_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
                 candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                 candidate_site_fracs[candidate_site_fracs > 1] = 1
                 candidate_l_multipliers = l_multipliers + alpha * step[num_vars:]
-                print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
+                #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 candidate_phase_fracs = phase_fracs + \
                                        alpha * step[len(candidate_site_fracs):len(candidate_site_fracs)+len(phases)]
                 candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
@@ -1013,8 +1013,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                                             candidate_l_constraints).sum()
                 #print('CANDIDATE CHEM POTS', candidate_chem_pots)
                 #print('CANDIDATE ENERGY', candidate_energy)
-                print('CANDIDATE OBJ', candidate_constrained_objective)
-                print('STEP', step[:num_vars])
+                #print('CANDIDATE OBJ', candidate_constrained_objective)
+                #print('STEP', step[:num_vars])
                 #print('GRADIENT TERM', gradient_term)
                 #print('CANDIDATE GRADIENT', candidate_gradient_term)
 
@@ -1037,7 +1037,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
                 chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
                 wolfe_conditions |= chempot_update
-                print('WOLFE CONDITION 1&2', wolfe_conditions)
+                #print('WOLFE CONDITION 1&2', wolfe_conditions)
                 if wolfe_conditions:
                     break
                 alpha *= 0.5
