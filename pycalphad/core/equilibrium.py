@@ -1021,7 +1021,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 # Remember that 'gradient_term' is actually the NEGATIVE of the gradient
                 wolfe_conditions = (candidate_constrained_objective - old_constrained_objective) <= \
                                    alpha * 1e-4 * (step * -gradient_term).sum(axis=-1)
-                print('WOLFE CONDITION 1', wolfe_conditions)
+                #print('WOLFE CONDITION 1', wolfe_conditions)
                 # Optimization to avoid costly gradient calculation if Wolfe conditions won't be met anyway
                 if wolfe_conditions:
                     candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
