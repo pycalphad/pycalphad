@@ -32,3 +32,8 @@ def test_statevar_upcast():
     "Integer state variable values are cast to float."
     calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
                 T=1273, mode='numpy')
+
+def test_points_kwarg_multi_phase():
+    "Multi-phase calculation works when internal dof differ (gh-41)."
+    calculate(DBF, ['AL', 'CR', 'NI'], ['L12_FCC', 'LIQUID'],
+                T=1273, points={'L12_FCC': [0.20, 0.05, 0.75, 0.05, 0.20, 0.75]}, mode='numpy')
