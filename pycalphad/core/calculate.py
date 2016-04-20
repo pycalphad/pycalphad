@@ -196,6 +196,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     sampler : callable, a dict of phase names to callable, or a seq of both, optional
         Function to sample phase constitution space.
         Must have same signature as 'pycalphad.core.utils.point_sample'
+    grid_points : bool, a dict of phase names to bool, or a seq of both, optional (Default: True)
+        Whether to add evenly spaced points between end-members.
+        The density of points is determined by 'pdens'
 
     Returns
     -------
@@ -212,6 +215,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
+    fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     if isinstance(phases, str):
         phases = [phases]
     if isinstance(comps, str):
@@ -298,13 +302,14 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             # Add all endmembers to guarantee their presence
             points = endmember_matrix(sublattice_dof,
                                       vacancy_indices=vacancy_indices)
-            # Sample along the edges of the endmembers
-            # These constitution space edges are often the equilibrium points!
-            em_pairs = list(itertools.combinations(points, 2))
-            for first_em, second_em in em_pairs:
-                extra_points = first_em * np.linspace(0, 1, pdens_dict[phase_name])[np.newaxis].T + \
-                               second_em * np.linspace(0, 1, pdens_dict[phase_name])[::-1][np.newaxis].T
-                points = np.concatenate((points, extra_points))
+            if fixedgrid_dict[phase_name] is True:
+                # Sample along the edges of the endmembers
+                # These constitution space edges are often the equilibrium points!
+                em_pairs = list(itertools.combinations(points, 2))
+                for first_em, second_em in em_pairs:
+                    extra_points = first_em * np.linspace(0, 1, pdens_dict[phase_name])[np.newaxis].T + \
+                                   second_em * np.linspace(0, 1, pdens_dict[phase_name])[::-1][np.newaxis].T
+                    points = np.concatenate((points, extra_points))
 
 
             # Sample composition space for more points
