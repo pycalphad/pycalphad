@@ -190,7 +190,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # a convenience function will handle the piecewise details
     func_expr = Optional(float_number) + OneOrMore(SkipTo(';') \
         + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
-        Suppress(Word('YNyn', exact=1)))
+        Suppress(Word('YNyn', exact=1) | White()))
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2)
     # TYPE_DEFINITION
