@@ -25,7 +25,7 @@ setup(
     license='MIT',
     long_description=read('README.rst'),
     url='https://github.com/richardotis/pycalphad',
-    install_requires=['matplotlib', 'pandas', 'xarray', 'sympy', 'pyparsing<=2.0.7', 'tqdm',
+    install_requires=['matplotlib', 'pandas', 'xarray', 'sympy', 'pyparsing<=2.0.7, pyparsing>=2.1.1', 'tqdm',
                       'autograd', 'tinydb', 'scipy', 'numpy>=1.9'],
     classifiers=[
         # How mature is this project? Common values are
