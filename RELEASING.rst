@@ -21,7 +21,7 @@ When releasing a new version of pycalphad:
    A minor release can be done later if something important is missed.
 11. ``git stash``
 
-   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **0161A98D**.
+   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **98628A70**.
    If you are using a hardware token on Linux, you may need to ``killall -1 gpg-agent`` for it to be detected.
 
    ``git show 0.2`` to ensure the correct commit was tagged and signed
