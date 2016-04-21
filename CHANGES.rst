@@ -1,6 +1,19 @@
 What's New
 ==========
 
+0.3.3 (2016-04-21)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* ``equilibrium``: Significant improvements to the speed and accuracy of the solver.
+  There is still some work to do for step and map calculations, planned for 0.4.
+* ``Model``: Numerical accuracy improvement for the magnetic model :issue:`40`.
+* ``Database``: Improvements to TDB writing, particularly for order-disorder models.
+* ``Database``: Support for reading diffusion mobility databases.
+  Kinetic simulations are not on the roadmap, but this makes it easier to manipulate diffusion data.
+  Pull requests improving pycalphad's support for kinetic calculations are welcome.
+
 0.3.2 (2016-02-22)
 ------------------
 
