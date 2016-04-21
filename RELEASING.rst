@@ -42,7 +42,7 @@ Uploading to PyPI
    **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
 
    Assuming a correctly configured .pypirc:
-   ``twine upload -r pypi --sign -u rotis -i 0161A98D dist/*``
+   ``twine upload -r pypi --sign -u rotis -i 98628A70 dist/*``
 
 Uploading to Anaconda.org
 -------------------------
