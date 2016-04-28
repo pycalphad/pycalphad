@@ -206,12 +206,12 @@ def make_callable(model, variables, mode=None):
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     elif mode == 'numpy':
         energy = lambdify(tuple(variables), model, dummify=True,
-                          modules=[{'where': np.where}, 'numpy'], printer=NumPyPrinter)
+                          modules=[{'where': np.where, 'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
     elif mode == 'numba':
         variables = tuple(variables)
         varsig = 'float64({})'.format(','.join(['float64'] * len(variables)))
         energy = lambdify(variables, model, dummify=True,
-                          modules=[{'where': nbwhere}, 'numpy'], printer=NumPyPrinter)
+                          modules=[{'where': nbwhere, 'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
         # target=parallel seems to incur too much overhead on small arrays
         energy = _NUMBA.vectorize([varsig], nopython=True, target='cpu')(energy)
     else:

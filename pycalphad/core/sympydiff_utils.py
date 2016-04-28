@@ -33,7 +33,8 @@ def make_gradient_from_graph(sympy_graph, variables):
     namespace = {}
     for i, mgrad in enumerate(sympy_graph.diff(vv) for vv in variables):
         grads[i] = mgrad
-        gen_func = lambdify(tuple(wrt), grads[i], dummify=True, modules=[{'where': where}, 'numpy'], printer=NumPyPrinter)
+        gen_func = lambdify(tuple(wrt), grads[i], dummify=True, modules=[{'where': where,
+                                                                          'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
         namespace['grad_{0}'.format(i)] = numba.jit(['float64({})'.format(','.join(['float64'] * len(wrt)))], nopython=True)\
             (gen_func)
     # Build the gradient using compile() and exec

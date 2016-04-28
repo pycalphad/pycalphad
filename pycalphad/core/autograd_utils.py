@@ -21,7 +21,7 @@ def elementwise_hess(fun, argnum=0):
 
 
 def build_functions(sympy_graph, variables):
-    logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or}, anp]
+    logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or, 'Abs': anp.abs}, anp]
     obj = lambdify(tuple(variables), sympy_graph, dummify=True,
                    modules=logical_np, printer=NumPyPrinter)
 
