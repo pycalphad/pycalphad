@@ -52,7 +52,7 @@ Start with the commit checked out which was tagged with the new version.
 2. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 3. ``conda build --python 2.7 conda_recipe/``
 
-   ``conda build --python 3.3 conda_recipe/``
+   ``LD_PRELOAD=/home/rotis/anaconda/envs/calphadpy3/lib/libgfortran.so.3 conda build --python 3.3 conda_recipe/``
 
    ``conda build --python 3.4 conda_recipe/``
 
