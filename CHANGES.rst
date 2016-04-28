@@ -1,6 +1,13 @@
 What's New
 ==========
 
+0.3.4 (2016-04-28)
+------------------
+
+This is a minor bug fix release.
+
+* ``Model``: Support the use of the absolute value function in the energy function.
+
 0.3.3 (2016-04-21)
 ------------------
 
