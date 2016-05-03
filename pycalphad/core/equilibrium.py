@@ -53,6 +53,11 @@ class EquilibriumError(Exception):
     pass
 
 
+class ConditionError(EquilibriumError):
+    "Exception related to equilibrium conditions"
+    pass
+
+
 def remove_degenerate_phases(properties, multi_index):
     """
     For each phase pair with composition difference below tolerance,
@@ -444,6 +449,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
+    if len(set(comps) - set(dbf.elements)) > 0:
+        raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
@@ -456,6 +463,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
+    for cond in conds.keys():
+        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
+            raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)

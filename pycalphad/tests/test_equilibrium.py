@@ -7,7 +7,7 @@ from unittest.case import SkipTest
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Database, calculate, equilibrium
+from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
 from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB
 
@@ -150,3 +150,23 @@ def test_eq_four_sublattice():
     assert_allclose(np.squeeze(eq.X.sel(vertex=0).values), [1-.7601, .7601])
     # Not a strict equality here because we can't yet reach TC's value of -87260.6
     assert eq.GM.values < -87256.3
+
+@raises(EquilibriumError)
+def test_eq_missing_component():
+    """
+    Specifying a non-existent component raises an error.
+    """
+    # No Co or Cr in this database ; Co component specification should cause failure
+    equilibrium(ALNIFCC4SL_DBF, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
+                {v.T: 1523, v.X('AL'): 0.88811111111111107,
+                 v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+
+@raises(ConditionError)
+def test_eq_missing_component():
+    """
+    Specifying a condition involving a non-existent component raises an error.
+    """
+    # No Co or Cr in this database ; Co condition specification should cause failure
+    equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
+                {v.T: 1523, v.X('AL'): 0.88811111111111107,
+                 v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
