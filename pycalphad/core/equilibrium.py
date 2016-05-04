@@ -194,9 +194,9 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
             constraint_jac[constraint_offset + idx,
             var_idx:var_idx + len(active_in_subl)] = 1
-            # print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
+            # print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, (sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
             l_constraints[constraint_offset + idx] = \
-                -(sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
+                (sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
             var_idx += len(active_in_subl)
         constraint_offset += len(dbf.phases[name].sublattices)
     # Second: Mass balance of each component
@@ -227,7 +227,7 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
             # TODO: Assuming N=1 (fixed for dependent component)
             l_constraints[constraint_offset] -= (1 - indep_sum)
             # print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, (1-indep_sum)))
-        l_constraints[constraint_offset] *= -1
+        #l_constraints[constraint_offset] *= -1
         # print('L_CONSTRAINTS[{}] *= -1'.format(constraint_offset))
         constraint_offset += 1
     return l_constraints, constraint_jac, l_multipliers, chemical_potentials, mole_fractions
@@ -268,7 +268,7 @@ def _build_multiphase_gradient(dbf, comps, phases, cur_conds, site_fracs, phase_
         var_offset += phase_dof[phase_idx]
         phase_idx += 1
     gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
-    gradient_term[num_vars:] = l_constraints
+    gradient_term[num_vars:] = -l_constraints
     return gradient_term
 
 def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
@@ -313,7 +313,7 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
     l_hessian[num_vars:, :num_vars] = constraint_jac
     # print('PURE GRADIENT', gradient_term)
     gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
-    gradient_term[num_vars:] = l_constraints
+    gradient_term[num_vars:] = -l_constraints
     return l_hessian, gradient_term
 
 def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
@@ -975,7 +975,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             #print('OLD ENERGY', old_energy)
-            old_constrained_objective = old_energy + np.abs(l_multipliers * l_constraints).sum()
+            # XXX: Why is it necessary to square this?
+            old_constrained_objective = old_energy + ((l_multipliers * l_constraints).sum()) ** 2
             #print('OLD OBJ', old_constrained_objective)
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             #print('STARTING ALPHA', alpha)
@@ -1013,14 +1014,18 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                     _compute_constraints(dbf, comps, phases, cur_conds,
                                          candidate_site_fracs, candidate_phase_fracs, phase_records,
                                          l_multipliers=candidate_l_multipliers)
-                #print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
+                #print('CANDIDATE L MULTIPLIERS AFTER', candidate_l_multipliers)
                 #print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
                 #print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
+                #print('CANDIDATE L MUL SUM', (candidate_l_multipliers *
+                #                                    candidate_l_constraints).sum()
+                #      )
                 candidate_energy = _compute_multiphase_objective(dbf, comps, phases, cur_conds, candidate_site_fracs,
                                                                  candidate_phase_fracs,
                                                                  callable_dict)
-                candidate_constrained_objective = candidate_energy + np.abs(candidate_l_multipliers * \
-                                                                            candidate_l_constraints).sum()
+                # XXX: Why is it necessary to square this?
+                candidate_constrained_objective = candidate_energy + ((candidate_l_multipliers *
+                                                                       candidate_l_constraints).sum()) ** 2
                 #print('CANDIDATE CHEM POTS', candidate_chem_pots)
                 #print('CANDIDATE ENERGY', candidate_energy)
                 #print('CANDIDATE OBJ', candidate_constrained_objective)

@@ -9,11 +9,12 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
-from pycalphad.tests.datasets import ALNIPT_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, ALCOCRNI_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
 ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
+ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 
 # ROSE DIAGRAM TESTS
 # This will fail until the equilibrium engine is switched from Newton-Raphson
@@ -170,3 +171,36 @@ def test_eq_missing_component():
     equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
                 {v.T: 1523, v.X('AL'): 0.88811111111111107,
                  v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+
+def test_eq_ternary_edge_case_mass():
+    """
+    Equilibrium along an edge of composition space will still balance mass.
+    """
+    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+                     {v.T: 1523, v.X('AL'): 0.88811111111111107,
+                      v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
+                 [0.88811111111111107, 0.11188888888888888, 0]
+    assert np.all(np.abs(mass_error) < 0.01)
+
+def test_eq_ternary_inside_mass():
+    """
+    Equilibrium in interior of composition space will still balance mass.
+    """
+    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+                     {v.T: 1523, v.X('AL'): 0.44455555555555554,
+                      v.X('CO'): 0.22277777777777777, v.P: 101325}, pbar=False)
+    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
+                 [0.44455555555555554, 0.22277777777777777, 0.333]
+    assert np.all(np.abs(mass_error) < 0.01)
+
+def test_eq_ternary_edge_misc_gap():
+    """
+    Equilibrium at edge of miscibility gap will still balance mass.
+    """
+    eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
+                     {v.T: 1523, v.X('AL'): 0.33366666666666667,
+                      v.X('CO'): 0.44455555555555554, v.P: 101325}, pbar=False)
+    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
+                 [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
+    assert np.all(np.abs(mass_error) < 0.001)

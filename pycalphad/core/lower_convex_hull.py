@@ -5,6 +5,7 @@ equilibrium calculation.
 from __future__ import print_function
 from pycalphad.log import logger
 from pycalphad.core.cartesian import cartesian
+from pycalphad.core.constants import MIN_SITE_FRACTION
 import numpy as np
 
 # The energetic difference, in J/mol-atom, below which is considered 'zero'
@@ -31,6 +32,23 @@ def _initialize_array(global_grid, result_array):
     # Note: We're assuming that the max energy is in the first few, presumably
     # fictitious points instead of more rigorously checking with argmax.
     result_array['points'].values[...] = np.arange(len_comps)
+
+def stacked_lstsq(L, b, rcond=1e-10):
+    """
+    Solve L x = b, via SVD least squares cutting of small singular values
+    L is an array of shape (..., M, N) and b of shape (..., M).
+    Returns x of shape (..., N)
+    This code is necessary until stacked arrays are supported in numpy.linalg.lstsq.
+    Source: http://stackoverflow.com/questions/30442377/how-to-solve-many-overdetermined-systems-of-linear-equations-using-vectorized-co
+    """
+    u, s, v = np.linalg.svd(L, full_matrices=False)
+    s_max = s.max(axis=-1, keepdims=True)
+    s_min = rcond*s_max
+    inv_s = np.zeros_like(s)
+    inv_s[s >= s_min] = 1/s[s>=s_min]
+    x = np.einsum('...ji,...j->...i', v,
+                  inv_s * np.einsum('...ji,...j->...i', u, b.conj()))
+    return np.conj(x, x)
 
 def lower_convex_hull(global_grid, result_array, verbose=False):
     """
@@ -106,6 +124,11 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
                                       1 - np.sum(comp_values, keepdims=True, axis=-1),
                                       comp_values[..., insert_idx:]),
                                      axis=-1)
+        # Prevent compositions near an edge from going negative
+        comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
+        # TODO: Assumes N=1
+        comp_values /= comp_values.sum(axis=-1, keepdims=True)
+        #print(comp_values)
 
     # SECOND CASE: Only chemical potential conditions specified
     # TODO: Implementation of chemical potential
@@ -150,8 +173,9 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         # This is because even one degenerate simplex causes the entire tensor
         #     to be singular
         nondegenerate_indices = np.all(np.linalg.svd(trial_matrix,
-                                                     compute_uv=False) > 1e-12,
+                                                     compute_uv=False) > 1e-09,
                                        axis=-1, keepdims=True)
+        #('NONDEGENERATE INDICES', nondegenerate_indices)
         # Determine how many trial simplices remain for each target point.
         # In principle this would always be one simplex per point, but once
         # some target values reach equilibrium, trial_points starts
@@ -159,9 +183,10 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         # This causes trial_simplices to create degenerate simplices.
         # We can safely filter them out since those target values are
         # already at equilibrium.
-        sum_array = np.sum(nondegenerate_indices, axis=-1, dtype=np.int)
-        index_array = np.repeat(np.arange(trial_matrix.shape[0], dtype=np.int),
-                                sum_array)
+        #sum_array = np.sum(nondegenerate_indices, axis=-1, dtype=np.int)
+        #index_array = np.repeat(np.arange(trial_matrix.shape[0], dtype=np.int),
+        #                        sum_array)
+        index_array = np.arange(trial_matrix.shape[0], dtype=np.int)
         comp_shape = trial_simplices.shape[:len(indep_conds)+len(pot_conds)] + \
                      (comp_values.shape[0], trial_simplices.shape[-2])
 
@@ -169,30 +194,42 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         fractions = np.full(result_array['points'].values.shape + \
                             (result_array['points'].values.shape[-1],), -1.)
         fractions[np.unravel_index(index_array, fractions.shape[:-1])] = \
-            np.linalg.solve(np.swapaxes(trial_matrix[index_array], -2, -1),
-                            comp_values[comp_indices])
+            stacked_lstsq(np.swapaxes(trial_matrix[index_array], -2, -1),
+                          comp_values[comp_indices])
+        fractions /= fractions.sum(axis=-1, keepdims=True)
+        #print('fractions', fractions)
         # A simplex only contains a point if its barycentric coordinates
         # (phase fractions) are non-negative.
-        bounding_indices = np.all(fractions >= 0, axis=-1)
+        bounding_indices = np.all(fractions >= -MIN_SITE_FRACTION*100, axis=-1)
         #print('BOUNDING INDICES', bounding_indices)
-        #zero_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) == 0
-        #if np.any(zero_success_trials):
-        #    print(trial_matrix[np.nonzero(zero_success_trials)[:-1]])
-        # If more than one trial simplex satisfies the non-negativity criteria
-        # then just choose the first non-degenerate one. This addresses gh-28.
-        # There is also the possibility that *none* of the trials were successful.
-        # This is usually due to numerical problems at the limit of composition space.
-        # We will sidestep the issue here by forcing the last first non-degenerate simplex to match in that case.
+        if ~np.any(bounding_indices):
+            raise ValueError('Desired composition is not inside any candidate simplex. This is a bug.')
         multiple_success_trials = np.sum(bounding_indices, axis=-1, dtype=np.int, keepdims=False) != 1
         #print('MULTIPLE SUCCESS TRIALS SHAPE', np.nonzero(multiple_success_trials))
         if np.any(multiple_success_trials):
-            saved_trial = np.argmax(np.logical_or(bounding_indices[np.nonzero(multiple_success_trials)],
-                                                  nondegenerate_indices.reshape(bounding_indices.shape)[np.nonzero(multiple_success_trials)]), axis=-1)
-            #print('SAVED TRIAL', saved_trial)
+            saved_trial = np.zeros_like(multiple_success_trials, dtype=np.int)
+            # Case of only degenerate simplices (zero bounding)
+            # Choose trial with "least negative" fraction
+            zero_success_indices = np.logical_and(~nondegenerate_indices.reshape(bounding_indices.shape),
+                                                  multiple_success_trials[..., np.newaxis])
+            saved_trial[np.nonzero(zero_success_indices.any(axis=-1))] = \
+                np.argmax(fractions[np.nonzero(zero_success_indices.any(axis=-1))].min(axis=-1), axis=-1)
+            # Case of multiple bounding non-degenerate simplices
+            # Choose the first one. This addresses gh-28.
+            multiple_bounding_indices = \
+                np.logical_and(np.logical_and(bounding_indices, nondegenerate_indices.reshape(bounding_indices.shape)),
+                               multiple_success_trials[..., np.newaxis])
+            #print('MULTIPLE SUCCESS TRIALS.shape', multiple_success_trials.shape)
+            #print('BOUNDING INDICES.shape', bounding_indices.shape)
+            #print('MULTIPLE_BOUNDING_INDICES.shape', multiple_bounding_indices.shape)
+            saved_trial[np.nonzero(multiple_bounding_indices.any(axis=-1))] = \
+                np.argmax(multiple_bounding_indices[np.nonzero(multiple_bounding_indices.any(axis=-1))], axis=-1)
+            #print('SAVED TRIAL.shape', saved_trial.shape)
             #print('BOUNDING INDICES BEFORE', bounding_indices)
             bounding_indices[np.nonzero(multiple_success_trials)] = False
             #print('BOUNDING INDICES FALSE', bounding_indices)
-            bounding_indices[np.nonzero(multiple_success_trials) + np.index_exp[saved_trial]] = True
+            bounding_indices[np.nonzero(multiple_success_trials) + \
+                             (saved_trial[np.nonzero(multiple_success_trials)],)] = True
             #print('BOUNDING INDICES AFTER', bounding_indices)
         fractions.shape = (-1, fractions.shape[-1])
         bounding_indices.shape = (-1,)
@@ -214,8 +251,8 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         aligned_compositions = global_grid.X.values[np.index_exp[statevar_indices + (candidate_simplices,)]]
         #print('aligned_compositions', aligned_compositions)
         #print('aligned_energies', aligned_energies)
-        candidate_potentials = np.linalg.solve(aligned_compositions.astype(np.float, copy=False),
-                                               aligned_energies.astype(np.float, copy=False))
+        candidate_potentials = stacked_lstsq(aligned_compositions.astype(np.float, copy=False),
+                                             aligned_energies.astype(np.float, copy=False))
         #print('candidate_potentials', candidate_potentials)
         logger.debug('candidate_simplices: %s', candidate_simplices)
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
