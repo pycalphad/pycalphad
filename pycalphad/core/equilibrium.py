@@ -491,9 +491,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
         for undef in undefs:
             out = out.xreplace({undef: float(0)})
-        if not callable_dict.get(name, False):
-            callable_dict[name], grad_callable_dict[name], hess_callable_dict[name] = \
-                build_functions(out, [v.P, v.T] + site_fracs)
+        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
+            or (not hess_callable_dict.get(name, False)):
+            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs)
+            if callable_dict.get(name, None) is None:
+                callable_dict[name] = cf
+            if grad_callable_dict.get(name, None) is None:
+                grad_callable_dict[name] = gf
+            if hess_callable_dict.get(name, None) is None:
+                hess_callable_dict[name] = hf
 
         # Adjust gradient by the approximate chemical potentials
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
