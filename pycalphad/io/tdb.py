@@ -180,11 +180,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
-    constituent_array = Group(
-        delimitedList(Group(delimitedList(species_name, ',') & \
-                            ZeroOrMore(species_name)
-                           ), ':')
-        )
+    constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
     param_types = MatchFirst([TCCommand(param_type) for param_type in TDB_PARAM_TYPES])
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details

@@ -27,7 +27,7 @@ requirements:
     - mock
     - xarray
     - sympy
-    - pyparsing <=2.0.7
+    - pyparsing
     - tinydb
     - autograd
     - scipy
