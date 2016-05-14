@@ -883,8 +883,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
-            multi_phase_progress.close()
-            raise ValueError('Sum of independent component mole fractions greater than one')
+            # Sum of independent component mole fractions greater than one
+            # Skip this condition set
+            # We silently allow this to make 2-D composition mapping easier
+            properties['MU'].values[it.multi_index] = np.nan
+            properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            properties['Y'].values[it.multi_index] = np.nan
+            properties['GM'].values[it.multi_index] = np.nan
+            it.iternext()
+            continue
         dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
         if len(dependent_comp) == 1:
             dependent_comp = list(dependent_comp)[0]
