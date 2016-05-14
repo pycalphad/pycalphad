@@ -1,6 +1,16 @@
 What's New
 ==========
 
+0.3.5 (2016-05-14)
+------------------
+
+This is a minor bug fix release.
+
+* ``tdb``: Fix TDB parsing errors on recent (>=2.1) versions of pyparsing.
+* ``equilibrium``: Improve convergence and numerical stability of solver. Fix potential sign error in Hessian matrix.
+  Support mapping over two composition variables at once.
+  An error is now raised if a calculation specifies components not in the Database.
+
 0.3.4 (2016-04-28)
 ------------------
 
