@@ -56,9 +56,9 @@ def make_gradient_from_graph(sympy_graph, variables):
         for j in range(i,len(wrt)):
             # We have to do a little bit of trickery here to make sure we don't exceed the domain of our variables
             finite_diff_args = ['_x{0}[0]'.format(g) for g in range(len(wrt))]
-            finite_diff_args[j] = '_x{0}[0]+where(_x{0}[0]+1e-8 < 1, 1e-8, -1e-8)'.format(j)
+            finite_diff_args[j] = '_x{0}[0]+1e-14'.format(j)
             finite_diff_args = ','.join(finite_diff_args)
-            hess_list.append('    result[{0},{1}] = result[{1},{0}] = ((grad_{0}({2}) - grad_{0}({3}))/1e-8)'
+            hess_list.append('    result[{0},{1}] = result[{1},{0}] = ((grad_{0}({2}) - grad_{0}({3}))/1e-14)'
                              .format(i, j, finite_diff_args, call_passed_args))
     hess_code = hess_code + '\n' + '\n'.join(hess_list)
     hess_code = compile(hess_code, '<string>', 'exec')
