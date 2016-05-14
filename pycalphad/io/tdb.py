@@ -130,7 +130,7 @@ def _make_piecewise_ast(toks):
                 )
             )
         cur_tok = cur_tok + 2
-    #expr_cond_pairs.append((0., True))
+    expr_cond_pairs.append((0, True))
     return Piecewise(*expr_cond_pairs)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
@@ -342,6 +342,8 @@ def to_interval(relational):
         return Union([to_interval(i) for i in relational.args])
     elif isinstance(relational, Not):
         return Complement([to_interval(i) for i in relational.args])
+    if relational == S.true:
+        return Interval(S.NegativeInfinity, S.Infinity, left_open=True, right_open=True)
 
     if len(relational.free_symbols) != 1:
         raise ValueError('Relational must only have one free symbol')
@@ -378,16 +380,18 @@ class TCPrinter(StrPrinter):
     Prints Thermo-Calc style function expressions.
     """
     def _print_Piecewise(self, expr):
-        exprs = [self._print(arg.expr) for arg in expr.args]
+        # Filter out default zeros since they are implicit in a TDB
+        filtered_args = [i for i in expr.args if not ((i.cond == S.true) and (i.expr == S.Zero))]
+        exprs = [self._print(arg.expr) for arg in filtered_args]
         # Only a small subset of piecewise functions can be represented
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
-        intervals = [to_interval(i.cond) for i in expr.args]
+        intervals = [to_interval(i.cond) for i in filtered_args]
         if (len(intervals) > 1) and Intersection(intervals) != EmptySet():
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
         if not isinstance(Union(intervals), Interval):
             raise ValueError('Piecewise intervals must be continuous')
-        if not all([arg.cond.free_symbols == {v.T} for arg in expr.args]):
+        if not all([arg.cond.free_symbols == {v.T} for arg in filtered_args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')
         # Sort expressions based on intervals
         sortindices = [i[0] for i in sorted(enumerate(intervals), key=lambda x:x[1].start)]
