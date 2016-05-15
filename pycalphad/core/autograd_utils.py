@@ -20,7 +20,7 @@ def elementwise_hess(fun, argnum=0):
     return jacobian(sum_grad_output, argnum)
 
 
-def build_functions(sympy_graph, variables):
+def build_functions(sympy_graph, variables, include_obj=True, include_grad=True, include_hess=True):
     logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or, 'Abs': anp.abs}, anp]
     obj = lambdify(tuple(variables), sympy_graph, dummify=True,
                    modules=logical_np, printer=NumPyPrinter)
@@ -43,4 +43,15 @@ def build_functions(sympy_graph, variables):
         result = result.transpose(*chain(axes[2:], axes[0:2]))
         return result
 
-    return obj, grad_func, hess_func
+    restup = []
+    if include_obj:
+        restup.append(obj)
+    if include_grad:
+        restup.append(grad_func)
+    if include_hess:
+        restup.append(hess_func)
+
+    if len(restup) == 1:
+        return restup[0]
+    else:
+        return tuple(restup)
