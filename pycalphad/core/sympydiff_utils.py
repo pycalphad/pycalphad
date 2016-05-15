@@ -1,80 +1,56 @@
 """
 This module constructs gradient functions for Models.
 """
-from sympy import lambdify
-from pycalphad.core.utils import NumPyPrinter
-import numba
+from .custom_ufuncify import ufuncify
 import numpy as np
 import itertools
 
-@numba.jit('float64(boolean, float64, float64)')
-def where(condition, x, y):
-    if condition:
-        return x
-    else:
-        return y
+# Doesn't seem to be a run-time way to detect this, so we use the value as of numpy 1.11
+_NPY_MAXARGS = 32
 
-def get_broadcast_shape(*shapes):
+def chunks(l, n):
     """
-    Given a set of array shapes, return the shape of the output when arrays of those
-    shapes are broadcast together.
-    Source: http://stackoverflow.com/questions/27196672/numpy-broadcast-indices-from-shape
+    Yield successive n-sized chunks from l.
+    Source: http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python
     """
-    max_nim = max(len(s) for s in shapes)
-    equal_len_shapes = np.array([(1, )*(max_nim-len(s))+s for s in shapes])
-    max_dim_shapes = np.max(equal_len_shapes, axis = 0)
-    assert np.all(np.bitwise_or(equal_len_shapes==1, equal_len_shapes == max_dim_shapes[None, :])), \
-        'Shapes %s are not broadcastable together' % (shapes, )
-    return tuple(max_dim_shapes)
+    for i in range(0, len(l), n):
+        yield l[i:i+n]
 
 def make_gradient_from_graph(sympy_graph, variables):
+    cflags = ['-ffast-math']
     wrt = tuple(variables)
-    grads = np.empty((len(wrt)), dtype=object)
-    namespace = {}
-    for i, mgrad in enumerate(sympy_graph.diff(vv) for vv in variables):
-        grads[i] = mgrad
-        gen_func = lambdify(tuple(wrt), grads[i], dummify=True, modules=[{'where': where,
-                                                                          'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
-        namespace['grad_{0}'.format(i)] = numba.jit(['float64({})'.format(','.join(['float64'] * len(wrt)))], nopython=True)\
-            (gen_func)
-    # Build the gradient using compile() and exec
-    # We do this because Numba needs "static" information about the arguments and functions
-    call_args = ','.join(['_x{0}'.format(i) for i in range(len(wrt))])
-    call_passed_args = ','.join(['_x{0}[0]'.format(i) for i in range(len(wrt))])
-
-    grad_code = 'def grad_func({0}, lengthfix, result):'.format(call_args)
-    grad_list = ['    result[{0}] = grad_{0}({1})'.format(i, call_passed_args) for i in range(len(wrt))]
-    grad_code = grad_code + '\n' + '\n'.join(grad_list)
-
-    grad_code = compile(grad_code, '<string>', 'exec')
-    exec(grad_code, namespace)
-    grad_func = numba.guvectorize([','.join(['float64[:]'] * (len(wrt)+2))],
-                                   ','.join(['()'] * len(wrt)) + ',(n)->(n)', nopython=True)(namespace['grad_func'])
-    hess_code = 'def hess_func({0}, lengthfix, result):'.format(call_args)
-    hess_list = []
+    if len(wrt) > _NPY_MAXARGS:
+        # TODO: Create a fallback mechanism
+        raise ValueError('Cannot handle more than 32 degrees of freedom at once')
+    grad_diffs = tuple(sympy_graph.diff(i) for i in wrt)
+    hess_diffs = []
     for i in range(len(wrt)):
-        for j in range(i,len(wrt)):
-            # We have to do a little bit of trickery here to make sure we don't exceed the domain of our variables
-            finite_diff_args = ['_x{0}[0]'.format(g) for g in range(len(wrt))]
-            finite_diff_args[j] = '_x{0}[0]+1e-14'.format(j)
-            finite_diff_args = ','.join(finite_diff_args)
-            hess_list.append('    result[{0},{1}] = result[{1},{0}] = ((grad_{0}({2}) - grad_{0}({3}))/1e-14)'
-                             .format(i, j, finite_diff_args, call_passed_args))
-    hess_code = hess_code + '\n' + '\n'.join(hess_list)
-    hess_code = compile(hess_code, '<string>', 'exec')
-    namespace['where'] = where
-    exec(hess_code, namespace)
-    hess_func = numba.guvectorize([','.join(['float64[:]'] * (len(wrt) + 1)) + ',float64[:,:]'],
-                                  ','.join(['()'] * len(wrt)) + ',(n)->(n,n)', nopython=True)(namespace['hess_func'])
-    def grad_argwrapper(*args, out=None):
-        result_shape = get_broadcast_shape(*[np.asarray(arg).shape for arg in args])
-        result_shape = result_shape + (len(args),)
-        result = out if out is not None else np.zeros(result_shape, dtype=np.float)
-        return grad_func(*list(itertools.chain(args, [np.empty(len(args)), result])))
-    def hess_argwrapper(*args, out=None):
-        result_shape = get_broadcast_shape(*[np.asarray(arg).shape for arg in args])
-        result_shape = result_shape + (len(args),len(args))
-        result = out if out is not None else np.zeros(result_shape, dtype=np.float)
-        hess_func(*list(itertools.chain(args, [np.empty(len(args)), result])))
+        for j in range(i, len(wrt)):
+            hess_diffs.append(grad_diffs[i].diff(wrt[j]))
+    # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
+    grad = [ufuncify(wrt, gd, cflags=cflags) for gd in chunks(grad_diffs, _NPY_MAXARGS-len(wrt))]
+    hess = [ufuncify(wrt, hd, cflags=cflags) for hd in chunks(hess_diffs, _NPY_MAXARGS-len(wrt))]
+
+    # Factored out of argwrapper functions via profiling
+    triu_indices = np.triu_indices(len(wrt))
+    lenargsrange = np.arange(len(wrt), dtype=np.int)
+
+    def grad_argwrapper(*args):
+        result = np.array(list(itertools.chain(*(f(*args) for f in grad))))
+        axes = tuple(range(len(result.shape)))
+        # Send 'gradient' axis back
+        result = result.transpose(axes[1:] + axes[:1])
+        return result
+    def hess_argwrapper(*args):
+        resarray = list(itertools.chain(*(f(*args) for f in hess)))
+        result = np.zeros((len(args), len(args)) + resarray[0].shape)
+        result[triu_indices] = resarray
+        axes = tuple(range(len(result.shape)))
+        # Upper triangular is filled; also need to fill lower triangular
+        result = result + result.swapaxes(0, 1)
+        # Return diagonal to its original value since we doubled it above
+        result[lenargsrange, lenargsrange] /= 2
+        # Send 'Hessian' axes back
+        result = result.transpose(axes[2:] + axes[:2])
         return result
     return grad_argwrapper, hess_argwrapper
