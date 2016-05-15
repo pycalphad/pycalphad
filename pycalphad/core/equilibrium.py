@@ -10,7 +10,8 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.autograd_utils import build_functions
+from pycalphad.core.autograd_utils import build_functions as interpreted_build_functions
+from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 from tqdm import tqdm as progressbar
@@ -205,9 +206,10 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
         phase_idx = 0
         for name, phase_frac in zip(phases, phase_fracs):
             if mole_fractions.get((name, comp), None) is None:
-                mole_fractions[(name, comp)] = build_functions(mole_fraction(dbf.phases[name], comps, comp),
-                                                               sorted(set(phase_records[name].variables) - {v.T, v.P},
-                                                                      key=str))
+                # XXX: We have cache misses a LOT here
+                mole_fractions[(name, comp)] = interpreted_build_functions(mole_fraction(dbf.phases[name], comps, comp),
+                                                                        sorted(set(phase_records[name].variables) - {v.T, v.P},
+                                                                        key=str))
             comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
             # current phase frac times the comp_grad
             constraint_jac[constraint_offset,
@@ -467,6 +469,17 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
+    num_calcs = np.prod([len(i) for i in str_conds.values()])
+    if num_calcs > 5:
+        if verbose:
+            print('Calculation Backend: Compiled (ufuncify)')
+        build_functions = compiled_build_functions
+        backend_mode = 'compiled'
+    else:
+        if verbose:
+            print('Calculation Backend: Interpreted (autograd)')
+        build_functions = interpreted_build_functions
+        backend_mode = 'interpreted'
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
