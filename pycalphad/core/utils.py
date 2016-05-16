@@ -12,21 +12,6 @@ import operator
 import functools
 import itertools
 import collections
-from importlib import import_module
-
-_NUMBA = None
-
-try:
-    _NUMBA = import_module('numba')
-
-    @_NUMBA.vectorize
-    def nbwhere(condition, x, y):
-        if condition:
-            return x
-        else:
-            return y
-except ImportError:
-    pass
 
 try:
     # Only available in numpy 1.10 and newer
@@ -196,24 +181,13 @@ def make_callable(model, variables, mode=None):
     """
     energy = None
     if mode is None:
-        # no mode specified; use numba if available, otherwise numpy
-        if _NUMBA:
-            mode = 'numba'
-        else:
-            mode = 'numpy'
+        mode = 'numpy'
 
     if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
     elif mode == 'numpy':
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=[{'where': np.where, 'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
-    elif mode == 'numba':
-        variables = tuple(variables)
-        varsig = 'float64({})'.format(','.join(['float64'] * len(variables)))
-        energy = lambdify(variables, model, dummify=True,
-                          modules=[{'where': nbwhere, 'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
-        # target=parallel seems to incur too much overhead on small arrays
-        energy = _NUMBA.vectorize([varsig], nopython=True, target='cpu')(energy)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
