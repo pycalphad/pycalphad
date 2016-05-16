@@ -22,7 +22,7 @@ _ufunc_top = Template("""\
 #include "numpy/ndarraytypes.h"
 #include "numpy/ufuncobject.h"
 #include "numpy/halffloat.h"
-#include ${include_file}
+${include_files}
 
 static PyMethodDef ${module}Methods[] = {
         {NULL, NULL, 0, NULL}
@@ -105,7 +105,7 @@ def configuration(parent_package='', top_path=None):
     config = Configuration('',
                            parent_package,
                            top_path)
-    config.add_extension('${module}', sources=['${module}.c', '${filename}.c'],
+    config.add_extension('${module}', sources=${sources},
                          extra_compile_args=${cflags})
 
     return config
@@ -159,9 +159,10 @@ class UfuncifyCodeWrapper(CodeWrapper):
 
     def _generate_code(self, main_routines, helper_routines):
         all_routines = main_routines + helper_routines
-        self.generator.write(
-            all_routines, self.filename, True, self.include_header,
-            self.include_empty)
+        for routine in all_routines:
+            self.generator.write(
+                [routine], self.filename + '_' + routine.name, True, self.include_header,
+                self.include_empty)
 
     def _prepare_files(self, routines, funcname, cflags):
 
@@ -172,16 +173,18 @@ class UfuncifyCodeWrapper(CodeWrapper):
 
         # setup.py
         with open('setup.py', 'w') as f:
-            self.dump_setup(f, cflags=cflags)
+            self.dump_setup(f, routines, cflags=cflags)
 
     @classmethod
     def _get_wrapped_function(cls, mod, name):
         return getattr(mod, name)
 
-    def dump_setup(self, f, cflags=None):
+    def dump_setup(self, f, routines, cflags=None):
         cflags = cflags if cflags is not None else []
+        sources = [self.module_name + '.c']
+        sources.extend([self.filename + '_' + routine.name + '.c' for routine in routines])
         setup = _ufunc_setup.substitute(module=self.module_name,
-                                        filename=self.filename,
+                                        sources=str(sources),
                                         cflags=str(cflags))
         f.write(setup)
 
@@ -209,8 +212,10 @@ class UfuncifyCodeWrapper(CodeWrapper):
         function_creation = []
         ufunc_init = []
         module = self.module_name
-        include_file = "\"{0}.h\"".format(prefix)
-        top = _ufunc_top.substitute(include_file=include_file, module=module)
+        includes = [self.filename + '_' + routine.name for routine in routines]
+        incl_directives = ['#include \"{0}.h\"'.format(i) for i in includes]
+        include_files = "\n".join(incl_directives)
+        top = _ufunc_top.substitute(include_files=include_files, module=module)
 
         name = funcname
 
