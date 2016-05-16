@@ -160,7 +160,7 @@ def _compute_phase_dof(dbf, comps, phases):
     return phase_dof
 
 def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                         l_multipliers=None, chem_pots=None):
+                         l_multipliers=None, chem_pots=None, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
@@ -169,7 +169,7 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
     indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
     dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
     dependent_comp = list(dependent_comp)[0]
-    mole_fractions = {}
+    mole_fractions = mole_fractions if mole_fractions is not None else {}
     num_constraints = num_sitefrac_bals + num_mass_bals
     num_vars = len(site_fracs) + len(phases)
     phase_dof = _compute_phase_dof(dbf, comps, phases)
@@ -206,7 +206,6 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
         phase_idx = 0
         for name, phase_frac in zip(phases, phase_fracs):
             if mole_fractions.get((name, comp), None) is None:
-                # XXX: We have cache misses a LOT here
                 mole_fractions[(name, comp)] = interpreted_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
                                                                         key=str))
@@ -471,15 +470,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
     if num_calcs > 5:
-        if verbose:
-            print('Calculation Backend: Compiled (ufuncify)')
         build_functions = compiled_build_functions
         backend_mode = 'compiled'
     else:
-        if verbose:
-            print('Calculation Backend: Interpreted (autograd)')
         build_functions = interpreted_build_functions
         backend_mode = 'interpreted'
+    if verbose:
+        backend_dict = {'compiled': 'Compiled (ufuncify)', 'interpreted': 'Interpreted (autograd)'}
+        print('Calculation Backend: {}'.format(backend_dict.get(backend_mode, 'Custom')))
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
@@ -913,6 +911,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             multi_phase_progress.close()
             raise ValueError('Number of dependent components different from one')
         #chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
+        # Used to cache generated mole fraction functions
+        mole_fractions = {}
         # For single-condition calculations, make a progress bar for the individual solve
         solve_progress = progressbar(range(MAX_SOLVE_ITERATIONS), desc='Solve (3/3',
                                      disable=(num_conds>1) or (not pbar))
@@ -966,7 +966,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
 
             l_constraints, constraint_jac, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     chem_pots=properties['MU'].values[it.multi_index].copy())
+                                     chem_pots=properties['MU'].values[it.multi_index].copy(),
+                                     mole_fractions=mole_fractions)
             num_vars = len(site_fracs) + len(phases)
             l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, l_multipliers,
@@ -1040,7 +1041,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 mole_fraction_funcs) = \
                     _compute_constraints(dbf, comps, phases, cur_conds,
                                          candidate_site_fracs, candidate_phase_fracs, phase_records,
-                                         l_multipliers=candidate_l_multipliers)
+                                         l_multipliers=candidate_l_multipliers, mole_fractions=mole_fractions)
                 #print('CANDIDATE L MULTIPLIERS AFTER', candidate_l_multipliers)
                 #print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
                 #print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
