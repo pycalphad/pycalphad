@@ -3,6 +3,7 @@ This module constructs gradient functions for Models.
 """
 from .custom_ufuncify import ufuncify
 from .autograd_utils import build_functions as interpreted_build_functions
+from sympy import zoo, oo
 import numpy as np
 import itertools
 import logging
@@ -32,13 +33,14 @@ def build_functions(sympy_graph, variables, include_obj=True, include_grad=True,
     if include_obj:
         restup.append(ufuncify(wrt, sympy_graph, cflags=cflags))
     if include_grad or include_hess:
-        grad_diffs = tuple(sympy_graph.diff(i) for i in wrt)
+        # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
+        grad_diffs = tuple(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
         hess_diffs = []
         # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
         if include_hess:
             for i in range(len(wrt)):
                 for j in range(i, len(wrt)):
-                    hess_diffs.append(grad_diffs[i].diff(wrt[j]))
+                    hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
             hess = [ufuncify(wrt, hd, cflags=cflags) for hd in chunks(hess_diffs, _NPY_MAXARGS - len(wrt))]
         if include_grad:
             grad = [ufuncify(wrt, gd, cflags=cflags) for gd in chunks(grad_diffs, _NPY_MAXARGS-len(wrt))]
