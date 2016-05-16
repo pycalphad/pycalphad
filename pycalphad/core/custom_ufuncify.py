@@ -8,8 +8,9 @@ import os
 import shutil
 import tempfile
 from string import Template
+from .custom_ccodegen import CCodeGen
 from sympy.core.symbol import Symbol
-from sympy.utilities.codegen import make_routine, OutputArgument, InOutArgument, CCodeGen
+from sympy.utilities.codegen import make_routine, OutputArgument, InOutArgument
 from sympy.utilities.autowrap import CodeWrapper
 
 #################################################################
