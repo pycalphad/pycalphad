@@ -3,8 +3,9 @@ This module manages interactions with the autograd library.
 """
 import autograd.numpy as anp
 from autograd import elementwise_grad, jacobian
-from sympy import lambdify
+from sympy import lambdify, zoo, oo
 from pycalphad.core.utils import NumPyPrinter
+from pycalphad.core.constants import BIGNUM
 from itertools import chain
 
 
@@ -22,6 +23,7 @@ def elementwise_hess(fun, argnum=0):
 
 def build_functions(sympy_graph, variables, include_obj=True, include_grad=True, include_hess=True):
     logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or, 'Abs': anp.abs}, anp]
+    sympy_graph = sympy_graph.xreplace({zoo: BIGNUM, oo: BIGNUM})
     obj = lambdify(tuple(variables), sympy_graph, dummify=True,
                    modules=logical_np, printer=NumPyPrinter)
 

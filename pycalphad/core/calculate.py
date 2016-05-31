@@ -6,7 +6,8 @@ property surface of a system.
 from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
-from pycalphad.core.utils import make_callable, point_sample, generate_dof
+from pycalphad.core.autograd_utils import build_functions
+from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.log import logger
@@ -283,8 +284,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 out = out.xreplace({undef: float(0)})
                 logger.warning('Setting undefined symbol %s for phase %s to zero',
                                undef, phase_name)
-            comp_sets[phase_name] = make_callable(out, \
-                list(statevar_dict.keys()) + variables, mode=mode)
+            comp_sets[phase_name] = build_functions(out, \
+                list(statevar_dict.keys()) + variables, include_obj=True, include_grad=False, include_hess=False)
         else:
             comp_sets[phase_name] = callable_dict[phase_name]
 
