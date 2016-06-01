@@ -1,6 +1,15 @@
 What's New
 ==========
 
+0.3.6 (2016-06-01)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* Fix installation problem on Windows when using Anaconda.
+* Add new compiled backend for phase models. This new backend provides a significant performance improvement.
+* Experimental support for the numba library has been removed.
+
 0.3.5 (2016-05-14)
 ------------------
 
