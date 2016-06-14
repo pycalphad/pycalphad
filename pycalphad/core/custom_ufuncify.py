@@ -7,6 +7,7 @@ import sys
 import os
 import shutil
 import tempfile
+import subprocess
 from string import Template
 from .custom_ccodegen import CCodeGen
 from sympy.core.symbol import Symbol
@@ -139,24 +140,39 @@ class UfuncifyCodeWrapper(CodeWrapper):
             os.mkdir(workdir)
         oldwork = os.getcwd()
         os.chdir(workdir)
+        self._process = None
+        self._module = None
         try:
-            sys.path.append(workdir)
             self._generate_code(routines, helpers)
             self._prepare_files(routines, funcname, cflags)
             self._process_files(routines)
-            mod = __import__(self.module_name)
+            module_name = self.module_name
         finally:
-            sys.path.remove(workdir)
             CodeWrapper._module_counter += 1
             os.chdir(oldwork)
-            if not self.filepath:
-                try:
-                    shutil.rmtree(workdir)
-                except OSError:
-                    # Could be some issues on Windows
-                    pass
 
-        return self._get_wrapped_function(mod, funcname)
+        def lazy_wrapper(*args, **kwargs):
+            if self._module is None:
+                self._process.wait()
+                if self._process.returncode != 0:
+                    print('Error: Return code ', self._process.returncode)
+                os.chdir(workdir)
+                try:
+                    sys.path.append(workdir)
+                    mod = __import__(module_name)
+                finally:
+                    sys.path.remove(workdir)
+                    os.chdir(oldwork)
+                    if not self.filepath:
+                        try:
+                            shutil.rmtree(workdir)
+                        except OSError:
+                            # Could be some issues on Windows
+                            pass
+                self._module = mod
+            return self._get_wrapped_function(self._module, funcname)(*args, **kwargs)
+
+        return lazy_wrapper
 
     def _generate_code(self, main_routines, helper_routines):
         all_routines = main_routines + helper_routines
@@ -175,6 +191,11 @@ class UfuncifyCodeWrapper(CodeWrapper):
         # setup.py
         with open('setup.py', 'w') as f:
             self.dump_setup(f, routines, cflags=cflags)
+
+    def _process_files(self, routine):
+        command = self.command
+        command.extend(self.flags)
+        self._process = subprocess.Popen(command)
 
     @classmethod
     def _get_wrapped_function(cls, mod, name):

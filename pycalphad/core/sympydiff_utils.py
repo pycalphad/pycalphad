@@ -7,7 +7,6 @@ from sympy import zoo, oo
 import numpy as np
 import itertools
 import logging
-import multiprocessing
 
 # Doesn't seem to be a run-time way to detect this, so we use the value as of numpy 1.11
 _NPY_MAXARGS = 32
@@ -28,12 +27,7 @@ def build_functions(sympy_graph, variables, include_obj=True, include_grad=True,
         return interpreted_build_functions(sympy_graph, variables, include_obj=include_obj,
                                            include_grad=include_grad, include_hess=include_hess)
     cflags = ['-ffast-math']
-    # Parallel compilation
-    np_ver = np.__version__.split('.')
-    if (int(np_ver[0]) >= 1) and (int(np_ver[1]) >= 10):
-        flags = ['-j', str(multiprocessing.cpu_count())]
-    else:
-        flags = []
+    flags = []
     restup = []
     grad = None
     hess = None
