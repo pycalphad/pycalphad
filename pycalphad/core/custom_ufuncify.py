@@ -5,9 +5,9 @@ We vendor the modified version until the patches make their way upstream.
 from __future__ import print_function, division
 import sys
 import os
-import shutil
 import tempfile
 import subprocess
+import time
 from string import Template
 from .custom_ccodegen import CCodeGen
 from sympy.core.symbol import Symbol
@@ -19,6 +19,7 @@ from sympy.utilities.autowrap import CodeWrapper
 #################################################################
 
 _ufunc_top = Template("""\
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
 #include "Python.h"
 #include "math.h"
 #include "numpy/ndarraytypes.h"
@@ -125,6 +126,10 @@ class UfuncifyCodeWrapper(CodeWrapper):
         command = [sys.executable, "setup.py", "build_ext", "--inplace"]
         return command
 
+    @property
+    def module_name(self):
+        return "%s_%s" % (self._module_basename, self._wrapped_hash)
+
     def wrap_code(self, routines, helpers=None, cflags=None):
         # This routine overrides CodeWrapper because we can't assume funcname == routines[0].name
         # Therefore we have to break the CodeWrapper private API.
@@ -134,41 +139,78 @@ class UfuncifyCodeWrapper(CodeWrapper):
         cflags = cflags if cflags is not None else []
         # We just need a consistent name
         funcname = 'wrapped_' + str(id(routines) + id(helpers))
-
-        workdir = self.filepath or tempfile.mkdtemp("_sympy_compile")
-        if not os.access(workdir, os.F_OK):
-            os.mkdir(workdir)
+        self._wrapped_hash = id(routines) + id(helpers)
+        # Need to save workdir so that it's properly pickled during multiprocessing
+        self._workdir = self.filepath or tempfile.mkdtemp("_sympy_compile")
+        #print('Creating pair ', (self._workdir, self.module_name))
+        if not os.access(self._workdir, os.F_OK):
+            os.mkdir(self._workdir)
         oldwork = os.getcwd()
-        os.chdir(workdir)
+        os.chdir(self._workdir)
         self._process = None
         self._module = None
         try:
             self._generate_code(routines, helpers)
             self._prepare_files(routines, funcname, cflags)
+            # TODO: Should we move processing into a subprocess?
             self._process_files(routines)
-            module_name = self.module_name
         finally:
-            CodeWrapper._module_counter += 1
             os.chdir(oldwork)
 
         def lazy_wrapper(*args, **kwargs):
             if self._module is None:
                 self._process.wait()
+                # When using multiprocessing, wait() may return without actually being done
+                # We may need to additionally let the import fail for some length of time
                 if self._process.returncode != 0:
                     print('Error: Return code ', self._process.returncode)
-                os.chdir(workdir)
-                try:
-                    sys.path.append(workdir)
-                    mod = __import__(module_name)
-                finally:
-                    sys.path.remove(workdir)
-                    os.chdir(oldwork)
-                    if not self.filepath:
-                        try:
-                            shutil.rmtree(workdir)
-                        except OSError:
-                            # Could be some issues on Windows
-                            pass
+                os.chdir(self._workdir)
+                sys.path.append(self._workdir)
+                # 30 second timeout
+                timeout = time.time() + 30
+                while True:
+                    try:
+                        mod = __import__(self.module_name)
+                    except ImportError:
+                        mod = None
+                        if time.time() > timeout:
+                            print('FAILED TO IMPORT ', (self._workdir, self.module_name))
+                            sys.path.remove(self._workdir)
+                            os.chdir(oldwork)
+                            if not self.filepath:
+                                try:
+                                    # TODO: This breaks multiprocessing...
+                                    # shutil.rmtree(workdir)
+                                    pass
+                                except OSError:
+                                    # Could be some issues on Windows
+                                    pass
+                            raise
+                    except:
+                        sys.path.remove(self._workdir)
+                        os.chdir(oldwork)
+                        if not self.filepath:
+                            try:
+                                # TODO: This breaks multiprocessing...
+                                # shutil.rmtree(workdir)
+                                pass
+                            except OSError:
+                                # Could be some issues on Windows
+                                pass
+                        raise
+                    if mod is not None:
+                        sys.path.remove(self._workdir)
+                        os.chdir(oldwork)
+                        if not self.filepath:
+                            try:
+                                # TODO: This breaks multiprocessing...
+                                # shutil.rmtree(workdir)
+                                pass
+                            except OSError:
+                                # Could be some issues on Windows
+                                pass
+                        break
+                    time.sleep(1)
                 self._module = mod
             return self._get_wrapped_function(self._module, funcname)(*args, **kwargs)
 

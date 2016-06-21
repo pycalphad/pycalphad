@@ -18,6 +18,7 @@ from tqdm import tqdm as progressbar
 from xarray import Dataset, DataArray
 import numpy as np
 import scipy.spatial
+import multiprocessing
 from collections import defaultdict, namedtuple, OrderedDict
 import itertools
 import copy
@@ -318,12 +319,39 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
     return l_hessian, gradient_term
 
 def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose):
+    """
+    Compute equilibrium for the given conditions.
+    This private function is meant to be called from a worker subprocess.
+    For that case, usually only a small slice of the master 'properties' is provided.
+    Since that slice will be copied, we also return the modified 'properties'.
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing the relevant parameters.
+    comps : list
+        Names of components to consider in the calculation.
+    properties : Dataset
+        Will be modified! Thermodynamic properties and conditions.
+    phase_records : dict of PhaseRecord
+        Details on phase callables.
+    callable_dict : dict of callable
+        Objective functions for each phase.
+    verbose : bool
+        Print details.
+
+    Returns
+    -------
+    properties : Dataset
+        Modified with equilibrium values.
+    """
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
-    num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         cur_conds = OrderedDict(zip(properties['GM'].coords.keys(),
                                     [b[a] for a, b in zip(it.multi_index, properties['GM'].coords.values())]))
+        if len(cur_conds) == 0:
+            cur_conds = properties['GM'].coords
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
@@ -542,6 +570,19 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         it.iternext()
     return properties
 
+def worker_process(solve_func, q_in, q_out, dbf, comps, phase_records, callable_dict):
+    verbose = False
+    while True:
+        i, prop_slice, prop_arr = q_in.get()
+        if i is None:
+            break
+        try:
+            result = solve_func(dbf, comps, prop_arr, phase_records, callable_dict, verbose)
+        except:
+            import traceback
+            result = traceback.format_exc()
+        q_out.put((i, prop_slice, result))
+
 def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
     """
     WARNING: API/calling convention not finalized.
@@ -626,7 +667,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, pbar=True, broadcast=True, calc_opts=None, return_grids=False, **kwargs):
+                verbose=False, pbar=True, broadcast=True, calc_opts=None, nprocs=None, return_grids=False, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -657,6 +698,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
+    nprocs : int, optional
+        Number of worker processes to create. By default, equal to the number of CPUs.
     return_grids : bool, optional
         If True, return a tuple of (equilibrium result, grids), where grids is a list of
         Datasets containing the global point set at each hull iteration.
@@ -672,6 +715,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
+    if (nprocs is not None) and not (nprocs >= 1):
+        raise ValueError('Invalid nprocs value: {}'.format(nprocs))
+    if nprocs is None:
+        nprocs = multiprocessing.cpu_count()
     from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
@@ -1107,7 +1154,42 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                     dims=properties['points'].dims)
     properties['Phase'].values[...] = ravelled_Phase_view
     del properties['points']
-    _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose)
+    num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
+    nprocs = min(num_conds, nprocs)
+    if nprocs > 1:
+        q_in = multiprocessing.Queue(1)
+        q_out = multiprocessing.Queue()
+        proc = [multiprocessing.Process(target=worker_process,
+                                        args=(_solve_eq_at_conditions,
+                                              q_in, q_out, dbf, comps, phase_records, callable_dict))
+                for _ in range(nprocs)]
+        for p in proc:
+            p.daemon = False
+            p.start()
+        # Generate slices of 'properties'
+        # TODO: Can we use Dataset.chunk() here?
+        it = np.nditer(properties['GM'].values, flags=['multi_index'])
+        sent = []
+        while not it.finished:
+            prop_slice = properties[dict(zip(properties['GM'].coords.keys(), it.multi_index))]
+            sent.append(q_in.put((len(sent)+1, it.multi_index, prop_slice)))
+            it.iternext()
+
+        [q_in.put((None, None, None)) for _ in range(nprocs)]
+        res = [q_out.get() for _ in range(len(sent))]
+        [p.join() for p in proc]
+        # Merge back together slices of 'properties'
+        for idx, prop_slice, prop_arr in res:
+            if not isinstance(prop_arr, Dataset):
+                print('Error: {}'.format(prop_arr))
+                continue
+            all_coords = dict(zip(properties['GM'].coords.keys(), prop_slice))
+
+            for dv in properties.data_vars.keys():
+                properties[dv][all_coords] = prop_arr[dv]
+    else:
+        # Single-process job; don't create child processes
+        properties = _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]
