@@ -7,6 +7,7 @@ from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
 from pycalphad.core.autograd_utils import build_functions
+from pycalphad.core.tempfilemanager import TempfileManager
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
@@ -17,6 +18,7 @@ from xarray import concat, Dataset, DataArray
 import numpy as np
 import itertools
 import collections
+import os
 
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
@@ -161,8 +163,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     return Dataset(data_arrays, coords=coordinate_dict)
 
-
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, **kwargs):
+@TempfileManager(os.getcwd())
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, tmpman=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -187,6 +189,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     broadcast : bool, optional
         If True, broadcast given state variable lists against each other to create a grid.
         If False, assume state variables are given as equal-length lists.
+    tmpman : TempfileManager, optional
+        Context manager for temporary file creation during the calculation.
     points : ndarray or a dict of phase names to ndarray, optional
         Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
         If this is not specified, points will be generated automatically.
@@ -284,8 +288,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 out = out.xreplace({undef: float(0)})
                 logger.warning('Setting undefined symbol %s for phase %s to zero',
                                undef, phase_name)
-            comp_sets[phase_name] = build_functions(out, \
-                list(statevar_dict.keys()) + variables, include_obj=True, include_grad=False, include_hess=False)
+            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables, tmpman=tmpman,
+                                                    include_obj=True, include_grad=False, include_hess=False)
         else:
             comp_sets[phase_name] = callable_dict[phase_name]
 

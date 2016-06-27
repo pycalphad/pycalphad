@@ -12,6 +12,7 @@ from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.autograd_utils import build_functions as interpreted_build_functions
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
+from pycalphad.core.tempfilemanager import TempfileManager
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 from tqdm import tqdm as progressbar
@@ -24,6 +25,7 @@ import itertools
 import copy
 from datetime import datetime
 import sys
+import os
 
 # Maximum number of global search iterations
 MAX_SEARCH_ITERATIONS = 30
@@ -160,7 +162,8 @@ def _compute_phase_dof(dbf, comps, phases):
         phase_dof.append(total)
     return phase_dof
 
-def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
+@TempfileManager(os.getcwd())
+def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records, tmpman=None,
                          l_multipliers=None, chem_pots=None, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
@@ -209,7 +212,7 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
             if mole_fractions.get((name, comp), None) is None:
                 mole_fractions[(name, comp)] = interpreted_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
-                                                                        key=str))
+                                                                        key=str), tmpman=tmpman)
             comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
             # current phase frac times the comp_grad
             constraint_jac[constraint_offset,
@@ -318,7 +321,8 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
     gradient_term[num_vars:] = -l_constraints
     return l_hessian, gradient_term
 
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose):
+@TempfileManager(os.getcwd())
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose, tmpman=None):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -339,6 +343,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         Objective functions for each phase.
     verbose : bool
         Print details.
+    tmpman : TempfileManager
+        Temporary file context manager.
 
     Returns
     -------
@@ -421,7 +427,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
 
             l_constraints, constraint_jac, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     chem_pots=properties['MU'].values[it.multi_index].copy(),
+                                     tmpman=tmpman, chem_pots=properties['MU'].values[it.multi_index].copy(),
                                      mole_fractions=mole_fractions)
             num_vars = len(site_fracs) + len(phases)
             l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
@@ -493,7 +499,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 (candidate_l_constraints, candidate_constraint_jac, candidate_l_multipliers, candidate_chem_pots,
                  mole_fraction_funcs) = \
                     _compute_constraints(dbf, comps, phases, cur_conds,
-                                         candidate_site_fracs, candidate_phase_fracs, phase_records,
+                                         candidate_site_fracs, candidate_phase_fracs, phase_records, tmpman=tmpman,
                                          l_multipliers=candidate_l_multipliers, mole_fractions=mole_fractions)
                 # print('CANDIDATE L MULTIPLIERS AFTER', candidate_l_multipliers)
                 # print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
@@ -583,7 +589,8 @@ def worker_process(solve_func, q_in, q_out, dbf, comps, phase_records, callable_
             result = traceback.format_exc()
         q_out.put((i, prop_slice, result))
 
-def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
+@TempfileManager(os.getcwd())
+def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None, per_phase=False, **kwargs):
     """
     WARNING: API/calling convention not finalized.
     Compute the *equilibrium value* of a property.
@@ -607,6 +614,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     output : str
         Equilibrium model property (e.g., CPM, HM, etc.) to compute.
         This must be defined as an attribute in the Model class of each phase.
+    tmpman : TempfileManager, optional
+        Context manager for temporary file creation during the calculation.
     data : Dataset, optional
         Previous result of call to `equilibrium`.
         Should contain the equilibrium configurations at the conditions of interest.
@@ -656,7 +665,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         statevars.update(kwargs)
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
-        calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False, **statevars)
+        calcres = calculate(dbf, comps, [phase], output=output, tmpman=tmpman,
+                            points=points, broadcast=False, **statevars)
         result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
@@ -665,9 +675,10 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         result['NP'] = data['NP'].copy()
     return result
 
-
+@TempfileManager(os.getcwd())
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, pbar=True, broadcast=True, calc_opts=None, nprocs=None, return_grids=False, **kwargs):
+                verbose=False, pbar=True, broadcast=True, calc_opts=None,
+                nprocs=None, tmpman=None, return_grids=False, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -700,6 +711,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
     nprocs : int, optional
         Number of worker processes to create. By default, equal to the number of CPUs.
+    tmpman : TempfileManager, optional
+        Context manager for temporary file creation during the calculation.
     return_grids : bool, optional
         If True, return a tuple of (equilibrium result, grids), where grids is a list of
         Datasets containing the global point set at each hull iteration.
@@ -719,6 +732,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise ValueError('Invalid nprocs value: {}'.format(nprocs))
     if nprocs is None:
         nprocs = multiprocessing.cpu_count()
+    if tmpman is None:
+        raise ValueError('No tempfile context manager specified for calculation')
     from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
@@ -776,7 +791,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             out = out.xreplace({undef: float(0)})
         if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
             or (not hess_callable_dict.get(name, False)):
-            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs)
+            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, tmpman=tmpman)
             if callable_dict.get(name, None) is None:
                 callable_dict[name] = cf
             if grad_callable_dict.get(name, None) is None:
@@ -787,9 +802,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         # Adjust gradient by the approximate chemical potentials
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
                            for i in comps if i != 'VA'])
-        plane_obj, plane_grad, plane_hess = build_functions(hyperplane, [v.MU(i) for i in comps if i != 'VA']+site_fracs)
+        plane_obj, plane_grad, plane_hess = build_functions(hyperplane,
+                                                            [v.MU(i) for i in comps if i != 'VA']+site_fracs,
+                                                            tmpman=tmpman)
         mass_obj, mass_grad, mass_hess = build_functions(Add(*[mole_fraction(dbf.phases[name], comps, i)
-                                                               for i in comps if i != 'VA']), site_fracs)
+                                                               for i in comps if i != 'VA']), site_fracs,
+                                                         tmpman=tmpman)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
                                                   grad=grad_callable_dict[name],
                                                   hess=hess_callable_dict[name],
@@ -818,7 +836,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         print('Computing initial grid', end=' ')
     # TODO: vectorize this entire calculation over the conditions
     # TODO: Every condition-set should have its own grid
-    grid = calculate(dbf, comps, active_phases, output='GM',
+    grid = calculate(dbf, comps, active_phases, output='GM', tmpman=tmpman,
                      model=models, callables=callable_dict, fake_points=True, **grid_opts)
     if return_grids:
         intermediate_grids.append(grid)
@@ -976,7 +994,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                     raise
                 current = calculate(dbf, comps, name, output='GM',
                                     model=models, callables=callable_dict,
-                                    fake_points=False,
+                                    fake_points=False, tmpman=tmpman,
                                     points=points.reshape(points.shape[:len(indep_vals)] + (-1, points.shape[-1])),
                                     **grid_opts)
                 current_plane = np.multiply(current.X.values.reshape(points.shape[:-1] + (len(components),)),
@@ -1021,7 +1039,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 # but we don't just want to take the biggest step; we want the biggest step which reduces energy
                 new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
                 candidates = calculate(dbf, comps, name, output='GM',
-                                       model=models, callables=callable_dict,
+                                       model=models, tmpman=tmpman, callables=callable_dict,
                                        fake_points=False, points=new_points, **grid_opts)
                 candidate_plane = np.multiply(candidates.X.values.reshape(points.shape[:-1] + (len(components),)),
                                               properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
@@ -1050,7 +1068,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                     #print('bad_steps', bad_steps)
                     new_points = new_points.reshape(new_points.shape[:len(indep_vals)] + (-1, new_points.shape[-1]))
                     candidates = calculate(dbf, comps, name, output='GM',
-                                           model=models, callables=callable_dict,
+                                           model=models, tmpman=tmpman, callables=callable_dict,
                                            fake_points=False, points=new_points, **grid_opts)
                     candidate_plane = np.multiply(candidates.X.values.reshape(points.shape[:-1] + (len(components),)),
                                                   properties.MU.values[..., np.newaxis, :]).sum(axis=-1)
@@ -1112,7 +1130,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if verbose:
             print('Rebuilding grid', end=' ')
         grid = calculate(dbf, comps, active_phases, output='GM',
-                         model=models, callables=callable_dict,
+                         model=models, tmpman=tmpman, callables=callable_dict,
                          fake_points=True, points=points_dict, **grid_opts)
         if return_grids:
             intermediate_grids.append(grid)
@@ -1155,8 +1173,22 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     properties['Phase'].values[...] = ravelled_Phase_view
     del properties['points']
     num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
+    conditions_per_chunk_per_axis = 10
     nprocs = min(num_conds, nprocs)
     if nprocs > 1:
+        # Generate slices of 'properties'
+        slices = []
+        for val in properties['GM'].coords.values():
+            idx_arr = list(range(len(val)))
+            num_chunks = int(np.floor(len(val)/conditions_per_chunk_per_axis))
+            if num_chunks > 0:
+                cond_slices = [x for x in np.array_split(np.asarray(idx_arr), num_chunks) if len(x) > 0]
+            else:
+                cond_slices = [idx_arr]
+            slices.append(cond_slices)
+        chunk_dims = [len(slc) for slc in slices]
+        chunk_grid = np.array(np.unravel_index(np.arange(np.prod(chunk_dims)), chunk_dims)).T
+
         q_in = multiprocessing.Queue(1)
         q_out = multiprocessing.Queue()
         proc = [multiprocessing.Process(target=worker_process,
@@ -1166,14 +1198,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         for p in proc:
             p.daemon = False
             p.start()
-        # Generate slices of 'properties'
-        # TODO: Can we use Dataset.chunk() here?
-        it = np.nditer(properties['GM'].values, flags=['multi_index'])
         sent = []
-        while not it.finished:
-            prop_slice = properties[dict(zip(properties['GM'].coords.keys(), it.multi_index))]
-            sent.append(q_in.put((len(sent)+1, it.multi_index, prop_slice)))
-            it.iternext()
+        solve_progress = progressbar(total=len(chunk_grid), desc='Solve (3/3)', disable=not pbar, unit='chunk')
+        with solve_progress:
+            for chunk in chunk_grid:
+                prop_slice = properties[dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
+                                                                                  for ch, sl in zip(chunk, slices)]))]
+                sent.append(q_in.put((len(sent)+1, chunk, prop_slice)))
+                solve_progress.update(1)
 
         [q_in.put((None, None, None)) for _ in range(nprocs)]
         res = [q_out.get() for _ in range(len(sent))]
@@ -1183,10 +1215,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if not isinstance(prop_arr, Dataset):
                 print('Error: {}'.format(prop_arr))
                 continue
-            all_coords = dict(zip(properties['GM'].coords.keys(), prop_slice))
-
+            all_coords = dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
+                                                                   for ch, sl in zip(prop_slice, slices)]))
             for dv in properties.data_vars.keys():
-                properties[dv][all_coords] = prop_arr[dv]
+                # Have to be very careful with how we assign to 'properties' here
+                # We may accidentally assign to a copy unless we index the data variable first
+                dv_coords = {key: val for key, val in all_coords.items() if key in properties[dv].coords.keys()}
+                properties[dv][dv_coords] = prop_arr[dv]
     else:
         # Single-process job; don't create child processes
         properties = _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose)

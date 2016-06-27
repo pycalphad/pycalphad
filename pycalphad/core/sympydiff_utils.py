@@ -2,11 +2,13 @@
 This module constructs gradient functions for Models.
 """
 from .custom_ufuncify import ufuncify
+from .tempfilemanager import TempfileManager
 from .autograd_utils import build_functions as interpreted_build_functions
 from sympy import zoo, oo
 import numpy as np
 import itertools
 import logging
+import os
 
 # Doesn't seem to be a run-time way to detect this, so we use the value as of numpy 1.11
 _NPY_MAXARGS = 32
@@ -19,12 +21,15 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i+n]
 
-def build_functions(sympy_graph, variables, include_obj=True, include_grad=True, include_hess=True):
+@TempfileManager(os.getcwd())
+def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, include_grad=True, include_hess=True):
     wrt = tuple(variables)
+    if tmpman is None:
+        raise ValueError('Missing temporary file context manager')
     if len(wrt) > _NPY_MAXARGS:
         logging.warning('Cannot handle more than NPY_MAXARGS degrees of freedom at once in compiled mode. '
                         'Falling back to interpreted.')
-        return interpreted_build_functions(sympy_graph, variables, include_obj=include_obj,
+        return interpreted_build_functions(sympy_graph, variables, tmpman=tmpman, include_obj=include_obj,
                                            include_grad=include_grad, include_hess=include_hess)
     cflags = ['-ffast-math']
     flags = []
@@ -32,7 +37,7 @@ def build_functions(sympy_graph, variables, include_obj=True, include_grad=True,
     grad = None
     hess = None
     if include_obj:
-        restup.append(ufuncify(wrt, sympy_graph, flags=flags, cflags=cflags))
+        restup.append(ufuncify(wrt, sympy_graph, tmpman=tmpman, flags=flags, cflags=cflags))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
         grad_diffs = tuple(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
@@ -42,9 +47,11 @@ def build_functions(sympy_graph, variables, include_obj=True, include_grad=True,
             for i in range(len(wrt)):
                 for j in range(i, len(wrt)):
                     hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
-            hess = [ufuncify(wrt, hd, flags=flags, cflags=cflags) for hd in chunks(hess_diffs, _NPY_MAXARGS - len(wrt))]
+            hess = [ufuncify(wrt, hd, tmpman=tmpman, flags=flags, cflags=cflags)
+                    for hd in chunks(hess_diffs, _NPY_MAXARGS - len(wrt))]
         if include_grad:
-            grad = [ufuncify(wrt, gd, flags=flags, cflags=cflags) for gd in chunks(grad_diffs, _NPY_MAXARGS-len(wrt))]
+            grad = [ufuncify(wrt, gd, tmpman=tmpman, flags=flags, cflags=cflags)
+                    for gd in chunks(grad_diffs, _NPY_MAXARGS-len(wrt))]
 
         # Factored out of argwrapper functions via profiling
         triu_indices = np.triu_indices(len(wrt))

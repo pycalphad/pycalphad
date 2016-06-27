@@ -21,7 +21,8 @@ def elementwise_hess(fun, argnum=0):
     return jacobian(sum_grad_output, argnum)
 
 
-def build_functions(sympy_graph, variables, include_obj=True, include_grad=True, include_hess=True):
+def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, include_grad=True, include_hess=True):
+    # tmpman is not used here but left for API compatibility
     logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or, 'Abs': anp.abs}, anp]
     sympy_graph = sympy_graph.xreplace({zoo: BIGNUM, oo: BIGNUM})
     obj = lambdify(tuple(variables), sympy_graph, dummify=True,

@@ -5,11 +5,11 @@ We vendor the modified version until the patches make their way upstream.
 from __future__ import print_function, division
 import sys
 import os
-import tempfile
 import subprocess
 import time
 from string import Template
 from .custom_ccodegen import CCodeGen
+from .tempfilemanager import TempfileManager
 from sympy.core.symbol import Symbol
 from sympy.utilities.codegen import make_routine, OutputArgument, InOutArgument
 from sympy.utilities.autowrap import CodeWrapper
@@ -117,9 +117,15 @@ if __name__ == "__main__":
     from numpy.distutils.core import setup
     setup(configuration=configuration)""")
 
-
 class UfuncifyCodeWrapper(CodeWrapper):
     """Wrapper for Ufuncify"""
+
+    def __init__(self, generator, tmpman, filepath=None, flags=None, verbose=False):
+        """
+        generator -- the code generator to use
+        """
+        super(UfuncifyCodeWrapper, self).__init__(generator, filepath, flags, verbose)
+        self.tmpman = tmpman
 
     @property
     def command(self):
@@ -141,21 +147,15 @@ class UfuncifyCodeWrapper(CodeWrapper):
         funcname = 'wrapped_' + str(id(routines) + id(helpers))
         self._wrapped_hash = id(routines) + id(helpers)
         # Need to save workdir so that it's properly pickled during multiprocessing
-        self._workdir = self.filepath or tempfile.mkdtemp("_sympy_compile")
+        self._workdir = self.tmpman.create_tree(self.filepath)
         #print('Creating pair ', (self._workdir, self.module_name))
-        if not os.access(self._workdir, os.F_OK):
-            os.mkdir(self._workdir)
-        oldwork = os.getcwd()
         os.chdir(self._workdir)
         self._process = None
         self._module = None
-        try:
-            self._generate_code(routines, helpers)
-            self._prepare_files(routines, funcname, cflags)
-            # TODO: Should we move processing into a subprocess?
-            self._process_files(routines)
-        finally:
-            os.chdir(oldwork)
+        self._generate_code(routines, helpers)
+        self._prepare_files(routines, funcname, cflags)
+        # TODO: Should we move processing into a subprocess?
+        self._process_files(routines)
 
         def lazy_wrapper(*args, **kwargs):
             if self._module is None:
@@ -176,39 +176,12 @@ class UfuncifyCodeWrapper(CodeWrapper):
                         if time.time() > timeout:
                             print('FAILED TO IMPORT ', (self._workdir, self.module_name))
                             sys.path.remove(self._workdir)
-                            os.chdir(oldwork)
-                            if not self.filepath:
-                                try:
-                                    # TODO: This breaks multiprocessing...
-                                    # shutil.rmtree(workdir)
-                                    pass
-                                except OSError:
-                                    # Could be some issues on Windows
-                                    pass
                             raise
                     except:
                         sys.path.remove(self._workdir)
-                        os.chdir(oldwork)
-                        if not self.filepath:
-                            try:
-                                # TODO: This breaks multiprocessing...
-                                # shutil.rmtree(workdir)
-                                pass
-                            except OSError:
-                                # Could be some issues on Windows
-                                pass
                         raise
                     if mod is not None:
                         sys.path.remove(self._workdir)
-                        os.chdir(oldwork)
-                        if not self.filepath:
-                            try:
-                                # TODO: This breaks multiprocessing...
-                                # shutil.rmtree(workdir)
-                                pass
-                            except OSError:
-                                # Could be some issues on Windows
-                                pass
                         break
                     time.sleep(1)
                 self._module = mod
@@ -363,7 +336,8 @@ class UfuncifyCodeWrapper(CodeWrapper):
                 py_in.append(arg)
         return py_in, py_out
 
-def ufuncify(args, expr, tempdir=None, flags=None, cflags=None, verbose=False, helpers=None):
+@TempfileManager(os.getcwd())
+def ufuncify(args, expr, tmpman=None, tempdir=None, flags=None, cflags=None, verbose=False, helpers=None):
     """Generates a binary function that supports broadcasting on numpy arrays.
 
     Parameters
@@ -373,6 +347,8 @@ def ufuncify(args, expr, tempdir=None, flags=None, cflags=None, verbose=False, h
         sequence for the function.
     expr : SymPy object or list of SymPy objects
         SymPy expression(s) that defines the element wise operation.
+    tmpman : TempfileManager, optional
+        Context manager for temporary file cleanup.
     tempdir : string, optional
         Path to directory for temporary files. If this argument is supplied,
         the generated code and the wrapper input files are left intact in the
@@ -397,6 +373,8 @@ def ufuncify(args, expr, tempdir=None, flags=None, cflags=None, verbose=False, h
         args = (args,)
     else:
         args = tuple(args)
+    if tmpman is None:
+        raise ValueError('Missing temporary file context manager')
 
     helpers = helpers if helpers else ()
     flags = flags if flags else ()
@@ -405,7 +383,7 @@ def ufuncify(args, expr, tempdir=None, flags=None, cflags=None, verbose=False, h
     helps = []
     for name, expr, args in helpers:
         helps.append(make_routine(name, expr, args))
-    code_wrapper = UfuncifyCodeWrapper(CCodeGen("ufuncify"), tempdir,
+    code_wrapper = UfuncifyCodeWrapper(CCodeGen("ufuncify"), tmpman, tempdir,
                                        flags, verbose)
     if not isinstance(expr, (list, tuple)):
         expr = [expr]
