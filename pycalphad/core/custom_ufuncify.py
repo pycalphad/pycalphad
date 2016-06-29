@@ -210,7 +210,8 @@ class UfuncifyCodeWrapper(CodeWrapper):
     def _process_files(self, routine):
         command = self.command
         command.extend(self.flags)
-        self._process = subprocess.Popen(command)
+        logfd = self.tmpman.create_logfile(prefix='ufuncify_', suffix='.log')
+        self._process = subprocess.Popen(command, stdout=logfd, stderr=logfd)
 
     @classmethod
     def _get_wrapped_function(cls, mod, name):

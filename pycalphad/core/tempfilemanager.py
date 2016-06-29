@@ -11,6 +11,7 @@ class TempfileManager(object):
     """
     def __init__(self, oldworkdir):
         self.temptrees = []
+        self.preserve_on_error = []
         self.oldworkdir = oldworkdir
 
     def create_tree(self, fdir, prefix="_sympy_compile"):
@@ -22,6 +23,11 @@ class TempfileManager(object):
             if not os.access(fdir, os.F_OK):
                 os.mkdir(fdir)
         return fdir
+
+    def create_logfile(self, prefix="", suffix=".log"):
+        fd, fname = tempfile.mkstemp(suffix=suffix, prefix=prefix)
+        self.preserve_on_error.append(fname)
+        return fd
 
     def __enter__(self):
         return self
@@ -35,6 +41,16 @@ class TempfileManager(object):
                 shutil.rmtree(tree)
             except OSError:
                 pass
+        if exc_tb is None:
+            # Remove the log files (if they exist) if no exceptions were raised
+            for fpath in self.preserve_on_error:
+                try:
+                    os.unlink(fpath)
+                except FileNotFoundError:
+                    pass
+        else:
+            print('Preserved Files: ', self.preserve_on_error)
+
 
     def __call__(self, func):
         @functools.wraps(func)
