@@ -46,7 +46,7 @@ class TempfileManager(object):
             for fpath in self.preserve_on_error:
                 try:
                     os.unlink(fpath)
-                except FileNotFoundError:
+                except OSError:
                     pass
         else:
             print('Preserved Files: ', self.preserve_on_error)
