@@ -77,18 +77,35 @@ class Model(object):
         self.build_phase(dbe, phase.upper(), symbols, dbe.search)
         self.site_fractions = sorted(self.ast.atoms(v.SiteFraction), key=str)
 
-        # Need to do more substitutions to catch symbols that are functions
-        # of other symbols
         for name, value in self.models.items():
-            try:
-                for iteration in range(_MAX_PARAM_NESTING):
-                    self.models[name] = self.models[name].xreplace(symbols)
-                    undefs = self.models[name].atoms(Symbol) - self.models[name].atoms(v.StateVariable)
-                    if len(undefs) == 0:
-                        break
-            except AttributeError:
-                # Can't use xreplace on a float
-                pass
+            self.models[name] = self.symbol_replace(value, symbols)
+
+    @staticmethod
+    def symbol_replace(obj, symbols):
+        """
+        Substitute values of symbols into 'obj'.
+
+        Parameters
+        ----------
+        obj : SymPy object
+        symbols : dict mapping sympy.Symbol to SymPy object
+
+        Returns
+        -------
+        SymPy object
+        """
+        try:
+            # Need to do more substitutions to catch symbols that are functions
+            # of other symbols
+            for iteration in range(_MAX_PARAM_NESTING):
+                obj = obj.xreplace(symbols)
+                undefs = obj.atoms(Symbol) - obj.atoms(v.StateVariable)
+                if len(undefs) == 0:
+                    break
+        except AttributeError:
+            # Can't use xreplace on a float
+            pass
+        return obj
 
     def __eq__(self, other):
         if self is other:
