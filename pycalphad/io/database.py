@@ -114,6 +114,24 @@ class Database(object): #pylint: disable=R0902
         else:
             raise ValueError('Invalid number of parameters: '+len(args))
 
+
+    def __getstate__(self):
+        pickle_dict = {}
+        for key, value in self.__dict__.items():
+            if key == '_parameters':
+                pickle_dict[key] = value.all()
+            else:
+                pickle_dict[key] = value
+        return pickle_dict
+
+    def __setstate__(self, state):
+        for key, value in state.items():
+            if key == '_parameters':
+                self._parameters = TinyDB(storage=MemoryStorage)
+                self._parameters.insert_multiple(value)
+            else:
+                setattr(self, key, value)
+
     @staticmethod
     def register_format(fmt, read=None, write=None):
         """

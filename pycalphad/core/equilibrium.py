@@ -1174,7 +1174,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     del properties['points']
     num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
     conditions_per_chunk_per_axis = 10
-    nprocs = 1 # TODO: min(num_conds, nprocs)
+    nprocs = min(num_conds, nprocs)
     if nprocs > 1:
         # Generate slices of 'properties'
         slices = []
