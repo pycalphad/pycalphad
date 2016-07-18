@@ -38,6 +38,7 @@ before_install:
   - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
   - source activate condaenv
+  - conda config --add channels conda-forge richardotis
 # unnecessary since we aren't trying to plot during tests anymore
 #  - export DISPLAY=:99.0
 #  - sh -e /etc/init.d/xvfb start
@@ -45,8 +46,8 @@ before_install:
 install:
   - pip install coveralls
   - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask
-  - conda install --yes -c richardotis xarray tqdm
-  - conda install --yes -c richardotis autograd
+  - conda install --yes xarray tqdm
+  - conda install --yes autograd
   - pip install -e .
  
 # Run test

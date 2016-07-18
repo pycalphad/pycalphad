@@ -26,9 +26,10 @@ install:
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
   - "conda create --yes -n condaenv python=%PYTHON_VERSION%"
   - "activate condaenv"
+  - "conda config --add channels conda-forge richardotis"
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask"
-  - "conda install --yes -n condaenv --quiet -c richardotis tinydb autograd tqdm"
+  - "conda install --yes -n condaenv --quiet tinydb autograd tqdm"
   - "pip install -e ."
 
 build: false
