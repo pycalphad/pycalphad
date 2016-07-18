@@ -1191,7 +1191,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             job = dask.delayed(_solve_eq_at_conditions, pure=True)(dbf, comps, prop_slice,
                                                                    phase_records, callable_dict, verbose)
             res.append(job)
-        results = dask.compute(*res, get=dask.async.get_sync, workers=4)
+        results = dask.compute(*res, get=dask.multiprocessing.get)
         # Merge back together slices of 'properties'
         for prop_slice, prop_arr in zip(chunk_grid, results):
             if not isinstance(prop_arr, Dataset):
