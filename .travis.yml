@@ -38,7 +38,8 @@ before_install:
   - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
   - source activate condaenv
-  - conda config --add channels conda-forge richardotis
+  - conda config --add channels conda-forge
+  - conda config --add channels richardotis
 # unnecessary since we aren't trying to plot during tests anymore
 #  - export DISPLAY=:99.0
 #  - sh -e /etc/init.d/xvfb start
