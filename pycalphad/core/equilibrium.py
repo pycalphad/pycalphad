@@ -17,6 +17,7 @@ from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 from tqdm import tqdm as progressbar
 import dask
+import dask.multiprocessing, dask.async
 from xarray import Dataset, DataArray
 import numpy as np
 import scipy.spatial
@@ -538,7 +539,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                                         0.9 * np.abs(np.multiply(step, -gradient_term).sum(axis=-1))
                 # Seems to be necessary for some unit tests to explicitly allow chemical potential updates
                 chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
-                chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
+                chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 1
                 wolfe_conditions |= chempot_update
                 # print('WOLFE CONDITION 1&2', wolfe_conditions)
                 if wolfe_conditions:
@@ -574,6 +575,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 if verbose:
                     print('No progress')
                 break
+            elif ~no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
+                print('Failed to converge: {}'.format(cur_conds))
+                properties['MU'].values[it.multi_index] = np.nan
+                properties['NP'].values[it.multi_index] = np.nan
+                properties['X'].values[it.multi_index] = np.nan
+                properties['Y'].values[it.multi_index] = np.nan
+                properties['GM'].values[it.multi_index] = np.nan
         it.iternext()
     return properties
 
@@ -1183,7 +1191,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             job = dask.delayed(_solve_eq_at_conditions, pure=True)(dbf, comps, prop_slice,
                                                                    phase_records, callable_dict, verbose)
             res.append(job)
-        results = dask.compute(*res, get=dask.multiprocessing.get, workers=4)
+        results = dask.compute(*res, get=dask.async.get_sync, workers=4)
         # Merge back together slices of 'properties'
         for prop_slice, prop_arr in zip(chunk_grid, results):
             if not isinstance(prop_arr, Dataset):
