@@ -9,7 +9,7 @@ class StateVariable(Symbol):
     """
     State variables are symbols with built-in assumptions of being real.
     """
-    def __new__(cls, name, **assumptions):
+    def __new__(cls, name, *args, **assumptions):
         return Symbol.__new__(cls, name.upper(), real=True, **assumptions)
 
 class SiteFraction(StateVariable):
@@ -25,11 +25,16 @@ class SiteFraction(StateVariable):
         new_self.sublattice_index = subl_index
         new_self.species = species.upper()
         return new_self
+
+    def __getnewargs__(self):
+        return self.phase_name, self.sublattice_index, self.species
+
     def _latex(self):
         "LaTeX representation."
         #pylint: disable=E1101
         return 'y^{'+self.phase_name.replace('_', '-') + \
             '}_{'+str(self.subl_index)+'},_{'+self.species+'}'
+
     def __str__(self):
         "String representation."
         #pylint: disable=E1101
@@ -48,6 +53,10 @@ class PhaseFraction(StateVariable):
         new_self.phase_name = phase_name.upper()
         new_self.multiplicity = multiplicity
         return new_self
+
+    def __getnewargs__(self):
+        return self.phase_name, self.multiplicity
+
     def _latex(self):
         "LaTeX representation."
         #pylint: disable=E1101
@@ -82,6 +91,13 @@ class Composition(StateVariable):
         new_self.phase_name = phase_name
         new_self.species = species
         return new_self
+
+    def __getnewargs__(self):
+        if self.phase_name is not None:
+            return self.phase_name, self.species
+        else:
+            return self.species,
+
     def _latex(self):
         "LaTeX representation."
         #pylint: disable=E1101
@@ -100,9 +116,14 @@ class ChemicalPotential(StateVariable):
         new_self = StateVariable.__new__(cls, varname, **assumptions)
         new_self.species = species
         return new_self
+
+    def __getnewargs__(self):
+        return self.species,
+
     def _latex(self):
         "LaTeX representation."
         return '\mu_{'+self.species+'}'
+
     def __str__(self):
         "String representation."
         return 'MU(%s)' % self.species

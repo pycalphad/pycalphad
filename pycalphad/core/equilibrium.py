@@ -16,6 +16,7 @@ from pycalphad.core.tempfilemanager import TempfileManager
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 from tqdm import tqdm as progressbar
+import dask
 from xarray import Dataset, DataArray
 import numpy as np
 import scipy.spatial
@@ -575,19 +576,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 break
         it.iternext()
     return properties
-
-def worker_process(solve_func, q_in, q_out, dbf, comps, phase_records, callable_dict):
-    verbose = False
-    while True:
-        i, prop_slice, prop_arr = q_in.get()
-        if i is None:
-            break
-        try:
-            result = solve_func(dbf, comps, prop_arr, phase_records, callable_dict, verbose)
-        except:
-            import traceback
-            result = traceback.format_exc()
-        q_out.put((i, prop_slice, result))
 
 @TempfileManager(os.getcwd())
 def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None, per_phase=False, **kwargs):
@@ -1188,30 +1176,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             slices.append(cond_slices)
         chunk_dims = [len(slc) for slc in slices]
         chunk_grid = np.array(np.unravel_index(np.arange(np.prod(chunk_dims)), chunk_dims)).T
-
-        q_in = multiprocessing.Queue(1)
-        q_out = multiprocessing.Queue()
-        proc = [multiprocessing.Process(target=worker_process,
-                                        args=(_solve_eq_at_conditions,
-                                              q_in, q_out, dbf, comps, phase_records, callable_dict))
-                for _ in range(nprocs)]
-        for p in proc:
-            p.daemon = False
-            p.start()
-        sent = []
-        solve_progress = progressbar(total=len(chunk_grid), desc='Solve (3/3)', disable=not pbar, unit='chunk')
-        with solve_progress:
-            for chunk in chunk_grid:
-                prop_slice = properties[dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
-                                                                                  for ch, sl in zip(chunk, slices)]))]
-                sent.append(q_in.put((len(sent)+1, chunk, prop_slice)))
-                solve_progress.update(1)
-
-        [q_in.put((None, None, None)) for _ in range(nprocs)]
-        res = [q_out.get() for _ in range(len(sent))]
-        [p.join() for p in proc]
+        res = []
+        for chunk in chunk_grid:
+            prop_slice = properties[dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
+                                                                              for ch, sl in zip(chunk, slices)]))]
+            job = dask.delayed(_solve_eq_at_conditions, pure=True)(dbf, comps, prop_slice,
+                                                                   phase_records, callable_dict, verbose)
+            res.append(job)
+        results = dask.compute(*res, get=dask.multiprocessing.get, workers=4)
         # Merge back together slices of 'properties'
-        for idx, prop_slice, prop_arr in res:
+        for prop_slice, prop_arr in zip(chunk_grid, results):
             if not isinstance(prop_arr, Dataset):
                 print('Error: {}'.format(prop_arr))
                 continue

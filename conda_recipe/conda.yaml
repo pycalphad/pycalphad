@@ -31,6 +31,7 @@ requirements:
     - autograd
     - scipy
     - tqdm
+    - dask
     - numpy >=1.9
 
   run:
@@ -44,6 +45,7 @@ requirements:
     - autograd
     - scipy
     - tqdm
+    - dask
     - numpy >=1.9
 
 build:

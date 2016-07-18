@@ -57,7 +57,7 @@ See LICENSE.txt for details.
 Required Dependencies:
 
 * Python 2.7+ or 3.3+
-* matplotlib, numpy, scipy, sympy, xarray, pyparsing, tinydb, autograd, tqdm
+* matplotlib, numpy, scipy, sympy, xarray, pyparsing, tinydb, autograd, tqdm, dask
 
 Installation
 ------------
