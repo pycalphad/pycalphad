@@ -577,11 +577,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 break
             elif ~no_progress and ~chempot_update and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Failed to converge: {}'.format(cur_conds))
-                properties['MU'].values[it.multi_index] = np.nan
-                properties['NP'].values[it.multi_index] = np.nan
-                properties['X'].values[it.multi_index] = np.nan
-                properties['Y'].values[it.multi_index] = np.nan
-                properties['GM'].values[it.multi_index] = np.nan
+                #properties['MU'].values[it.multi_index] = np.nan
+                #properties['NP'].values[it.multi_index] = np.nan
+                #properties['X'].values[it.multi_index] = np.nan
+                #properties['Y'].values[it.multi_index] = np.nan
+                #properties['GM'].values[it.multi_index] = np.nan
         it.iternext()
     return properties
 
