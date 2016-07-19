@@ -1,3 +1,14 @@
+#first import dill, which populates itself into pickle's dispatch
+import dill
+import pickle
+# save the MethodDescriptorType from dill
+MethodDescriptorType = type(type.__dict__['mro'])
+MethodDescriptorWrapper = pickle._Pickler.dispatch[MethodDescriptorType]
+# cloudpickle does the same, so let it update the dispatch table
+import cloudpickle
+# now, put the saved MethodDescriptorType back in
+pickle._Pickler.dispatch[MethodDescriptorType] = MethodDescriptorWrapper
+
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database
