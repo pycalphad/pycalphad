@@ -31,7 +31,7 @@ requirements:
     - autograd
     - scipy
     - tqdm
-    - dask
+    - dask >= 0.10
     - numpy >=1.9
     - dill
 
@@ -46,7 +46,7 @@ requirements:
     - autograd
     - scipy
     - tqdm
-    - dask
+    - dask >= 0.10
     - numpy >=1.9
     - dill
 
