@@ -29,7 +29,7 @@ install:
   - "conda config --add channels conda-forge"
   - "conda config --add channels richardotis"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask"
+  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
   - "conda install --yes -n condaenv --quiet tinydb autograd tqdm"
   - "pip install -e ."
 

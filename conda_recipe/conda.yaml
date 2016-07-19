@@ -33,6 +33,7 @@ requirements:
     - tqdm
     - dask
     - numpy >=1.9
+    - dill
 
   run:
     - python
@@ -47,6 +48,7 @@ requirements:
     - tqdm
     - dask
     - numpy >=1.9
+    - dill
 
 build:
   script: python setup.py build && python setup.py install
