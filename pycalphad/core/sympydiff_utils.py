@@ -21,7 +21,7 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i+n]
 
-class LazyPickleableFunction(object):
+class LazyPickleableFunction:
     """
     A lazily-compiled function that is recompiled when unpickled and called.
     This works around several issues with sending JIT'd functions over the wire.
