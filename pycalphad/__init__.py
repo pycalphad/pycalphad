@@ -3,14 +3,14 @@ import dill
 import pickle
 # save the MethodDescriptorType from dill
 MethodDescriptorType = type(type.__dict__['mro'])
-if getattr(pickle, '_Pickle'):
+if pickle.__dict__.get('_Pickler', None):
     MethodDescriptorWrapper = pickle._Pickler.dispatch[MethodDescriptorType]
 else:
     MethodDescriptorWrapper = pickle.Pickler.dispatch[MethodDescriptorType]
 # cloudpickle does the same, so let it update the dispatch table
 import cloudpickle
 # now, put the saved MethodDescriptorType back in
-if getattr(pickle, '_Pickle'):
+if pickle.__dict__.get('_Pickler', None):
     pickle._Pickler.dispatch[MethodDescriptorType] = MethodDescriptorWrapper
 else:
     pickle.Pickler.dispatch[MethodDescriptorType] = MethodDescriptorWrapper
