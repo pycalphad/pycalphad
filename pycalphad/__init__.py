@@ -1,4 +1,7 @@
-#first import dill, which populates itself into pickle's dispatch
+# This unfortunate monkey patch is necessary to make Py27, Py33 and Py34 work
+# Source: http://stackoverflow.com/questions/34124270/pickling-method-descriptor-objects-in-python
+
+# first import dill, which populates itself into pickle's dispatch
 import dill
 import pickle
 # save the MethodDescriptorType from dill
