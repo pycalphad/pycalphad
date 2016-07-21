@@ -166,7 +166,7 @@ def _compute_phase_dof(dbf, comps, phases):
 
 @TempfileManager(os.getcwd())
 def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records, tmpman=None,
-                         l_multipliers=None, chem_pots=None, mole_fractions=None):
+                         l_multipliers=None, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
@@ -182,10 +182,6 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
     l_constraints = np.zeros(num_constraints, dtype=np.float)
     if l_multipliers is None:
         l_multipliers = np.zeros(num_constraints, dtype=np.float)
-    if chem_pots is not None:
-        # Insert chemical potentials as Lagrange multipliers of mass balance constraints
-        l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-        sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] = chem_pots
     # Convenience object for caller so it doesn't need to know about the constraint configuration
     chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
         sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
@@ -429,8 +425,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
 
             l_constraints, constraint_jac, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     tmpman=tmpman, chem_pots=properties['MU'].values[it.multi_index].copy(),
-                                     mole_fractions=mole_fractions)
+                                     tmpman=tmpman, mole_fractions=mole_fractions)
             num_vars = len(site_fracs) + len(phases)
             l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, l_multipliers,
@@ -463,10 +458,17 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # print('PHASE FRACS', phase_fracs)
             # Take the largest step which reduces the energy
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
-            # print('OLD ENERGY', old_energy)
-            # XXX: Why is it necessary to square this?
-            old_constrained_objective = old_energy + ((l_multipliers * l_constraints).sum()) ** 2
-            # print('OLD OBJ', old_constrained_objective)
+            if verbose:
+                print('OLD ENERGY', old_energy)
+            if np.all(l_multipliers == 0) and np.any(np.abs(l_constraints) > 1e-12):
+                # We don't know the Lagrange multipliers yet and we're violating constraints
+                l_multipliers[:] = step[num_vars:]
+                step[num_vars:] = 0
+            old_constrained_objective = old_energy + np.abs((l_multipliers * l_constraints)).sum() ** 2
+            if verbose:
+                print('OLD OBJ', old_constrained_objective)
+                print('OLD CONSTRAINTS', l_constraints)
+                print('OLD L MULTIPLIERS', l_multipliers)
             old_chem_pots = properties['MU'].values[it.multi_index].copy()
             # print('STARTING ALPHA', alpha)
             wolfe_conditions = False
@@ -504,21 +506,23 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                                          candidate_site_fracs, candidate_phase_fracs, phase_records, tmpman=tmpman,
                                          l_multipliers=candidate_l_multipliers, mole_fractions=mole_fractions)
                 # print('CANDIDATE L MULTIPLIERS AFTER', candidate_l_multipliers)
-                # print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
-                # print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
+                if verbose:
+                    print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
+                    print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
                 # print('CANDIDATE L MUL SUM', (candidate_l_multipliers *
                 #                                    candidate_l_constraints).sum()
                 #      )
                 candidate_energy = _compute_multiphase_objective(dbf, comps, phases, cur_conds, candidate_site_fracs,
                                                                  candidate_phase_fracs,
                                                                  callable_dict)
-                # XXX: Why is it necessary to square this?
-                candidate_constrained_objective = candidate_energy + ((candidate_l_multipliers *
-                                                                       candidate_l_constraints).sum()) ** 2
+                candidate_constrained_objective = candidate_energy + np.abs((candidate_l_multipliers *
+                                                                       candidate_l_constraints)).sum() ** 2
                 # print('CANDIDATE CHEM POTS', candidate_chem_pots)
-                # print('CANDIDATE ENERGY', candidate_energy)
-                # print('CANDIDATE OBJ', candidate_constrained_objective)
-                # print('STEP', step[:num_vars])
+                if verbose:
+                    print('CANDIDATE ENERGY', candidate_energy)
+                    print('CANDIDATE OBJ', candidate_constrained_objective)
+                    print('CANDIDATE SITE FRACS', candidate_site_fracs)
+                    print('STEP', step[:num_vars])
                 # print('GRADIENT TERM', gradient_term)
                 # print('CANDIDATE GRADIENT', candidate_gradient_term)
 
@@ -538,18 +542,20 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                     wolfe_conditions &= np.abs(np.multiply(step, -candidate_gradient_term).sum(axis=-1)) <= \
                                         0.9 * np.abs(np.multiply(step, -gradient_term).sum(axis=-1))
                 # Seems to be necessary for some unit tests to explicitly allow chemical potential updates
-                chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
-                chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 1
-                wolfe_conditions |= chempot_update
+                # chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
+                # chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
+                #wolfe_conditions |= chempot_update
                 # print('WOLFE CONDITION 1&2', wolfe_conditions)
                 if wolfe_conditions:
                     break
                 alpha *= 0.5
-            # print('RESULT ALPHA', alpha)
-            # print('WOLFE CONDITIONS', wolfe_conditions)
+            if verbose:
+                print('RESULT ALPHA', alpha)
+            # print('wolfe_conditions', wolfe_conditions)
             if wolfe_conditions:
                 # We updated degrees of freedom this iteration
                 properties['MU'].values[it.multi_index] = candidate_chem_pots
+                l_multipliers = candidate_l_multipliers.copy()
                 properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
                 properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
                 properties['GM'].values[it.multi_index] = candidate_energy
@@ -574,14 +580,27 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             if no_progress:
                 if verbose:
                     print('No progress')
+                # Refine chemical potentials of this configuration
+                # Pass in zero for chemical potentials and use the step as the refined values
+                # XXX: It is unnecessary to recompute the Hessian since final_l_hessian should equal l_hessian
+                final_l_hessian, final_gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds,
+                                                                                site_fracs, phase_fracs,
+                                                                                l_constraints, constraint_jac,
+                                                                                np.zeros_like(l_multipliers),
+                                                                                callable_dict, phase_records)
+                final_step = np.linalg.solve(final_l_hessian, final_gradient_term)
+                num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
+                chemical_potentials = final_step[num_vars + sum([len(dbf.phases[i].sublattices) for i in phases]):
+                    num_vars + sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
+                properties['MU'].values[it.multi_index] = chemical_potentials
                 break
-            elif ~no_progress and ~chempot_update and cur_iter == MAX_SOLVE_ITERATIONS-1:
+            elif ~no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Failed to converge: {}'.format(cur_conds))
-                #properties['MU'].values[it.multi_index] = np.nan
-                #properties['NP'].values[it.multi_index] = np.nan
-                #properties['X'].values[it.multi_index] = np.nan
-                #properties['Y'].values[it.multi_index] = np.nan
-                #properties['GM'].values[it.multi_index] = np.nan
+                properties['MU'].values[it.multi_index] = np.nan
+                properties['NP'].values[it.multi_index] = np.nan
+                properties['X'].values[it.multi_index] = np.nan
+                properties['Y'].values[it.multi_index] = np.nan
+                properties['GM'].values[it.multi_index] = np.nan
         it.iternext()
     return properties
 
