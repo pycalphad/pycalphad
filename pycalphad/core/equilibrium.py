@@ -32,13 +32,15 @@ import os
 # Maximum number of global search iterations
 MAX_SEARCH_ITERATIONS = 30
 # Maximum number of multi-phase solver iterations
-MAX_SOLVE_ITERATIONS = 30
+MAX_SOLVE_ITERATIONS = 100
 # Minimum step norm size to stop solver
 MIN_SOLVE_STEP_NORM = 1e-6
 # Minimum step multiplier to stop line search
 MIN_SOLVE_ALPHA = 1e-6
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
 MIN_SOLVE_ENERGY_PROGRESS = 1e-6
+# Maximum residual driving force (J/mol-atom) allowed for convergence
+MAX_SOLVE_DRIVING_FORCE = 1e-4
 # Maximum number of backtracking iterations
 MAX_BACKTRACKING = 5
 # Maximum number of Newton steps to take
@@ -68,6 +70,7 @@ def remove_degenerate_phases(properties, multi_index):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
+    Also remove phases with phase fractions close to zero.
 
     Parameters
     ----------
@@ -119,12 +122,19 @@ def remove_degenerate_phases(properties, multi_index):
     # These can show up from phases which aren't defined over all of composition space
     properties['NP'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = np.nan
     properties['Phase'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = ''
+    # Delete unstable phases
+    unstable_phases = np.nonzero(properties['NP'].values[multi_index] <= MIN_SITE_FRACTION)
+    #if multi_index == (0, 0, 0, 0):
+    #    print('UNSTABLE PHASES', unstable_phases)
+    properties['Phase'].values[multi_index + np.index_exp[unstable_phases]] = ''
     # Rewrite properties to delete all the nulled out phase entries
     # Then put them at the end
     # That will let us rewrite 'phases' to have only the independent phases
     # And still preserve convenient indexing of 'properties' with phase_idx
     saved_indices = properties['Phase'].values[multi_index] != ''
     saved_indices = np.arange(len(saved_indices))[saved_indices]
+    #if multi_index == (0, 0, 0, 0):
+    #    print('SAVED INDICES', saved_indices)
     # TODO: Assumes N=1 always
     properties['NP'].values[multi_index + np.index_exp[:len(saved_indices)]] = \
         properties['NP'].values[multi_index + np.index_exp[saved_indices]] / \
@@ -166,35 +176,52 @@ def _compute_phase_dof(dbf, comps, phases):
 
 @TempfileManager(os.getcwd())
 def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records, tmpman=None,
-                         l_multipliers=None, mole_fractions=None):
+                         l_multipliers=None, chempots=None, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
     num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
     num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
+    # Site fraction non-negativity
+    num_ieq_cons = [len(set(dbf.phases[name].constituents[idx]).intersection(comps)) \
+                    for name in phases for idx in range(len(dbf.phases[name].sublattices))]
+    num_ieq_cons = 0
+    # Single-component sublattices do not get an inequality constraint
+    #num_ieq_cons = [x-1 for x in num_ieq_cons]
+    #num_ieq_cons = sum(num_ieq_cons)
+    # Plus phase fraction non-negativity
+    #num_ieq_cons += len(phases) - 1
+    #print('NUM_IEQ_CONS', num_ieq_cons)
     indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
     dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
     dependent_comp = list(dependent_comp)[0]
     mole_fractions = mole_fractions if mole_fractions is not None else {}
-    num_constraints = num_sitefrac_bals + num_mass_bals
+    num_constraints = num_sitefrac_bals + num_mass_bals + num_ieq_cons
     num_vars = len(site_fracs) + len(phases)
     phase_dof = _compute_phase_dof(dbf, comps, phases)
     l_constraints = np.zeros(num_constraints, dtype=np.float)
     if l_multipliers is None:
         l_multipliers = np.zeros(num_constraints, dtype=np.float)
+        if chempots is not None:
+            l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
+                          sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] = chempots
     # Convenience object for caller so it doesn't need to know about the constraint configuration
     chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
         sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
 
     constraint_jac = np.zeros((num_constraints, num_vars), dtype=np.float)
-    # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
+    constraint_hess = np.zeros((num_constraints, num_vars, num_vars), dtype=np.float)
+    contains_vacancies = np.zeros(len(phases), dtype=np.bool)
+    # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance, then inequalities
     # Ordering of constraints by column: site fractions of each phase, then phase fractions
     # First: Site fraction balance constraints
     var_idx = 0
     constraint_offset = 0
-    for name in phases:
+    for phase_idx, name in enumerate(phases):
         for idx in range(len(dbf.phases[name].sublattices)):
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+            if 'VA' in active_in_subl and len(active_in_subl) > 1:
+                contains_vacancies[phase_idx] = True
             constraint_jac[constraint_offset + idx,
             var_idx:var_idx + len(active_in_subl)] = 1
             # print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, (sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
@@ -206,34 +233,72 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
     for comp in [c for c in comps if c != 'VA']:
         var_offset = 0
         phase_idx = 0
-        for name, phase_frac in zip(phases, phase_fracs):
+        for name, phase_frac, con_vacs in zip(phases, phase_fracs, contains_vacancies):
             if mole_fractions.get((name, comp), None) is None:
                 mole_fractions[(name, comp)] = interpreted_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
                                                                         key=str), tmpman=tmpman)
             comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
+            #print('MOLE FRACTIONS', (name, comp))
             # current phase frac times the comp_grad
             constraint_jac[constraint_offset,
             var_offset:var_offset + phase_dof[phase_idx]] = \
                 phase_frac * np.squeeze(comp_grad(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+            #print('CONSTRAINT_JAC[{}] += {}'.format((constraint_offset, slice(var_offset,var_offset + phase_dof[phase_idx])), phase_frac * np.squeeze(comp_grad(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))))
             constraint_jac[constraint_offset, len(site_fracs) + phase_idx] += \
                 np.squeeze(comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+            #print('CONSTRAINT_JAC[{}] += {}'.format((constraint_offset, len(site_fracs) + phase_idx), np.squeeze(comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))))
+            # This term should only be non-zero for vacancy-containing sublattices
+            # This check is to silence a warning about comp_hess() being zero
+            if con_vacs:
+                constraint_hess[constraint_offset,
+                                var_offset:var_offset + phase_dof[phase_idx],
+                                var_offset:var_offset + phase_dof[phase_idx]] = \
+                    phase_frac * np.squeeze(comp_hess(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+            constraint_hess[constraint_offset,
+            var_offset:var_offset + phase_dof[phase_idx], len(site_fracs) + phase_idx] = \
+            constraint_hess[constraint_offset,
+            len(site_fracs) + phase_idx, var_offset:var_offset + phase_dof[phase_idx]] = \
+                np.squeeze(comp_grad(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
             l_constraints[constraint_offset] += \
                 phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
-            # print('L_CONSTRAINTS[{}] += {}'.format(constraint_offset, phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))))
+            #print('L_CONSTRAINTS[{}] += {}'.format(constraint_offset, phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))))
             var_offset += phase_dof[phase_idx]
             phase_idx += 1
         if comp != dependent_comp:
             l_constraints[constraint_offset] -= float(cur_conds['X_' + comp])
-            # print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, float(cur_conds['X_'+comp])))
+            #print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, float(cur_conds['X_'+comp])))
         else:
             # TODO: Assuming N=1 (fixed for dependent component)
             l_constraints[constraint_offset] -= (1 - indep_sum)
-            # print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, (1-indep_sum)))
+            #print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, (1-indep_sum)))
         #l_constraints[constraint_offset] *= -1
         # print('L_CONSTRAINTS[{}] *= -1'.format(constraint_offset))
         constraint_offset += 1
-    return l_constraints, constraint_jac, l_multipliers, chemical_potentials, mole_fractions
+    # Third: Inequality constraints (non-negativity of site and phase fractions)
+    # Do not constraint last element of each sublattice since the unity constraint already handles it
+    #var_idx = 0
+    #for name in phases:
+    #    for idx in range(len(dbf.phases[name].sublattices)):
+    #        active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
+    #        if len(active_in_subl) == 1:
+    #            var_idx += len(active_in_subl)
+    #            continue
+    #        constraint_jac[np.arange(constraint_offset, constraint_offset + len(active_in_subl) - 1),
+    #                       np.arange(var_idx, var_idx + len(active_in_subl) - 1)] = 1
+    #        l_constraints[constraint_offset:constraint_offset + len(active_in_subl) - 1] = \
+    #            np.minimum(site_fracs[var_idx:var_idx + len(active_in_subl) - 1] - MIN_SITE_FRACTION,
+    #                       np.zeros(len(active_in_subl) - 1))
+    #        var_idx += len(active_in_subl)
+    #        constraint_offset += len(active_in_subl) - 1
+    ## Phase fraction inequalities
+    #constraint_jac[np.arange(constraint_offset, constraint_offset + len(phases) - 1),
+    #               np.arange(var_idx, var_idx + len(phases) - 1)] = 1
+    #l_constraints[constraint_offset:constraint_offset + len(phases) - 1] = np.minimum(phase_fracs[:-1] - MIN_SITE_FRACTION,
+    #                                                                                  np.zeros(len(phases) - 1))
+    #constraint_offset += len(phases) - 1
+    #print('L_CONSTRAINTS', l_constraints)
+    return l_constraints, constraint_jac, constraint_hess, l_multipliers, chemical_potentials, mole_fractions
 
 def _compute_multiphase_objective(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, callable_dict):
     result = 0
@@ -254,8 +319,7 @@ def _build_multiphase_gradient(dbf, comps, phases, cur_conds, site_fracs, phase_
     phase_idx = 0
     phase_dof = _compute_phase_dof(dbf, comps, phases)
     num_vars = len(site_fracs) + len(phases)
-    num_constraints = len(l_constraints)
-    gradient_term = np.zeros((num_vars + num_constraints), dtype=np.float)
+    gradient_term = np.zeros(num_vars, dtype=np.float)
     for name, phase_frac in zip(phases, phase_fracs):
         obj = callable_dict[name]
         grad = phase_records[name].grad
@@ -266,24 +330,22 @@ def _build_multiphase_gradient(dbf, comps, phases, cur_conds, site_fracs, phase_
                                          site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
                         )
         gradient_term[var_offset:var_offset + phase_dof[phase_idx]] = \
-            -phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
-        gradient_term[len(site_fracs) + phase_idx] = -obj_res
+            phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
+        gradient_term[len(site_fracs) + phase_idx] = obj_res
         var_offset += phase_dof[phase_idx]
         phase_idx += 1
-    gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
-    gradient_term[num_vars:] = -l_constraints
     return gradient_term
 
 def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
-                             l_constraints, constraint_jac, l_multipliers, callable_dict, phase_records):
+                             l_constraints, constraint_jac, constraint_hess, l_multipliers,
+                             callable_dict, phase_records):
     # Now build objective Hessian and gradient terms
     var_offset = 0
     phase_idx = 0
     phase_dof = _compute_phase_dof(dbf, comps, phases)
     num_vars = len(site_fracs) + len(phases)
-    num_constraints = len(l_constraints)
-    l_hessian = np.zeros((num_vars + num_constraints, num_vars + num_constraints), dtype=np.float)
-    gradient_term = np.zeros((num_vars + num_constraints), dtype=np.float)
+    l_hessian = np.zeros((num_vars, num_vars), dtype=np.float)
+    gradient_term = np.zeros(num_vars, dtype=np.float)
     for name, phase_frac in zip(phases, phase_fracs):
         obj = callable_dict[name]
         hess = phase_records[name].hess
@@ -295,8 +357,8 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
                                          site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
                         )
         gradient_term[var_offset:var_offset + phase_dof[phase_idx]] = \
-            -phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
-        gradient_term[len(site_fracs) + phase_idx] = -obj_res
+            phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
+        gradient_term[len(site_fracs) + phase_idx] = obj_res
         l_hessian[var_offset:var_offset + phase_dof[phase_idx],
         var_offset:var_offset + phase_dof[phase_idx]] = \
             phase_frac * np.squeeze(hess(*itertools.chain([cur_conds['P'], cur_conds['T']],
@@ -305,18 +367,11 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
         # Phase fraction / site fraction cross derivative
         l_hessian[len(site_fracs) + phase_idx, var_offset:var_offset + phase_dof[phase_idx]] = \
             l_hessian[var_offset:var_offset + phase_dof[phase_idx], len(site_fracs) + phase_idx] = \
-            (gradient_term[var_offset:var_offset + phase_dof[phase_idx]] / -phase_frac)
+            np.squeeze(grad_res)[2:] # Remove P,T grad part
         var_offset += phase_dof[phase_idx]
         phase_idx += 1
-    # TODO: N=1 fixed by default
-    # l_constraints[constraint_offset] -= 1
-    # print('L_CONSTRAINTS', l_constraints.astype(np.longfloat))
-    # print('CONSTRAINT_JAC', constraint_jac)
-    l_hessian[:num_vars, num_vars:] = -constraint_jac.T
-    l_hessian[num_vars:, :num_vars] = constraint_jac
-    # print('PURE GRADIENT', gradient_term)
-    gradient_term[:num_vars] += np.dot(constraint_jac.T, l_multipliers)
-    gradient_term[num_vars:] = -l_constraints
+    # Constraint contribution to the Hessian (some constraints like mass balance are nonlinear)
+    l_hessian -= np.multiply(l_multipliers[:, np.newaxis, np.newaxis], constraint_hess).sum(axis=0)
     return l_hessian, gradient_term
 
 @TempfileManager(os.getcwd())
@@ -350,6 +405,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         Modified with equilibrium values.
     """
     it = np.nditer(properties['GM'].values, flags=['multi_index'])
+    if verbose:
+        print('INITIAL CONFIGURATION')
+        print(properties.MU)
+        print(properties.Phase)
+        print(properties.NP)
+        print(properties.X)
+        print(properties.Y)
+        print('---------------------')
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         cur_conds = OrderedDict(zip(properties['GM'].coords.keys(),
@@ -364,6 +427,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # We silently allow this to make 2-D composition mapping easier
             properties['MU'].values[it.multi_index] = np.nan
             properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            properties['Phase'].values[it.multi_index + np.index_exp[:len(phases)]] = ''
             properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
             properties['Y'].values[it.multi_index] = np.nan
             properties['GM'].values[it.multi_index] = np.nan
@@ -422,27 +486,57 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                     site_fracs[var_idx:var_idx + len(active_in_subl)] /= \
                         np.sum(site_fracs[var_idx:var_idx + len(active_in_subl)], keepdims=True)
                     var_idx += len(active_in_subl)
+            # Reset Lagrange multipliers if active set of phases change
+            if cur_iter == 0 or (old_phase_length != new_phase_length):
+                l_multipliers = None
 
-            l_constraints, constraint_jac, l_multipliers, old_chem_pots, mole_fraction_funcs = \
+            l_constraints, constraint_jac, constraint_hess, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     tmpman=tmpman, mole_fractions=mole_fractions)
+                                     tmpman=tmpman, l_multipliers=l_multipliers,
+                                     chempots=properties['MU'].values[it.multi_index], mole_fractions=mole_fractions)
+            #print('CONSTRAINT_JAC.SHAPE', constraint_jac.shape)
+            #print('CONSTRAINT_JAC RANK', np.linalg.matrix_rank(constraint_jac))
+            assert np.linalg.matrix_rank(constraint_jac) == min(constraint_jac.shape)
+            qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
+            m = rmat.shape[1]
+            n = qmat.shape[0]
+            # Construct orthonormal basis for the constraints
+            ymat = qmat[:, :m]
+            zmat = qmat[:, m:]
+            #print('YMAT.SHAPE', ymat.shape)
+            if m != n:
+                assert np.all(np.abs(np.dot(constraint_jac, zmat)) < 1e-15)
+            # Equation 18.14a in Nocedal and Wright
+            p_y = np.linalg.solve(np.dot(constraint_jac, ymat), -l_constraints)
             num_vars = len(site_fracs) + len(phases)
             l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
-                                                                l_constraints, constraint_jac, l_multipliers,
-                                                                callable_dict, phase_records)
-            try:
-                step = np.linalg.solve(l_hessian, gradient_term)
-            except np.linalg.LinAlgError:
-                print('Failed to compute ', cur_conds)
-                properties['GM'].values[it.multi_index] = np.nan
-                break
-            if np.any(np.isnan(step)):
-                print('PHASES: ', phases)
-                print('SITE FRACTIONS: ', site_fracs)
-                print('PHASE FRACTIONS: ', phase_fracs)
-                print('HESSIAN: ', l_hessian)
-                print('Bad step: ' + str(step))
-                break
+                                                                l_constraints, constraint_jac, constraint_hess,
+                                                                l_multipliers, callable_dict, phase_records)
+            #if m != n:
+            #    print('REDUCED HESSIAN', np.dot(np.dot(zmat.T, l_hessian), zmat))
+            #    print('REDUCED HESSIAN CONDITION NUMBER', np.linalg.cond(np.dot(np.dot(zmat.T, l_hessian), zmat)))
+            #    print('REDUCED HESSIAN EIGENVALUES', np.linalg.eigvals(np.dot(np.dot(zmat.T, l_hessian), zmat)))
+            # Equation 18.18 in Nocedal and Wright
+            if m != n:
+                p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat), -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
+            else:
+                zmat = np.array(0)
+                p_z = 0
+            step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
+            #l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T, np.dot(ymat.T, gradient_term + np.dot(l_hessian, step)))
+            # try:
+            #     step = np.linalg.solve(l_hessian, gradient_term)
+            # except np.linalg.LinAlgError:
+            #     print('Failed to compute ', cur_conds)
+            #     properties['GM'].values[it.multi_index] = np.nan
+            #     break
+            # if np.any(np.isnan(step)):
+            #     print('PHASES: ', phases)
+            #     print('SITE FRACTIONS: ', site_fracs)
+            #     print('PHASE FRACTIONS: ', phase_fracs)
+            #     print('HESSIAN: ', l_hessian)
+            #     print('Bad step: ' + str(step))
+            #     break
             # Backtracking line search
             # First restrict alpha to steps in the feasible region
             alpha = 1
@@ -460,28 +554,38 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
             if verbose:
                 print('OLD ENERGY', old_energy)
-            if np.all(l_multipliers == 0) and np.any(np.abs(l_constraints) > 1e-12):
-                # We don't know the Lagrange multipliers yet and we're violating constraints
-                l_multipliers[:] = step[num_vars:]
-                step[num_vars:] = 0
-            old_constrained_objective = old_energy + np.abs((l_multipliers * l_constraints)).sum() ** 2
+            #l_multipliers[:] = step[num_vars:]
+            if verbose:
+                print('L_HESSIAN', l_hessian)
+                print('GRADIENT_TERM', gradient_term)
+                print('STEP', step)
+            #if np.all(l_multipliers == 0):
+            #    if verbose:
+            #        print('RESETTING LAGRANGE MULTIPLIERS')
+            #        print('Hessian condition number:', np.linalg.cond(l_hessian))
+            #        print('Hessian eigenvalues:', np.linalg.eigvals(l_hessian))
+            #    # We don't know the Lagrange multipliers yet
+            #    #l_multipliers[:] = step[num_vars:]
+            #    #step[num_vars:] = 0
+            old_constrained_objective = old_energy + np.abs(l_multipliers * l_constraints).sum() + 1e5 * np.abs(l_constraints).sum()
             if verbose:
                 print('OLD OBJ', old_constrained_objective)
                 print('OLD CONSTRAINTS', l_constraints)
                 print('OLD L MULTIPLIERS', l_multipliers)
-            old_chem_pots = properties['MU'].values[it.multi_index].copy()
+            old_chem_pots = copy.deepcopy(properties['MU'].values[it.multi_index])
             # print('STARTING ALPHA', alpha)
-            wolfe_conditions = False
+            wolfe_conditions = True
             while alpha > MIN_SOLVE_ALPHA:
                 # print('ALPHA', alpha)
                 candidate_site_fracs = site_fracs + alpha * step[:len(site_fracs)]
                 candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                 candidate_site_fracs[candidate_site_fracs > 1] = 1
-                candidate_l_multipliers = l_multipliers + alpha * step[num_vars:]
+                #candidate_l_multipliers = np.linalg.solve(np.dot(constrWaint_jac, ymat).T, np.dot(ymat.T, gradient_term + np.dot(l_hessian, alpha*step)))
+                #candidate_l_multipliers = l_multipliers.copy()
                 # print('CANDIDATE L MULTIPLIERS', candidate_l_multipliers)
                 candidate_phase_fracs = phase_fracs + \
                                         alpha * step[len(candidate_site_fracs):len(candidate_site_fracs) + len(phases)]
-                candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+                candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = 0
                 candidate_phase_fracs[candidate_phase_fracs > 1] = 1
                 # if len(phases) == len([c for c in comps if c != 'VA']):
                 #    # We have the maximum number of phases
@@ -500,50 +604,65 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 #    exact_chempots = np.linalg.solve(phase_compositions, phase_energies)
                 # else:
                 #    exact_chempots = None
-                (candidate_l_constraints, candidate_constraint_jac, candidate_l_multipliers, candidate_chem_pots,
-                 mole_fraction_funcs) = \
+                (candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess,
+                 candidate_l_multipliers, candidate_chem_pots, mole_fraction_funcs) = \
                     _compute_constraints(dbf, comps, phases, cur_conds,
                                          candidate_site_fracs, candidate_phase_fracs, phase_records, tmpman=tmpman,
-                                         l_multipliers=candidate_l_multipliers, mole_fractions=mole_fractions)
+                                         l_multipliers=l_multipliers, mole_fractions=mole_fractions)
+                candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
+                                                                     cur_conds, candidate_site_fracs,
+                                                                     candidate_phase_fracs,
+                                                                     candidate_l_constraints, candidate_constraint_jac,
+                                                                     candidate_l_multipliers, callable_dict, phase_records)
+                #candidate_gradient_term[np.nonzero(step == 0)] = 0
+                #candidate_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
+                #                                                             candidate_constraint_jac.T)),
+                #                                        candidate_constraint_jac),
+                #                                 -candidate_gradient_term[:num_vars])
                 # print('CANDIDATE L MULTIPLIERS AFTER', candidate_l_multipliers)
                 if verbose:
                     print('CANDIDATE_L_CONSTRAINTS', candidate_l_constraints)
-                    print('CANDIDATE L MULS', candidate_l_constraints * candidate_l_multipliers)
+                    print('CANDIDATE L MULS', candidate_l_multipliers)
+                    print('CANDIDATE L MUL*CONS', candidate_l_constraints * candidate_l_multipliers)
                 # print('CANDIDATE L MUL SUM', (candidate_l_multipliers *
                 #                                    candidate_l_constraints).sum()
                 #      )
                 candidate_energy = _compute_multiphase_objective(dbf, comps, phases, cur_conds, candidate_site_fracs,
                                                                  candidate_phase_fracs,
                                                                  callable_dict)
-                candidate_constrained_objective = candidate_energy + np.abs((candidate_l_multipliers *
-                                                                       candidate_l_constraints)).sum() ** 2
+                candidate_constrained_objective = candidate_energy + \
+                                                  np.abs(candidate_l_multipliers * candidate_l_constraints).sum() + \
+                                                  1e5 * np.abs(candidate_l_constraints).sum()
                 # print('CANDIDATE CHEM POTS', candidate_chem_pots)
                 if verbose:
+                    print('ALPHA:', alpha)
                     print('CANDIDATE ENERGY', candidate_energy)
                     print('CANDIDATE OBJ', candidate_constrained_objective)
+                    print('CANDIDATE PHASE FRACS', candidate_phase_fracs)
                     print('CANDIDATE SITE FRACS', candidate_site_fracs)
-                    print('STEP', step[:num_vars])
+                    print('ALPHA*STEP', alpha * step[:num_vars])
                 # print('GRADIENT TERM', gradient_term)
                 # print('CANDIDATE GRADIENT', candidate_gradient_term)
 
-                # Remember that 'gradient_term' is actually the NEGATIVE of the gradient
-                wolfe_conditions = (candidate_constrained_objective - old_constrained_objective) <= \
-                                   alpha * 1e-4 * (step * -gradient_term).sum(axis=-1)
-                # print('WOLFE CONDITION 1', wolfe_conditions)
+                #wolfe_conditions = (candidate_constrained_objective - old_constrained_objective) <= \
+                #                   alpha * 1e-4 * (step * gradient_term).sum(axis=-1)
+                if verbose:
+                    print('WOLFE CONDITION 1', wolfe_conditions)
                 # Optimization to avoid costly gradient calculation if Wolfe conditions won't be met anyway
                 if wolfe_conditions:
-                    candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
-                                                                         cur_conds, candidate_site_fracs,
-                                                                         candidate_phase_fracs,
-                                                                         l_constraints, constraint_jac,
-                                                                         l_multipliers, callable_dict, phase_records)
+                    #candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
+                    #                                                     cur_conds, candidate_site_fracs,
+                    #                                                     candidate_phase_fracs,
+                    #                                                     candidate_l_constraints, candidate_constraint_jac,
+                    #                                                     candidate_l_multipliers, callable_dict, phase_records)
                     # print('CANDIDATE GRAD SUM', np.multiply(step[:num_vars], candidate_gradient_term[:num_vars]).sum())
                     # print('OLD GRAD SUM', np.multiply(step[:num_vars], gradient_term[:num_vars]).sum())
-                    wolfe_conditions &= np.abs(np.multiply(step, -candidate_gradient_term).sum(axis=-1)) <= \
-                                        0.9 * np.abs(np.multiply(step, -gradient_term).sum(axis=-1))
+                    pass
+                #    wolfe_conditions &= np.abs(np.multiply(step, candidate_gradient_term).sum(axis=-1)) <= \
+                #                        0.9 * np.abs(np.multiply(step, gradient_term).sum(axis=-1))
                 # Seems to be necessary for some unit tests to explicitly allow chemical potential updates
-                # chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
-                # chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.1
+                #chempot_update = (candidate_constrained_objective - old_constrained_objective) <= MIN_SOLVE_ENERGY_PROGRESS
+                #chempot_update &= np.abs(candidate_chem_pots - old_chem_pots).max() > 0.01
                 #wolfe_conditions |= chempot_update
                 # print('WOLFE CONDITION 1&2', wolfe_conditions)
                 if wolfe_conditions:
@@ -554,8 +673,36 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # print('wolfe_conditions', wolfe_conditions)
             if wolfe_conditions:
                 # We updated degrees of freedom this iteration
-                properties['MU'].values[it.multi_index] = candidate_chem_pots
-                l_multipliers = candidate_l_multipliers.copy()
+                # Equation 18.16 in Nocedal and Wright
+                # This method is not numerically stable enough -- seems to cause failing tests
+                #l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac, candidate_constraint_jac.T)),
+                #                              candidate_constraint_jac), candidate_gradient_term)
+                qmat, rmat = np.linalg.qr(candidate_constraint_jac.T, mode='complete')
+                m = rmat.shape[1]
+                # Construct orthonormal basis for the constraints
+                #ymat = qmat[:, :m]
+                #l_hessian, xgradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, candidate_site_fracs,
+                #                                                    candidate_phase_fracs,
+                #                                                    candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess,
+                #                                                    l_multipliers, callable_dict, phase_records)
+                new_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
+                                                    np.dot(ymat.T, gradient_term + np.dot(l_hessian, alpha * step)))
+                # XXX: Should fix underlying numerical problem at edges of composition space instead of working around
+                if np.any(np.isnan(new_l_multipliers)) or np.any(np.abs(new_l_multipliers) > 1e10):
+                    if verbose:
+                        print('WARNING: Unstable Lagrange multipliers: ', new_l_multipliers)
+                    # Equation 18.16 in Nocedal and Wright
+                    # This method is less accurate but more stable
+                    new_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
+                                                                           candidate_constraint_jac.T)),
+                                               candidate_constraint_jac), candidate_gradient_term)
+                l_multipliers = new_l_multipliers
+                if verbose:
+                    print('NEW_L_MULTIPLIERS', l_multipliers)
+                num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
+                chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
+                                                    sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
+                properties['MU'].values[it.multi_index] = chemical_potentials
                 properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
                 properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
                 properties['GM'].values[it.multi_index] = candidate_energy
@@ -570,37 +717,43 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                     var_offset += phase_dof[phase_idx]
 
             properties.attrs['solve_iterations'] += 1
+            total_comp = np.nansum(properties['NP'].values[it.multi_index][..., np.newaxis] * \
+                                   properties['X'].values[it.multi_index], axis=-2)
+            driving_force = (properties['MU'].values[it.multi_index] * total_comp).sum(axis=-1) - \
+                             properties['GM'].values[it.multi_index]
+            driving_force = np.squeeze(driving_force)
             if verbose:
-                print('Chem pot progress',
-                      np.linalg.norm(properties['MU'].values[it.multi_index] - old_chem_pots, ord=np.inf))
+                print('Chem pot progress', properties['MU'].values[it.multi_index] - old_chem_pots)
                 print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
-            no_progress = ~wolfe_conditions
-            # no_progress = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() < 0.1
-            # no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+                print('Driving force', driving_force)
+            no_progress = not wolfe_conditions
+            no_progress = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() < 0.01
+            no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            if no_progress and np.abs(driving_force) > MAX_SOLVE_DRIVING_FORCE:
+                print('Driving force failed to converge: {}'.format(cur_conds))
+                properties['MU'].values[it.multi_index] = np.nan
+                properties['NP'].values[it.multi_index] = np.nan
+                properties['X'].values[it.multi_index] = np.nan
+                properties['Y'].values[it.multi_index] = np.nan
+                properties['GM'].values[it.multi_index] = np.nan
+                properties['Phase'].values[it.multi_index] = ''
+                break
             if no_progress:
                 if verbose:
                     print('No progress')
-                # Refine chemical potentials of this configuration
-                # Pass in zero for chemical potentials and use the step as the refined values
-                # XXX: It is unnecessary to recompute the Hessian since final_l_hessian should equal l_hessian
-                final_l_hessian, final_gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds,
-                                                                                site_fracs, phase_fracs,
-                                                                                l_constraints, constraint_jac,
-                                                                                np.zeros_like(l_multipliers),
-                                                                                callable_dict, phase_records)
-                final_step = np.linalg.solve(final_l_hessian, final_gradient_term)
                 num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-                chemical_potentials = final_step[num_vars + sum([len(dbf.phases[i].sublattices) for i in phases]):
-                    num_vars + sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
+                chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
+                                                    sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
                 properties['MU'].values[it.multi_index] = chemical_potentials
                 break
-            elif ~no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
+            elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Failed to converge: {}'.format(cur_conds))
                 properties['MU'].values[it.multi_index] = np.nan
                 properties['NP'].values[it.multi_index] = np.nan
                 properties['X'].values[it.multi_index] = np.nan
                 properties['Y'].values[it.multi_index] = np.nan
                 properties['GM'].values[it.multi_index] = np.nan
+                properties['Phase'].values[it.multi_index] = ''
         it.iternext()
     return properties
 
@@ -777,6 +930,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     else:
         build_functions = interpreted_build_functions
         backend_mode = 'interpreted'
+    if kwargs.get('backend', None):
+        backend_mode = kwargs['backend']
     if verbose:
         backend_dict = {'compiled': 'Compiled (ufuncify)', 'interpreted': 'Interpreted (autograd)'}
         print('Calculation Backend: {}'.format(backend_dict.get(backend_mode, 'Custom')))
@@ -820,6 +975,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         plane_obj, plane_grad, plane_hess = build_functions(hyperplane,
                                                             [v.MU(i) for i in comps if i != 'VA']+site_fracs,
                                                             tmpman=tmpman)
+        for i in comps:
+            if i == 'VA':
+                continue
+            print(dbf.phases[name], i)
+            print(mole_fraction(dbf.phases[name], comps, i))
+
         mass_obj, mass_grad, mass_hess = build_functions(Add(*[mole_fraction(dbf.phases[name], comps, i)
                                                                for i in comps if i != 'VA']), site_fracs,
                                                          tmpman=tmpman)
@@ -840,7 +1001,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts = calc_opts.copy()
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 100
+        grid_opts['pdens'] = 200
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
@@ -881,6 +1042,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             print('Computing convex hull [iteration {}]'.format(properties.attrs['hull_iterations']))
         # lower_convex_hull will modify properties
         lower_convex_hull(grid, properties, verbose=verbose)
+        break
         progress = np.abs(current_potentials - properties.MU).values
         converged = (progress < MIN_SEARCH_PROGRESS).all(axis=-1)
         if verbose:

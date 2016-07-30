@@ -9,12 +9,13 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
-from pycalphad.tests.datasets import ALNIPT_TDB, ALCOCRNI_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, ALCOCRNI_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB, ISSUE43_TDB
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
 ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
+ISSUE43_DBF = Database(ISSUE43_TDB)
 
 # ROSE DIAGRAM TESTS
 # This will fail until the equilibrium engine is switched from Newton-Raphson
@@ -108,8 +109,9 @@ def test_eq_illcond_magnetic_hessian():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
-                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, pbar=False)
+                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, pbar=False, verbose=True)
     assert_allclose(eq.GM.values, [[[-31414.46677]]])
+    assert_allclose(eq.MU.values, [[[[-8490.140, -123111.773]]]], atol=0.1)
 
 
 def test_eq_composition_cond_sorting():
@@ -189,7 +191,7 @@ def test_eq_ternary_inside_mass():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.44455555555555554,
-                      v.X('CO'): 0.22277777777777777, v.P: 101325}, pbar=False)
+                      v.X('CO'): 0.22277777777777777, v.P: 101325}, pbar=False, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.44455555555555554, 0.22277777777777777, 0.333]
     assert np.all(np.abs(mass_error) < 0.01)
@@ -204,3 +206,14 @@ def test_eq_ternary_edge_misc_gap():
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
+
+def test_eq_issue43_chempots_misc_gap():
+    """
+    Equilibrium for complex ternary miscibility gap (gh-43).
+    """
+    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
+                     {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
+                     verbose=False, pbar=False)
+    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
+    assert_allclose(eq.GM.values, -81933.259)
+    assert_allclose(eq.MU.values, chempots, atol=1)
