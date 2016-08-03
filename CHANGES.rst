@@ -1,6 +1,17 @@
 What's New
 ==========
 
+0.4 (2016-08-03)
+----------------
+
+This is a major release with bug fixes and performance improvements.
+
+* The equilibrium solver core has been rewritten, resulting in a significant increase in robustness and accuracy,
+  particularly for chemical potential calculation with miscibility gaps. See :issue:`43`.
+* For performance, dask-powered multiprocessing is now used to parallelize equilibrium calculations.
+  Because of this, dask and dill are now dependencies.
+* Database and Model objects can now be pickled on all supported platforms, fixing a multiprocessing issue.
+
 0.3.6 (2016-06-01)
 ------------------
 
