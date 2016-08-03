@@ -57,6 +57,7 @@ def run_test():
     plt.xlabel('Temperature (K)')
     plt.ylabel('Molar Heat Capacity (J/mol-K)')
     plt.savefig('einstein.png')
+    print(dbf.to_string(fmt='tdb'))
 
 if __name__ == "__main__":
     run_test()
