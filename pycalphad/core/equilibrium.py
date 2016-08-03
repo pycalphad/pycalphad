@@ -518,7 +518,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             #    print('REDUCED HESSIAN EIGENVALUES', np.linalg.eigvals(np.dot(np.dot(zmat.T, l_hessian), zmat)))
             # Equation 18.18 in Nocedal and Wright
             if m != n:
-                p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat), -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
+                try:
+                     p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
+                                           -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
+                except np.linalg.LinalgError:
+                    p_z = 0
             else:
                 zmat = np.array(0)
                 p_z = 0
