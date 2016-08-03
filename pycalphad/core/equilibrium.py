@@ -522,7 +522,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                      p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
                                            -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
                 except np.linalg.LinAlgError:
-                    p_z = np.zeros(num_vars, dtype=np.float)
+                    p_z = np.zeros(zmat.shape[-1], dtype=np.float)
             else:
                 zmat = np.array(0)
                 p_z = 0
