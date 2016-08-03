@@ -217,3 +217,14 @@ def test_eq_issue43_chempots_misc_gap():
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
+
+def test_eq_issue43_chempots_tricky_potentials():
+    """
+    Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
+    """
+    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
+                     {v.X('AL'): .1246, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
+                     verbose=False, pbar=False)
+    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-12.78777939,  -4.42862046,  -8.77499585]]]]])
+    assert_allclose(eq.GM.values, -70567.7329)
+    assert_allclose(eq.MU.values, chempots, atol=1)

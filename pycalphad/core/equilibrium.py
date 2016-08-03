@@ -1001,7 +1001,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts = calc_opts.copy()
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 200
+        grid_opts['pdens'] = 300
 
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
