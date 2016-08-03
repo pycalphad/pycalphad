@@ -3,7 +3,6 @@ The equilibrium test module verifies that the Equilibrium class produces the
 correct solution for thermodynamic equilibrium.
 """
 
-from unittest.case import SkipTest
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
@@ -17,9 +16,7 @@ ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 ISSUE43_DBF = Database(ISSUE43_TDB)
 
-# ROSE DIAGRAM TESTS
-# This will fail until the equilibrium engine is switched from Newton-Raphson
-@SkipTest
+# ROSE DIAGRAM TEST
 def test_rose_nine():
     "Nine-component rose diagram point equilibrium calculation."
     my_phases_rose = ['TEST']
@@ -28,7 +25,7 @@ def test_rose_nine():
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
     eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, pbar=False)
-    assert_allclose(eqx.GM.values.flat[0], -5.8351e3)
+    assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
 # OTHER TESTS
 def test_eq_binary():
