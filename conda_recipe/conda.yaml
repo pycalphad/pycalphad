@@ -32,6 +32,7 @@ requirements:
     - scipy
     - tqdm
     - dask >=0.10
+    - distributed
     - numpy >=1.9
     - dill
 
@@ -47,6 +48,7 @@ requirements:
     - scipy
     - tqdm
     - dask >=0.10
+    - distributed
     - numpy >=1.9
     - dill
 
