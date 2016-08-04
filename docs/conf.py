@@ -91,7 +91,7 @@ language = None
 # directories to ignore when looking for source files.
 exclude_patterns = ['_build', '_autosummary']
 
-extlinks = {'issue': ('https://github.com/richardotis/pycalphad/issues/%s',
+extlinks = {'issue': ('https://github.com/pycalphad/pycalphad/issues/%s',
                       'issue ')}
 
 # The reST default role (used for this markup: `text`) to use for all
