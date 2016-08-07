@@ -15,15 +15,15 @@ function doCompile {
 }
 
 if [ "$SOURCE_LATEST_BRANCH" = "$TRAVIS_BRANCH" ] && [ "$TRAVIS_TAG" = "" ]; then
-   DEPLOY_NAME = "latest"
+   DEPLOY_NAME="latest"
 fi
 
 if [ "$SOURCE_TAG_BRANCH" = "$TRAVIS_BRANCH" ] && [ "$TRAVIS_TAG" != "" ]; then
-   DEPLOY_NAME = "$TRAVIS_TAG"
+   DEPLOY_NAME="$TRAVIS_TAG"
 fi
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
-if [ "$TRAVIS_PULL_REQUEST" != "false" -o "DEPLOY_NAME" != "" -o "$DEPLOY_ENC_LABEL" == ""]; then
+if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "DEPLOY_NAME" != "" ] || [ "$DEPLOY_ENC_LABEL" == "" ]; then
     echo "Skipping deploy; just doing a docs build."
     doCompile
     exit 0
