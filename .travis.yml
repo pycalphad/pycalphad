@@ -52,6 +52,7 @@ install:
 script:
 #  - nosetests --with-coverage
   - conda install --yes sphinx
+  - pip install sphinx_rtd_theme
   - bash ci/deploy.sh
 after_success:
   - coveralls
