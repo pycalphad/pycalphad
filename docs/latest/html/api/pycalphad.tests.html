@@ -1,0 +1,630 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.tests package &mdash; pycalphad 0.4+12.gd6830c7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycalphad 0.4+12.gd6830c7 documentation" href="../index.html"/>
+        <link rel="up" title="pycalphad package" href="pycalphad.html"/>
+        <link rel="next" title="What’s New" href="../CHANGES.html"/>
+        <link rel="prev" title="pycalphad.plot package" href="pycalphad.plot.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4+12.gd6830c7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.tests package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.constraints">pycalphad.constraints module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.fitting">pycalphad.fitting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.log">pycalphad.log module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.refdata">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../index.html">pycalphad</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="modules.html">API Documentation</a> &raquo;</li>
+      
+          <li><a href="pycalphad.html">pycalphad package</a> &raquo;</li>
+      
+    <li>pycalphad.tests package</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="../_sources/api/pycalphad.tests.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycalphad-tests-package">
+<h1>pycalphad.tests package<a class="headerlink" href="#pycalphad-tests-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.tests.datasets">
+<span id="pycalphad-tests-datasets-module"></span><h2>pycalphad.tests.datasets module<a class="headerlink" href="#module-pycalphad.tests.datasets" title="Permalink to this headline">¶</a></h2>
+<p>The datasets module contains some serialized databases for unit testing purposes.</p>
+<p>These databases are not claimed suitable for any other purpose.</p>
+</div>
+<div class="section" id="module-pycalphad.tests.test_calculate">
+<span id="pycalphad-tests-test-calculate-module"></span><h2>pycalphad.tests.test_calculate module<a class="headerlink" href="#module-pycalphad.tests.test_calculate" title="Permalink to this headline">¶</a></h2>
+<p>The calculate test module verifies that calculate() calculates
+Model quantities correctly.</p>
+<dl class="function">
+<dt id="pycalphad.tests.test_calculate.test_points_kwarg_multi_phase">
+<code class="descclassname">pycalphad.tests.test_calculate.</code><code class="descname">test_points_kwarg_multi_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_calculate.html#test_points_kwarg_multi_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_calculate.test_points_kwarg_multi_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Multi-phase calculation works when internal dof differ (gh-41).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_calculate.test_statevar_upcast">
+<code class="descclassname">pycalphad.tests.test_calculate.</code><code class="descname">test_statevar_upcast</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_calculate.html#test_statevar_upcast"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_calculate.test_statevar_upcast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Integer state variable values are cast to float.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_calculate.test_surface">
+<code class="descclassname">pycalphad.tests.test_calculate.</code><code class="descname">test_surface</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_calculate.html#test_surface"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_calculate.test_surface" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bare minimum: calculation produces a result.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_calculate.test_unknown_model_attribute">
+<code class="descclassname">pycalphad.tests.test_calculate.</code><code class="descname">test_unknown_model_attribute</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_calculate.html#test_unknown_model_attribute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_calculate.test_unknown_model_attribute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sampling an unknown model attribute raises exception.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.tests.test_database">
+<span id="pycalphad-tests-test-database-module"></span><h2>pycalphad.tests.test_database module<a class="headerlink" href="#module-pycalphad.tests.test_database" title="Permalink to this headline">¶</a></h2>
+<p>The test_database module contains tests for the Database object.</p>
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_database_diffusion">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_database_diffusion</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_database_diffusion"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_database_diffusion" title="Permalink to this definition">¶</a></dt>
+<dd><p>Diffusion database support.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_database_eq">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_database_eq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_database_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_database_eq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database equality comparison.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_database_ne">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_database_ne</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_database_ne"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_database_ne" title="Permalink to this definition">¶</a></dt>
+<dd><p>Database inequality comparison.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_expand_keyword">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_expand_keyword</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_expand_keyword"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_expand_keyword" title="Permalink to this definition">¶</a></dt>
+<dd><p>expand_keyword expands command abbreviations.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_export_import">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_export_import</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_export_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_export_import" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equivalence of re-imported database to original.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_load_from_string">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_load_from_string</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_load_from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_load_from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test database loading from a string.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_load_from_stringio">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_load_from_stringio</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_load_from_stringio"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_load_from_stringio" title="Permalink to this definition">¶</a></dt>
+<dd><p>Test database loading from a file-like object.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unknown_format_from_file">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unknown_format_from_file</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unknown_format_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unknown_format_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>from_string: Unknown import file format raises NotImplementedError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unknown_format_from_string">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unknown_format_from_string</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unknown_format_from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unknown_format_from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>from_string: Unknown import string format raises NotImplementedError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unknown_format_to_file">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unknown_format_to_file</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unknown_format_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unknown_format_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>to_file: Unknown export file format raises NotImplementedError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unknown_format_to_string">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unknown_format_to_string</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unknown_format_to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unknown_format_to_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>to_string: Unknown export file format raises NotImplementedError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unspecified_format_from_file">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unspecified_format_from_file</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unspecified_format_from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unspecified_format_from_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>from_file: Unspecified format for file descriptor raises ValueError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unspecified_format_from_string">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unspecified_format_from_string</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unspecified_format_from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unspecified_format_from_string" title="Permalink to this definition">¶</a></dt>
+<dd><p>from_string: Unspecified string format raises ValueError.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_database.test_unspecified_format_to_file">
+<code class="descclassname">pycalphad.tests.test_database.</code><code class="descname">test_unspecified_format_to_file</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_database.html#test_unspecified_format_to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_database.test_unspecified_format_to_file" title="Permalink to this definition">¶</a></dt>
+<dd><p>to_file: Unspecified format for file descriptor raises ValueError.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.tests.test_energy">
+<span id="pycalphad-tests-test-energy-module"></span><h2>pycalphad.tests.test_energy module<a class="headerlink" href="#module-pycalphad.tests.test_energy" title="Permalink to this headline">¶</a></h2>
+<p>The energy test module verifies that the Model class produces the
+correct abstract syntax tree for the energy.</p>
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.calculate_energy">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">calculate_energy</code><span class="sig-paren">(</span><em>model</em>, <em>variables</em>, <em>mode='numpy'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#calculate_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.calculate_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the value of the energy at a point.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>Model</strong> (<em>model,</em>) &#8211; Energy model for a phase.</li>
+<li><strong>dict</strong> (<em>variables,</em>) &#8211; Dictionary of all input variables.</li>
+<li><strong>['numpy', 'sympy'], optional</strong> (<em>mode,</em>) &#8211; Optimization method for the abstract syntax tree.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.check_energy">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">check_energy</code><span class="sig-paren">(</span><em>model</em>, <em>variables</em>, <em>known_value</em>, <em>mode='numpy'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#check_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.check_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check that our calculated energy matches the known value.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_binary_dilute">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_binary_dilute</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_binary_dilute"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_binary_dilute" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dilute binary solution phase.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_binary_magnetic">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_binary_magnetic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_binary_magnetic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_binary_magnetic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Two-component phase with IHJ magnetic model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_binary_magnetic_ordering">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_binary_magnetic_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_binary_magnetic_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_binary_magnetic_ordering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Two-component phase with IHJ magnetic model and ordering.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_binary_magnetic_reimported">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_binary_magnetic_reimported</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_binary_magnetic_reimported"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_binary_magnetic_reimported" title="Permalink to this definition">¶</a></dt>
+<dd><p>Export and re-import a TDB before the calculation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_case_sensitivity">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_case_sensitivity</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_case_sensitivity"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_case_sensitivity" title="Permalink to this definition">¶</a></dt>
+<dd><p>Case sensitivity of component and phase names.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_degenerate_ordered">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_degenerate_ordered</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_degenerate_ordered"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_degenerate_ordered" title="Permalink to this definition">¶</a></dt>
+<dd><p>Degenerate sublattice configuration has same energy as disordered phase.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_degenerate_zero_ordering">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_degenerate_zero_ordering</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_degenerate_zero_ordering"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_degenerate_zero_ordering" title="Permalink to this definition">¶</a></dt>
+<dd><p>Degenerate sublattice configuration has zero ordering energy.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_pure_numpy">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_pure_numpy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_pure_numpy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_pure_numpy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pure component end-members in numpy mode.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_pure_sympy">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_pure_sympy</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_pure_sympy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_pure_sympy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Pure component end-members in sympy mode.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_quaternary">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_quaternary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_quaternary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_quaternary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Quaternary ordered solution phase.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_sympify_safety">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_sympify_safety</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_sympify_safety"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_sympify_safety" title="Permalink to this definition">¶</a></dt>
+<dd><p>Parsing malformed strings throws exceptions instead of executing code.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_ternary_ordered_magnetic">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_ternary_ordered_magnetic</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_ternary_ordered_magnetic"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_ternary_ordered_magnetic" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ternary ordered solution phase with IHJ magnetic model.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_ternary_rkm_solution">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_ternary_rkm_solution</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_ternary_rkm_solution"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_ternary_rkm_solution" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solution phase with ternary interaction parameters.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_ternary_symmetric_param">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_ternary_symmetric_param</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_ternary_symmetric_param"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_ternary_symmetric_param" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the other two ternary parameters if only the zeroth is specified.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_energy.test_zero_site_fraction">
+<code class="descclassname">pycalphad.tests.test_energy.</code><code class="descname">test_zero_site_fraction</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_energy.html#test_zero_site_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_energy.test_zero_site_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Energy of a binary solution phase where one site fraction is zero.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.tests.test_equilibrium">
+<span id="pycalphad-tests-test-equilibrium-module"></span><h2>pycalphad.tests.test_equilibrium module<a class="headerlink" href="#module-pycalphad.tests.test_equilibrium" title="Permalink to this headline">¶</a></h2>
+<p>The equilibrium test module verifies that the Equilibrium class produces the
+correct solution for thermodynamic equilibrium.</p>
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_dilute_condition">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_dilute_condition</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_dilute_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_dilute_condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>&#8216;Zero&#8217; and dilute composition conditions are correctly handled.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_b2_without_all_comps">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_b2_without_all_comps</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_b2_without_all_comps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_b2_without_all_comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>All-vacancy endmembers are correctly excluded from the computation when fewer than
+all components in a Database are selected for the calculation.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_binary">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_binary</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_binary"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_binary" title="Permalink to this definition">¶</a></dt>
+<dd><p>Binary phase diagram point equilibrium calculation with magnetism.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_composition_cond_sorting">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_composition_cond_sorting</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_composition_cond_sorting"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_composition_cond_sorting" title="Permalink to this definition">¶</a></dt>
+<dd><p>Composition conditions are correctly constructed when the dependent component does not
+come last in alphabetical order (gh-21).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_four_sublattice">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_four_sublattice</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_four_sublattice"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_four_sublattice" title="Permalink to this definition">¶</a></dt>
+<dd><p>Balancing mass in a multi-sublattice phase in a single-phase configuration.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_illcond_hessian">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_illcond_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_illcond_hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_illcond_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check equilibrium of a system with an ill-conditioned Hessian.
+This is difficult to reproduce so we only include some known examples here (gh-23).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_illcond_magnetic_hessian">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_illcond_magnetic_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_illcond_magnetic_hessian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_illcond_magnetic_hessian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc-&gt;0).
+This is difficult to reproduce so we only include some known examples here.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_issue43_chempots_misc_gap">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_issue43_chempots_misc_gap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_issue43_chempots_misc_gap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_issue43_chempots_misc_gap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilibrium for complex ternary miscibility gap (gh-43).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_issue43_chempots_tricky_potentials">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_issue43_chempots_tricky_potentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_issue43_chempots_tricky_potentials"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_issue43_chempots_tricky_potentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Ternary equilibrium with difficult convergence for chemical potentials (gh-43).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_missing_component">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_missing_component</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_missing_component"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_missing_component" title="Permalink to this definition">¶</a></dt>
+<dd><p>Specifying a condition involving a non-existent component raises an error.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_on_endmember">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_on_endmember</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_on_endmember"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_on_endmember" title="Permalink to this definition">¶</a></dt>
+<dd><p>When the composition condition is right on top of an end-member
+the convex hull is still correctly constructed (gh-28).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_output_property">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_output_property</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_output_property"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_output_property" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extra properties can be specified to <cite>equilibrium</cite>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_overdetermined_comps">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_overdetermined_comps</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_overdetermined_comps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_overdetermined_comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of composition conditions should yield exactly one dependent component.
+This is the overdetermined case.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_single_phase">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_single_phase</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_single_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_single_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilibrium energy should be the same as for a single phase with no miscibility gaps.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_ternary_edge_case_mass">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_ternary_edge_case_mass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_ternary_edge_case_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_ternary_edge_case_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilibrium along an edge of composition space will still balance mass.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_ternary_edge_misc_gap">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_ternary_edge_misc_gap</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_ternary_edge_misc_gap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_ternary_edge_misc_gap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilibrium at edge of miscibility gap will still balance mass.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_ternary_inside_mass">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_ternary_inside_mass</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_ternary_inside_mass"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_ternary_inside_mass" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equilibrium in interior of composition space will still balance mass.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_eq_underdetermined_comps">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_eq_underdetermined_comps</code><span class="sig-paren">(</span><em>*arg</em>, <em>**kw</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_eq_underdetermined_comps"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_eq_underdetermined_comps" title="Permalink to this definition">¶</a></dt>
+<dd><p>The number of composition conditions should yield exactly one dependent component.
+This is the underdetermined case.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_equilibrium.test_rose_nine">
+<code class="descclassname">pycalphad.tests.test_equilibrium.</code><code class="descname">test_rose_nine</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_equilibrium.html#test_rose_nine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_equilibrium.test_rose_nine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Nine-component rose diagram point equilibrium calculation.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.tests.test_model">
+<span id="pycalphad-tests-test-model-module"></span><h2>pycalphad.tests.test_model module<a class="headerlink" href="#module-pycalphad.tests.test_model" title="Permalink to this headline">¶</a></h2>
+<p>The test_model module contains unit tests for the Model object.</p>
+<dl class="function">
+<dt id="pycalphad.tests.test_model.test_export_import">
+<code class="descclassname">pycalphad.tests.test_model.</code><code class="descname">test_export_import</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_model.html#test_export_import"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_model.test_export_import" title="Permalink to this definition">¶</a></dt>
+<dd><p>Equivalence of Model using re-imported database.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_model.test_model_eq">
+<code class="descclassname">pycalphad.tests.test_model.</code><code class="descname">test_model_eq</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_model.html#test_model_eq"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_model.test_model_eq" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model equality comparison.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.tests.test_model.test_model_ne">
+<code class="descclassname">pycalphad.tests.test_model.</code><code class="descname">test_model_ne</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/tests/test_model.html#test_model_ne"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.tests.test_model.test_model_ne" title="Permalink to this definition">¶</a></dt>
+<dd><p>Model inequality comparison.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.tests">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.tests" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../CHANGES.html" class="btn btn-neutral float-right" title="What’s New" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pycalphad.plot.html" class="btn btn-neutral" title="pycalphad.plot package" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.4+12.gd6830c7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

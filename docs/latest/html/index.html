@@ -1,0 +1,272 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad: Computational Thermodynamics &mdash; pycalphad 0.4+12.gd6830c7 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycalphad 0.4+12.gd6830c7 documentation" href="#"/>
+        <link rel="next" title="Installation Instructions" href="INSTALLING.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="#" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4+12.gd6830c7
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="#">pycalphad</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+ 
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="#">Docs</a> &raquo;</li>
+      
+    <li> pycalphad: Computational Thermodynamics</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+            <a href="_sources/index.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="logo-pycalphad-computational-thermodynamics">
+<h1><a class="reference internal" href="_images/logo.png"><img alt="Logo" src="_images/logo.png" style="width: 20pt; height: 20pt;" /></a> pycalphad: Computational Thermodynamics<a class="headerlink" href="#logo-pycalphad-computational-thermodynamics" title="Permalink to this headline">¶</a></h1>
+<div class="align-center figure">
+<a class="reference internal image-reference" href="_images/BinaryExamples_7_1.png"><img alt="Al-Fe Phase Diagram (M.Seiersten et al., 1991)" src="_images/BinaryExamples_7_1.png" style="width: 500px; height: 250px;" /></a>
+</div>
+<p>pycalphad is a Python library for computational thermodynamics using the CALPHAD method. Because pycalphad is still in the alpha phase of development, documentation is a work in progress.</p>
+<p>The latest development version of the source code can be found on <a class="reference external" href="https://github.com/richardotis/pycalphad">GitHub</a>.
+The newest stable version can be found on <a class="reference external" href="https://pypi.python.org/pypi/pycalphad">PyPI</a>.
+A public chat channel is available on <a class="reference external" href="https://gitter.im/richardotis/pycalphad">Gitter</a>.</p>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="INSTALLING.html">Installation Instructions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="INSTALLING.html#windows-anaconda">Windows (Anaconda)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="INSTALLING.html#mac-osx">Mac OSX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="INSTALLING.html#linux">Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="INSTALLING.html#development-versions-advanced-users">Development Versions (Advanced Users)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html">Calculating Isobaric Binary Phase Diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html#al-fe-m-seiersten-et-al-1991">Al-Fe (M.Seiersten et al., 1991)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html#al-ni-work-in-progress-n-dupin-et-al-2001">Al-Ni (Work in progress) (N. Dupin et al., 2001)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html#nb-re-x-l-liu-et-al-2013">Nb-Re (X. L. Liu et al., 2013)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/CementiteAnalysis.html">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/EquilibriumWithOrdering.html#al-fe-heat-capacity-and-degree-of-ordering">Al-Fe (Heat Capacity and Degree of Ordering)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="examples/EquilibriumWithOrdering.html#al-ni-degree-of-ordering">Al-Ni (Degree of Ordering)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="api/pycalphad.html">pycalphad package</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What&#8217;s New</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id1">0.4 (2016-08-03)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id2">0.3.6 (2016-06-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id3">0.3.5 (2016-05-14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id4">0.3.4 (2016-04-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id5">0.3.3 (2016-04-21)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id6">0.3.2 (2016-02-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id7">0.3.1 (2016-02-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id8">0.3 (2016-02-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id9">0.2.5 (2015-12-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id10">0.2.4 (2015-11-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id11">0.2.3 (2015-11-08)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id12">0.2.2 (2015-10-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id13">0.2.1 (2015-09-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id14">0.2 (2015-08-23)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#post1-2015-04-10">0.1.1.post1 (2015-04-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id15">0.1.1 (2015-04-09)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id16">0.1 (2015-04-09)</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="acknowledgements">
+<h1>Acknowledgements<a class="headerlink" href="#acknowledgements" title="Permalink to this headline">¶</a></h1>
+<p>Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by <a class="reference external" href="http://www.phases.psu.edu/">Prof. Zi-Kui Liu</a> in the <a class="reference external" href="http://matse.psu.edu/">Department of Materials Science and Engineering</a> at the <a class="reference external" href="http://www.psu.edu/">Pennsylvania State University</a>.</p>
+</div>
+<div class="section" id="indices-and-tables">
+<h1>Indices and tables<a class="headerlink" href="#indices-and-tables" title="Permalink to this headline">¶</a></h1>
+<ul class="simple">
+<li><a class="reference internal" href="genindex.html"><span class="std std-ref">Index</span></a></li>
+<li><a class="reference internal" href="py-modindex.html"><span class="std std-ref">Module Index</span></a></li>
+</ul>
+</div>
+
+
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="INSTALLING.html" class="btn btn-neutral float-right" title="Installation Instructions" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.4+12.gd6830c7',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
