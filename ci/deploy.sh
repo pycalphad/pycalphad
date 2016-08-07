@@ -46,7 +46,7 @@ rm -rf out/docs/$DEPLOY_NAME/* || exit 0
 
 # Run our compile script
 doCompile
-cp -Rf docs/_build/html out/docs/$DEPLOY_NAME
+cp -Rf docs/_build/html/* out/docs/$DEPLOY_NAME
 
 # Now let's go have some fun with the cloned repo
 cd out
