@@ -50,8 +50,8 @@ install:
  
 # Run test
 script:
-  - nosetests --with-coverage
+#  - nosetests --with-coverage
   - conda install --yes sphinx
-  - ci/deploy.sh
+  - bash ci/deploy.sh
 after_success:
   - coveralls
