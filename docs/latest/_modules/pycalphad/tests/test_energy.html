@@ -1,0 +1,445 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.tests.test_energy &mdash; pycalphad 0.4+13.g4360f47 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycalphad 0.4+13.g4360f47 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4+13.g4360f47
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pycalphad</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycalphad.tests.test_energy</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.tests.test_energy</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The energy test module verifies that the Model class produces the</span>
+<span class="sd">correct abstract syntax tree for the energy.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">nose.tools</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">make_callable</span>
+<span class="kn">from</span> <span class="nn">pycalphad.tests.datasets</span> <span class="k">import</span> <span class="n">ALCRNI_TDB</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">DBF</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">ALCRNI_TDB</span><span class="p">)</span>
+
+<span class="nd">@nose</span><span class="o">.</span><span class="n">tools</span><span class="o">.</span><span class="n">raises</span><span class="p">(</span><span class="ne">ValueError</span><span class="p">)</span>
+<div class="viewcode-block" id="test_sympify_safety"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_sympify_safety">[docs]</a><span class="k">def</span> <span class="nf">test_sympify_safety</span><span class="p">():</span>
+    <span class="s2">&quot;Parsing malformed strings throws exceptions instead of executing code.&quot;</span>
+    <span class="kn">from</span> <span class="nn">pycalphad.io.tdb</span> <span class="k">import</span> <span class="n">_sympify_string</span>
+    <span class="n">teststr</span> <span class="o">=</span> <span class="s2">&quot;().__class__.__base__.__subclasses__()[216](&#39;ls&#39;)&quot;</span>
+    <span class="n">_sympify_string</span><span class="p">(</span><span class="n">teststr</span><span class="p">)</span> <span class="c1"># should throw ParseException</span></div>
+
+
+<div class="viewcode-block" id="calculate_energy"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.calculate_energy">[docs]</a><span class="k">def</span> <span class="nf">calculate_energy</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate the value of the energy at a point.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model, Model</span>
+<span class="sd">        Energy model for a phase.</span>
+
+<span class="sd">    variables, dict</span>
+<span class="sd">        Dictionary of all input variables.</span>
+
+<span class="sd">    mode, [&#39;numpy&#39;, &#39;sympy&#39;], optional</span>
+<span class="sd">        Optimization method for the abstract syntax tree.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Generate a callable energy function</span>
+    <span class="c1"># Normally we would use model.subs(variables) here, but we want to ensure</span>
+    <span class="c1"># our optimization functions are working.</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="n">make_callable</span><span class="p">(</span><span class="n">model</span><span class="o">.</span><span class="n">ast</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">variables</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">mode</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+    <span class="c1"># Unpack all the values in the dict and use them to call the function</span>
+    <span class="k">return</span> <span class="n">energy</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">variables</span><span class="o">.</span><span class="n">values</span><span class="p">())))</span></div>
+
+<div class="viewcode-block" id="check_energy"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.check_energy">[docs]</a><span class="k">def</span> <span class="nf">check_energy</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">known_value</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">):</span>
+    <span class="s2">&quot;Check that our calculated energy matches the known value.&quot;</span>
+    <span class="n">desired</span> <span class="o">=</span> <span class="n">calculate_energy</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">mode</span><span class="p">)</span>
+    <span class="n">known_value</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">known_value</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+    <span class="n">desired</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">desired</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">complex</span><span class="p">)</span>
+    <span class="n">np</span><span class="o">.</span><span class="n">testing</span><span class="o">.</span><span class="n">assert_allclose</span><span class="p">(</span><span class="n">known_value</span><span class="p">,</span> <span class="n">desired</span><span class="p">,</span> <span class="n">rtol</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">)</span></div>
+
+<span class="c1"># PURE COMPONENT TESTS</span>
+<div class="viewcode-block" id="test_pure_sympy"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_pure_sympy">[docs]</a><span class="k">def</span> <span class="nf">test_pure_sympy</span><span class="p">():</span>
+    <span class="s2">&quot;Pure component end-members in sympy mode.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.28565e5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;B2&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1400</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">6.57639e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">800</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">3.01732e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_pure_numpy"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_pure_numpy">[docs]</a><span class="k">def</span> <span class="nf">test_pure_numpy</span><span class="p">():</span>
+    <span class="s2">&quot;Pure component end-members in numpy mode.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2000</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.28565e5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;B2&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1400</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">6.57639e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">800</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">3.01732e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_degenerate_ordered"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_degenerate_ordered">[docs]</a><span class="k">def</span> <span class="nf">test_degenerate_ordered</span><span class="p">():</span>
+    <span class="s2">&quot;Degenerate sublattice configuration has same energy as disordered phase.&quot;</span>
+    <span class="n">mod_l12</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">)</span>
+    <span class="n">mod_a1</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span>
+    <span class="n">l12_subs</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">}</span>
+    <span class="n">a1_subs</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+               <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">}</span>
+    <span class="n">l12_energy</span> <span class="o">=</span> <span class="n">mod_l12</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">l12_subs</span><span class="p">)</span>
+    <span class="n">a1_energy</span> <span class="o">=</span> <span class="n">mod_a1</span><span class="o">.</span><span class="n">energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">a1_subs</span><span class="p">)</span>
+    <span class="k">assert</span> <span class="n">l12_energy</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="o">==</span> <span class="n">a1_energy</span><span class="o">.</span><span class="n">evalf</span><span class="p">(),</span> \
+            <span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> != </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">l12_energy</span><span class="p">,</span> <span class="n">a1_energy</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_degenerate_zero_ordering"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_degenerate_zero_ordering">[docs]</a><span class="k">def</span> <span class="nf">test_degenerate_zero_ordering</span><span class="p">():</span>
+    <span class="s2">&quot;Degenerate sublattice configuration has zero ordering energy.&quot;</span>
+    <span class="n">mod</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">)</span>
+    <span class="n">sub_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">}</span>
+    <span class="c1">#print({x: mod.models[x].subs(sub_dict) for x in mod.models})</span>
+    <span class="n">desired</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;ord&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">sub_dict</span><span class="p">)</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
+    <span class="k">assert</span> <span class="nb">abs</span><span class="p">(</span><span class="n">desired</span> <span class="o">-</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">5</span><span class="p">,</span> <span class="s2">&quot;</span><span class="si">%r</span><span class="s2"> != </span><span class="si">%r</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">desired</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span></div>
+
+<span class="c1"># BINARY TESTS</span>
+<div class="viewcode-block" id="test_binary_magnetic"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_binary_magnetic">[docs]</a><span class="k">def</span> <span class="nf">test_binary_magnetic</span><span class="p">():</span>
+    <span class="s2">&quot;Two-component phase with IHJ magnetic model.&quot;</span>
+    <span class="c1"># disordered case</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.68840e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.68840e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_binary_magnetic_reimported"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_binary_magnetic_reimported">[docs]</a><span class="k">def</span> <span class="nf">test_binary_magnetic_reimported</span><span class="p">():</span>
+    <span class="s2">&quot;Export and re-import a TDB before the calculation.&quot;</span>
+    <span class="n">dbf_imported</span> <span class="o">=</span> <span class="n">Database</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">DBF</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;tdb&#39;</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;tdb&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">dbf_imported</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span>
+                <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.33</span><span class="p">,</span>
+                <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.67</span><span class="p">},</span>
+                <span class="o">-</span><span class="mf">1.68840e4</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_binary_magnetic_ordering"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_binary_magnetic_ordering">[docs]</a><span class="k">def</span> <span class="nf">test_binary_magnetic_ordering</span><span class="p">():</span>
+    <span class="s2">&quot;Two-component phase with IHJ magnetic model and ordering.&quot;</span>
+    <span class="c1"># ordered case</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">4.86783e-2</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.51322e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">9.33965e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">6.60348e-2</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">9.23953e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">4.86783e-2</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.51322e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">9.33965e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">6.60348e-2</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">9.23953e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_binary_dilute"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_binary_dilute">[docs]</a><span class="k">def</span> <span class="nf">test_binary_dilute</span><span class="p">():</span>
+    <span class="s2">&quot;Dilute binary solution phase.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">1.0</span><span class="o">-</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">1.0</span><span class="o">-</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<span class="c1"># TERNARY TESTS</span>
+<div class="viewcode-block" id="test_ternary_rkm_solution"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_ternary_rkm_solution">[docs]</a><span class="k">def</span> <span class="nf">test_ternary_rkm_solution</span><span class="p">():</span>
+    <span class="s2">&quot;Solution phase with ternary interaction parameters.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.44</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.20</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.36</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.16529e5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.44</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">0.20</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">0.36</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">1.16529e5</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_ternary_symmetric_param"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_ternary_symmetric_param">[docs]</a><span class="k">def</span> <span class="nf">test_ternary_symmetric_param</span><span class="p">():</span>
+    <span class="s2">&quot;Generate the other two ternary parameters if only the zeroth is specified.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">1.97135e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">1.43243e-2</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">7.88541e-1</span><span class="p">},</span>
+                 <span class="o">-</span><span class="mf">37433.794</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_ternary_ordered_magnetic"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_ternary_ordered_magnetic">[docs]</a><span class="k">def</span> <span class="nf">test_ternary_ordered_magnetic</span><span class="p">():</span>
+    <span class="s2">&quot;Ternary ordered solution phase with IHJ magnetic model.&quot;</span>
+    <span class="c1"># ordered case</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">5.42883e-8</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.07934e-6</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.99998e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">7.49998e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.50002e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">4.55313e-10</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">40717.204</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">5.42883e-8</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.07934e-6</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.99998e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">7.49998e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.50002e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;L12_FCC&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">4.55313e-10</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">40717.204</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<span class="c1"># QUATERNARY TESTS</span>
+<div class="viewcode-block" id="test_quaternary"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_quaternary">[docs]</a><span class="k">def</span> <span class="nf">test_quaternary</span><span class="p">():</span>
+    <span class="s2">&quot;Quaternary ordered solution phase.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="s1">&#39;B2&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">4.03399e-9</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.65798e-4</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.99734e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">):</span> <span class="mf">2.68374e-9</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">3.75801e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">1.20732e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">5.03467e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">42368.27</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="s1">&#39;B2&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">500</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">4.03399e-9</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">2.65798e-4</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">9.99734e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">):</span> <span class="mf">2.68374e-9</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">3.75801e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mf">1.20732e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mf">5.03467e-1</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;B2&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">},</span> \
+        <span class="o">-</span><span class="mf">42368.27</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<span class="c1"># SPECIAL CASES</span>
+<div class="viewcode-block" id="test_case_sensitivity"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_case_sensitivity">[docs]</a><span class="k">def</span> <span class="nf">test_case_sensitivity</span><span class="p">():</span>
+    <span class="s2">&quot;Case sensitivity of component and phase names.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Cr&#39;</span><span class="p">,</span> <span class="s1">&#39;nI&#39;</span><span class="p">],</span> <span class="s1">&#39;Liquid&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;liquid&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;ni&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;Cr&#39;</span><span class="p">,</span> <span class="s1">&#39;nI&#39;</span><span class="p">],</span> <span class="s1">&#39;Liquid&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;liquid&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;ni&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="test_zero_site_fraction"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_energy.test_zero_site_fraction">[docs]</a><span class="k">def</span> <span class="nf">test_zero_site_fraction</span><span class="p">():</span>
+    <span class="s2">&quot;Energy of a binary solution phase where one site fraction is zero.&quot;</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;sympy&#39;</span><span class="p">)</span>
+    <span class="n">check_energy</span><span class="p">(</span><span class="n">Model</span><span class="p">(</span><span class="n">DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;CR&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">],</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">),</span> \
+            <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">):</span> <span class="mi">0</span><span class="p">,</span>
+             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">},</span> \
+        <span class="mf">5.52773e3</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;numpy&#39;</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.4+13.g4360f47',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
