@@ -9,6 +9,7 @@ matrix:
         - python: 2.7
         - python: 3.4
         - python: 3.5
+          env: DEPLOY_ENC_LABEL=e64cfe3b4e81
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -50,5 +51,7 @@ install:
 # Run test
 script:
   - nosetests --with-coverage
+  - conda install --yes sphinx
+  - ci/deploy.sh
 after_success:
   - coveralls
