@@ -23,7 +23,7 @@ if [ "$SOURCE_TAG_BRANCH" = "$TRAVIS_BRANCH" ] && [ "$TRAVIS_TAG" != "" ]; then
 fi
 
 # Pull requests and commits to other branches shouldn't try to deploy, just build to verify
-if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$DEPLOY_NAME" != "" ] || [ "$DEPLOY_ENC_LABEL" == "" ]; then
+if [ "$TRAVIS_PULL_REQUEST" != "false" ] || [ "$DEPLOY_NAME" == "" ] || [ "$DEPLOY_ENC_LABEL" == "" ]; then
     echo "Skipping deploy; just doing a docs build."
     doCompile
     exit 0
