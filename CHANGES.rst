@@ -1,6 +1,16 @@
 What's New
 ==========
 
+0.4.1 (2016-08-08)
+------------------
+
+This is a minor bug fix release.
+
+* Python 3.3 support has been dropped. See :issue:`46`.
+* Documentation has been transitioned to a new domain, [https://pycalphad.org](https://pycalphad.org). See :issue:`47`.
+* BLD: Exclude xarray 0.8 from dependencies since it has a regression. (Newer versions are fine.)
+* DOC: Automated project documentation building and deployment via Travis CI.
+
 0.4 (2016-08-03)
 ----------------
 
