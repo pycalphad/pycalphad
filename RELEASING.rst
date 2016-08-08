@@ -31,7 +31,9 @@ When releasing a new version of pycalphad:
    ``git push origin master --tags``
 
    ``git stash pop``
-12.The new version is tagged in the repository. Now the public package must be built and distributed.
+12. ``asv run 0.2^..0.2`` to run a benchmark for the new release. Compare the results using ``asv publish && asv preview`` and navigating to
+   [http://127.0.0.1:8080/](http://127.0.0.1:8080/). If there are no regressions, commit and push the new benchmark files and rendered html.
+13. The new version is tagged in the repository. Now the public package must be built and distributed.
 
 Uploading to PyPI
 -----------------
