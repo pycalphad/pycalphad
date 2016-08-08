@@ -45,3 +45,5 @@ lib/
 MANIFEST
 .idea/
 env/
+.asv/html
+.asv/env
