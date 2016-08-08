@@ -40,7 +40,7 @@ requirements:
     - python
     - matplotlib
     - pandas
-    - xarray <0.8
+    - xarray !=0.8
     - sympy
     - pyparsing
     - tinydb
