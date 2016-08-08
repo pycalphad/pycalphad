@@ -1,4 +1,5 @@
 sudo: false
+language: generic
 install: true
 env:
   global:
