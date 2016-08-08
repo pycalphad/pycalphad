@@ -1,0 +1,13 @@
+env:
+  global:
+  - secure: YP7uu+GS1uO+37qrnz6S8Ic3GwdwGnrHrdoXnA4NBjRw90+1DW+1iTPsUU51dnH26skBRNrNiEJhhM0ChEGzO2/9r5V7WVgq7Ahw0ZYC212oydvAdvvvn9XeH6qaaFyFk47hogWdt9QncIX/QacO2oS6dVFG8jW6kVz+mwwgbk4=
+  - secure: KQrbXm8ecykua3tEv3d5aowv3Qu96bVl/sJ10+oyAmmY3iK7BihH7QPweA7J7j3o11Te5GwKiiFS0KjbF3m+7AJKx6UB7DWv2YakT2+zbgdvd9WYK/C6lmfykZytYHETzvSvjBo871m/9OkDcTYUXTfdvlb8NG4Qm+DCGTjrqrc=
+deploy:
+  provider: s3
+  access_key_id: $S3_ACCESS_ID
+  secret_access_key: $S3_ACCESS_SECRET
+  bucket: "pycalphad.org"
+  skip_cleanup: true
+branches:
+  only:
+    - gh-pages
