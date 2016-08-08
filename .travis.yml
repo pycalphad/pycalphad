@@ -11,3 +11,8 @@ deploy:
   secret_access_key: $S3_ACCESS_SECRET
   bucket: "pycalphad.org"
   skip_cleanup: true
+  on:
+    branch: gh-pages
+branches:
+  only:
+    - gh-pages
