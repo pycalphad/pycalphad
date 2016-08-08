@@ -64,6 +64,6 @@ test:
     - pycalphad.plot
 
 about:
-  home: https://github.com/richardotis/pycalphad
+  home: https://pycalphad.org/
   license: MIT
   summary: 'CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.'

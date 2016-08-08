@@ -24,7 +24,7 @@ setup(
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
     license='MIT',
     long_description=read('README.rst'),
-    url='https://github.com/richardotis/pycalphad',
+    url='https://pycalphad.org/',
     install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy', 'pyparsing', 'tqdm',
                       'autograd', 'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.10', 'dill'],
     classifiers=[
