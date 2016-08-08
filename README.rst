@@ -65,20 +65,20 @@ See `Installation Instructions`_.
 
 Examples
 --------
-IPython notebooks with examples are available on `NBViewer`_ and `ReadTheDocs`_.
+IPython notebooks with examples are available on `NBViewer`_ and `pycalphad.org`_.
 
 Documentation
 -------------
-See the documentation on `ReadTheDocs`_.
+See the documentation on `pycalphad.org`_.
 
 Acknowledgements
 ----------------
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
 We would also like to acknowledge technical assistance on array computations from Denis Lisov.
 
-.. _Installation Instructions: http://pycalphad.readthedocs.org/en/latest/INSTALLING.html
+.. _Installation Instructions: http://pycalphad.org/docs/latest/INSTALLING.html
 .. _NBViewer: http://nbviewer.ipython.org/github/pycalphad/pycalphad/tree/master/examples/
-.. _ReadTheDocs: http://pycalphad.readthedocs.org/
+.. _pycalphad.org: http://pycalphad.org/
 .. _Prof. Zi-Kui Liu: http://www.phases.psu.edu/
 .. _Department of Materials Science and Engineering: http://matse.psu.edu/
 .. _Pennsylvania State University: http://www.psu.edu/
