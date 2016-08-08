@@ -1,3 +1,5 @@
+sudo: false
+install: true
 env:
   global:
   - secure: YP7uu+GS1uO+37qrnz6S8Ic3GwdwGnrHrdoXnA4NBjRw90+1DW+1iTPsUU51dnH26skBRNrNiEJhhM0ChEGzO2/9r5V7WVgq7Ahw0ZYC212oydvAdvvvn9XeH6qaaFyFk47hogWdt9QncIX/QacO2oS6dVFG8jW6kVz+mwwgbk4=
