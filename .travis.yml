@@ -12,7 +12,7 @@ deploy:
   bucket: "pycalphad.org"
   skip_cleanup: true
   on:
-    branch: gh-pages
+    branch: website
 branches:
   only:
-    - gh-pages
+    - website
