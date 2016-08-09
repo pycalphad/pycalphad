@@ -18,7 +18,7 @@ if [ "$SOURCE_LATEST_BRANCH" = "$TRAVIS_BRANCH" ] && [ "$TRAVIS_TAG" = "" ]; the
    DEPLOY_NAME="latest"
 fi
 
-if [ "$SOURCE_TAG_BRANCH" = "$TRAVIS_BRANCH" ] && [ "$TRAVIS_TAG" != "" ]; then
+if [ "$TRAVIS_TAG" != "" ]; then
    DEPLOY_NAME="$TRAVIS_TAG"
 fi
 
