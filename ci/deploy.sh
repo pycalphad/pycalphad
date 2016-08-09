@@ -6,7 +6,7 @@ set -e # Exit with nonzero exit code if anything fails
 SOURCE_LATEST_BRANCH="develop"
 # Deploy only on tagged commits to master
 SOURCE_TAG_BRANCH="master"
-TARGET_BRANCH="gh-pages"
+TARGET_BRANCH="website"
 
 function doCompile {
   # Need to think more about API doc rebuild because that lives outside gh-pages
@@ -62,7 +62,7 @@ fi
 # Commit the "changes", i.e. the new version.
 # The delta will show diffs between new and old versions.
 git add -A .
-git commit -m "DOC: Deploy '${DEPLOY_NAME}' docs to GitHub Pages: ${SHA}"
+git commit -m "DOC: Deploy '${DEPLOY_NAME}' docs to website: ${SHA}"
 
 # Get the deploy key by using Travis's stored variables to decrypt deploy_key.enc
 ENCRYPTED_KEY_VAR="encrypted_${DEPLOY_ENC_LABEL}_key"
