@@ -1,23 +1,23 @@
-""" Benchmarks for use with the airspeed velocity (asv) package. 
+""" Benchmarks for use with the airspeed velocity (asv) package.
 (http://asv.readthedocs.io/en/latest/)
 
-The calculate and equilibrium benchmarks were chosen from the examples for 
+The calculate and equilibrium benchmarks were chosen from the examples for
 simplicity. They may not be completely representative, but the purpose of the
 benchmarks is to show how the performance changes over time. Testing the limits
 of the code is for the tests.
 """
 
+import timeit
 from pycalphad import Database, Model, calculate, equilibrium, v
 from pycalphad.core.halton import halton
-import timeit
 
 __author__ = "Brandon Bocklund"
 
 class BenchmarkSetups:
     """ Benchmarks the creation of databases and models.
-    
+
     Note that multiple databases, files, etc. could be tested
-    using the 'params' attribute. 
+    using the 'params' attribute.
     """
 
     def setup(self):
@@ -25,7 +25,7 @@ class BenchmarkSetups:
         with open('alfe_sei.TDB', 'w') as f:
             f.write(ALFE_TDB)
         # setup TDBs
-        self.tdb_file =  open('alfe_sei.TDB', 'r')
+        self.tdb_file = open('alfe_sei.TDB', 'r')
         self.tdb_string = ALFE_TDB
         # setup databases
         self.db = Database(self.tdb_string)
@@ -35,10 +35,10 @@ class BenchmarkSetups:
 
     def time_database_string(self):
         Database(self.tdb_string)
-    
+
     def time_database_file(self):
         Database(self.tdb_file)
-    
+
     def time_model_magnetic(self):
         Model(self.db, ['AL', 'FE', 'VA'], 'B2_BCC')
 
@@ -65,10 +65,10 @@ class BenchmarkEquilibrium:
         self.db_alni = Database(ALNI_TDB)
 
     def time_equilibrium_al_fe(self):
-        equilibrium(self.db_alni, ['AL', 'NI', 'VA'], ['LIQUID', 'FCC_L12'], {v.X('AL'): 0.10, v.T: (300, 2500, 20), v.P: 101325})
+        equilibrium(self.db_alni, ['AL', 'NI', 'VA'], ['LIQUID', 'FCC_L12'], {v.X('AL'): 0.10, v.T: (300, 2500, 20), v.P: 101325}, pbar=False)
 
     def time_equilibrium_al_ni(self):
-        equilibrium(self.db_alfe , ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'], {v.X('AL'): 0.25, v.T: (300, 2000, 50), v.P: 101325})
+        equilibrium(self.db_alfe, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'], {v.X('AL'): 0.25, v.T: (300, 2000, 50), v.P: 101325}, pbar=False)
 
 def time_halton(dim, pts):
     halton(dim, pts)
