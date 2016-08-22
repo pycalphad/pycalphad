@@ -37,3 +37,15 @@ def test_export_import():
     test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
     ref_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
     assert test_model == ref_model
+
+def test_custom_model_contributions():
+    "Building a custom model using contributions."
+    class CustomModel(Model):
+        contributions = [('zzz', 'test'), ('xxx', 'test2'), ('yyy', 'test3')]
+        def test(self, dbe):
+            return 0
+        def test2(self, dbe):
+            return 0
+        def test3(self, dbe):
+            return 0
+    CustomModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')

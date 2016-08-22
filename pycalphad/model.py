@@ -10,6 +10,7 @@ import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.log import logger
 import numpy as np
+from collections import OrderedDict
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
@@ -26,11 +27,11 @@ class Model(object):
 
     Parameters
     ----------
-    dbf : Database
+    dbe : Database
         Database containing the relevant parameters.
     comps : list
         Names of components to consider in the calculation.
-    phase : list
+    phase_name : str
         Name of phase model to build.
     parameters : dict
         Optional dictionary of parameters to be substituted in the model.
@@ -44,25 +45,35 @@ class Model(object):
     --------
     None yet.
     """
-    def __init__(self, dbe, comps, phase, parameters=None):
+    # We only use the contributions attribute in build_phase.
+    # Users should not access it later since subclasses can override build_phase
+    # and make self.models inconsistent with contributions.
+    # Note that we include atomic ordering last since it uses self.models
+    # to figure out its contribution.
+    contributions = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'),
+                     ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
+                     ('ord', 'atomic_ordering_energy')]
+
+    def __init__(self, dbe, comps, phase_name, parameters=None):
         # Constrain possible components to those within phase's d.o.f
         possible_comps = set([x.upper() for x in comps])
         self.components = set()
         self.constituents = []
-        self.phase_name = phase.upper()
-        self.site_ratios = dbe.phases[phase.upper()].sublattices
-        for sublattice in dbe.phases[phase.upper()].constituents:
+        self.phase_name = phase_name.upper()
+        phase = dbe.phases[self.phase_name]
+        self.site_ratios = phase.sublattices
+        for sublattice in phase.constituents:
             self.components |= set(sublattice).intersection(possible_comps)
-        logger.debug('Model of %s has components %s', phase, self.components)
+        logger.debug('Model of %s has components %s', self.phase_name, self.components)
         # Verify that this phase is still possible to build
-        for sublattice in dbe.phases[phase.upper()].constituents:
+        for sublattice in phase.constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
                 raise DofError(
                     '{0}: Sublattice {1} of {2} has no components in {3}' \
-                    .format(phase.upper(), sublattice,
-                            dbe.phases[phase.upper()].constituents,
+                    .format(self.phase_name, sublattice,
+                            phase.constituents,
                             self.components))
             self.constituents.append(set(sublattice).intersection(self.components))
 
@@ -73,8 +84,8 @@ class Model(object):
         if parameters is not None:
             symbols.update([(Symbol(s), val) for s, val in parameters.items()])
 
-        self.models = dict()
-        self.build_phase(dbe, phase.upper(), symbols, dbe.search)
+        self.models = OrderedDict()
+        self.build_phase(dbe)
         self.site_fractions = sorted(self.ast.atoms(v.SiteFraction), key=str)
 
         for name, value in self.models.items():
@@ -195,31 +206,23 @@ class Model(object):
     mixing_heat_capacity = CPM_MIX = \
         property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
-    def build_phase(self, dbe, phase_name, symbols, param_search):
+    def build_phase(self, dbe):
         """
-        Apply phase's model hints to build a master SymPy object.
-        """
-        phase = dbe.phases[phase_name]
-        self.models['ref'] = self.reference_energy(phase, param_search)
-        self.models['idmix'] = self.ideal_mixing_energy(phase, param_search)
-        self.models['xsmix'] = self.excess_mixing_energy(phase, param_search)
-        self.models['mag'] = self.magnetic_energy(phase, param_search)
+        Generate the symbolic form of all the contributions to this phase.
 
-        # Next, we handle atomic ordering
-        # NOTE: We need to add this one last since it uses self.models
-        # to figure out the contribution.
-        # It will also MODIFY self.models
-        ordered_phase_name = None
-        disordered_phase_name = None
-        try:
-            ordered_phase_name = phase.model_hints['ordered_phase']
-            disordered_phase_name = phase.model_hints['disordered_phase']
-        except KeyError:
-            pass
-        if ordered_phase_name == phase_name:
-            self.models['ord'] = self.atomic_ordering_energy(dbe,
-                                                             disordered_phase_name,
-                                                             ordered_phase_name)
+        Parameters
+        ----------
+        dbe : Database
+        """
+        contrib_vals = list(OrderedDict(self.__class__.contributions).values())
+        if 'atomic_ordering_energy' in contrib_vals:
+            if contrib_vals.index('atomic_ordering_energy') != (len(contrib_vals) - 1):
+                # Check for a common mistake in custom models
+                # Users that need to override this behavior should override build_phase
+                raise ValueError('\'atomic_ordering_energy\' must be the final contribution')
+        self.models.clear()
+        for key, value in self.__class__.contributions:
+            self.models[key] = S(getattr(self, value)(dbe))
 
     def _purity_test(self, constituent_array):
         """
@@ -389,26 +392,29 @@ class Model(object):
             rk_terms.append(mixing_term * param['parameter'])
         return Add(*rk_terms)
 
-    def reference_energy(self, phase, param_search):
+    def reference_energy(self, dbe):
         """
         Returns the weighted average of the endmember energies
         in symbolic form.
         """
         pure_param_query = (
-            (where('phase_name') == phase.name) & \
+            (where('phase_name') == self.phase_name) & \
             (where('parameter_order') == 0) & \
             (where('parameter_type') == "G") & \
             (where('constituent_array').test(self._purity_test))
         )
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
         return pure_energy_term / self._site_ratio_normalization(phase)
 
-    def ideal_mixing_energy(self, phase, param_search):
+    def ideal_mixing_energy(self, dbe):
         #pylint: disable=W0613
         """
         Returns the ideal mixing energy in symbolic form.
         """
+        phase = dbe.phases[self.phase_name]
         # Normalize site ratios
         site_ratio_normalization = self._site_ratio_normalization(phase)
         site_ratios = phase.sublattices
@@ -429,7 +435,7 @@ class Model(object):
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
 
-    def excess_mixing_energy(self, phase, param_search):
+    def excess_mixing_energy(self, dbe):
         """
         Build the binary, ternary and higher order interaction term
         Here we use Redlich-Kister polynomial basis by default
@@ -437,8 +443,10 @@ class Model(object):
         Replace y_i -> y_i + (1 - sum(y involved in parameter)) / m,
         where m is the arity of the interaction parameter
         """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
         param_query = (
-            (where('phase_name') == phase.name) & \
+            (where('phase_name') == self.phase_name) & \
                 ((where('parameter_type') == 'G') |
                  (where('parameter_type') == 'L')) & \
                 (where('constituent_array').test(self._interaction_test))
@@ -446,13 +454,15 @@ class Model(object):
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
         return excess_term / self._site_ratio_normalization(phase)
 
-    def magnetic_energy(self, phase, param_search):
+    def magnetic_energy(self, dbe):
         #pylint: disable=C0103, R0914
         """
         Return the energy from magnetic ordering in symbolic form.
         The implemented model is the Inden-Hillert-Jarl formulation.
         The approach follows from the background section of W. Xiong, 2011.
         """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
         self.TC = self.curie_temperature = S.Zero
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
             return S.Zero
@@ -547,12 +557,16 @@ class Model(object):
 
         return numerator / site_ratio_normalization
 
-    def atomic_ordering_energy(self, dbe, disordered_phase_name,
-                               ordered_phase_name):
+    def atomic_ordering_energy(self, dbe):
         """
         Return the atomic ordering contribution in symbolic form.
         Description follows Servant and Ansara, Calphad, 2001.
         """
+        phase = dbe.phases[self.phase_name]
+        ordered_phase_name = phase.model_hints.get('ordered_phase', None)
+        disordered_phase_name = phase.model_hints.get('disordered_phase', None)
+        if phase.name != ordered_phase_name:
+            return S.Zero
         disordered_model = self.__class__(dbe, self.components,
                                           disordered_phase_name)
         constituents = [sorted(set(c).intersection(self.components)) \
