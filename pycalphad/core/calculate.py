@@ -119,6 +119,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     phase_output = func(*itertools.chain(statevars, np.rollaxis(points, -1, start=0)))
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
+    phase_output = np.asarray(phase_output, dtype=np.float)
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
