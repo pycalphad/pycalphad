@@ -68,6 +68,7 @@ TDB_PHASE_DESCRIPTIONS = sorted([
 
 TDB_PARAM_TYPES = sorted([
     'G',
+    'GD',
     'L',
     'TC',
     'BMAGN',
@@ -75,6 +76,7 @@ TDB_PARAM_TYPES = sorted([
     'MF',
     'DQ',
     'DF',
+    'NT',
     'V0',
     'VS'
 ])

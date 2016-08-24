@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol
+from sympy import exp, log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -52,7 +52,7 @@ class Model(object):
     # to figure out its contribution.
     contributions = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'),
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
-                     ('ord', 'atomic_ordering_energy')]
+                     ('2st', 'twostate_energy'), ('ord', 'atomic_ordering_energy')]
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
         # Constrain possible components to those within phase's d.o.f
@@ -191,6 +191,7 @@ class Model(object):
 
     # Note: In order-disorder phases, TC will always be the *disordered* value of TC
     curie_temperature = TC = S.Zero
+    neel_temperature = NT = S.Zero
 
     #pylint: disable=C0103
     # These are standard abbreviations from Thermo-Calc for these quantities
@@ -459,7 +460,7 @@ class Model(object):
         """
         Return the energy from magnetic ordering in symbolic form.
         The implemented model is the Inden-Hillert-Jarl formulation.
-        The approach follows from the background section of W. Xiong, 2011.
+        The approach follows from the background of W. Xiong et al, Calphad, 2012.
         """
         phase = dbe.phases[self.phase_name]
         param_search = dbe.search
@@ -472,6 +473,10 @@ class Model(object):
         site_ratio_normalization = self._site_ratio_normalization(phase)
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
+
+        if afm_factor == 0:
+            # Apply improved magnetic model which does not use AFM / Weiss factor
+            return self.xiong_magnetic_energy(dbe)
 
         bm_param_query = (
             (where('phase_name') == phase.name) & \
@@ -519,6 +524,102 @@ class Model(object):
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
+
+    def xiong_magnetic_energy(self, dbe):
+        """
+        Return the energy from magnetic ordering in symbolic form.
+        The approach follows W. Xiong et al, Calphad, 2012.
+        """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+        self.TC = self.curie_temperature = S.Zero
+        if 'ihj_magnetic_structure_factor' not in phase.model_hints:
+            return S.Zero
+        if 'ihj_magnetic_afm_factor' not in phase.model_hints:
+            return S.Zero
+
+        site_ratio_normalization = self._site_ratio_normalization(phase)
+        # define basic variables
+        afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
+
+        if afm_factor != 0:
+            raise ValueError('Xiong model called with nonzero AFM / Weiss factor')
+
+        nt_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'NT') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        bm_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'BMAGN') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        tc_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'TC') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+
+        mean_magnetic_moment = \
+            self.redlich_kister_sum(phase, param_search, bm_param_query)
+        beta = mean_magnetic_moment
+
+        curie_temp = \
+            self.redlich_kister_sum(phase, param_search, tc_param_query)
+        neel_temp = \
+            self.redlich_kister_sum(phase, param_search, nt_param_query)
+
+        self.TC = self.curie_temperature = curie_temp.xreplace(dbe.symbols)
+        self.NT = self.neel_temperature = neel_temp.xreplace(dbe.symbols)
+
+        tau_curie = v.T / curie_temp
+        tau_curie = tau_curie.xreplace({zoo: 1.0e10})
+        tau_neel = v.T / neel_temp
+        tau_neel = tau_neel.xreplace({zoo: 1.0e10})
+
+        # define model parameters
+        p = phase.model_hints['ihj_magnetic_structure_factor']
+        D = 0.33471979 + 0.49649686*(1/p - 1)
+        sub_tau_curie = 1 - (1/D) * ((0.38438376/p)*(tau_curie**(-1)) + 0.63570895*(1/p - 1) \
+            * ((tau_curie**3)/6 + (tau_curie**9)/135 + (tau_curie**15)/600) + (tau_curie**21)/1617
+                              )
+        sub_tau_neel = 1 - (1/D) * ((0.38438376/p)*(tau_neel**(-1)) + 0.63570895*(1/p - 1) \
+            * ((tau_neel**3)/6 + (tau_neel**9)/135 + (tau_neel**15)/600) + (tau_neel**21)/1617
+                              )
+        super_tau_curie = -(1/D) * ((tau_curie**-7)/21 + (tau_curie**-21)/630 + (tau_curie**-35)/2975 + (tau_curie**-49)/8232)
+        super_tau_neel = -(1/D) * ((tau_neel**-7)/21 + (tau_neel**-21)/630 + (tau_neel**-35)/2975 + (tau_neel**-49)/8232)
+
+        expr_cond_pairs_curie = [(0, tau_curie <= 0),
+                                 (super_tau_curie, tau_curie > 1),
+                                 (sub_tau_curie, True)
+                                ]
+        expr_cond_pairs_neel = [(0, tau_neel <= 0),
+                                (super_tau_neel, tau_neel > 1),
+                                (sub_tau_neel, True)
+                               ]
+        g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
+
+        return v.R * v.T * log(beta+1) * \
+            g_term / site_ratio_normalization
+
+    def twostate_energy(self, dbe):
+        """
+        Return the energy from liquid-amorphous two-state model.
+        """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+        site_ratio_normalization = self._site_ratio_normalization(phase)
+        gd_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'GD') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        gd = self.redlich_kister_sum(phase, param_search, gd_param_query)
+        if gd == S.Zero:
+            return S.Zero
+        return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T))) / site_ratio_normalization
 
     @staticmethod
     def mole_fraction(species_name, phase_name, constituent_array,
