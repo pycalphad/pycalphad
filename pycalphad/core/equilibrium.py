@@ -914,7 +914,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         else:
             per_phase = False
         properties.merge(_eqcalculate(dbf, comps, active_phases, conditions, out,
-                                      data=properties, per_phase=per_phase, **calc_opts), inplace=True, compat='equals')
+                                      data=properties, per_phase=per_phase, model=models, **calc_opts),
+                         inplace=True, compat='equals')
     properties.attrs['created'] = datetime.utcnow()
     if return_grids:
         return properties, intermediate_grids
