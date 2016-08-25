@@ -6,6 +6,8 @@ cache:
   directories:
   - $HOME/.cache/pip
   - $HOME/miniconda2
+before_cache:
+  - rm -Rf $HOME/miniconda2/envs
 
 matrix:
     include:
@@ -35,7 +37,7 @@ before_install:
   - ./miniconda.sh -b -f
   - export PATH=$HOME/miniconda2/bin:$PATH
   - conda update --yes conda
-  - conda create --yes --force -n condaenv python=$TRAVIS_PYTHON_VERSION
+  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
   - conda install --yes -n condaenv pip
   - source activate condaenv
   - conda config --add channels conda-forge
