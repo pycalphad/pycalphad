@@ -481,8 +481,8 @@ class TCPrinter(StrPrinter):
 
     def _print_Function(self, expr):
         func_translations = {'log': 'ln', 'exp': 'exp'}
-        if expr.func.__name__ in func_translations:
-            return func_translations[expr.func.__name__] + "(%s)" % self.stringify(expr.args, ", ")
+        if expr.func.__name__.lower() in func_translations:
+            return func_translations[expr.func.__name__.lower()] + "(%s)" % self.stringify(expr.args, ", ")
         else:
             raise TypeError("Unable to represent function: %s" %
                              expr.func.__name__)
