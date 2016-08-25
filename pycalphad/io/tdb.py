@@ -38,6 +38,8 @@ def _sympify_string(math_string):
     expr_string = \
         re.sub(r'(?<!\w)LN(?!\w)', 'ln', expr_string, flags=re.IGNORECASE)
     expr_string = \
+        re.sub(r'(?<!\w)LOG(?!\w)', 'log', expr_string, flags=re.IGNORECASE)
+    expr_string = \
         re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                flags=re.IGNORECASE)
     # Convert raw variables into StateVariable objects
