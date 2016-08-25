@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.tests.test_model &mdash; pycalphad 0.4.1+6.g91cebf3 documentation</title>
+  <title>pycalphad.tests.test_model &mdash; pycalphad 0.4.1+16.g6fca2e0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.1+6.g91cebf3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.1+16.g6fca2e0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.1+6.g91cebf3
+                0.4.1+16.g6fca2e0
               </div>
             
           
@@ -172,6 +172,18 @@
     <span class="n">test_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">Database</span><span class="o">.</span><span class="n">from_string</span><span class="p">(</span><span class="n">ALNIPT_DBF</span><span class="o">.</span><span class="n">to_string</span><span class="p">(</span><span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;tdb&#39;</span><span class="p">),</span> <span class="n">fmt</span><span class="o">=</span><span class="s1">&#39;tdb&#39;</span><span class="p">),</span> <span class="p">[</span><span class="s1">&#39;PT&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="s1">&#39;FCC_L12&#39;</span><span class="p">)</span>
     <span class="n">ref_model</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">ALNIPT_DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;PT&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="s1">&#39;FCC_L12&#39;</span><span class="p">)</span>
     <span class="k">assert</span> <span class="n">test_model</span> <span class="o">==</span> <span class="n">ref_model</span></div>
+
+<div class="viewcode-block" id="test_custom_model_contributions"><a class="viewcode-back" href="../../../api/pycalphad.tests.html#pycalphad.tests.test_model.test_custom_model_contributions">[docs]</a><span class="k">def</span> <span class="nf">test_custom_model_contributions</span><span class="p">():</span>
+    <span class="s2">&quot;Building a custom model using contributions.&quot;</span>
+    <span class="k">class</span> <span class="nc">CustomModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
+        <span class="n">contributions</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;zzz&#39;</span><span class="p">,</span> <span class="s1">&#39;test&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;xxx&#39;</span><span class="p">,</span> <span class="s1">&#39;test2&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;yyy&#39;</span><span class="p">,</span> <span class="s1">&#39;test3&#39;</span><span class="p">)]</span>
+        <span class="k">def</span> <span class="nf">test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">def</span> <span class="nf">test2</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+        <span class="k">def</span> <span class="nf">test3</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+            <span class="k">return</span> <span class="mi">0</span>
+    <span class="n">CustomModel</span><span class="p">(</span><span class="n">ALCRNI_DBF</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CR&#39;</span><span class="p">],</span> <span class="s1">&#39;L12_FCC&#39;</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -205,7 +217,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.1+6.g91cebf3',
+            VERSION:'0.4.1+16.g6fca2e0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

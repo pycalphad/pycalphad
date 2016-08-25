@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.4.1+6.g91cebf3 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.4.1+16.g6fca2e0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.1+6.g91cebf3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.1+16.g6fca2e0 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.1+6.g91cebf3
+                0.4.1+16.g6fca2e0
               </div>
             
           
@@ -1049,7 +1049,8 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">per_phase</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">_eqcalculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
-                                      <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_opts</span><span class="p">),</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
+                                      <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_opts</span><span class="p">),</span>
+                         <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
     <span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
     <span class="k">if</span> <span class="n">return_grids</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">properties</span><span class="p">,</span> <span class="n">intermediate_grids</span>
@@ -1088,7 +1089,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.1+6.g91cebf3',
+            VERSION:'0.4.1+16.g6fca2e0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

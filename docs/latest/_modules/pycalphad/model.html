@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.4.1+6.g91cebf3 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.4.1+16.g6fca2e0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.1+6.g91cebf3 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.1+16.g6fca2e0 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.1+6.g91cebf3
+                0.4.1+16.g6fca2e0
               </div>
             
           
@@ -139,12 +139,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
 <span class="kn">import</span> <span class="nn">copy</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">Symbol</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="k">import</span> <span class="n">where</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
 <span class="c1"># Maximum number of levels deep we check for symbols that are functions of</span>
 <span class="c1"># other symbols</span>
@@ -161,11 +162,11 @@
 
 <span class="sd">    Parameters</span>
 <span class="sd">    ----------</span>
-<span class="sd">    dbf : Database</span>
+<span class="sd">    dbe : Database</span>
 <span class="sd">        Database containing the relevant parameters.</span>
 <span class="sd">    comps : list</span>
 <span class="sd">        Names of components to consider in the calculation.</span>
-<span class="sd">    phase : list</span>
+<span class="sd">    phase_name : str</span>
 <span class="sd">        Name of phase model to build.</span>
 <span class="sd">    parameters : dict</span>
 <span class="sd">        Optional dictionary of parameters to be substituted in the model.</span>
@@ -179,25 +180,35 @@
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="c1"># We only use the contributions attribute in build_phase.</span>
+    <span class="c1"># Users should not access it later since subclasses can override build_phase</span>
+    <span class="c1"># and make self.models inconsistent with contributions.</span>
+    <span class="c1"># Note that we include atomic ordering last since it uses self.models</span>
+    <span class="c1"># to figure out its contribution.</span>
+    <span class="n">contributions</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span> <span class="s1">&#39;reference_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;idmix&#39;</span><span class="p">,</span> <span class="s1">&#39;ideal_mixing_energy&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;xsmix&#39;</span><span class="p">,</span> <span class="s1">&#39;excess_mixing_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;magnetic_energy&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;2st&#39;</span><span class="p">,</span> <span class="s1">&#39;twostate_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ord&#39;</span><span class="p">,</span> <span class="s1">&#39;atomic_ordering_energy&#39;</span><span class="p">)]</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Constrain possible components to those within phase&#39;s d.o.f</span>
         <span class="n">possible_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">])</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="p">[]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">sublattices</span>
-        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span>
+        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">possible_comps</span><span class="p">)</span>
-        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Model of </span><span class="si">%s</span><span class="s1"> has components </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;Model of </span><span class="si">%s</span><span class="s1"> has components </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
         <span class="c1"># Verify that this phase is still possible to build</span>
-        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="c1"># None of the components in a sublattice are active</span>
                 <span class="c1"># We cannot build a model of this phase</span>
                 <span class="k">raise</span> <span class="n">DofError</span><span class="p">(</span>
                     <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1">: Sublattice </span><span class="si">{1}</span><span class="s1"> of </span><span class="si">{2}</span><span class="s1"> has no components in </span><span class="si">{3}</span><span class="s1">&#39;</span> \
-                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">sublattice</span><span class="p">,</span>
-                            <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span>
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">sublattice</span><span class="p">,</span>
+                            <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span>
                             <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span>
 
@@ -208,8 +219,8 @@
         <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">symbols</span><span class="o">.</span><span class="n">update</span><span class="p">([(</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">build_phase</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">build_phase</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">site_fractions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -315,6 +326,7 @@
 
     <span class="c1"># Note: In order-disorder phases, TC will always be the *disordered* value of TC</span>
     <span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">TC</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+    <span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">NT</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
 
     <span class="c1">#pylint: disable=C0103</span>
     <span class="c1"># These are standard abbreviations from Thermo-Calc for these quantities</span>
@@ -330,31 +342,23 @@
     <span class="n">mixing_heat_capacity</span> <span class="o">=</span> <span class="n">CPM_MIX</span> <span class="o">=</span> \
         <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">GM_MIX</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Model.build_phase"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.build_phase">[docs]</a>    <span class="k">def</span> <span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">symbols</span><span class="p">,</span> <span class="n">param_search</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.build_phase"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.build_phase">[docs]</a>    <span class="k">def</span> <span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">        Apply phase&#39;s model hints to build a master SymPy object.</span>
-<span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;ref&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_energy</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;idmix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">ideal_mixing_energy</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;xsmix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">excess_mixing_energy</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;mag&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">magnetic_energy</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">)</span>
+<span class="sd">        Generate the symbolic form of all the contributions to this phase.</span>
 
-        <span class="c1"># Next, we handle atomic ordering</span>
-        <span class="c1"># NOTE: We need to add this one last since it uses self.models</span>
-        <span class="c1"># to figure out the contribution.</span>
-        <span class="c1"># It will also MODIFY self.models</span>
-        <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="kc">None</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span>
-            <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span>
-        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
-            <span class="k">pass</span>
-        <span class="k">if</span> <span class="n">ordered_phase_name</span> <span class="o">==</span> <span class="n">phase_name</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;ord&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">atomic_ordering_energy</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span>
-                                                             <span class="n">disordered_phase_name</span><span class="p">,</span>
-                                                             <span class="n">ordered_phase_name</span><span class="p">)</span></div>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        dbe : Database</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">contrib_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">OrderedDict</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">contributions</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="k">if</span> <span class="s1">&#39;atomic_ordering_energy&#39;</span> <span class="ow">in</span> <span class="n">contrib_vals</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">contrib_vals</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;atomic_ordering_energy&#39;</span><span class="p">)</span> <span class="o">!=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">contrib_vals</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="c1"># Check for a common mistake in custom models</span>
+                <span class="c1"># Users that need to override this behavior should override build_phase</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">atomic_ordering_energy</span><span class="se">\&#39;</span><span class="s1"> must be the final contribution&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="o">.</span><span class="n">contributions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)(</span><span class="n">dbe</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_purity_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -524,26 +528,29 @@
             <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
         <span class="k">return</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">rk_terms</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Model.reference_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.reference_energy">[docs]</a>    <span class="k">def</span> <span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.reference_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.reference_energy">[docs]</a>    <span class="k">def</span> <span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the weighted average of the endmember energies</span>
 <span class="sd">        in symbolic form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">pure_param_query</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s2">&quot;G&quot;</span><span class="p">)</span> <span class="o">&amp;</span> \
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_purity_test</span><span class="p">))</span>
         <span class="p">)</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">pure_energy_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span>
                                                    <span class="n">pure_param_query</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">pure_energy_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Model.ideal_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.ideal_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">ideal_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.ideal_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.ideal_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">ideal_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="c1">#pylint: disable=W0613</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Returns the ideal mixing energy in symbolic form.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="c1"># Normalize site ratios</span>
         <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
         <span class="n">site_ratios</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span>
@@ -564,7 +571,7 @@
         <span class="n">ideal_mixing_term</span> <span class="o">*=</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">ideal_mixing_term</span></div>
 
-<div class="viewcode-block" id="Model.excess_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.excess_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">excess_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.excess_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.excess_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">excess_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build the binary, ternary and higher order interaction term</span>
 <span class="sd">        Here we use Redlich-Kister polynomial basis by default</span>
@@ -572,8 +579,10 @@
 <span class="sd">        Replace y_i -&gt; y_i + (1 - sum(y involved in parameter)) / m,</span>
 <span class="sd">        where m is the arity of the interaction parameter</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">param_query</span> <span class="o">=</span> <span class="p">(</span>
-            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">)</span> <span class="o">&amp;</span> \
                 <span class="p">((</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;G&#39;</span><span class="p">)</span> <span class="o">|</span>
                  <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;L&#39;</span><span class="p">))</span> <span class="o">&amp;</span> \
                 <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_interaction_test</span><span class="p">))</span>
@@ -581,13 +590,15 @@
         <span class="n">excess_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">excess_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="Model.magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="c1">#pylint: disable=C0103, R0914</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the energy from magnetic ordering in symbolic form.</span>
 <span class="sd">        The implemented model is the Inden-Hillert-Jarl formulation.</span>
-<span class="sd">        The approach follows from the background section of W. Xiong, 2011.</span>
+<span class="sd">        The approach follows from the background of W. Xiong et al, Calphad, 2012.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="k">if</span> <span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
@@ -597,6 +608,10 @@
         <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
         <span class="c1"># define basic variables</span>
         <span class="n">afm_factor</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">afm_factor</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Apply improved magnetic model which does not use AFM / Weiss factor</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">xiong_magnetic_energy</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
 
         <span class="n">bm_param_query</span> <span class="o">=</span> <span class="p">(</span>
             <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
@@ -645,6 +660,102 @@
         <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
             <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
+<div class="viewcode-block" id="Model.xiong_magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.xiong_magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">xiong_magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the energy from magnetic ordering in symbolic form.</span>
+<span class="sd">        The approach follows W. Xiong et al, Calphad, 2012.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="k">if</span> <span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="k">if</span> <span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+
+        <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="c1"># define basic variables</span>
+        <span class="n">afm_factor</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="n">afm_factor</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Xiong model called with nonzero AFM / Weiss factor&#39;</span><span class="p">)</span>
+
+        <span class="n">nt_param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;NT&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">bm_param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;BMAGN&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">tc_param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;TC&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+
+        <span class="n">mean_magnetic_moment</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">bm_param_query</span><span class="p">)</span>
+        <span class="n">beta</span> <span class="o">=</span> <span class="n">mean_magnetic_moment</span>
+
+        <span class="n">curie_temp</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">tc_param_query</span><span class="p">)</span>
+        <span class="n">neel_temp</span> <span class="o">=</span> \
+            <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">nt_param_query</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">curie_temp</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">neel_temp</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+
+        <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">curie_temp</span>
+        <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">tau_curie</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="mf">1.0e10</span><span class="p">})</span>
+        <span class="n">tau_neel</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">neel_temp</span>
+        <span class="n">tau_neel</span> <span class="o">=</span> <span class="n">tau_neel</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="mf">1.0e10</span><span class="p">})</span>
+
+        <span class="c1"># define model parameters</span>
+        <span class="n">p</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">]</span>
+        <span class="n">D</span> <span class="o">=</span> <span class="mf">0.33471979</span> <span class="o">+</span> <span class="mf">0.49649686</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="n">sub_tau_curie</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="mf">0.38438376</span><span class="o">/</span><span class="n">p</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">tau_curie</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.63570895</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> \
+            <span class="o">*</span> <span class="p">((</span><span class="n">tau_curie</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**</span><span class="mi">9</span><span class="p">)</span><span class="o">/</span><span class="mi">135</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**</span><span class="mi">15</span><span class="p">)</span><span class="o">/</span><span class="mi">600</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**</span><span class="mi">21</span><span class="p">)</span><span class="o">/</span><span class="mi">1617</span>
+                              <span class="p">)</span>
+        <span class="n">sub_tau_neel</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="mf">0.38438376</span><span class="o">/</span><span class="n">p</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">tau_neel</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="o">+</span> <span class="mf">0.63570895</span><span class="o">*</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">p</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> \
+            <span class="o">*</span> <span class="p">((</span><span class="n">tau_neel</span><span class="o">**</span><span class="mi">3</span><span class="p">)</span><span class="o">/</span><span class="mi">6</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**</span><span class="mi">9</span><span class="p">)</span><span class="o">/</span><span class="mi">135</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**</span><span class="mi">15</span><span class="p">)</span><span class="o">/</span><span class="mi">600</span><span class="p">)</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**</span><span class="mi">21</span><span class="p">)</span><span class="o">/</span><span class="mi">1617</span>
+                              <span class="p">)</span>
+        <span class="n">super_tau_curie</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">tau_curie</span><span class="o">**-</span><span class="mi">7</span><span class="p">)</span><span class="o">/</span><span class="mi">21</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**-</span><span class="mi">21</span><span class="p">)</span><span class="o">/</span><span class="mi">630</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**-</span><span class="mi">35</span><span class="p">)</span><span class="o">/</span><span class="mi">2975</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_curie</span><span class="o">**-</span><span class="mi">49</span><span class="p">)</span><span class="o">/</span><span class="mi">8232</span><span class="p">)</span>
+        <span class="n">super_tau_neel</span> <span class="o">=</span> <span class="o">-</span><span class="p">(</span><span class="mi">1</span><span class="o">/</span><span class="n">D</span><span class="p">)</span> <span class="o">*</span> <span class="p">((</span><span class="n">tau_neel</span><span class="o">**-</span><span class="mi">7</span><span class="p">)</span><span class="o">/</span><span class="mi">21</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**-</span><span class="mi">21</span><span class="p">)</span><span class="o">/</span><span class="mi">630</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**-</span><span class="mi">35</span><span class="p">)</span><span class="o">/</span><span class="mi">2975</span> <span class="o">+</span> <span class="p">(</span><span class="n">tau_neel</span><span class="o">**-</span><span class="mi">49</span><span class="p">)</span><span class="o">/</span><span class="mi">8232</span><span class="p">)</span>
+
+        <span class="n">expr_cond_pairs_curie</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tau_curie</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">),</span>
+                                 <span class="p">(</span><span class="n">super_tau_curie</span><span class="p">,</span> <span class="n">tau_curie</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span>
+                                 <span class="p">(</span><span class="n">sub_tau_curie</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                                <span class="p">]</span>
+        <span class="n">expr_cond_pairs_neel</span> <span class="o">=</span> <span class="p">[(</span><span class="mi">0</span><span class="p">,</span> <span class="n">tau_neel</span> <span class="o">&lt;=</span> <span class="mi">0</span><span class="p">),</span>
+                                <span class="p">(</span><span class="n">super_tau_neel</span><span class="p">,</span> <span class="n">tau_neel</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">),</span>
+                                <span class="p">(</span><span class="n">sub_tau_neel</span><span class="p">,</span> <span class="kc">True</span><span class="p">)</span>
+                               <span class="p">]</span>
+        <span class="n">g_term</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_curie</span><span class="p">)</span> <span class="o">+</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_neel</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
+            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+
+<div class="viewcode-block" id="Model.twostate_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.twostate_energy">[docs]</a>    <span class="k">def</span> <span class="nf">twostate_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the energy from liquid-amorphous two-state model.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
+        <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span>
+        <span class="n">gd_param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;GD&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">gd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">gd_param_query</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">gd</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
+
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="Model.mole_fraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.mole_fraction">[docs]</a>    <span class="k">def</span> <span class="nf">mole_fraction</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span>
                       <span class="n">site_ratios</span><span class="p">):</span>
@@ -682,12 +793,16 @@
 
         <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
-<div class="viewcode-block" id="Model.atomic_ordering_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.atomic_ordering_energy">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_ordering_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">disordered_phase_name</span><span class="p">,</span>
-                               <span class="n">ordered_phase_name</span><span class="p">):</span>
+<div class="viewcode-block" id="Model.atomic_ordering_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.atomic_ordering_energy">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_ordering_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Return the atomic ordering contribution in symbolic form.</span>
 <span class="sd">        Description follows Servant and Ansara, Calphad, 2001.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">ordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="n">disordered_phase_name</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span> <span class="o">!=</span> <span class="n">ordered_phase_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="n">disordered_model</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">__class__</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span>
                                           <span class="n">disordered_phase_name</span><span class="p">)</span>
         <span class="n">constituents</span> <span class="o">=</span> <span class="p">[</span><span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span> \
@@ -830,7 +945,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.4.1+6.g91cebf3',
+            VERSION:'0.4.1+16.g6fca2e0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.4.1+6.g91cebf3 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.4.1+16.g6fca2e0 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.1+6.g91cebf3 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.4.1+16.g6fca2e0 documentation" href="../index.html"/>
         <link rel="up" title="API Documentation" href="modules.html"/>
         <link rel="next" title="pycalphad.core package" href="pycalphad.core.html"/>
         <link rel="prev" title="API Documentation" href="modules.html"/> 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.4.1+6.g91cebf3
+                0.4.1+16.g6fca2e0
               </div>
             
           
@@ -339,7 +339,7 @@ calculations under specified conditions.</p>
 
 <dl class="class">
 <dt id="pycalphad.model.Model">
-<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase_name</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
 <p>Models use an abstract representation of the function
 for calculation of values under specified conditions.</p>
@@ -348,9 +348,9 @@ for calculation of values under specified conditions.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Database containing the relevant parameters.</li>
+<li><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Database containing the relevant parameters.</li>
 <li><strong>comps</strong> (<em>list</em>) &#8211; Names of components to consider in the calculation.</li>
-<li><strong>phase</strong> (<em>list</em>) &#8211; Name of phase model to build.</li>
+<li><strong>phase_name</strong> (<em>str</em>) &#8211; Name of phase model to build.</li>
 <li><strong>parameters</strong> (<em>dict</em>) &#8211; Optional dictionary of parameters to be substituted in the model.
 This will overwrite parameters specified in the database</li>
 </ul>
@@ -401,6 +401,11 @@ This will overwrite parameters specified in the database</li>
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pycalphad.model.Model.NT">
+<code class="descname">NT</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pycalphad.model.Model.SM">
 <code class="descname">SM</code><a class="headerlink" href="#pycalphad.model.Model.SM" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -423,16 +428,29 @@ This will overwrite parameters specified in the database</li>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.atomic_ordering_energy">
-<code class="descname">atomic_ordering_energy</code><span class="sig-paren">(</span><em>dbe</em>, <em>disordered_phase_name</em>, <em>ordered_phase_name</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.atomic_ordering_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.atomic_ordering_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">atomic_ordering_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.atomic_ordering_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.atomic_ordering_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the atomic ordering contribution in symbolic form.
 Description follows Servant and Ansara, Calphad, 2001.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.build_phase">
-<code class="descname">build_phase</code><span class="sig-paren">(</span><em>dbe</em>, <em>phase_name</em>, <em>symbols</em>, <em>param_search</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Apply phase&#8217;s model hints to build a master SymPy object.</p>
+<code class="descname">build_phase</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the symbolic form of all the contributions to this phase.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; </td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.contributions">
+<code class="descname">contributions</code><em class="property"> = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'), ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'), ('2st', 'twostate_energy'), ('ord', 'atomic_ordering_energy')]</em><a class="headerlink" href="#pycalphad.model.Model.contributions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.model.Model.curie_temperature">
@@ -461,7 +479,7 @@ Description follows Servant and Ansara, Calphad, 2001.</p>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.excess_mixing_energy">
-<code class="descname">excess_mixing_energy</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.excess_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.excess_mixing_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">excess_mixing_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.excess_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.excess_mixing_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build the binary, ternary and higher order interaction term
 Here we use Redlich-Kister polynomial basis by default
 Here we use the Muggianu ternary extension by default
@@ -481,16 +499,16 @@ where m is the arity of the interaction parameter</p>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.ideal_mixing_energy">
-<code class="descname">ideal_mixing_energy</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.ideal_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.ideal_mixing_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">ideal_mixing_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.ideal_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.ideal_mixing_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the ideal mixing energy in symbolic form.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.magnetic_energy">
-<code class="descname">magnetic_energy</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.magnetic_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">magnetic_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.magnetic_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the energy from magnetic ordering in symbolic form.
 The implemented model is the Inden-Hillert-Jarl formulation.
-The approach follows from the background section of W. Xiong, 2011.</p>
+The approach follows from the background of W. Xiong et al, Calphad, 2012.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -527,6 +545,11 @@ the ordered site fractions, so we need _all_ site fractions, including
 VA, to sum to unity.</p>
 </dd></dl>
 
+<dl class="attribute">
+<dt id="pycalphad.model.Model.neel_temperature">
+<code class="descname">neel_temperature</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.neel_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pycalphad.model.Model.redlich_kister_sum">
 <code class="descname">redlich_kister_sum</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em>, <em>param_query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.redlich_kister_sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.redlich_kister_sum" title="Permalink to this definition">¶</a></dt>
@@ -536,7 +559,7 @@ the Muggianu ternary parameter extension.</p>
 
 <dl class="method">
 <dt id="pycalphad.model.Model.reference_energy">
-<code class="descname">reference_energy</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
+<code class="descname">reference_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the weighted average of the endmember energies
 in symbolic form.</p>
 </dd></dl>
@@ -571,10 +594,23 @@ in symbolic form.</p>
 </table>
 </dd></dl>
 
+<dl class="method">
+<dt id="pycalphad.model.Model.twostate_energy">
+<code class="descname">twostate_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.twostate_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.twostate_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy from liquid-amorphous two-state model.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pycalphad.model.Model.variables">
 <code class="descname">variables</code><a class="headerlink" href="#pycalphad.model.Model.variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return state variables in the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.xiong_magnetic_energy">
+<code class="descname">xiong_magnetic_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.xiong_magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.xiong_magnetic_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy from magnetic ordering in symbolic form.
+The approach follows W. Xiong et al, Calphad, 2012.</p>
 </dd></dl>
 
 </dd></dl>
@@ -753,7 +789,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.4.1+6.g91cebf3',
+            VERSION:'0.4.1+16.g6fca2e0',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
