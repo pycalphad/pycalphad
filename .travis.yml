@@ -35,8 +35,8 @@ before_install:
   - ./miniconda.sh -b -f
   - export PATH=$HOME/miniconda2/bin:$PATH
   - conda update --yes conda
-  - conda create --yes -m -n condaenv python=$TRAVIS_PYTHON_VERSION
-  - conda install --yes -m-n condaenv pip
+  - conda create --yes --force -n condaenv python=$TRAVIS_PYTHON_VERSION
+  - conda install --yes -n condaenv pip
   - source activate condaenv
   - conda config --add channels conda-forge
 # unnecessary since we aren't trying to plot during tests anymore
