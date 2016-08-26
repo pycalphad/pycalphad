@@ -1,0 +1,531 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.4.2 documentation</title>
+  
+
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+    <link rel="top" title="pycalphad 0.4.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.4.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+                <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+        <a href="../../../index.html">pycalphad</a>
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+  <ul class="wy-breadcrumbs">
+    <li><a href="../../../index.html">Docs</a> &raquo;</li>
+      
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+      
+    <li>pycalphad.core.lower_convex_hull</li>
+      <li class="wy-breadcrumbs-aside">
+        
+          
+        
+      </li>
+  </ul>
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.lower_convex_hull</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The lower_convex_hull module handles geometric calculations associated with</span>
+<span class="sd">equilibrium calculation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cartesian</span> <span class="k">import</span> <span class="n">cartesian</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># The energetic difference, in J/mol-atom, below which is considered &#39;zero&#39;</span>
+<span class="n">DRIVING_FORCE_TOLERANCE</span> <span class="o">=</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">8</span>
+
+<span class="k">def</span> <span class="nf">_initialize_array</span><span class="p">(</span><span class="n">global_grid</span><span class="p">,</span> <span class="n">result_array</span><span class="p">):</span>
+    <span class="s2">&quot;Fill in starting values for the energy array.&quot;</span>
+    <span class="c1"># Profiling says it&#39;s way faster to compute one global max_energy value</span>
+    <span class="c1"># than to compute it per condition and do a broadcast assignment</span>
+    <span class="c1"># This will cause some minor differences in the driving force for the first few iterations</span>
+    <span class="c1"># but it shouldn&#39;t be a big deal</span>
+    <span class="n">max_energy</span> <span class="o">=</span> <span class="n">global_grid</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">max</span><span class="p">()</span>
+    <span class="n">len_comps</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">max_energy</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input energy surface contains one or more NaNs.&#39;</span><span class="p">)</span>
+    <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">max_energy</span>
+    <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;MU&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;NP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+    <span class="c1"># Initial simplex for each target point in will be</span>
+    <span class="c1">#     the fictitious hyperplane</span>
+    <span class="c1"># This hyperplane sits above the system&#39;s energy surface</span>
+    <span class="c1"># The reason for this is to guarantee our initial simplex contains</span>
+    <span class="c1">#     the target point</span>
+    <span class="c1"># Note: We&#39;re assuming that the max energy is in the first few, presumably</span>
+    <span class="c1"># fictitious points instead of more rigorously checking with argmax.</span>
+    <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">len_comps</span><span class="p">)</span>
+
+<div class="viewcode-block" id="stacked_lstsq"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.lower_convex_hull.stacked_lstsq">[docs]</a><span class="k">def</span> <span class="nf">stacked_lstsq</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">b</span><span class="p">,</span> <span class="n">rcond</span><span class="o">=</span><span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Solve L x = b, via SVD least squares cutting of small singular values</span>
+<span class="sd">    L is an array of shape (..., M, N) and b of shape (..., M).</span>
+<span class="sd">    Returns x of shape (..., N)</span>
+<span class="sd">    This code is necessary until stacked arrays are supported in numpy.linalg.lstsq.</span>
+<span class="sd">    Source: http://stackoverflow.com/questions/30442377/how-to-solve-many-overdetermined-systems-of-linear-equations-using-vectorized-co</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">u</span><span class="p">,</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">L</span><span class="p">,</span> <span class="n">full_matrices</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="n">s_max</span> <span class="o">=</span> <span class="n">s</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">s_min</span> <span class="o">=</span> <span class="n">rcond</span><span class="o">*</span><span class="n">s_max</span>
+    <span class="n">inv_s</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">s</span><span class="p">)</span>
+    <span class="n">inv_s</span><span class="p">[</span><span class="n">s</span> <span class="o">&gt;=</span> <span class="n">s_min</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span><span class="o">/</span><span class="n">s</span><span class="p">[</span><span class="n">s</span><span class="o">&gt;=</span><span class="n">s_min</span><span class="p">]</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...ji,...j-&gt;...i&#39;</span><span class="p">,</span> <span class="n">v</span><span class="p">,</span>
+                  <span class="n">inv_s</span> <span class="o">*</span> <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...ji,...j-&gt;...i&#39;</span><span class="p">,</span> <span class="n">u</span><span class="p">,</span> <span class="n">b</span><span class="o">.</span><span class="n">conj</span><span class="p">()))</span>
+    <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">conj</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="lower_convex_hull"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.lower_convex_hull.lower_convex_hull">[docs]</a><span class="k">def</span> <span class="nf">lower_convex_hull</span><span class="p">(</span><span class="n">global_grid</span><span class="p">,</span> <span class="n">result_array</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the simplices on the lower convex hull satisfying the specified</span>
+<span class="sd">    conditions in the result array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    global_grid : Dataset</span>
+<span class="sd">        A sample of the energy surface of the system.</span>
+<span class="sd">    result_array : Dataset</span>
+<span class="sd">        This object will be modified!</span>
+<span class="sd">        Coordinates correspond to conditions axes.</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        Display details to stdout. Useful for debugging.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None. Results are written to result_array.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This routine will not check if any simplex is degenerate.</span>
+<span class="sd">    Degenerate simplices will manifest with duplicate or NaN indices.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conditions</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span>
+                                                                     <span class="s1">&#39;component&#39;</span><span class="p">]]</span>
+    <span class="n">indep_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]])</span>
+    <span class="n">indep_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">indep_conds</span><span class="p">)</span>
+    <span class="n">comp_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">)])</span>
+    <span class="n">comp_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">x</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">)</span>
+    <span class="n">pot_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;MU_&#39;</span><span class="p">)])</span>
+    <span class="c1"># force conditions to have particular ordering</span>
+    <span class="n">conditions</span> <span class="o">=</span> <span class="n">indep_conds</span> <span class="o">+</span> <span class="n">pot_conds</span> <span class="o">+</span> <span class="n">comp_conds</span>
+    <span class="n">trial_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]),)</span>
+    <span class="n">trial_points</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">_initialize_array</span><span class="p">(</span><span class="n">global_grid</span><span class="p">,</span> <span class="n">result_array</span><span class="p">)</span>
+
+    <span class="c1"># Enforce ordering of shape if this is the first iteration</span>
+    <span class="k">if</span> <span class="n">result_array</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;hull_iterations&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">conditions</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">]))</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="n">conditions</span><span class="p">)</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;NP&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;NP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">transpose</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">conditions</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">]))</span>
+
+    <span class="c1"># Determine starting combinations of chemical potentials and compositions</span>
+    <span class="c1"># TODO: Check Gibbs phase rule compliance</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Chemical potential conditions are not yet supported&#39;</span><span class="p">)</span>
+
+    <span class="c1"># FIRST CASE: Only composition conditions specified</span>
+    <span class="c1"># We only need to compute the dependent composition value directly</span>
+    <span class="c1"># Initialize trial points as lowest energy point in the system</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comp_conds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">trial_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">T</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+        <span class="n">trial_points</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">trial_points</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">dim</span><span class="o">=</span><span class="s1">&#39;points&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">trial_points</span> <span class="o">=</span> <span class="n">trial_points</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">comp_values</span> <span class="o">=</span> <span class="n">cartesian</span><span class="p">([</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">])</span>
+        <span class="c1"># Insert dependent composition value</span>
+        <span class="c1"># TODO: Handle W(comp) as well as X(comp) here</span>
+        <span class="n">specified_components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">])</span>
+        <span class="n">dependent_component</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="n">specified_components</span>
+        <span class="n">dependent_component</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of dependent components is different from one&#39;</span><span class="p">)</span>
+        <span class="n">insert_idx</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">comp_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">comp_values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">insert_idx</span><span class="p">],</span>
+                                      <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">comp_values</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+                                      <span class="n">comp_values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">insert_idx</span><span class="p">:]),</span>
+                                     <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Prevent compositions near an edge from going negative</span>
+        <span class="n">comp_values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">comp_values</span> <span class="o">&lt;</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">)]</span> <span class="o">=</span> <span class="n">MIN_SITE_FRACTION</span><span class="o">*</span><span class="mi">10</span>
+        <span class="c1"># TODO: Assumes N=1</span>
+        <span class="n">comp_values</span> <span class="o">/=</span> <span class="n">comp_values</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#print(comp_values)</span>
+
+    <span class="c1"># SECOND CASE: Only chemical potential conditions specified</span>
+    <span class="c1"># TODO: Implementation of chemical potential</span>
+
+    <span class="c1"># THIRD CASE: Mixture of composition and chemical potential conditions</span>
+    <span class="c1"># TODO: Implementation of mixed conditions</span>
+
+    <span class="k">if</span> <span class="n">trial_points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Invalid conditions&#39;</span><span class="p">)</span>
+
+    <span class="n">driving_forces</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">global_grid</span><span class="o">.</span><span class="n">points</span><span class="p">),),</span>
+                                   <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+
+    <span class="n">max_iterations</span> <span class="o">=</span> <span class="mi">200</span>
+    <span class="n">iterations</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">while</span> <span class="n">iterations</span> <span class="o">&lt;</span> <span class="n">max_iterations</span><span class="p">:</span>
+        <span class="n">iterations</span> <span class="o">+=</span> <span class="mi">1</span>
+
+        <span class="n">trial_simplices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> \
+                                   <span class="p">(</span><span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="c1"># Initialize trial simplices with values from best guess simplices</span>
+        <span class="n">trial_simplices</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="c1"># Trial simplices will be the current simplex with each vertex</span>
+        <span class="c1">#     replaced by the trial point</span>
+        <span class="c1"># Exactly one of those simplices will contain a given test point,</span>
+        <span class="c1">#     excepting edge cases</span>
+        <span class="n">trial_simplices</span><span class="o">.</span><span class="n">T</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">diag_indices</span><span class="p">(</span><span class="n">trial_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="n">trial_points</span><span class="o">.</span><span class="n">T</span>
+        <span class="c1">#print(&#39;trial_simplices.shape&#39;, trial_simplices.shape)</span>
+        <span class="c1">#print(&#39;global_grid.X.values.shape&#39;, global_grid.X.values.shape)</span>
+        <span class="n">flat_statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+                                                 <span class="n">result_array</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)[:</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)]</span>
+        <span class="c1">#print(&#39;flat_statevar_indices&#39;, flat_statevar_indices)</span>
+        <span class="n">trial_matrix</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="n">flat_statevar_indices</span> <span class="o">+</span>
+                                                         <span class="p">(</span><span class="n">trial_simplices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">,)]]</span>
+        <span class="n">trial_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">trial_matrix</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#print(&#39;trial_matrix&#39;, trial_matrix)</span>
+        <span class="c1"># Partially ravel the array to make indexing operations easier</span>
+        <span class="n">trial_matrix</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">trial_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:]</span>
+
+        <span class="c1"># We have to filter out degenerate simplices before</span>
+        <span class="c1">#     phase fraction computation</span>
+        <span class="c1"># This is because even one degenerate simplex causes the entire tensor</span>
+        <span class="c1">#     to be singular</span>
+        <span class="n">nondegenerate_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">linalg</span><span class="o">.</span><span class="n">svd</span><span class="p">(</span><span class="n">trial_matrix</span><span class="p">,</span>
+                                                     <span class="n">compute_uv</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span><span class="p">,</span>
+                                       <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#(&#39;NONDEGENERATE INDICES&#39;, nondegenerate_indices)</span>
+        <span class="c1"># Determine how many trial simplices remain for each target point.</span>
+        <span class="c1"># In principle this would always be one simplex per point, but once</span>
+        <span class="c1"># some target values reach equilibrium, trial_points starts</span>
+        <span class="c1"># to contain points already on our best guess simplex.</span>
+        <span class="c1"># This causes trial_simplices to create degenerate simplices.</span>
+        <span class="c1"># We can safely filter them out since those target values are</span>
+        <span class="c1"># already at equilibrium.</span>
+        <span class="c1">#sum_array = np.sum(nondegenerate_indices, axis=-1, dtype=np.int)</span>
+        <span class="c1">#index_array = np.repeat(np.arange(trial_matrix.shape[0], dtype=np.int),</span>
+        <span class="c1">#                        sum_array)</span>
+        <span class="n">index_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">trial_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+        <span class="n">comp_shape</span> <span class="o">=</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)]</span> <span class="o">+</span> \
+                     <span class="p">(</span><span class="n">comp_values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])</span>
+
+        <span class="n">comp_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">comp_shape</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)]</span>
+        <span class="n">fractions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span> <span class="o">+</span> \
+                            <span class="p">(</span><span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],),</span> <span class="o">-</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="n">fractions</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">fractions</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])]</span> <span class="o">=</span> \
+            <span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">swapaxes</span><span class="p">(</span><span class="n">trial_matrix</span><span class="p">[</span><span class="n">index_array</span><span class="p">],</span> <span class="o">-</span><span class="mi">2</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">),</span>
+                          <span class="n">comp_values</span><span class="p">[</span><span class="n">comp_indices</span><span class="p">])</span>
+        <span class="n">fractions</span> <span class="o">/=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#print(&#39;fractions&#39;, fractions)</span>
+        <span class="c1"># A simplex only contains a point if its barycentric coordinates</span>
+        <span class="c1"># (phase fractions) are non-negative.</span>
+        <span class="n">bounding_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">fractions</span> <span class="o">&gt;=</span> <span class="o">-</span><span class="n">MIN_SITE_FRACTION</span><span class="o">*</span><span class="mi">100</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#print(&#39;BOUNDING INDICES&#39;, bounding_indices)</span>
+        <span class="k">if</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">bounding_indices</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Desired composition is not inside any candidate simplex. This is a bug.&#39;</span><span class="p">)</span>
+        <span class="n">multiple_success_trials</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">bounding_indices</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span>
+        <span class="c1">#print(&#39;MULTIPLE SUCCESS TRIALS SHAPE&#39;, np.nonzero(multiple_success_trials))</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">multiple_success_trials</span><span class="p">):</span>
+            <span class="n">saved_trial</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros_like</span><span class="p">(</span><span class="n">multiple_success_trials</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span>
+            <span class="c1"># Case of only degenerate simplices (zero bounding)</span>
+            <span class="c1"># Choose trial with &quot;least negative&quot; fraction</span>
+            <span class="n">zero_success_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="o">~</span><span class="n">nondegenerate_indices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bounding_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">),</span>
+                                                  <span class="n">multiple_success_trials</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span>
+            <span class="n">saved_trial</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">zero_success_indices</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">fractions</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">zero_success_indices</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))]</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1"># Case of multiple bounding non-degenerate simplices</span>
+            <span class="c1"># Choose the first one. This addresses gh-28.</span>
+            <span class="n">multiple_bounding_indices</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">logical_and</span><span class="p">(</span><span class="n">bounding_indices</span><span class="p">,</span> <span class="n">nondegenerate_indices</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="n">bounding_indices</span><span class="o">.</span><span class="n">shape</span><span class="p">)),</span>
+                               <span class="n">multiple_success_trials</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">])</span>
+            <span class="c1">#print(&#39;MULTIPLE SUCCESS TRIALS.shape&#39;, multiple_success_trials.shape)</span>
+            <span class="c1">#print(&#39;BOUNDING INDICES.shape&#39;, bounding_indices.shape)</span>
+            <span class="c1">#print(&#39;MULTIPLE_BOUNDING_INDICES.shape&#39;, multiple_bounding_indices.shape)</span>
+            <span class="n">saved_trial</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">multiple_bounding_indices</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))]</span> <span class="o">=</span> \
+                <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">multiple_bounding_indices</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">multiple_bounding_indices</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">))],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+            <span class="c1">#print(&#39;SAVED TRIAL.shape&#39;, saved_trial.shape)</span>
+            <span class="c1">#print(&#39;BOUNDING INDICES BEFORE&#39;, bounding_indices)</span>
+            <span class="n">bounding_indices</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">multiple_success_trials</span><span class="p">)]</span> <span class="o">=</span> <span class="kc">False</span>
+            <span class="c1">#print(&#39;BOUNDING INDICES FALSE&#39;, bounding_indices)</span>
+            <span class="n">bounding_indices</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">multiple_success_trials</span><span class="p">)</span> <span class="o">+</span> \
+                             <span class="p">(</span><span class="n">saved_trial</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">multiple_success_trials</span><span class="p">)],)]</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="c1">#print(&#39;BOUNDING INDICES AFTER&#39;, bounding_indices)</span>
+        <span class="n">fractions</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">fractions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="n">bounding_indices</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span>
+        <span class="n">index_array</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">trial_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)[</span><span class="n">bounding_indices</span><span class="p">]</span>
+
+        <span class="n">raveled_simplices</span> <span class="o">=</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">reshape</span><span class="p">((</span><span class="o">-</span><span class="mi">1</span><span class="p">,)</span> <span class="o">+</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="n">candidate_simplices</span> <span class="o">=</span> <span class="n">raveled_simplices</span><span class="p">[</span><span class="n">index_array</span><span class="p">,</span> <span class="p">:]</span>
+        <span class="c1">#print(&#39;candidate_simplices&#39;, candidate_simplices)</span>
+
+        <span class="c1"># We need to convert the flat index arrays into multi-index tuples.</span>
+        <span class="c1"># These tuples will tell us which state variable combinations are relevant</span>
+        <span class="c1"># for the calculation. We can drop the last dimension, &#39;trial&#39;.</span>
+        <span class="c1">#print(&#39;trial_simplices.shape[:-1]&#39;, trial_simplices.shape[:-1])</span>
+        <span class="n">statevar_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">trial_simplices</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                                            <span class="p">)[:</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)]</span>
+        <span class="n">aligned_energies</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">statevar_indices</span> <span class="o">+</span> <span class="p">(</span><span class="n">candidate_simplices</span><span class="o">.</span><span class="n">T</span><span class="p">,)]</span><span class="o">.</span><span class="n">T</span>
+        <span class="n">statevar_indices</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_indices</span><span class="p">)</span>
+        <span class="c1">#print(&#39;statevar_indices&#39;, statevar_indices)</span>
+        <span class="n">aligned_compositions</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="n">statevar_indices</span> <span class="o">+</span> <span class="p">(</span><span class="n">candidate_simplices</span><span class="p">,)]]</span>
+        <span class="c1">#print(&#39;aligned_compositions&#39;, aligned_compositions)</span>
+        <span class="c1">#print(&#39;aligned_energies&#39;, aligned_energies)</span>
+        <span class="n">candidate_potentials</span> <span class="o">=</span> <span class="n">stacked_lstsq</span><span class="p">(</span><span class="n">aligned_compositions</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">),</span>
+                                             <span class="n">aligned_energies</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">,</span> <span class="n">copy</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+        <span class="c1">#print(&#39;candidate_potentials&#39;, candidate_potentials)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;candidate_simplices: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">candidate_simplices</span><span class="p">)</span>
+        <span class="n">comp_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">comp_shape</span><span class="p">)[</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)]</span>
+        <span class="c1">#print(&#39;comp_values[comp_indices]&#39;, comp_values[comp_indices])</span>
+        <span class="n">candidate_energies</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">multiply</span><span class="p">(</span><span class="n">candidate_potentials</span><span class="p">,</span>
+                                         <span class="n">comp_values</span><span class="p">[</span><span class="n">comp_indices</span><span class="p">])</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#print(&#39;candidate_energies&#39;, candidate_energies)</span>
+
+        <span class="c1"># Generate a matrix of energies comparing our calculations for this iteration</span>
+        <span class="c1"># to each other.</span>
+        <span class="c1"># &#39;conditions&#39; axis followed by a &#39;trial&#39; axis</span>
+        <span class="c1"># Empty values are filled in with infinity</span>
+        <span class="n">comparison_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">([</span><span class="nb">int</span><span class="p">(</span><span class="n">trial_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="n">trial_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]),</span>
+                                      <span class="n">trial_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]])</span>
+        <span class="k">if</span> <span class="n">comparison_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">aligned_compositions</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Arrays have become misaligned. This is a bug. Try perturbing your composition conditions &#39;</span>
+                             <span class="s1">&#39;by a small amount (1e-4). If you would like, you can report this issue to the development&#39;</span>
+                             <span class="s1">&#39; team and they will fix it for future versions.&#39;</span><span class="p">)</span>
+        <span class="n">comparison_matrix</span><span class="o">.</span><span class="n">fill</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">)</span>
+        <span class="n">comparison_matrix</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">trial_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span><span class="o">.</span><span class="n">astype</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">),</span>
+                          <span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">index_array</span><span class="p">,</span> <span class="n">trial_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span> <span class="o">=</span> <span class="n">candidate_energies</span>
+        <span class="c1">#print(&#39;comparison_matrix&#39;, comparison_matrix)</span>
+
+        <span class="c1"># If a condition point is all infinities, it means we did not calculate it</span>
+        <span class="c1"># We should filter those out from any comparisons</span>
+        <span class="n">calculated_indices</span> <span class="o">=</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">comparison_matrix</span> <span class="o">==</span> <span class="n">np</span><span class="o">.</span><span class="n">inf</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Extract indices for trials with the lowest energy for each target point</span>
+        <span class="n">lowest_energy_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmin</span><span class="p">(</span><span class="n">comparison_matrix</span><span class="p">[</span><span class="n">calculated_indices</span><span class="p">],</span>
+                                          <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Filter conditions down to only those calculated this iteration</span>
+        <span class="n">calculated_conditions_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">comparison_matrix</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])[</span><span class="n">calculated_indices</span><span class="p">]</span>
+
+        <span class="c1">#print(&#39;comparison_matrix[calculated_conditions_indices,lowest_energy_indices]&#39;,comparison_matrix[calculated_conditions_indices,</span>
+        <span class="c1">#                                    lowest_energy_indices])</span>
+        <span class="c1"># This has to be greater-than-or-equal because, in the case where</span>
+        <span class="c1"># the desired condition is right on top of a simplex vertex (gh-28), there</span>
+        <span class="c1"># will be no change in energy changing a &quot;_FAKE_&quot; vertex to a real one.</span>
+        <span class="n">is_lower_energy</span> <span class="o">=</span> <span class="n">comparison_matrix</span><span class="p">[</span><span class="n">calculated_conditions_indices</span><span class="p">,</span>
+                                            <span class="n">lowest_energy_indices</span><span class="p">]</span> <span class="o">&lt;=</span> \
+            <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">flat</span><span class="p">[</span><span class="n">calculated_conditions_indices</span><span class="p">]</span>
+        <span class="c1">#print(&#39;is_lower_energy&#39;, is_lower_energy)</span>
+
+        <span class="c1"># These are the conditions we will update this iteration</span>
+        <span class="n">final_indices</span> <span class="o">=</span> <span class="n">calculated_conditions_indices</span><span class="p">[</span><span class="n">is_lower_energy</span><span class="p">]</span>
+        <span class="c1">#print(&#39;final_indices&#39;, final_indices)</span>
+        <span class="c1"># Convert to multi-index form so we can index the result array</span>
+        <span class="n">final_multi_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unravel_index</span><span class="p">(</span><span class="n">final_indices</span><span class="p">,</span>
+                                               <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+
+        <span class="n">updated_potentials</span> <span class="o">=</span> <span class="n">candidate_potentials</span><span class="p">[</span><span class="n">is_lower_energy</span><span class="p">]</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">final_multi_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">candidate_simplices</span><span class="p">[</span><span class="n">is_lower_energy</span><span class="p">]</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;GM&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">final_multi_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">candidate_energies</span><span class="p">[</span><span class="n">is_lower_energy</span><span class="p">]</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;MU&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">final_multi_indices</span><span class="p">]</span> <span class="o">=</span> <span class="n">updated_potentials</span>
+        <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;NP&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">final_multi_indices</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">fractions</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">bounding_indices</span><span class="p">)][</span><span class="n">is_lower_energy</span><span class="p">]</span>
+        <span class="c1">#print(&#39;result_array.GM.values&#39;, result_array.GM.values)</span>
+
+        <span class="c1"># By profiling, it&#39;s faster to recompute all driving forces in-place</span>
+        <span class="c1"># versus doing fancy indexing to only update &quot;changed&quot; driving forces</span>
+        <span class="c1"># This avoids the creation of expensive temporaries</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">einsum</span><span class="p">(</span><span class="s1">&#39;...i,...i&#39;</span><span class="p">,</span>
+                  <span class="n">result_array</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,</span> <span class="p">:],</span>
+                  <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_conds</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[:,</span> <span class="p">:]],</span>
+                  <span class="n">out</span><span class="o">=</span><span class="n">driving_forces</span><span class="p">)</span>
+        <span class="n">np</span><span class="o">.</span><span class="n">subtract</span><span class="p">(</span><span class="n">driving_forces</span><span class="p">,</span>
+                    <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">+</span> <span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">,)</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_conds</span><span class="p">))</span> <span class="o">+</span> <span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[:]],</span>
+                    <span class="n">out</span><span class="o">=</span><span class="n">driving_forces</span><span class="p">)</span>
+
+
+        <span class="c1"># Update trial points to choose points with largest remaining driving force</span>
+        <span class="n">trial_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">argmax</span><span class="p">(</span><span class="n">driving_forces</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1">#print(&#39;trial_points&#39;, trial_points)</span>
+        <span class="n">logger</span><span class="o">.</span><span class="n">debug</span><span class="p">(</span><span class="s1">&#39;trial_points: </span><span class="si">%s</span><span class="s1">&#39;</span><span class="p">,</span> <span class="n">trial_points</span><span class="p">)</span>
+
+        <span class="c1"># If all driving force (within some tolerance) is consumed, we found equilibrium</span>
+        <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">driving_forces</span> <span class="o">&lt;=</span> <span class="n">DRIVING_FORCE_TOLERANCE</span><span class="p">):</span>
+            <span class="k">return</span>
+    <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Max hull iterations exceeded. Remaining driving force: &#39;</span><span class="p">,</span> <span class="n">driving_forces</span><span class="o">.</span><span class="n">max</span><span class="p">())</span></div>
+</pre></div>
+
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.4.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
