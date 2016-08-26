@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.4.1+17.g3edd8d7 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.4.1+19.g764f0a4 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.1+17.g3edd8d7 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.1+19.g764f0a4 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.1+17.g3edd8d7
+                0.4.1+19.g764f0a4
               </div>
             
           
@@ -187,7 +187,8 @@
     <span class="c1"># to figure out its contribution.</span>
     <span class="n">contributions</span> <span class="o">=</span> <span class="p">[(</span><span class="s1">&#39;ref&#39;</span><span class="p">,</span> <span class="s1">&#39;reference_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;idmix&#39;</span><span class="p">,</span> <span class="s1">&#39;ideal_mixing_energy&#39;</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">&#39;xsmix&#39;</span><span class="p">,</span> <span class="s1">&#39;excess_mixing_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;magnetic_energy&#39;</span><span class="p">),</span>
-                     <span class="p">(</span><span class="s1">&#39;2st&#39;</span><span class="p">,</span> <span class="s1">&#39;twostate_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ord&#39;</span><span class="p">,</span> <span class="s1">&#39;atomic_ordering_energy&#39;</span><span class="p">)]</span>
+                     <span class="p">(</span><span class="s1">&#39;2st&#39;</span><span class="p">,</span> <span class="s1">&#39;twostate_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ein&#39;</span><span class="p">,</span> <span class="s1">&#39;einstein_energy&#39;</span><span class="p">),</span>
+                     <span class="p">(</span><span class="s1">&#39;ord&#39;</span><span class="p">,</span> <span class="s1">&#39;atomic_ordering_energy&#39;</span><span class="p">)]</span>
 
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="c1"># Constrain possible components to those within phase&#39;s d.o.f</span>
@@ -756,6 +757,28 @@
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
         <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
+<div class="viewcode-block" id="Model.einstein_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.einstein_energy">[docs]</a>    <span class="k">def</span> <span class="nf">einstein_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return the energy based on the Einstein model.</span>
+<span class="sd">        Note that THETA parameters are actually LN(THETA).</span>
+<span class="sd">        All Redlich-Kister summation is done in log-space,</span>
+<span class="sd">        then exp() is called on the result.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
+        <span class="n">theta_param_query</span> <span class="o">=</span> <span class="p">(</span>
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;THETA&#39;</span><span class="p">)</span> <span class="o">&amp;</span> \
+            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_array_validity</span><span class="p">))</span>
+        <span class="p">)</span>
+        <span class="n">lntheta</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">theta_param_query</span><span class="p">)</span>
+        <span class="n">theta</span> <span class="o">=</span> <span class="n">exp</span><span class="p">(</span><span class="n">lntheta</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">lntheta</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">theta</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">theta</span><span class="o">/</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span><span class="p">(</span><span class="n">phase</span><span class="p">)</span></div>
+
     <span class="nd">@staticmethod</span>
 <div class="viewcode-block" id="Model.mole_fraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.mole_fraction">[docs]</a>    <span class="k">def</span> <span class="nf">mole_fraction</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span>
                       <span class="n">site_ratios</span><span class="p">):</span>
@@ -945,7 +968,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.4.1+17.g3edd8d7',
+            VERSION:'0.4.1+19.g764f0a4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
