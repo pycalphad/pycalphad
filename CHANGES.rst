@@ -1,6 +1,16 @@
 What's New
 ==========
 
+0.4.2 (2016-08-26)
+------------------
+
+This is a minor feature release with one breaking change.
+* There is now support for the Xiong magnetic model (Xiong et al, Calphad, 2012), two-state liquid-amorphous model,
+  and Einstein model in the Model class. TDB support has been extended where necessary.
+* ENH/BRK: Model: Add 'contributions' class attribute to make it easier for users to define custom energetic
+  contributions. The API for custom contributions has changed; the old method will no longer work.
+* FIX: equilibrium: Correctly use custom models during property calculation with ``output`` keyword argument.
+
 0.4.1 (2016-08-08)
 ------------------
 
