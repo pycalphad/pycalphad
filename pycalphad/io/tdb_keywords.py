@@ -77,6 +77,7 @@ TDB_PARAM_TYPES = sorted([
     'DQ',
     'DF',
     'NT',
+    'THETA',
     'V0',
     'VS'
 ])

@@ -52,7 +52,8 @@ class Model(object):
     # to figure out its contribution.
     contributions = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'),
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
-                     ('2st', 'twostate_energy'), ('ord', 'atomic_ordering_energy')]
+                     ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
+                     ('ord', 'atomic_ordering_energy')]
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
         # Constrain possible components to those within phase's d.o.f
@@ -620,6 +621,28 @@ class Model(object):
         if gd == S.Zero:
             return S.Zero
         return -v.R * v.T * log(1 + exp(-gd / (v.R * v.T))) / site_ratio_normalization
+
+    def einstein_energy(self, dbe):
+        """
+        Return the energy based on the Einstein model.
+        Note that THETA parameters are actually LN(THETA).
+        All Redlich-Kister summation is done in log-space,
+        then exp() is called on the result.
+        """
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+        theta_param_query = (
+            (where('phase_name') == phase.name) & \
+            (where('parameter_type') == 'THETA') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        lntheta = self.redlich_kister_sum(phase, param_search, theta_param_query)
+        theta = exp(lntheta)
+        if lntheta != 0:
+            result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
+        else:
+            result = 0
+        return result / self._site_ratio_normalization(phase)
 
     @staticmethod
     def mole_fraction(species_name, phase_name, constituent_array,

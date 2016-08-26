@@ -6,7 +6,7 @@ correct abstract syntax tree for the energy.
 import nose.tools
 from pycalphad import Database, Model
 from pycalphad.core.utils import make_callable
-from pycalphad.tests.datasets import ALCRNI_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB
 import pycalphad.variables as v
 import numpy as np
 
@@ -157,6 +157,23 @@ def test_binary_dilute():
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 1e-12,
              v.SiteFraction('LIQUID', 0, 'NI'): 1.0-1e-12}, \
         5.52773e3, mode='numpy')
+
+def test_binary_xiong_twostate_einstein():
+    "Phase with Xiong magnetic, two-state and Einstein energy contributions."
+    femn_dbf = Database(FEMN_TDB)
+    mod = Model(femn_dbf, ['FE', 'MN', 'VA'], 'LIQUID')
+    check_energy(mod, {v.T: 10, v.SiteFraction('LIQUID', 0, 'FE'): 1,
+                                v.SiteFraction('LIQUID', 0, 'MN'): 0,
+                                v.SiteFraction('LIQUID', 1, 'VA'): 1},
+                 10158.591, mode='numpy')
+    check_energy(mod, {v.T: 300, v.SiteFraction('LIQUID', 0, 'FE'): 0.3,
+                       v.SiteFraction('LIQUID', 0, 'MN'): 0.7,
+                       v.SiteFraction('LIQUID', 1, 'VA'): 1},
+                 4200.8435, mode='numpy')
+    check_energy(mod, {v.T: 1500, v.SiteFraction('LIQUID', 0, 'FE'): 0.8,
+                       v.SiteFraction('LIQUID', 0, 'MN'): 0.2,
+                       v.SiteFraction('LIQUID', 1, 'VA'): 1},
+                 -86332.217, mode='numpy')
 
 # TERNARY TESTS
 def test_ternary_rkm_solution():
