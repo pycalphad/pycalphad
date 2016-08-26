@@ -5,9 +5,7 @@ notifications:
 cache:
   directories:
   - $HOME/.cache/pip
-  - $HOME/miniconda2
-before_cache:
-  - rm -Rf $HOME/miniconda2/envs
+  - $HOME/miniconda2/pkgs
 
 matrix:
     include:
