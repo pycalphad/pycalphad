@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.4.2+1.g9e42b9e documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.4.2+2.ga0cf6ab documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.2+1.g9e42b9e documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+2.ga0cf6ab documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.4.2+1.g9e42b9e
+                0.4.2+2.ga0cf6ab
               </div>
             
           
@@ -387,7 +387,7 @@ calculated phase equilibria.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>pbar=True</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>nprocs=None</em>, <em>tmpman=None</em>, <em>return_grids=False</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>pbar=True</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>nprocs=None</em>, <em>tmpman=None</em>, <em>scheduler=&lt;function get&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -411,16 +411,15 @@ when those conditions don&#8217;t comprise a grid.</li>
 <li><strong>calc_opts</strong> (<em>dict, optional</em>) &#8211; Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
 <li><strong>nprocs</strong> (<em>int, optional</em>) &#8211; Number of worker processes to create. By default, equal to the number of CPUs.</li>
 <li><strong>tmpman</strong> (<em>TempfileManager, optional</em>) &#8211; Context manager for temporary file creation during the calculation.</li>
-<li><strong>return_grids</strong> (<em>bool, optional</em>) &#8211; If True, return a tuple of (equilibrium result, grids), where grids is a list of
-Datasets containing the global point set at each hull iteration.
-Mainly useful for teaching and debugging.</li>
+<li><strong>scheduler</strong> (<em>Dask scheduler, optional</em>) &#8211; Job scheduler for performing the computation.
+If None, return a Dask graph of the computation instead of actually doing it.</li>
 </ul>
 </td>
 </tr>
 <tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
 </td>
 </tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Structured equilibrium calculation.</p>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Structured equilibrium calculation, or Dask graph if lazy=True.</p>
 </td>
 </tr>
 </tbody>
@@ -747,7 +746,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.4.2+1.g9e42b9e',
+            VERSION:'0.4.2+2.ga0cf6ab',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

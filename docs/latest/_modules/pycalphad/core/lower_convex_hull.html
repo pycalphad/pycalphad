@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.4.2+1.g9e42b9e documentation</title>
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.4.2+2.ga0cf6ab documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.2+1.g9e42b9e documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+2.ga0cf6ab documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.2+1.g9e42b9e
+                0.4.2+2.ga0cf6ab
               </div>
             
           
@@ -464,9 +464,10 @@
 
         <span class="c1"># If all driving force (within some tolerance) is consumed, we found equilibrium</span>
         <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">driving_forces</span> <span class="o">&lt;=</span> <span class="n">DRIVING_FORCE_TOLERANCE</span><span class="p">):</span>
-            <span class="k">return</span>
+            <span class="k">return</span> <span class="n">result_array</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
-        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Max hull iterations exceeded. Remaining driving force: &#39;</span><span class="p">,</span> <span class="n">driving_forces</span><span class="o">.</span><span class="n">max</span><span class="p">())</span></div>
+        <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Max hull iterations exceeded. Remaining driving force: &#39;</span><span class="p">,</span> <span class="n">driving_forces</span><span class="o">.</span><span class="n">max</span><span class="p">())</span>
+    <span class="k">return</span> <span class="n">result_array</span></div>
 </pre></div>
 
            </div>
@@ -500,7 +501,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+1.g9e42b9e',
+            VERSION:'0.4.2+2.ga0cf6ab',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
