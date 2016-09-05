@@ -26,7 +26,7 @@ class TempfileManager(object):
 
     def create_logfile(self, prefix="", suffix=".log"):
         fd, fname = tempfile.mkstemp(suffix=suffix, prefix=prefix)
-        self.preserve_on_error.append(fname)
+        self.preserve_on_error.append((fd, fname))
         return fd
 
     def __enter__(self):
@@ -41,15 +41,18 @@ class TempfileManager(object):
                 shutil.rmtree(tree)
             except OSError:
                 pass
+        self.temptrees = []
         if exc_tb is None:
             # Remove the log files (if they exist) if no exceptions were raised
-            for fpath in self.preserve_on_error:
+            for fd, fpath in self.preserve_on_error:
                 try:
+                    os.close(fd)
                     os.unlink(fpath)
                 except OSError:
                     pass
+            self.preserve_on_error = []
         else:
-            print('Preserved Files: ', self.preserve_on_error)
+            print('Preserved Files: ', [x[1] for x in self.preserve_on_error])
 
 
     def __call__(self, func):
