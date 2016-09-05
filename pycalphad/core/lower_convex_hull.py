@@ -329,6 +329,7 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
         if np.all(driving_forces <= DRIVING_FORCE_TOLERANCE):
-            return
+            return result_array
     if verbose:
         print('Max hull iterations exceeded. Remaining driving force: ', driving_forces.max())
+    return result_array

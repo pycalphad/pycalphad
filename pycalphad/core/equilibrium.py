@@ -322,7 +322,7 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
     return l_hessian, gradient_term
 
 @TempfileManager(os.getcwd())
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose, tmpman=None):
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, conds_keys, verbose, tmpman=None):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -341,6 +341,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         Details on phase callables.
     callable_dict : dict of callable
         Objective functions for each phase.
+    conds_keys : list of str
+        List of conditions axes in dimension order.
     verbose : bool
         Print details.
     tmpman : TempfileManager
@@ -362,8 +364,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     #    print('---------------------')
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
-        cur_conds = OrderedDict(zip(properties['GM'].coords.keys(),
-                                    [b[a] for a, b in zip(it.multi_index, properties['GM'].coords.values())]))
+        cur_conds = OrderedDict(zip(conds_keys,
+                                    [properties['GM'].coords[b][a] for a, b in zip(it.multi_index, conds_keys)]))
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
         # sum of independently specified components
@@ -558,6 +560,56 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         it.iternext()
     return properties
 
+
+def _postprocess_properties(grid, properties, conds, indep_vals):
+    indexer = []
+    for idx, vals in enumerate(indep_vals):
+        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
+                                                          (len(conds.keys()) - idx + 1) * (np.newaxis,)])
+    indexer.append(properties['points'].values[..., np.newaxis])
+    indexer.append(
+        np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]])
+    ravelled_X_view = grid['X'].values[tuple(indexer)]
+    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[
+        (len(conds.keys())) * (np.newaxis,) + np.index_exp[:]]
+    ravelled_Y_view = grid['Y'].values[tuple(indexer)]
+    indexer = []
+    for idx, vals in enumerate(indep_vals):
+        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
+                                                          (len(conds.keys()) - idx) * (np.newaxis,)])
+    indexer.append(properties['points'].values)
+    ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
+    # Copy final point values from the grid and drop the index array
+    # For some reason direct construction doesn't work. We have to create empty and then assign.
+    properties['X'] = DataArray(np.empty_like(ravelled_X_view),
+                                dims=properties['points'].dims + ('component',))
+    properties['X'].values[...] = ravelled_X_view
+    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view),
+                                dims=properties['points'].dims + ('internal_dof',))
+    properties['Y'].values[...] = ravelled_Y_view
+    # TODO: What about invariant reactions? We should perform a final driving force calculation here.
+    # We can handle that in the same post-processing step where we identify single-phase regions.
+    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view),
+                                    dims=properties['points'].dims)
+    properties['Phase'].values[...] = ravelled_Phase_view
+    del properties['points']
+    return properties
+
+def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
+    "Merge back together slices of 'properties'"
+    for prop_slice, prop_arr in zip(chunk_grid, results):
+        if not isinstance(prop_arr, Dataset):
+            print('Error: {}'.format(prop_arr))
+            continue
+        all_coords = dict(zip(conds_keys, [np.atleast_1d(sl)[ch]
+                                                               for ch, sl in zip(prop_slice, slices)]))
+        for dv in properties.data_vars.keys():
+            # Have to be very careful with how we assign to 'properties' here
+            # We may accidentally assign to a copy unless we index the data variable first
+            dv_coords = {key: val for key, val in all_coords.items() if key in properties[dv].coords.keys()}
+            properties[dv][dv_coords] = prop_arr[dv]
+    return properties
+
 @TempfileManager(os.getcwd())
 def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None, per_phase=False, **kwargs):
     """
@@ -647,7 +699,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
 @TempfileManager(os.getcwd())
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, pbar=True, broadcast=True, calc_opts=None,
-                nprocs=None, tmpman=None, return_grids=False, **kwargs):
+                nprocs=None, tmpman=None, scheduler=dask.multiprocessing.get, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -682,14 +734,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Number of worker processes to create. By default, equal to the number of CPUs.
     tmpman : TempfileManager, optional
         Context manager for temporary file creation during the calculation.
-    return_grids : bool, optional
-        If True, return a tuple of (equilibrium result, grids), where grids is a list of
-        Datasets containing the global point set at each hull iteration.
-        Mainly useful for teaching and debugging.
+    scheduler : Dask scheduler, optional
+        Job scheduler for performing the computation.
+        If None, return a Dask graph of the computation instead of actually doing it.
 
     Returns
     -------
-    Structured equilibrium calculation.
+    Structured equilibrium calculation, or Dask graph if lazy=True.
 
     Examples
     --------
@@ -740,13 +791,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=Model)
-    # for debugging
-    if return_grids:
-        intermediate_grids = []
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
-    for name in progressbar(active_phases, desc='Initialize (1/3)', unit='phase', disable=not pbar):
+    for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
@@ -801,74 +849,34 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     coord_dict['component'] = components
-    if verbose:
-        print('Computing initial grid', end=' ')
 
-    grid = calculate(dbf, comps, active_phases, output='GM', tmpman=tmpman,
-                     model=models, callables=callable_dict, fake_points=True, **grid_opts)
-    if return_grids:
-        intermediate_grids.append(grid)
+    grid = dask.delayed(calculate, pure=True)(dbf, comps, active_phases, output='GM', tmpman=tmpman,
+                                              model=models, callables=callable_dict, fake_points=True, **grid_opts)
 
-    if verbose:
-        print('[{0} points, {1}]'.format(len(grid.points), sizeof_fmt(grid.nbytes)), end='\n')
-
-    properties = Dataset({'NP': (list(str_conds.keys()) + ['vertex'],
-                                 np.empty(grid_shape)),
-                          'GM': (list(str_conds.keys()),
-                                 np.empty(grid_shape[:-1])),
-                          'MU': (list(str_conds.keys()) + ['component'],
-                                 np.empty(grid_shape)),
-                          'points': (list(str_conds.keys()) + ['vertex'],
-                                     np.empty(grid_shape, dtype=np.int))
-                          },
-                          coords=coord_dict,
-                          attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                 'engine': 'pycalphad %s' % pycalphad_version},
-                         )
-    # Make sure all the verbose output appears to the user
-    if verbose:
-        print('Refining equilibrium')
-        sys.stdout.flush()
+    properties = dask.delayed(Dataset, pure=True)({'NP': (list(str_conds.keys()) + ['vertex'],
+                                                         np.empty(grid_shape)),
+                                                  'GM': (list(str_conds.keys()),
+                                                         np.empty(grid_shape[:-1])),
+                                                  'MU': (list(str_conds.keys()) + ['component'],
+                                                         np.empty(grid_shape)),
+                                                  'points': (list(str_conds.keys()) + ['vertex'],
+                                                             np.empty(grid_shape, dtype=np.int))
+                                                  },
+                                                  coords=coord_dict,
+                                                  attrs={'hull_iterations': 1, 'solve_iterations': 0,
+                                                         'engine': 'pycalphad %s' % pycalphad_version},
+                                                 )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
-    lower_convex_hull(grid, properties, verbose=verbose)
-    indexer = []
-    for idx, vals in enumerate(indep_vals):
-        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(conds.keys())-idx+1) * (np.newaxis,)])
-    indexer.append(properties['points'].values[..., np.newaxis])
-    indexer.append(np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]])
-    ravelled_X_view = grid['X'].values[tuple(indexer)]
-    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]]
-    ravelled_Y_view = grid['Y'].values[tuple(indexer)]
-    indexer = []
-    for idx, vals in enumerate(indep_vals):
-        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(conds.keys())-idx) * (np.newaxis,)])
-    indexer.append(properties['points'].values)
-    ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
-    # Copy final point values from the grid and drop the index array
-    # For some reason direct construction doesn't work. We have to create empty and then assign.
-    properties['X'] = DataArray(np.empty_like(ravelled_X_view),
-                                dims=properties['points'].dims + ('component',))
-    properties['X'].values[...] = ravelled_X_view
-    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view),
-                                dims=properties['points'].dims + ('internal_dof',))
-    properties['Y'].values[...] = ravelled_Y_view
-    # TODO: What about invariant reactions? We should perform a final driving force calculation here.
-    # We can handle that in the same post-processing step where we identify single-phase regions.
-    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view),
-                                    dims=properties['points'].dims)
-    properties['Phase'].values[...] = ravelled_Phase_view
-    del properties['points']
-    num_conds = np.prod([len(x) for x in properties['GM'].coords.values()])
+    properties = dask.delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
+    properties = dask.delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
     conditions_per_chunk_per_axis = 10
-    nprocs = min(num_conds, nprocs)
+    nprocs = min(num_calcs, nprocs)
     if nprocs > 1:
         # Generate slices of 'properties'
         slices = []
-        for val in properties['GM'].coords.values():
-            idx_arr = list(range(len(val)))
-            num_chunks = int(np.floor(len(val)/conditions_per_chunk_per_axis))
+        for val in grid_shape[:-1]:
+            idx_arr = list(range(val))
+            num_chunks = int(np.floor(val/conditions_per_chunk_per_axis))
             if num_chunks > 0:
                 cond_slices = [x for x in np.array_split(np.asarray(idx_arr), num_chunks) if len(x) > 0]
             else:
@@ -878,27 +886,17 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         chunk_grid = np.array(np.unravel_index(np.arange(np.prod(chunk_dims)), chunk_dims)).T
         res = []
         for chunk in chunk_grid:
-            prop_slice = properties[dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
-                                                                              for ch, sl in zip(chunk, slices)]))]
+            prop_slice = dask.delayed(Dataset.__getitem__, pure=True)(properties,
+                                                           OrderedDict(list(zip(str_conds.keys(),
+                                                                           [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)]))))
             job = dask.delayed(_solve_eq_at_conditions, pure=True)(dbf, comps, prop_slice,
-                                                                   phase_records, callable_dict, verbose)
+                                                                   phase_records, callable_dict, list(str_conds.keys()), verbose)
             res.append(job)
-        results = dask.compute(*res, get=dask.multiprocessing.get)
-        # Merge back together slices of 'properties'
-        for prop_slice, prop_arr in zip(chunk_grid, results):
-            if not isinstance(prop_arr, Dataset):
-                print('Error: {}'.format(prop_arr))
-                continue
-            all_coords = dict(zip(properties['GM'].coords.keys(), [np.atleast_1d(sl)[ch]
-                                                                   for ch, sl in zip(prop_slice, slices)]))
-            for dv in properties.data_vars.keys():
-                # Have to be very careful with how we assign to 'properties' here
-                # We may accidentally assign to a copy unless we index the data variable first
-                dv_coords = {key: val for key, val in all_coords.items() if key in properties[dv].coords.keys()}
-                properties[dv][dv_coords] = prop_arr[dv]
+        properties = dask.delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
-        properties = _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, verbose)
+        properties = dask.delayed(_solve_eq_at_conditions, pure=True)(dbf, comps, properties, phase_records,
+                                                                      callable_dict, list(str_conds.keys()), verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]
@@ -913,11 +911,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        properties.merge(_eqcalculate(dbf, comps, active_phases, conditions, out,
-                                      data=properties, per_phase=per_phase, model=models, **calc_opts),
-                         inplace=True, compat='equals')
-    properties.attrs['created'] = datetime.utcnow()
-    if return_grids:
-        return properties, intermediate_grids
-    else:
-        return properties
+        dask.delayed(properties.merge, pure=False)(dask.delayed(_eqcalculate, pure=True)(dbf, comps, active_phases,
+                                                                                         conditions, out,
+                                                                                         data=properties,
+                                                                                         per_phase=per_phase,
+                                                                                         model=models, **calc_opts),
+                                                    inplace=True, compat='equals')
+    dask.delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
+    if scheduler is not None:
+        properties = dask.compute(properties, get=scheduler)[0]
+    return properties
