@@ -909,5 +909,5 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                    inplace=True, compat='equals')
     dask.delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
     if not lazy:
-        properties = properties.result()
+        properties = dask.compute(properties)[0]
     return properties
