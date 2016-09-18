@@ -17,7 +17,6 @@ class TempfileManager(object):
     def create_tree(self, fdir, prefix="_sympy_compile"):
         if fdir is None:
             fdir = tempfile.mkdtemp(prefix)
-            #print('created', fdir)
             self.temptrees.append(fdir)
         else:
             if not os.access(fdir, os.F_OK):
@@ -33,32 +32,21 @@ class TempfileManager(object):
         return self
 
     def __exit__(self, exc_type, exc_val, exc_tb):
-        os.chdir(self.oldworkdir)
         for tree in self.temptrees:
-            try:
-                # Could be some issues on Windows
-                #print('removing', tree)
-                shutil.rmtree(tree)
-            except OSError:
-                pass
+            shutil.rmtree(os.path.abspath(os.path.join(self.oldworkdir, tree)))
         self.temptrees = []
         if exc_tb is None:
             # Remove the log files (if they exist) if no exceptions were raised
             for fd, fpath in self.preserve_on_error:
-                try:
-                    os.close(fd)
-                    os.unlink(fpath)
-                except OSError:
-                    pass
+                os.close(fd)
+                os.unlink(fpath)
             self.preserve_on_error = []
         else:
             print('Preserved Files: ', [x[1] for x in self.preserve_on_error])
 
-
     def __call__(self, func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):
-            #print('calling', func.__name__)
             tmpman = kwargs.pop('tmpman', None)
             # Use passed-in tmpman if available, otherwise use self
             if tmpman is None:

@@ -5,6 +5,13 @@ This module contains a patched version of sympy's CCodeGen to optimize the code 
 from sympy.utilities.codegen import CCodeGen as sympy_CCodeGen
 from sympy.utilities.codegen import ResultBase, Result, AssignmentError
 from sympy.printing import ccode
+try:
+    # Python 2
+    from StringIO import StringIO
+except ImportError:
+    # Python 3
+    from io import StringIO
+import os
 
 class CCodeGen(sympy_CCodeGen):
     def _call_printer(self, routine):
@@ -46,3 +53,49 @@ class CCodeGen(sympy_CCodeGen):
         if return_val:
             code_lines.append("   return %s;\n" % return_val)
         return code_lines
+
+    def write(self, routines, prefix, to_files=False, header=True, empty=True, cwd=None):
+        """Writes all the source code files for the given routines.
+
+        The generated source is returned as a list of (filename, contents)
+        tuples, or is written to files (see below).  Each filename consists
+        of the given prefix, appended with an appropriate extension.
+
+        Parameters
+        ==========
+
+        routines : list
+            A list of Routine instances to be written
+
+        prefix : string
+            The prefix for the output files
+
+        to_files : bool, optional
+            When True, the output is written to files.  Otherwise, a list
+            of (filename, contents) tuples is returned.  [default: False]
+
+        header : bool, optional
+            When True, a header comment is included on top of each source
+            file. [default: True]
+
+        empty : bool, optional
+            When True, empty lines are included to structure the source
+            files. [default: True]
+
+        cwd : str, optional
+            Working directory for writing files. [default: os.getcwd()]
+        """
+        cwd = os.getcwd() if cwd is None else cwd
+        if to_files:
+            for dump_fn in self.dump_fns:
+                filename = "%s.%s" % (prefix, dump_fn.extension)
+                with open(os.path.abspath(os.path.join(cwd, filename)), "w") as f:
+                    dump_fn(self, routines, f, prefix, header, empty)
+        else:
+            result = []
+            for dump_fn in self.dump_fns:
+                filename = "%s.%s" % (prefix, dump_fn.extension)
+                contents = StringIO()
+                dump_fn(self, routines, contents, prefix, header, empty)
+                result.append((filename, contents.getvalue()))
+            return result

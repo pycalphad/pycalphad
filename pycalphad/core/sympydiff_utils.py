@@ -9,6 +9,7 @@ import numpy as np
 import itertools
 import logging
 import os
+import time
 
 # Doesn't seem to be a run-time way to detect this, so we use the value as of numpy 1.11
 _NPY_MAXARGS = 32
@@ -33,11 +34,20 @@ class LazyPickleableFunction(object):
             self._kernel = kernel
         self._sympyobj = sympy_obj
         self._sympyvars = sympy_vars
+        self._compiling = False
 
     @property
     def kernel(self):
+        while self._compiling:
+            time.sleep(0.1)
         if not hasattr(self, '_kernel'):
-            self._kernel = self.compile()
+            try:
+                self._compiling = True
+                self._kernel = self.compile()
+            except:
+                self._compiling = False
+                raise
+            self._compiling = False
         return self._kernel
 
     def compile(self):
@@ -53,8 +63,8 @@ class LazyPickleableFunction(object):
 
 class UfuncifyFunction(LazyPickleableFunction):
     def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
-        super(UfuncifyFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
         self.tmpman = tmpman
+        super(UfuncifyFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
     def compile(self):
         return ufuncify(self._sympyvars, self._sympyobj, tmpman=self.tmpman, flags=[], cflags=['-ffast-math'])
 

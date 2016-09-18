@@ -149,7 +149,6 @@ class UfuncifyCodeWrapper(CodeWrapper):
         # Need to save workdir so that it's properly pickled during multiprocessing
         self._workdir = self.tmpman.create_tree(self.filepath)
         #print('Creating pair ', (self._workdir, self.module_name))
-        os.chdir(self._workdir)
         self._process = None
         self._module = None
         self._generate_code(routines, helpers)
@@ -164,7 +163,6 @@ class UfuncifyCodeWrapper(CodeWrapper):
                 # We may need to additionally let the import fail for some length of time
                 if self._process.returncode != 0:
                     print('Error: Return code ', self._process.returncode)
-                os.chdir(self._workdir)
                 sys.path.append(self._workdir)
                 # 30 second timeout
                 timeout = time.time() + 30
@@ -173,10 +171,12 @@ class UfuncifyCodeWrapper(CodeWrapper):
                         mod = __import__(self.module_name)
                     except ImportError:
                         mod = None
+                        #print('PROCESS PID:', self._process.pid)
+                        #print('PROCESS RETURN CODE:', self._process.returncode)
                         if time.time() > timeout:
-                            print('FAILED TO IMPORT ', (self._workdir, self.module_name))
+                            #print('FAILED TO IMPORT ', (self._workdir, self.module_name))
                             sys.path.remove(self._workdir)
-                            raise
+                            raise ImportError((self._workdir, self.module_name))
                     except:
                         sys.path.remove(self._workdir)
                         raise
@@ -190,28 +190,34 @@ class UfuncifyCodeWrapper(CodeWrapper):
         return lazy_wrapper
 
     def _generate_code(self, main_routines, helper_routines):
+        #print('GENERATE_CODE', self._workdir)
         all_routines = main_routines + helper_routines
         for routine in all_routines:
+            #print(self._workdir, 'WRITING', self.filename + '_' + routine.name)
             self.generator.write(
                 [routine], self.filename + '_' + routine.name, True, self.include_header,
-                self.include_empty)
+                self.include_empty, cwd=self._workdir)
 
     def _prepare_files(self, routines, funcname, cflags):
-
+        #print('PREPARE_FILES', self._workdir)
+        #print(os.getcwd())
         # C
         codefilename = self.module_name + '.c'
-        with open(codefilename, 'w') as f:
+        #print(self._workdir, 'WRITING', codefilename)
+        with open(os.path.abspath(os.path.join(self._workdir, codefilename)), 'w') as f:
             self.dump_c(routines, f, self.filename, funcname=funcname)
 
         # setup.py
-        with open('setup.py', 'w') as f:
+        with open(os.path.abspath(os.path.join(self._workdir, 'setup.py')), 'w') as f:
             self.dump_setup(f, routines, cflags=cflags)
 
     def _process_files(self, routine):
         command = self.command
         command.extend(self.flags)
         logfd = self.tmpman.create_logfile(prefix='ufuncify_', suffix='.log')
-        self._process = subprocess.Popen(command, stdout=logfd, stderr=logfd)
+        #print(self._workdir, 'TMPMAN', self.tmpman.preserve_on_error)
+        self._process = subprocess.Popen(command, stdout=logfd, stderr=logfd, cwd=self._workdir)
+        #print(self._workdir, 'LAUNCH', self._process.pid)
 
     @classmethod
     def _get_wrapped_function(cls, mod, name):
