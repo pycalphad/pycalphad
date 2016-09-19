@@ -695,7 +695,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
 @TempfileManager(os.getcwd())
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                tmpman=None, lazy=False, **kwargs):
+                tmpman=None, scheduler=dask.multiprocessing.get, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -726,12 +726,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
     tmpman : TempfileManager, optional
         Context manager for temporary file creation during the calculation.
-    lazy : bool, optional
-        If True, returns an unevaluated Dask graph of the computation.
+    scheduler : Dask scheduler, optional
+        Job scheduler for performing the computation.
+        If None, return a Dask graph of the computation instead of actually doing it.
 
     Returns
     -------
-    Structured equilibrium calculation, or Dask graph if lazy=True.
+    Structured equilibrium calculation, or Dask graph if scheduler=None.
 
     Examples
     --------
@@ -908,6 +909,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                                                           model=models, **calc_opts),
                                                    inplace=True, compat='equals')
     dask.delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
-    if not lazy:
-        properties = dask.compute(properties)[0]
+    if scheduler is not None:
+        properties = dask.compute(properties, get=scheduler)[0]
     return properties
