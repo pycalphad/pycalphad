@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.4.2+2.ga0cf6ab documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.4.2+8.g36d8375 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.2+2.ga0cf6ab documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+8.g36d8375 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.2+2.ga0cf6ab
+                0.4.2+8.g36d8375
               </div>
             
           
@@ -219,6 +219,12 @@
 
         <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">symbols</span><span class="o">.</span><span class="n">update</span><span class="p">([(</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+        <span class="k">def</span> <span class="nf">wrap_symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
+                <span class="k">return</span> <span class="n">obj</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_phase</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
@@ -707,8 +713,8 @@
         <span class="n">neel_temp</span> <span class="o">=</span> \
             <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">nt_param_query</span><span class="p">)</span>
 
-        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">curie_temp</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">neel_temp</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">dbe</span><span class="o">.</span><span class="n">symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">TC</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">curie_temperature</span> <span class="o">=</span> <span class="n">curie_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">NT</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">neel_temperature</span> <span class="o">=</span> <span class="n">neel_temp</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span><span class="p">)</span>
 
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">/</span> <span class="n">curie_temp</span>
         <span class="n">tau_curie</span> <span class="o">=</span> <span class="n">tau_curie</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="mf">1.0e10</span><span class="p">})</span>
@@ -968,7 +974,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.4.2+2.ga0cf6ab',
+            VERSION:'0.4.2+8.g36d8375',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

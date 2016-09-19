@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0.4.2+2.ga0cf6ab documentation</title>
+  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0.4.2+8.g36d8375 documentation</title>
   
 
   
@@ -30,7 +30,7 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.2+2.ga0cf6ab documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+8.g36d8375 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.4.2+2.ga0cf6ab
+                0.4.2+8.g36d8375
               </div>
             
           
@@ -139,6 +139,7 @@
 <span class="kn">import</span> <span class="nn">autograd.numpy</span> <span class="k">as</span> <span class="nn">anp</span>
 <span class="kn">from</span> <span class="nn">autograd</span> <span class="k">import</span> <span class="n">elementwise_grad</span><span class="p">,</span> <span class="n">jacobian</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
+<span class="kn">from</span> <span class="nn">mpmath</span> <span class="k">import</span> <span class="n">polylog</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">NumPyPrinter</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">BIGNUM</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
@@ -158,7 +159,8 @@
 
 <div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.autograd_utils.build_functions">[docs]</a><span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">tmpman</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="c1"># tmpman is not used here but left for API compatibility</span>
-    <span class="n">logical_np</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;And&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;Or&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span> <span class="s1">&#39;Abs&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">abs</span><span class="p">},</span> <span class="n">anp</span><span class="p">]</span>
+    <span class="n">logical_np</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;And&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;Or&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span> <span class="s1">&#39;Abs&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">abs</span><span class="p">,</span>
+                   <span class="s1">&#39;polylog&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">polylog</span><span class="p">,</span> <span class="n">excluded</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])},</span> <span class="n">anp</span><span class="p">]</span>
     <span class="n">sympy_graph</span> <span class="o">=</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">BIGNUM</span><span class="p">,</span> <span class="n">oo</span><span class="p">:</span> <span class="n">BIGNUM</span><span class="p">})</span>
     <span class="n">obj</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">sympy_graph</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                    <span class="n">modules</span><span class="o">=</span><span class="n">logical_np</span><span class="p">,</span> <span class="n">printer</span><span class="o">=</span><span class="n">NumPyPrinter</span><span class="p">)</span>
@@ -226,7 +228,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+2.ga0cf6ab',
+            VERSION:'0.4.2+8.g36d8375',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
