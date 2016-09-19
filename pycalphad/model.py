@@ -84,6 +84,12 @@ class Model(object):
 
         if parameters is not None:
             symbols.update([(Symbol(s), val) for s, val in parameters.items()])
+        def wrap_symbol(obj):
+            if isinstance(obj, Symbol):
+                return obj
+            else:
+                return Symbol(obj)
+        self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
         self.build_phase(dbe)
@@ -572,8 +578,8 @@ class Model(object):
         neel_temp = \
             self.redlich_kister_sum(phase, param_search, nt_param_query)
 
-        self.TC = self.curie_temperature = curie_temp.xreplace(dbe.symbols)
-        self.NT = self.neel_temperature = neel_temp.xreplace(dbe.symbols)
+        self.TC = self.curie_temperature = curie_temp.subs(self._symbols)
+        self.NT = self.neel_temperature = neel_temp.subs(self._symbols)
 
         tau_curie = v.T / curie_temp
         tau_curie = tau_curie.xreplace({zoo: 1.0e10})
