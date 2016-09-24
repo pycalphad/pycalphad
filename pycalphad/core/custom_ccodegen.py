@@ -3,8 +3,13 @@ This module contains a patched version of sympy's CCodeGen to optimize the code 
 """
 
 from sympy.utilities.codegen import CCodeGen as sympy_CCodeGen
-from sympy.utilities.codegen import ResultBase, Result, AssignmentError
+from sympy.utilities.codegen import FCodeGen as sympy_FCodeGen
+from sympy.utilities.codegen import ResultBase, Result, AssignmentError,\
+    InOutArgument, OutputArgument, get_default_datatype
+from sympy.printing.codeprinter import Assignment
 from sympy.printing import ccode
+from sympy.utilities.codegen import FCodePrinter as sympy_FCodePrinter
+from sympy import Function
 try:
     # Python 2
     from StringIO import StringIO
@@ -12,6 +17,97 @@ except ImportError:
     # Python 3
     from io import StringIO
 import os
+
+
+class FCodePrinter(sympy_FCodePrinter):
+    def _print_Piecewise(self, expr):
+        if expr.args[-1].cond != True:
+            # We need the last conditional to be a True, otherwise the resulting
+            # function may not return a result.
+            raise ValueError("All Piecewise expressions must contain an "
+                             "(expr, True) statement to be used as a default "
+                             "condition. Without one, the generated "
+                             "expression may not evaluate to anything under "
+                             "some condition.")
+        lines = []
+        if expr.has(Assignment):
+            for i, (e, c) in enumerate(expr.args):
+                if i == 0:
+                    lines.append("if (%s) then" % self._print(c))
+                elif i == len(expr.args) - 1 and c == True:
+                    lines.append("else")
+                else:
+                    lines.append("else if (%s) then" % self._print(c))
+                lines.append(self._print(e))
+            lines.append("end if")
+            return "\n".join(lines)
+        elif self._settings["standard"] >= 95:
+            # Only supported in F95 and newer:
+            # The piecewise was used in an expression, need to do inline
+            # operators. This has the downside that inline operators will
+            # not work for statements that span multiple lines (Matrix or
+            # Indexed expressions).
+            pattern = "merge(DBLE({T}), DBLE({F}), {COND})"
+            code = self._print(expr.args[-1].expr)
+            terms = list(expr.args[:-1])
+            while terms:
+                e, c = terms.pop()
+                expr = self._print(e)
+                cond = self._print(c)
+                code = pattern.format(T=expr, F=code, COND=cond)
+            return code
+        else:
+            # `merge` is not supported prior to F95
+            raise NotImplementedError("Using Piecewise as an expression using "
+                                      "inline operators is not supported in "
+                                      "standards earlier than Fortran95.")
+
+class FCodeGen(sympy_FCodeGen):
+    """Generator for Fortran 95 code
+
+    The .write() method inherited from CodeGen will output a code file and
+    an interface file, <prefix>.f90 and <prefix>.h respectively.
+
+    """
+
+    def _get_symbol(self, s):
+        """Returns the symbol as fcode prints it."""
+        return FCodePrinter().doprint(s).strip()
+
+    def _call_printer(self, routine):
+        declarations = []
+        code_lines = []
+        for result in routine.result_variables:
+            if isinstance(result, Result):
+                assign_to = routine.name
+            elif isinstance(result, (OutputArgument, InOutArgument)):
+                assign_to = result.result_var
+            else:
+                assign_to = None
+
+            constants, not_fortran, f_expr = FCodePrinter({'source_format': 'free',
+                                                           'human': False,
+                                                           'standard': 95}).doprint(result.expr, assign_to=assign_to)
+
+            for obj, v in sorted(constants, key=str):
+                t = get_default_datatype(obj)
+                declarations.append(
+                    "%s, parameter :: %s = %s\n" % (t.fname, obj, v))
+            for obj in sorted(not_fortran, key=str):
+                t = get_default_datatype(obj)
+                if isinstance(obj, Function):
+                    name = obj.func
+                else:
+                    name = obj
+                declarations.append("%s :: %s\n" % (t.fname, name))
+
+            code_lines.append("%s\n" % f_expr)
+        return declarations + code_lines
+
+    def _indent_code(self, codelines):
+        p = FCodePrinter({'source_format': 'free', 'human': False})
+        return p.indent_code(codelines)
+
 
 class CCodeGen(sympy_CCodeGen):
     def _call_printer(self, routine):
