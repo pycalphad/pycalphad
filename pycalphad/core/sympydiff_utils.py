@@ -4,7 +4,8 @@ This module constructs gradient functions for Models.
 from .custom_ufuncify import ufuncify
 from .tempfilemanager import TempfileManager
 from .autograd_utils import build_functions as interpreted_build_functions
-from sympy import zoo, oo
+from .custom_autowrap import autowrap
+from sympy import zoo, oo, Matrix
 import numpy as np
 import itertools
 import logging
@@ -61,55 +62,60 @@ class LazyPickleableFunction(object):
         # The architecture of the unpickling machine may be incompatible with it
         return {key: value for key, value in self.__dict__.items() if str(key) != '_kernel'}
 
+
 class UfuncifyFunction(LazyPickleableFunction):
     def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
         self.tmpman = tmpman
         super(UfuncifyFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
+
     def compile(self):
         return ufuncify(self._sympyvars, self._sympyobj, tmpman=self.tmpman, flags=[], cflags=['-ffast-math'])
+
+
+class AutowrapFunction(LazyPickleableFunction):
+    def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
+        self.tmpman = tmpman
+        super(AutowrapFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
+
+    def compile(self):
+        return autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95')
+
 
 @TempfileManager(os.getcwd())
 def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, include_grad=True, include_hess=True):
     wrt = tuple(variables)
     if tmpman is None:
         raise ValueError('Missing temporary file context manager')
-    if len(wrt) > _NPY_MAXARGS:
-        logging.warning('Cannot handle more than NPY_MAXARGS degrees of freedom at once in compiled mode. '
-                        'Falling back to interpreted.')
-        return interpreted_build_functions(sympy_graph, variables, tmpman=tmpman, include_obj=include_obj,
-                                           include_grad=include_grad, include_hess=include_hess)
     restup = []
     grad = None
     hess = None
     if include_obj:
-        restup.append(UfuncifyFunction(wrt, sympy_graph, tmpman=tmpman))
+        restup.append(AutowrapFunction(wrt, sympy_graph, tmpman=tmpman))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
-        grad_diffs = tuple(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
+        grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
         hess_diffs = []
         # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
         if include_hess:
             for i in range(len(wrt)):
                 for j in range(i, len(wrt)):
                     hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
-            hess = [UfuncifyFunction(wrt, hd, tmpman=tmpman)
-                    for hd in chunks(hess_diffs, _NPY_MAXARGS - len(wrt))]
+            hess = AutowrapFunction(wrt, Matrix(hess_diffs), tmpman=tmpman)
         if include_grad:
-            grad = [UfuncifyFunction(wrt, gd, tmpman=tmpman)
-                    for gd in chunks(grad_diffs, _NPY_MAXARGS-len(wrt))]
+            grad = AutowrapFunction(wrt, Matrix(grad_diffs), tmpman=tmpman)
 
         # Factored out of argwrapper functions via profiling
         triu_indices = np.triu_indices(len(wrt))
         lenargsrange = np.arange(len(wrt), dtype=np.int)
 
         def grad_argwrapper(*args):
-            result = np.array(list(itertools.chain(*(f(*args) for f in grad))))
+            result = grad(*args)
             axes = tuple(range(len(result.shape)))
             # Send 'gradient' axis back
             result = result.transpose(axes[1:] + axes[:1])
             return result
         def hess_argwrapper(*args):
-            resarray = list(itertools.chain(*(f(*args) for f in hess)))
+            resarray = hess(*args)
             result = np.zeros((len(args), len(args)) + resarray[0].shape)
             result[triu_indices] = resarray
             axes = tuple(range(len(result.shape)))
