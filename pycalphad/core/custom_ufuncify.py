@@ -8,7 +8,7 @@ import os
 import subprocess
 import time
 from string import Template
-from .custom_ccodegen import CCodeGen
+from .custom_codegen import CCodeGen
 from .tempfilemanager import TempfileManager
 from sympy.core.symbol import Symbol
 from sympy.utilities.codegen import make_routine, OutputArgument, InOutArgument

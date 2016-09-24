@@ -69,7 +69,7 @@ from sympy.utilities.codegen import (make_routine, get_code_generator,
                                      OutputArgument,
                                      CodeGenArgumentListError,
                                      CCodeGen, JuliaCodeGen, OctaveCodeGen)
-from pycalphad.core.custom_ccodegen import FCodeGen
+from pycalphad.core.custom_codegen import FCodeGen
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import _validate_backend_language, _get_code_wrapper_class, _infer_language
 
