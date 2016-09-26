@@ -312,11 +312,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 # Sample along the edges of the endmembers
                 # These constitution space edges are often the equilibrium points!
                 em_pairs = list(itertools.combinations(points, 2))
-                for first_em, second_em in em_pairs:
-                    extra_points = first_em * np.linspace(0, 1, pdens_dict[phase_name])[np.newaxis].T + \
-                                   second_em * np.linspace(0, 1, pdens_dict[phase_name])[::-1][np.newaxis].T
-                    points = np.concatenate((points, extra_points))
-
+                extra_points = [first_em * np.linspace(0, 1, pdens_dict[phase_name])[np.newaxis].T +
+                                second_em * np.linspace(0, 1, pdens_dict[phase_name])[::-1][np.newaxis].T
+                                for first_em, second_em in em_pairs]
+                points = np.concatenate(list(itertools.chain([points], extra_points)))
 
             # Sample composition space for more points
             if sum(sublattice_dof) > len(sublattice_dof):
