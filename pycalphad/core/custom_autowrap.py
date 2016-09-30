@@ -65,13 +65,98 @@ When is this module NOT the best approach?
 
 """
 from sympy.core.compatibility import iterable
-from sympy.utilities.codegen import (make_routine, get_code_generator,
-                                     OutputArgument,
+from sympy.utilities.codegen import (OutputArgument,
                                      CodeGenArgumentListError,
                                      CCodeGen, JuliaCodeGen, OctaveCodeGen)
 from pycalphad.core.custom_codegen import FCodeGen
 from sympy.utilities.lambdify import implemented_function
-from sympy.utilities.autowrap import _validate_backend_language, _get_code_wrapper_class, _infer_language
+from sympy.utilities.autowrap import F2PyCodeWrapper, CythonCodeWrapper, DummyWrapper
+import os
+import sys
+import platform
+import hashlib
+import time
+
+
+class CustomF2PyCodeWrapper(F2PyCodeWrapper):
+    @staticmethod
+    def _routinehash(routine):
+        return hashlib.sha256(str(routine).encode()).hexdigest()
+
+    @property
+    def filename(self):
+        return self._filename
+
+    @property
+    def module_name(self):
+        return self._module_name
+
+    def wrap_code(self, routine, helpers=[]):
+        pfstring = platform.uname()
+        pfstring = '-'.join([pfstring.system, pfstring.node, pfstring.release, pfstring.machine])
+        modhash = self._routinehash(routine)
+        self._filename = modhash
+        self._module_name = 'module_{}'.format(modhash)
+        workdir = self.filepath or os.path.join(os.path.expanduser('~/.pycalphad/cache'), pfstring, modhash)
+        if not os.access(workdir, os.F_OK):
+            os.makedirs(workdir)
+            cached = False
+        else:
+            cached = True
+        oldwork = os.getcwd()
+        os.chdir(workdir)
+        try:
+            sys.path.append(workdir)
+            if not cached:
+                self._generate_code(routine, helpers)
+                self._prepare_files(routine)
+                self._process_files(routine)
+            startwait = time.time()
+            while True:
+                try:
+                    mod = __import__(self.module_name)
+                    break
+                except ImportError:
+                    if time.time() > startwait+30:
+                        raise
+                    time.sleep(0.1)
+        finally:
+            sys.path.remove(workdir)
+            os.chdir(oldwork)
+
+        return self._get_wrapped_function(mod, routine.name)
+
+# Here we define a lookup of backends -> tuples of languages. For now, each
+# tuple is of length 1, but if a backend supports more than one language,
+# the most preferable language is listed first.
+_lang_lookup = {'CYTHON': ('C',),
+                'F2PY': ('F95',),
+                'NUMPY': ('C',),
+                'DUMMY': ('F95',)}     # Dummy here just for testing
+
+
+def _infer_language(backend):
+    """For a given backend, return the top choice of language"""
+    langs = _lang_lookup.get(backend.upper(), False)
+    if not langs:
+        raise ValueError("Unrecognized backend: " + backend)
+    return langs[0]
+
+
+def _get_code_wrapper_class(backend):
+    wrappers = {'F2PY': CustomF2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
+        'DUMMY': DummyWrapper}
+    return wrappers[backend.upper()]
+
+
+def _validate_backend_language(backend, language):
+    """Throws error if backend and language are incompatible"""
+    langs = _lang_lookup.get(backend.upper(), False)
+    if not langs:
+        raise ValueError("Unrecognized backend: " + backend)
+    if language.upper() not in langs:
+        raise ValueError(("Backend {0} and language {1} are "
+                          "incompatible").format(backend, language))
 
 
 def get_code_generator(language, project):
@@ -80,6 +165,95 @@ def get_code_generator(language, project):
     if CodeGenClass is None:
         raise ValueError("Language '%s' is not supported." % language)
     return CodeGenClass(project)
+
+
+def make_routine(name, expr, argument_sequence=None,
+                 global_vars=None, language="F95"):
+    """A factory that makes an appropriate Routine from an expression.
+
+    Parameters
+    ==========
+
+    name : string
+        The name of this routine in the generated code.
+
+    expr : expression or list/tuple of expressions
+        A SymPy expression that the Routine instance will represent.  If
+        given a list or tuple of expressions, the routine will be
+        considered to have multiple return values and/or output arguments.
+
+    argument_sequence : list or tuple, optional
+        List arguments for the routine in a preferred order.  If omitted,
+        the results are language dependent, for example, alphabetical order
+        or in the same order as the given expressions.
+
+    global_vars : iterable, optional
+        Sequence of global variables used by the routine.  Variables
+        listed here will not show up as function arguments.
+
+    language : string, optional
+        Specify a target language.  The Routine itself should be
+        language-agnostic but the precise way one is created, error
+        checking, etc depend on the language.  [default: "F95"].
+
+    A decision about whether to use output arguments or return values is made
+    depending on both the language and the particular mathematical expressions.
+    For an expression of type Equality, the left hand side is typically made
+    into an OutputArgument (or perhaps an InOutArgument if appropriate).
+    Otherwise, typically, the calculated expression is made a return values of
+    the routine.
+
+    Examples
+    ========
+
+    >>> from sympy.utilities.codegen import make_routine
+    >>> from sympy.abc import x, y, f, g
+    >>> from sympy import Eq
+    >>> r = make_routine('test', [Eq(f, 2*x), Eq(g, x + y)])
+    >>> [arg.result_var for arg in r.results]
+    []
+    >>> [arg.name for arg in r.arguments]
+    [x, y, f, g]
+    >>> [arg.name for arg in r.result_variables]
+    [f, g]
+    >>> r.local_vars
+    set()
+
+    Another more complicated example with a mixture of specified and
+    automatically-assigned names.  Also has Matrix output.
+
+    >>> from sympy import Matrix
+    >>> r = make_routine('fcn', [x*y, Eq(f, 1), Eq(g, x + g), Matrix([[x, 2]])])
+    >>> [arg.result_var for arg in r.results]  # doctest: +SKIP
+    [result_5397460570204848505]
+    >>> [arg.expr for arg in r.results]
+    [x*y]
+    >>> [arg.name for arg in r.arguments]  # doctest: +SKIP
+    [x, y, f, g, out_8598435338387848786]
+
+    We can examine the various arguments more closely:
+
+    >>> from sympy.utilities.codegen import (InputArgument, OutputArgument,
+    ...                                      InOutArgument)
+    >>> [a.name for a in r.arguments if isinstance(a, InputArgument)]
+    [x, y]
+
+    >>> [a.name for a in r.arguments if isinstance(a, OutputArgument)]  # doctest: +SKIP
+    [f, out_8598435338387848786]
+    >>> [a.expr for a in r.arguments if isinstance(a, OutputArgument)]
+    [1, Matrix([[x, 2]])]
+
+    >>> [a.name for a in r.arguments if isinstance(a, InOutArgument)]
+    [g]
+    >>> [a.expr for a in r.arguments if isinstance(a, InOutArgument)]
+    [g + x]
+
+    """
+
+    # initialize a new code generator
+    code_gen = get_code_generator(language, "nothingElseMatters")
+
+    return code_gen.routine(name, expr, argument_sequence, global_vars)
 
 
 def autowrap(

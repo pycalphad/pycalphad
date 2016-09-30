@@ -3,17 +3,11 @@ This module constructs gradient functions for Models.
 """
 from .custom_ufuncify import ufuncify
 from .tempfilemanager import TempfileManager
-from .autograd_utils import build_functions as interpreted_build_functions
 from .custom_autowrap import autowrap
-from sympy import zoo, oo, Matrix
+from sympy import zoo, oo, ImmutableMatrix
 import numpy as np
-import itertools
-import logging
 import os
-import time
 
-# Doesn't seem to be a run-time way to detect this, so we use the value as of numpy 1.11
-_NPY_MAXARGS = 32
 
 def chunks(l, n):
     """
@@ -23,32 +17,25 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i+n]
 
-class LazyPickleableFunction(object):
+
+class PickleableFunction(object):
     """
-    A lazily-compiled function that is recompiled when unpickled and called.
+    A compiled function that is recompiled when unpickled.
     This works around several issues with sending JIT'd functions over the wire.
     This approach means only the underlying SymPy object must be pickleable.
     This also means multiprocessing using fork() will NOT force a recompile.
     """
     def __init__(self, sympy_vars, sympy_obj, kernel=None):
-        if kernel is not None:
-            self._kernel = kernel
         self._sympyobj = sympy_obj
         self._sympyvars = sympy_vars
+        if kernel is not None:
+            self._kernel = kernel
+        else:
+            self._kernel = self.compile()
         self._compiling = False
 
     @property
     def kernel(self):
-        while self._compiling:
-            time.sleep(0.1)
-        if not hasattr(self, '_kernel'):
-            try:
-                self._compiling = True
-                self._kernel = self.compile()
-            except:
-                self._compiling = False
-                raise
-            self._compiling = False
         return self._kernel
 
     def compile(self):
@@ -62,8 +49,13 @@ class LazyPickleableFunction(object):
         # The architecture of the unpickling machine may be incompatible with it
         return {key: value for key, value in self.__dict__.items() if str(key) != '_kernel'}
 
+    def __setstate__(self, state):
+        for key, value in state.items():
+            setattr(self, key, value)
+        self._kernel = self.compile()
 
-class UfuncifyFunction(LazyPickleableFunction):
+
+class UfuncifyFunction(PickleableFunction):
     def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
         self.tmpman = tmpman
         super(UfuncifyFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
@@ -72,7 +64,7 @@ class UfuncifyFunction(LazyPickleableFunction):
         return ufuncify(self._sympyvars, self._sympyobj, tmpman=self.tmpman, flags=[], cflags=['-ffast-math'])
 
 
-class AutowrapFunction(LazyPickleableFunction):
+class AutowrapFunction(PickleableFunction):
     def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
         self.tmpman = tmpman
         super(AutowrapFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
@@ -82,15 +74,39 @@ class AutowrapFunction(LazyPickleableFunction):
 
 
 @TempfileManager(os.getcwd())
-def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, include_grad=True, include_hess=True):
-    wrt = tuple(variables)
+def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=True, include_grad=True, include_hess=True,
+                    excluded=None):
+    """
+
+    Parameters
+    ----------
+    sympy_graph
+    variables : tuple of Symbols
+        Input arguments.
+    wrt : tuple of Symbols, optional
+        Variables to differentiate with respect to. (Default: equal to variables)
+    tmpman
+    include_obj
+    include_grad
+    include_hess
+    excluded
+
+    Returns
+    -------
+    One or more functions.
+    """
+    if wrt is None:
+        wrt = tuple(variables)
+    variables = tuple(variables)
     if tmpman is None:
         raise ValueError('Missing temporary file context manager')
     restup = []
     grad = None
     hess = None
     if include_obj:
-        restup.append(AutowrapFunction(wrt, sympy_graph, tmpman=tmpman))
+        if excluded:
+            excluded = list(range(excluded))
+        restup.append(np.vectorize(AutowrapFunction(variables, sympy_graph, tmpman=tmpman), excluded=excluded))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
         grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
@@ -100,9 +116,9 @@ def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, inclu
             for i in range(len(wrt)):
                 for j in range(i, len(wrt)):
                     hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
-            hess = AutowrapFunction(wrt, Matrix(hess_diffs), tmpman=tmpman)
+            hess = AutowrapFunction(variables, ImmutableMatrix(hess_diffs), tmpman=tmpman)
         if include_grad:
-            grad = AutowrapFunction(wrt, Matrix(grad_diffs), tmpman=tmpman)
+            grad = AutowrapFunction(variables, ImmutableMatrix(grad_diffs), tmpman=tmpman)
 
         # Factored out of argwrapper functions via profiling
         triu_indices = np.triu_indices(len(wrt))
@@ -114,9 +130,10 @@ def build_functions(sympy_graph, variables, tmpman=None, include_obj=True, inclu
             # Send 'gradient' axis back
             result = result.transpose(axes[1:] + axes[:1])
             return result
+
         def hess_argwrapper(*args):
             resarray = hess(*args)
-            result = np.zeros((len(args), len(args)) + resarray[0].shape)
+            result = np.zeros((len(wrt), len(wrt)) + resarray[0].shape)
             result[triu_indices] = resarray
             axes = tuple(range(len(result.shape)))
             # Upper triangular is filled; also need to fill lower triangular

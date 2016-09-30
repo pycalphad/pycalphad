@@ -293,20 +293,17 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
         obj = callable_dict[name]
         hess = phase_records[name].hess
         grad = phase_records[name].grad
-        obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                       site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
-                      )
-        grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                         site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
-                        )
+        dof = tuple(itertools.chain([np.array(cur_conds['P'], dtype=np.float), np.array(cur_conds['T'], dtype=np.float)],
+                                    site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
+        obj_res = obj(*dof)
+        grad_res = grad(*dof)
         gradient_term[var_offset:var_offset + phase_dof[phase_idx]] = \
             phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
         gradient_term[len(site_fracs) + phase_idx] = obj_res
-        l_hessian[var_offset:var_offset + phase_dof[phase_idx],
-        var_offset:var_offset + phase_dof[phase_idx]] = \
-            phase_frac * np.squeeze(hess(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                                          site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
-                                         ))[2:, 2:]  # Remove P,T hessian part
+        hess_slice = np.index_exp[var_offset:var_offset + phase_dof[phase_idx], var_offset:var_offset + phase_dof[phase_idx]]
+        l_hessian[hess_slice] = \
+            phase_frac * np.squeeze(hess(*dof)
+                                    )[2:, 2:]  # Remove P,T hessian part
         # Phase fraction / site fraction cross derivative
         l_hessian[len(site_fracs) + phase_idx, var_offset:var_offset + phase_dof[phase_idx]] = \
             l_hessian[var_offset:var_offset + phase_dof[phase_idx], len(site_fracs) + phase_idx] = \
@@ -786,15 +783,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        variables = sorted(mod.energy.atoms(v.StateVariable).union({key for key in conditions.keys() if key in [v.T, v.P]}), key=str)
-        site_fracs = sorted(mod.energy.atoms(v.SiteFraction), key=str)
+        variables = mod.variables
+        site_fracs = mod.site_fractions
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         out = models[name].energy
-        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-        for undef in undefs:
-            out = out.xreplace({undef: float(0)})
         if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
-            or (not hess_callable_dict.get(name, False)):
+                or (not hess_callable_dict.get(name, False)):
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
             cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, tmpman=tmpman)
             if callable_dict.get(name, None) is None:
                 callable_dict[name] = cf
