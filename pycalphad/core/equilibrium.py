@@ -59,13 +59,19 @@ def remove_degenerate_phases(properties, multi_index):
         Index into 'properties' of the condition set of interest.
 
     """
-    phases = list(properties['Phase'].values[multi_index])
+    # Factored out via profiling
+    prop_Phase = properties.Phase.values
+    prop_X = properties.X.values
+    prop_Y = properties.Y.values
+    prop_NP = properties.NP.values
+
+    phases = list(prop_Phase[multi_index])
     # Are there already removed phases?
     if '' in phases:
         num_phases = phases.index('')
     else:
         num_phases = len(phases)
-    phases = properties['Phase'].values[multi_index + np.index_exp[:num_phases]]
+    phases = prop_Phase[multi_index + np.index_exp[:num_phases]]
     # Group phases into multiple composition sets
     phase_indices = defaultdict(lambda: list())
     for phase_idx, name in enumerate(phases):
@@ -78,7 +84,7 @@ def remove_degenerate_phases(properties, multi_index):
         # The reason we don't do this based on Y fractions is because
         # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
-        comp_matrix = properties['X'].values[multi_index + np.index_exp[indices]]
+        comp_matrix = prop_X[multi_index + np.index_exp[indices]]
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
         redundant_phases = set()
         redundant_phases |= {indices[0]}
@@ -94,36 +100,36 @@ def remove_degenerate_phases(properties, multi_index):
         # Their NP values will be added to redundant_phases[0]
         # and they will be nulled out
         for redundant in removed_phases:
-            properties['NP'].values[multi_index + np.index_exp[kept_phase]] += \
-                properties['NP'].values[multi_index + np.index_exp[redundant]]
-            properties['Phase'].values[multi_index + np.index_exp[redundant]] = ''
+            prop_NP[multi_index + np.index_exp[kept_phase]] += \
+                prop_NP[multi_index + np.index_exp[redundant]]
+            prop_Phase[multi_index + np.index_exp[redundant]] = ''
     # Eliminate any 'fake points' that made it through the convex hull routine
     # These can show up from phases which aren't defined over all of composition space
-    properties['NP'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = np.nan
-    properties['Phase'].values[np.nonzero(properties['Phase'].values == '_FAKE_')] = ''
+    prop_NP[np.nonzero(prop_Phase == '_FAKE_')] = np.nan
+    prop_Phase[np.nonzero(prop_Phase == '_FAKE_')] = ''
     # Delete unstable phases
-    unstable_phases = np.nonzero(properties['NP'].values[multi_index] <= MIN_SITE_FRACTION)
-    properties['Phase'].values[multi_index + np.index_exp[unstable_phases]] = ''
+    unstable_phases = np.nonzero(prop_NP[multi_index] <= MIN_SITE_FRACTION)
+    prop_Phase[multi_index + np.index_exp[unstable_phases]] = ''
     # Rewrite properties to delete all the nulled out phase entries
     # Then put them at the end
     # That will let us rewrite 'phases' to have only the independent phases
     # And still preserve convenient indexing of 'properties' with phase_idx
-    saved_indices = properties['Phase'].values[multi_index] != ''
+    saved_indices = prop_Phase[multi_index] != ''
     saved_indices = np.arange(len(saved_indices))[saved_indices]
     # TODO: Assumes N=1 always
-    properties['NP'].values[multi_index + np.index_exp[:len(saved_indices)]] = \
-        properties['NP'].values[multi_index + np.index_exp[saved_indices]] / \
-        np.sum(properties['NP'].values[multi_index + np.index_exp[saved_indices]])
-    properties['NP'].values[multi_index + np.index_exp[len(saved_indices):]] = np.nan
-    properties['Phase'].values[multi_index + np.index_exp[:len(saved_indices)]] = \
-        properties['Phase'].values[multi_index + np.index_exp[saved_indices]]
-    properties['Phase'].values[multi_index + np.index_exp[len(saved_indices):]] = ''
-    properties['X'].values[multi_index + np.index_exp[:len(saved_indices), :]] = \
-        properties['X'].values[multi_index + np.index_exp[saved_indices, :]]
-    properties['X'].values[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
-    properties['Y'].values[multi_index + np.index_exp[:len(saved_indices), :]] = \
-        properties['Y'].values[multi_index + np.index_exp[saved_indices, :]]
-    properties['Y'].values[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
+    prop_NP[multi_index + np.index_exp[:len(saved_indices)]] = \
+        prop_NP[multi_index + np.index_exp[saved_indices]] / \
+        np.sum(prop_NP[multi_index + np.index_exp[saved_indices]])
+    prop_NP[multi_index + np.index_exp[len(saved_indices):]] = np.nan
+    prop_Phase[multi_index + np.index_exp[:len(saved_indices)]] = \
+        prop_Phase[multi_index + np.index_exp[saved_indices]]
+    prop_Phase[multi_index + np.index_exp[len(saved_indices):]] = ''
+    prop_X[multi_index + np.index_exp[:len(saved_indices), :]] = \
+        prop_X[multi_index + np.index_exp[saved_indices, :]]
+    prop_X[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
+    prop_Y[multi_index + np.index_exp[:len(saved_indices), :]] = \
+        prop_Y[multi_index + np.index_exp[saved_indices, :]]
+    prop_Y[multi_index + np.index_exp[len(saved_indices):, :]] = np.nan
 
 
 def _adjust_conditions(conds):
