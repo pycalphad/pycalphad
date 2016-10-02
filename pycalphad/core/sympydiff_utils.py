@@ -4,7 +4,9 @@ This module constructs gradient functions for Models.
 from .custom_ufuncify import ufuncify
 from .tempfilemanager import TempfileManager
 from .custom_autowrap import autowrap
-from sympy import zoo, oo, ImmutableMatrix
+from .cache import cacheit
+from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
+from sympy.utilities.autowrap import implemented_function
 import numpy as np
 import os
 
@@ -73,6 +75,7 @@ class AutowrapFunction(PickleableFunction):
         return autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95')
 
 
+@cacheit
 @TempfileManager(os.getcwd())
 def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=True, include_grad=True, include_hess=True,
                     excluded=None):
@@ -106,7 +109,28 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
     if include_obj:
         if excluded:
             excluded = list(range(excluded))
-        restup.append(np.vectorize(AutowrapFunction(variables, sympy_graph, tmpman=tmpman), excluded=excluded))
+        else:
+            excluded = []
+        y = IndexedBase(Dummy())
+        m = Dummy(integer=True)
+        i = Idx(Dummy(integer=True), m)
+        f = implemented_function(Dummy().name, Lambda(variables, sympy_graph))
+        # For each of the args create an indexed version.
+        indexed_args = []
+        for indx, a in enumerate(variables):
+            if indx in excluded:
+                indexed_args.append(a)
+            else:
+                indexed_args.append(IndexedBase(Dummy(a.name)))
+        # Order the arguments (out, args, dim)
+        args = [y] + indexed_args + [m]
+        args_with_indices = []
+        for indx, a in enumerate(indexed_args):
+            if indx in excluded:
+                args_with_indices.append(a)
+            else:
+                args_with_indices.append(a[i])
+        restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices)), tmpman=tmpman))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
         grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)

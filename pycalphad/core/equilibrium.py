@@ -9,12 +9,12 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.autograd_utils import build_functions as interpreted_build_functions
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
 from pycalphad.core.tempfilemanager import TempfileManager
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 import dask
+from dask import delayed
 import dask.multiprocessing, dask.async
 from xarray import Dataset, DataArray
 import numpy as np
@@ -24,6 +24,9 @@ import itertools
 import copy
 from datetime import datetime
 import os
+
+#def delayed(func, *fargs, **fkwargs):
+#    return func
 
 # Maximum number of multi-phase solver iterations
 MAX_SOLVE_ITERATIONS = 100
@@ -206,7 +209,7 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
         phase_idx = 0
         for name, phase_frac, con_vacs in zip(phases, phase_fracs, contains_vacancies):
             if mole_fractions.get((name, comp), None) is None:
-                mole_fractions[(name, comp)] = interpreted_build_functions(mole_fraction(dbf.phases[name], comps, comp),
+                mole_fractions[(name, comp)] = compiled_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
                                                                         key=str), tmpman=tmpman)
             comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
@@ -766,16 +769,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
-    if num_calcs > 5:
-        build_functions = compiled_build_functions
-        backend_mode = 'compiled'
-    else:
-        build_functions = interpreted_build_functions
-        backend_mode = 'interpreted'
+    build_functions = compiled_build_functions
+    backend_mode = 'compiled'
     if kwargs.get('_backend', None):
         backend_mode = kwargs['_backend']
     if verbose:
-        backend_dict = {'compiled': 'Compiled (ufuncify)', 'interpreted': 'Interpreted (autograd)'}
+        backend_dict = {'compiled': 'Compiled (autowrap)', 'interpreted': 'Interpreted (autograd)'}
         print('Calculation Backend: {}'.format(backend_dict.get(backend_mode, 'Custom')))
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
@@ -809,13 +808,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         # Adjust gradient by the approximate chemical potentials
         hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
                            for i in comps if i != 'VA'])
+        mu_dof = [v.MU(i) for i in comps if i != 'VA'] + site_fracs
         plane_obj, plane_grad, plane_hess = build_functions(hyperplane,
-                                                            [v.MU(i) for i in comps if i != 'VA']+site_fracs,
-                                                            tmpman=tmpman)
-
-        mass_obj, mass_grad, mass_hess = build_functions(Add(*[mole_fraction(dbf.phases[name], comps, i)
-                                                               for i in comps if i != 'VA']), site_fracs,
-                                                         tmpman=tmpman)
+                                                            mu_dof)
+        molefracs = Add(*[mole_fraction(dbf.phases[name], comps, i)
+                        for i in comps if i != 'VA'])
+        mass_obj, mass_grad, mass_hess = build_functions(molefracs, site_fracs)
         phase_records[name.upper()] = PhaseRecord(variables=variables,
                                                   grad=grad_callable_dict[name],
                                                   hess=hess_callable_dict[name],
@@ -840,15 +838,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     coord_dict['component'] = components
-    # These guys have internal caching
-    # If we mark them pure, subsequent calls to the functions will be fast
-    dbf = dask.delayed(pure=True)(dbf)
-    callable_dict = dask.delayed(pure=True)(callable_dict)
-    phase_records = dask.delayed(pure=True)(phase_records)
-    grid = dask.delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM', tmpman=tmpman,
-                                               model=models, callables=callable_dict, fake_points=True, **grid_opts)
 
-    properties = dask.delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
+    grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM', tmpman=tmpman,
+                                          model=models, callables=callable_dict, fake_points=True, **grid_opts)
+
+    properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
                                                          np.empty(grid_shape)),
                                                   'GM': (list(str_conds.keys()),
                                                          np.empty(grid_shape[:-1])),
@@ -862,8 +856,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                          'engine': 'pycalphad %s' % pycalphad_version},
                                                  )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = dask.delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
-    properties = dask.delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
+    properties = delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
+    properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
@@ -882,14 +876,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         for chunk in chunk_grid:
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
-            job = dask.delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice,
+            job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice,
                                                                     phase_records, callable_dict,
                                                                     list(str_conds.keys()), verbose)
             res.append(job)
-        properties = dask.delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
+        properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
-        properties = dask.delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
+        properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
                                                                        callable_dict, list(str_conds.keys()), verbose)
 
     # Compute equilibrium values of any additional user-specified properties
@@ -905,13 +899,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        dask.delayed(properties.merge, pure=False)(dask.delayed(_eqcalculate, pure=False)(dbf, comps, active_phases,
+        delayed(properties.merge, pure=False)(delayed(_eqcalculate, pure=False)(dbf, comps, active_phases,
                                                                                           conditions, out,
                                                                                           data=properties,
                                                                                           per_phase=per_phase,
                                                                                           model=models, **calc_opts),
                                                    inplace=True, compat='equals')
-    dask.delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
+    delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
     if scheduler is not None:
         properties = dask.compute(properties, get=scheduler)[0]
     return properties

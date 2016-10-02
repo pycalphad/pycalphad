@@ -144,7 +144,7 @@ def _infer_language(backend):
 
 
 def _get_code_wrapper_class(backend):
-    wrappers = {'F2PY': CustomF2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
+    wrappers = {'F2PY': F2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
         'DUMMY': DummyWrapper}
     return wrappers[backend.upper()]
 

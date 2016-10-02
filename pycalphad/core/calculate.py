@@ -116,10 +116,15 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                                  'broadcast=False.')
             statevars_.append(statevar)
         statevars = statevars_
-    phase_output = func(*itertools.chain(statevars, np.rollaxis(points, -1, start=0)))
+    # func may only have support for vectorization along a single axis (no broadcasting)
+    # we need to force broadcasting and flatten the result before calling
+    bc_statevars = broadcast_to(np.asarray(statevars).T, points.shape[:-1] + (np.asarray(statevars).T.shape[-1],))
+
+    phase_output = func(*itertools.chain(bc_statevars.T, points.T))
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)
+    phase_output.shape = points.shape[:-1]
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
