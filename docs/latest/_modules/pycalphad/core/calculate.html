@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+13.ge9b54b8 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+17.gdb81755 documentation</title>
   
 
   
@@ -30,7 +30,10 @@
   
 
   
-    <link rel="top" title="pycalphad 0.4.2+13.ge9b54b8 documentation" href="../../../index.html"/>
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0.4.2+17.gdb81755 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -62,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+13.ge9b54b8
+                0.4.2+17.gdb81755
               </div>
             
           
@@ -251,10 +254,15 @@
                                  <span class="s1">&#39;broadcast=False.&#39;</span><span class="p">)</span>
             <span class="n">statevars_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span>
         <span class="n">statevars</span> <span class="o">=</span> <span class="n">statevars_</span>
-    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">statevars</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">rollaxis</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">start</span><span class="o">=</span><span class="mi">0</span><span class="p">)))</span>
+    <span class="c1"># func may only have support for vectorization along a single axis (no broadcasting)</span>
+    <span class="c1"># we need to force broadcasting and flatten the result before calling</span>
+    <span class="n">bc_statevars</span> <span class="o">=</span> <span class="p">[</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevars</span><span class="p">]</span>
+
+    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">bc_statevars</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
         <span class="n">phase_output</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
     <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">phase_output</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
 
     <span class="c1"># Map the internal degrees of freedom to global coordinates</span>
     <span class="c1"># Normalize site ratios by the sum of site ratios times a factor</span>
@@ -546,7 +554,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+13.ge9b54b8',
+            VERSION:'0.4.2+17.gdb81755',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
