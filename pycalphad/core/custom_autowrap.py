@@ -71,60 +71,7 @@ from sympy.utilities.codegen import (OutputArgument,
 from pycalphad.core.custom_codegen import FCodeGen
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import F2PyCodeWrapper, CythonCodeWrapper, DummyWrapper
-import os
-import sys
-import platform
-import hashlib
-import time
 
-
-class CustomF2PyCodeWrapper(F2PyCodeWrapper):
-    @staticmethod
-    def _routinehash(routine):
-        return hashlib.sha256(str(routine).encode()).hexdigest()
-
-    @property
-    def filename(self):
-        return self._filename
-
-    @property
-    def module_name(self):
-        return self._module_name
-
-    def wrap_code(self, routine, helpers=[]):
-        pfstring = platform.uname()
-        pfstring = '-'.join([pfstring.system, pfstring.node, pfstring.release, pfstring.machine])
-        modhash = self._routinehash(routine)
-        self._filename = modhash
-        self._module_name = 'module_{}'.format(modhash)
-        workdir = self.filepath or os.path.join(os.path.expanduser('~/.pycalphad/cache'), pfstring, modhash)
-        if not os.access(workdir, os.F_OK):
-            os.makedirs(workdir)
-            cached = False
-        else:
-            cached = True
-        oldwork = os.getcwd()
-        os.chdir(workdir)
-        try:
-            sys.path.append(workdir)
-            if not cached:
-                self._generate_code(routine, helpers)
-                self._prepare_files(routine)
-                self._process_files(routine)
-            startwait = time.time()
-            while True:
-                try:
-                    mod = __import__(self.module_name)
-                    break
-                except ImportError:
-                    if time.time() > startwait+30:
-                        raise
-                    time.sleep(0.1)
-        finally:
-            sys.path.remove(workdir)
-            os.chdir(oldwork)
-
-        return self._get_wrapped_function(mod, routine.name)
 
 # Here we define a lookup of backends -> tuples of languages. For now, each
 # tuple is of length 1, but if a backend supports more than one language,
