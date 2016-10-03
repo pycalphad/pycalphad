@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0.4.2+18.gfcfed83 documentation</title>
+  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0.4.2+24.g20bb816 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+18.gfcfed83 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+24.g20bb816 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+18.gfcfed83
+                0.4.2+24.g20bb816
               </div>
             
           
@@ -145,6 +145,7 @@
 <span class="kn">from</span> <span class="nn">mpmath</span> <span class="k">import</span> <span class="n">polylog</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">NumPyPrinter</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">BIGNUM</span>
+<span class="kn">from</span> <span class="nn">.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">chain</span>
 
 
@@ -160,8 +161,8 @@
     <span class="k">return</span> <span class="n">jacobian</span><span class="p">(</span><span class="n">sum_grad_output</span><span class="p">,</span> <span class="n">argnum</span><span class="p">)</span></div>
 
 
-<div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.autograd_utils.build_functions">[docs]</a><span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">tmpman</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="c1"># tmpman is not used here but left for API compatibility</span>
+<span class="nd">@cacheit</span>
+<div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.autograd_utils.build_functions">[docs]</a><span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
     <span class="n">logical_np</span> <span class="o">=</span> <span class="p">[{</span><span class="s1">&#39;And&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_and</span><span class="p">,</span> <span class="s1">&#39;Or&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">logical_or</span><span class="p">,</span> <span class="s1">&#39;Abs&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">abs</span><span class="p">,</span>
                    <span class="s1">&#39;polylog&#39;</span><span class="p">:</span> <span class="n">anp</span><span class="o">.</span><span class="n">vectorize</span><span class="p">(</span><span class="n">polylog</span><span class="p">,</span> <span class="n">excluded</span><span class="o">=</span><span class="p">[</span><span class="mi">0</span><span class="p">])},</span> <span class="n">anp</span><span class="p">]</span>
     <span class="n">sympy_graph</span> <span class="o">=</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">BIGNUM</span><span class="p">,</span> <span class="n">oo</span><span class="p">:</span> <span class="n">BIGNUM</span><span class="p">})</span>
@@ -231,7 +232,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+18.gfcfed83',
+            VERSION:'0.4.2+24.g20bb816',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

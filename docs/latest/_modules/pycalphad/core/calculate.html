@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+18.gfcfed83 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+24.g20bb816 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+18.gfcfed83 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+24.g20bb816 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+18.gfcfed83
+                0.4.2+24.g20bb816
               </div>
             
           
@@ -145,19 +145,16 @@
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">pycalphad.model</span> <span class="k">import</span> <span class="n">DofError</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.autograd_utils</span> <span class="k">import</span> <span class="n">build_functions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.tempfilemanager</span> <span class="k">import</span> <span class="n">TempfileManager</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">point_sample</span><span class="p">,</span> <span class="n">generate_dof</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">broadcast_to</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span>
 <span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
-<span class="kn">from</span> <span class="nn">xarray</span> <span class="k">import</span> <span class="n">concat</span><span class="p">,</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">DataArray</span>
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="k">import</span> <span class="n">concat</span><span class="p">,</span> <span class="n">Dataset</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
-<span class="kn">import</span> <span class="nn">os</span>
-
 
 <span class="k">def</span> <span class="nf">_generate_fake_points</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="n">statevar_dict</span><span class="p">,</span> <span class="n">energy_limit</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -307,8 +304,7 @@
 
     <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coordinate_dict</span><span class="p">)</span>
 
-<span class="nd">@TempfileManager</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">getcwd</span><span class="p">())</span>
-<div class="viewcode-block" id="calculate"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.calculate.calculate">[docs]</a><span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">tmpman</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="calculate"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.calculate.calculate">[docs]</a><span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sample the property surface of &#39;output&#39; containing the specified</span>
 <span class="sd">    components and phases. Model parameters are taken from &#39;dbf&#39; and any</span>
@@ -333,8 +329,6 @@
 <span class="sd">    broadcast : bool, optional</span>
 <span class="sd">        If True, broadcast given state variable lists against each other to create a grid.</span>
 <span class="sd">        If False, assume state variables are given as equal-length lists.</span>
-<span class="sd">    tmpman : TempfileManager, optional</span>
-<span class="sd">        Context manager for temporary file creation during the calculation.</span>
 <span class="sd">    points : ndarray or a dict of phase names to ndarray, optional</span>
 <span class="sd">        Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.</span>
 <span class="sd">        If this is not specified, points will be generated automatically.</span>
@@ -432,7 +426,7 @@
                 <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">undef</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)})</span>
                 <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Setting undefined symbol </span><span class="si">%s</span><span class="s1"> for phase </span><span class="si">%s</span><span class="s1"> to zero&#39;</span><span class="p">,</span>
                                <span class="n">undef</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
-            <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span> <span class="n">tmpman</span><span class="o">=</span><span class="n">tmpman</span><span class="p">,</span>
+            <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
                                                     <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callable_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
@@ -554,7 +548,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+18.gfcfed83',
+            VERSION:'0.4.2+24.g20bb816',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

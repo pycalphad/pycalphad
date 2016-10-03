@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.4.2+18.gfcfed83 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.4.2+24.g20bb816 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+18.gfcfed83 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+24.g20bb816 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0.4.2+18.gfcfed83
+                0.4.2+24.g20bb816
               </div>
             
           
@@ -171,7 +171,7 @@
 <p>This module manages interactions with the autograd library.</p>
 <dl class="function">
 <dt id="pycalphad.core.autograd_utils.build_functions">
-<code class="descclassname">pycalphad.core.autograd_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>tmpman=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/autograd_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.autograd_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.autograd_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/autograd_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.autograd_utils.build_functions" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
@@ -187,7 +187,7 @@
 property surface of a system.</p>
 <dl class="function">
 <dt id="pycalphad.core.calculate.calculate">
-<code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>tmpman=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the property surface of &#8216;output&#8217; containing the specified
 components and phases. Model parameters are taken from &#8216;dbf&#8217; and any
 state variables (T, P, etc.) can be specified as keyword arguments.</p>
@@ -206,7 +206,6 @@ points used to define an equilibrium hyperplane guaranteed to be above
 all the other points. This is used for convex hull computations.</li>
 <li><strong>broadcast</strong> (<em>bool, optional</em>) &#8211; If True, broadcast given state variable lists against each other to create a grid.
 If False, assume state variables are given as equal-length lists.</li>
-<li><strong>tmpman</strong> (<em>TempfileManager, optional</em>) &#8211; Context manager for temporary file creation during the calculation.</li>
 <li><strong>points</strong> (<em>ndarray or a dict of phase names to ndarray, optional</em>) &#8211; Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
 If this is not specified, points will be generated automatically.</li>
 <li><strong>pdens</strong> (<em>int, a dict of phase names to int, or a seq of both, optional</em>) &#8211; Number of points to sample per degree of freedom.</li>
@@ -390,7 +389,7 @@ calculated phase equilibria.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>tmpman=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -411,7 +410,6 @@ If False, each condition should be an equal-length list (or single-valued).
 Disabling broadcasting is useful for calculating equilibrium at selected conditions,
 when those conditions don&#8217;t comprise a grid.</li>
 <li><strong>calc_opts</strong> (<em>dict, optional</em>) &#8211; Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
-<li><strong>tmpman</strong> (<em>TempfileManager, optional</em>) &#8211; Context manager for temporary file creation during the calculation.</li>
 <li><strong>scheduler</strong> (<em>Dask scheduler, optional</em>) &#8211; Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</li>
 </ul>
@@ -747,7 +745,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.4.2+18.gfcfed83',
+            VERSION:'0.4.2+24.g20bb816',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
