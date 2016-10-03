@@ -1,7 +1,6 @@
 """
 This module constructs gradient functions for Models.
 """
-from .custom_ufuncify import ufuncify
 from .tempfilemanager import TempfileManager
 from .custom_autowrap import autowrap
 from .cache import cacheit
@@ -54,15 +53,6 @@ class PickleableFunction(object):
         for key, value in state.items():
             setattr(self, key, value)
         self._kernel = self.compile()
-
-
-class UfuncifyFunction(PickleableFunction):
-    def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
-        self.tmpman = tmpman
-        super(UfuncifyFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
-
-    def compile(self):
-        return ufuncify(self._sympyvars, self._sympyobj, tmpman=self.tmpman, flags=[], cflags=['-ffast-math'])
 
 
 class AutowrapFunction(PickleableFunction):
