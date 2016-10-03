@@ -6,7 +6,6 @@ from .tempfilemanager import TempfileManager
 from .custom_autowrap import autowrap
 from .cache import cacheit
 from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
-from sympy.utilities.autowrap import implemented_function
 import numpy as np
 import os
 
@@ -114,7 +113,11 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
         y = IndexedBase(Dummy())
         m = Dummy(integer=True)
         i = Idx(Dummy(integer=True), m)
-        f = implemented_function(Dummy().name, Lambda(variables, sympy_graph))
+        # workaround for sympy/sympy#11692
+        # that is why we don't use implemented_function
+        from sympy import Function
+        class f(Function):
+            _imp_ = Lambda(variables, sympy_graph)
         # For each of the args create an indexed version.
         indexed_args = []
         for indx, a in enumerate(variables):

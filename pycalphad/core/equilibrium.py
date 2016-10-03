@@ -701,7 +701,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
 @TempfileManager(os.getcwd())
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                tmpman=None, scheduler=dask.multiprocessing.get, **kwargs):
+                tmpman=None, scheduler=dask.async.get_sync, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.

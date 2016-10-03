@@ -8,6 +8,7 @@ from sympy.utilities.codegen import ResultBase, Result, InOutArgument, get_defau
 from sympy.utilities.codegen import InputArgument, OutputArgument, CodeGenArgumentListError, CodeGenError
 from sympy.printing.codeprinter import Assignment
 from sympy.utilities.codegen import FCodePrinter as sympy_FCodePrinter
+from sympy.printing.codeprinter import CodePrinter
 from sympy.core import Symbol, S, Tuple, Equality
 from sympy.core.compatibility import is_sequence
 from sympy.printing.codeprinter import AssignmentError
@@ -28,6 +29,21 @@ import os
 
 
 class FCodePrinter(sympy_FCodePrinter):
+    def _print_Float(self, expr):
+        printed = CodePrinter._print_Float(self, expr)
+        # For some reason the printer sometimes returns a float string
+        # which is so long that it breaks the fortran line wrapper.
+        # this hack should be good enough for our case
+        max_prec = 32
+        e = printed.find('e')
+        if e > max_prec:
+            return "%sd%s" % (printed[:max_prec], printed[e + 1:])
+        elif e > -1:
+            return "%sd%s" % (printed[:e], printed[e + 1:])
+        if len(printed) > max_prec:
+            printed = printed[:max_prec]
+        return "%sd0" % printed
+
     def _print_Piecewise(self, expr):
         if expr.args[-1].cond != True:
             # We need the last conditional to be a True, otherwise the resulting
