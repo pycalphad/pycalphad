@@ -7,6 +7,7 @@ from sympy import lambdify, zoo, oo
 from mpmath import polylog
 from pycalphad.core.utils import NumPyPrinter
 from pycalphad.core.constants import BIGNUM
+from .cache import cacheit
 from itertools import chain
 
 
@@ -22,6 +23,7 @@ def elementwise_hess(fun, argnum=0):
     return jacobian(sum_grad_output, argnum)
 
 
+@cacheit
 def build_functions(sympy_graph, variables, include_obj=True, include_grad=True, include_hess=True):
     logical_np = [{'And': anp.logical_and, 'Or': anp.logical_or, 'Abs': anp.abs,
                    'polylog': anp.vectorize(polylog, excluded=[0])}, anp]
