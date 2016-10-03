@@ -30,7 +30,6 @@ requirements:
     - tinydb
     - autograd
     - scipy
-    - tqdm
     - dask >=0.10
     - distributed
     - numpy >=1.9
@@ -50,7 +49,6 @@ requirements:
     - tinydb
     - autograd
     - scipy
-    - tqdm
     - dask >=0.10
     - distributed
     - numpy >=1.9
