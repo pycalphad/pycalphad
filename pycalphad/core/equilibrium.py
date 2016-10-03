@@ -10,7 +10,6 @@ from pycalphad import calculate, Model
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
-from pycalphad.core.tempfilemanager import TempfileManager
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 from sympy import Add, Symbol
 import dask
@@ -158,8 +157,7 @@ def _compute_phase_dof(dbf, comps, phases):
         phase_dof.append(total)
     return phase_dof
 
-@TempfileManager(os.getcwd())
-def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records, tmpman=None,
+def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
                          l_multipliers=None, chempots=None, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
@@ -211,7 +209,7 @@ def _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
             if mole_fractions.get((name, comp), None) is None:
                 mole_fractions[(name, comp)] = compiled_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
-                                                                        key=str), tmpman=tmpman)
+                                                                        key=str))
             comp_obj, comp_grad, comp_hess = mole_fractions[(name, comp)]
             #print('MOLE FRACTIONS', (name, comp))
             # current phase frac times the comp_grad
@@ -323,8 +321,7 @@ def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fr
     l_hessian -= np.multiply(l_multipliers[:, np.newaxis, np.newaxis], constraint_hess).sum(axis=0)
     return l_hessian, gradient_term
 
-@TempfileManager(os.getcwd())
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, conds_keys, verbose, tmpman=None):
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, conds_keys, verbose):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -347,8 +344,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         List of conditions axes in dimension order.
     verbose : bool
         Print details.
-    tmpman : TempfileManager
-        Temporary file context manager.
 
     Returns
     -------
@@ -443,7 +438,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
 
             l_constraints, constraint_jac, constraint_hess, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     tmpman=tmpman, l_multipliers=l_multipliers,
+                                     l_multipliers=l_multipliers,
                                      chempots=properties['MU'].values[it.multi_index], mole_fractions=mole_fractions)
             qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
             m = rmat.shape[1]
@@ -480,7 +475,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             (candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess,
              candidate_l_multipliers, candidate_chem_pots, mole_fraction_funcs) = \
                 _compute_constraints(dbf, comps, phases, cur_conds,
-                                     candidate_site_fracs, candidate_phase_fracs, phase_records, tmpman=tmpman,
+                                     candidate_site_fracs, candidate_phase_fracs, phase_records,
                                      l_multipliers=l_multipliers, mole_fractions=mole_fractions)
             candidate_gradient_term = _build_multiphase_gradient(dbf, comps, phases,
                                                                  cur_conds, candidate_site_fracs,
@@ -612,8 +607,7 @@ def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
             properties[dv][dv_coords] = prop_arr[dv]
     return properties
 
-@TempfileManager(os.getcwd())
-def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None, per_phase=False, **kwargs):
+def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
     """
     WARNING: API/calling convention not finalized.
     Compute the *equilibrium value* of a property.
@@ -637,8 +631,6 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
     output : str
         Equilibrium model property (e.g., CPM, HM, etc.) to compute.
         This must be defined as an attribute in the Model class of each phase.
-    tmpman : TempfileManager, optional
-        Context manager for temporary file creation during the calculation.
     data : Dataset, optional
         Previous result of call to `equilibrium`.
         Should contain the equilibrium configurations at the conditions of interest.
@@ -688,7 +680,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
         statevars.update(kwargs)
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
-        calcres = calculate(dbf, comps, [phase], output=output, tmpman=tmpman,
+        calcres = calculate(dbf, comps, [phase], output=output,
                             points=points, broadcast=False, **statevars)
         result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
@@ -698,10 +690,9 @@ def _eqcalculate(dbf, comps, phases, conditions, output, tmpman=None, data=None,
         result['NP'] = data['NP'].copy()
     return result
 
-@TempfileManager(os.getcwd())
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                tmpman=None, scheduler=dask.async.get_sync, **kwargs):
+                scheduler=dask.async.get_sync, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -730,8 +721,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
-    tmpman : TempfileManager, optional
-        Context manager for temporary file creation during the calculation.
     scheduler : Dask scheduler, optional
         Job scheduler for performing the computation.
         If None, return a Dask graph of the computation instead of actually doing it.
@@ -746,8 +735,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
-    if tmpman is None:
-        raise ValueError('No tempfile context manager specified for calculation')
     from pycalphad import __version__ as pycalphad_version
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     comps = sorted(comps)
@@ -797,7 +784,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
-            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, tmpman=tmpman)
+            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs)
             if callable_dict.get(name, None) is None:
                 callable_dict[name] = cf
             if grad_callable_dict.get(name, None) is None:
@@ -839,7 +826,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                              indexing='ij', sparse=False)[0].shape
     coord_dict['component'] = components
 
-    grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM', tmpman=tmpman,
+    grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
                                           model=models, callables=callable_dict, fake_points=True, **grid_opts)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],

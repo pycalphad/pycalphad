@@ -1,7 +1,6 @@
 """
 This module constructs gradient functions for Models.
 """
-from .tempfilemanager import TempfileManager
 from .custom_autowrap import autowrap
 from .cache import cacheit
 from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
@@ -56,17 +55,12 @@ class PickleableFunction(object):
 
 
 class AutowrapFunction(PickleableFunction):
-    def __init__(self, sympy_vars, sympy_obj, tmpman=None, kernel=None):
-        self.tmpman = tmpman
-        super(AutowrapFunction, self).__init__(sympy_vars, sympy_obj, kernel=kernel)
-
     def compile(self):
         return autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95')
 
 
 @cacheit
-@TempfileManager(os.getcwd())
-def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=True, include_grad=True, include_hess=True,
+def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=True,
                     excluded=None):
     """
 
@@ -77,7 +71,6 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
         Input arguments.
     wrt : tuple of Symbols, optional
         Variables to differentiate with respect to. (Default: equal to variables)
-    tmpman
     include_obj
     include_grad
     include_hess
@@ -90,8 +83,6 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
     if wrt is None:
         wrt = tuple(variables)
     variables = tuple(variables)
-    if tmpman is None:
-        raise ValueError('Missing temporary file context manager')
     restup = []
     grad = None
     hess = None
@@ -123,7 +114,7 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
                 args_with_indices.append(a)
             else:
                 args_with_indices.append(a[i])
-        restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices)), tmpman=tmpman))
+        restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
         grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
@@ -133,9 +124,9 @@ def build_functions(sympy_graph, variables, wrt=None, tmpman=None, include_obj=T
             for i in range(len(wrt)):
                 for j in range(i, len(wrt)):
                     hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
-            hess = AutowrapFunction(variables, ImmutableMatrix(hess_diffs), tmpman=tmpman)
+            hess = AutowrapFunction(variables, ImmutableMatrix(hess_diffs))
         if include_grad:
-            grad = AutowrapFunction(variables, ImmutableMatrix(grad_diffs), tmpman=tmpman)
+            grad = AutowrapFunction(variables, ImmutableMatrix(grad_diffs))
 
         # Factored out of argwrapper functions via profiling
         triu_indices = np.triu_indices(len(wrt))
