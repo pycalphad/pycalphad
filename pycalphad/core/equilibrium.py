@@ -575,18 +575,10 @@ def _postprocess_properties(grid, properties, conds, indep_vals):
                                                           (len(conds.keys()) - idx) * (np.newaxis,)])
     indexer.append(properties['points'].values)
     ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
-    # Copy final point values from the grid and drop the index array
-    # For some reason direct construction doesn't work. We have to create empty and then assign.
-    properties['X'] = DataArray(np.empty_like(ravelled_X_view),
-                                dims=properties['points'].dims + ('component',))
     properties['X'].values[...] = ravelled_X_view
-    properties['Y'] = DataArray(np.empty_like(ravelled_Y_view),
-                                dims=properties['points'].dims + ('internal_dof',))
     properties['Y'].values[...] = ravelled_Y_view
     # TODO: What about invariant reactions? We should perform a final driving force calculation here.
     # We can handle that in the same post-processing step where we identify single-phase regions.
-    properties['Phase'] = DataArray(np.empty_like(ravelled_Phase_view),
-                                    dims=properties['points'].dims)
     properties['Phase'].values[...] = ravelled_Phase_view
     del properties['points']
     return properties
@@ -770,6 +762,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
+    max_phase_name_len = max(len(name) for name in active_phases)
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
@@ -829,18 +822,24 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                           model=models, callables=callable_dict, fake_points=True, **grid_opts)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
-                                                         np.empty(grid_shape)),
-                                                  'GM': (list(str_conds.keys()),
-                                                         np.empty(grid_shape[:-1])),
-                                                  'MU': (list(str_conds.keys()) + ['component'],
-                                                         np.empty(grid_shape)),
-                                                  'points': (list(str_conds.keys()) + ['vertex'],
-                                                             np.empty(grid_shape, dtype=np.int))
-                                                  },
-                                                  coords=coord_dict,
-                                                  attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                                         'engine': 'pycalphad %s' % pycalphad_version},
-                                                 )
+                                                      np.empty(grid_shape)),
+                                               'GM': (list(str_conds.keys()),
+                                                      np.empty(grid_shape[:-1])),
+                                               'MU': (list(str_conds.keys()) + ['component'],
+                                                      np.empty(grid_shape)),
+                                               'X': (list(str_conds.keys()) + ['vertex', 'component'],
+                                                     np.empty(grid_shape + (grid_shape[-1],))),
+                                               'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
+                                                     np.empty(grid_shape + (maximum_internal_dof,))),
+                                               'Phase': (list(str_conds.keys()) + ['vertex'],
+                                                         np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
+                                               'points': (list(str_conds.keys()) + ['vertex'],
+                                                          np.empty(grid_shape, dtype=np.int))
+                                               },
+                                              coords=coord_dict,
+                                              attrs={'hull_iterations': 1, 'solve_iterations': 0,
+                                                     'engine': 'pycalphad %s' % pycalphad_version},
+                                              )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     properties = delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
     properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
