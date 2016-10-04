@@ -78,12 +78,8 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
     --------
     None yet.
     """
-    conditions = [x for x in result_array.coords.keys() if x not in ['vertex',
-                                                                     'component']]
     indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P']])
-    indep_shape = tuple(len(result_array.coords[x]) for x in indep_conds)
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
-    comp_shape = tuple(len(result_array.coords[x]) for x in comp_conds)
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
     # force conditions to have particular ordering
     conditions = indep_conds + pot_conds + comp_conds
@@ -92,10 +88,10 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
     _initialize_array(global_grid, result_array)
 
     # Enforce ordering of shape if this is the first iteration
-    if result_array.attrs['hull_iterations'] == 1:
-        result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
-        result_array['GM'] = result_array['GM'].transpose(*conditions)
-        result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
+    #if result_array.attrs['hull_iterations'] == 1:
+    #    result_array['points'] = result_array['points'].transpose(*(conditions + ['vertex']))
+    #    result_array['GM'] = result_array['GM'].transpose(*conditions)
+    #    result_array['NP'] = result_array['NP'].transpose(*(conditions + ['vertex']))
 
     # Determine starting combinations of chemical potentials and compositions
     # TODO: Check Gibbs phase rule compliance
@@ -139,18 +135,24 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
     if trial_points is None:
         raise ValueError('Invalid conditions')
 
-    driving_forces = np.zeros(result_array.GM.values.shape + (len(global_grid.points),),
-                                   dtype=np.float)
+    # factored out via profiling
+    result_array_GM_values = result_array.GM.values
+    result_array_points_values = result_array.points.values
+    result_array_MU_values = result_array.MU.values
+    result_array_NP_values = result_array.NP.values
+    global_grid_GM_values = global_grid.GM.values
+    global_grid_X_values = global_grid.X.values
 
+    df_shape = result_array_GM_values.shape + (len(global_grid.points),)
+    driving_forces = np.zeros(df_shape, dtype=np.float)
+    trial_simplices = np.empty(result_array_points_values.shape +
+                               (result_array_points_values.shape[-1],), dtype=np.int)
     max_iterations = 200
     iterations = 0
     while iterations < max_iterations:
         iterations += 1
-
-        trial_simplices = np.empty(result_array['points'].values.shape + \
-                                   (result_array['points'].values.shape[-1],), dtype=np.int)
         # Initialize trial simplices with values from best guess simplices
-        trial_simplices[..., :, :] = result_array['points'].values[..., np.newaxis, :]
+        trial_simplices[..., :, :] = result_array_points_values[..., np.newaxis, :]
         # Trial simplices will be the current simplex with each vertex
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,
@@ -158,10 +160,10 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         trial_simplices.T[np.diag_indices(trial_shape[0])] = trial_points.T
         #print('trial_simplices.shape', trial_simplices.shape)
         #print('global_grid.X.values.shape', global_grid.X.values.shape)
-        flat_statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(result_array.MU.values.shape)),
-                                                 result_array.MU.values.shape)[:len(indep_conds)]
+        flat_statevar_indices = np.unravel_index(np.arange(np.multiply.reduce(result_array_MU_values.shape)),
+                                                 result_array_MU_values.shape)[:len(indep_conds)]
         #print('flat_statevar_indices', flat_statevar_indices)
-        trial_matrix = global_grid.X.values[np.index_exp[flat_statevar_indices +
+        trial_matrix = global_grid_X_values[np.index_exp[flat_statevar_indices +
                                                          (trial_simplices.reshape(-1, trial_simplices.shape[-1]).T,)]]
         trial_matrix = np.rollaxis(trial_matrix, 0, -1)
         #print('trial_matrix', trial_matrix)
@@ -191,8 +193,8 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
                      (comp_values.shape[0], trial_simplices.shape[-2])
 
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
-        fractions = np.full(result_array['points'].values.shape + \
-                            (result_array['points'].values.shape[-1],), -1.)
+        fractions = np.full(result_array_points_values.shape +
+                            (result_array_points_values.shape[-1],), -1.)
         fractions[np.unravel_index(index_array, fractions.shape[:-1])] = \
             stacked_lstsq(np.swapaxes(trial_matrix[index_array], -2, -1),
                           comp_values[comp_indices])
@@ -245,16 +247,16 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         #print('trial_simplices.shape[:-1]', trial_simplices.shape[:-1])
         statevar_indices = np.unravel_index(index_array, trial_simplices.shape[:-1]
                                             )[:len(indep_conds)+len(pot_conds)]
-        aligned_energies = global_grid.GM.values[statevar_indices + (candidate_simplices.T,)].T
+        aligned_energies = global_grid_GM_values[statevar_indices + (candidate_simplices.T,)].T
         statevar_indices = tuple(x[..., np.newaxis] for x in statevar_indices)
         #print('statevar_indices', statevar_indices)
-        aligned_compositions = global_grid.X.values[np.index_exp[statevar_indices + (candidate_simplices,)]]
+        aligned_compositions = global_grid_X_values[np.index_exp[statevar_indices + (candidate_simplices,)]]
         #print('aligned_compositions', aligned_compositions)
         #print('aligned_energies', aligned_energies)
         candidate_potentials = stacked_lstsq(aligned_compositions.astype(np.float, copy=False),
                                              aligned_energies.astype(np.float, copy=False))
         #print('candidate_potentials', candidate_potentials)
-        logger.debug('candidate_simplices: %s', candidate_simplices)
+        #logger.debug('candidate_simplices: %s', candidate_simplices)
         comp_indices = np.unravel_index(index_array, comp_shape)[len(indep_conds)+len(pot_conds)]
         #print('comp_values[comp_indices]', comp_values[comp_indices])
         candidate_energies = np.multiply(candidate_potentials,
@@ -292,7 +294,7 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         # will be no change in energy changing a "_FAKE_" vertex to a real one.
         is_lower_energy = comparison_matrix[calculated_conditions_indices,
                                             lowest_energy_indices] <= \
-            result_array['GM'].values.flat[calculated_conditions_indices]
+            result_array_GM_values.flat[calculated_conditions_indices]
         #print('is_lower_energy', is_lower_energy)
 
         # These are the conditions we will update this iteration
@@ -300,13 +302,13 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         #print('final_indices', final_indices)
         # Convert to multi-index form so we can index the result array
         final_multi_indices = np.unravel_index(final_indices,
-                                               result_array['GM'].values.shape)
+                                               result_array_GM_values.shape)
 
         updated_potentials = candidate_potentials[is_lower_energy]
-        result_array['points'].values[final_multi_indices] = candidate_simplices[is_lower_energy]
-        result_array['GM'].values[final_multi_indices] = candidate_energies[is_lower_energy]
-        result_array['MU'].values[final_multi_indices] = updated_potentials
-        result_array['NP'].values[final_multi_indices] = \
+        result_array_points_values[final_multi_indices] = candidate_simplices[is_lower_energy]
+        result_array_GM_values[final_multi_indices] = candidate_energies[is_lower_energy]
+        result_array_MU_values[final_multi_indices] = updated_potentials
+        result_array_NP_values[final_multi_indices] = \
             fractions[np.nonzero(bounding_indices)][is_lower_energy]
         #print('result_array.GM.values', result_array.GM.values)
 
@@ -314,18 +316,18 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         # versus doing fancy indexing to only update "changed" driving forces
         # This avoids the creation of expensive temporaries
         np.einsum('...i,...i',
-                  result_array.MU.values[..., np.newaxis, :],
-                  global_grid.X.values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:, :]],
+                  result_array_MU_values[..., np.newaxis, :],
+                  global_grid_X_values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:, :]],
                   out=driving_forces)
         np.subtract(driving_forces,
-                    global_grid.GM.values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:]],
+                    global_grid_GM_values[np.index_exp[...] + ((np.newaxis,) * len(comp_conds)) + np.index_exp[:]],
                     out=driving_forces)
 
 
         # Update trial points to choose points with largest remaining driving force
         trial_points = np.argmax(driving_forces, axis=-1)
         #print('trial_points', trial_points)
-        logger.debug('trial_points: %s', trial_points)
+        #logger.debug('trial_points: %s', trial_points)
 
         # If all driving force (within some tolerance) is consumed, we found equilibrium
         if np.all(driving_forces <= DRIVING_FORCE_TOLERANCE):
