@@ -18,12 +18,14 @@ def _hash(thing):
             return hash(tuple(_hash(t) for t in thing))
         raise
 
+CacheMiss = object()
+
 
 def cacheit(func):
     @wraps(func)
     def wrapped_func(*args, **kwargs):
-        result = _CACHE.get(_hash((func, args, kwargs)), None)
-        if result:
+        result = _CACHE.get(_hash((func, args, kwargs)), CacheMiss)
+        if result is not CacheMiss:
             #print('CACHE HIT')
             return result
         else:
