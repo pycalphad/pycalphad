@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.constraints &mdash; pycalphad 0.4.2+28.ge3f4f19 documentation</title>
+  <title>pycalphad.constraints &mdash; pycalphad 0.4.2+32.g3b52690 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+28.ge3f4f19 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+32.g3b52690 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+28.ge3f4f19
+                0.4.2+32.g3b52690
               </div>
             
           
@@ -142,8 +142,11 @@
 <span class="sd">&quot;&quot;&quot;</span>
 
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">S</span><span class="p">,</span> <span class="n">Add</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">S</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
 
+
+<span class="nd">@cacheit</span>
 <div class="viewcode-block" id="mole_fraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.constraints.mole_fraction">[docs]</a><span class="k">def</span> <span class="nf">mole_fraction</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">active_comps</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Return a SymPy object representing the mole fraction as a function of</span>
@@ -219,7 +222,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.4.2+28.ge3f4f19',
+            VERSION:'0.4.2+32.g3b52690',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
