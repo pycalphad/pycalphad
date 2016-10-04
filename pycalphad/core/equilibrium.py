@@ -774,8 +774,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        variables = mod.variables
         site_fracs = mod.site_fractions
+        variables = sorted([v.P, v.T] + site_fracs, key=str)
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         out = models[name].energy
         if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
