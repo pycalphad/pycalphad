@@ -10,6 +10,7 @@ from pycalphad.core.autograd_utils import build_functions
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
+from pycalphad.core.cache import cacheit
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -56,6 +57,80 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
         data_arrays.update({str(key): (output_columns, np.repeat(value, len(components)))
                             for key, value in statevar_dict.items()})
     return Dataset(data_arrays, coords=coordinate_dict)
+
+
+@cacheit
+def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, comps,
+                               variables, sampler, fixed_grid, pdens):
+    """
+    Sample the internal degrees of freedom of a phase.
+
+    Parameters
+    ----------
+    phase_name
+    phase_constituents
+    sublattice_dof
+    comps
+    variables
+    sampler
+    fixed_grid
+    pdens
+
+    Returns
+    -------
+    ndarray of points
+    """
+    # Eliminate pure vacancy endmembers from the calculation
+    vacancy_indices = list()
+    for idx, sublattice in enumerate(phase_constituents):
+        active_in_subl = sorted(set(phase_constituents[idx]).intersection(comps))
+        if 'VA' in active_in_subl and 'VA' in sorted(comps):
+            vacancy_indices.append(active_in_subl.index('VA'))
+    if len(vacancy_indices) != len(phase_constituents):
+        vacancy_indices = None
+    # Add all endmembers to guarantee their presence
+    points = endmember_matrix(sublattice_dof,
+                              vacancy_indices=vacancy_indices)
+    if fixed_grid is True:
+        # Sample along the edges of the endmembers
+        # These constitution space edges are often the equilibrium points!
+        em_pairs = list(itertools.combinations(points, 2))
+        lingrid = np.linspace(0, 1, pdens)
+        extra_points = [first_em * lingrid[np.newaxis].T +
+                        second_em * lingrid[::-1][np.newaxis].T
+                        for first_em, second_em in em_pairs]
+        points = np.concatenate(list(itertools.chain([points], extra_points)))
+
+    # Sample composition space for more points
+    if sum(sublattice_dof) > len(sublattice_dof):
+        points = np.concatenate((points,
+                                 sampler(sublattice_dof,
+                                         pdof=pdens)
+                                 ))
+
+    # If there are nontrivial sublattices with vacancies in them,
+    # generate a set of points where their fraction is zero and renormalize
+    for idx, sublattice in enumerate(phase_constituents):
+        if 'VA' in set(sublattice) and len(sublattice) > 1:
+            var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
+            addtl_pts = np.copy(points)
+            # set vacancy fraction to log-spaced between 1e-10 and 1e-6
+            addtl_pts[:, var_idx] = np.power(10.0, -10.0 * (1.0 - addtl_pts[:, var_idx]))
+            # renormalize site fractions
+            cur_idx = 0
+            for ctx in sublattice_dof:
+                end_idx = cur_idx + ctx
+                addtl_pts[:, cur_idx:end_idx] /= \
+                    addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
+                cur_idx = end_idx
+            # add to points matrix
+            points = np.concatenate((points, addtl_pts), axis=0)
+    # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
+    # Issues with this appear to be platform-dependent
+    points = points[~np.isnan(points).any(axis=-1)]
+    # Ensure that points has the correct dimensions and dtype
+    points = np.atleast_2d(np.asarray(points, dtype=np.float))
+    return points
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
@@ -294,60 +369,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
         points = points_dict[phase_name]
         if points is None:
-            # Eliminate pure vacancy endmembers from the calculation
-            vacancy_indices = list()
-            for idx, sublattice in enumerate(phase_obj.constituents):
-                active_in_subl = sorted(set(phase_obj.constituents[idx]).intersection(comps))
-                if 'VA' in active_in_subl and 'VA' in sorted(comps):
-                    vacancy_indices.append(active_in_subl.index('VA'))
-            if len(vacancy_indices) != len(phase_obj.constituents):
-                vacancy_indices = None
-            logger.debug('vacancy_indices: %s', vacancy_indices)
-            # Add all endmembers to guarantee their presence
-            points = endmember_matrix(sublattice_dof,
-                                      vacancy_indices=vacancy_indices)
-            if fixedgrid_dict[phase_name] is True:
-                # Sample along the edges of the endmembers
-                # These constitution space edges are often the equilibrium points!
-                em_pairs = list(itertools.combinations(points, 2))
-                lingrid = np.linspace(0, 1, pdens_dict[phase_name])
-                extra_points = [first_em * lingrid[np.newaxis].T +
-                                second_em * lingrid[::-1][np.newaxis].T
-                                for first_em, second_em in em_pairs]
-                points = np.concatenate(list(itertools.chain([points], extra_points)))
-
-            # Sample composition space for more points
-            if sum(sublattice_dof) > len(sublattice_dof):
-                sampler = sampler_dict[phase_name]
-                if sampler is None:
-                    sampler = point_sample
-                points = np.concatenate((points,
-                                         sampler(sublattice_dof,
-                                                 pdof=pdens_dict[phase_name])
-                                         ))
-
-            # If there are nontrivial sublattices with vacancies in them,
-            # generate a set of points where their fraction is zero and renormalize
-            for idx, sublattice in enumerate(phase_obj.constituents):
-                if 'VA' in set(sublattice) and len(sublattice) > 1:
-                    var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-                    addtl_pts = np.copy(points)
-                    # set vacancy fraction to log-spaced between 1e-10 and 1e-6
-                    addtl_pts[:, var_idx] = np.power(10.0, -10.0*(1.0 - addtl_pts[:, var_idx]))
-                    # renormalize site fractions
-                    cur_idx = 0
-                    for ctx in sublattice_dof:
-                        end_idx = cur_idx + ctx
-                        addtl_pts[:, cur_idx:end_idx] /= \
-                            addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
-                        cur_idx = end_idx
-                    # add to points matrix
-                    points = np.concatenate((points, addtl_pts), axis=0)
-            # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
-            # Issues with this appear to be platform-dependent
-            points = points[~np.isnan(points).any(axis=-1)]
-        # Ensure that points has the correct dimensions and dtype
-        points = np.atleast_2d(np.asarray(points, dtype=np.float))
+            points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
+                                                tuple(variables), sampler_dict[phase_name] or point_sample,
+                                                fixedgrid_dict[phase_name], pdens_dict[phase_name])
 
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, comp_sets[phase_name], output,
