@@ -48,6 +48,9 @@ class Phase(object): #pylint: disable=R0903
         return not self.__eq__(other)
     def __repr__(self):
         return 'Phase({0!r})'.format(self.__dict__)
+    def __hash__(self):
+        return hash((self.name, self.constituents, tuple(self.sublattices),
+                     tuple(sorted(_to_tuple(self.model_hints.items())))))
 
 DatabaseFormat = namedtuple('DatabaseFormat', ['read', 'write'])
 format_registry = {}

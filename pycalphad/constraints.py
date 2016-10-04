@@ -4,8 +4,11 @@ their Jacobian.
 """
 
 import pycalphad.variables as v
-from sympy import S, Add
+from sympy import S
+from pycalphad.core.cache import cacheit
 
+
+@cacheit
 def mole_fraction(phase, active_comps, species):
     """
     Return a SymPy object representing the mole fraction as a function of
