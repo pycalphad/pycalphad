@@ -260,12 +260,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                phase_name)
                 continue
         if points_dict[phase_name] is None:
-            try:
-                out = getattr(mod, output)
-                maximum_internal_dof = max(maximum_internal_dof, len(out.atoms(v.SiteFraction)))
-            except AttributeError:
-                raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                     .format(output, mod.__class__))
+            maximum_internal_dof = max(maximum_internal_dof, sum(len(x) for x in mod.constituents))
         else:
             maximum_internal_dof = max(maximum_internal_dof, np.asarray(points_dict[phase_name]).shape[-1])
 
@@ -279,7 +274,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
         # Build the "fast" representation of that model
         if callable_dict[phase_name] is None:
-            out = getattr(mod, output)
+            try:
+                out = getattr(mod, output)
+            except AttributeError:
+                raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                     .format(output, mod.__class__))
             # As a last resort, treat undefined symbols as zero
             # But warn the user when we do this
             # This is consistent with TC's behavior
