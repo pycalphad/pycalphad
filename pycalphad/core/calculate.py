@@ -15,6 +15,7 @@ from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
 from xarray import concat, Dataset
+import pandas as pd
 import numpy as np
 import itertools
 import collections
@@ -134,7 +135,8 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
-                          points, func, output, maximum_internal_dof, broadcast=True):
+                          points, func, output, maximum_internal_dof, broadcast=True, fake_points=False,
+                          largest_energy=None):
     """
     Calculate output values for a particular phase.
 
@@ -161,6 +163,10 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     broadcast : bool
         If True, broadcast state variables against each other to create a grid.
         If False, assume state variables are given as equal-length lists (or single-valued).
+    fake_points : bool, optional (Default: False)
+        If True, the first few points of the output surface will be fictitious
+        points used to define an equilibrium hyperplane guaranteed to be above
+        all the other points. This is used for convex hull computations.
 
     Returns
     -------
@@ -190,13 +196,20 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         statevars = statevars_
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
-    bc_statevars = [broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars]
+    bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
+    pts = points.reshape(-1, points.shape[-1]).T
 
-    phase_output = func(*itertools.chain(bc_statevars, points.reshape(-1, points.shape[-1]).T))
+    phase_output = func(*itertools.chain(bc_statevars, pts))
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)
     phase_output.shape = points.shape[:-1]
+    if fake_points:
+        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (len(components),)), phase_output), axis=-1)
+        phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (len(components),)),
+                                      np.full(points.shape[:-1], phase_obj.name, dtype='U' + str(len(phase_obj.name)))), axis=-1)
+    else:
+        phase_names = np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))
 
     # Map the internal degrees of freedom to global coordinates
     # Normalize site ratios by the sum of site ratios times a factor
@@ -215,22 +228,27 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
             phase_obj.sublattices[vxx.sublattice_index] for vxx in variables]
         phase_compositions[..., :, col] = np.divide(np.dot(points[..., :, :], avector),
                                                site_ratio_normalization)
+    if fake_points:
+        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (len(components), len(components))), phase_compositions), axis=-2)
 
     coordinate_dict = {'component': components}
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
-    expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
-    expanded_points[..., :points.shape[-1]] = points
+    if fake_points:
+        expanded_points = np.full(points.shape[:-2] + (len(components)+points.shape[-2], maximum_internal_dof), np.nan)
+        expanded_points[..., len(components):, :points.shape[-1]] = points
+    else:
+        expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
+        expanded_points[..., :points.shape[-1]] = points
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
     data_arrays = {'X': (output_columns + ['component'], phase_compositions),
-                   'Phase': (output_columns,
-                             np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))),
+                   'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
                    }
@@ -312,7 +330,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                                 for (key, value) in statevar_dict.items())
     all_phase_data = []
     comp_sets = {}
-    largest_energy = -np.inf
+    largest_energy = 1e30
     maximum_internal_dof = 0
 
     # Consider only the active phases
@@ -374,31 +392,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
 
+        fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, comp_sets[phase_name], output,
-                                         maximum_internal_dof, broadcast=broadcast)
-        # largest_energy is really only relevant if fake_points is set
-        if fake_points:
-            largest_energy = max(phase_ds[output].max(), largest_energy)
+                                         maximum_internal_dof, broadcast=broadcast,
+                                         largest_energy=float(largest_energy), fake_points=fp)
         all_phase_data.append(phase_ds)
 
-    if fake_points:
-        if output != 'GM':
-            raise ValueError('fake_points=True should only be used with output=\'GM\'')
-        phase_ds = _generate_fake_points(components, statevar_dict, largest_energy, output,
-                                         maximum_internal_dof, broadcast)
-        final_ds = concat(itertools.chain([phase_ds], all_phase_data),
-                          dim='points')
+    # speedup for single-phase case (found by profiling)
+    if len(all_phase_data) > 1:
+        final_ds = concat(all_phase_data, pd.Index(np.arange(sum(len(x.points) for x in all_phase_data)), name='points'))
     else:
-        # speedup for single-phase case (found by profiling)
-        if len(all_phase_data) > 1:
-            final_ds = concat(all_phase_data, dim='points')
-        else:
-            final_ds = all_phase_data[0]
-
-    if (not fake_points) and (len(all_phase_data) == 1):
-        pass
-    else:
-        # Reset the points dimension to use a single global index
-        final_ds['points'] = np.arange(len(final_ds.points))
+        final_ds = all_phase_data[0]
     return final_ds

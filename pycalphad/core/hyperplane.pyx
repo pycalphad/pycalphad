@@ -92,7 +92,7 @@ def hyperplane(double[:,::1] compositions,
     cdef bint tmp3
     cdef int saved_trial = 0
     cdef int min_df
-    cdef int max_iterations = 200
+    cdef int max_iterations = 1000
     cdef int iterations = 0
     cdef int idx
 
@@ -133,7 +133,7 @@ def hyperplane(double[:,::1] compositions,
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,
         #     excepting edge cases
-        lowest_df[0] = 1e20
+        lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
         for i in range(num_components):
             trial_simplices[i, i] = min_df
