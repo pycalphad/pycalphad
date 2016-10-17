@@ -763,6 +763,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
     max_phase_name_len = max(len(name) for name in active_phases)
+    # Need to allow for '_FAKE_' psuedo-phase
+    max_phase_name_len = max(max_phase_name_len, 6)
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
@@ -834,7 +836,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                'Phase': (list(str_conds.keys()) + ['vertex'],
                                                          np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
                                                'points': (list(str_conds.keys()) + ['vertex'],
-                                                          np.empty(grid_shape, dtype=np.int))
+                                                          np.empty(grid_shape, dtype=np.int32))
                                                },
                                               coords=coord_dict,
                                               attrs={'hull_iterations': 1, 'solve_iterations': 0,
@@ -842,7 +844,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                               )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     properties = delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
-    properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
+    #properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'

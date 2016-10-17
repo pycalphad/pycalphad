@@ -372,6 +372,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
                                                 tuple(variables), sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
+        points = np.atleast_2d(points)
 
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, comp_sets[phase_name], output,

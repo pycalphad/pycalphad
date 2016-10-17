@@ -1,6 +1,8 @@
 from setuptools import setup
 import os
 import versioneer
+from Cython.Build import cythonize
+import numpy as np
 versioneer.VCS = 'git'
 versioneer.versionfile_source = 'pycalphad/_version.py'
 versioneer.versionfile_build = 'pycalphad/_version.py'
@@ -22,6 +24,8 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
+    ext_modules=cythonize('pycalphad/core/hyperplane.pyx'),
+    include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',

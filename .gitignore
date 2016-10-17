@@ -47,3 +47,7 @@ MANIFEST
 env/
 .asv/html
 .asv/env
+*.c
+*.so
+*.sublime-project
+*.sublime-workspace
