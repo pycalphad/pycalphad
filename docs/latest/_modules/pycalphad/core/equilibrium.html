@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.4.2+32.g3b52690 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.4.2+33.g46d38f7 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+32.g3b52690 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+33.g46d38f7 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+32.g3b52690
+                0.4.2+33.g46d38f7
               </div>
             
           
@@ -901,6 +901,8 @@
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Components:&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">comps</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Phases:&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
     <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">)</span>
+    <span class="c1"># Need to allow for &#39;_FAKE_&#39; psuedo-phase</span>
+    <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_phase_name_len</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">:</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
@@ -972,7 +974,7 @@
                                                <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
                                                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_phase_name_len</span><span class="p">)),</span>
                                                <span class="s1">&#39;points&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
-                                                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">))</span>
+                                                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
                                                <span class="p">},</span>
                                               <span class="n">coords</span><span class="o">=</span><span class="n">coord_dict</span><span class="p">,</span>
                                               <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;hull_iterations&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;solve_iterations&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
@@ -980,7 +982,7 @@
                                               <span class="p">)</span>
     <span class="c1"># One last call to ensure &#39;properties&#39; and &#39;grid&#39; are consistent with one another</span>
     <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">lower_convex_hull</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">grid</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
-    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_postprocess_properties</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">grid</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">indep_vals</span><span class="p">)</span>
+    <span class="c1">#properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)</span>
     <span class="n">conditions_per_chunk_per_axis</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">num_calcs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># Generate slices of &#39;properties&#39;</span>
@@ -1065,7 +1067,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+32.g3b52690',
+            VERSION:'0.4.2+33.g46d38f7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

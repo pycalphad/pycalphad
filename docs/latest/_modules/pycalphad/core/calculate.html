@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+32.g3b52690 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.4.2+33.g46d38f7 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+32.g3b52690 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+33.g46d38f7 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+32.g3b52690
+                0.4.2+33.g46d38f7
               </div>
             
           
@@ -510,6 +510,7 @@
             <span class="n">points</span> <span class="o">=</span> <span class="n">_sample_phase_constitution</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="n">sublattice_dof</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span>
                                                 <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">sampler_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">or</span> <span class="n">point_sample</span><span class="p">,</span>
                                                 <span class="n">fixedgrid_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="n">pdens_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
 
         <span class="n">phase_ds</span> <span class="o">=</span> <span class="n">_compute_phase_values</span><span class="p">(</span><span class="n">phase_obj</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">str_statevar_dict</span><span class="p">,</span>
                                          <span class="n">points</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="n">output</span><span class="p">,</span>
@@ -572,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+32.g3b52690',
+            VERSION:'0.4.2+33.g46d38f7',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
