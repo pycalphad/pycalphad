@@ -349,7 +349,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     properties : Dataset
         Modified with equilibrium values.
     """
-    it = np.nditer(properties['GM'].values, flags=['multi_index'])
+    # Factored out via profiling
+    prop_MU_values = properties['MU'].values
+    prop_NP_values = properties['NP'].values
+    prop_Phase_values = properties['Phase'].values
+    prop_X_values = properties['X'].values
+    prop_Y_values = properties['Y'].values
+    prop_GM_values = properties['GM'].values
+
+    it = np.nditer(prop_GM_values, flags=['multi_index'])
+
     #if verbose:
     #    print('INITIAL CONFIGURATION')
     #    print(properties.MU)
@@ -370,12 +379,12 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # Sum of independent component mole fractions greater than one
             # Skip this condition set
             # We silently allow this to make 2-D composition mapping easier
-            properties['MU'].values[it.multi_index] = np.nan
-            properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
-            properties['Phase'].values[it.multi_index + np.index_exp[:len(phases)]] = ''
-            properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
-            properties['Y'].values[it.multi_index] = np.nan
-            properties['GM'].values[it.multi_index] = np.nan
+            prop_MU_values[it.multi_index] = np.nan
+            prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            prop_Phase_values[it.multi_index + np.index_exp[:len(phases)]] = ''
+            prop_X_values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            prop_Y_values[it.multi_index] = np.nan
+            prop_GM_values[it.multi_index] = np.nan
             it.iternext()
             continue
         dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
@@ -388,13 +397,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         mole_fractions = {}
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
-            phases = list(properties['Phase'].values[it.multi_index])
+            phases = list(prop_Phase_values[it.multi_index])
             if '' in phases:
                 old_phase_length = phases.index('')
             else:
                 old_phase_length = -1
             remove_degenerate_phases(properties, it.multi_index)
-            phases = list(properties['Phase'].values[it.multi_index])
+            phases = list(prop_Phase_values[it.multi_index])
             if '' in phases:
                 new_phase_length = phases.index('')
             else:
@@ -405,20 +414,20 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             else:
                 num_phases = len(phases)
             zero_dof = np.all(
-                (properties['Y'].values[it.multi_index] == 1.) | np.isnan(properties['Y'].values[it.multi_index]))
+                (prop_Y_values[it.multi_index] == 1.) | np.isnan(prop_Y_values[it.multi_index]))
             if (num_phases == 1) and zero_dof:
                 # Single phase with zero internal degrees of freedom, can't do any refinement
                 # TODO: In the future we may be able to refine other degrees of freedom like temperature
                 # Chemical potentials have no meaning for this case
-                properties['MU'].values[it.multi_index] = np.nan
+                prop_MU_values[it.multi_index] = np.nan
                 break
-            phases = properties['Phase'].values[it.multi_index + np.index_exp[:num_phases]]
+            phases = prop_Phase_values[it.multi_index + np.index_exp[:num_phases]]
             # num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
             # num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-            phase_fracs = properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]]
+            phase_fracs = prop_NP_values[it.multi_index + np.index_exp[:len(phases)]]
             phase_dof = [len(set(phase_records[name].variables) - {v.T, v.P}) for name in phases]
             # Flatten site fractions array and remove nan padding
-            site_fracs = properties['Y'].values[it.multi_index].ravel()
+            site_fracs = prop_Y_values[it.multi_index].ravel()
             # That *should* give us the internal dof
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
@@ -438,7 +447,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             l_constraints, constraint_jac, constraint_hess, l_multipliers, old_chem_pots, mole_fraction_funcs = \
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
                                      l_multipliers=l_multipliers,
-                                     chempots=properties['MU'].values[it.multi_index], mole_fractions=mole_fractions)
+                                     chempots=prop_MU_values[it.multi_index], mole_fractions=mole_fractions)
             qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
             m = rmat.shape[1]
             n = qmat.shape[0]
@@ -462,8 +471,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 zmat = np.array(0)
                 p_z = 0
             step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
-            old_energy = copy.deepcopy(properties['GM'].values[it.multi_index])
-            old_chem_pots = copy.deepcopy(properties['MU'].values[it.multi_index])
+            old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
+            old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             candidate_site_fracs = site_fracs + step[:len(site_fracs)]
             candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             candidate_site_fracs[candidate_site_fracs > 1] = 1
@@ -502,40 +511,40 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
                                                 sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
-            properties['MU'].values[it.multi_index] = chemical_potentials
-            properties['NP'].values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
-            properties['X'].values[it.multi_index + np.index_exp[:len(phases)]] = 0
-            properties['GM'].values[it.multi_index] = candidate_energy
+            prop_MU_values[it.multi_index] = chemical_potentials
+            prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
+            prop_X_values[it.multi_index + np.index_exp[:len(phases)]] = 0
+            prop_GM_values[it.multi_index] = candidate_energy
             var_offset = 0
             for phase_idx in range(len(phases)):
-                properties['Y'].values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
+                prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
                     candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
                 for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
-                    properties['X'].values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
+                    prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
                         mole_fraction_funcs[(phases[phase_idx], comp)][0](
                             *candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
                 var_offset += phase_dof[phase_idx]
 
             properties.attrs['solve_iterations'] += 1
-            total_comp = np.nansum(properties['NP'].values[it.multi_index][..., np.newaxis] * \
-                                   properties['X'].values[it.multi_index], axis=-2)
-            driving_force = (properties['MU'].values[it.multi_index] * total_comp).sum(axis=-1) - \
-                             properties['GM'].values[it.multi_index]
+            total_comp = np.nansum(prop_NP_values[it.multi_index][..., np.newaxis] * \
+                                   prop_X_values[it.multi_index], axis=-2)
+            driving_force = (prop_MU_values[it.multi_index] * total_comp).sum(axis=-1) - \
+                             prop_GM_values[it.multi_index]
             driving_force = np.squeeze(driving_force)
             if verbose:
-                print('Chem pot progress', properties['MU'].values[it.multi_index] - old_chem_pots)
-                print('Energy progress', properties['GM'].values[it.multi_index] - old_energy)
+                print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
+                print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
                 print('Driving force', driving_force)
-            no_progress = np.abs(properties['MU'].values[it.multi_index] - old_chem_pots).max() < 0.01
-            no_progress &= np.abs(properties['GM'].values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.01
+            no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             if no_progress and np.abs(driving_force) > MAX_SOLVE_DRIVING_FORCE:
                 print('Driving force failed to converge: {}'.format(cur_conds))
-                properties['MU'].values[it.multi_index] = np.nan
-                properties['NP'].values[it.multi_index] = np.nan
-                properties['X'].values[it.multi_index] = np.nan
-                properties['Y'].values[it.multi_index] = np.nan
-                properties['GM'].values[it.multi_index] = np.nan
-                properties['Phase'].values[it.multi_index] = ''
+                prop_MU_values[it.multi_index] = np.nan
+                prop_NP_values[it.multi_index] = np.nan
+                prop_X_values[it.multi_index] = np.nan
+                prop_Y_values[it.multi_index] = np.nan
+                prop_GM_values[it.multi_index] = np.nan
+                prop_Phase_values[it.multi_index] = ''
                 break
             elif no_progress:
                 if verbose:
@@ -543,16 +552,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
                 chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
                                                     sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
-                properties['MU'].values[it.multi_index] = chemical_potentials
+                prop_MU_values[it.multi_index] = chemical_potentials
                 break
             elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Failed to converge: {}'.format(cur_conds))
-                properties['MU'].values[it.multi_index] = np.nan
-                properties['NP'].values[it.multi_index] = np.nan
-                properties['X'].values[it.multi_index] = np.nan
-                properties['Y'].values[it.multi_index] = np.nan
-                properties['GM'].values[it.multi_index] = np.nan
-                properties['Phase'].values[it.multi_index] = ''
+                prop_MU_values[it.multi_index] = np.nan
+                prop_NP_values[it.multi_index] = np.nan
+                prop_X_values[it.multi_index] = np.nan
+                prop_Y_values[it.multi_index] = np.nan
+                prop_GM_values[it.multi_index] = np.nan
+                prop_Phase_values[it.multi_index] = ''
         it.iternext()
     return properties
 
