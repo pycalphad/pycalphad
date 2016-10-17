@@ -135,7 +135,6 @@ def hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e20
         min_df = argmin(driving_forces, lowest_df)
-        print(lowest_df[0])
         for i in range(num_components):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
