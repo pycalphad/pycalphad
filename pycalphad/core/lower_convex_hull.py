@@ -436,6 +436,22 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         result_array_Phase_values[it.multi_index] = global_grid.Phase.values[indep_idx].take(points, axis=0)
         result_array_X_values[it.multi_index] = global_grid.X.values[indep_idx].take(points, axis=0)
         result_array_Y_values[it.multi_index] = global_grid.Y.values[indep_idx].take(points, axis=0)
+        # Special case: Sometimes fictitious points slip into the result
+        # This can happen when we calculate stoichimetric phases by themselves
+        if '_FAKE_' in result_array_Phase_values[it.multi_index]:
+            # Chemical potentials are meaningless in this case
+            idx_result_array_MU_values[...] = 0
+            new_energy = 0
+            for idx in range(len(result_array_Phase_values[it.multi_index])):
+                midx = it.multi_index + (idx,)
+                if result_array_Phase_values[midx] == '_FAKE_':
+                    result_array_Phase_values[midx] = ''
+                    result_array_X_values[midx] = np.nan
+                    result_array_Y_values[midx] = np.nan
+                    idx_result_array_NP_values[idx] = np.nan
+                else:
+                    new_energy += idx_result_array_NP_values[idx] * global_grid.GM.values[np.index_exp[indep_idx + (points[idx],)]]
+            result_array_GM_values[it.multi_index] = new_energy
         it.iternext()
     del result_array['points']
     return result_array
