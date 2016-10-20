@@ -337,6 +337,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     return Dataset(data_arrays, coords=coordinate_dict)
 
+@cacheit
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, **kwargs):
     """
     Sample the property surface of 'output' containing the specified

@@ -6,6 +6,7 @@ from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
 import os
+from pycalphad.core.cache import fhash
 try:
     # Python 2
     from StringIO import StringIO
@@ -116,6 +117,9 @@ class Database(object): #pylint: disable=R0902
                 return cls.from_string(fname, fmt=fmt)
         else:
             raise ValueError('Invalid number of parameters: '+len(args))
+
+    def __hash__(self):
+        return fhash(self.__dict__)
 
 
     def __getstate__(self):
