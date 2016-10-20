@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.4.2+41.g70c6bf6 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.4.2+42.gdace464 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+41.g70c6bf6 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+42.gdace464 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+41.g70c6bf6
+                0.4.2+42.gdace464
               </div>
             
           
@@ -316,6 +316,7 @@
         <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="c1"># symbol name, e.g., phase name, function name</span>
     <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:()&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="c1"># species name, e.g., CO2, AL, FE3+</span>
     <span class="n">species_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;+-*&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">))</span>
     <span class="c1"># constituent arrays are colon-delimited</span>
@@ -328,7 +329,8 @@
         <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;YNyn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">White</span><span class="p">()))</span>
     <span class="c1"># ELEMENT</span>
-    <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span>
+    <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">ref_phase_name</span><span class="p">))</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># TYPE_DEFINITION</span>
     <span class="n">cmd_typedef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
@@ -955,7 +957,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+41.g70c6bf6',
+            VERSION:'0.4.2+42.gdace464',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
