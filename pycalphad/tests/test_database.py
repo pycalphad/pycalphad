@@ -2,6 +2,7 @@
 The test_database module contains tests for the Database object.
 """
 from __future__ import print_function
+from pyparsing import ParseException
 from pycalphad import Database, Model
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
@@ -153,3 +154,11 @@ def test_expand_keyword():
         ('S-OU', ['SET_OUTPUT_LEVEL'])
     ]
     assert all([full == expand_keyword(test_list, abbrev) for abbrev, full in test_input])
+
+
+@nose.tools.raises(ParseException)
+def test_tdb_missing_terminator_element():
+    tdb_str = """$ Note missing '!' in next line
+               ELEMENT ZR   BCT_A5
+               FUNCTION EMBCCTI    298.15 -39.72; 6000 N !"""
+    Database(tdb_str)

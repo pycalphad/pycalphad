@@ -178,6 +178,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
+    ref_phase_name = symbol_name = Word(alphanums+'_:()', min=1)
     # species name, e.g., CO2, AL, FE3+
     species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
     # constituent arrays are colon-delimited
@@ -190,7 +191,8 @@ def _tdb_grammar(): #pylint: disable=R0914
         + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
         Suppress(Word('YNyn', exact=1) | White()))
     # ELEMENT
-    cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2)
+    cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
+        Optional(Suppress(OneOrMore(float_number))) + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
