@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.4.2+33.g46d38f7 documentation</title>
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.4.2+41.g70c6bf6 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+33.g46d38f7 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.4.2+41.g70c6bf6 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+33.g46d38f7
+                0.4.2+41.g70c6bf6
               </div>
             
           
@@ -565,15 +565,33 @@
         <span class="n">idx_result_array_NP_values</span> <span class="o">=</span> <span class="n">result_array_NP_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
         <span class="n">idx_result_array_GM_values</span> <span class="o">=</span> <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
         <span class="n">idx_result_array_points_values</span> <span class="o">=</span> <span class="n">result_array_points_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
-        <span class="n">hyperplane</span><span class="p">(</span><span class="n">idx_global_grid_X_values</span><span class="p">,</span> <span class="n">idx_global_grid_GM_values</span><span class="p">,</span>
-                   <span class="n">idx_comp_values</span><span class="p">,</span> <span class="n">idx_result_array_MU_values</span><span class="p">,</span>
-                   <span class="n">idx_result_array_NP_values</span><span class="p">,</span> <span class="n">idx_result_array_GM_values</span><span class="p">,</span>
-                   <span class="n">idx_result_array_points_values</span><span class="p">)</span>
+        <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">hyperplane</span><span class="p">(</span><span class="n">idx_global_grid_X_values</span><span class="p">,</span> <span class="n">idx_global_grid_GM_values</span><span class="p">,</span>
+                       <span class="n">idx_comp_values</span><span class="p">,</span> <span class="n">idx_result_array_MU_values</span><span class="p">,</span>
+                       <span class="n">idx_result_array_NP_values</span><span class="p">,</span> <span class="n">idx_result_array_points_values</span><span class="p">)</span>
         <span class="c1"># Copy phase values out</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">result_array_points_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
         <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
         <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="c1"># Special case: Sometimes fictitious points slip into the result</span>
+        <span class="c1"># This can happen when we calculate stoichimetric phases by themselves</span>
+        <span class="k">if</span> <span class="s1">&#39;_FAKE_&#39;</span> <span class="ow">in</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]:</span>
+            <span class="c1"># Chemical potentials are meaningless in this case</span>
+            <span class="n">idx_result_array_MU_values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">new_energy</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">molesum</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">])):</span>
+                <span class="n">midx</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">idx</span><span class="p">,)</span>
+                <span class="k">if</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;_FAKE_&#39;</span><span class="p">:</span>
+                    <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_energy</span> <span class="o">+=</span> <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="n">indep_idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">],)]]</span>
+                    <span class="n">molesum</span> <span class="o">+=</span> <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_energy</span> <span class="o">/</span> <span class="n">molesum</span>
         <span class="n">it</span><span class="o">.</span><span class="n">iternext</span><span class="p">()</span>
     <span class="k">del</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
     <span class="k">return</span> <span class="n">result_array</span></div>
@@ -610,7 +628,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+33.g46d38f7',
+            VERSION:'0.4.2+41.g70c6bf6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
