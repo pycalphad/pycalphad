@@ -566,32 +566,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     return properties
 
 
-def _postprocess_properties(grid, properties, conds, indep_vals):
-    indexer = []
-    for idx, vals in enumerate(indep_vals):
-        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(conds.keys()) - idx + 1) * (np.newaxis,)])
-    indexer.append(properties['points'].values[..., np.newaxis])
-    indexer.append(
-        np.arange(grid['X'].values.shape[-1], dtype=np.int)[(len(conds.keys())) * (np.newaxis,) + np.index_exp[:]])
-    ravelled_X_view = grid['X'].values[tuple(indexer)]
-    indexer[-1] = np.arange(grid['Y'].values.shape[-1], dtype=np.int)[
-        (len(conds.keys())) * (np.newaxis,) + np.index_exp[:]]
-    ravelled_Y_view = grid['Y'].values[tuple(indexer)]
-    indexer = []
-    for idx, vals in enumerate(indep_vals):
-        indexer.append(np.arange(len(vals), dtype=np.int)[idx * (np.newaxis,) + np.index_exp[:] + \
-                                                          (len(conds.keys()) - idx) * (np.newaxis,)])
-    indexer.append(properties['points'].values)
-    ravelled_Phase_view = grid['Phase'].values[tuple(indexer)]
-    properties['X'].values[...] = ravelled_X_view
-    properties['Y'].values[...] = ravelled_Y_view
-    # TODO: What about invariant reactions? We should perform a final driving force calculation here.
-    # We can handle that in the same post-processing step where we identify single-phase regions.
-    properties['Phase'].values[...] = ravelled_Phase_view
-    del properties['points']
-    return properties
-
 def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
     "Merge back together slices of 'properties'"
     for prop_slice, prop_arr in zip(chunk_grid, results):
@@ -853,7 +827,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                               )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
     properties = delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
-    #properties = delayed(_postprocess_properties, pure=False)(grid, properties, conds, indep_vals)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
