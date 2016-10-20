@@ -427,10 +427,10 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         idx_result_array_NP_values = result_array_NP_values[it.multi_index]
         idx_result_array_GM_values = result_array_GM_values[it.multi_index]
         idx_result_array_points_values = result_array_points_values[it.multi_index]
-        hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
-                   idx_comp_values, idx_result_array_MU_values,
-                   idx_result_array_NP_values, idx_result_array_GM_values,
-                   idx_result_array_points_values)
+        result_array_GM_values[it.multi_index] = \
+            hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
+                       idx_comp_values, idx_result_array_MU_values,
+                       idx_result_array_NP_values, idx_result_array_points_values)
         # Copy phase values out
         points = result_array_points_values[it.multi_index]
         result_array_Phase_values[it.multi_index] = global_grid.Phase.values[indep_idx].take(points, axis=0)
@@ -441,7 +441,8 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         if '_FAKE_' in result_array_Phase_values[it.multi_index]:
             # Chemical potentials are meaningless in this case
             idx_result_array_MU_values[...] = 0
-            new_energy = 0
+            new_energy = 0.
+            molesum = 0.
             for idx in range(len(result_array_Phase_values[it.multi_index])):
                 midx = it.multi_index + (idx,)
                 if result_array_Phase_values[midx] == '_FAKE_':
@@ -451,7 +452,8 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
                     idx_result_array_NP_values[idx] = np.nan
                 else:
                     new_energy += idx_result_array_NP_values[idx] * global_grid.GM.values[np.index_exp[indep_idx + (points[idx],)]]
-            result_array_GM_values[it.multi_index] = new_energy
+                    molesum += idx_result_array_NP_values[idx]
+            result_array_GM_values[it.multi_index] = new_energy / molesum
         it.iternext()
     del result_array['points']
     return result_array

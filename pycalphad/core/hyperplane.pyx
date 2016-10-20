@@ -38,7 +38,6 @@ def hyperplane(double[:,::1] compositions,
                double[::1] composition,
                double[::1] chemical_potentials,
                double[::1] result_fractions,
-               double out_energy,
                int[::1] result_simplex):
     """
     Find chemical potentials which approximate the tangent hyperplane
@@ -62,11 +61,15 @@ def hyperplane(double[:,::1] compositions,
     result_fractions : ndarray
         Shape of (N,)
         Will be overwritten
-    out_energy : double
-        Will be overwritten
     best_guess_simplex : ndarray
         Shape of (N,)
         Will be overwritten
+
+    Returns
+    -------
+    out_energy : double
+        Energy of the output configuration.
+
     Examples
     --------
     None yet.
@@ -148,3 +151,4 @@ def hyperplane(double[:,::1] compositions,
     result_fractions[:] = fractions[saved_trial, :]
     chemical_potentials[:] = candidate_potentials
     result_simplex[:] = best_guess_simplex
+    return out_energy
