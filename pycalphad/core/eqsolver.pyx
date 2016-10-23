@@ -39,14 +39,12 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
     cdef int num_phases = len(phases)
     cdef int phase_idx, sidx
     cdef int[:] indices
-    for phase_idx in range(num_phases):
-        if <unicode>phases[phase_idx] == <unicode>"":
-            num_phases = phase_idx
-            break
     # Group phases into multiple composition sets
     cdef object phase_indices = defaultdict(lambda: list())
     for phase_idx in range(num_phases):
         name = <unicode>phases[phase_idx]
+        if name == "":
+            continue
         phase_indices[name].append(phase_idx)
     # Compute pairwise distances between compositions of like phases
     for name, idxs in phase_indices.items():
