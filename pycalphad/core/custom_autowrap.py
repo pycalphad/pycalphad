@@ -280,7 +280,12 @@ def autowrap(
             new_args.append(missing.name)
         routine = make_routine('autofunc', expr, args + new_args)
 
-    return code_wrapper.wrap_code(routine, helpers=helps)
+    # Have to watch order of call here, since a counter gets incremented in CodeWrapper
+    modname = str(code_wrapper.module_name)
+    result = code_wrapper.wrap_code(routine, helpers=helps)
+    result.module_name = modname
+    result.routine_name = routine.name
+    return result
 
 
 def binary_function(symfunc, expr, **kwargs):
