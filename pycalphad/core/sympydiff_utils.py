@@ -6,7 +6,10 @@ from .cache import cacheit
 from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
 import numpy as np
 import os
-
+import sys
+import copy
+import time
+import tempfile
 
 def chunks(l, n):
     """
@@ -16,6 +19,19 @@ def chunks(l, n):
     for i in range(0, len(l), n):
         yield l[i:i+n]
 
+def import_module(path, modname):
+    import importlib.util
+    import glob
+    npath = glob.glob(os.path.join(path, modname+'.*.so'))
+    if len(npath) == 1:
+        npath = npath[0]
+    else:
+        raise ImportError('Failed to import', os.path.join(path, modname+'.*.so'))
+    spec = importlib.util.spec_from_file_location(modname, npath)
+    foo = importlib.util.module_from_spec(spec)
+    spec.loader.exec_module(foo)
+    return foo
+
 
 class PickleableFunction(object):
     """
@@ -24,21 +40,37 @@ class PickleableFunction(object):
     This approach means only the underlying SymPy object must be pickleable.
     This also means multiprocessing using fork() will NOT force a recompile.
     """
-    def __init__(self, sympy_vars, sympy_obj, kernel=None):
+    def __init__(self, sympy_vars, sympy_obj):
         self._sympyobj = sympy_obj
-        self._sympyvars = sympy_vars
-        if kernel is not None:
-            self._kernel = kernel
-        else:
-            self._kernel = self.compile()
+        self._sympyvars = tuple(sympy_vars)
+        self._workdir = tempfile.mkdtemp(prefix='pycalphad-')
+        self._module_name = None
+        self._routine_name = None
+        self._kernel = None
         self._compiling = False
 
     @property
     def kernel(self):
+        if self._kernel is None:
+            if self._module_name is not None:
+                start = time.time()
+                mod = None
+                while mod is None:
+                    try:
+                        mod = import_module(self._workdir, self._module_name)
+                    except ImportError:
+                        if start + 30 > time.time():
+                            raise
+                self._kernel = getattr(mod, self._routine_name)
+            else:
+                self._kernel = self.compile()
         return self._kernel
 
     def compile(self):
         raise NotImplementedError
+
+    def __hash__(self):
+        return hash((self._sympyobj, self._sympyvars))
 
     def __call__(self, *args, **kwargs):
         return self.kernel(*args, **kwargs)
@@ -49,14 +81,18 @@ class PickleableFunction(object):
         return {key: value for key, value in self.__dict__.items() if str(key) != '_kernel'}
 
     def __setstate__(self, state):
+        self._kernel = None
         for key, value in state.items():
             setattr(self, key, value)
-        self._kernel = self.compile()
 
 
 class AutowrapFunction(PickleableFunction):
     def compile(self):
-        return autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95')
+        # XXX: Acquire a thread lock here!
+        result = autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95', tempdir=self._workdir)
+        self._module_name = str(result.module_name)
+        self._routine_name = str(result.routine_name)
+        return result
 
 
 @cacheit
