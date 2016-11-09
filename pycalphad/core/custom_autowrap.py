@@ -71,6 +71,12 @@ from sympy.utilities.codegen import (OutputArgument,
 from pycalphad.core.custom_codegen import FCodeGen
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import F2PyCodeWrapper, CythonCodeWrapper, DummyWrapper
+from subprocess import STDOUT, CalledProcessError
+from sympy.core.compatibility import check_output
+import os
+import sys
+import tempfile
+import uuid
 
 
 # Here we define a lookup of backends -> tuples of languages. For now, each
@@ -90,8 +96,82 @@ def _infer_language(backend):
     return langs[0]
 
 
+def import_extension(path, modname):
+    import glob
+    npath = glob.glob(os.path.join(path, modname+'.*'))
+    if len(npath) == 1:
+        npath = npath[0]
+    else:
+        raise ImportError('Failed to import', os.path.join(path, modname+'.*'))
+    try:
+        import importlib.util
+        spec = importlib.util.spec_from_file_location(modname, npath)
+        foo = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(foo)
+    except ImportError:
+        try:
+            from importlib.machinery import ExtensionFileLoader
+            foo = ExtensionFileLoader(modname, npath).load_module()
+        except ImportError:
+            import imp
+            foo = imp.load_dynamic(modname, npath)
+    return foo
+
+class CodeWrapError(Exception):
+    pass
+
+
+class ThreadSafeF2PyCodeWrapper(F2PyCodeWrapper):
+    def __init__(self, *args, **kwargs):
+        super(ThreadSafeF2PyCodeWrapper, self).__init__(*args, **kwargs)
+        self._module_id = str(uuid.uuid4()).replace('-', '_')
+        self.filepath = self.filepath or tempfile.mkdtemp("_sympy_compile")
+
+    @property
+    def command(self):
+        filename = os.path.join(self.filepath, self.filename) + '.' + self.generator.code_extension
+        args = ['-c', '-m', self.module_name, filename]
+        command = [sys.executable, "-c", "import numpy.f2py as f2py2e;f2py2e.main()"]+args
+        return command
+
+    @property
+    def filename(self):
+        return "%s_%s" % (self._filename, self._module_id)
+
+    @property
+    def module_name(self):
+        return "%s_%s" % (self._module_basename, self._module_id)
+
+    def _process_files(self, routine):
+        command = self.command
+        command.extend(self.flags)
+        try:
+            retoutput = check_output(command, stderr=STDOUT, cwd=self.filepath)
+        except CalledProcessError as e:
+            raise CodeWrapError(
+                "Error while executing command: %s. Command output is:\n%s" % (
+                    " ".join(command), e.output.decode()))
+        if not self.quiet:
+            print(retoutput)
+
+    def wrap_code(self, routine, helpers=None):
+        helpers = helpers if helpers is not None else []
+        workdir = self.filepath
+        if not os.access(workdir, os.F_OK):
+            os.mkdir(workdir)
+        try:
+            self.generator.write(
+                [routine]+helpers, os.path.join(workdir, self.filename), True, self.include_header,
+                self.include_empty)
+            self._process_files(routine)
+            mod = import_extension(workdir, self.module_name)
+        finally:
+            self._module_id = str(uuid.uuid4()).replace('-', '_')
+        return self._get_wrapped_function(mod, routine.name)
+
+
 def _get_code_wrapper_class(backend):
-    wrappers = {'F2PY': F2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
+    wrappers = {'F2PY': ThreadSafeF2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
         'DUMMY': DummyWrapper}
     return wrappers[backend.upper()]
 

@@ -1,15 +1,14 @@
 """
 This module constructs gradient functions for Models.
 """
-from .custom_autowrap import autowrap
+from .custom_autowrap import autowrap, import_extension
 from .cache import cacheit
 from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
 import numpy as np
-import os
-import sys
-import copy
 import time
 import tempfile
+from threading import RLock
+CompileLock = RLock()
 
 def chunks(l, n):
     """
@@ -18,19 +17,6 @@ def chunks(l, n):
     """
     for i in range(0, len(l), n):
         yield l[i:i+n]
-
-def import_module(path, modname):
-    import importlib.util
-    import glob
-    npath = glob.glob(os.path.join(path, modname+'.*.so'))
-    if len(npath) == 1:
-        npath = npath[0]
-    else:
-        raise ImportError('Failed to import', os.path.join(path, modname+'.*.so'))
-    spec = importlib.util.spec_from_file_location(modname, npath)
-    foo = importlib.util.module_from_spec(spec)
-    spec.loader.exec_module(foo)
-    return foo
 
 
 class PickleableFunction(object):
@@ -51,19 +37,20 @@ class PickleableFunction(object):
 
     @property
     def kernel(self):
-        if self._kernel is None:
-            if self._module_name is not None:
-                start = time.time()
-                mod = None
-                while mod is None:
-                    try:
-                        mod = import_module(self._workdir, self._module_name)
-                    except ImportError:
-                        if start + 30 > time.time():
-                            raise
-                self._kernel = getattr(mod, self._routine_name)
-            else:
-                self._kernel = self.compile()
+        with CompileLock:
+            if self._kernel is None:
+                if self._module_name is not None:
+                    start = time.time()
+                    mod = None
+                    while mod is None:
+                        try:
+                            mod = import_extension(self._workdir, self._module_name)
+                        except ImportError:
+                            if start + 30 > time.time():
+                                raise
+                    self._kernel = getattr(mod, self._routine_name)
+                else:
+                    self._kernel = self.compile()
         return self._kernel
 
     def compile(self):
@@ -88,10 +75,10 @@ class PickleableFunction(object):
 
 class AutowrapFunction(PickleableFunction):
     def compile(self):
-        # XXX: Acquire a thread lock here!
-        result = autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95', tempdir=self._workdir)
-        self._module_name = str(result.module_name)
-        self._routine_name = str(result.routine_name)
+        with CompileLock:
+            result = autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95', tempdir=self._workdir)
+            self._module_name = str(result.module_name)
+            self._routine_name = str(result.routine_name)
         return result
 
 
@@ -153,13 +140,15 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
     if include_grad or include_hess:
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
-        grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
+        with CompileLock:
+            grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
         hess_diffs = []
         # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
         if include_hess:
-            for i in range(len(wrt)):
-                for j in range(i, len(wrt)):
-                    hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
+            with CompileLock:
+                for i in range(len(wrt)):
+                    for j in range(i, len(wrt)):
+                        hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
             hess = AutowrapFunction(variables, ImmutableMatrix(hess_diffs))
         if include_grad:
             grad = AutowrapFunction(variables, ImmutableMatrix(grad_diffs))
