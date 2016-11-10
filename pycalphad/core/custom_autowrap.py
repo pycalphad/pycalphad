@@ -104,15 +104,18 @@ def import_extension(path, modname):
     else:
         raise ImportError('Failed to import', os.path.join(path, modname+'.*'))
     try:
+        # Python 3.5+
         import importlib.util
         spec = importlib.util.spec_from_file_location(modname, npath)
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
-    except ImportError:
+    except AttributeError:
         try:
+            # Python 3.4
             from importlib.machinery import ExtensionFileLoader
             foo = ExtensionFileLoader(modname, npath).load_module()
         except ImportError:
+            # Python 2.7
             import imp
             foo = imp.load_dynamic(modname, npath)
     return foo
