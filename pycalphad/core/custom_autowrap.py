@@ -109,7 +109,7 @@ def import_extension(path, modname):
         spec = importlib.util.spec_from_file_location(modname, npath)
         foo = importlib.util.module_from_spec(spec)
         spec.loader.exec_module(foo)
-    except AttributeError:
+    except (AttributeError, ImportError):
         try:
             # Python 3.4
             from importlib.machinery import ExtensionFileLoader
