@@ -33,7 +33,6 @@ class PickleableFunction(object):
         self._module_name = None
         self._routine_name = None
         self._kernel = None
-        self._compiling = False
 
     @property
     def kernel(self):
@@ -57,7 +56,7 @@ class PickleableFunction(object):
         raise NotImplementedError
 
     def __hash__(self):
-        return hash((self._sympyobj, self._sympyvars))
+        return hash((self._sympyobj, self._sympyvars, self._workdir, self._routine_name, self._module_name))
 
     def __call__(self, *args, **kwargs):
         return self.kernel(*args, **kwargs)
