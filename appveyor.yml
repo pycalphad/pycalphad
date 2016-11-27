@@ -8,8 +8,8 @@ environment:
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python35-conda64"
-      PYTHON_VERSION: "3.5"
+    - PYTHON: "C:\\Python34-conda64"
+      PYTHON_VERSION: "3.4"
       PYTHON_ARCH: "64"
 
 install:
@@ -34,6 +34,7 @@ install:
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
   - "conda install --yes -n condaenv --quiet tinydb autograd cython"
+  - "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - "pip install -e ."
 
 build: false
