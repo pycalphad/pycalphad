@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.eqplot &mdash; pycalphad 0.4.2+47.g24863ef documentation</title>
+  <title>pycalphad.plot.eqplot &mdash; pycalphad 0+untagged.g360dbbd documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.4.2+47.g24863ef documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g360dbbd documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0.4.2+47.g24863ef
+                0+untagged.g360dbbd
               </div>
             
           
@@ -141,8 +141,8 @@
 <span class="sd">the results of equilibrium calculations.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_condition</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
-<span class="kn">import</span> <span class="nn">matplotlib.patches</span> <span class="k">as</span> <span class="nn">mpatches</span>
 <span class="kn">from</span> <span class="nn">matplotlib</span> <span class="k">import</span> <span class="n">collections</span> <span class="k">as</span> <span class="n">mc</span>
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -173,7 +173,7 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">coord</span>
 
-<div class="viewcode-block" id="eqplot"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.eqplot.eqplot">[docs]</a><span class="k">def</span> <span class="nf">eqplot</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+<div class="viewcode-block" id="eqplot"><a class="viewcode-back" href="../../../api/pycalphad.plot.html#pycalphad.plot.eqplot.eqplot">[docs]</a><span class="k">def</span> <span class="nf">eqplot</span><span class="p">(</span><span class="n">eq</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">z</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">phases</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Plot the result of an equilibrium calculation.</span>
 
@@ -208,7 +208,8 @@
     <span class="k">if</span> <span class="n">z</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;3D plotting is not yet implemented&#39;</span><span class="p">)</span>
     <span class="c1"># TODO: Temporary workaround to fix string encoding issue when loading netcdf files from disk</span>
-    <span class="n">phases</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;&#39;</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="n">phases</span> <span class="k">if</span> <span class="n">phases</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> \
+        <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">ravel</span><span class="p">(),</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">))</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;&#39;</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
     <span class="n">comps</span> <span class="o">=</span> <span class="nb">map</span><span class="p">(</span><span class="nb">str</span><span class="p">,</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
     <span class="n">eq</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
     <span class="n">eq</span><span class="p">[</span><span class="s1">&#39;Phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">eq</span><span class="p">[</span><span class="s1">&#39;Phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="p">)</span>
@@ -217,28 +218,7 @@
     <span class="n">two_phase_indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">)</span>
     <span class="n">found_phases</span> <span class="o">=</span> <span class="n">eq</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">two_phase_indices</span><span class="p">][</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="mi">2</span><span class="p">]</span>
 
-    <span class="n">colorlist</span> <span class="o">=</span> <span class="p">{}</span>
-
-    <span class="c1"># colors from Junwei Huang, March 21 2013</span>
-    <span class="c1"># exclude green and red because of their special meaning on the diagram</span>
-    <span class="n">colorvalues</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0000FF&quot;</span><span class="p">,</span> <span class="s2">&quot;FFFF00&quot;</span><span class="p">,</span> <span class="s2">&quot;FF00FF&quot;</span><span class="p">,</span> <span class="s2">&quot;00FFFF&quot;</span><span class="p">,</span> <span class="s2">&quot;000000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;800000&quot;</span><span class="p">,</span> <span class="s2">&quot;008000&quot;</span><span class="p">,</span> <span class="s2">&quot;000080&quot;</span><span class="p">,</span> <span class="s2">&quot;808000&quot;</span><span class="p">,</span> <span class="s2">&quot;800080&quot;</span><span class="p">,</span> <span class="s2">&quot;008080&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;808080&quot;</span><span class="p">,</span> <span class="s2">&quot;C00000&quot;</span><span class="p">,</span> <span class="s2">&quot;00C000&quot;</span><span class="p">,</span> <span class="s2">&quot;0000C0&quot;</span><span class="p">,</span> <span class="s2">&quot;C0C000&quot;</span><span class="p">,</span> <span class="s2">&quot;C000C0&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;00C0C0&quot;</span><span class="p">,</span> <span class="s2">&quot;C0C0C0&quot;</span><span class="p">,</span> <span class="s2">&quot;400000&quot;</span><span class="p">,</span> <span class="s2">&quot;004000&quot;</span><span class="p">,</span> <span class="s2">&quot;000040&quot;</span><span class="p">,</span> <span class="s2">&quot;404000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;400040&quot;</span><span class="p">,</span> <span class="s2">&quot;004040&quot;</span><span class="p">,</span> <span class="s2">&quot;404040&quot;</span><span class="p">,</span> <span class="s2">&quot;200000&quot;</span><span class="p">,</span> <span class="s2">&quot;002000&quot;</span><span class="p">,</span> <span class="s2">&quot;000020&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;202000&quot;</span><span class="p">,</span> <span class="s2">&quot;200020&quot;</span><span class="p">,</span> <span class="s2">&quot;002020&quot;</span><span class="p">,</span> <span class="s2">&quot;202020&quot;</span><span class="p">,</span> <span class="s2">&quot;600000&quot;</span><span class="p">,</span> <span class="s2">&quot;006000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;000060&quot;</span><span class="p">,</span> <span class="s2">&quot;606000&quot;</span><span class="p">,</span> <span class="s2">&quot;600060&quot;</span><span class="p">,</span> <span class="s2">&quot;006060&quot;</span><span class="p">,</span> <span class="s2">&quot;606060&quot;</span><span class="p">,</span> <span class="s2">&quot;A00000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;00A000&quot;</span><span class="p">,</span> <span class="s2">&quot;0000A0&quot;</span><span class="p">,</span> <span class="s2">&quot;A0A000&quot;</span><span class="p">,</span> <span class="s2">&quot;A000A0&quot;</span><span class="p">,</span> <span class="s2">&quot;00A0A0&quot;</span><span class="p">,</span> <span class="s2">&quot;A0A0A0&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;E00000&quot;</span><span class="p">,</span> <span class="s2">&quot;00E000&quot;</span><span class="p">,</span> <span class="s2">&quot;0000E0&quot;</span><span class="p">,</span> <span class="s2">&quot;E0E000&quot;</span><span class="p">,</span> <span class="s2">&quot;E000E0&quot;</span><span class="p">,</span> <span class="s2">&quot;00E0E0&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;E0E0E0&quot;</span><span class="p">]</span>
-
-    <span class="n">phasecount</span> <span class="o">=</span> <span class="mi">0</span>
-    <span class="n">legend_handles</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
-        <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-        <span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span><span class="o">+</span><span class="n">colorvalues</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phasecount</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorvalues</span><span class="p">))]</span>
-        <span class="n">legend_handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">))</span>
-        <span class="n">phasecount</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colorlist</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
     <span class="c1"># position the phase legend</span>
     <span class="n">box</span> <span class="o">=</span> <span class="n">ax</span><span class="o">.</span><span class="n">get_position</span><span class="p">()</span>
     <span class="n">ax</span><span class="o">.</span><span class="n">set_position</span><span class="p">([</span><span class="n">box</span><span class="o">.</span><span class="n">x0</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">y0</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">width</span> <span class="o">*</span> <span class="mf">0.8</span><span class="p">,</span> <span class="n">box</span><span class="o">.</span><span class="n">height</span><span class="p">])</span>
@@ -307,7 +287,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.4.2+47.g24863ef',
+            VERSION:'0+untagged.g360dbbd',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
