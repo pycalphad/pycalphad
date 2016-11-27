@@ -3,8 +3,8 @@ The eqplot module contains functions for general plotting of
 the results of equilibrium calculations.
 """
 from pycalphad.core.utils import unpack_condition
+from pycalphad.plot.utils import phase_legend
 import pycalphad.variables as v
-import matplotlib.patches as mpatches
 from matplotlib import collections as mc
 import matplotlib.pyplot as plt
 import numpy as np
@@ -35,7 +35,7 @@ def _map_coord_to_variable(coord):
     else:
         return coord
 
-def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
+def eqplot(eq, ax=None, x=None, y=None, z=None, phases=None, **kwargs):
     """
     Plot the result of an equilibrium calculation.
 
@@ -70,7 +70,8 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
     if z is not None:
         raise NotImplementedError('3D plotting is not yet implemented')
     # TODO: Temporary workaround to fix string encoding issue when loading netcdf files from disk
-    phases = map(str, sorted(set(np.array(eq.Phase.values.ravel(), dtype='U')) - {''}, key=str))
+    phases = phases if phases is not None else \
+        map(str, sorted(set(np.array(eq.Phase.values.ravel(), dtype='U')) - {''}, key=str))
     comps = map(str, sorted(np.array(eq.coords['component'].values, dtype='U'), key=str))
     eq['component'] = np.array(eq['component'], dtype='U')
     eq['Phase'].values = np.array(eq['Phase'].values, dtype='U')
@@ -79,28 +80,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
     two_phase_indices = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 2)
     found_phases = eq.Phase.values[two_phase_indices][..., :2]
 
-    colorlist = {}
-
-    # colors from Junwei Huang, March 21 2013
-    # exclude green and red because of their special meaning on the diagram
-    colorvalues = ["0000FF", "FFFF00", "FF00FF", "00FFFF", "000000",
-                   "800000", "008000", "000080", "808000", "800080", "008080",
-                   "808080", "C00000", "00C000", "0000C0", "C0C000", "C000C0",
-                   "00C0C0", "C0C0C0", "400000", "004000", "000040", "404000",
-                   "400040", "004040", "404040", "200000", "002000", "000020",
-                   "202000", "200020", "002020", "202020", "600000", "006000",
-                   "000060", "606000", "600060", "006060", "606060", "A00000",
-                   "00A000", "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0",
-                   "E00000", "00E000", "0000E0", "E0E000", "E000E0", "00E0E0",
-                   "E0E0E0"]
-
-    phasecount = 0
-    legend_handles = []
-    for phase in phases:
-        phase = phase.upper()
-        colorlist[phase] = "#"+colorvalues[np.mod(phasecount, len(colorvalues))]
-        legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
-        phasecount += 1
+    legend_handles, colorlist = phase_legend(phases)
     # position the phase legend
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
