@@ -18,6 +18,8 @@ MAX_SOLVE_DRIVING_FORCE = 1e-4
 MAX_SOLVE_ITERATIONS = 100
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
 MIN_SOLVE_ENERGY_PROGRESS = 1e-6
+# Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
+MAX_ABS_LAGRANGE_MULTIPLIER = 1e12
 
 
 def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
@@ -152,7 +154,7 @@ def _compute_constraints(object dbf, object comps, object phases,
     cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx
     cdef double phase_frac
     cdef bint con_vacs
-    if l_multipliers is None:
+    if (l_multipliers is None) or np.any(np.isnan(l_multipliers)):
         l_multipliers = np.zeros(num_constraints)
         if chempots is not None:
             l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
@@ -389,6 +391,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 num_phases = phases.index('')
             else:
                 num_phases = len(phases)
+            if num_phases == 0:
+                raise ValueError('Zero phases are left in the system')
             zero_dof = np.all(
                 (prop_Y_values[it.multi_index] == 1.) | np.isnan(prop_Y_values[it.multi_index]))
             if (num_phases == 1) and zero_dof:
@@ -408,6 +412,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # This may break if non-padding nan's slipped in from elsewhere...
             site_fracs = site_fracs[~np.isnan(site_fracs)]
             site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+            if len(site_fracs) == 0:
+                print(properties)
+                raise ValueError('Site fractions are invalid')
             phase_fracs[phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             var_idx = 0
             for name in phases:
@@ -424,6 +431,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                 _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
                                      l_multipliers=l_multipliers,
                                      chempots=prop_MU_values[it.multi_index], mole_fractions=mole_fractions)
+            if np.any(np.isnan(l_multipliers)):
+                raise ValueError('Invalid l_multipliers after constraints')
             qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
             m = rmat.shape[1]
             n = qmat.shape[0]
@@ -436,17 +445,34 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, constraint_hess,
                                                                 l_multipliers, callable_dict, phase_records)
+            if np.any(np.isnan(l_hessian)):
+                print('Invalid l_hessian')
+                l_hessian[:,:] = np.eye(l_hessian.shape[0])
+            if np.any(np.isnan(gradient_term)):
+                raise ValueError('Invalid gradient_term')
             # Equation 18.18 in Nocedal and Wright
             if m != n:
+                if np.any(np.isnan(zmat)):
+                    raise ValueError('Invalid zmat')
                 try:
-                     p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
-                                           -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
+                    p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
+                                          -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
                 except np.linalg.LinAlgError:
                     p_z = np.zeros(zmat.shape[-1], dtype=np.float)
             else:
                 zmat = np.array(0)
                 p_z = 0
+            if np.any(np.isnan(p_y)):
+                raise ValueError('Invalid p_y')
+            if np.any(np.isnan(p_z)):
+                raise ValueError('Invalid p_z')
+            if np.any(np.isnan(ymat)):
+                raise ValueError('Invalid ymat')
+            if np.any(np.isnan(zmat)):
+                raise ValueError('Invalid zmat')
             step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
+            if np.any(np.isnan(step)):
+                raise ValueError('Invalid step')
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             candidate_site_fracs = site_fracs + step[:len(site_fracs)]
@@ -469,16 +495,20 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # We updated degrees of freedom this iteration
             new_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
                                                 np.dot(ymat.T, gradient_term + np.dot(l_hessian, step)))
+            np.clip(new_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
+                    out=new_l_multipliers)
             # XXX: Should fix underlying numerical problem at edges of composition space instead of working around
-            if np.any(np.isnan(new_l_multipliers)) or np.any(np.abs(new_l_multipliers) > 1e10):
-                if verbose:
-                    print('WARNING: Unstable Lagrange multipliers: ', new_l_multipliers)
+            if np.any(np.abs(new_l_multipliers) > MAX_ABS_LAGRANGE_MULTIPLIER):
+                print('WARNING: Unstable Lagrange multipliers: ', new_l_multipliers)
                 # Equation 18.16 in Nocedal and Wright
                 # This method is less accurate but more stable
                 new_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
                                                                        candidate_constraint_jac.T)),
                                            candidate_constraint_jac), candidate_gradient_term)
             l_multipliers = new_l_multipliers
+            if np.any(np.isnan(l_multipliers)):
+                print('Invalid l_multipliers after recalculation', l_multipliers)
+                l_multipliers[:] = 0
             if verbose:
                 print('NEW_L_MULTIPLIERS', l_multipliers)
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
