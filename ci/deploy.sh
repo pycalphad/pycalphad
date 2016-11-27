@@ -51,7 +51,7 @@ cp -Rf docs/_build/html/* out/docs/$DEPLOY_NAME
 # Now let's go have some fun with the cloned repo
 cd out
 git config --global user.name "Travis CI"
-git config --global user.email "$COMMIT_AUTHOR_EMAIL"
+git config --global user.email "ci@pycalphad.org"
 
 # If there are no changes to the compiled out (e.g. this is a README update) then just bail.
 if [ $(git status --porcelain | wc -l) -lt 1 ]; then
