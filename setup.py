@@ -24,7 +24,7 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
-    ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx']),
+    ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx', 'pycalphad/core/phase_rec.pyx']),
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),

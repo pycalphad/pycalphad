@@ -51,7 +51,7 @@ def build_functions(sympy_graph, variables, include_obj=True, include_grad=True,
 
     restup = []
     if include_obj:
-        restup.append(obj)
+        restup.append(lambda xargs: obj(*(xargs.T)))
     if include_grad:
         restup.append(grad_func)
     if include_hess:

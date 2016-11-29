@@ -3,7 +3,7 @@ This module constructs gradient functions for Models.
 """
 from .custom_autowrap import autowrap, import_extension
 from .cache import cacheit
-from sympy import zoo, oo, ImmutableMatrix, IndexedBase, Idx, Dummy, Lambda, Eq
+from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Dummy, Lambda, Eq
 import numpy as np
 import time
 import tempfile
@@ -59,7 +59,8 @@ class PickleableFunction(object):
         return hash((self._sympyobj, self._sympyvars, self._workdir, self._routine_name, self._module_name))
 
     def __call__(self, *args, **kwargs):
-        return self.kernel(*args, **kwargs)
+        # XXX: Hardcode until code rewrite is finished
+        return self.kernel(*args, 0, **kwargs)
 
     def __getstate__(self):
         # Explicitly drop the compiled function when pickling
@@ -83,7 +84,7 @@ class AutowrapFunction(PickleableFunction):
 
 @cacheit
 def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=True,
-                    excluded=None):
+                    parameters=None):
     """
 
     Parameters
@@ -96,7 +97,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     include_obj
     include_grad
     include_hess
-    excluded
+    parameters
 
     Returns
     -------
@@ -104,81 +105,60 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     """
     if wrt is None:
         wrt = tuple(variables)
+    if parameters is None:
+        parameters = []
+    parameters = tuple(parameters)
     variables = tuple(variables)
     restup = []
     grad = None
     hess = None
+    m = Symbol('veclen', integer=True)
+    i = Idx(Symbol('vecidx', integer=True), m)
+    y = IndexedBase(Symbol('outp'))
+    params = MatrixSymbol('params', 1, len(parameters))
+    inp = MatrixSymbol('inp', m, len(variables))
+    inp_nobroadcast = MatrixSymbol('inp', 1, len(variables))
+
+    # workaround for sympy/sympy#11692
+    # that is why we don't use implemented_function
+    from sympy import Function
+    class f(Function):
+        _imp_ = Lambda(variables+parameters, sympy_graph)
+    args_with_indices = []
+    args_nobroadcast = []
+    for indx in range(len(variables)):
+        args_with_indices.append(inp[i-1, indx])
+        args_nobroadcast.append(inp_nobroadcast[0, indx])
+    for indx in range(len(parameters)):
+        args_with_indices.append(params[0, indx])
+        args_nobroadcast.append(params[0, indx])
+
+    args = [y, inp, params, m]
     if include_obj:
-        if excluded:
-            excluded = list(range(excluded))
-        else:
-            excluded = []
-        y = IndexedBase(Dummy())
-        m = Dummy(integer=True)
-        i = Idx(Dummy(integer=True), m)
-        # workaround for sympy/sympy#11692
-        # that is why we don't use implemented_function
-        from sympy import Function
-        class f(Function):
-            _imp_ = Lambda(variables, sympy_graph)
-        # For each of the args create an indexed version.
-        indexed_args = []
-        for indx, a in enumerate(variables):
-            if indx in excluded:
-                indexed_args.append(a)
-            else:
-                indexed_args.append(IndexedBase(Dummy(a.name)))
-        # Order the arguments (out, args, dim)
-        args = [y] + indexed_args + [m]
-        args_with_indices = []
-        for indx, a in enumerate(indexed_args):
-            if indx in excluded:
-                args_with_indices.append(a)
-            else:
-                args_with_indices.append(a[i])
         restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
     if include_grad or include_hess:
+        diffargs = (inp_nobroadcast, params)
         # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
         with CompileLock:
-            grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}) for i in wrt)
+            grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}).xreplace(dict(zip(variables+parameters,
+                                                                                        args_nobroadcast))) for i in wrt)
         hess_diffs = []
         # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
         if include_hess:
             with CompileLock:
                 for i in range(len(wrt)):
-                    for j in range(i, len(wrt)):
-                        hess_diffs.append(grad_diffs[i].diff(wrt[j]).xreplace({zoo: oo}))
-            hess = AutowrapFunction(variables, ImmutableMatrix(hess_diffs))
+                    gdiff = sympy_graph.diff(wrt[i])
+                    hess_diffs.append([gdiff.diff(wrt[j]).xreplace({zoo: oo}).xreplace(dict(zip(variables+parameters,
+                                                                                                args_nobroadcast)))
+                                       for j in range(len(wrt))])
+            hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
         if include_grad:
-            grad = AutowrapFunction(variables, ImmutableMatrix(grad_diffs))
+            grad = AutowrapFunction(diffargs, ImmutableMatrix(grad_diffs))
 
-        # Factored out of argwrapper functions via profiling
-        triu_indices = np.triu_indices(len(wrt))
-        lenargsrange = np.arange(len(wrt), dtype=np.int)
-
-        def grad_argwrapper(*args):
-            result = grad(*args)
-            axes = tuple(range(len(result.shape)))
-            # Send 'gradient' axis back
-            result = result.transpose(axes[1:] + axes[:1])
-            return result
-
-        def hess_argwrapper(*args):
-            resarray = hess(*args)
-            result = np.zeros((len(wrt), len(wrt)) + resarray[0].shape)
-            result[triu_indices] = resarray
-            axes = tuple(range(len(result.shape)))
-            # Upper triangular is filled; also need to fill lower triangular
-            result = result + result.swapaxes(0, 1)
-            # Return diagonal to its original value since we doubled it above
-            result[lenargsrange, lenargsrange] /= 2
-            # Send 'Hessian' axes back
-            result = result.transpose(axes[2:] + axes[:2])
-            return result
         if include_grad:
-            restup.append(grad_argwrapper)
+            restup.append(grad)
         if include_hess:
-            restup.append(hess_argwrapper)
+            restup.append(hess)
     if len(restup) == 1:
         return restup[0]
     else:

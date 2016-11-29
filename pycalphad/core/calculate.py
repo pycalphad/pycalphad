@@ -6,11 +6,12 @@ property surface of a system.
 from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
-from pycalphad.core.autograd_utils import build_functions
+from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
+from pycalphad.core.phase_rec import PhaseRecord, obj_python
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -213,7 +214,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
-                          points, func, output, maximum_internal_dof, broadcast=True, fake_points=False,
+                          points, prn, output, maximum_internal_dof, broadcast=True, fake_points=False,
                           largest_energy=None):
     """
     Calculate output values for a particular phase.
@@ -230,9 +231,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         Mapping of state variables to desired values. This will broadcast if necessary.
     points : ndarray
         Inputs to 'func', except state variables. Columns should be in 'variables' order.
-    func : callable
-        Function of state variables and 'variables'.
-        See 'make_callable' docstring for details.
+    prn : PhaseRecord
+        Contains callable for energy and phase metadata.
     output : string
         Desired name of the output result in the Dataset.
     maximum_internal_dof : int
@@ -276,8 +276,9 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
     pts = points.reshape(-1, points.shape[-1]).T
-
-    phase_output = func(*itertools.chain(bc_statevars, pts))
+    dof = np.asfortranarray(np.concatenate((bc_statevars, pts), axis=0).T)
+    phase_output = np.zeros(dof.shape[0])
+    obj_python(prn, phase_output, dof)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)
@@ -338,7 +339,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     return Dataset(data_arrays, coords=coordinate_dict)
 
 @cacheit
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -376,6 +377,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     grid_points : bool, a dict of phase names to bool, or a seq of both, optional (Default: True)
         Whether to add evenly spaced points between end-members.
         The density of points is determined by 'pdens'
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
 
     Returns
     -------
@@ -393,6 +396,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
+    parameters = parameters if parameters is not None else dict()
+    if isinstance(parameters, dict):
+        parameters = OrderedDict(sorted(parameters.items(), key=str))
+    param_symbols = tuple(parameters.keys())
+    param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     if isinstance(phases, str):
         phases = [phases]
     if isinstance(comps, str):
@@ -460,7 +468,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 logger.warning('Setting undefined symbol %s for phase %s to zero',
                                undef, phase_name)
             comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                    include_obj=True, include_grad=False, include_hess=False)
+                                                    include_obj=True, include_grad=False, include_hess=False,
+                                                    parameters=param_symbols)
         else:
             comp_sets[phase_name] = callable_dict[phase_name]
 
@@ -472,8 +481,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
+        prn = PhaseRecord(list(statevar_dict.keys()) + variables, param_values, comp_sets[phase_name],
+                          None, None, None, None, None)
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
-                                         points, comp_sets[phase_name], output,
+                                         points, prn, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)
         all_phase_data.append(phase_ds)

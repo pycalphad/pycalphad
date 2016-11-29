@@ -11,7 +11,7 @@ from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.eqsolver import _solve_eq_at_conditions
+from pycalphad.core.eqsolver import _solve_eq_at_conditions, _compute_constraints
 from sympy import Add, Symbol
 import dask
 from dask import delayed
@@ -24,8 +24,9 @@ from datetime import datetime
 #def delayed(func, *fargs, **fkwargs):
 #    return func
 
-PhaseRecord = namedtuple('PhaseRecord', ['variables', 'grad', 'hess', 'plane_grad', 'plane_hess',
-                                         'mass_obj', 'mass_grad', 'mass_hess'])
+PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
+                                   ['variables', 'parameters', 'obj', 'grad', 'hess',
+                                    'mass_obj', 'mass_grad', 'mass_hess'])
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
@@ -148,7 +149,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                scheduler=dask.async.get_sync, **kwargs):
+                scheduler=dask.async.get_sync,
+                parameters=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -180,6 +182,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     scheduler : Dask scheduler, optional
         Job scheduler for performing the computation.
         If None, return a Dask graph of the computation instead of actually doing it.
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
 
     Returns
     -------
@@ -203,6 +207,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     callable_dict = kwargs.pop('callables', dict())
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
+    parameters = parameters if parameters is not None else dict()
+    if isinstance(parameters, dict):
+        parameters = OrderedDict(sorted(parameters.items(), key=str))
+    param_symbols = tuple(parameters.keys())
+    param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     maximum_internal_dof = 0
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
@@ -243,7 +252,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
-            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs)
+            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, parameters=param_symbols)
             if callable_dict.get(name, None) is None:
                 callable_dict[name] = cf
             if grad_callable_dict.get(name, None) is None:
@@ -251,23 +260,17 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if hess_callable_dict.get(name, None) is None:
                 hess_callable_dict[name] = hf
 
-        # Adjust gradient by the approximate chemical potentials
-        hyperplane = Add(*[v.MU(i)*mole_fraction(dbf.phases[name], comps, i)
-                           for i in comps if i != 'VA'])
-        mu_dof = [v.MU(i) for i in comps if i != 'VA'] + site_fracs
-        plane_obj, plane_grad, plane_hess = build_functions(hyperplane,
-                                                            mu_dof)
         molefracs = Add(*[mole_fraction(dbf.phases[name], comps, i)
                         for i in comps if i != 'VA'])
         mass_obj, mass_grad, mass_hess = build_functions(molefracs, site_fracs)
-        phase_records[name.upper()] = PhaseRecord(variables=variables,
-                                                  grad=grad_callable_dict[name],
-                                                  hess=hess_callable_dict[name],
-                                                  plane_grad=plane_grad,
-                                                  plane_hess=plane_hess,
-                                                  mass_obj=mass_obj,
-                                                  mass_grad=mass_grad,
-                                                  mass_hess=mass_hess)
+        phase_records[name.upper()] = PickleablePhaseRecord(variables=variables,
+                                                            parameters=param_values,
+                                                            obj=callable_dict[name],
+                                                            grad=grad_callable_dict[name],
+                                                            hess=hess_callable_dict[name],
+                                                            mass_obj=mass_obj,
+                                                            mass_grad=mass_grad,
+                                                            mass_hess=mass_hess)
         if verbose:
             print(name, end=' ')
     if verbose:
@@ -286,7 +289,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict['component'] = components
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, callables=callable_dict, fake_points=True, **grid_opts)
+                                          model=models, callables=callable_dict, fake_points=True,
+                                          parameters=parameters, **grid_opts)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
                                                       np.empty(grid_shape)),
@@ -327,15 +331,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         for chunk in chunk_grid:
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
-            job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice,
-                                                                    phase_records, callable_dict,
-                                                                    list(str_conds.keys()), verbose)
+            job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice, phase_records,
+                                                              list(str_conds.keys()), verbose)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
-                                                                       callable_dict, list(str_conds.keys()), verbose)
+                                                                 list(str_conds.keys()), verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]

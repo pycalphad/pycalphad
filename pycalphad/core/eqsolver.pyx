@@ -6,9 +6,11 @@ import copy
 import itertools
 import numpy as np
 cimport numpy as np
+cimport cython
 import scipy.spatial
 from pycalphad.constraints import mole_fraction
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
+from pycalphad.core.phase_rec cimport PhaseRecord, obj, grad, hess, mass_obj, mass_grad, mass_hess
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
 import pycalphad.variables as v
 
@@ -127,41 +129,35 @@ def _compute_phase_dof(dbf, comps, phases):
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
             total += len(active_in_subl)
         phase_dof.append(total)
-    return phase_dof
+    return np.array(phase_dof, dtype=np.int32)
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
 def _compute_constraints(object dbf, object comps, object phases,
                          object cur_conds, np.ndarray[dtype=np.float64_t, ndim=1] site_fracs,
-                         double[:] phase_fracs, object phase_records,
-                         l_multipliers=None, chempots=None, mole_fractions=None):
+                         np.ndarray[dtype=np.float64_t, ndim=1] phase_fracs, object phase_records, mole_fractions=None):
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
     cdef int num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
     cdef int num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
     cdef double indep_sum = sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
+    cdef double comp_obj_value
     cdef object dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
     dependent_comp = list(dependent_comp)[0]
     mole_fractions = mole_fractions if mole_fractions is not None else {}
     cdef int num_constraints = num_sitefrac_bals + num_mass_bals
     cdef int num_vars = len(site_fracs) + len(phases)
     cdef object phase_dof = _compute_phase_dof(dbf, comps, phases)
-    cdef np.ndarray[dtype=np.float64_t, ndim=1] l_constraints = np.zeros(num_constraints)
-    cdef np.ndarray[dtype=np.float64_t, ndim=1] chemical_potentials
-    cdef np.ndarray[dtype=np.float64_t, ndim=2] constraint_jac = np.zeros((num_constraints, num_vars))
-    cdef np.ndarray[dtype=np.float64_t, ndim=3] constraint_hess = np.zeros((num_constraints, num_vars, num_vars))
-    cdef np.ndarray[dtype=np.uint8_t, ndim=1] contains_vacancies = np.zeros(len(phases), dtype=np.uint8)
-    cdef np.ndarray[dtype=np.float64_t, ndim=2] comp_grad_value
-    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(num_constraints)
+    cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac = np.zeros((num_constraints, num_vars))
+    cdef np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess = np.zeros((num_constraints, num_vars, num_vars), order='F')
+    cdef np.ndarray[ndim=1, dtype=np.uint8_t] contains_vacancies = np.zeros(len(phases), dtype=np.uint8)
+    cdef np.ndarray[ndim=2, dtype=np.float64_t] comp_grad_value
+    cdef object sfview
+    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, idx
     cdef double phase_frac
     cdef bint con_vacs
-    if (l_multipliers is None) or np.any(np.isnan(l_multipliers)):
-        l_multipliers = np.zeros(num_constraints)
-        if chempots is not None:
-            l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-                          sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] = chempots
-    # Convenience object for caller so it doesn't need to know about the constraint configuration
-    chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-        sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
 
     # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
     # Ordering of constraints by column: site fractions of each phase, then phase fractions
@@ -171,23 +167,24 @@ def _compute_constraints(object dbf, object comps, object phases,
     for phase_idx, name in enumerate(phases):
         for idx in range(len(dbf.phases[name].sublattices)):
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-            if 'VA' in active_in_subl and len(active_in_subl) > 1:
+            ais_len = len(active_in_subl)
+            if 'VA' in active_in_subl and ais_len > 1:
                 contains_vacancies[phase_idx] = True
             constraint_jac[constraint_offset + idx,
-            var_idx:var_idx + len(active_in_subl)] = 1
+            var_idx:var_idx + ais_len] = 1
             # print('L_CONSTRAINTS[{}] = {}'.format(constraint_offset+idx, (sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)))
             l_constraints[constraint_offset + idx] = \
-                (sum(site_fracs[var_idx:var_idx + len(active_in_subl)]) - 1)
-            var_idx += len(active_in_subl)
+                (sum(site_fracs[var_idx:var_idx + ais_len]) - 1)
+            var_idx += ais_len
         constraint_offset += len(dbf.phases[name].sublattices)
     # Second: Mass balance of each component
     for comp in [c for c in comps if c != 'VA']:
         var_offset = 0
         phase_idx = 0
-        for iter_idx in range(len(phases)):
-            name = phases[iter_idx]
-            phase_frac = phase_fracs[iter_idx]
-            con_vacs = contains_vacancies[iter_idx]
+        for phase_idx in range(len(phases)):
+            name = phases[phase_idx]
+            phase_frac = phase_fracs[phase_idx]
+            con_vacs = contains_vacancies[phase_idx]
             if mole_fractions.get((name, comp), None) is None:
                 mole_fractions[(name, comp)] = compiled_build_functions(mole_fraction(dbf.phases[name], comps, comp),
                                                                         sorted(set(phase_records[name].variables) - {v.T, v.P},
@@ -195,33 +192,33 @@ def _compute_constraints(object dbf, object comps, object phases,
             comp_obj = mole_fractions[(name,comp)][0]
             comp_grad = mole_fractions[(name,comp)][1]
             comp_hess = mole_fractions[(name,comp)][2]
+            sfslice = slice(var_offset, var_offset + phase_dof[phase_idx])
+            spidx = len(site_fracs) + phase_idx
+            sfview = site_fracs[sfslice]
             # We use this twice, so we assign it to a variable
-            comp_grad_value = comp_grad(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
+            comp_obj_value = comp_obj([sfview])
+            comp_grad_value = comp_grad([sfview]).T
             #print('MOLE FRACTIONS', (name, comp))
             # current phase frac times the comp_grad
-            constraint_jac[constraint_offset,
-            var_offset:var_offset + phase_dof[phase_idx]] = \
-                phase_frac * comp_grad_value
+            constraint_jac[constraint_offset, sfslice] = \
+                phase_frac * comp_grad_value[0]
             #print('CONSTRAINT_JAC[{}] += {}'.format((constraint_offset, slice(var_offset,var_offset + phase_dof[phase_idx])), phase_frac * np.squeeze(comp_grad(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))))
-            constraint_jac[constraint_offset, len(site_fracs) + phase_idx] += \
-                comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
+            constraint_jac[constraint_offset, spidx] += \
+                comp_obj_value
             #print('CONSTRAINT_JAC[{}] += {}'.format((constraint_offset, len(site_fracs) + phase_idx), np.squeeze(comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))))
             # This term should only be non-zero for vacancy-containing sublattices
             # This check is to silence a warning about comp_hess() being zero
             if con_vacs:
                 constraint_hess[constraint_offset,
-                                var_offset:var_offset + phase_dof[phase_idx],
-                                var_offset:var_offset + phase_dof[phase_idx]] = \
-                    phase_frac * comp_hess(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
+                                sfslice, sfslice] = \
+                    phase_frac * comp_hess([sfview])
+            constraint_hess[constraint_offset, sfslice, spidx] = \
             constraint_hess[constraint_offset,
-            var_offset:var_offset + phase_dof[phase_idx], len(site_fracs) + phase_idx] = \
-            constraint_hess[constraint_offset,
-            len(site_fracs) + phase_idx, var_offset:var_offset + phase_dof[phase_idx]] = comp_grad_value
+            spidx, sfslice] = comp_grad_value
             l_constraints[constraint_offset] += \
-                phase_frac * comp_obj(*site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
+                phase_frac * comp_obj_value
             #print('L_CONSTRAINTS[{}] += {}'.format(constraint_offset, phase_frac * np.squeeze(comp_obj(*site_fracs[var_offset:var_offset+phase_dof[phase_idx]]))))
             var_offset += phase_dof[phase_idx]
-            phase_idx += 1
         if comp != dependent_comp:
             l_constraints[constraint_offset] -= float(cur_conds['X_' + comp])
             #print('L_CONSTRAINTS[{}] -= {}'.format(constraint_offset, float(cur_conds['X_'+comp])))
@@ -233,71 +230,99 @@ def _compute_constraints(object dbf, object comps, object phases,
         # print('L_CONSTRAINTS[{}] *= -1'.format(constraint_offset))
         constraint_offset += 1
     #print('L_CONSTRAINTS', l_constraints)
-    return np.array(l_constraints), np.array(constraint_jac), np.array(constraint_hess), \
-        np.array(l_multipliers), np.array(chemical_potentials), mole_fractions
+    return l_constraints, constraint_jac, constraint_hess
 
 
-def _build_multiphase_gradient(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
-                               l_constraints, constraint_jac, l_multipliers, callable_dict, phase_records):
-    cdef double obj_result = 0
-    var_offset = 0
-    phase_idx = 0
-    phase_dof = _compute_phase_dof(dbf, comps, phases)
-    num_vars = len(site_fracs) + len(phases)
-    gradient_term = np.zeros(num_vars, dtype=np.float)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[:] site_fracs, double[:] phase_fracs,
+                                l_constraints, constraint_jac, l_multipliers, phase_records):
+    cdef double[::1] obj_result = np.zeros(1)
+    cdef double[::1] obj_res = np.zeros(1)
+    cdef int max_phase_dof = max(phase_dof)
+    cdef double[::1] grad_res = np.zeros(2+max_phase_dof)
+    cdef double[::1] dof = np.zeros(2+max_phase_dof)
+    cdef double[::1,:] dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
+    cdef int num_vars = site_fracs.shape[0] + len(phases)
+    cdef double[::1] gradient_term = np.zeros(num_vars)
+    cdef int var_offset = 0
+    cdef int phase_idx = 0
+    cdef int cur_phase_dof, dof_x_idx
+    cdef double phase_frac
+    cdef PhaseRecord prn
+    dof[0] = cur_conds['P']
+    dof[1] = cur_conds['T']
+
     for name, phase_frac in zip(phases, phase_fracs):
-        obj = callable_dict[name]
-        grad = phase_records[name].grad
-        obj_res = obj(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                       site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
-                      )
-        obj_result += phase_frac * obj_res
-        grad_res = grad(*itertools.chain([cur_conds['P'], cur_conds['T']],
-                                         site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
-                        )
-        gradient_term[var_offset:var_offset + phase_dof[phase_idx]] = \
-            phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
-        gradient_term[len(site_fracs) + phase_idx] = obj_res
-        var_offset += phase_dof[phase_idx]
-        phase_idx += 1
-    return obj_result, gradient_term
+        prn = phase_records[name]
+        with nogil:
+            cur_phase_dof = <int>phase_dof[phase_idx]
+            dof[2:2+cur_phase_dof] = site_fracs[var_offset:var_offset + cur_phase_dof]
+            obj(prn, obj_res, dof_2d_view, 1)
+            obj_result[0] += phase_frac * obj_res[0]
+            grad(prn, grad_res, dof)
+            for dof_x_idx in range(cur_phase_dof):
+                gradient_term[var_offset + dof_x_idx] = \
+                    phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
+            gradient_term[site_fracs.shape[0] + phase_idx] = obj_res[0]
+            var_offset += cur_phase_dof
+            phase_idx += 1
+    return np.asarray(obj_result), np.asarray(gradient_term)
 
-def _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
-                             l_constraints, constraint_jac, constraint_hess, l_multipliers,
-                             callable_dict, phase_records):
-    # Now build objective Hessian and gradient terms
-    var_offset = 0
-    phase_idx = 0
-    phase_dof = _compute_phase_dof(dbf, comps, phases)
-    num_vars = len(site_fracs) + len(phases)
-    l_hessian = np.zeros((num_vars, num_vars), dtype=np.float)
-    gradient_term = np.zeros(num_vars, dtype=np.float)
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[:] site_fracs, double[:] phase_fracs,
+                              l_constraints, constraint_jac,
+                              np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
+                              np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers,
+                              phase_records):
+    cdef double[::1] obj_res = np.empty(1)
+    cdef int max_phase_dof = max(phase_dof)
+    cdef double[::1] grad_res = np.empty(2+max_phase_dof)
+    cdef double[::1,:] tmp_hess = np.empty((2+max_phase_dof, 2+max_phase_dof), order='F')
+    cdef double* tmp_hess_ptr = &tmp_hess[0,0]
+    cdef double[::1] dof = np.empty(2+max_phase_dof)
+    cdef double[::1,:] dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
+    cdef int num_vars = len(site_fracs) + len(phases)
+    cdef double[::1,:] l_hessian = np.zeros((num_vars, num_vars), order='F')
+    cdef double[::1] gradient_term = np.zeros(num_vars)
+    cdef int var_offset = 0
+    cdef int phase_idx = 0
+    cdef int cur_phase_dof, constraint_idx, dof_x_idx, dof_y_idx, hess_x, hess_y, hess_idx
+    cdef double phase_frac
+    cdef PhaseRecord prn
+    dof[0] = cur_conds['P']
+    dof[1] = cur_conds['T']
+
     for name, phase_frac in zip(phases, phase_fracs):
-        obj = callable_dict[name]
-        hess = phase_records[name].hess
-        grad = phase_records[name].grad
-        dof = tuple(itertools.chain([np.array(cur_conds['P'], dtype=np.float), np.array(cur_conds['T'], dtype=np.float)],
-                                    site_fracs[var_offset:var_offset + phase_dof[phase_idx]]))
-        obj_res = obj(*dof)
-        grad_res = grad(*dof)
-        gradient_term[var_offset:var_offset + phase_dof[phase_idx]] = \
-            phase_frac * np.squeeze(grad_res)[2:]  # Remove P,T grad part
-        gradient_term[len(site_fracs) + phase_idx] = obj_res
-        hess_slice = np.index_exp[var_offset:var_offset + phase_dof[phase_idx], var_offset:var_offset + phase_dof[phase_idx]]
-        l_hessian[hess_slice] = \
-            phase_frac * np.squeeze(hess(*dof)
-                                    )[2:, 2:]  # Remove P,T hessian part
-        # Phase fraction / site fraction cross derivative
-        l_hessian[len(site_fracs) + phase_idx, var_offset:var_offset + phase_dof[phase_idx]] = \
-            l_hessian[var_offset:var_offset + phase_dof[phase_idx], len(site_fracs) + phase_idx] = \
-            np.squeeze(grad_res)[2:] # Remove P,T grad part
-        var_offset += phase_dof[phase_idx]
-        phase_idx += 1
-    # Constraint contribution to the Hessian (some constraints like mass balance are nonlinear)
-    l_hessian -= np.multiply(l_multipliers[:, np.newaxis, np.newaxis], constraint_hess).sum(axis=0)
-    return l_hessian, gradient_term
+        prn = phase_records[name]
+        with nogil:
+            cur_phase_dof = <int>phase_dof[phase_idx]
+            dof[2:2+cur_phase_dof] = site_fracs[var_offset:var_offset + cur_phase_dof]
+            obj(prn, obj_res, dof_2d_view, 1)
+            grad(prn, grad_res, dof)
+            hess(prn, tmp_hess, dof)
+            for dof_x_idx in range(cur_phase_dof):
+                gradient_term[var_offset + dof_x_idx] = \
+                    phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
+            gradient_term[site_fracs.shape[0] + phase_idx] = obj_res[0]
 
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict, conds_keys, verbose):
+            for dof_x_idx in range(cur_phase_dof):
+                for dof_y_idx in range(dof_x_idx,cur_phase_dof):
+                    l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx] = \
+                      phase_frac * tmp_hess_ptr[2+dof_x_idx + (2+cur_phase_dof)*(2+dof_y_idx)]
+                    l_hessian[var_offset+dof_y_idx, var_offset+dof_x_idx] = \
+                      l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx]
+                # Phase fraction / site fraction cross derivative
+                l_hessian[site_fracs.shape[0] + phase_idx, var_offset + dof_x_idx] = \
+                     grad_res[2+dof_x_idx] # Remove P,T grad part
+                l_hessian[var_offset + dof_x_idx, site_fracs.shape[0] + phase_idx] = grad_res[2+dof_x_idx]
+            var_offset += cur_phase_dof
+            phase_idx += 1
+    l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
+    return np.asarray(l_hessian), np.asarray(gradient_term)
+
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, verbose):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -314,8 +339,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
         Will be modified! Thermodynamic properties and conditions.
     phase_records : dict of PhaseRecord
         Details on phase callables.
-    callable_dict : dict of callable
-        Objective functions for each phase.
     conds_keys : list of str
         List of conditions axes in dimension order.
     verbose : bool
@@ -326,6 +349,19 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     properties : Dataset
         Modified with equilibrium values.
     """
+    cdef:
+        double indep_sum
+        int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
+        cdef int[:] phase_dof
+        cdef double[::1,:] l_hessian
+        cdef double[::1] gradient_term
+        np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step
+        np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, candidate_site_fracs, l_multipliers, new_l_multipliers, candidate_phase_fracs, phase_fracs
+        np.ndarray[ndim=2, dtype=np.float64_t] ymat, zmat, qmat, rmat, constraint_jac
+    for key, value in phase_records.items():
+        if not isinstance(phase_records[key], PhaseRecord):
+            phase_records[key] = PhaseRecord(value.variables, value.parameters, value.obj, value.grad,
+                                             value.hess, value.mass_obj, value.mass_grad, value.mass_hess)
     # Factored out via profiling
     prop_MU_values = properties['MU'].values
     prop_NP_values = properties['NP'].values
@@ -333,7 +369,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     prop_X_values = properties['X'].values
     prop_Y_values = properties['Y'].values
     prop_GM_values = properties['GM'].values
-
+    phase_dof_dict = {name: len(set(phase_records[name].variables) - {v.T, v.P})
+                      for name in phase_records.keys()}
     it = np.nditer(prop_GM_values, flags=['multi_index'])
 
     #if verbose:
@@ -347,7 +384,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         cur_conds = OrderedDict(zip(conds_keys,
-                                    [properties['GM'].coords[b][a] for a, b in zip(it.multi_index, conds_keys)]))
+                                    [np.asarray(properties['GM'].coords[b][a], dtype=np.float)
+                                     for a, b in zip(it.multi_index, conds_keys)]))
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
         # sum of independently specified components
@@ -405,7 +443,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             # num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
             # num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             phase_fracs = prop_NP_values[it.multi_index + np.index_exp[:len(phases)]]
-            phase_dof = [len(set(phase_records[name].variables) - {v.T, v.P}) for name in phases]
+            phase_dof = np.array([phase_dof_dict[name] for name in phases], dtype=np.int32)
             # Flatten site fractions array and remove nan padding
             site_fracs = prop_Y_values[it.multi_index].ravel()
             # That *should* give us the internal dof
@@ -420,19 +458,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             for name in phases:
                 for idx in range(len(dbf.phases[name].sublattices)):
                     active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-                    site_fracs[var_idx:var_idx + len(active_in_subl)] /= \
-                        np.sum(site_fracs[var_idx:var_idx + len(active_in_subl)], keepdims=True)
+                    for ais in range(len(active_in_subl)):
+                        site_fracs[var_idx + ais] = site_fracs[var_idx + ais] / sum(site_fracs[var_idx:var_idx + len(active_in_subl)])
                     var_idx += len(active_in_subl)
+            l_constraints, constraint_jac, constraint_hess  = \
+                _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records, mole_fractions=mole_fractions)
             # Reset Lagrange multipliers if active set of phases change
-            if cur_iter == 0 or (old_phase_length != new_phase_length):
-                l_multipliers = None
-
-            l_constraints, constraint_jac, constraint_hess, l_multipliers, old_chem_pots, mole_fraction_funcs = \
-                _compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records,
-                                     l_multipliers=l_multipliers,
-                                     chempots=prop_MU_values[it.multi_index], mole_fractions=mole_fractions)
-            if np.any(np.isnan(l_multipliers)):
-                raise ValueError('Invalid l_multipliers after constraints')
+            if cur_iter == 0 or (old_phase_length != new_phase_length) or np.any(np.isnan(l_multipliers)):
+                l_multipliers = np.zeros(l_constraints.shape[0])
             qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
             m = rmat.shape[1]
             n = qmat.shape[0]
@@ -440,11 +473,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
             ymat = qmat[:, :m]
             zmat = qmat[:, m:]
             # Equation 18.14a in Nocedal and Wright
-            p_y = np.linalg.solve(np.dot(constraint_jac, ymat), -l_constraints)
+            p_y = np.linalg.solve(-np.dot(constraint_jac, ymat), l_constraints)
             num_vars = len(site_fracs) + len(phases)
-            l_hessian, gradient_term = _build_multiphase_system(dbf, comps, phases, cur_conds, site_fracs, phase_fracs,
+            l_hessian, gradient_term = _build_multiphase_system(phase_dof, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, constraint_hess,
-                                                                l_multipliers, callable_dict, phase_records)
+                                                                l_multipliers, phase_records)
             if np.any(np.isnan(l_hessian)):
                 print('Invalid l_hessian')
                 l_hessian[:,:] = np.eye(l_hessian.shape[0])
@@ -458,53 +491,42 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                     p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
                                           -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
                 except np.linalg.LinAlgError:
-                    p_z = np.zeros(zmat.shape[-1], dtype=np.float)
+                    p_z = np.zeros(zmat.shape[1], dtype=np.float)
+                step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
             else:
-                zmat = np.array(0)
-                p_z = 0
-            if np.any(np.isnan(p_y)):
-                raise ValueError('Invalid p_y')
-            if np.any(np.isnan(p_z)):
-                raise ValueError('Invalid p_z')
-            if np.any(np.isnan(ymat)):
-                raise ValueError('Invalid ymat')
-            if np.any(np.isnan(zmat)):
-                raise ValueError('Invalid zmat')
-            step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
-            if np.any(np.isnan(step)):
-                raise ValueError('Invalid step')
+                step = np.dot(ymat, p_y)
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
-            candidate_site_fracs = site_fracs + step[:len(site_fracs)]
-            candidate_site_fracs[candidate_site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
-            candidate_site_fracs[candidate_site_fracs > 1] = 1
-            candidate_phase_fracs = phase_fracs + \
-                                    step[len(candidate_site_fracs):len(candidate_site_fracs) + len(phases)]
-            candidate_phase_fracs[candidate_phase_fracs < MIN_SITE_FRACTION] = 0
-            candidate_phase_fracs[candidate_phase_fracs > 1] = 1
-            (candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess,
-             candidate_l_multipliers, candidate_chem_pots, mole_fraction_funcs) = \
+            candidate_site_fracs = np.empty_like(site_fracs)
+            candidate_phase_fracs = np.empty_like(phase_fracs)
+            for sfidx in range(candidate_site_fracs.shape[0]):
+                candidate_site_fracs[sfidx] = min(max(site_fracs[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1)
+
+            for pfidx in range(candidate_phase_fracs.shape[0]):
+                candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
+            candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess = \
                 _compute_constraints(dbf, comps, phases, cur_conds,
-                                     candidate_site_fracs, candidate_phase_fracs, phase_records,
-                                     l_multipliers=l_multipliers, mole_fractions=mole_fractions)
+                                     candidate_site_fracs, candidate_phase_fracs, phase_records, mole_fractions=mole_fractions)
             candidate_energy, candidate_gradient_term = \
-                _build_multiphase_gradient(dbf, comps, phases, cur_conds, candidate_site_fracs,
+                _build_multiphase_gradient(phase_dof, phases, cur_conds, candidate_site_fracs,
                                            candidate_phase_fracs, candidate_l_constraints,
-                                           candidate_constraint_jac, candidate_l_multipliers,
-                                           callable_dict, phase_records)
+                                           candidate_constraint_jac, l_multipliers,
+                                           phase_records)
             # We updated degrees of freedom this iteration
             new_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
                                                 np.dot(ymat.T, gradient_term + np.dot(l_hessian, step)))
             np.clip(new_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
                     out=new_l_multipliers)
             # XXX: Should fix underlying numerical problem at edges of composition space instead of working around
-            if np.any(np.abs(new_l_multipliers) > MAX_ABS_LAGRANGE_MULTIPLIER):
+            if np.any(np.isnan(new_l_multipliers)):
                 print('WARNING: Unstable Lagrange multipliers: ', new_l_multipliers)
                 # Equation 18.16 in Nocedal and Wright
                 # This method is less accurate but more stable
                 new_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
                                                                        candidate_constraint_jac.T)),
                                            candidate_constraint_jac), candidate_gradient_term)
+                np.clip(new_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
+                    out=new_l_multipliers)
             l_multipliers = new_l_multipliers
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
@@ -524,8 +546,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, callable_dict
                     candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
                 for comp_idx, comp in enumerate([c for c in comps if c != 'VA']):
                     prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = \
-                        mole_fraction_funcs[(phases[phase_idx], comp)][0](
-                            *candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]])
+                        mole_fractions[(phases[phase_idx], comp)][0](
+                            [candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]])
                 var_offset += phase_dof[phase_idx]
 
             properties.attrs['solve_iterations'] += 1
