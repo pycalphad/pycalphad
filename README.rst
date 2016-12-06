@@ -74,6 +74,17 @@ Documentation
 -------------
 See the documentation on `pycalphad.org`_.
 
+Getting Help
+------------
+
+Questions about installing and using pycalphad can be addressed in the `pycalphad Google Group`_.
+Technical issues and bugs should be reported on on `GitHub`_.
+A public chat channel is available on `Gitter`_.
+
+.. _Gitter: https://gitter.im/pycalphad/pycalphad
+.. _GitHub: https://github.com/pycalphad/pycalphad
+.. _pycalphad Google Group: https://groups.google.com/d/forum/pycalphad
+
 Acknowledgements
 ----------------
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
