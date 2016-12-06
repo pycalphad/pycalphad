@@ -34,6 +34,7 @@ requirements:
     - distributed
     - numpy >=1.9
     - dill
+    - Cython >=0.24
 
   run:
     - python
