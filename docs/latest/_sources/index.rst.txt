@@ -23,10 +23,8 @@ pycalphad is a Python library for computational thermodynamics using the CALPHAD
 
 The latest development version of the source code can be found on `GitHub`_.
 The newest stable version can be found on `PyPI`_.
-A public chat channel is available on `Gitter`_.
 
-.. _Gitter: https://gitter.im/richardotis/pycalphad
-.. _GitHub: https://github.com/richardotis/pycalphad
+.. _GitHub: https://github.com/pycalphad/pycalphad
 .. _PyPI: https://pypi.python.org/pypi/pycalphad
 
 .. toctree::
@@ -36,6 +34,16 @@ A public chat channel is available on `Gitter`_.
    examples/index
    api/modules
    CHANGES
+
+Getting Help
+============
+
+Questions about installing and using pycalphad can be addressed in the `pycalphad Google Group`_.
+Technical issues and bugs should be reported on on `GitHub`_.
+A public chat channel is available on `Gitter`_.
+
+.. _Gitter: https://gitter.im/pycalphad/pycalphad
+.. _pycalphad Google Group: https://groups.google.com/d/forum/pycalphad
 
 Acknowledgements
 ================

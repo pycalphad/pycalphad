@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0+untagged.g360dbbd documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0+untagged.g3ac5aa8 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g360dbbd documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g3ac5aa8 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.plot package" href="pycalphad.plot.html"/>
         <link rel="prev" title="pycalphad.core package" href="pycalphad.core.html"/> 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0+untagged.g360dbbd
+                0+untagged.g3ac5aa8
               </div>
             
           
@@ -151,7 +151,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/api/pycalphad.io.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/pycalphad.io.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -215,8 +215,8 @@ associated with structured thermodynamic/kinetic data.</p>
 <li><strong>constituent_array</strong> (<em>list</em>) &#8211; Configuration of the sublattices (elements and/or species).</li>
 <li><strong>param_order</strong> (<em>int</em>) &#8211; Polynomial order of the parameter.</li>
 <li><strong>param</strong> (<em>object</em>) &#8211; Abstract representation of the parameter, e.g., in SymPy format.</li>
-<li><strong>ref</strong> (<em>str, optional</em>) &#8211; Reference for the parameter.</li>
-<li><strong>diffusing_species</strong> (<em>str, optional</em>) &#8211; (If kinetic parameter) Diffusing species for this parameter.</li>
+<li><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; Reference for the parameter.</li>
+<li><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; (If kinetic parameter) Diffusing species for this parameter.</li>
 </ul>
 </td>
 </tr>
@@ -299,8 +299,8 @@ similar phases known by different colloquial names.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>fname</strong> (<em>str or file-like</em>) &#8211; File name/descriptor to read.</li>
-<li><strong>fmt</strong> (<em>str, optional</em>) &#8211; File format. If not specified, an attempt at auto-detection is made.</li>
+<li><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) &#8211; File name/descriptor to read.</li>
+<li><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; File format. If not specified, an attempt at auto-detection is made.</li>
 </ul>
 </td>
 </tr>
@@ -351,8 +351,8 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>fmt</strong> (<em>str</em>) &#8211; Format.</li>
-<li><strong>read</strong> (<em>callable, optional</em>) &#8211; Read function with arguments (Database, file_descriptor)</li>
-<li><strong>write</strong> (<em>callable, optional</em>) &#8211; Write function with arguments (Database, file_descriptor)</li>
+<li><strong>read</strong> (<em>callable</em><em>, </em><em>optional</em>) &#8211; Read function with arguments (Database, file_descriptor)</li>
+<li><strong>write</strong> (<em>callable</em><em>, </em><em>optional</em>) &#8211; Write function with arguments (Database, file_descriptor)</li>
 </ul>
 </td>
 </tr>
@@ -390,9 +390,9 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fname</strong> (<em>str or file-like</em>) &#8211; File name/descriptor to write.</li>
-<li><strong>fmt</strong> (<em>str, optional</em>) &#8211; File format. If not specified, an attempt at auto-detection is made.</li>
-<li><strong>if_exists</strong> (<em>string, optional ['raise', 'rename', 'overwrite']</em>) &#8211; Strategy if &#8216;fname&#8217; already exists.
+<li><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) &#8211; File name/descriptor to write.</li>
+<li><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) &#8211; File format. If not specified, an attempt at auto-detection is made.</li>
+<li><strong>if_exists</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'rename'</em><em>, </em><em>'overwrite'</em><em>]</em><em></em>) &#8211; Strategy if &#8216;fname&#8217; already exists.
 The &#8216;raise&#8217; option (default) will raise a FileExistsError.
 The &#8216;rename&#8217; option will append the date/time to the filename.
 The &#8216;overwrite&#8217; option will overwrite the file.
@@ -535,7 +535,7 @@ Thermo-Calc TDB format.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>text</strong> (<em>str</em>) &#8211; </li>
-<li><strong>linewidth</strong> (<em>int, optional</em>) &#8211; </li>
+<li><strong>linewidth</strong> (<em>int</em><em>, </em><em>optional</em>) &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -565,7 +565,7 @@ Thermo-Calc TDB format.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; A pycalphad Database.</li>
 <li><strong>fd</strong> (<em>file-like</em>) &#8211; File descriptor.</li>
-<li><strong>groupby</strong> (<em>['subsystem', 'phase'], optional</em>) &#8211; Desired grouping of parameters in the file.</li>
+<li><strong>groupby</strong> (<em></em><em>[</em><em>'subsystem'</em><em>, </em><em>'phase'</em><em>]</em><em></em><em>, </em><em>optional</em>) &#8211; Desired grouping of parameters in the file.</li>
 </ul>
 </td>
 </tr>
@@ -651,7 +651,7 @@ Note that not all of these keywords are fully supported yet.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.g360dbbd',
+            VERSION:'0+untagged.g3ac5aa8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

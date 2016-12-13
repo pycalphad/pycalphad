@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.g360dbbd documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.g3ac5aa8 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g360dbbd documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g3ac5aa8 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0+untagged.g360dbbd
+                0+untagged.g3ac5aa8
               </div>
             
           
@@ -151,7 +151,7 @@
       <li class="wy-breadcrumbs-aside">
         
           
-            <a href="../_sources/api/pycalphad.core.txt" rel="nofollow"> View page source</a>
+            <a href="../_sources/api/pycalphad.core.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
@@ -197,22 +197,22 @@ state variables (T, P, etc.) can be specified as keyword arguments.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>str or sequence</em>) &#8211; Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>str or sequence</em>) &#8211; Names of phases to consider in the calculation.</li>
-<li><strong>mode</strong> (<em>string, optional</em>) &#8211; See &#8216;make_callable&#8217; docstring for details.</li>
-<li><strong>output</strong> (<em>string, optional</em>) &#8211; Model attribute to sample.</li>
-<li><strong>fake_points</strong> (<em>bool, optional (Default: False)</em>) &#8211; If True, the first few points of the output surface will be fictitious
+<li><strong>comps</strong> (<em>str</em><em> or </em><em>sequence</em>) &#8211; Names of components to consider in the calculation.</li>
+<li><strong>phases</strong> (<em>str</em><em> or </em><em>sequence</em>) &#8211; Names of phases to consider in the calculation.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; See &#8216;make_callable&#8217; docstring for details.</li>
+<li><strong>output</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; Model attribute to sample.</li>
+<li><strong>fake_points</strong> (<em>bool</em><em>, </em><em>optional</em><em> (</em><em>Default: False</em><em>)</em><em></em>) &#8211; If True, the first few points of the output surface will be fictitious
 points used to define an equilibrium hyperplane guaranteed to be above
 all the other points. This is used for convex hull computations.</li>
-<li><strong>broadcast</strong> (<em>bool, optional</em>) &#8211; If True, broadcast given state variable lists against each other to create a grid.
+<li><strong>broadcast</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; If True, broadcast given state variable lists against each other to create a grid.
 If False, assume state variables are given as equal-length lists.</li>
-<li><strong>points</strong> (<em>ndarray or a dict of phase names to ndarray, optional</em>) &#8211; Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
+<li><strong>points</strong> (<em>ndarray</em><em> or </em><em>a dict of phase names to ndarray</em><em>, </em><em>optional</em>) &#8211; Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
 If this is not specified, points will be generated automatically.</li>
-<li><strong>pdens</strong> (<em>int, a dict of phase names to int, or a seq of both, optional</em>) &#8211; Number of points to sample per degree of freedom.</li>
-<li><strong>model</strong> (<em>Model, a dict of phase names to Model, or a seq of both, optional</em>) &#8211; Model class to use for each phase.</li>
-<li><strong>sampler</strong> (<em>callable, a dict of phase names to callable, or a seq of both, optional</em>) &#8211; Function to sample phase constitution space.
+<li><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Number of points to sample per degree of freedom.</li>
+<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Model class to use for each phase.</li>
+<li><strong>sampler</strong> (<em>callable</em><em>, </em><em>a dict of phase names to callable</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Function to sample phase constitution space.
 Must have same signature as &#8216;pycalphad.core.utils.point_sample&#8217;</li>
-<li><strong>grid_points</strong> (<em>bool, a dict of phase names to bool, or a seq of both, optional (Default: True)</em>) &#8211; Whether to add evenly spaced points between end-members.
+<li><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em><em></em>) &#8211; Whether to add evenly spaced points between end-members.
 The density of points is determined by &#8216;pdens&#8217;</li>
 </ul>
 </td>
@@ -399,18 +399,18 @@ components and phases, under the specified conditions.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Thermodynamic database containing the relevant parameters.</li>
 <li><strong>comps</strong> (<em>list</em>) &#8211; Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>list or dict</em>) &#8211; Names of phases to consider in the calculation.</li>
-<li><strong>conditions</strong> (<em>dict or (list of dict)</em>) &#8211; StateVariables and their corresponding value.</li>
-<li><strong>output</strong> (<em>str or list of str, optional</em>) &#8211; Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
+<li><strong>phases</strong> (<em>list</em><em> or </em><em>dict</em>) &#8211; Names of phases to consider in the calculation.</li>
+<li><strong>conditions</strong> (<em>dict</em><em> or </em><em></em><em>(</em><em>list of dict</em><em>)</em><em></em>) &#8211; StateVariables and their corresponding value.</li>
+<li><strong>output</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em>) &#8211; Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
 These must be defined as attributes in the Model class of each phase.</li>
-<li><strong>model</strong> (<em>Model, a dict of phase names to Model, or a seq of both, optional</em>) &#8211; Model class to use for each phase.</li>
-<li><strong>verbose</strong> (<em>bool, optional</em>) &#8211; Print details of calculations. Useful for debugging.</li>
+<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Model class to use for each phase.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; Print details of calculations. Useful for debugging.</li>
 <li><strong>broadcast</strong> (<em>bool</em>) &#8211; If True, broadcast conditions against each other. This will compute all combinations.
 If False, each condition should be an equal-length list (or single-valued).
 Disabling broadcasting is useful for calculating equilibrium at selected conditions,
 when those conditions don&#8217;t comprise a grid.</li>
-<li><strong>calc_opts</strong> (<em>dict, optional</em>) &#8211; Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
-<li><strong>scheduler</strong> (<em>Dask scheduler, optional</em>) &#8211; Job scheduler for performing the computation.
+<li><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) &#8211; Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
+<li><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) &#8211; Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</li>
 </ul>
 </td>
@@ -443,8 +443,8 @@ scrambled Halton sequences.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>dim</strong> (<em>int</em>) &#8211; Number of dimensions in the sequence.</li>
 <li><strong>nbpts</strong> (<em>int</em>) &#8211; Number of points along each dimension.</li>
-<li><strong>primes</strong> (<em>sequence, optional</em>) &#8211; A sequence of at least &#8216;dim&#8217; prime numbers.</li>
-<li><strong>scramble</strong> (<em>boolean, optional (default: True)</em>) &#8211; </li>
+<li><strong>primes</strong> (<em>sequence</em><em>, </em><em>optional</em>) &#8211; A sequence of at least &#8216;dim&#8217; prime numbers.</li>
+<li><strong>scramble</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em><em></em>) &#8211; </li>
 </ul>
 </td>
 </tr>
@@ -560,7 +560,7 @@ Return a matrix corresponding to the compositions of all endmembers.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dof</strong> (<em>list of int</em>) &#8211; Number of components in each sublattice.</li>
-<li><strong>list of int, optional</strong> (<em>vacancy_indices,</em>) &#8211; If vacancies are present in every sublattice, specify their indices
+<li><strong>list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em><em></em>) &#8211; If vacancies are present in every sublattice, specify their indices
 in each sublattice to ensure the &#8220;pure vacancy&#8221; endmember is excluded.</li>
 </ul>
 </td>
@@ -588,9 +588,9 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>SymPy object</strong> (<em>model,</em>) &#8211; Abstract representation of function</li>
-<li><strong>list</strong> (<em>variables,</em>) &#8211; Input variables, ordered in the way the return function will expect</li>
-<li><strong>['numpy', 'numba', 'sympy'], optional</strong> (<em>mode,</em>) &#8211; Method to use when &#8216;compiling&#8217; the function. SymPy mode is
+<li><strong>SymPy object</strong> (<a class="reference internal" href="pycalphad.html#module-pycalphad.model" title="pycalphad.model"><em>model</em></a><em>,</em><em></em>) &#8211; Abstract representation of function</li>
+<li><strong>list</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model.variables" title="pycalphad.model.Model.variables"><em>variables</em></a><em>,</em><em></em>) &#8211; Input variables, ordered in the way the return function will expect</li>
+<li><strong></strong><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong></strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em><em></em>) &#8211; Method to use when &#8216;compiling&#8217; the function. SymPy mode is
 slow and should only be used for debugging. If Numba is installed,
 it can offer speed-ups when calling the energy function many
 times on multi-core CPUs.</li>
@@ -679,7 +679,7 @@ there, then the constant value is used.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>kwarg_obj</strong> (<em>dict, iterable, or None</em>) &#8211; Argument to unpack into a defaultdict</li>
+<li><strong>kwarg_obj</strong> (<em>dict</em><em>, </em><em>iterable</em><em>, or </em><em>None</em>) &#8211; Argument to unpack into a defaultdict</li>
 <li><strong>default_arg</strong> (<em>object</em>) &#8211; Default value to use if iterable isn&#8217;t specified</li>
 </ul>
 </td>
@@ -757,7 +757,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.g360dbbd',
+            VERSION:'0+untagged.g3ac5aa8',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
