@@ -48,6 +48,7 @@ env/
 .asv/html
 .asv/env
 *.c
+*.h
 *.so
 *.sublime-project
 *.sublime-workspace
