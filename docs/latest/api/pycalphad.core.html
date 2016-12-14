@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.g3ac5aa8 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.g2a7ce13 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g3ac5aa8 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g2a7ce13 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0+untagged.g3ac5aa8
+                0+untagged.g2a7ce13
               </div>
             
           
@@ -187,7 +187,7 @@
 property surface of a system.</p>
 <dl class="function">
 <dt id="pycalphad.core.calculate.calculate">
-<code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the property surface of &#8216;output&#8217; containing the specified
 components and phases. Model parameters are taken from &#8216;dbf&#8217; and any
 state variables (T, P, etc.) can be specified as keyword arguments.</p>
@@ -214,6 +214,7 @@ If this is not specified, points will be generated automatically.</li>
 Must have same signature as &#8216;pycalphad.core.utils.point_sample&#8217;</li>
 <li><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em><em></em>) &#8211; Whether to add evenly spaced points between end-members.
 The density of points is determined by &#8216;pdens&#8217;</li>
+<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) &#8211; Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
 </ul>
 </td>
 </tr>
@@ -334,54 +335,54 @@ calculated phase equilibria.</p>
 </dd></dl>
 
 <dl class="class">
-<dt id="pycalphad.core.equilibrium.PhaseRecord">
-<em class="property">class </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">PhaseRecord</code><span class="sig-paren">(</span><em>variables</em>, <em>grad</em>, <em>hess</em>, <em>plane_grad</em>, <em>plane_hess</em>, <em>mass_obj</em>, <em>mass_grad</em>, <em>mass_hess</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord">
+<em class="property">class </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">PickleablePhaseRecord</code><span class="sig-paren">(</span><em>variables</em>, <em>parameters</em>, <em>obj</em>, <em>grad</em>, <em>hess</em>, <em>mass_obj</em>, <em>mass_grad</em>, <em>mass_hess</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
 <dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.grad">
-<code class="descname">grad</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.grad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.hess">
-<code class="descname">hess</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.hess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.mass_grad">
-<code class="descname">mass_grad</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.mass_grad" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 6</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.mass_hess">
-<code class="descname">mass_hess</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.mass_hess" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 7</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.mass_obj">
-<code class="descname">mass_obj</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.mass_obj" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.plane_grad">
-<code class="descname">plane_grad</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.plane_grad" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.grad">
+<code class="descname">grad</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.grad" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.plane_hess">
-<code class="descname">plane_hess</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.plane_hess" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.hess">
+<code class="descname">hess</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.hess" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.equilibrium.PhaseRecord.variables">
-<code class="descname">variables</code><a class="headerlink" href="#pycalphad.core.equilibrium.PhaseRecord.variables" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.mass_grad">
+<code class="descname">mass_grad</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.mass_grad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.mass_hess">
+<code class="descname">mass_hess</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.mass_hess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 7</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.mass_obj">
+<code class="descname">mass_obj</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.mass_obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.obj">
+<code class="descname">obj</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.obj" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.equilibrium.PickleablePhaseRecord.variables">
+<code class="descname">variables</code><a class="headerlink" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.variables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
@@ -389,7 +390,7 @@ calculated phase equilibria.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -412,6 +413,7 @@ when those conditions don&#8217;t comprise a grid.</li>
 <li><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) &#8211; Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
 <li><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) &#8211; Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</li>
+<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) &#8211; Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
 </ul>
 </td>
 </tr>
@@ -589,7 +591,7 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>SymPy object</strong> (<a class="reference internal" href="pycalphad.html#module-pycalphad.model" title="pycalphad.model"><em>model</em></a><em>,</em><em></em>) &#8211; Abstract representation of function</li>
-<li><strong>list</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model.variables" title="pycalphad.model.Model.variables"><em>variables</em></a><em>,</em><em></em>) &#8211; Input variables, ordered in the way the return function will expect</li>
+<li><strong>list</strong> (<a class="reference internal" href="#pycalphad.core.equilibrium.PickleablePhaseRecord.variables" title="pycalphad.core.equilibrium.PickleablePhaseRecord.variables"><em>variables</em></a><em>,</em><em></em>) &#8211; Input variables, ordered in the way the return function will expect</li>
 <li><strong></strong><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong></strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em><em></em>) &#8211; Method to use when &#8216;compiling&#8217; the function. SymPy mode is
 slow and should only be used for debugging. If Numba is installed,
 it can offer speed-ups when calling the energy function many
@@ -757,7 +759,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.g3ac5aa8',
+            VERSION:'0+untagged.g2a7ce13',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

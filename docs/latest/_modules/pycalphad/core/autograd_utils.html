@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0+untagged.g3ac5aa8 documentation</title>
+  <title>pycalphad.core.autograd_utils &mdash; pycalphad 0+untagged.g2a7ce13 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g3ac5aa8 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g2a7ce13 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0+untagged.g3ac5aa8
+                0+untagged.g2a7ce13
               </div>
             
           
@@ -189,7 +189,7 @@
 
     <span class="n">restup</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
-        <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+        <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="k">lambda</span> <span class="n">xargs</span><span class="p">:</span> <span class="n">obj</span><span class="p">(</span><span class="o">*</span><span class="p">(</span><span class="n">xargs</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span>
     <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
         <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grad_func</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
@@ -232,7 +232,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.g3ac5aa8',
+            VERSION:'0+untagged.g2a7ce13',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
