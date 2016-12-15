@@ -480,7 +480,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                                                                 l_multipliers, phase_records)
             if np.any(np.isnan(l_hessian)):
                 print('Invalid l_hessian')
-                l_hessian[:,:] = np.eye(l_hessian.shape[0])
+                l_hessian = np.asfortranarray(np.eye(l_hessian.shape[0]))
             if np.any(np.isnan(gradient_term)):
                 raise ValueError('Invalid gradient_term')
             # Equation 18.18 in Nocedal and Wright
