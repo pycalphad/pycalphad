@@ -8,13 +8,14 @@ from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
-from pycalphad.tests.datasets import ALNIPT_TDB, ALCOCRNI_TDB, ROSE_TDB, ALFE_TDB, ALNIFCC4SL_TDB, ISSUE43_TDB
+from pycalphad.tests.datasets import *
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
 ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 ISSUE43_DBF = Database(ISSUE43_TDB)
+TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
 
 # ROSE DIAGRAM TEST
 def test_rose_nine():
@@ -225,3 +226,12 @@ def test_eq_issue43_chempots_tricky_potentials():
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-12.78777939,  -4.42862046,  -8.77499585]]]]])
     assert_allclose(eq.GM.values, -70567.7329)
     assert_allclose(eq.MU.values, chempots, atol=1)
+
+def test_eq_stepsize_reduction():
+    """
+    Step size reduction required for convergence.
+    """
+    dbf = TOUGH_CHEMPOT_DBF
+    eq = equilibrium(dbf, ['AL', 'NI', 'VA'], list(dbf.phases.keys()),
+                     {v.P: 101325, v.T: 780, v.X('NI'): 0.625}, verbose=True)
+    assert not np.isnan(np.squeeze(eq.GM.values))

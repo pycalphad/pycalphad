@@ -410,6 +410,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         # chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
         # Used to cache generated mole fraction functions
         mole_fractions = {}
+        alpha = 1
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
             phases = list(prop_Phase_values[it.multi_index])
@@ -495,6 +496,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
             else:
                 step = np.dot(ymat, p_y)
+            # Several iterations in, driving force is nearly converged, but not chemical potentials
+            # Decrease step size to try to force convergence
+            if (cur_iter > 0) and (cur_iter % 10 == 0) and (np.abs(driving_force) < 100*MAX_SOLVE_DRIVING_FORCE) and \
+              (np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() > 0.01):
+                if verbose:
+                    print('Decreasing step size')
+                alpha *= 0.1
+            step *= alpha
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             candidate_site_fracs = np.empty_like(site_fracs)
