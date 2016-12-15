@@ -58,9 +58,9 @@ class PickleableFunction(object):
     def __hash__(self):
         return hash((self._sympyobj, self._sympyvars, self._workdir, self._routine_name, self._module_name))
 
-    def __call__(self, *args, **kwargs):
+    def __call__(self, inp, *args, **kwargs):
         # XXX: Hardcode until code rewrite is finished
-        return self.kernel(*args, 0, **kwargs)
+        return self.kernel(inp, 0, *args, **kwargs)
 
     def __getstate__(self):
         # Explicitly drop the compiled function when pickling
