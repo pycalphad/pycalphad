@@ -17,11 +17,12 @@ import pycalphad.variables as v
 # Maximum residual driving force (J/mol-atom) allowed for convergence
 MAX_SOLVE_DRIVING_FORCE = 1e-4
 # Maximum number of multi-phase solver iterations
-MAX_SOLVE_ITERATIONS = 100
+MAX_SOLVE_ITERATIONS = 300
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
 MIN_SOLVE_ENERGY_PROGRESS = 1e-6
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e12
+INITIAL_OBJECTIVE_WEIGHT = 1
 
 
 def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
@@ -236,7 +237,7 @@ def _compute_constraints(object dbf, object comps, object phases,
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[:] site_fracs, double[:] phase_fracs,
-                                l_constraints, constraint_jac, l_multipliers, phase_records):
+                                l_constraints, constraint_jac, l_multipliers, phase_records, double obj_weight):
     cdef double[::1] obj_result = np.zeros(1)
     cdef double[::1] obj_res = np.zeros(1)
     cdef int max_phase_dof = max(phase_dof)
@@ -259,12 +260,12 @@ cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[:] s
             cur_phase_dof = <int>phase_dof[phase_idx]
             dof[2:2+cur_phase_dof] = site_fracs[var_offset:var_offset + cur_phase_dof]
             obj(prn, obj_res, dof_2d_view, 1)
-            obj_result[0] += phase_frac * obj_res[0]
+            obj_result[0] += obj_weight * phase_frac * obj_res[0]
             grad(prn, grad_res, dof)
             for dof_x_idx in range(cur_phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
-                    phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
-            gradient_term[site_fracs.shape[0] + phase_idx] = obj_res[0]
+                    obj_weight * phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
+            gradient_term[site_fracs.shape[0] + phase_idx] = obj_weight * obj_res[0]
             var_offset += cur_phase_dof
             phase_idx += 1
     return np.asarray(obj_result), np.asarray(gradient_term)
@@ -275,7 +276,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[:] sit
                               l_constraints, constraint_jac,
                               np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
                               np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers,
-                              phase_records):
+                              phase_records, double obj_weight):
     cdef double[::1] obj_res = np.empty(1)
     cdef int max_phase_dof = max(phase_dof)
     cdef double[::1] grad_res = np.empty(2+max_phase_dof)
@@ -304,19 +305,19 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[:] sit
             hess(prn, tmp_hess, dof)
             for dof_x_idx in range(cur_phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
-                    phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
-            gradient_term[site_fracs.shape[0] + phase_idx] = obj_res[0]
+                    obj_weight * phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
+            gradient_term[site_fracs.shape[0] + phase_idx] = obj_weight * obj_res[0]
 
             for dof_x_idx in range(cur_phase_dof):
                 for dof_y_idx in range(dof_x_idx,cur_phase_dof):
                     l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx] = \
-                      phase_frac * tmp_hess_ptr[2+dof_x_idx + (2+cur_phase_dof)*(2+dof_y_idx)]
+                      obj_weight * phase_frac * tmp_hess_ptr[2+dof_x_idx + (2+cur_phase_dof)*(2+dof_y_idx)]
                     l_hessian[var_offset+dof_y_idx, var_offset+dof_x_idx] = \
-                      l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx]
+                      obj_weight * l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx]
                 # Phase fraction / site fraction cross derivative
                 l_hessian[site_fracs.shape[0] + phase_idx, var_offset + dof_x_idx] = \
-                     grad_res[2+dof_x_idx] # Remove P,T grad part
-                l_hessian[var_offset + dof_x_idx, site_fracs.shape[0] + phase_idx] = grad_res[2+dof_x_idx]
+                     obj_weight * grad_res[2+dof_x_idx] # Remove P,T grad part
+                l_hessian[var_offset + dof_x_idx, site_fracs.shape[0] + phase_idx] = obj_weight * grad_res[2+dof_x_idx]
             var_offset += cur_phase_dof
             phase_idx += 1
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
@@ -410,7 +411,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         # chem_pots = OrderedDict(zip(properties.coords['component'].values, properties['MU'].values[it.multi_index]))
         # Used to cache generated mole fraction functions
         mole_fractions = {}
+        diagnostic_matrix_shape = 6
+        diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape), np.nan)
+        vmax_window_size = 20
+        previous_window_average = np.inf
+        vmax_averages = np.zeros(vmax_window_size)
         alpha = 1
+        obj_weight = INITIAL_OBJECTIVE_WEIGHT
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
             phases = list(prop_Phase_values[it.multi_index])
@@ -478,7 +485,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             num_vars = len(site_fracs) + len(phases)
             l_hessian, gradient_term = _build_multiphase_system(phase_dof, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, constraint_hess,
-                                                                l_multipliers, phase_records)
+                                                                l_multipliers, phase_records, obj_weight)
             if np.any(np.isnan(l_hessian)):
                 print('Invalid l_hessian')
                 l_hessian = np.asfortranarray(np.eye(l_hessian.shape[0]))
@@ -492,63 +499,59 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                     p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
                                           -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
                 except np.linalg.LinAlgError:
+                    if verbose:
+                        print('Reset p_z due to singular matrix')
                     p_z = np.zeros(zmat.shape[1], dtype=np.float)
                 step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
             else:
                 step = np.dot(ymat, p_y)
-            # Several iterations in, driving force is nearly converged, but not chemical potentials
-            # Decrease step size to try to force convergence
-            if (cur_iter > 0) and (cur_iter % 10 == 0) and (np.abs(driving_force) < 100*MAX_SOLVE_DRIVING_FORCE) and \
-              (np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() > 0.01):
-                if verbose:
-                    print('Decreasing step size')
-                alpha *= 0.1
-            step *= alpha
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
+            old_objective = old_energy + np.dot(np.abs(l_multipliers), np.abs(l_constraints))
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             candidate_site_fracs = np.empty_like(site_fracs)
             candidate_phase_fracs = np.empty_like(phase_fracs)
+            candidate_l_multipliers = np.array(l_multipliers)
             for sfidx in range(candidate_site_fracs.shape[0]):
-                candidate_site_fracs[sfidx] = min(max(site_fracs[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1)
-
+                candidate_site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
+             #   step[sfidx] = (candidate_site_fracs[sfidx] - site_fracs[sfidx]) / alpha
             for pfidx in range(candidate_phase_fracs.shape[0]):
-                candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
+                candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
+            #    step[candidate_phase_fracs.shape[0] + pfidx] = (candidate_phase_fracs[pfidx] - phase_fracs[pfidx]) / alpha
             candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess = \
                 _compute_constraints(dbf, comps, phases, cur_conds,
                                      candidate_site_fracs, candidate_phase_fracs, phase_records, mole_fractions=mole_fractions)
+            # We updated degrees of freedom this iteration
+            candidate_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
+                                                            np.dot(ymat.T, gradient_term + np.dot(l_hessian, alpha*step)))
             candidate_energy, candidate_gradient_term = \
                 _build_multiphase_gradient(phase_dof, phases, cur_conds, candidate_site_fracs,
                                            candidate_phase_fracs, candidate_l_constraints,
-                                           candidate_constraint_jac, l_multipliers,
-                                           phase_records)
-            # We updated degrees of freedom this iteration
-            new_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
-                                                np.dot(ymat.T, gradient_term + np.dot(l_hessian, step)))
-            np.clip(new_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
-                    out=new_l_multipliers)
-            # XXX: Should fix underlying numerical problem at edges of composition space instead of working around
-            if np.any(np.isnan(new_l_multipliers)):
-                print('WARNING: Unstable Lagrange multipliers: ', new_l_multipliers)
+                                           candidate_constraint_jac, candidate_l_multipliers,
+                                           phase_records, obj_weight)
+            if np.any(np.isnan(candidate_l_multipliers)):
+                print('WARNING: Unstable Lagrange multipliers: ', candidate_l_multipliers)
                 # Equation 18.16 in Nocedal and Wright
                 # This method is less accurate but more stable
-                new_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
+                candidate_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
                                                                        candidate_constraint_jac.T)),
                                            candidate_constraint_jac), candidate_gradient_term)
-                np.clip(new_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
-                    out=new_l_multipliers)
-            l_multipliers = new_l_multipliers
+            np.clip(candidate_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
+                out=candidate_l_multipliers)
+            candidate_objective = candidate_energy - np.dot(candidate_l_multipliers, candidate_l_constraints)
+            l_multipliers = candidate_l_multipliers
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
                 l_multipliers[:] = 0
             if verbose:
                 print('NEW_L_MULTIPLIERS', l_multipliers)
+            vmax = np.max(np.abs(candidate_l_constraints))
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-                                                sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
+                                                sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] / obj_weight
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
             prop_X_values[it.multi_index + np.index_exp[:len(phases)]] = 0
-            prop_GM_values[it.multi_index] = candidate_energy
+            prop_GM_values[it.multi_index] = candidate_energy / obj_weight
             var_offset = 0
             for phase_idx in range(len(phases)):
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
@@ -565,13 +568,21 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             driving_force = (prop_MU_values[it.multi_index] * total_comp).sum(axis=-1) - \
                              prop_GM_values[it.multi_index]
             driving_force = np.squeeze(driving_force)
+            diagnostic_matrix[cur_iter, 0] = cur_iter
+            diagnostic_matrix[cur_iter, 1] = candidate_energy
+            diagnostic_matrix[cur_iter, 2] = candidate_objective
+            diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
+            diagnostic_matrix[cur_iter, 4] = vmax
+            diagnostic_matrix[cur_iter, 5] = obj_weight
             if verbose:
                 print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
                 print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
                 print('Driving force', driving_force)
+                print('obj weight', obj_weight)
             no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.01
             no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
-            if no_progress and np.abs(driving_force) > MAX_SOLVE_DRIVING_FORCE:
+            no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
+            if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
                 prop_MU_values[it.multi_index] = np.nan
                 prop_NP_values[it.multi_index] = np.nan
@@ -579,16 +590,19 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Y_values[it.multi_index] = np.nan
                 prop_GM_values[it.multi_index] = np.nan
                 prop_Phase_values[it.multi_index] = ''
+                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
                 break
             elif no_progress:
                 if verbose:
                     print('No progress')
                 num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
                 chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
-                                                    sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals]
+                                                    sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] / obj_weight
                 prop_MU_values[it.multi_index] = chemical_potentials
+                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
                 break
             elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
+                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
                 print('Failed to converge: {}'.format(cur_conds))
                 prop_MU_values[it.multi_index] = np.nan
                 prop_NP_values[it.multi_index] = np.nan
@@ -596,5 +610,19 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Y_values[it.multi_index] = np.nan
                 prop_GM_values[it.multi_index] = np.nan
                 prop_Phase_values[it.multi_index] = ''
+            if (cur_iter > 0) and cur_iter % vmax_window_size == 0:
+                new_window_average = np.mean(vmax_averages)
+                if previous_window_average * new_window_average < 1e-6:
+                    obj_weight *= 0.1
+                    l_multipliers *= 0.1
+                    if verbose:
+                        print('Increasing objective weight')
+                elif new_window_average > 1e-6:
+                    obj_weight *= 10
+                    l_multipliers *= 10
+                    if verbose:
+                        print('Decreasing objective weight')
+                previous_window_average = new_window_average
+            vmax_averages[cur_iter % vmax_window_size] = vmax
         it.iternext()
     return properties

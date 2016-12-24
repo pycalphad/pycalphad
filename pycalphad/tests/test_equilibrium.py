@@ -25,7 +25,7 @@ def test_rose_nine():
     conds = dict({v.T: 1000, v.P: 101325})
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
-    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, pbar=False)
+    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, pbar=False, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
 # OTHER TESTS
@@ -178,7 +178,7 @@ def test_eq_ternary_edge_case_mass():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                      v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+                      v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.88811111111111107, 0.11188888888888888, 0]
     assert np.all(np.abs(mass_error) < 0.01)
@@ -200,7 +200,7 @@ def test_eq_ternary_edge_misc_gap():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.33366666666666667,
-                      v.X('CO'): 0.44455555555555554, v.P: 101325}, pbar=False)
+                      v.X('CO'): 0.44455555555555554, v.P: 101325}, pbar=False, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
@@ -211,7 +211,7 @@ def test_eq_issue43_chempots_misc_gap():
     """
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
-                     verbose=False, pbar=False)
+                     verbose=True, pbar=False)
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
@@ -222,10 +222,10 @@ def test_eq_issue43_chempots_tricky_potentials():
     """
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
                      {v.X('AL'): .1246, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
-                     verbose=False, pbar=False)
-    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-12.78777939,  -4.42862046,  -8.77499585]]]]])
-    assert_allclose(eq.GM.values, -70567.7329)
-    assert_allclose(eq.MU.values, chempots, atol=1)
+                     verbose=True, pbar=False)
+    chempots = np.array([-135620.9960449, -47269.29002414, -92304.23688281])
+    assert_allclose(eq.GM.values, -70680.53695)
+    assert_allclose(np.squeeze(eq.MU.values), chempots)
 
 def test_eq_stepsize_reduction():
     """

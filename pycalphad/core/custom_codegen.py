@@ -15,7 +15,6 @@ from sympy.tensor import Idx, Indexed, IndexedBase
 from sympy.matrices import (MatrixSymbol, ImmutableMatrix, MatrixBase,
                             MatrixExpr, MatrixSlice)
 from sympy import Function
-import hashlib
 try:
     # Python 2
     from StringIO import StringIO
@@ -165,7 +164,6 @@ class FCodeGen(sympy_FCodeGen):
         return_val = []
         output_args = []
         for expr in expressions:
-            exprhash = hashlib.sha1(str(expr).encode()).hexdigest()
             if isinstance(expr, Equality):
                 out_arg = expr.lhs
                 expr = expr.rhs
@@ -193,12 +191,12 @@ class FCodeGen(sympy_FCodeGen):
                 symbols.remove(symbol)
             elif isinstance(expr, (ImmutableMatrix, MatrixSlice)):
                 # Create a "dummy" MatrixSymbol to use as the Output arg
-                out_arg = MatrixSymbol('out_%s' % exprhash, *expr.shape)
+                out_arg = MatrixSymbol('out_dummy', *expr.shape)
                 dims = tuple([(S.Zero, dim - 1) for dim in out_arg.shape])
                 output_args.append(
                     OutputArgument(out_arg, out_arg, expr, dimensions=dims))
             else:
-                return_val.append(Result(expr, name=exprhash))
+                return_val.append(Result(expr))
 
         arg_list = []
 
