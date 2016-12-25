@@ -19,9 +19,9 @@ MAX_SOLVE_DRIVING_FORCE = 1e-4
 # Maximum number of multi-phase solver iterations
 MAX_SOLVE_ITERATIONS = 300
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-6
+MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
-MAX_ABS_LAGRANGE_MULTIPLIER = 1e12
+MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 INITIAL_OBJECTIVE_WEIGHT = 1
 
 
@@ -611,17 +611,25 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_GM_values[it.multi_index] = np.nan
                 prop_Phase_values[it.multi_index] = ''
             if (cur_iter > 0) and cur_iter % vmax_window_size == 0:
-                new_window_average = np.mean(vmax_averages)
-                if previous_window_average * new_window_average < 1e-6:
-                    obj_weight *= 0.1
-                    l_multipliers *= 0.1
-                    if verbose:
-                        print('Increasing objective weight')
-                elif new_window_average > 1e-6:
-                    obj_weight *= 10
-                    l_multipliers *= 10
-                    if verbose:
-                        print('Decreasing objective weight')
+                new_window_average = np.median(vmax_averages)
+                if previous_window_average * new_window_average < 1e-20:
+                    if obj_weight > 1:
+                        obj_weight *= 0.1
+                        l_multipliers *= 0.1
+                        if verbose:
+                            print('Decreasing objective weight')
+                elif new_window_average / previous_window_average > 10:
+                    if obj_weight > 1:
+                        obj_weight *= 0.1
+                        l_multipliers *= 0.1
+                        if verbose:
+                            print('Decreasing objective weight')
+                elif new_window_average > 1e-12:
+                    if obj_weight < 1e6:
+                        obj_weight *= 10
+                        l_multipliers *= 10
+                        if verbose:
+                            print('Increasing objective weight')
                 previous_window_average = new_window_average
             vmax_averages[cur_iter % vmax_window_size] = vmax
         it.iternext()
