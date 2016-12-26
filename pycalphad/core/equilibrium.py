@@ -204,6 +204,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     phase_records = dict()
+    diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
@@ -332,13 +333,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice, phase_records,
-                                                              list(str_conds.keys()), verbose)
+                                                              list(str_conds.keys()), verbose, diagnostic)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
-                                                                 list(str_conds.keys()), verbose)
+                                                                 list(str_conds.keys()), verbose, diagnostic)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]

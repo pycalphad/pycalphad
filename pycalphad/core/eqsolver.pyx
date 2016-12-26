@@ -323,7 +323,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[:] sit
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(l_hessian), np.asarray(gradient_term)
 
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, verbose):
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, verbose, diagnostic):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -344,6 +344,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         List of conditions axes in dimension order.
     verbose : bool
         Print details.
+    diagnostic : bool
+        Dump convergence details to CSV file.
 
     Returns
     -------
@@ -353,12 +355,17 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
     cdef:
         double indep_sum
         int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
+        int vmax_window_size
+        double previous_window_average, obj_weight, vmax
         cdef int[:] phase_dof
         cdef double[::1,:] l_hessian
         cdef double[::1] gradient_term
+        double[::1] vmax_averages
         np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step
         np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, candidate_site_fracs, l_multipliers, new_l_multipliers, candidate_phase_fracs, phase_fracs
         np.ndarray[ndim=2, dtype=np.float64_t] ymat, zmat, qmat, rmat, constraint_jac
+        np.ndarray[ndim=2, dtype=np.float64_t] diagnostic_matrix
+
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
             phase_records[key] = PhaseRecord(value.variables, value.parameters, value.obj, value.grad,
@@ -412,7 +419,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         # Used to cache generated mole fraction functions
         mole_fractions = {}
         diagnostic_matrix_shape = 6
-        diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape), np.nan)
+        if diagnostic:
+            diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, 6), np.nan)
+            debug_fn = 'debug-{}.csv'.format('-'.join([str(x) for x in it.multi_index]))
         vmax_window_size = 20
         previous_window_average = np.inf
         vmax_averages = np.zeros(vmax_window_size)
@@ -568,12 +577,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             driving_force = (prop_MU_values[it.multi_index] * total_comp).sum(axis=-1) - \
                              prop_GM_values[it.multi_index]
             driving_force = np.squeeze(driving_force)
-            diagnostic_matrix[cur_iter, 0] = cur_iter
-            diagnostic_matrix[cur_iter, 1] = candidate_energy
-            diagnostic_matrix[cur_iter, 2] = candidate_objective
-            diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
-            diagnostic_matrix[cur_iter, 4] = vmax
-            diagnostic_matrix[cur_iter, 5] = obj_weight
+            if diagnostic:
+                diagnostic_matrix[cur_iter, 0] = cur_iter
+                diagnostic_matrix[cur_iter, 1] = candidate_energy
+                diagnostic_matrix[cur_iter, 2] = candidate_objective
+                diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
+                diagnostic_matrix[cur_iter, 4] = vmax
+                diagnostic_matrix[cur_iter, 5] = obj_weight
             if verbose:
                 print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
                 print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
@@ -590,7 +600,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Y_values[it.multi_index] = np.nan
                 prop_GM_values[it.multi_index] = np.nan
                 prop_Phase_values[it.multi_index] = ''
-                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
+                if diagnostic:
+                    np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
                 break
             elif no_progress:
                 if verbose:
@@ -599,10 +610,12 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
                                                     sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] / obj_weight
                 prop_MU_values[it.multi_index] = chemical_potentials
-                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
+                if diagnostic:
+                    np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
                 break
             elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
-                # np.savetxt('debug.csv', diagnostic_matrix, delimiter=',')
+                if diagnostic:
+                    np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
                 print('Failed to converge: {}'.format(cur_conds))
                 prop_MU_values[it.multi_index] = np.nan
                 prop_NP_values[it.multi_index] = np.nan
