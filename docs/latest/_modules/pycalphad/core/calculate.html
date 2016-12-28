@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0+untagged.g37dce9d documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0+untagged.g6c46797 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g37dce9d documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g6c46797 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0+untagged.g37dce9d
+                0+untagged.g6c46797
               </div>
             
           
@@ -619,7 +619,8 @@
         <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
 
         <span class="n">fp</span> <span class="o">=</span> <span class="n">fake_points</span> <span class="ow">and</span> <span class="p">(</span><span class="n">phase_name</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span> <span class="n">param_values</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span>
+        <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">),</span>
+                          <span class="n">param_values</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span>
                           <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="n">phase_ds</span> <span class="o">=</span> <span class="n">_compute_phase_values</span><span class="p">(</span><span class="n">phase_obj</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">str_statevar_dict</span><span class="p">,</span>
                                          <span class="n">points</span><span class="p">,</span> <span class="n">prn</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
@@ -668,7 +669,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.g37dce9d',
+            VERSION:'0+untagged.g6c46797',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
