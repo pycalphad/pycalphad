@@ -633,13 +633,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Phase_values[it.multi_index] = ''
             if (cur_iter > 0) and cur_iter % vmax_window_size == 0:
                 new_window_average = np.median(vmax_averages)
-                if previous_window_average * new_window_average < 1e-20:
+                if previous_window_average * new_window_average < 1e-20 and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
                     if obj_weight > 1:
                         obj_weight *= 0.1
                         l_multipliers *= 0.1
                         if verbose:
                             print('Decreasing objective weight')
-                elif new_window_average / previous_window_average > 10:
+                elif new_window_average / previous_window_average > 10 and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
                     if obj_weight > 1:
                         obj_weight *= 0.1
                         l_multipliers *= 0.1
@@ -652,6 +652,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                         if verbose:
                             print('Increasing objective weight')
                 previous_window_average = new_window_average
+            if (cur_iter > 0.8 * MAX_SOLVE_ITERATIONS) and obj_weight == INITIAL_OBJECTIVE_WEIGHT:
+                obj_weight *= 1000
+                l_multipliers *= 1000
+                if verbose:
+                    print('Increasing objective weight to force convergence')
             vmax_averages[cur_iter % vmax_window_size] = vmax
         it.iternext()
     return properties
