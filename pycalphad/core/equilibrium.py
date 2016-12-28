@@ -25,7 +25,7 @@ from datetime import datetime
 #    return func
 
 PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
-                                   ['variables', 'parameters', 'obj', 'grad', 'hess',
+                                   ['variables', 'parameters', 'num_sites', 'obj', 'grad', 'hess',
                                     'mass_obj', 'mass_grad', 'mass_hess'])
 
 class EquilibriumError(Exception):
@@ -266,6 +266,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mass_obj, mass_grad, mass_hess = build_functions(molefracs, site_fracs)
         phase_records[name.upper()] = PickleablePhaseRecord(variables=variables,
                                                             parameters=param_values,
+                                                            num_sites=dbf.phases[name].sublattices,
                                                             obj=callable_dict[name],
                                                             grad=grad_callable_dict[name],
                                                             hess=hess_callable_dict[name],
