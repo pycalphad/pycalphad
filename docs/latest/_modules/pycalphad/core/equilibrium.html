@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.g6c46797 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.ga4f3775 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g6c46797 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.ga4f3775 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -65,7 +65,7 @@
             
             
               <div class="version">
-                0+untagged.g6c46797
+                0+untagged.ga4f3775
               </div>
             
           
@@ -145,7 +145,6 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_kwarg</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span>
-<span class="kn">from</span> <span class="nn">pycalphad.constraints</span> <span class="k">import</span> <span class="n">mole_fraction</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.lower_convex_hull</span> <span class="k">import</span> <span class="n">lower_convex_hull</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.sympydiff_utils</span> <span class="k">import</span> <span class="n">build_functions</span> <span class="k">as</span> <span class="n">compiled_build_functions</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
@@ -163,8 +162,7 @@
 <span class="c1">#    return func</span>
 
 <span class="n">PickleablePhaseRecord</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;PickleablePhaseRecord&#39;</span><span class="p">,</span>
-                                   <span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;num_sites&#39;</span><span class="p">,</span> <span class="s1">&#39;obj&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">,</span>
-                                    <span class="s1">&#39;mass_obj&#39;</span><span class="p">,</span> <span class="s1">&#39;mass_grad&#39;</span><span class="p">,</span> <span class="s1">&#39;mass_hess&#39;</span><span class="p">])</span>
+                                   <span class="p">[</span><span class="s1">&#39;variables&#39;</span><span class="p">,</span> <span class="s1">&#39;parameters&#39;</span><span class="p">,</span> <span class="s1">&#39;num_sites&#39;</span><span class="p">,</span> <span class="s1">&#39;obj&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">])</span>
 
 <div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="s2">&quot;Exception related to calculation of equilibrium&quot;</span>
@@ -399,18 +397,12 @@
             <span class="k">if</span> <span class="n">hess_callable_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="n">hess_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf</span>
 
-        <span class="n">molefracs</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">mole_fraction</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">comps</span><span class="p">,</span> <span class="n">i</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">comps</span> <span class="k">if</span> <span class="n">i</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">])</span>
-        <span class="n">mass_obj</span><span class="p">,</span> <span class="n">mass_grad</span><span class="p">,</span> <span class="n">mass_hess</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">molefracs</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">)</span>
         <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PickleablePhaseRecord</span><span class="p">(</span><span class="n">variables</span><span class="o">=</span><span class="n">variables</span><span class="p">,</span>
                                                             <span class="n">parameters</span><span class="o">=</span><span class="n">param_values</span><span class="p">,</span>
                                                             <span class="n">num_sites</span><span class="o">=</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span>
                                                             <span class="n">obj</span><span class="o">=</span><span class="n">callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
                                                             <span class="n">grad</span><span class="o">=</span><span class="n">grad_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
-                                                            <span class="n">hess</span><span class="o">=</span><span class="n">hess_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
-                                                            <span class="n">mass_obj</span><span class="o">=</span><span class="n">mass_obj</span><span class="p">,</span>
-                                                            <span class="n">mass_grad</span><span class="o">=</span><span class="n">mass_grad</span><span class="p">,</span>
-                                                            <span class="n">mass_hess</span><span class="o">=</span><span class="n">mass_hess</span><span class="p">)</span>
+                                                            <span class="n">hess</span><span class="o">=</span><span class="n">hess_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
@@ -536,7 +528,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.g6c46797',
+            VERSION:'0+untagged.ga4f3775',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true

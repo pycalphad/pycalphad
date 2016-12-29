@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0+untagged.g6c46797 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0+untagged.ga4f3775 documentation</title>
   
 
   
@@ -33,7 +33,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g6c46797 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.ga4f3775 documentation" href="../index.html"/>
         <link rel="up" title="API Documentation" href="modules.html"/>
         <link rel="next" title="pycalphad.core package" href="pycalphad.core.html"/>
         <link rel="prev" title="API Documentation" href="modules.html"/> 
@@ -67,7 +67,7 @@
             
             
               <div class="version">
-                0+untagged.g6c46797
+                0+untagged.ga4f3775
               </div>
             
           
@@ -101,7 +101,7 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.constraints">pycalphad.constraints module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pycalphad-constraints-module">pycalphad.constraints module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.fitting">pycalphad.fitting module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.log">pycalphad.log module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
@@ -212,41 +212,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pycalphad.constraints">
-<span id="pycalphad-constraints-module"></span><h2>pycalphad.constraints module<a class="headerlink" href="#module-pycalphad.constraints" title="Permalink to this headline">¶</a></h2>
-<p>The constraints module contains definitions for equilibrium constraints and
-their Jacobian.</p>
-<dl class="function">
-<dt id="pycalphad.constraints.mole_fraction">
-<code class="descclassname">pycalphad.constraints.</code><code class="descname">mole_fraction</code><span class="sig-paren">(</span><em>phase</em>, <em>active_comps</em>, <em>species</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/constraints.html#mole_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.constraints.mole_fraction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Return a SymPy object representing the mole fraction as a function of
-site fractions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>phase</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Phase" title="pycalphad.io.database.Phase"><em>Phase</em></a>) &#8211; Phase object corresponding to the phase of interest.</li>
-<li><strong>active_comps</strong> (<em>list of str</em>) &#8211; Names of components to consider.</li>
-<li><strong>species</strong> (<em>str</em>) &#8211; Names of species to consider.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">SymPy object representing the mole fraction.</p>
-</td>
-</tr>
-</tbody>
-</table>
-<p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alfe_sei.TDB&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">mole_fraction</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">],</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">],</span> <span class="s1">&#39;AL&#39;</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd></dl>
-
+<div class="section" id="pycalphad-constraints-module">
+<h2>pycalphad.constraints module<a class="headerlink" href="#pycalphad-constraints-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.fitting">
 <span id="pycalphad-fitting-module"></span><h2>pycalphad.fitting module<a class="headerlink" href="#module-pycalphad.fitting" title="Permalink to this headline">¶</a></h2>
@@ -801,7 +768,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.g6c46797',
+            VERSION:'0+untagged.ga4f3775',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true
