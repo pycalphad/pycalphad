@@ -7,7 +7,6 @@ import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
-from pycalphad.constraints import mole_fraction
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -25,8 +24,7 @@ from datetime import datetime
 #    return func
 
 PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
-                                   ['variables', 'parameters', 'num_sites', 'obj', 'grad', 'hess',
-                                    'mass_obj', 'mass_grad', 'mass_hess'])
+                                   ['variables', 'parameters', 'num_sites', 'obj', 'grad', 'hess'])
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
@@ -261,18 +259,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if hess_callable_dict.get(name, None) is None:
                 hess_callable_dict[name] = hf
 
-        molefracs = Add(*[mole_fraction(dbf.phases[name], comps, i)
-                        for i in comps if i != 'VA'])
-        mass_obj, mass_grad, mass_hess = build_functions(molefracs, site_fracs)
         phase_records[name.upper()] = PickleablePhaseRecord(variables=variables,
                                                             parameters=param_values,
                                                             num_sites=dbf.phases[name].sublattices,
                                                             obj=callable_dict[name],
                                                             grad=grad_callable_dict[name],
-                                                            hess=hess_callable_dict[name],
-                                                            mass_obj=mass_obj,
-                                                            mass_grad=mass_grad,
-                                                            mass_hess=mass_hess)
+                                                            hess=hess_callable_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:

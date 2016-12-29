@@ -18,4 +18,4 @@ cdef void grad(PhaseRecord prx, double[::1] out, double[::1] dof) nogil
 cdef void hess(PhaseRecord prx, double[::1,:] out, double[::1] dof) nogil
 cdef void mass_obj(PhaseRecord prx, double[::1] out, double[::1] dof, int comp_idx) nogil
 cdef void mass_grad(PhaseRecord prx, double[::1] out, double[::1] dof, int comp_idx) nogil
-cdef void mass_hess(PhaseRecord prx, double[::1,:] out, double[::1] dof) nogil
+cdef void mass_hess(PhaseRecord prx, double[::1,:] out, double[::1] dof, int comp_idx) nogil

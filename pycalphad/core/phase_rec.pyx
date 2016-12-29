@@ -18,7 +18,7 @@ cdef void* f2py_pointer(obj):
 
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
     def __cinit__(self, object comps, object variables, double[::1] num_sites, double[::1] parameters, object ofunc, object gfunc,
-                  object hfunc, object mofunc, object mgfunc, object mhfunc):
+                  object hfunc):
         cdef:
             int var_idx, subl_index
         # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
@@ -124,5 +124,31 @@ cdef void mass_grad(PhaseRecord prx, double[::1] out, double[::1] dof, int comp_
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef void mass_hess(PhaseRecord prx, double[::1,:] out, double[::1] dof) nogil:
-    pass
+cdef void mass_hess(PhaseRecord prx, double[::1,:] out, double[::1] dof, int comp_idx) nogil:
+    cdef double mass_normalization_factor = 0
+    cdef double mass = 0
+    cdef int hess_x_idx, hess_y_comp_idx, hess_y_idx, subl_x_idx, subl_y_idx, subl_idx
+    if prx.vacancy_index == -1:
+        return
+    if comp_idx == prx.vacancy_index:
+        out[:] = -1e100
+        return
+    for subl_idx in range(prx.num_sites.shape[0]):
+        if prx.composition_matrices[comp_idx, subl_idx, 1] > -1:
+            mass += prx.num_sites[subl_idx] * dof[<int>prx.composition_matrices[comp_idx, subl_idx, 1]]
+        if prx.vacancy_index > -1 and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
+            mass_normalization_factor += prx.num_sites[subl_idx] * (1-dof[<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
+        else:
+            mass_normalization_factor += prx.num_sites[subl_idx]
+    if mass == 0 or mass_normalization_factor == 0:
+        return
+    for subl_x_idx in range(prx.composition_matrices.shape[1]):
+        hess_x_idx = <int>prx.composition_matrices[prx.vacancy_index, subl_x_idx, 1]
+        if hess_x_idx > -1:
+            for subl_y_idx in range(prx.composition_matrices.shape[1]):
+                hess_y_idx = <int>prx.composition_matrices[prx.vacancy_index, subl_y_idx, 1]
+                hess_y_comp_idx = <int>prx.composition_matrices[comp_idx, subl_y_idx, 1]
+                if hess_y_idx > -1:
+                    out[hess_x_idx, hess_y_idx] = out[hess_y_idx, hess_x_idx] = 2 * mass * (prx.num_sites[subl_x_idx] * prx.num_sites[subl_y_idx]) / (mass_normalization_factor**3)
+                if hess_y_comp_idx > -1:
+                    out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (prx.num_sites[subl_x_idx] * prx.num_sites[subl_y_idx]) / mass_normalization_factor**2

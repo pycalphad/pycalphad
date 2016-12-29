@@ -482,8 +482,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
         prn = PhaseRecord(comps, list(statevar_dict.keys()) + variables, np.array(dbf.phases[phase_name].sublattices),
-                          param_values, comp_sets[phase_name],
-                          None, None, None, None, None)
+                          param_values, comp_sets[phase_name], None, None)
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, prn, output,
                                          maximum_internal_dof, broadcast=broadcast,
