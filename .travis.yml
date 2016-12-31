@@ -1,11 +1,9 @@
 language: python
-sudo: false
+sudo: required
+services:
+    - docker
 notifications:
   email: false
-cache:
-  directories:
-  - $HOME/.cache/pip
-  - $HOME/miniconda2/pkgs
 
 matrix:
     include:
@@ -13,6 +11,7 @@ matrix:
         - python: 3.4
         - python: 3.5
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81
+          env: DOCKER_TAG=linux-python35
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -26,34 +25,37 @@ matrix:
 # Setup anaconda
 before_install:
   - |
-      if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-        wget -nc http://repo.continuum.io/miniconda/Miniconda2-3.19.0-MacOSX-x86_64.sh -O miniconda.sh;
+      if [ -z "$DOCKER_TAG" ]; then
+        export DOCKER_USER=richardotis
+        docker run --cidfile build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py install ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
+        docker commit `cat build.cid` $DOCKER_USER/pycalphad:$DOCKER_TAG
       else
-        wget -nc http://repo.continuum.io/miniconda/Miniconda2-3.19.0-Linux-x86_64.sh -O miniconda.sh;
+        ./ci/travis_legacy_deps.sh
+        source activate condaenv
       fi
-  - chmod +x miniconda.sh
-  - ./miniconda.sh -b -f
-  - export PATH=$HOME/miniconda2/bin:$PATH
-  - conda update --yes conda
-  - conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
-  - conda install --yes -n condaenv pip
-  - source activate condaenv
-  - conda config --add channels conda-forge
-# unnecessary since we aren't trying to plot during tests anymore
-#  - export DISPLAY=:99.0
-#  - sh -e /etc/init.d/xvfb start
 # Install packages
 install:
-  - pip install coveralls
-  - conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-  - conda install --yes xarray gcc libgfortran cython
-  - conda install --yes autograd
-  - pip install -e .
+  - |
+      if [ -z "$DOCKER_TAG" ]; then
+      else
+        ./ci/travis_legacy_deps.sh
+        source activate condaenv
+        pip install coveralls
+        conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
+        conda install --yes xarray gcc libgfortran cython
+        conda install --yes autograd
+        pip install -e .
+      fi
  
 # Run test
 script:
-  - nosetests --with-coverage
-  - conda install --yes sphinx
+  - |
+      if [ -z "$DOCKER_TAG" ]; then
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "nosetests --with-coverage"
+      else
+        nosetests --with-coverage
+      fi
+  - conda install --yes sphinx python-coveralls
   - pip install sphinx_rtd_theme
   - bash ci/deploy.sh
 after_success:
