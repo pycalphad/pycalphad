@@ -10,8 +10,7 @@ matrix:
         - python: 2.7
         - python: 3.4
         - python: 3.5
-          env: DEPLOY_ENC_LABEL=e64cfe3b4e81
-          env: DOCKER_TAG=linux-python35
+          env: DEPLOY_ENC_LABEL=e64cfe3b4e81 DOCKER_TAG=linux-python35
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
