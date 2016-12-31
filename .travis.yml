@@ -51,10 +51,10 @@ script:
   - |
       if [ -z "$DOCKER_TAG" ]; then
         nosetests --with-coverage
+        pip install sphinx coveralls sphinx_rtd_theme
+        bash ci/deploy.sh
       else
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "/work/miniconda/envs/condaenv/bin/nosetests --with-coverage"
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "pip install sphinx coveralls sphinx_rtd_theme ; nosetests ; bash ci/deploy.sh"
       fi
-  - pip install sphinx coveralls sphinx_rtd_theme
-  - bash ci/deploy.sh
 after_success:
   - coveralls
