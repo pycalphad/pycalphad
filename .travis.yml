@@ -54,7 +54,7 @@ script:
         pip install sphinx coveralls sphinx_rtd_theme
         bash ci/deploy.sh
       else
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "pip install sphinx coveralls sphinx_rtd_theme ; nosetests ; bash ci/deploy.sh"
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "conda install sphinx python-coveralls && nosetests --with-coverage"
       fi
 after_success:
   - coveralls
