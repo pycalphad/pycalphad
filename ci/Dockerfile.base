@@ -69,6 +69,7 @@ RUN wget -O miniconda.sh \
     s3transfer \
     scipy \
     setuptools \
+    sh \
     six \
     sortedcollections \
     sortedcontainers \
