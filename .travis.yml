@@ -25,18 +25,17 @@ matrix:
 before_install:
   - |
       if [ -z "$DOCKER_TAG" ]; then
+        ./ci/travis_legacy_deps.sh
+        source activate condaenv
+      else
         export DOCKER_USER=richardotis
         docker run --cidfile build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py install ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
         docker commit `cat build.cid` $DOCKER_USER/pycalphad:$DOCKER_TAG
-      else
-        ./ci/travis_legacy_deps.sh
-        source activate condaenv
       fi
 # Install packages
 install:
   - |
       if [ -z "$DOCKER_TAG" ]; then
-      else
         ./ci/travis_legacy_deps.sh
         source activate condaenv
         pip install coveralls
@@ -50,9 +49,9 @@ install:
 script:
   - |
       if [ -z "$DOCKER_TAG" ]; then
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "nosetests --with-coverage"
-      else
         nosetests --with-coverage
+      else
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "nosetests --with-coverage"
       fi
   - conda install --yes sphinx python-coveralls
   - pip install sphinx_rtd_theme
