@@ -8,6 +8,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 RUN apt-get -y update  && apt-get install -y \
   build-essential \
+  gfortran \
   git-core \
   libgfortran3 \
   libopenblas-dev \
@@ -34,6 +35,7 @@ RUN wget -O miniconda.sh \
     boto3 \
     click \
     cloudpickle \
+    coverage \
     cycler \
     cython \
     dask \
@@ -70,6 +72,7 @@ RUN wget -O miniconda.sh \
     six \
     sortedcollections \
     sortedcontainers \
+    sphinx \
     sympy \
     tblib \
     terminado \
