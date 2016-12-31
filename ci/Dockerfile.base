@@ -41,6 +41,7 @@ RUN wget -O miniconda.sh \
     dask \
     dill \
     distributed \
+    docopt \
     docutils \
     freetype \
     future \
@@ -65,6 +66,7 @@ RUN wget -O miniconda.sh \
     python-coveralls \
     python-dateutil \
     pytz \
+    requests \
     s3fs \
     s3transfer \
     scipy \
