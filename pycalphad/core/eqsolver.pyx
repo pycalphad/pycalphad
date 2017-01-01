@@ -347,8 +347,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord(comps, value.variables, np.array(value.num_sites), value.parameters,
-                                             value.obj, value.grad, value.hess)
+            phase_records[key] = PhaseRecord(comps, value.variables, np.array(value.num_sites, dtype=np.float),
+                                             value.parameters, value.obj, value.grad, value.hess)
     # Factored out via profiling
     prop_MU_values = properties['MU'].values
     prop_NP_values = properties['NP'].values
