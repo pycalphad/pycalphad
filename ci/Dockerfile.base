@@ -84,6 +84,7 @@ RUN wget -O miniconda.sh \
     tornado \
     tqdm \
     xarray \
+    yaml \
     zict \
     && conda clean -tipsy
 
