@@ -9,7 +9,9 @@ notifications:
 matrix:
     include:
         - python: 2.7
+          env: DOCKER_TAG=linux-python27
         - python: 3.4
+          env: DOCKER_TAG=linux-python34
         - python: 3.5
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81 DOCKER_TAG=linux-python35
         - language: generic

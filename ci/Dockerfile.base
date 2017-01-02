@@ -29,7 +29,7 @@ RUN wget -O miniconda.sh \
   && rm miniconda.sh \
   && \
     conda config --add channels conda-forge && \
-    conda create --no-deps -n condaenv -y python=$python \
+    conda create -n condaenv -y python=$python \
     autograd \
     botocore\<1.5.0,\>\=1.4.1 \
     boto3 \
