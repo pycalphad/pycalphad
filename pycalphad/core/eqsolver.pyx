@@ -174,8 +174,7 @@ def _compute_constraints(object dbf, object comps, object phases,
             var_idx += ais_len
         constraint_offset += len(dbf.phases[name].sublattices)
     # Second: Mass balance of each component
-    comp_idx = 0
-    for comp in comps:
+    for comp_idx, comp in enumerate(comps):
         if comp == 'VA':
             continue
         var_offset = 0
@@ -210,7 +209,6 @@ def _compute_constraints(object dbf, object comps, object phases,
         else:
             # TODO: Assuming N=1 (fixed for dependent component)
             l_constraints[constraint_offset] -= (1 - indep_sum)
-        comp_idx += 1
         constraint_offset += 1
     return l_constraints, constraint_jac, constraint_hess
 
@@ -544,15 +542,18 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
                     candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
                 comp_idx = 0
-                for comp in comps:
+                # Necessary to fix gh-62 and gh-63
+                past_va = False
+                for comp_idx, comp in enumerate(comps):
                     if comp == 'VA':
+                        past_va = True
                         continue
                     mass_buf = np.zeros(1)
                     mass_obj(phase_records[phases[phase_idx]],
                              mass_buf,
                              candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
                              comp_idx)
-                    prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx]] = mass_buf[0]
+                    prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx-int(past_va)]] = mass_buf[0]
                     comp_idx += 1
                 var_offset += phase_dof[phase_idx]
 
