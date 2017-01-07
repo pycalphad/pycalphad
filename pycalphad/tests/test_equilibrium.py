@@ -235,3 +235,19 @@ def test_eq_stepsize_reduction():
     eq = equilibrium(dbf, ['AL', 'NI', 'VA'], list(dbf.phases.keys()),
                      {v.P: 101325, v.T: 780, v.X('NI'): 0.625}, verbose=True)
     assert not np.isnan(np.squeeze(eq.GM.values))
+
+def test_eq_issue62_last_component_not_va():
+    """
+    VA is not last when components are sorted alphabetically.
+    """
+    test_tdb = """
+    ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+    ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+    ELEMENT CO   HCP_A3                    5.8933E+01  4.7656E+03  3.0040E+00!
+    ELEMENT CR   BCC_A2                    5.1996E+01  4.0500E+03  2.3560E+01!
+    ELEMENT W    BCC_A2                    1.8385E+02  4.9700E+03  3.2620E+01!
+    PHASE FCC_A1  %  2 1   1 !
+    CONSTITUENT FCC_A1  :AL,CO,CR,W : VA% :  !
+    """
+    equilibrium(Database(test_tdb), ['AL', 'CO', 'CR', 'W', 'VA'], ['FCC_A1'],
+                {"T": 1248, "P": 101325, v.X("AL"): 0.081, v.X("CR"): 0.020, v.X("W"): 0.094})
