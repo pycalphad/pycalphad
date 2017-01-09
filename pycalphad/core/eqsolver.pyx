@@ -128,7 +128,7 @@ def _compute_phase_dof(dbf, comps, phases):
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
             total += len(active_in_subl)
         phase_dof.append(total)
-    return np.array(phase_dof, dtype=np.int32)
+    return np.array(phase_dof, dtype=np.int)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -145,15 +145,17 @@ def _compute_constraints(object dbf, object comps, object phases,
     cdef object dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
     dependent_comp = list(dependent_comp)[0]
     cdef int num_constraints = num_sitefrac_bals + num_mass_bals
-    cdef int num_vars = len(site_fracs) + len(phases)
-    cdef object phase_dof = _compute_phase_dof(dbf, comps, phases)
+    cdef int num_phases = len(phases)
+    cdef int num_vars = len(site_fracs) + num_phases
+    cdef np.ndarray[ndim=1, dtype=np.int_t] phase_dof = _compute_phase_dof(dbf, comps, phases)
     cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(num_constraints)
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac = np.zeros((num_constraints, num_vars))
     cdef np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess = np.zeros((num_constraints, num_vars, num_vars), order='F')
-    cdef np.ndarray[ndim=1, dtype=np.uint8_t] contains_vacancies = np.zeros(len(phases), dtype=np.uint8)
-    cdef double[::1] comp_grad_value, sfview
+    cdef double[::1] sfview
+    cdef double[::1] comp_grad_value
     cdef double[::1,:] comp_hess_value
-    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, idx
+    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, hess_idx, comp_idx, idx
+    cdef PhaseRecord prn
     cdef double phase_frac
 
     # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
@@ -161,12 +163,11 @@ def _compute_constraints(object dbf, object comps, object phases,
     # First: Site fraction balance constraints
     var_idx = 0
     constraint_offset = 0
-    for phase_idx, name in enumerate(phases):
+    for phase_idx in range(num_phases):
+        name = phases[phase_idx]
         for idx in range(len(dbf.phases[name].sublattices)):
             active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
             ais_len = len(active_in_subl)
-            if 'VA' in active_in_subl and ais_len > 1:
-                contains_vacancies[phase_idx] = True
             constraint_jac[constraint_offset + idx,
             var_idx:var_idx + ais_len] = 1
             l_constraints[constraint_offset + idx] = \
@@ -179,31 +180,29 @@ def _compute_constraints(object dbf, object comps, object phases,
             continue
         var_offset = 0
         phase_idx = 0
-        for phase_idx in range(len(phases)):
+        for phase_idx in range(num_phases):
             name = phases[phase_idx]
             prn = phase_records[name]
             phase_frac = phase_fracs[phase_idx]
-            sfslice = slice(var_offset, var_offset + phase_dof[phase_idx])
             spidx = len(site_fracs) + phase_idx
-            sfview = site_fracs[sfslice]
-            comp_grad_value = np.atleast_1d(np.zeros(phase_dof[phase_idx]))
+            sfview = site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
             comp_hess_value = np.zeros((phase_dof[phase_idx], phase_dof[phase_idx]), order='F')
-            mass_obj(prn, comp_obj_value, site_fracs[sfslice], comp_idx)
-            mass_grad(prn, comp_grad_value, site_fracs[sfslice], comp_idx)
-            # current phase frac times the comp_grad
-            for grad_idx in range(var_offset, var_offset + phase_dof[phase_idx]):
-                constraint_jac[constraint_offset, grad_idx] = \
-                    phase_frac * comp_grad_value[grad_idx - var_offset]
-            constraint_jac[constraint_offset, spidx] += comp_obj_value[0]
-            mass_hess(prn, comp_hess_value, site_fracs[sfslice], comp_idx)
-            constraint_hess[constraint_offset, sfslice, sfslice] = comp_hess_value
-            constraint_hess[constraint_offset, sfslice, sfslice] *= phase_frac
-            constraint_hess[constraint_offset, sfslice, spidx] = \
-            constraint_hess[constraint_offset,
-            spidx, sfslice] = comp_grad_value
-            l_constraints[constraint_offset] += \
-                phase_frac * comp_obj_value[0]
-            var_offset += phase_dof[phase_idx]
+            comp_grad_value = np.zeros(phase_dof[phase_idx])
+            with nogil:
+                mass_obj(prn, comp_obj_value, sfview, comp_idx)
+                mass_grad(prn, comp_grad_value, sfview, comp_idx)
+                mass_hess(prn, comp_hess_value, sfview, comp_idx)
+                # current phase frac times the comp_grad
+                for grad_idx in range(var_offset, var_offset + phase_dof[phase_idx]):
+                    constraint_jac[constraint_offset, grad_idx] = \
+                        phase_frac * comp_grad_value[grad_idx - var_offset]
+                    constraint_hess[constraint_offset, spidx, grad_idx] = comp_grad_value[grad_idx - var_offset]
+                    constraint_hess[constraint_offset, grad_idx, spidx] = comp_grad_value[grad_idx - var_offset]
+                    for hess_idx in range(var_offset, var_offset + phase_dof[phase_idx]):
+                        constraint_hess[constraint_offset, grad_idx, hess_idx] = phase_frac * comp_hess_value[grad_idx - var_offset, hess_idx - var_offset]
+                l_constraints[constraint_offset] += phase_frac * comp_obj_value[0]
+                constraint_jac[constraint_offset, spidx] += comp_obj_value[0]
+                var_offset += phase_dof[phase_idx]
         if comp != dependent_comp:
             l_constraints[constraint_offset] -= float(cur_conds['X_' + comp])
         else:
