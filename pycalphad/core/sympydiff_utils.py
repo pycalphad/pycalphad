@@ -46,10 +46,8 @@ class PickleableFunction(object):
                             mod = import_extension(self._workdir, self._module_name)
                             self._kernel = getattr(mod, self._routine_name)
                         except ImportError:
-                            if start + 30 > time.time():
-                                print('Problem loading module. Forcing recompile of '+str((self._workdir, self._module_name)))
-                                self._kernel = self.compile()
-                                break
+                            if start + 60 > time.time():
+                                raise
                 else:
                     self._kernel = self.compile()
         return self._kernel

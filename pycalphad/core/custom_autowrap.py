@@ -102,7 +102,7 @@ def import_extension(path, modname):
     if len(npath) == 1:
         npath = npath[0]
     else:
-        raise ImportError('Failed to import', os.path.join(path, modname+'.*'))
+        raise ImportError('Failed to import', os.path.join(path, modname+'.*'), ' len(npath)=', len(npath))
     try:
         # Python 3.5+
         import importlib.util
