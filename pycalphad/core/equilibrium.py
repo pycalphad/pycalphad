@@ -248,7 +248,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         out = models[name].energy
         if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
                 or (not hess_callable_dict.get(name, False)):
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            # Only force undefineds to zero if we're not overriding them
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
             cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, parameters=param_symbols)
