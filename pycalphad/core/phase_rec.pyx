@@ -23,6 +23,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             int var_idx, subl_index
         # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
         self.variables = variables
+        self.phase_dof = 0
+        self.sublattice_dof = np.zeros(num_sites.shape[0], dtype=np.int32)
         self.parameters = parameters
         self.num_sites = num_sites
         # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
@@ -41,7 +43,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             comp_index = comps.index(species)
             self.composition_matrices[comp_index, subl_index, 0] = num_sites[subl_index]
             self.composition_matrices[comp_index, subl_index, 1] = var_idx
+            self.sublattice_dof[subl_index] += 1
             var_idx += 1
+            self.phase_dof += 1
         # Trigger lazy computation
         if ofunc is not None:
             ofunc.kernel

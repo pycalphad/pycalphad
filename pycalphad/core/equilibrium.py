@@ -148,7 +148,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
                 scheduler=dask.async.get_sync,
-                parameters=None, **kwargs):
+                parameters=None, compute_constraints=_compute_constraints, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -252,7 +252,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
-            cf, gf, hf = build_functions(out, [v.P, v.T] + site_fracs, parameters=param_symbols)
+            cf, gf, hf = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols)
             if callable_dict.get(name, None) is None:
                 callable_dict[name] = cf
             if grad_callable_dict.get(name, None) is None:
@@ -327,13 +327,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice, phase_records,
-                                                              list(str_conds.keys()), verbose, diagnostic)
+                                                              list(str_conds.keys()), verbose, diagnostic, compute_constraints)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
-                                                                 list(str_conds.keys()), verbose, diagnostic)
+                                                                 list(str_conds.keys()), verbose, diagnostic, compute_constraints)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]
