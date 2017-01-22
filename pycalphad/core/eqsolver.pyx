@@ -138,7 +138,7 @@ def _compute_constraints(object dbf, object comps, object phases,
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
-    cdef int num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
+    cdef int num_sitefrac_bals = sum([phase_records[x].sublattice_dof.shape[0] for x in phases])
     cdef int num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
     cdef double indep_sum = sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
     cdef double[::1] comp_obj_value = np.atleast_1d(np.zeros(1))
@@ -146,13 +146,14 @@ def _compute_constraints(object dbf, object comps, object phases,
     dependent_comp = list(dependent_comp)[0]
     cdef int num_constraints = num_sitefrac_bals + num_mass_bals
     cdef int num_phases = len(phases)
-    cdef int num_vars = len(site_fracs) + num_phases
+    cdef int num_vars = site_fracs.shape[0] + num_phases
+    cdef int max_phase_dof = max([x.phase_dof for x in phase_records.values()])
     cdef double[::1] l_constraints = np.zeros(num_constraints)
     cdef double[::1,:] constraint_jac = np.zeros((num_constraints, num_vars), order='F')
     cdef np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess = np.zeros((num_constraints, num_vars, num_vars), order='F')
     cdef double[::1] sfview
-    cdef double[::1] comp_grad_value
-    cdef double[::1,:] comp_hess_value
+    cdef double[::1] comp_grad_value = np.zeros(max_phase_dof)
+    cdef double[::1,:] comp_hess_value = np.zeros((max_phase_dof, max_phase_dof), order='F')
     cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
         hess_idx, comp_idx, idx, sum_idx, ais_len
     cdef PhaseRecord prn
@@ -185,9 +186,11 @@ def _compute_constraints(object dbf, object comps, object phases,
             phase_frac = phase_fracs[phase_idx]
             spidx = site_fracs.shape[0] + phase_idx
             sfview = site_fracs[var_offset:var_offset + prn.phase_dof]
-            comp_hess_value = np.zeros((prn.phase_dof, prn.phase_dof), order='F')
-            comp_grad_value = np.zeros(prn.phase_dof)
             with nogil:
+                for grad_idx in range(prn.phase_dof):
+                    comp_grad_value[grad_idx] = 0
+                    for hess_idx in range(grad_idx, prn.phase_dof):
+                        comp_hess_value[grad_idx, hess_idx] = comp_hess_value[hess_idx, grad_idx] = 0
                 mass_obj(prn, comp_obj_value, sfview, comp_idx)
                 mass_grad(prn, comp_grad_value, sfview, comp_idx)
                 mass_hess(prn, comp_hess_value, sfview, comp_idx)
@@ -198,7 +201,8 @@ def _compute_constraints(object dbf, object comps, object phases,
                     constraint_hess[constraint_offset, spidx, grad_idx] = comp_grad_value[grad_idx - var_offset]
                     constraint_hess[constraint_offset, grad_idx, spidx] = comp_grad_value[grad_idx - var_offset]
                     for hess_idx in range(var_offset, var_offset + prn.phase_dof):
-                        constraint_hess[constraint_offset, grad_idx, hess_idx] = phase_frac * comp_hess_value[grad_idx - var_offset, hess_idx - var_offset]
+                        constraint_hess[constraint_offset, grad_idx, hess_idx] = \
+                            phase_frac * comp_hess_value[grad_idx - var_offset, hess_idx - var_offset]
                 l_constraints[constraint_offset] += phase_frac * comp_obj_value[0]
                 constraint_jac[constraint_offset, spidx] += comp_obj_value[0]
                 var_offset += prn.phase_dof
