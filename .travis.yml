@@ -31,7 +31,7 @@ before_install:
         ./ci/travis_legacy_deps.sh
       else
         export DOCKER_USER=richardotis
-        docker run --cidfile /tmp/build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; pip install -e . ; python setup.py build_ext --inplace ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
+        docker run --cidfile /tmp/build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; pip install coveralls nose-cov; pip install -e . ; python setup.py build_ext --inplace ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
         docker commit `cat /tmp/build.cid` $DOCKER_USER/pycalphad:$DOCKER_TAG
       fi
 # Install packages
@@ -51,7 +51,7 @@ script:
   - |
       if [ -z "$DOCKER_TAG" ]; then
         nosetests --with-coverage
-        pip install sphinx sphinx_rtd_theme
+        pip install sphinx sphinx_rtd_theme coveralls
         bash ci/deploy.sh
       else
         docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage"
