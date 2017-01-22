@@ -29,63 +29,24 @@ RUN wget -O miniconda.sh \
   && rm miniconda.sh \
   && \
     conda config --add channels conda-forge && \
-    conda create -n condaenv --no-deps -y python=$python \
-    autograd \
-    botocore\<1.5.0,\>\=1.4.1 \
-    boto3 \
-    click \
-    cloudpickle \
-    coverage \
-    cycler \
-    cython \
-    dask \
-    dill \
-    distributed \
-    docopt \
-    docutils \
-    freetype \
-    future \
-    heapdict \
-    ipywidgets \
-    jmespath \
-    libpng \
-    locket \
-    matplotlib \
-    mpmath \
-    msgpack-python \
-    networkx \
-    nose \
-    notebook \
-    numpy \
-    pandas \
-    partd \
-    pillow \
-    pip \
-    psutil \
-    pyparsing \
-    python-coveralls \
-    python-dateutil \
-    pytz \
-    requests \
-    s3fs \
-    s3transfer \
-    scipy \
-    setuptools \
-    sh \
-    six \
-    sortedcollections \
-    sortedcontainers \
-    sphinx \
-    sympy \
-    tblib \
-    terminado \
-    tinydb \
-    toolz \
-    tornado \
-    tqdm \
-    xarray \
-    yaml \
-    zict \
+    conda create -n condaenv --quiet -y python=$python \
+      autograd \
+      cython \
+      matplotlib \
+      pyparsing \
+      sphinx \
+      jupyter \
+      notebook \
+      numpy \
+      scipy \
+      nose \
+      pandas \
+      sympy \
+      dask \
+      dill \
+      distributed \
+      xarray \
+      pip \
     && conda clean -tipsy
 
 ENV PATH="/work/miniconda/envs/condaenv/bin:/work/miniconda/envs/condaenv/lib:$PATH"

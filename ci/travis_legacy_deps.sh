@@ -10,5 +10,4 @@ export PATH=$HOME/miniconda2/bin:$PATH
 conda update --yes conda
 conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
 conda install --yes -n condaenv pip
-source activate condaenv
 conda config --add channels conda-forge
