@@ -56,4 +56,9 @@ script:
         docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage"
       fi
 after_success:
-  - pip install python-coveralls && coveralls
+  - |
+      if [ -z "$DOCKER_TAG" ]; then
+        pip install python-coveralls && coveralls
+      else
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; pip install python-coveralls && coveralls"
+      fi
