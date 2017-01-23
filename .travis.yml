@@ -39,7 +39,6 @@ install:
   - |
       if [ -z "$DOCKER_TAG" ]; then
         source $HOME/miniconda2/bin/activate condaenv
-        pip install coveralls
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
         conda install --yes xarray gcc libgfortran cython
         conda install --yes autograd
@@ -57,4 +56,4 @@ script:
         docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage"
       fi
 after_success:
-  - coveralls
+  - conda install -yq python-coveralls && coveralls
