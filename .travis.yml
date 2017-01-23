@@ -56,4 +56,4 @@ script:
         docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage"
       fi
 after_success:
-  - conda install -yq python-coveralls && coveralls
+  - pip install python-coveralls && coveralls
