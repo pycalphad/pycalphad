@@ -7,9 +7,11 @@ import itertools
 import numpy as np
 cimport numpy as np
 cimport cython
+# XXX: This breaks Windows support, it's spelled _isnan in float.h on Windows
+from libc.math cimport isnan
 import scipy.spatial
 from pycalphad.core.phase_rec cimport PhaseRecord, obj, grad, hess, mass_obj, mass_grad, mass_hess
-from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL
+from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
 # Maximum residual driving force (J/mol-atom) allowed for convergence
@@ -21,6 +23,7 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 INITIAL_OBJECTIVE_WEIGHT = 1
+cdef double MAX_ENERGY = BIGNUM
 
 
 def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
@@ -240,6 +243,9 @@ cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[::1]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
             obj(prn, obj_res, dof_2d_view, 1)
+            # This can happen for phases with non-physical vacancy content
+            if isnan(obj_res[0]):
+                obj_res[0] = MAX_ENERGY
             obj_result[0] += obj_weight * phase_frac * obj_res[0]
             grad(prn, grad_res, dof)
             for dof_x_idx in range(prn.phase_dof):
@@ -280,6 +286,9 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
             obj(prn, obj_res, dof_2d_view, 1)
+            # This can happen for phases with non-physical vacancy content
+            if isnan(obj_res[0]):
+                obj_res[0] = MAX_ENERGY
             grad(prn, grad_res, dof)
             hess(prn, tmp_hess, dof)
             for dof_x_idx in range(prn.phase_dof):
