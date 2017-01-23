@@ -132,7 +132,7 @@ def _compute_phase_dof(dbf, comps, phases):
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _compute_constraints(object dbf, object comps, object phases,
+def _compute_constraints(object comps, object phases,
                          object cur_conds, double[::1] site_fracs,
                          np.ndarray[dtype=np.float64_t, ndim=1] phase_fracs, object phase_records):
     """
@@ -455,7 +455,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                         site_fracs[var_idx + ais] = site_fracs[var_idx + ais] / sum(site_fracs[var_idx:var_idx + len(active_in_subl)])
                     var_idx += len(active_in_subl)
             l_constraints, constraint_jac, constraint_hess  = \
-                compute_constraints(dbf, comps, phases, cur_conds, site_fracs, phase_fracs, phase_records)
+                compute_constraints(comps, phases, cur_conds, site_fracs, phase_fracs, phase_records)
             # Reset Lagrange multipliers if active set of phases change
             if cur_iter == 0 or (old_phase_length != new_phase_length) or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
@@ -503,7 +503,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
             #    step[candidate_phase_fracs.shape[0] + pfidx] = (candidate_phase_fracs[pfidx] - phase_fracs[pfidx]) / alpha
             candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess = \
-                compute_constraints(dbf, comps, phases, cur_conds,
+                compute_constraints(comps, phases, cur_conds,
                                      candidate_site_fracs, candidate_phase_fracs, phase_records)
             # We updated degrees of freedom this iteration
             candidate_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
