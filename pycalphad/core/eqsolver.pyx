@@ -344,6 +344,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         double indep_sum
         int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
         int vmax_window_size
+        int obj_decreases
         double previous_window_average, obj_weight, vmax
         cdef int[:] phase_dof
         cdef double[::1,:] l_hessian
@@ -403,13 +404,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             dependent_comp = list(dependent_comp)[0]
         else:
             raise ValueError('Number of dependent components different from one')
-        diagnostic_matrix_shape = 6
+        diagnostic_matrix_shape = 8
         if diagnostic:
-            diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, 6), np.nan)
+            diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, 8), np.nan)
             debug_fn = 'debug-{}.csv'.format('-'.join([str(x) for x in it.multi_index]))
         vmax_window_size = 20
         previous_window_average = np.inf
         vmax_averages = np.zeros(vmax_window_size)
+        obj_decreases = 0
         alpha = 1
         obj_weight = INITIAL_OBJECTIVE_WEIGHT
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
@@ -577,15 +579,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 diagnostic_matrix[cur_iter, 1] = candidate_energy
                 diagnostic_matrix[cur_iter, 2] = candidate_objective
                 diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
-                diagnostic_matrix[cur_iter, 4] = vmax
-                diagnostic_matrix[cur_iter, 5] = obj_weight
+                diagnostic_matrix[cur_iter, 4] = driving_force
+                diagnostic_matrix[cur_iter, 5] = vmax
+                diagnostic_matrix[cur_iter, 6] = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max()
+                diagnostic_matrix[cur_iter, 7] = obj_weight
             if verbose:
                 print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
                 print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
                 print('Driving force', driving_force)
                 print('obj weight', obj_weight)
-            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.01
-            no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.1
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
@@ -620,19 +623,21 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Phase_values[it.multi_index] = ''
             if (cur_iter > 0) and cur_iter % vmax_window_size == 0:
                 new_window_average = np.median(vmax_averages)
-                if previous_window_average * new_window_average < 1e-20 and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
+                if (obj_decreases < 2) and (previous_window_average * new_window_average < 1e-20) and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
                     if obj_weight > 1:
                         obj_weight *= 0.1
                         l_multipliers *= 0.1
+                        obj_decreases += 1
                         if verbose:
                             print('Decreasing objective weight')
-                elif new_window_average / previous_window_average > 10 and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
+                elif (obj_decreases < 2) and (new_window_average / previous_window_average > 10) and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
                     if obj_weight > 1:
                         obj_weight *= 0.1
                         l_multipliers *= 0.1
+                        obj_decreases += 1
                         if verbose:
                             print('Decreasing objective weight')
-                elif new_window_average > 1e-12:
+                elif (new_window_average > 1e-12) or (np.linalg.norm(step) > 1e-5):
                     if obj_weight < 1e6:
                         obj_weight *= 10
                         l_multipliers *= 10
