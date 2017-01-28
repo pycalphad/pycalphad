@@ -487,52 +487,33 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 l_hessian = np.asfortranarray(np.eye(l_hessian.shape[0]))
             if np.any(np.isnan(gradient_term)):
                 raise ValueError('Invalid gradient_term')
-            # Equation 18.18 in Nocedal and Wright
-            if m != n:
-                if np.any(np.isnan(zmat)):
-                    raise ValueError('Invalid zmat')
-                try:
-                    p_z = np.linalg.solve(np.dot(np.dot(zmat.T, l_hessian), zmat),
-                                          -np.dot(np.dot(np.dot(zmat.T, l_hessian), ymat), p_y) - np.dot(zmat.T, gradient_term))
-                except np.linalg.LinAlgError:
-                    if verbose:
-                        print('Reset p_z due to singular matrix')
-                    p_z = np.zeros(zmat.shape[1], dtype=np.float)
-                step = np.dot(ymat, p_y) + np.dot(zmat, p_z)
-            else:
-                step = np.dot(ymat, p_y)
+            # Equation 18.10 in Nocedal and Wright
+            master_hess = np.zeros((num_vars + l_constraints.shape[0], num_vars + l_constraints.shape[0]))
+            master_hess[:num_vars, :num_vars] = l_hessian
+            master_hess[:num_vars, num_vars:] = -constraint_jac.T
+            master_hess[num_vars:, :num_vars] = constraint_jac
+            master_grad = np.zeros(l_hessian.shape[0] + l_constraints.shape[0])
+            master_grad[:l_hessian.shape[0]] = -np.array(gradient_term)
+            master_grad[l_hessian.shape[0]:] = -l_constraints
+            step = np.linalg.solve(master_hess, master_grad)
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_objective = old_energy + np.dot(np.abs(l_multipliers), np.abs(l_constraints))
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             candidate_site_fracs = np.empty_like(site_fracs)
             candidate_phase_fracs = np.empty_like(phase_fracs)
-            candidate_l_multipliers = np.array(l_multipliers)
+            candidate_l_multipliers = np.array(step[num_vars:])
             for sfidx in range(candidate_site_fracs.shape[0]):
                 candidate_site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
-             #   step[sfidx] = (candidate_site_fracs[sfidx] - site_fracs[sfidx]) / alpha
             for pfidx in range(candidate_phase_fracs.shape[0]):
                 candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
-            #    step[candidate_phase_fracs.shape[0] + pfidx] = (candidate_phase_fracs[pfidx] - phase_fracs[pfidx]) / alpha
             candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess = \
                 compute_constraints(comps, phases, cur_conds,
                                      candidate_site_fracs, candidate_phase_fracs, phase_records)
-            # We updated degrees of freedom this iteration
-            candidate_l_multipliers = np.linalg.solve(np.dot(constraint_jac, ymat).T,
-                                                            np.dot(ymat.T, gradient_term + np.dot(l_hessian, alpha*step)))
             candidate_energy, candidate_gradient_term = \
                 _build_multiphase_gradient(phase_dof, phases, cur_conds, candidate_site_fracs,
                                            candidate_phase_fracs, candidate_l_constraints,
                                            candidate_constraint_jac, candidate_l_multipliers,
                                            phase_records, obj_weight)
-            if np.any(np.isnan(candidate_l_multipliers)):
-                print('WARNING: Unstable Lagrange multipliers: ', candidate_l_multipliers)
-                # Equation 18.16 in Nocedal and Wright
-                # This method is less accurate but more stable
-                candidate_l_multipliers = np.dot(np.dot(np.linalg.inv(np.dot(candidate_constraint_jac,
-                                                                       candidate_constraint_jac.T)),
-                                           candidate_constraint_jac), candidate_gradient_term)
-            np.clip(candidate_l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER,
-                out=candidate_l_multipliers)
             candidate_objective = candidate_energy - np.dot(candidate_l_multipliers, candidate_l_constraints)
             l_multipliers = candidate_l_multipliers
             if np.any(np.isnan(l_multipliers)):
