@@ -588,7 +588,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
                 print('Driving force', driving_force)
                 print('obj weight', obj_weight)
-            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.1
+            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.01
+            no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
