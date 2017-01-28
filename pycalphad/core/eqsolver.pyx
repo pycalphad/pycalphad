@@ -277,6 +277,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
     cdef int phase_idx = 0
     cdef int constraint_idx, dof_x_idx, dof_y_idx, hess_x, hess_y, hess_idx
     cdef double phase_frac
+    cdef double total_obj = 0
     cdef PhaseRecord prn
     dof[0] = cur_conds['P']
     dof[1] = cur_conds['T']
@@ -289,6 +290,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
+            total_obj += obj_weight * phase_frac * obj_res[0]
             grad(prn, grad_res, dof)
             hess(prn, tmp_hess, dof)
             for dof_x_idx in range(prn.phase_dof):
@@ -309,7 +311,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
             var_offset += prn.phase_dof
             phase_idx += 1
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
-    return np.asarray(l_hessian), np.asarray(gradient_term)
+    return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
 def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, verbose, diagnostic, compute_constraints):
     """
@@ -351,7 +353,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         cdef double[::1] gradient_term, mass_buf
         double[::1] vmax_averages
         np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step
-        np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, candidate_site_fracs, l_multipliers, candidate_phase_fracs, phase_fracs
+        np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
         np.ndarray[ndim=2, dtype=np.float64_t] ymat, zmat, qmat, rmat, constraint_jac
         np.ndarray[ndim=2, dtype=np.float64_t] diagnostic_matrix
 
@@ -470,16 +472,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             # Reset Lagrange multipliers if active set of phases change
             if cur_iter == 0 or (old_phase_length != new_phase_length) or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
-            qmat, rmat = np.linalg.qr(constraint_jac.T, mode='complete')
-            m = rmat.shape[1]
-            n = qmat.shape[0]
-            # Construct orthonormal basis for the constraints
-            ymat = qmat[:, :m]
-            zmat = qmat[:, m:]
             # Equation 18.14a in Nocedal and Wright
-            p_y = np.linalg.solve(-np.dot(constraint_jac, ymat), l_constraints)
             num_vars = len(site_fracs) + len(phases)
-            l_hessian, gradient_term = _build_multiphase_system(phase_dof, phases, cur_conds, site_fracs, phase_fracs,
+            energy, l_hessian, gradient_term = _build_multiphase_system(phase_dof, phases, cur_conds, site_fracs, phase_fracs,
                                                                 l_constraints, constraint_jac, constraint_hess,
                                                                 l_multipliers, phase_records, obj_weight)
             if np.any(np.isnan(l_hessian)):
@@ -496,43 +491,33 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             master_grad[:l_hessian.shape[0]] = -np.array(gradient_term)
             master_grad[l_hessian.shape[0]:] = -l_constraints
             step = np.linalg.solve(master_hess, master_grad)
+            for sfidx in range(site_fracs.shape[0]):
+                site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
+            for pfidx in range(phase_fracs.shape[0]):
+                phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx], 0), 1)
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
-            old_objective = old_energy + np.dot(np.abs(l_multipliers), np.abs(l_constraints))
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
-            candidate_site_fracs = np.empty_like(site_fracs)
-            candidate_phase_fracs = np.empty_like(phase_fracs)
-            candidate_l_multipliers = np.array(step[num_vars:])
-            for sfidx in range(candidate_site_fracs.shape[0]):
-                candidate_site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
-            for pfidx in range(candidate_phase_fracs.shape[0]):
-                candidate_phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[candidate_site_fracs.shape[0] + pfidx], 0), 1)
-            candidate_l_constraints, candidate_constraint_jac, candidate_constraint_hess = \
+            l_multipliers = np.array(step[num_vars:])
+            l_constraints, constraint_jac, constraint_hess = \
                 compute_constraints(comps, phases, cur_conds,
-                                     candidate_site_fracs, candidate_phase_fracs, phase_records)
-            candidate_energy, candidate_gradient_term = \
-                _build_multiphase_gradient(phase_dof, phases, cur_conds, candidate_site_fracs,
-                                           candidate_phase_fracs, candidate_l_constraints,
-                                           candidate_constraint_jac, candidate_l_multipliers,
-                                           phase_records, obj_weight)
-            candidate_objective = candidate_energy - np.dot(candidate_l_multipliers, candidate_l_constraints)
-            l_multipliers = candidate_l_multipliers
+                                     site_fracs, phase_fracs, phase_records)
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
                 l_multipliers[:] = 0
             if verbose:
                 print('NEW_L_MULTIPLIERS', l_multipliers)
-            vmax = np.max(np.abs(candidate_l_constraints))
+            vmax = np.max(np.abs(l_constraints))
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             chemical_potentials = l_multipliers[sum([len(dbf.phases[i].sublattices) for i in phases]):
                                                 sum([len(dbf.phases[i].sublattices) for i in phases]) + num_mass_bals] / obj_weight
             prop_MU_values[it.multi_index] = chemical_potentials
-            prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = candidate_phase_fracs
+            prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = phase_fracs
             prop_X_values[it.multi_index + np.index_exp[:len(phases)]] = 0
-            prop_GM_values[it.multi_index] = candidate_energy / obj_weight
+            prop_GM_values[it.multi_index] = energy / obj_weight
             var_offset = 0
             for phase_idx in range(len(phases)):
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_dof[phase_idx]]] = \
-                    candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
+                    site_fracs[var_offset:var_offset + phase_dof[phase_idx]]
                 comp_idx = 0
                 # Necessary to fix gh-62 and gh-63
                 past_va = False
@@ -543,7 +528,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                     mass_buf = np.zeros(1)
                     mass_obj(phase_records[phases[phase_idx]],
                              mass_buf,
-                             candidate_site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
+                             site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
                              comp_idx)
                     prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx-int(past_va)]] = mass_buf[0]
                     comp_idx += 1
@@ -557,8 +542,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             driving_force = np.squeeze(driving_force)
             if diagnostic:
                 diagnostic_matrix[cur_iter, 0] = cur_iter
-                diagnostic_matrix[cur_iter, 1] = candidate_energy
-                diagnostic_matrix[cur_iter, 2] = candidate_objective
+                diagnostic_matrix[cur_iter, 1] = energy
+                diagnostic_matrix[cur_iter, 2] = 0
                 diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
                 diagnostic_matrix[cur_iter, 4] = driving_force
                 diagnostic_matrix[cur_iter, 5] = vmax
