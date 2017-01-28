@@ -498,9 +498,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             l_multipliers = np.array(step[num_vars:])
-            l_constraints, constraint_jac, constraint_hess = \
-                compute_constraints(comps, phases, cur_conds,
-                                     site_fracs, phase_fracs, phase_records)
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
                 l_multipliers[:] = 0
