@@ -87,12 +87,9 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
         if <unicode>phases[phase_idx] == <unicode>'_FAKE_':
             phase_fractions[phase_idx] = np.nan
             phases[phase_idx] = <unicode>''
-        else:
-            # Delete unstable phases
-            for phf_idx in range(phase_fractions.shape[1]):
-                if phase_fractions[phf_idx] <= MIN_SITE_FRACTION:
-                    phase_fractions[phase_idx] = np.nan
-                    phases[phase_idx] = <unicode>''
+        elif phase_fractions[phase_idx] <= MIN_SITE_FRACTION:
+            phase_fractions[phase_idx] = np.nan
+            phases[phase_idx] = <unicode>''
     # Rewrite properties to delete all the nulled out phase entries
     # Then put them at the end
     # That will let us rewrite 'phases' to have only the independent phases
@@ -109,7 +106,7 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
     for sidx in saved_indices:
         # TODO: Assumes N=1 always
         phase_fractions[phase_idx] = phase_fractions[sidx]
-        phase_fractions[phase_idx] /= phfsum
+        phase_fractions[phase_idx] /= abs(phfsum)
         phases[phase_idx] = phases[sidx]
         mole_fractions[phase_idx, :] = mole_fractions[sidx, :]
         site_fractions[phase_idx, :] = site_fractions[sidx, :]
@@ -406,9 +403,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             dependent_comp = list(dependent_comp)[0]
         else:
             raise ValueError('Number of dependent components different from one')
-        diagnostic_matrix_shape = 8
+        diagnostic_matrix_shape = 7
         if diagnostic:
-            diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, 8), np.nan)
+            diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape + len(set(comps) - {'VA'})), np.nan)
             debug_fn = 'debug-{}.csv'.format('-'.join([str(x) for x in it.multi_index]))
         vmax_window_size = 20
         previous_window_average = np.inf
@@ -459,7 +456,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             if len(site_fracs) == 0:
                 print(properties)
                 raise ValueError('Site fractions are invalid')
-            phase_fracs[phase_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
             var_idx = 0
             for name in phases:
                 for idx in range(len(dbf.phases[name].sublattices)):
@@ -494,10 +490,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             for sfidx in range(site_fracs.shape[0]):
                 site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
             for pfidx in range(phase_fracs.shape[0]):
-                phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx], 0), 1)
+                phase_fracs[pfidx] = phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx]
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             l_multipliers = np.array(step[num_vars:])
+            np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
                 l_multipliers[:] = 0
@@ -539,19 +536,20 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             driving_force = np.squeeze(driving_force)
             if diagnostic:
                 diagnostic_matrix[cur_iter, 0] = cur_iter
-                diagnostic_matrix[cur_iter, 1] = energy
-                diagnostic_matrix[cur_iter, 2] = 0
-                diagnostic_matrix[cur_iter, 3] = np.linalg.norm(step)
-                diagnostic_matrix[cur_iter, 4] = driving_force
-                diagnostic_matrix[cur_iter, 5] = vmax
-                diagnostic_matrix[cur_iter, 6] = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max()
-                diagnostic_matrix[cur_iter, 7] = obj_weight
+                diagnostic_matrix[cur_iter, 1] = energy / obj_weight
+                diagnostic_matrix[cur_iter, 2] = np.linalg.norm(step)
+                diagnostic_matrix[cur_iter, 3] = driving_force
+                diagnostic_matrix[cur_iter, 4] = vmax
+                diagnostic_matrix[cur_iter, 5] = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max()
+                diagnostic_matrix[cur_iter, 6] = obj_weight
+                for iy, mu in enumerate(prop_MU_values[it.multi_index]):
+                    diagnostic_matrix[cur_iter, 7+iy] = mu
             if verbose:
                 print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
                 print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
                 print('Driving force', driving_force)
                 print('obj weight', obj_weight)
-            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.01
+            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.1
             no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
