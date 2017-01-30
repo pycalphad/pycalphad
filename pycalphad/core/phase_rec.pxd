@@ -12,6 +12,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public double[::1] num_sites
     cdef public int[::1] sublattice_dof
     cdef public int phase_dof
+    cdef public unicode name
     cdef public double[:,:,::1] composition_matrices
     cdef int vacancy_index
 

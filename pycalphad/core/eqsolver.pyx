@@ -25,6 +25,18 @@ MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 INITIAL_OBJECTIVE_WEIGHT = 1
 cdef double MAX_ENERGY = BIGNUM
 
+cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
+    cdef PhaseRecord phase_record
+    cdef public double[::1] dof, X
+    cdef public double NP
+    def __cinit__(self, PhaseRecord prx, double[::1] site_fracs, double phase_amt,
+                  double pressure, double temperature):
+        self.phase_record = prx
+        self.dof = np.zeros(len(prx.variables))
+        self.dof[0] = pressure
+        self.dof[1] = temperature
+        self.dof[2:] = site_fracs
+        self.NP = phase_amt
 
 def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
                              double[:,:] site_fractions, double[:] phase_fractions):
@@ -80,6 +92,7 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
         # and they will be nulled out
         for redundant in removed_phases:
             phase_fractions[kept_phase] += phase_fractions[redundant]
+            phase_fractions[redundant] = np.nan
             phases[redundant] = <unicode>''
     # Eliminate any 'fake points' that made it through the convex hull routine
     # These can show up from phases which aren't defined over all of composition space
@@ -403,6 +416,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             dependent_comp = list(dependent_comp)[0]
         else:
             raise ValueError('Number of dependent components different from one')
+        composition_sets = []
+        for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
+            phrec = phase_records[phase_name]
+            sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
+            phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
+            compset = CompositionSet(phrec, sfx, phase_amt, cur_conds['P'], cur_conds['T'])
+            composition_sets.append(compset)
         diagnostic_matrix_shape = 7
         if diagnostic:
             diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape + len(set(comps) - {'VA'})), np.nan)
@@ -433,7 +453,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             else:
                 num_phases = len(phases)
             if num_phases == 0:
-                raise ValueError('Zero phases are left in the system')
+                raise ValueError('Zero phases are left in the system', cur_conds)
             zero_dof = np.all(
                 (prop_Y_values[it.multi_index] == 1.) | np.isnan(prop_Y_values[it.multi_index]))
             if (num_phases == 1) and zero_dof:
@@ -491,6 +511,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
             for pfidx in range(phase_fracs.shape[0]):
                 phase_fracs[pfidx] = phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx]
+            if verbose:
+                print('Phases', phases)
+                print('step', step)
+                print('Site fractions', site_fracs)
+                print('Phase fractions', phase_fracs)
             old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
             old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             l_multipliers = np.array(step[num_vars:])
