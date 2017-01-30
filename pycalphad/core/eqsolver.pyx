@@ -418,6 +418,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             raise ValueError('Number of dependent components different from one')
         composition_sets = []
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
+            if phase_name == '':
+                continue
             phrec = phase_records[phase_name]
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
