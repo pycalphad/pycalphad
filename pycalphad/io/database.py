@@ -104,7 +104,7 @@ class Database(object): #pylint: disable=R0902
                 path, ext = os.path.splitext(fname)
                 if '.' in ext and ext[1:].lower() in format_registry:
                     fmt = ext[1:].lower()
-            except AttributeError:
+            except (AttributeError, TypeError):
                 pass
             if hasattr(fname, 'read'):
                 # File descriptor
@@ -184,7 +184,7 @@ class Database(object): #pylint: disable=R0902
             # Attempt to auto-detect the correct format based on the file extension
             try:
                 path, ext = os.path.splitext(fname)
-            except AttributeError:
+            except (AttributeError, TypeError):
                 # fname isn't actually a path, so we don't know the correct format
                 raise ValueError('\'fmt\' keyword argument must be specified when passing a file descriptor.')
             if '.' in ext and ext[1:].lower() in format_registry:
@@ -260,7 +260,7 @@ class Database(object): #pylint: disable=R0902
             # Attempt to auto-detect the correct format based on the file extension
             try:
                 path, ext = os.path.splitext(fname)
-            except AttributeError:
+            except (AttributeError, TypeError):
                 # fname isn't actually a path, so we don't know the correct format
                 raise ValueError('\'fmt\' keyword argument must be specified when passing a file descriptor.')
             if '.' in ext and ext[1:].lower() in format_registry:
