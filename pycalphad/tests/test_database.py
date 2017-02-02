@@ -85,6 +85,11 @@ def test_unknown_format_to_string():
 
 def test_load_from_stringio():
     "Test database loading from a file-like object."
+    test_tdb = Database(StringIO(ALCRNI_TDB))
+    assert test_tdb == REFERENCE_DBF
+
+def test_load_from_stringio_from_file():
+    "Test database loading from a file-like object with the from_file method."
     test_tdb = Database.from_file(StringIO(ALCRNI_TDB), fmt='tdb')
     assert test_tdb == REFERENCE_DBF
 
