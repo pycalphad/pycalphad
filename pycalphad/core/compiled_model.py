@@ -225,18 +225,18 @@ class RedlichKisterSum(object):
         return return_dict
 
 
-class CompiledModel(object):
+class CompiledModel(Model):
     def __init__(self, dbe, comps, phase_name, parameters=None):
+        super(CompiledModel, self).__init__(dbe, comps, phase_name, parameters=parameters)
+    def eval_energy(self, pressure, temperature, dof, out):
         pass
-    def eval_energy(self):
+    def eval_energy_ideal(self, pressure, temperature, dof, out):
         pass
-    def eval_energy_ideal(self):
+    def eval_gradient_energy(self, pressure, temperature, dof, out):
         pass
-    def eval_gradient_energy(self):
+    def eval_gradient_energy_ideal(self, pressure, temperature, dof, out):
         pass
-    def eval_gradient_energy_ideal(self):
+    def eval_hessian_energy(self, pressure, temperature, dof, out):
         pass
-    def eval_hessian_energy(self):
-        pass
-    def eval_hessian_energy_ideal(self):
+    def eval_hessian_energy_ideal(self, pressure, temperature, dof, out):
         pass
