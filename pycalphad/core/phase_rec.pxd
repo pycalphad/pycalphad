@@ -14,7 +14,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public int phase_dof
     cdef public unicode name
     cdef public double[:,:,::1] composition_matrices
-    cdef int vacancy_index
+    cdef public int vacancy_index
 
 cdef void obj(PhaseRecord prx, double[::1] out, double[::1,:] dof, int bounds) nogil
 cdef void grad(PhaseRecord prx, double[::1] out, double[::1] dof) nogil

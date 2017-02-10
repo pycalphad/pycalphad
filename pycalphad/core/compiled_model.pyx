@@ -6,9 +6,13 @@ from pycalphad.io.tdb import to_interval
 from pycalphad import Model
 import copy
 import numpy as np
+cimport numpy as np
 
+# Maximum number of levels deep we check for symbols that are functions of
+# other symbols
+_MAX_PARAM_NESTING = 32
 
-def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix):
+def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix, param_symbols):
     if isinstance(sympy_obj, (Float, Integer, Rational)):
         result = float(sympy_obj)
         if result != 0.0:
@@ -28,13 +32,13 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
             highlim = invl.args[1] if invl.args[1] < high_temp else high_temp
             if highlim < lowlim:
                 continue
-            build_piecewise_matrix(expr, cur_exponents, float(lowlim), float(highlim), output_matrix, symbol_matrix)
+            build_piecewise_matrix(expr, cur_exponents, float(lowlim), float(highlim), output_matrix, symbol_matrix, param_symbols)
     elif isinstance(sympy_obj, Symbol):
-        symbol_matrix.append([low_temp, high_temp] + list(cur_exponents) + [str(sympy_obj)])
+        symbol_matrix.append([low_temp, high_temp] + list(cur_exponents) + [param_symbols.index(sympy_obj)])
     elif isinstance(sympy_obj, Add):
         sympy_obj = sympy_obj.expand()
         for arg in sympy_obj.args:
-            build_piecewise_matrix(arg, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix)
+            build_piecewise_matrix(arg, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix, param_symbols)
     elif isinstance(sympy_obj, Mul):
         new_exponents = np.array(cur_exponents)
         remaining_argument = S.One
@@ -58,7 +62,7 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
                 remaining_argument *= arg
         if not isinstance(remaining_argument, Mul):
             build_piecewise_matrix(remaining_argument, new_exponents, low_temp, high_temp,
-                                   output_matrix, symbol_matrix)
+                                   output_matrix, symbol_matrix, param_symbols)
         else:
             raise NotImplementedError(sympy_obj)
     else:
@@ -66,7 +70,7 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
 
 
 class RedlichKisterSum(object):
-    def __init__(self, comps, phase, param_search, param_query):
+    def __init__(self, comps, phase, param_search, param_query, param_symbols, all_symbols):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
@@ -151,7 +155,6 @@ class RedlichKisterSum(object):
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True)
             mt_expand = mixing_term.expand()
-            print(mt_expand)
             if not isinstance(mt_expand, Add):
                 mt_expand = [mt_expand]
             else:
@@ -177,8 +180,9 @@ class RedlichKisterSum(object):
                         dof_param[len(dof)] *= float(mularg)
                     else:
                         raise NotImplementedError(type(mularg), mularg)
-                build_piecewise_matrix(Float(200000), [0,0,0,0] + dof_param.tolist(), 0, 10000,
-                                       self.output_matrix, self.symbol_matrix)
+                filled_param = self.symbol_replace(param['parameter'], all_symbols)
+                build_piecewise_matrix(filled_param, [0,0,0,0] + dof_param.tolist(), 0, 10000,
+                                       self.output_matrix, self.symbol_matrix, param_symbols)
             rk_terms.append(mixing_term * param['parameter'])
         self.output_matrix = np.array(self.output_matrix)
         result = Add(*rk_terms)
@@ -224,19 +228,166 @@ class RedlichKisterSum(object):
             return_dict[comp] = comp + correction_term
         return return_dict
 
+    @staticmethod
+    def symbol_replace(obj, symbols):
+        """
+        Substitute values of symbols into 'obj'.
+
+        Parameters
+        ----------
+        obj : SymPy object
+        symbols : dict mapping sympy.Symbol to SymPy object
+
+        Returns
+        -------
+        SymPy object
+        """
+        try:
+            # Need to do more substitutions to catch symbols that are functions
+            # of other symbols
+            for iteration in range(_MAX_PARAM_NESTING):
+                obj = obj.xreplace(symbols)
+                undefs = obj.atoms(Symbol) - obj.atoms(v.StateVariable)
+                if len(undefs) == 0:
+                    break
+        except AttributeError:
+            # Can't use xreplace on a float
+            pass
+        return obj
 
 class CompiledModel(Model):
     def __init__(self, dbe, comps, phase_name, parameters=None):
         super(CompiledModel, self).__init__(dbe, comps, phase_name, parameters=parameters)
-    def eval_energy(self, pressure, temperature, dof, out):
+        parameters = parameters if parameters is not None else {}
+        self.sublattice_dof = np.array([len(c) for c in self.constituents])
+        self.site_ratios = np.array(self.site_ratios)
+        pure_param_query = (
+            (where('phase_name') == phase_name) & \
+            (where('parameter_order') == 0) & \
+            (where('parameter_type') == "G") & \
+            (where('constituent_array').test(self._purity_test))
+        )
+        excess_param_query = (
+            (where('phase_name') == phase_name) & \
+            ((where('parameter_type') == 'G') |
+             (where('parameter_type') == 'L')) & \
+            (where('constituent_array').test(self._interaction_test))
+        )
+        bm_param_query = (
+            (where('phase_name') == phase_name) & \
+            (where('parameter_type') == 'BMAGN') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        tc_param_query = (
+            (where('phase_name') == phase_name) & \
+            (where('parameter_type') == 'TC') & \
+            (where('constituent_array').test(self._array_validity))
+        )
+        all_symbols = dbe.symbols.copy()
+        # Convert string symbol names to sympy Symbol objects
+        # This makes xreplace work with the symbols dict
+        all_symbols = dict([(Symbol(s), val) for s, val in all_symbols.items()])
+        for param in parameters.keys():
+            all_symbols.pop(param, None)
+        pure_rksum = RedlichKisterSum(comps, dbe.phases[phase_name], dbe.search, pure_param_query, list(parameters.keys()), all_symbols)
+        excess_rksum = RedlichKisterSum(comps, dbe.phases[phase_name], dbe.search, excess_param_query, list(parameters.keys()), all_symbols)
+        tc_rksum = RedlichKisterSum(comps, dbe.phases[phase_name], dbe.search, tc_param_query, list(parameters.keys()), all_symbols)
+        bm_rksum = RedlichKisterSum(comps, dbe.phases[phase_name], dbe.search, bm_param_query, list(parameters.keys()), all_symbols)
+        self.pure_coef_matrix = pure_rksum.output_matrix
+        self.pure_coef_symbol_matrix = pure_rksum.symbol_matrix
+        self.excess_coef_matrix = excess_rksum.output_matrix
+        self.excess_coef_symbol_matrix = excess_rksum.symbol_matrix
+        self.bm_coef_matrix = bm_rksum.output_matrix
+        self.bm_coef_symbol_matrix = bm_rksum.symbol_matrix
+        self.tc_coef_matrix = tc_rksum.output_matrix
+        self.tc_coef_symbol_matrix = tc_rksum.symbol_matrix
+        self.ihj_magnetic_structure_factor = dbe.phases[phase_name].model_hints.get('ihj_magnetic_structure_factor', -1)
+        self.afm_factor = dbe.phases[phase_name].model_hints.get('ihj_magnetic_afm_factor', 0)
+    def get_obj_ptr(self):
         pass
-    def eval_energy_ideal(self, pressure, temperature, dof, out):
+    def get_grad_ptr(self):
         pass
-    def eval_gradient_energy(self, pressure, temperature, dof, out):
+    def get_hess_ptr(self):
         pass
-    def eval_gradient_energy_ideal(self, pressure, temperature, dof, out):
-        pass
-    def eval_hessian_energy(self, pressure, temperature, dof, out):
-        pass
-    def eval_hessian_energy_ideal(self, pressure, temperature, dof, out):
-        pass
+
+cpdef eval_energy(cmpmdl, prx, out, dof, parameters, bounds):
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
+    cdef np.ndarray[ndim=1, dtype=np.float64_t]  row
+    cdef double mass_normalization_factor = 0
+    cdef double curie_temp = 0
+    cdef double tau = 0
+    cdef double bmagn = 0
+    cdef double A, p, res_tau
+    cdef int prev_idx = 0
+    cdef int dof_idx
+    out[0] = 0
+    eval_row[0] = dof[0]
+    eval_row[1] = dof[1]
+    eval_row[2] = log(dof[0])
+    eval_row[3] = log(dof[1])
+    eval_row[4:] = dof[2:]
+
+    # Ideal mixing
+    for entry_idx in range(cmpmdl.site_ratios.shape[0]):
+        for dof_idx in range(prev_idx, prev_idx+cmpmdl.sublattice_dof[entry_idx]):
+            if dof[2+dof_idx] > 1e-16:
+                out[0] += 8.3145 * dof[1] * cmpmdl.site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
+        prev_idx = 1*cmpmdl.sublattice_dof[entry_idx]
+
+    # End-member contribution
+    for row in cmpmdl.pure_coef_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+    for row in cmpmdl.pure_coef_symbol_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    # Interaction contribution
+    for row in cmpmdl.excess_coef_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+    for row in cmpmdl.excess_coef_symbol_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    # Magnetic contribution
+    for row in cmpmdl.tc_coef_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+    for row in cmpmdl.tc_coef_symbol_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    for row in cmpmdl.bm_coef_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+    for row in cmpmdl.bm_coef_symbol_matrix:
+        if (dof[1] >= row[0]) and (dof[1] < row[1]):
+            bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    if (curie_temp != 0) and (bmagn != 0) and (cmpmdl.ihj_magnetic_structure_factor > 0) and (cmpmdl.afm_factor != 0):
+        if bmagn < 0:
+            bmagn /= cmpmdl.afm_factor
+        if curie_temp < 0:
+            curie_temp /= cmpmdl.afm_factor
+        if curie_temp > 1e-6:
+            tau = dof[1] / curie_temp
+            # define model parameters
+            p = cmpmdl.ihj_magnetic_structure_factor
+            A = 518./1125 + (11692./15975)*(1./p - 1.)
+            # factor when tau < 1
+            if tau < 1:
+                res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                    * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                  )
+            else:
+                # factor when tau >= 1
+                res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+            out[0] += 8.3145 * dof[1] * log(bmagn+1) * res_tau
+    for subl_idx in range(cmpmdl.site_ratios.shape[0]):
+        if (prx.vacancy_index > -1) and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
+            mass_normalization_factor += cmpmdl.site_ratios[subl_idx] * (1-dof[2+<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
+        else:
+            mass_normalization_factor += cmpmdl.site_ratios[subl_idx]
+    out[0] /= mass_normalization_factor
+
+def eval_gradient_energy(cmpmdl, pressure, temperature, dof, out):
+    pass
+def eval_hessian_energy(cmpmdl, pressure, temperature, dof, out):
+    pass
