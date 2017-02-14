@@ -70,11 +70,12 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
 
 
 class RedlichKisterSum(object):
-    def __init__(self, comps, phase, param_search, param_query, param_symbols, all_symbols):
+    def __init__(self, comps, phase, param_search, param_query, param_symbols, all_symbols, variable_rename_dict=None):
         """
         Construct parameter in Redlich-Kister polynomial basis, using
         the Muggianu ternary parameter extension.
         """
+        variable_rename_dict = variable_rename_dict if variable_rename_dict is not None else dict()
         rk_terms = []
         dof = [v.SiteFraction(phase.name, subl_index, comp)
                for subl_index, subl in enumerate(phase.constituents) for comp in sorted(set(subl).intersection(comps))]
@@ -154,6 +155,7 @@ class RedlichKisterSum(object):
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True)
+            mixing_term = mixing_term.xreplace(variable_rename_dict)
             mt_expand = mixing_term.expand()
             if not isinstance(mt_expand, Add):
                 mt_expand = [mt_expand]
@@ -259,6 +261,11 @@ class CompiledModel(Model):
     def __init__(self, dbe, comps, phase_name, parameters=None):
         super(CompiledModel, self).__init__(dbe, comps, phase_name, parameters=parameters)
         parameters = parameters if parameters is not None else {}
+        phase = dbe.phases[phase_name]
+        ordered_phase_name = phase.model_hints.get('ordered_phase', None)
+        disordered_phase_name = phase.model_hints.get('disordered_phase', None)
+        if ordered_phase_name == phase_name:
+            pass
         self.sublattice_dof = np.array([len(c) for c in self.constituents])
         self.site_ratios = np.array(self.site_ratios)
         pure_param_query = (
