@@ -262,10 +262,6 @@ class CompiledModel(Model):
         super(CompiledModel, self).__init__(dbe, comps, phase_name, parameters=parameters)
         parameters = parameters if parameters is not None else {}
         phase = dbe.phases[phase_name]
-        ordered_phase_name = phase.model_hints.get('ordered_phase', None)
-        disordered_phase_name = phase.model_hints.get('disordered_phase', None)
-        if ordered_phase_name == phase_name:
-            pass
         self.sublattice_dof = np.array([len(c) for c in self.constituents])
         self.site_ratios = np.array(self.site_ratios)
         pure_param_query = (
@@ -310,6 +306,25 @@ class CompiledModel(Model):
         self.tc_coef_symbol_matrix = tc_rksum.symbol_matrix
         self.ihj_magnetic_structure_factor = dbe.phases[phase_name].model_hints.get('ihj_magnetic_structure_factor', -1)
         self.afm_factor = dbe.phases[phase_name].model_hints.get('ihj_magnetic_afm_factor', 0)
+        ordered_phase_name = phase.model_hints.get('ordered_phase', None)
+        disordered_phase_name = phase.model_hints.get('disordered_phase', None)
+        if (ordered_phase_name == phase_name) and (ordered_phase_name != disordered_phase_name):
+            disordered_model = self.__class__(dbe, comps, disordered_phase_name, parameters=parameters)
+            self.ordered = True
+            self.disordered_sublattice_dof = disordered_model.sublattice_dof
+            self.disordered_site_ratios = disordered_model.site_ratios
+            self.disordered_pure_coef_matrix = disordered_model.pure_coef_matrix
+            self.disordered_pure_coef_symbol_matrix = disordered_model.pure_coef_symbol_matrix
+            self.disordered_excess_coef_matrix = disordered_model.excess_coef_matrix
+            self.disordered_excess_coef_symbol_matrix = disordered_model.excess_coef_symbol_matrix
+            self.disordered_bm_coef_matrix = disordered_model.bm_coef_matrix
+            self.disordered_bm_coef_symbol_matrix = disordered_model.bm_coef_symbol_matrix
+            self.disordered_tc_coef_matrix = disordered_model.tc_coef_matrix
+            self.disordered_tc_coef_symbol_matrix = disordered_model.tc_coef_symbol_matrix
+            self.disordered_ihj_magnetic_structure_factor = disordered_model.ihj_magnetic_structure_factor
+            self.disordered_afm_factor = disordered_model.afm_factor
+        else:
+            self.ordered = False
     def get_obj_ptr(self):
         pass
     def get_grad_ptr(self):
@@ -319,12 +334,15 @@ class CompiledModel(Model):
 
 cpdef eval_energy(cmpmdl, prx, out, dof, parameters, bounds):
     cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof
     cdef np.ndarray[ndim=1, dtype=np.float64_t]  row
     cdef double mass_normalization_factor = 0
     cdef double curie_temp = 0
     cdef double tau = 0
     cdef double bmagn = 0
     cdef double A, p, res_tau
+    cdef double disordered_energy = 0
     cdef int prev_idx = 0
     cdef int dof_idx
     out[0] = 0
@@ -393,6 +411,63 @@ cpdef eval_energy(cmpmdl, prx, out, dof, parameters, bounds):
         else:
             mass_normalization_factor += cmpmdl.site_ratios[subl_idx]
     out[0] /= mass_normalization_factor
+
+    if cmpmdl.ordered is True:
+        # Disordered phase contribution
+        disordered_dof = np.zeros(np.sum(cmpmdl.disordered_sublattice_dof)+2)
+        #disordered_eval_row
+        # End-member contribution
+        for row in cmpmdl.pure_coef_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+        for row in cmpmdl.pure_coef_symbol_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        # Interaction contribution
+        for row in cmpmdl.excess_coef_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+        for row in cmpmdl.excess_coef_symbol_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                out[0] += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        # Magnetic contribution
+        for row in cmpmdl.tc_coef_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+        for row in cmpmdl.tc_coef_symbol_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        for row in cmpmdl.bm_coef_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
+        for row in cmpmdl.bm_coef_symbol_matrix:
+            if (dof[1] >= row[0]) and (dof[1] < row[1]):
+                bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        if (curie_temp != 0) and (bmagn != 0) and (cmpmdl.ihj_magnetic_structure_factor > 0) and (cmpmdl.afm_factor != 0):
+            if bmagn < 0:
+                bmagn /= cmpmdl.afm_factor
+            if curie_temp < 0:
+                curie_temp /= cmpmdl.afm_factor
+            if curie_temp > 1e-6:
+                tau = dof[1] / curie_temp
+                # define model parameters
+                p = cmpmdl.ihj_magnetic_structure_factor
+                A = 518./1125 + (11692./15975)*(1./p - 1.)
+                # factor when tau < 1
+                if tau < 1:
+                    res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                        * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                      )
+                else:
+                    # factor when tau >= 1
+                    res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+                out[0] += 8.3145 * dof[1] * log(bmagn+1) * res_tau
+        for subl_idx in range(cmpmdl.site_ratios.shape[0]):
+            if (prx.vacancy_index > -1) and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += cmpmdl.site_ratios[subl_idx] * (1-dof[2+<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
+            else:
+                mass_normalization_factor += cmpmdl.site_ratios[subl_idx]
+        out[0] /= mass_normalization_factor
 
 def eval_gradient_energy(cmpmdl, pressure, temperature, dof, out):
     pass
