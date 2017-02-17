@@ -697,7 +697,7 @@ class Model(object):
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
         if phase.name != ordered_phase_name:
             return S.Zero
-        disordered_model = self.__class__(dbe, self.components,
+        disordered_model = self.__class__(dbe, sorted(self.components),
                                           disordered_phase_name)
         constituents = [sorted(set(c).intersection(self.components)) \
                 for c in dbe.phases[ordered_phase_name].constituents]
