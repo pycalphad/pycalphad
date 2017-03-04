@@ -552,7 +552,7 @@ cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
             if disordered_curie_temp < 0:
                 disordered_curie_temp /= cmpmdl.disordered_afm_factor
             if disordered_curie_temp > 1e-6:
-                tau = dof[1] / curie_temp
+                tau = dof[1] / disordered_curie_temp
                 # define model parameters
                 p = cmpmdl.disordered_ihj_magnetic_structure_factor
                 A = 518./1125 + (11692./15975)*(1./p - 1.)
@@ -563,7 +563,7 @@ cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
                                       )
                 else:
                     # factor when tau >= 1
-                    res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+                    res_tau = -(1./A) * ((tau**-5)/10. + (tau**-15)/315. + (tau**-25)/1500.)
                 disordered_energy += 8.3145 * disordered_dof[1] * log(disordered_bmagn+1) * res_tau
         for subl_idx in range(cmpmdl.disordered_site_ratios.shape[0]):
             if (cmpmdl.vacancy_index > -1) and cmpmdl.disordered_composition_matrices[cmpmdl.vacancy_index, subl_idx, 1] > -1:
