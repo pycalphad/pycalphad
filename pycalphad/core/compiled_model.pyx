@@ -191,7 +191,8 @@ class RedlichKisterSum(object):
                 build_piecewise_matrix(filled_param, [0,0,0,0] + dof_param.tolist(), 0, 10000,
                                        self.output_matrix, self.symbol_matrix, param_symbols)
             rk_terms.append(mixing_term * param['parameter'])
-        self.output_matrix = np.array(self.output_matrix)
+        self.output_matrix = np.atleast_2d(self.output_matrix)
+        self.symbol_matrix = np.atleast_2d(self.symbol_matrix)
         result = Add(*rk_terms)
 
     def _eval(self, pressure, temperature, dof):
@@ -262,16 +263,21 @@ class RedlichKisterSum(object):
             pass
         return obj
 
-class CompiledModel(Model):
-    def __init__(self, dbe, comps, phase_name, parameters=None):
-        super(CompiledModel, self).__init__(dbe, comps, phase_name, parameters=parameters)
+# Forward declaration necessary for some self-referencing below
+cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]
+
+cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
+    def __cinit__(self, dbe, comps, phase_name, parameters=None):
+        mod = Model(dbe, comps, phase_name, parameters=parameters)
+        self.constituents = mod.constituents
+        self.site_ratios = np.array(mod.site_ratios)
+        self.variables = mod.variables
         parameters = parameters if parameters is not None else {}
         phase = dbe.phases[phase_name]
-        self.sublattice_dof = np.array([len(c) for c in self.constituents])
-        self.site_ratios = np.array(self.site_ratios)
+        self.sublattice_dof = np.array([len(c) for c in mod.constituents], dtype=np.int32)
         # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
         # of the same type in the same sublattice for, e.g., same species with different charges
-        self.composition_matrices = np.full((len(comps), self.site_ratios.shape[0], 2), -1.)
+        self.composition_matrices = np.full((len(comps), len(mod.site_ratios), 2), -1.)
         if 'VA' in comps:
             self.vacancy_index = comps.index('VA')
         else:
@@ -283,30 +289,30 @@ class CompiledModel(Model):
             subl_index = variable.sublattice_index
             species = variable.species
             comp_index = comps.index(species)
-            self.composition_matrices[comp_index, subl_index, 0] = self.site_ratios[subl_index]
+            self.composition_matrices[comp_index, subl_index, 0] = mod.site_ratios[subl_index]
             self.composition_matrices[comp_index, subl_index, 1] = var_idx
             var_idx += 1
         pure_param_query = (
             (where('phase_name') == phase_name) & \
             (where('parameter_order') == 0) & \
             (where('parameter_type') == "G") & \
-            (where('constituent_array').test(self._purity_test))
+            (where('constituent_array').test(mod._purity_test))
         )
         excess_param_query = (
             (where('phase_name') == phase_name) & \
             ((where('parameter_type') == 'G') |
              (where('parameter_type') == 'L')) & \
-            (where('constituent_array').test(self._interaction_test))
+            (where('constituent_array').test(mod._interaction_test))
         )
         bm_param_query = (
             (where('phase_name') == phase_name) & \
             (where('parameter_type') == 'BMAGN') & \
-            (where('constituent_array').test(self._array_validity))
+            (where('constituent_array').test(mod._array_validity))
         )
         tc_param_query = (
             (where('phase_name') == phase_name) & \
             (where('parameter_type') == 'TC') & \
-            (where('constituent_array').test(self._array_validity))
+            (where('constituent_array').test(mod._array_validity))
         )
         all_symbols = dbe.symbols.copy()
         # Convert string symbol names to sympy Symbol objects
@@ -331,7 +337,7 @@ class CompiledModel(Model):
         ordered_phase_name = phase.model_hints.get('ordered_phase', None)
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
         if (ordered_phase_name == phase_name) and (ordered_phase_name != disordered_phase_name):
-            disordered_model = self.__class__(dbe, comps, disordered_phase_name, parameters=parameters)
+            disordered_model = CompiledModel(dbe, comps, disordered_phase_name, parameters=parameters)
             self.ordered = True
             self.disordered_sublattice_dof = disordered_model.sublattice_dof
             self.disordered_site_ratios = disordered_model.site_ratios
@@ -367,11 +373,33 @@ class CompiledModel(Model):
     def get_hess_ptr(self):
         pass
 
-cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
+def _eval_rk_matrix(double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
+                            double[:] eval_row, double[:] parameters):
+    cdef double result = 0
+    cdef double prod_result
+    cdef int row_idx1 = 0
+    cdef int row_idx2 = 0
+    cdef int col_idx = 0
+    if coef_mat.shape[1] > 0:
+        for row_idx1 in range(coef_mat.shape[0]):
+            if (dof[1] >= coef_mat[row_idx1, 0]) and (dof[1] < coef_mat[row_idx1, 1]):
+                prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
+                for col_idx in range(coef_mat.shape[1]-4):
+                    prod_result = prod_result * (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
+                result += prod_result
+    if symbol_mat.shape[1] > 0:
+        for row_idx2 in range(symbol_mat.shape[0]):
+            if (dof[1] >= symbol_mat[row_idx2, 0]) and (dof[1] < symbol_mat[row_idx2, 1]):
+                prod_result = symbol_mat[row_idx2, symbol_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
+                for col_idx in range(symbol_mat.shape[1]-4):
+                    prod_result = prod_result * (eval_row[col_idx] ** symbol_mat[row_idx2, 2+col_idx])
+                result += prod_result
+    return result
+
+cdef _eval_energy(CompiledModel cmpmdl, out, dof, double[:] parameters, int out_idx, double sign):
     cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof
-    cdef np.ndarray[ndim=1, dtype=np.float64_t]  row
     cdef double mass_normalization_factor = 0
     cdef double disordered_mass_normalization_factor = 0
     cdef double curie_temp = 0
@@ -397,32 +425,16 @@ cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
         prev_idx += cmpmdl.sublattice_dof[entry_idx]
 
     # End-member contribution
-    for row in cmpmdl.pure_coef_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            out_energy+= np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-    for row in cmpmdl.pure_coef_symbol_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            out_energy += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    out_energy += _eval_rk_matrix(cmpmdl.pure_coef_matrix, cmpmdl.pure_coef_symbol_matrix, dof,
+                                  eval_row, parameters)
     # Interaction contribution
-    for row in cmpmdl.excess_coef_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            out_energy += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-    for row in cmpmdl.excess_coef_symbol_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            out_energy += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    out_energy += _eval_rk_matrix(cmpmdl.excess_coef_matrix, cmpmdl.excess_coef_symbol_matrix, dof,
+                                  eval_row, parameters)
     # Magnetic contribution
-    for row in cmpmdl.tc_coef_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-    for row in cmpmdl.tc_coef_symbol_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            curie_temp += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
-    for row in cmpmdl.bm_coef_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-    for row in cmpmdl.bm_coef_symbol_matrix:
-        if (dof[1] >= row[0]) and (dof[1] < row[1]):
-            bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+    curie_temp += _eval_rk_matrix(cmpmdl.tc_coef_matrix, cmpmdl.tc_coef_symbol_matrix, dof,
+                                  eval_row, parameters)
+    bmagn += _eval_rk_matrix(cmpmdl.bm_coef_matrix, cmpmdl.bm_coef_symbol_matrix, dof,
+                                  eval_row, parameters)
     if (curie_temp != 0) and (bmagn != 0) and (cmpmdl.ihj_magnetic_structure_factor > 0) and (cmpmdl.afm_factor != 0):
         if bmagn < 0:
             bmagn /= cmpmdl.afm_factor
@@ -450,7 +462,7 @@ cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
     out_energy /= mass_normalization_factor
     out[out_idx] = out[out_idx] + sign * out_energy
 
-cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
+cpdef eval_energy(CompiledModel cmpmdl, out, dof, parameters, bounds):
     cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof, ordered_dof
@@ -517,32 +529,20 @@ cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
                     disordered_energy += 8.3145 * disordered_dof[1] * cmpmdl.disordered_site_ratios[entry_idx] * disordered_dof[2+dof_idx] * log(disordered_dof[2+dof_idx])
             prev_idx += cmpmdl.disordered_sublattice_dof[entry_idx]
         # End-member contribution
-        for row in cmpmdl.disordered_pure_coef_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_energy += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-        for row in cmpmdl.disordered_pure_coef_symbol_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_energy += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        disordered_energy += _eval_rk_matrix(cmpmdl.disordered_pure_coef_matrix,
+                                             cmpmdl.disordered_pure_coef_symbol_matrix, dof,
+                                             disordered_eval_row, parameters)
         # Interaction contribution
-        for row in cmpmdl.disordered_excess_coef_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_energy += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-        for row in cmpmdl.disordered_excess_coef_symbol_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_energy += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        disordered_energy += _eval_rk_matrix(cmpmdl.disordered_excess_coef_matrix,
+                                             cmpmdl.disordered_excess_coef_symbol_matrix, dof,
+                                             disordered_eval_row, parameters)
         # Magnetic contribution
-        for row in cmpmdl.disordered_tc_coef_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_curie_temp += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-        for row in cmpmdl.disordered_tc_coef_symbol_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_curie_temp += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
-        for row in cmpmdl.disordered_bm_coef_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_bmagn += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * row[row.shape[0]-1]
-        for row in cmpmdl.disordered_bm_coef_symbol_matrix:
-            if (disordered_dof[1] >= row[0]) and (disordered_dof[1] < row[1]):
-                disordered_bmagn += np.prod(np.power(disordered_eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
+        disordered_curie_temp += _eval_rk_matrix(cmpmdl.disordered_tc_coef_matrix,
+                                             cmpmdl.disordered_tc_coef_symbol_matrix, dof,
+                                             disordered_eval_row, parameters)
+        disordered_bmagn += _eval_rk_matrix(cmpmdl.disordered_bm_coef_matrix,
+                                             cmpmdl.disordered_bm_coef_symbol_matrix, dof,
+                                             disordered_eval_row, parameters)
         if (disordered_curie_temp != 0) and (disordered_bmagn != 0) and (cmpmdl.disordered_ihj_magnetic_structure_factor > 0) and (cmpmdl.disordered_afm_factor != 0):
             if disordered_bmagn < 0:
                 disordered_bmagn /= cmpmdl.disordered_afm_factor
