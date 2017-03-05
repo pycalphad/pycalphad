@@ -1,5 +1,6 @@
 from sympy import Add, Float, Integer, Rational, Mul, Pow, S, collect, Symbol, \
-    Piecewise, Intersection, EmptySet, Union, Interval, log
+    Piecewise, Intersection, EmptySet, Union, Interval
+from sympy import log as sympy_log
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.io.tdb import to_interval
@@ -7,6 +8,8 @@ from pycalphad import Model
 import copy
 import numpy as np
 cimport numpy as np
+cimport cython
+from libc.math cimport log
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
@@ -59,9 +62,9 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
                     new_exponents[1] += 1
                 elif arg == v.P:
                     new_exponents[0] += 1
-                elif arg == log(v.T):
+                elif arg == sympy_log(v.T):
                     new_exponents[3] += 1
-                elif arg == log(v.P):
+                elif arg == sympy_log(v.P):
                     new_exponents[2] += 1
                 else:
                     remaining_argument *= arg
@@ -373,8 +376,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     def get_hess_ptr(self):
         pass
 
-def _eval_rk_matrix(double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
-                            double[:] eval_row, double[:] parameters):
+@cython.boundscheck(False)
+cdef double _eval_rk_matrix(double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
+                            double[:] eval_row, double[:] parameters) nogil:
     cdef double result = 0
     cdef double prod_result
     cdef int row_idx1 = 0
@@ -396,7 +400,7 @@ def _eval_rk_matrix(double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
                 result += prod_result
     return result
 
-cdef _eval_energy(CompiledModel cmpmdl, out, dof, double[:] parameters, int out_idx, double sign):
+cdef _eval_energy(CompiledModel cmpmdl, double[:] out, double[:] dof, double[:] parameters, int out_idx, double sign):
     cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof
