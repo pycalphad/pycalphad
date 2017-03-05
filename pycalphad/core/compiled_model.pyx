@@ -403,7 +403,6 @@ cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
     for row in cmpmdl.pure_coef_symbol_matrix:
         if (dof[1] >= row[0]) and (dof[1] < row[1]):
             out_energy += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
-    print(out_energy)
     # Interaction contribution
     for row in cmpmdl.excess_coef_matrix:
         if (dof[1] >= row[0]) and (dof[1] < row[1]):
@@ -424,7 +423,6 @@ cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
     for row in cmpmdl.bm_coef_symbol_matrix:
         if (dof[1] >= row[0]) and (dof[1] < row[1]):
             bmagn += np.prod(np.power(eval_row, row[2:row.shape[0]-2])) * row[row.shape[0]-2] * parameters[<int>row[row.shape[0]-1]]
-    print(out_energy)
     if (curie_temp != 0) and (bmagn != 0) and (cmpmdl.ihj_magnetic_structure_factor > 0) and (cmpmdl.afm_factor != 0):
         if bmagn < 0:
             bmagn /= cmpmdl.afm_factor
@@ -450,7 +448,6 @@ cdef _eval_energy(cmpmdl, out, dof, parameters, out_idx, sign):
         else:
             mass_normalization_factor += cmpmdl.site_ratios[subl_idx]
     out_energy /= mass_normalization_factor
-    print(out_energy)
     out[out_idx] = out[out_idx] + sign * out_energy
 
 cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
@@ -586,12 +583,8 @@ cpdef eval_energy(cmpmdl, out, dof, parameters, bounds):
             for subl_idx in range(cmpmdl.site_ratios.shape[0]):
                 for comp_idx in range(cmpmdl.sublattice_dof[subl_idx]):
                     ordered_dof[subl_idx * num_comps + comp_idx + 2] = disordered_dof[subl_idx+2]
-        print('ordered_dof', ordered_dof)
-        print('main_ord', out[0])
         main_ord = out[0]
         _eval_energy(cmpmdl, out, ordered_dof, parameters, 0, -1)
-        print('main-sub',out[0]-main_ord)
-        print('disordered_energy', disordered_energy)
         out[0] += disordered_energy
 
 def eval_gradient_energy(cmpmdl, pressure, temperature, dof, out):
