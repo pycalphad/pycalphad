@@ -45,6 +45,14 @@ A public chat channel is available on `Gitter`_.
 .. _Gitter: https://gitter.im/pycalphad/pycalphad
 .. _pycalphad Google Group: https://groups.google.com/d/forum/pycalphad
 
+Citing
+======
+
+If you use pycalphad in your research, please consider citing the following work:
+
+Otis, R. & Liu, Z.-K., (2017). pycalphad: CALPHAD-based Computational Thermodynamics in Python. Journal of Open Research Software. 5(1), p.1. DOI: http://doi.org/10.5334/jors.140
+
+
 Acknowledgements
 ================
 Development has been made possible in part through NASA Space Technology Research Fellowship (NSTRF) grant NNX14AL43H, and is supervised by `Prof. Zi-Kui Liu`_ in the `Department of Materials Science and Engineering`_ at the `Pennsylvania State University`_.
