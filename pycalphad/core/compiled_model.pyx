@@ -466,7 +466,7 @@ cdef _eval_energy(CompiledModel cmpmdl, double[:] out, double[:] dof, double[:] 
     out_energy /= mass_normalization_factor
     out[out_idx] = out[out_idx] + sign * out_energy
 
-cpdef eval_energy(CompiledModel cmpmdl, out, dof, parameters, bounds):
+cpdef eval_energy(CompiledModel cmpmdl, double[:] out, double[:] dof, double[:] parameters, int bounds):
     cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
     cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof, ordered_dof
