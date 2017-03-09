@@ -59,8 +59,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void obj(self, double[::1] out, double[::1,:] dof, int bounds) nogil:
-        self._obj(&out[0], &dof[0,0], &self.parameters[0], &bounds)
+    cpdef void obj(self, double[::1] out, double[::1,:] dof) nogil:
+        self._obj(&out[0], &dof[0,0], &self.parameters[0], <int*>&out.shape[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

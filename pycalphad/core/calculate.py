@@ -278,7 +278,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.asfortranarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.zeros(dof.shape[0])
-    prn.obj(phase_output, dof, dof.shape[0])
+    prn.obj(phase_output, dof)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)

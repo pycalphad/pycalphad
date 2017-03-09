@@ -252,7 +252,7 @@ cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[::1]
         prn = phase_records[name]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
-            prn.obj(obj_res, dof_2d_view, 1)
+            prn.obj(obj_res, dof_2d_view)
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
@@ -296,7 +296,7 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
         prn = phase_records[name]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
-            prn.obj(obj_res, dof_2d_view, 1)
+            prn.obj(obj_res, dof_2d_view)
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
