@@ -57,102 +57,99 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             hfunc.kernel
             self._hess = <func_novec_t*> f2py_pointer(hfunc._kernel._cpointer)
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void obj(PhaseRecord prx, double[::1] out, double[::1,:] dof, int bounds) nogil:
-    prx._obj(&out[0], &dof[0,0], &prx.parameters[0], &bounds)
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void obj(self, double[::1] out, double[::1,:] dof, int bounds) nogil:
+        self._obj(&out[0], &dof[0,0], &self.parameters[0], &bounds)
 
-def obj_python(PhaseRecord prx, double[::1] out, double[::1,:] dof):
-    obj(prx, out, dof, dof.shape[0])
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
+        self._grad(&dof[0], &self.parameters[0], &out[0])
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void grad(PhaseRecord prx, double[::1] out, double[::1] dof) nogil:
-    prx._grad(&dof[0], &prx.parameters[0], &out[0])
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil:
+        self._hess(&dof[0], &self.parameters[0], &out[0,0])
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void hess(PhaseRecord prx, double[::1,:] out, double[::1] dof) nogil:
-    prx._hess(&dof[0], &prx.parameters[0], &out[0,0])
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void mass_obj(PhaseRecord prx, double[::1] out, double[::1] dof, int comp_idx) nogil:
-    cdef double mass_normalization_factor = 0
-    out[0] = 0
-    for entry_idx in range(prx.num_sites.shape[0]):
-        if prx.composition_matrices[comp_idx, entry_idx, 1] > -1:
-            out[0] += prx.composition_matrices[comp_idx, entry_idx, 0] * dof[<int>prx.composition_matrices[comp_idx, entry_idx, 1]]
-    for subl_idx in range(prx.num_sites.shape[0]):
-        if (prx.vacancy_index > -1) and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
-            mass_normalization_factor += prx.num_sites[subl_idx] * (1-dof[<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
-        else:
-            mass_normalization_factor += prx.num_sites[subl_idx]
-    if mass_normalization_factor != 0:
-        out[0] /= mass_normalization_factor
-    else:
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+        cdef double mass_normalization_factor = 0
         out[0] = 0
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void mass_grad(PhaseRecord prx, double[::1] out, double[::1] dof, int comp_idx) nogil:
-    cdef double mass_normalization_factor = 0
-    cdef double mass = 0
-    cdef double site_count
-    cdef int grad_idx
-    for subl_idx in range(prx.num_sites.shape[0]):
-        if prx.composition_matrices[comp_idx, subl_idx, 1] > -1:
-            mass += prx.num_sites[subl_idx] * dof[<int>prx.composition_matrices[comp_idx, subl_idx, 1]]
-        if prx.vacancy_index > -1 and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
-            mass_normalization_factor += prx.num_sites[subl_idx] * (1-dof[<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
+        for entry_idx in range(self.num_sites.shape[0]):
+            if self.composition_matrices[comp_idx, entry_idx, 1] > -1:
+                out[0] += self.composition_matrices[comp_idx, entry_idx, 0] * dof[<int>self.composition_matrices[comp_idx, entry_idx, 1]]
+        for subl_idx in range(self.num_sites.shape[0]):
+            if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.num_sites[subl_idx] * (1-dof[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
+            else:
+                mass_normalization_factor += self.num_sites[subl_idx]
+        if mass_normalization_factor != 0:
+            out[0] /= mass_normalization_factor
         else:
-            mass_normalization_factor += prx.num_sites[subl_idx]
-    if mass == 0 or mass_normalization_factor == 0:
-        return
-    if comp_idx != prx.vacancy_index:
-        for subl_idx in range(prx.composition_matrices.shape[1]):
-            grad_idx = <int>prx.composition_matrices[comp_idx, subl_idx, 1]
-            if grad_idx > -1:
-                out[grad_idx] = prx.composition_matrices[comp_idx, subl_idx, 0] / mass_normalization_factor
-        if prx.vacancy_index > -1:
-            for subl_idx in range(prx.composition_matrices.shape[1]):
-                grad_idx = <int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]
+            out[0] = 0
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+        cdef double mass_normalization_factor = 0
+        cdef double mass = 0
+        cdef double site_count
+        cdef int grad_idx
+        for subl_idx in range(self.num_sites.shape[0]):
+            if self.composition_matrices[comp_idx, subl_idx, 1] > -1:
+                mass += self.num_sites[subl_idx] * dof[<int>self.composition_matrices[comp_idx, subl_idx, 1]]
+            if self.vacancy_index > -1 and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.num_sites[subl_idx] * (1-dof[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
+            else:
+                mass_normalization_factor += self.num_sites[subl_idx]
+        if mass == 0 or mass_normalization_factor == 0:
+            return
+        if comp_idx != self.vacancy_index:
+            for subl_idx in range(self.composition_matrices.shape[1]):
+                grad_idx = <int>self.composition_matrices[comp_idx, subl_idx, 1]
                 if grad_idx > -1:
-                    out[grad_idx] = (mass * prx.composition_matrices[prx.vacancy_index, subl_idx, 0]) / (mass_normalization_factor **  2)
-    else:
-        for subl_idx in range(prx.composition_matrices.shape[1]):
-            grad_idx = <int>prx.composition_matrices[comp_idx, subl_idx, 1]
-            site_count = prx.composition_matrices[comp_idx, subl_idx, 0]
-            if grad_idx > -1:
-                out[grad_idx] = (site_count * mass_normalization_factor + (site_count ** 2) * dof[grad_idx]) / (mass_normalization_factor ** 2)
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef void mass_hess(PhaseRecord prx, double[::1,:] out, double[::1] dof, int comp_idx) nogil:
-    cdef double mass_normalization_factor = 0
-    cdef double mass = 0
-    cdef int hess_x_idx, hess_y_comp_idx, hess_y_idx, subl_x_idx, subl_y_idx, subl_idx
-    if prx.vacancy_index == -1:
-        return
-    if comp_idx == prx.vacancy_index:
-        out[:] = -1e100
-        return
-    for subl_idx in range(prx.num_sites.shape[0]):
-        if prx.composition_matrices[comp_idx, subl_idx, 1] > -1:
-            mass += prx.num_sites[subl_idx] * dof[<int>prx.composition_matrices[comp_idx, subl_idx, 1]]
-        if prx.vacancy_index > -1 and prx.composition_matrices[prx.vacancy_index, subl_idx, 1] > -1:
-            mass_normalization_factor += prx.num_sites[subl_idx] * (1-dof[<int>prx.composition_matrices[prx.vacancy_index, subl_idx, 1]])
+                    out[grad_idx] = self.composition_matrices[comp_idx, subl_idx, 0] / mass_normalization_factor
+            if self.vacancy_index > -1:
+                for subl_idx in range(self.composition_matrices.shape[1]):
+                    grad_idx = <int>self.composition_matrices[self.vacancy_index, subl_idx, 1]
+                    if grad_idx > -1:
+                        out[grad_idx] = (mass * self.composition_matrices[self.vacancy_index, subl_idx, 0]) / (mass_normalization_factor **  2)
         else:
-            mass_normalization_factor += prx.num_sites[subl_idx]
-    if mass == 0 or mass_normalization_factor == 0:
-        return
-    for subl_x_idx in range(prx.composition_matrices.shape[1]):
-        hess_x_idx = <int>prx.composition_matrices[prx.vacancy_index, subl_x_idx, 1]
-        if hess_x_idx > -1:
-            for subl_y_idx in range(prx.composition_matrices.shape[1]):
-                hess_y_idx = <int>prx.composition_matrices[prx.vacancy_index, subl_y_idx, 1]
-                hess_y_comp_idx = <int>prx.composition_matrices[comp_idx, subl_y_idx, 1]
-                if hess_y_idx > -1:
-                    out[hess_x_idx, hess_y_idx] = out[hess_y_idx, hess_x_idx] = 2 * mass * (prx.num_sites[subl_x_idx] * prx.num_sites[subl_y_idx]) / (mass_normalization_factor**3)
-                if hess_y_comp_idx > -1:
-                    out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (prx.num_sites[subl_x_idx] * prx.num_sites[subl_y_idx]) / mass_normalization_factor**2
+            for subl_idx in range(self.composition_matrices.shape[1]):
+                grad_idx = <int>self.composition_matrices[comp_idx, subl_idx, 1]
+                site_count = self.composition_matrices[comp_idx, subl_idx, 0]
+                if grad_idx > -1:
+                    out[grad_idx] = (site_count * mass_normalization_factor + (site_count ** 2) * dof[grad_idx]) / (mass_normalization_factor ** 2)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_hess(self, double[::1,:] out, double[::1] dof, int comp_idx) nogil:
+        cdef double mass_normalization_factor = 0
+        cdef double mass = 0
+        cdef int hess_x_idx, hess_y_comp_idx, hess_y_idx, subl_x_idx, subl_y_idx, subl_idx
+        if self.vacancy_index == -1:
+            return
+        if comp_idx == self.vacancy_index:
+            out[:] = -1e100
+            return
+        for subl_idx in range(self.num_sites.shape[0]):
+            if self.composition_matrices[comp_idx, subl_idx, 1] > -1:
+                mass += self.num_sites[subl_idx] * dof[<int>self.composition_matrices[comp_idx, subl_idx, 1]]
+            if self.vacancy_index > -1 and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.num_sites[subl_idx] * (1-dof[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
+            else:
+                mass_normalization_factor += self.num_sites[subl_idx]
+        if mass == 0 or mass_normalization_factor == 0:
+            return
+        for subl_x_idx in range(self.composition_matrices.shape[1]):
+            hess_x_idx = <int>self.composition_matrices[self.vacancy_index, subl_x_idx, 1]
+            if hess_x_idx > -1:
+                for subl_y_idx in range(self.composition_matrices.shape[1]):
+                    hess_y_idx = <int>self.composition_matrices[self.vacancy_index, subl_y_idx, 1]
+                    hess_y_comp_idx = <int>self.composition_matrices[comp_idx, subl_y_idx, 1]
+                    if hess_y_idx > -1:
+                        out[hess_x_idx, hess_y_idx] = out[hess_y_idx, hess_x_idx] = 2 * mass * (self.num_sites[subl_x_idx] * self.num_sites[subl_y_idx]) / (mass_normalization_factor**3)
+                    if hess_y_comp_idx > -1:
+                        out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (self.num_sites[subl_x_idx] * self.num_sites[subl_y_idx]) / mass_normalization_factor**2

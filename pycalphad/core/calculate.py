@@ -11,7 +11,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, obj_python
+from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -278,7 +278,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.asfortranarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.zeros(dof.shape[0])
-    obj_python(prn, phase_output, dof)
+    prn.obj(phase_output, dof, dof.shape[0])
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)

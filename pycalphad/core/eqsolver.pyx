@@ -10,7 +10,7 @@ cimport cython
 # XXX: This breaks Windows support, it's spelled _isnan in float.h on Windows
 from libc.math cimport isnan
 import scipy.spatial
-from pycalphad.core.phase_rec cimport PhaseRecord, obj, grad, hess, mass_obj, mass_grad, mass_hess
+from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
@@ -204,9 +204,9 @@ def _compute_constraints(object comps, object phases,
                     comp_grad_value[grad_idx] = 0
                     for hess_idx in range(grad_idx, prn.phase_dof):
                         comp_hess_value[grad_idx, hess_idx] = comp_hess_value[hess_idx, grad_idx] = 0
-                mass_obj(prn, comp_obj_value, sfview, comp_idx)
-                mass_grad(prn, comp_grad_value, sfview, comp_idx)
-                mass_hess(prn, comp_hess_value, sfview, comp_idx)
+                prn.mass_obj(comp_obj_value, sfview, comp_idx)
+                prn.mass_grad(comp_grad_value, sfview, comp_idx)
+                prn.mass_hess(comp_hess_value, sfview, comp_idx)
                 # current phase frac times the comp_grad
                 for grad_idx in range(var_offset, var_offset + prn.phase_dof):
                     constraint_jac[constraint_offset, grad_idx] = \
@@ -252,12 +252,12 @@ cdef _build_multiphase_gradient(int[:] phase_dof, phases, cur_conds, double[::1]
         prn = phase_records[name]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
-            obj(prn, obj_res, dof_2d_view, 1)
+            prn.obj(obj_res, dof_2d_view, 1)
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
             obj_result[0] += obj_weight * phase_frac * obj_res[0]
-            grad(prn, grad_res, dof)
+            prn.grad(grad_res, dof)
             for dof_x_idx in range(prn.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
                     obj_weight * phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
@@ -296,13 +296,13 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
         prn = phase_records[name]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
-            obj(prn, obj_res, dof_2d_view, 1)
+            prn.obj(obj_res, dof_2d_view, 1)
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
             total_obj += obj_weight * phase_frac * obj_res[0]
-            grad(prn, grad_res, dof)
-            hess(prn, tmp_hess, dof)
+            prn.grad(grad_res, dof)
+            prn.hess(tmp_hess, dof)
             for dof_x_idx in range(prn.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
                     obj_weight * phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
@@ -547,7 +547,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                         past_va = True
                         continue
                     mass_buf = np.zeros(1)
-                    mass_obj(phase_records[phases[phase_idx]],
+                    phase_records[phases[phase_idx]].mass_obj(
                              mass_buf,
                              site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
                              comp_idx)
