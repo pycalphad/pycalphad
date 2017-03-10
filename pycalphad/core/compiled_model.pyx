@@ -396,7 +396,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         pass
 
     @cython.boundscheck(False)
-    cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
+    cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat,
                                 double[:] eval_row, double[:] parameters) nogil:
         cdef double result = 0
         cdef double prod_result
@@ -405,14 +405,14 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int col_idx = 0
         if coef_mat.shape[1] > 0:
             for row_idx1 in range(coef_mat.shape[0]):
-                if (dof[1] >= coef_mat[row_idx1, 0]) and (dof[1] < coef_mat[row_idx1, 1]):
+                if (eval_row[1] >= coef_mat[row_idx1, 0]) and (eval_row[1] < coef_mat[row_idx1, 1]):
                     prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
                     for col_idx in range(coef_mat.shape[1]-4):
                         prod_result = prod_result * (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
                     result += prod_result
         if symbol_mat.shape[1] > 0:
             for row_idx2 in range(symbol_mat.shape[0]):
-                if (dof[1] >= symbol_mat[row_idx2, 0]) and (dof[1] < symbol_mat[row_idx2, 1]):
+                if (eval_row[1] >= symbol_mat[row_idx2, 0]) and (eval_row[1] < symbol_mat[row_idx2, 1]):
                     prod_result = symbol_mat[row_idx2, symbol_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
                     for col_idx in range(symbol_mat.shape[1]-4):
                         prod_result = prod_result * (eval_row[col_idx] ** symbol_mat[row_idx2, 2+col_idx])
@@ -450,15 +450,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 prev_idx += self.sublattice_dof[entry_idx]
 
             # End-member contribution
-            out_energy += self._eval_rk_matrix(self.pure_coef_matrix, self.pure_coef_symbol_matrix, dof[out_idx],
+            out_energy += self._eval_rk_matrix(self.pure_coef_matrix, self.pure_coef_symbol_matrix,
                                                eval_row, parameters)
             # Interaction contribution
-            out_energy += self._eval_rk_matrix(self.excess_coef_matrix, self.excess_coef_symbol_matrix, dof[out_idx],
+            out_energy += self._eval_rk_matrix(self.excess_coef_matrix, self.excess_coef_symbol_matrix,
                                                eval_row, parameters)
             # Magnetic contribution
-            curie_temp += self._eval_rk_matrix(self.tc_coef_matrix, self.tc_coef_symbol_matrix, dof[out_idx],
+            curie_temp += self._eval_rk_matrix(self.tc_coef_matrix, self.tc_coef_symbol_matrix,
                                                eval_row, parameters)
-            bmagn += self._eval_rk_matrix(self.bm_coef_matrix, self.bm_coef_symbol_matrix, dof[out_idx],
+            bmagn += self._eval_rk_matrix(self.bm_coef_matrix, self.bm_coef_symbol_matrix,
                                           eval_row, parameters)
             if (curie_temp != 0) and (bmagn != 0) and (self.ihj_magnetic_structure_factor > 0) and (self.afm_factor != 0):
                 if bmagn < 0:
@@ -585,18 +585,18 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     prev_idx += self.disordered_sublattice_dof[entry_idx]
                 # End-member contribution
                 disordered_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix,
-                                                          self.disordered_pure_coef_symbol_matrix, disordered_dof[out_idx],
+                                                          self.disordered_pure_coef_symbol_matrix,
                                                           disordered_eval_row, parameters)
                 # Interaction contribution
                 disordered_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix,
-                                                          self.disordered_excess_coef_symbol_matrix, disordered_dof[out_idx],
+                                                          self.disordered_excess_coef_symbol_matrix,
                                                           disordered_eval_row, parameters)
                 # Magnetic contribution
                 disordered_curie_temp += self._eval_rk_matrix(self.disordered_tc_coef_matrix,
-                                                              self.disordered_tc_coef_symbol_matrix, disordered_dof[out_idx],
+                                                              self.disordered_tc_coef_symbol_matrix,
                                                               disordered_eval_row, parameters)
                 disordered_bmagn += self._eval_rk_matrix(self.disordered_bm_coef_matrix,
-                                                         self.disordered_bm_coef_symbol_matrix, disordered_dof[out_idx],
+                                                         self.disordered_bm_coef_symbol_matrix,
                                                          disordered_eval_row, parameters)
                 if (disordered_curie_temp != 0) and (disordered_bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
                     if disordered_bmagn < 0:
