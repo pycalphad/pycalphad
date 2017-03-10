@@ -455,6 +455,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             mod = model_dict[phase_name]
         except KeyError:
             continue
+        # this is a phase model we couldn't construct for whatever reason; skip it
+        if isinstance(mod, type):
+            continue
         if (not isinstance(mod, CompiledModel)) or (output != 'GM'):
             # Construct an ordered list of the variables
             variables, sublattice_dof = generate_dof(phase_obj, mod.components)
