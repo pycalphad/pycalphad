@@ -419,8 +419,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     result += prod_result
         return result
 
-    cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[1])
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double[:] eval_row, double sign) nogil:
         cdef double mass_normalization_factor = 0
         cdef double curie_temp = 0
         cdef double tau = 0
@@ -428,13 +429,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double A, p, res_tau
         cdef double out_energy = 0
         cdef int prev_idx = 0
-        cdef int dof_idx, out_idx
+        cdef int dof_idx, out_idx, eval_idx
+
         for out_idx in range(out.shape[0]):
             eval_row[0] = dof[out_idx, 0]
             eval_row[1] = dof[out_idx, 1]
             eval_row[2] = log(dof[out_idx, 0])
             eval_row[3] = log(dof[out_idx, 1])
-            eval_row[4:] = dof[out_idx, 2:]
+            for eval_idx in range(dof.shape[0]):
+                eval_row[4+eval_idx] = dof[out_idx, 2+eval_idx]
             out_energy = 0
             curie_temp = 0
             tau = 0
@@ -541,11 +544,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, subl_idx+2]
 
     cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters):
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[1])
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
-        cdef np.ndarray[ndim=1, dtype=np.float64_t]  row
+        cdef double[:] eval_row = np.zeros(2+dof.shape[1])
+        cdef double[:] disordered_eval_row
+        cdef double[:,:] disordered_dof
+        cdef double[:,:] ordered_dof
         cdef double disordered_mass_normalization_factor = 0
         cdef double disordered_curie_temp = 0
         cdef double tau = 0
@@ -553,15 +555,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double A, p, res_tau
         cdef double disordered_energy = 0
         cdef int prev_idx = 0
-        cdef int dof_idx, out_idx, subl_idx
-        self._eval_energy(out, dof, parameters, 1)
+        cdef int dof_idx, out_idx, subl_idx, eval_idx
+        self._eval_energy(out, dof, parameters, eval_row, 1)
         if self.ordered:
             disordered_dof = np.zeros((dof.shape[0], _intsum(self.disordered_sublattice_dof)+2))
             ordered_dof = np.zeros((dof.shape[0], dof.shape[1]))
             self._compute_disordered_dof(disordered_dof, dof)
             self._compute_ordered_dof(ordered_dof, disordered_dof)
             # Subtract ordered energy at disordered configuration
-            self._eval_energy(out, ordered_dof, parameters, -1)
+            self._eval_energy(out, ordered_dof, parameters, eval_row, -1)
             disordered_eval_row = np.zeros(disordered_dof.shape[1]+2)
             for out_idx in range(out.shape[0]):
                 disordered_mass_normalization_factor = 0
