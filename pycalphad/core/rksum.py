@@ -2,6 +2,7 @@ from tinydb import where
 from sympy import Add, Float, Integer, Rational, Mul, Pow, S, collect, Symbol, \
     Piecewise, Intersection, EmptySet, Union, Interval
 from sympy import log as sympy_log
+import copy
 import numpy as np
 from pycalphad.io.tdb import to_interval
 import pycalphad.variables as v
@@ -40,10 +41,18 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
     elif isinstance(sympy_obj, Mul):
         new_exponents = np.array(cur_exponents)
         remaining_argument = S.One
-        if (len(sympy_obj.args) == 2) and isinstance(sympy_obj.args[0], (Float, Integer, Rational)) and isinstance(sympy_obj.args[1], Piecewise):
-            remaining_argument = Piecewise(*[(sympy_obj.args[0]*expr, cond) for expr, cond in sympy_obj.args[1].args])
-        elif (len(sympy_obj.args) == 2) and isinstance(sympy_obj.args[0], Piecewise) and isinstance(sympy_obj.args[1], (Float, Integer, Rational)):
-            remaining_argument = Piecewise(*[(sympy_obj.args[1]*expr, cond) for expr, cond in sympy_obj.args[0].args])
+        num_piecewise = sum(isinstance(x, Piecewise) for x in sympy_obj.args)
+        if num_piecewise == 1:
+            collected_argument = S.One
+            piecewise_elem = None
+            for arg in sympy_obj.args:
+                if isinstance(arg, Piecewise):
+                    piecewise_elem = arg
+                elif isinstance(arg, (Float, Integer, Rational)):
+                    collected_argument *= float(arg)
+                else:
+                    collected_argument *= arg
+            remaining_argument = Piecewise(*[(collected_argument * expr, cond) for expr, cond in piecewise_elem.args])
         else:
             for arg in sympy_obj.args:
                 if isinstance(arg, Pow):
