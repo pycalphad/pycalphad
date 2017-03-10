@@ -512,7 +512,7 @@ class Model(object):
         self.TC = self.curie_temperature = tc
         #print(tc)
         # 0.01 used to prevent singularity
-        tau = v.T / (tc + 0.01)
+        tau = v.T / (tc + 1e-9)
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
