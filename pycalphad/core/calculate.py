@@ -11,7 +11,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord
+from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_f2py
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -481,9 +481,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        prn = PhaseRecord(comps, list(statevar_dict.keys()) + variables,
-                          np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                          param_values, comp_sets[phase_name], None, None)
+        prn = PhaseRecord_from_f2py(comps, list(statevar_dict.keys()) + variables,
+                                    np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
+                                    param_values, comp_sets[phase_name], None, None)
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, prn, output,
                                          maximum_internal_dof, broadcast=broadcast,

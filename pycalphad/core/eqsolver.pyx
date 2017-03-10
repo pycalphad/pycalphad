@@ -10,7 +10,7 @@ cimport cython
 # XXX: This breaks Windows support, it's spelled _isnan in float.h on Windows
 from libc.math cimport isnan
 import scipy.spatial
-from pycalphad.core.phase_rec cimport PhaseRecord
+from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
@@ -358,6 +358,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         int vmax_window_size
         int obj_decreases
         double previous_window_average, obj_weight, vmax
+        PhaseRecord prn
         cdef int[:] phase_dof
         cdef double[::1,:] l_hessian
         cdef double[::1] gradient_term, mass_buf
@@ -369,8 +370,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord(comps, value.variables, np.array(value.num_sites, dtype=np.float),
-                                             value.parameters, value.obj, value.grad, value.hess)
+            phase_records[key] = PhaseRecord_from_f2py(comps, value.variables, np.array(value.num_sites, dtype=np.float),
+                                                       value.parameters, value.obj, value.grad, value.hess)
     # Factored out via profiling
     prop_MU_values = properties['MU'].values
     prop_NP_values = properties['NP'].values
@@ -547,10 +548,10 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                         past_va = True
                         continue
                     mass_buf = np.zeros(1)
-                    phase_records[phases[phase_idx]].mass_obj(
-                             mass_buf,
-                             site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
-                             comp_idx)
+                    prn = phase_records[phases[phase_idx]]
+                    prn.mass_obj(mass_buf,
+                                 site_fracs[var_offset:var_offset + phase_dof[phase_idx]],
+                                 comp_idx)
                     prop_X_values[it.multi_index + np.index_exp[phase_idx, comp_idx-int(past_va)]] = mass_buf[0]
                     comp_idx += 1
                 var_offset += phase_dof[phase_idx]
