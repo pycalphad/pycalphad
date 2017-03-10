@@ -1,9 +1,9 @@
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
-    cdef object constituents
-    cdef object variables
-    cdef int[::1] sublattice_dof
+    cdef public object constituents
+    cdef public object variables
+    cdef public int[::1] sublattice_dof
     cdef double[:,:,::1] composition_matrices
-    cdef double[::1] site_ratios
+    cdef public double[::1] site_ratios
     cdef int vacancy_index
     cdef double[:,:] pure_coef_matrix
     cdef double[:,:] pure_coef_symbol_matrix
@@ -32,5 +32,5 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
                                 double[:] eval_row, double[:] parameters) nogil
-    cdef _eval_energy(self, double[:] out, double[:] dof, double[:] parameters, int out_idx, double sign)
-    cpdef eval_energy(self, double[:] out, double[:,:] dof, double[:] parameters)
+    cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign)
+    cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters)

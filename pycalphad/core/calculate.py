@@ -11,7 +11,8 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_f2py
+from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
+from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
@@ -413,6 +414,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = collections.OrderedDict((v.StateVariable(key), unpack_condition(value)) \
                                             for (key, value) in sorted(kwargs.items()))
+    # XXX: CompiledModel assumes P, T are the only state variables
+    if statevar_dict.get(v.P, None) is None:
+        statevar_dict[v.P] = 101325
+    if statevar_dict.get(v.T, None) is None:
+        statevar_dict[v.T] = 300
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
     all_phase_data = []
@@ -449,30 +455,36 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             mod = model_dict[phase_name]
         except KeyError:
             continue
-        # Construct an ordered list of the variables
-        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
-
-        # Build the "fast" representation of that model
-        if callable_dict[phase_name] is None:
-            try:
-                out = getattr(mod, output)
-            except AttributeError:
-                raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                     .format(output, mod.__class__))
-            # As a last resort, treat undefined symbols as zero
-            # But warn the user when we do this
-            # This is consistent with TC's behavior
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
-                logger.warning('Setting undefined symbol %s for phase %s to zero',
-                               undef, phase_name)
-            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                    include_obj=True, include_grad=False, include_hess=False,
-                                                    parameters=param_symbols)
+        if not isinstance(mod, CompiledModel):
+            # Construct an ordered list of the variables
+            variables, sublattice_dof = generate_dof(phase_obj, mod.components)
+            # Build the "fast" representation of that model
+            if callable_dict[phase_name] is None:
+                try:
+                    out = getattr(mod, output)
+                except AttributeError:
+                    raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                         .format(output, mod.__class__))
+                # As a last resort, treat undefined symbols as zero
+                # But warn the user when we do this
+                # This is consistent with TC's behavior
+                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+                for undef in undefs:
+                    out = out.xreplace({undef: float(0)})
+                    logger.warning('Setting undefined symbol %s for phase %s to zero',
+                                   undef, phase_name)
+                comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
+                                                        include_obj=True, include_grad=False, include_hess=False,
+                                                        parameters=param_symbols)
+            else:
+                comp_sets[phase_name] = callable_dict[phase_name]
+            prn = PhaseRecord_from_f2py(comps, list(statevar_dict.keys()) + variables,
+                                        np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
+                                        param_values, comp_sets[phase_name], None, None)
         else:
-            comp_sets[phase_name] = callable_dict[phase_name]
-
+            variables = set(mod.variables) - {v.T, v.P}
+            sublattice_dof = mod.sublattice_dof
+            prn = PhaseRecord_from_compiledmodel(mod, param_values)
         points = points_dict[phase_name]
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
@@ -481,9 +493,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        prn = PhaseRecord_from_f2py(comps, list(statevar_dict.keys()) + variables,
-                                    np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                    param_values, comp_sets[phase_name], None, None)
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
                                          points, prn, output,
                                          maximum_internal_dof, broadcast=broadcast,
