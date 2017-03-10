@@ -487,6 +487,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             out_energy /= mass_normalization_factor
             out[out_idx] = out[out_idx] + sign * out_energy
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil:
         cdef int out_idx, dof_idx, comp_idx, subl_idx, disordered_dof_idx
         cdef int num_comps
@@ -516,6 +518,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
                         disordered_dof[out_idx, subl_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil:
         cdef int dof_idx, out_idx, subl_idx, comp_idx, disordered_dof_idx
         cdef int num_comps = self.sublattice_dof[0]
