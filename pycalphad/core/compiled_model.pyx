@@ -420,7 +420,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         return result
 
     cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[1])
+        cdef double[:] eval_row = np.zeros(2+dof.shape[1])
         cdef double mass_normalization_factor = 0
         cdef double curie_temp = 0
         cdef double tau = 0
