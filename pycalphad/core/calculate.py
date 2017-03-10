@@ -482,7 +482,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                         np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
                                         param_values, comp_sets[phase_name], None, None)
         else:
-            variables = set(mod.variables) - {v.T, v.P}
+            variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
             sublattice_dof = mod.sublattice_dof
             prn = PhaseRecord_from_compiledmodel(mod, param_values)
         points = points_dict[phase_name]
