@@ -518,7 +518,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     dof_idx = np.sum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
                     disordered_dof_idx = np.sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
                     # Copy interstitial values directly
-                    disordered_dof[disordered_dof_idx+2:] = dof[dof_idx+2:]
+                    disordered_dof[disordered_dof_idx+2:] = dof[out_idx, dof_idx+2:]
                 else:
                     site_sum = float(np.sum(self.site_ratios))
                     for subl_idx in range(self.site_ratios.shape[0]):
