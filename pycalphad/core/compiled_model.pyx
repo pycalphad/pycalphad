@@ -16,7 +16,7 @@ from libc.math cimport log
 _MAX_PARAM_NESTING = 32
 
 def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix, param_symbols):
-    if isinstance(sympy_obj, (Float, Integer, Rational)):
+    if isinstance(sympy_obj.evalf(), (Float, Integer, Rational)):
         result = float(sympy_obj)
         if result != 0.0:
             output_matrix.append([low_temp, high_temp] + list(cur_exponents) + [result])
@@ -466,7 +466,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         out_energy /= mass_normalization_factor
         out[out_idx] = out[out_idx] + sign * out_energy
 
-    cpdef eval_energy(self, double[:] out, double[:] dof, double[:] parameters):
+    cpdef eval_energy(self, double[:] out, double[:,:] dof, double[:] parameters):
         cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
         cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
         cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof, ordered_dof
@@ -481,115 +481,115 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double A, p, res_tau
         cdef double disordered_energy = 0
         cdef int prev_idx = 0
-        cdef int dof_idx
-        out[0] = 0
-        eval_row[0] = dof[0]
-        eval_row[1] = dof[1]
-        eval_row[2] = log(dof[0])
-        eval_row[3] = log(dof[1])
-        eval_row[4:] = dof[2:]
+        cdef int dof_idx, out_idx
+        disordered_dof = np.zeros(np.sum(self.disordered_sublattice_dof)+2)
+        ordered_dof = np.zeros(dof.shape[1])
+        disordered_eval_row = np.zeros(disordered_dof.shape[0]+2)
+        for out_idx in range(out.shape[0]):
+            out[out_idx] = 0
+            eval_row[0] = dof[out_idx, 0]
+            eval_row[1] = dof[out_idx, 1]
+            eval_row[2] = log(dof[out_idx, 0])
+            eval_row[3] = log(dof[out_idx, 1])
+            eval_row[4:] = dof[out_idx, 2:]
 
-        self._eval_energy(out, dof, parameters, 0, 1)
+            self._eval_energy(out, dof[out_idx], parameters, out_idx, 1)
 
-        if self.ordered is True:
-            # Disordered phase contribution
-            # Assume: Same components in all sublattices, except maybe a pure VA sublattice at the end
-            disordered_dof = np.zeros(np.sum(self.disordered_sublattice_dof)+2)
-            disordered_dof[0] = dof[0]
-            disordered_dof[1] = dof[1]
-            ordered_dof = np.zeros(dof.shape[0])
-            ordered_dof[0] = dof[0]
-            ordered_dof[1] = dof[1]
-            disordered_eval_row = np.zeros(disordered_dof.shape[0]+2)
-            disordered_eval_row[0] = dof[0]
-            disordered_eval_row[1] = dof[1]
-            num_comps = self.sublattice_dof[0]
-            # Last sublattice is different from first; probably an interstitial sublattice
-            # It should be treated separately
-            if self.sublattice_dof[0] != self.sublattice_dof[self.sublattice_dof.shape[0]-1]:
-                site_sum = float(np.sum(self.site_ratios[:self.site_ratios.shape[0]-1]))
-                for subl_idx in range(self.site_ratios.shape[0]-1):
-                    for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        disordered_dof[comp_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[subl_idx * num_comps + comp_idx + 2]
-                dof_idx = np.sum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
-                disordered_dof_idx = np.sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
-                # Copy interstitial values directly
-                disordered_dof[disordered_dof_idx+2:] = dof[dof_idx+2:]
-            else:
-                site_sum = float(np.sum(self.site_ratios))
-                for subl_idx in range(self.site_ratios.shape[0]):
-                    for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        disordered_dof[subl_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[subl_idx * num_comps + comp_idx + 2]
-            disordered_eval_row[0] = disordered_dof[0]
-            disordered_eval_row[1] = disordered_dof[1]
-            disordered_eval_row[2] = log(disordered_dof[0])
-            disordered_eval_row[3] = log(disordered_dof[1])
-            disordered_eval_row[4:] = disordered_dof[2:]
-            # Ideal mixing
-            prev_idx = 0
-            for entry_idx in range(self.disordered_site_ratios.shape[0]):
-                for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
-                    if disordered_dof[2+dof_idx] > 1e-16:
-                        disordered_energy += 8.3145 * disordered_dof[1] * self.disordered_site_ratios[entry_idx] * disordered_dof[2+dof_idx] * log(disordered_dof[2+dof_idx])
-                prev_idx += self.disordered_sublattice_dof[entry_idx]
-            # End-member contribution
-            disordered_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix,
-                                                      self.disordered_pure_coef_symbol_matrix, dof,
-                                                      disordered_eval_row, parameters)
-            # Interaction contribution
-            disordered_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix,
-                                                      self.disordered_excess_coef_symbol_matrix, dof,
-                                                      disordered_eval_row, parameters)
-            # Magnetic contribution
-            disordered_curie_temp += self._eval_rk_matrix(self.disordered_tc_coef_matrix,
-                                                          self.disordered_tc_coef_symbol_matrix, dof,
-                                                          disordered_eval_row, parameters)
-            disordered_bmagn += self._eval_rk_matrix(self.disordered_bm_coef_matrix,
-                                                     self.disordered_bm_coef_symbol_matrix, dof,
-                                                     disordered_eval_row, parameters)
-            if (disordered_curie_temp != 0) and (disordered_bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
-                if disordered_bmagn < 0:
-                    disordered_bmagn /= self.disordered_afm_factor
-                if disordered_curie_temp < 0:
-                    disordered_curie_temp /= self.disordered_afm_factor
-                if disordered_curie_temp > 1e-6:
-                    tau = dof[1] / disordered_curie_temp
-                    # define model parameters
-                    p = self.disordered_ihj_magnetic_structure_factor
-                    A = 518./1125 + (11692./15975)*(1./p - 1.)
-                    # factor when tau < 1
-                    if tau < 1:
-                        res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
-                            * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
-                                          )
-                    else:
-                        # factor when tau >= 1
-                        res_tau = -(1./A) * ((tau**-5)/10. + (tau**-15)/315. + (tau**-25)/1500.)
-                    disordered_energy += 8.3145 * disordered_dof[1] * log(disordered_bmagn+1) * res_tau
-            for subl_idx in range(self.disordered_site_ratios.shape[0]):
-                if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                    disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+            if self.ordered is True:
+                # Disordered phase contribution
+                # Assume: Same components in all sublattices, except maybe a pure VA sublattice at the end
+                disordered_dof[0] = dof[out_idx, 0]
+                disordered_dof[1] = dof[out_idx, 1]
+                ordered_dof[0] = dof[out_idx, 0]
+                ordered_dof[1] = dof[out_idx, 1]
+                disordered_eval_row[0] = dof[out_idx, 0]
+                disordered_eval_row[1] = dof[out_idx, 1]
+                num_comps = self.sublattice_dof[0]
+                # Last sublattice is different from first; probably an interstitial sublattice
+                # It should be treated separately
+                if self.sublattice_dof[0] != self.sublattice_dof[self.sublattice_dof.shape[0]-1]:
+                    site_sum = float(np.sum(self.site_ratios[:self.site_ratios.shape[0]-1]))
+                    for subl_idx in range(self.site_ratios.shape[0]-1):
+                        for comp_idx in range(self.sublattice_dof[subl_idx]):
+                            disordered_dof[comp_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
+                    dof_idx = np.sum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
+                    disordered_dof_idx = np.sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
+                    # Copy interstitial values directly
+                    disordered_dof[disordered_dof_idx+2:] = dof[dof_idx+2:]
                 else:
-                    disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            disordered_energy /= disordered_mass_normalization_factor
-            # Subtract ordered energy at disordered configuration
-            ordered_dof[0] = dof[0]
-            ordered_dof[1] = dof[1]
-            if self.sublattice_dof[0] != self.sublattice_dof[self.sublattice_dof.shape[0]-1]:
-                for subl_idx in range(self.site_ratios.shape[0]-1):
-                    for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        ordered_dof[subl_idx * num_comps + comp_idx + 2] = disordered_dof[comp_idx+2]
-                dof_idx = np.sum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
-                disordered_dof_idx = np.sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
-                # Copy interstitial values directly
-                ordered_dof[dof_idx+2:] = disordered_dof[disordered_dof_idx+2:]
-            else:
-                for subl_idx in range(self.site_ratios.shape[0]):
-                    for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        ordered_dof[subl_idx * num_comps + comp_idx + 2] = disordered_dof[subl_idx+2]
-            main_ord = out[0]
-            self._eval_energy(out, ordered_dof, parameters, 0, -1)
-            out[0] += disordered_energy
+                    site_sum = float(np.sum(self.site_ratios))
+                    for subl_idx in range(self.site_ratios.shape[0]):
+                        for comp_idx in range(self.sublattice_dof[subl_idx]):
+                            disordered_dof[subl_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
+                disordered_eval_row[0] = disordered_dof[0]
+                disordered_eval_row[1] = disordered_dof[1]
+                disordered_eval_row[2] = log(disordered_dof[0])
+                disordered_eval_row[3] = log(disordered_dof[1])
+                disordered_eval_row[4:] = disordered_dof[2:]
+                # Ideal mixing
+                prev_idx = 0
+                for entry_idx in range(self.disordered_site_ratios.shape[0]):
+                    for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
+                        if disordered_dof[2+dof_idx] > 1e-16:
+                            disordered_energy += 8.3145 * disordered_dof[1] * self.disordered_site_ratios[entry_idx] * disordered_dof[2+dof_idx] * log(disordered_dof[2+dof_idx])
+                    prev_idx += self.disordered_sublattice_dof[entry_idx]
+                # End-member contribution
+                disordered_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix,
+                                                          self.disordered_pure_coef_symbol_matrix, dof[out_idx],
+                                                          disordered_eval_row, parameters)
+                # Interaction contribution
+                disordered_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix,
+                                                          self.disordered_excess_coef_symbol_matrix, dof[out_idx],
+                                                          disordered_eval_row, parameters)
+                # Magnetic contribution
+                disordered_curie_temp += self._eval_rk_matrix(self.disordered_tc_coef_matrix,
+                                                              self.disordered_tc_coef_symbol_matrix, dof[out_idx],
+                                                              disordered_eval_row, parameters)
+                disordered_bmagn += self._eval_rk_matrix(self.disordered_bm_coef_matrix,
+                                                         self.disordered_bm_coef_symbol_matrix, dof[out_idx],
+                                                         disordered_eval_row, parameters)
+                if (disordered_curie_temp != 0) and (disordered_bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
+                    if disordered_bmagn < 0:
+                        disordered_bmagn /= self.disordered_afm_factor
+                    if disordered_curie_temp < 0:
+                        disordered_curie_temp /= self.disordered_afm_factor
+                    if disordered_curie_temp > 1e-6:
+                        tau = dof[out_idx, 1] / disordered_curie_temp
+                        # define model parameters
+                        p = self.disordered_ihj_magnetic_structure_factor
+                        A = 518./1125 + (11692./15975)*(1./p - 1.)
+                        # factor when tau < 1
+                        if tau < 1:
+                            res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                                * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                              )
+                        else:
+                            # factor when tau >= 1
+                            res_tau = -(1./A) * ((tau**-5)/10. + (tau**-15)/315. + (tau**-25)/1500.)
+                        disordered_energy += 8.3145 * disordered_dof[1] * log(disordered_bmagn+1) * res_tau
+                for subl_idx in range(self.disordered_site_ratios.shape[0]):
+                    if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                        disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+                    else:
+                        disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
+                disordered_energy /= disordered_mass_normalization_factor
+                # Subtract ordered energy at disordered configuration
+                ordered_dof[0] = dof[out_idx, 0]
+                ordered_dof[1] = dof[out_idx, 1]
+                if self.sublattice_dof[0] != self.sublattice_dof[self.sublattice_dof.shape[0]-1]:
+                    for subl_idx in range(self.site_ratios.shape[0]-1):
+                        for comp_idx in range(self.sublattice_dof[subl_idx]):
+                            ordered_dof[subl_idx * num_comps + comp_idx + 2] = disordered_dof[comp_idx+2]
+                    dof_idx = np.sum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
+                    disordered_dof_idx = np.sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
+                    # Copy interstitial values directly
+                    ordered_dof[dof_idx+2:] = disordered_dof[disordered_dof_idx+2:]
+                else:
+                    for subl_idx in range(self.site_ratios.shape[0]):
+                        for comp_idx in range(self.sublattice_dof[subl_idx]):
+                            ordered_dof[subl_idx * num_comps + comp_idx + 2] = disordered_dof[subl_idx+2]
+                self._eval_energy(out, ordered_dof, parameters, out_idx, -1)
+                out[out_idx] += disordered_energy
 
     def eval_gradient_energy(self, pressure, temperature, dof, out):
         pass

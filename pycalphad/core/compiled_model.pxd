@@ -33,4 +33,4 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat, double[:] dof,
                                 double[:] eval_row, double[:] parameters) nogil
     cdef _eval_energy(self, double[:] out, double[:] dof, double[:] parameters, int out_idx, double sign)
-    cpdef eval_energy(self, double[:] out, double[:] dof, double[:] parameters)
+    cpdef eval_energy(self, double[:] out, double[:,:] dof, double[:] parameters)

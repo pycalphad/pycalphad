@@ -90,8 +90,7 @@ def test_degenerate_ordered():
                v.SiteFraction('FCC_A1', 0, 'NI'): 0.67}
     l12_energy = mod_l12.energy.xreplace(l12_subs)
     a1_energy = mod_a1.energy.xreplace(a1_subs)
-    assert l12_energy.evalf() == a1_energy.evalf(), \
-            "%r != %r" % (l12_energy, a1_energy)
+    np.testing.assert_almost_equal(l12_energy, a1_energy)
 
 def test_degenerate_zero_ordering():
     "Degenerate sublattice configuration has zero ordering energy."
