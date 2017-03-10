@@ -393,7 +393,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
-    model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
+    model_dict = unpack_kwarg(kwargs.pop('model', CompiledModel), default_arg=CompiledModel)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
