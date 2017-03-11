@@ -1,6 +1,6 @@
 from tinydb import where
 from sympy import Add, Float, Integer, Rational, Mul, Pow, S, collect, Symbol, \
-    Piecewise, Intersection, EmptySet, Union, Interval
+    Piecewise, Intersection, EmptySet, Union, Interval, log, exp
 from sympy import log as sympy_log
 import copy
 import numpy as np
@@ -12,7 +12,8 @@ import pycalphad.variables as v
 _MAX_PARAM_NESTING = 32
 
 def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix, param_symbols):
-    if isinstance(sympy_obj.evalf(), (Float, Integer, Rational)):
+    if isinstance(sympy_obj, (Float, Integer, Rational)) or \
+            (isinstance(sympy_obj, (log, exp)) and isinstance(sympy_obj.args[0], (Float, Integer, Rational))):
         result = float(sympy_obj)
         if result != 0.0:
             output_matrix.append([low_temp, high_temp] + list(cur_exponents) + [result])

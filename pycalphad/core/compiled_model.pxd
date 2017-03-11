@@ -1,6 +1,7 @@
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
     cdef public object variables
+    cdef public object components
     cdef public int[::1] sublattice_dof
     cdef double[:,:,::1] composition_matrices
     cdef public double[::1] site_ratios
