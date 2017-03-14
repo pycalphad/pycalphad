@@ -213,6 +213,63 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     result += prod_result
         return result
 
+    cdef void _eval_rk_matrix_gradient(self, double[:] out, double[:,:] coef_mat, double[:,:] symbol_mat,
+                                       double[:] eval_row, double[:] parameters):
+        cdef double result = 0
+        cdef double prod_result
+        cdef int row_idx1 = 0
+        cdef int row_idx2 = 0
+        cdef int col_idx = 0
+        cdef int dof_idx
+        # eval_row order: P,T,ln(P),ln(T),y...
+        # dof order: P,T,y...
+        # coef_mat order: low_temp,high_temp,P,T,ln(P),ln(T),y...,constant_term,parameter_value
+        for dof_idx in range(eval_row.shape[0]-2):
+            if coef_mat.shape[1] > 0:
+                for row_idx1 in range(coef_mat.shape[0]):
+                    if (eval_row[1] >= coef_mat[row_idx1, 0]) and (eval_row[1] < coef_mat[row_idx1, 1]):
+                        if dof_idx < 2:
+                            # special handling for state variables since they also can have a ln term
+                            if coef_mat[row_idx1, 2+dof_idx] != 0:
+                                prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
+                                for col_idx in range(coef_mat.shape[1]-4):
+                                    if col_idx == dof_idx:
+                                        prod_result *= (eval_row[col_idx]**(coef_mat[row_idx1, 2+col_idx]-1) * eval_row[2+col_idx]**(coef_mat[row_idx1, 4+col_idx]-1) * (coef_mat[row_idx1, 4+col_idx]+coef_mat[row_idx1, 2+col_idx]*(eval_row[2+col_idx])))
+                                    else:
+                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
+                                out[dof_idx] += prod_result
+                        else:
+                            if coef_mat[row_idx1, 4+dof_idx] != 0:
+                                prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
+                                for col_idx in range(coef_mat.shape[1]-4):
+                                    if col_idx == 2+dof_idx:
+                                        prod_result *= (coef_mat[row_idx1, 4+dof_idx] * eval_row[col_idx] ** (coef_mat[row_idx1, 2+col_idx] - 1))
+                                    else:
+                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
+                                out[dof_idx] += prod_result
+            if symbol_mat.shape[1] > 0:
+                for row_idx2 in range(symbol_mat.shape[0]):
+                    if (eval_row[1] >= symbol_mat[row_idx2, 0]) and (eval_row[1] < symbol_mat[row_idx2, 1]):
+                        if dof_idx < 2:
+                            # special handling for state variables since they also can have a ln term
+                            if coef_mat[row_idx2, 2+dof_idx] != 0:
+                                prod_result = coef_mat[row_idx2, coef_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
+                                for col_idx in range(coef_mat.shape[1]-4):
+                                    if col_idx == dof_idx:
+                                        prod_result *= (eval_row[col_idx]**(coef_mat[row_idx1, 2+col_idx]-1) * eval_row[2+col_idx]**(coef_mat[row_idx1, 4+col_idx]-1) * (coef_mat[row_idx1, 4+col_idx]+coef_mat[row_idx1, 2+col_idx]*(eval_row[2+col_idx])))
+                                    else:
+                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
+                                out[dof_idx] += prod_result
+                        else:
+                            if coef_mat[row_idx1, 4+dof_idx] != 0:
+                                prod_result = coef_mat[row_idx2, coef_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
+                                for col_idx in range(coef_mat.shape[1]-4):
+                                    if col_idx == 2+dof_idx:
+                                        prod_result *= (coef_mat[row_idx2, 4+dof_idx] * eval_row[col_idx] ** (coef_mat[row_idx2, 2+col_idx] - 1))
+                                    else:
+                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx2, 2+col_idx])
+                                out[dof_idx] += prod_result
+
     @cython.boundscheck(False)
     cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
         cdef double[:,:] eval_row = np.zeros((dof.shape[0], 2+dof.shape[1]))
@@ -419,8 +476,124 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
 
-    def eval_gradient_energy(self, pressure, temperature, dof, out):
-        pass
+    cdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign):
+        cdef double[:] eval_row = np.zeros(2+dof.shape[0])
+        cdef double[:] out = np.zeros(dof.shape[0])
+        cdef double[::1] energy = np.atleast_1d(np.zeros(1))
+        cdef double mass_normalization_factor = 0
+        cdef double[:] mass_normalization_vacancy_factor = np.zeros(dof.shape[0]-2)
+        cdef double curie_temp = 0
+        cdef double[:] curie_temp_prime = np.zeros(dof.shape[0])
+        cdef double tau = 0
+        cdef double[:] tau_prime = np.zeros(dof.shape[0])
+        cdef double bmagn = 0
+        cdef double[:] bmagn_prime = np.zeros(dof.shape[0])
+        cdef double g_func = 0
+        cdef double[:] g_func_prime = np.zeros(dof.shape[0])
+        cdef double p = self.ihj_magnetic_structure_factor
+        cdef double A = 518./1125 + (11692./15975)*(1./p - 1.)
+        cdef int prev_idx = 0
+        cdef int dof_idx, eval_idx
+        eval_row[0] = dof[0]
+        eval_row[1] = dof[1]
+        eval_row[2] = log(dof[0])
+        eval_row[3] = log(dof[1])
+        for eval_idx in range(dof.shape[1]-2):
+            eval_row[4+eval_idx] = dof[2+eval_idx]
+        # Ideal mixing
+        for entry_idx in range(self.site_ratios.shape[0]):
+            for dof_idx in range(prev_idx, prev_idx+self.sublattice_dof[entry_idx]):
+                if dof[2+dof_idx] > 1e-16:
+                    # wrt P: 0l
+                    # wrt T
+                    out[1] += 8.3145 * self.site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
+                # wrt y
+                out[2+dof_idx] += 8.3145 * dof[1] * self.site_ratios[entry_idx] * (log(dof[2+dof_idx]) + 1)
+            prev_idx += self.sublattice_dof[entry_idx]
 
-    def eval_hessian_energy(self, pressure, temperature, dof, out):
-        pass
+        # End-member contribution
+        self._eval_rk_matrix_gradient(out, self.pure_coef_matrix, self.pure_coef_symbol_matrix,
+                                      eval_row, parameters)
+        # Interaction contribution
+        self._eval_rk_matrix_gradient(out, self.excess_coef_matrix, self.excess_coef_symbol_matrix,
+                                      eval_row, parameters)
+        # Magnetic contribution
+        curie_temp = self._eval_rk_matrix(self.tc_coef_matrix, self.tc_coef_symbol_matrix,
+                                          eval_row, parameters)
+        bmagn = self._eval_rk_matrix(self.bm_coef_matrix, self.bm_coef_symbol_matrix,
+                                     eval_row, parameters)
+        if (curie_temp != 0) and (bmagn != 0) and (self.ihj_magnetic_structure_factor > 0) and (self.afm_factor != 0):
+            self._eval_rk_matrix_gradient(curie_temp_prime, self.tc_coef_matrix, self.tc_coef_symbol_matrix,
+                              eval_row, parameters)
+            self._eval_rk_matrix_gradient(bmagn_prime, self.bm_coef_matrix, self.bm_coef_symbol_matrix,
+                              eval_row, parameters)
+            if bmagn < 0:
+                bmagn /= self.afm_factor
+                for dof_idx in range(dof.shape[0]):
+                    bmagn_prime[dof_idx] /= self.afm_factor
+            if curie_temp < 0:
+                curie_temp /= self.afm_factor
+                for dof_idx in range(dof.shape[0]):
+                    bmagn_prime[dof_idx] /= self.afm_factor
+            if curie_temp > 1e-6:
+                tau = dof[1] / curie_temp
+                for dof_idx in range(dof.shape[0]):
+                    if dof_idx == 1:
+                        # wrt T
+                        tau_prime[1] = (curie_temp - dof[1]*curie_temp_prime[1])/(curie_temp**2)
+                    else:
+                        tau_prime[dof_idx] = -curie_temp_prime[dof_idx]/(curie_temp**2)
+                tau_prime[0] = -curie_temp_prime[0]
+                # factor when tau < 1
+                if tau < 1:
+                    g_func = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                        * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                      )
+                    for dof_idx in range(dof.shape[0]):
+                        g_func_prime[dof_idx] = ((1./A)*(79./(140*p))) / (tau**2) + (474./497)*(1./p - 1)*tau**2 / 2 \
+                        + tau**14 / 40 + tau**8 / 15
+                else:
+                    # factor when tau >= 1
+                    g_func = -(1./A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+                    for dof_idx in range(dof.shape[0]):
+                        g_func_prime[dof_idx] = (1./A) * (1./(60*tau**26) + 1./(21*tau**16) + 1./(2*tau**6))
+                for dof_idx in range(dof.shape[0]):
+                    if dof_idx != 1:
+                        out[dof_idx] += 8.3145 * dof[1] * (bmagn_prime[dof_idx] * g_func / (bmagn+1) + log(bmagn+1)) * tau_prime[dof_idx] * g_func_prime[dof_idx]
+                    else:
+                        # wrt T
+                        out[dof_idx] += 8.3145 * (((dof[1] * bmagn_prime[dof_idx]) / (bmagn+1) + log(bmagn+1)) * g_func + \
+                            dof[1] * log(bmagn+1) * tau_prime[dof_idx] * g_func_prime[dof_idx])
+
+        for subl_idx in range(self.site_ratios.shape[0]):
+            if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.site_ratios[subl_idx] * (1-dof[2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
+                mass_normalization_vacancy_factor[dof_idx] -= self.site_ratios[subl_idx]
+                if energy[0] == 0:
+                    self.eval_energy(energy, np.array([dof]), parameters)
+            else:
+                mass_normalization_factor += self.site_ratios[subl_idx]
+        for dof_idx in range(dof.shape[0]):
+            out[dof_idx] /= mass_normalization_factor
+            if (dof_idx > 1) and mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                out[dof_idx] -= energy[0] * mass_normalization_vacancy_factor[dof_idx-2] / mass_normalization_factor**2
+        for dof_idx in range(dof.shape[0]):
+            out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
+
+    cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters):
+        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
+        cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
+        cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
+        cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
+        cdef np.ndarray[ndim=1, dtype=np.float64_t]  row
+        cdef double disordered_mass_normalization_factor = 0
+        cdef double disordered_curie_temp = 0
+        cdef double tau = 0
+        cdef double disordered_bmagn = 0
+        cdef double A, p, res_tau
+        cdef double disordered_energy = 0
+        cdef int prev_idx = 0
+        cdef int dof_idx, out_idx, subl_idx
+        self._eval_energy_gradient(out, dof, parameters, 1)
+        if self.ordered:
+            raise NotImplementedError
