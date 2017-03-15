@@ -47,7 +47,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                             phase.constituents,
                             self.components))
             self.components |= set(sublattice).intersection(possible_comps)
-            self.constituents.append(set(sublattice).intersection(self.components))
+            self.constituents.append(sorted(set(sublattice).intersection(self.components)))
         self.components = sorted(self.components, key=str)
         self.variables = []
         for idx, sublattice in enumerate(self.constituents):
@@ -568,7 +568,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         for subl_idx in range(self.site_ratios.shape[0]):
             if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
                 mass_normalization_factor += self.site_ratios[subl_idx] * (1-dof[2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
-                mass_normalization_vacancy_factor[dof_idx] -= self.site_ratios[subl_idx]
+                mass_normalization_vacancy_factor[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]] = -self.site_ratios[subl_idx]
                 if energy[0] == 0:
                     self.eval_energy(energy, np.array([dof]), parameters)
             else:

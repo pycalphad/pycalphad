@@ -430,8 +430,6 @@ class Model(object):
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
-            if len(active_comps) == 1:
-                continue # no mixing if only one species in sublattice
             ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
