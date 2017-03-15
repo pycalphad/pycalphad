@@ -230,12 +230,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     if (eval_row[1] >= coef_mat[row_idx1, 0]) and (eval_row[1] < coef_mat[row_idx1, 1]):
                         if dof_idx < 2:
                             # special handling for state variables since they also can have a ln term
-                            if coef_mat[row_idx1, 2+dof_idx] != 0:
+                            if (coef_mat[row_idx1, 2+dof_idx] != 0) or (coef_mat[row_idx1, 4+dof_idx] != 0):
                                 prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
-                                for col_idx in range(coef_mat.shape[1]-4):
-                                    if col_idx == dof_idx:
-                                        prod_result *= (eval_row[col_idx]**(coef_mat[row_idx1, 2+col_idx]-1) * eval_row[2+col_idx]**(coef_mat[row_idx1, 4+col_idx]-1) * (coef_mat[row_idx1, 4+col_idx]+coef_mat[row_idx1, 2+col_idx]*(eval_row[2+col_idx])))
-                                    else:
+                                prod_result *= eval_row[dof_idx] ** (coef_mat[row_idx1, 2+dof_idx] - 1)
+                                prod_result *= eval_row[2+dof_idx] ** (coef_mat[row_idx1, 4+dof_idx] - 1)
+                                prod_result *= coef_mat[row_idx1, 2+dof_idx] * eval_row[2+dof_idx] + coef_mat[row_idx1, 4+dof_idx]
+                                for col_idx in range(4, coef_mat.shape[1]-4):
                                         prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
                                 out[dof_idx] += prod_result
                         else:
@@ -243,7 +243,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                 prod_result = coef_mat[row_idx1, coef_mat.shape[1]-2] * coef_mat[row_idx1, coef_mat.shape[1]-1]
                                 for col_idx in range(coef_mat.shape[1]-4):
                                     if col_idx == 2+dof_idx:
-                                        prod_result *= (coef_mat[row_idx1, 4+dof_idx] * eval_row[col_idx] ** (coef_mat[row_idx1, 2+col_idx] - 1))
+                                        prod_result *= (coef_mat[row_idx1, 2+col_idx] * eval_row[col_idx] ** (coef_mat[row_idx1, 2+col_idx] - 1))
                                     else:
                                         prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
                                 out[dof_idx] += prod_result
@@ -252,20 +252,20 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     if (eval_row[1] >= symbol_mat[row_idx2, 0]) and (eval_row[1] < symbol_mat[row_idx2, 1]):
                         if dof_idx < 2:
                             # special handling for state variables since they also can have a ln term
-                            if coef_mat[row_idx2, 2+dof_idx] != 0:
+                            if (coef_mat[row_idx2, dof_idx] != 0) or (coef_mat[row_idx2, 2+dof_idx] != 0):
                                 prod_result = coef_mat[row_idx2, coef_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
-                                for col_idx in range(coef_mat.shape[1]-4):
-                                    if col_idx == dof_idx:
-                                        prod_result *= (eval_row[col_idx]**(coef_mat[row_idx1, 2+col_idx]-1) * eval_row[2+col_idx]**(coef_mat[row_idx1, 4+col_idx]-1) * (coef_mat[row_idx1, 4+col_idx]+coef_mat[row_idx1, 2+col_idx]*(eval_row[2+col_idx])))
-                                    else:
-                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx1, 2+col_idx])
+                                prod_result *= eval_row[dof_idx] ** (coef_mat[row_idx2, 2+dof_idx] - 1)
+                                prod_result *= eval_row[2+dof_idx] ** (coef_mat[row_idx2, 4+dof_idx] - 1)
+                                prod_result *= coef_mat[row_idx2, 2+dof_idx] * eval_row[2+dof_idx] + coef_mat[row_idx2, 4+dof_idx]
+                                for col_idx in range(4, coef_mat.shape[1]-4):
+                                        prod_result *= (eval_row[col_idx] ** coef_mat[row_idx2, 2+col_idx])
                                 out[dof_idx] += prod_result
                         else:
                             if coef_mat[row_idx1, 4+dof_idx] != 0:
                                 prod_result = coef_mat[row_idx2, coef_mat.shape[1]-2] * parameters[<int>symbol_mat[row_idx2, symbol_mat.shape[1]-1]]
                                 for col_idx in range(coef_mat.shape[1]-4):
                                     if col_idx == 2+dof_idx:
-                                        prod_result *= (coef_mat[row_idx2, 4+dof_idx] * eval_row[col_idx] ** (coef_mat[row_idx2, 2+col_idx] - 1))
+                                        prod_result *= (coef_mat[row_idx2, 2+col_idx] * eval_row[col_idx] ** (coef_mat[row_idx2, 2+col_idx] - 1))
                                     else:
                                         prod_result *= (eval_row[col_idx] ** coef_mat[row_idx2, 2+col_idx])
                                 out[dof_idx] += prod_result
@@ -498,7 +498,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         eval_row[1] = dof[1]
         eval_row[2] = log(dof[0])
         eval_row[3] = log(dof[1])
-        for eval_idx in range(dof.shape[1]-2):
+        for eval_idx in range(dof.shape[0]-2):
             eval_row[4+eval_idx] = dof[2+eval_idx]
         # Ideal mixing
         for entry_idx in range(self.site_ratios.shape[0]):
