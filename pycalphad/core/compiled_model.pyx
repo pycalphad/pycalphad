@@ -489,7 +489,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double bmagn = 0
         cdef double[:] bmagn_prime = np.zeros(dof.shape[0])
         cdef double g_func = 0
-        cdef double[:] g_func_prime = np.zeros(dof.shape[0])
+        cdef double g_func_prime = 0
         cdef double p = self.ihj_magnetic_structure_factor
         cdef double A = 518./1125 + (11692./15975)*(1./p - 1.)
         cdef int prev_idx = 0
@@ -542,28 +542,26 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         # wrt T
                         tau_prime[1] = (curie_temp - dof[1]*curie_temp_prime[1])/(curie_temp**2)
                     else:
-                        tau_prime[dof_idx] = -curie_temp_prime[dof_idx]/(curie_temp**2)
-                tau_prime[0] = -curie_temp_prime[0]
+                        tau_prime[dof_idx] = -dof[1] * curie_temp_prime[dof_idx]/(curie_temp**2)
                 # factor when tau < 1
                 if tau < 1:
                     g_func = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
                         * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
                                       )
-                    for dof_idx in range(dof.shape[0]):
-                        g_func_prime[dof_idx] = ((1./A)*(79./(140*p))) / (tau**2) + (474./497)*(1./p - 1)*tau**2 / 2 \
-                        + tau**14 / 40 + tau**8 / 15
+                    g_func_prime = (1./A)*((79./(140*p)) / (tau**2) - (474./497)*(1./p - 1)*(tau**2 / 2 \
+                        + tau**14 / 40 + tau**8 / 15))
                 else:
                     # factor when tau >= 1
                     g_func = -(1./A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
-                    for dof_idx in range(dof.shape[0]):
-                        g_func_prime[dof_idx] = (1./A) * (1./(60*tau**26) + 1./(21*tau**16) + 1./(2*tau**6))
+                    g_func_prime = (1./A) * (1./(60*tau**26) + 1./(21*tau**16) + 1./(2*tau**6))
                 for dof_idx in range(dof.shape[0]):
                     if dof_idx != 1:
-                        out[dof_idx] += 8.3145 * dof[1] * (bmagn_prime[dof_idx] * g_func / (bmagn+1) + log(bmagn+1)) * tau_prime[dof_idx] * g_func_prime[dof_idx]
+                        out[dof_idx] += 8.3145 * dof[1] * (bmagn_prime[dof_idx] * g_func / (bmagn+1) + \
+                                                           log(bmagn+1) * tau_prime[dof_idx] * g_func_prime)
                     else:
                         # wrt T
                         out[dof_idx] += 8.3145 * (((dof[1] * bmagn_prime[dof_idx]) / (bmagn+1) + log(bmagn+1)) * g_func + \
-                            dof[1] * log(bmagn+1) * tau_prime[dof_idx] * g_func_prime[dof_idx])
+                            dof[1] * log(bmagn+1) * tau_prime[dof_idx] * g_func_prime)
 
         for subl_idx in range(self.site_ratios.shape[0]):
             if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
@@ -575,7 +573,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 mass_normalization_factor += self.site_ratios[subl_idx]
         for dof_idx in range(dof.shape[0]):
             out[dof_idx] /= mass_normalization_factor
-            if (dof_idx > 1) and mass_normalization_vacancy_factor[dof_idx-2] != 0:
+            if (dof_idx > 1) and out[dof_idx] != 0:
                 out[dof_idx] -= energy[0] * mass_normalization_vacancy_factor[dof_idx-2] / mass_normalization_factor**2
         for dof_idx in range(dof.shape[0]):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
