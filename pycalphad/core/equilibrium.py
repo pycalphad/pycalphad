@@ -9,6 +9,8 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
+from pycalphad.core.phase_rec import PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
+from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions, _compute_constraints
 from sympy import Add, Symbol
@@ -242,30 +244,32 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name)
-        site_fracs = mod.site_fractions
-        variables = sorted([v.P, v.T] + site_fracs, key=str)
-        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
-        out = models[name].energy
-        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
-                or (not hess_callable_dict.get(name, False)):
-            # Only force undefineds to zero if we're not overriding them
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
-            cf, gf, hf = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols)
-            if callable_dict.get(name, None) is None:
-                callable_dict[name] = cf
-            if grad_callable_dict.get(name, None) is None:
-                grad_callable_dict[name] = gf
-            if hess_callable_dict.get(name, None) is None:
-                hess_callable_dict[name] = hf
+        if isinstance(mod, CompiledModel):
+            phase_records[name.upper()] = PhaseRecord_from_compiledmodel(mod, param_values)
+            maximum_internal_dof = max(maximum_internal_dof, sum(mod.sublattice_dof))
+        else:
+            site_fracs = mod.site_fractions
+            variables = sorted(site_fracs, key=str)
+            maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
+            out = models[name].energy
+            if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
+                    or (not hess_callable_dict.get(name, False)):
+                # Only force undefineds to zero if we're not overriding them
+                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
+                for undef in undefs:
+                    out = out.xreplace({undef: float(0)})
+                cf, gf, hf = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols)
+                if callable_dict.get(name, None) is None:
+                    callable_dict[name] = cf
+                if grad_callable_dict.get(name, None) is None:
+                    grad_callable_dict[name] = gf
+                if hess_callable_dict.get(name, None) is None:
+                    hess_callable_dict[name] = hf
 
-        phase_records[name.upper()] = PickleablePhaseRecord(variables=variables,
-                                                            parameters=param_values,
-                                                            num_sites=dbf.phases[name].sublattices,
-                                                            obj=callable_dict[name],
-                                                            grad=grad_callable_dict[name],
-                                                            hess=hess_callable_dict[name])
+            phase_records[name.upper()] = PhaseRecord_from_f2py(comps, variables,
+                                                                np.array(dbf.phases[name].sublattices, dtype=np.float),
+                                                                param_values, callable_dict[name],
+                                                                grad_callable_dict[name], hess_callable_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:

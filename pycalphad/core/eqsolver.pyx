@@ -32,7 +32,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     def __cinit__(self, PhaseRecord prx, double[::1] site_fracs, double phase_amt,
                   double pressure, double temperature):
         self.phase_record = prx
-        self.dof = np.zeros(len(prx.variables))
+        self.dof = np.zeros(len(prx.variables)+2)
         self.dof[0] = pressure
         self.dof[1] = temperature
         self.dof[2:] = site_fracs
