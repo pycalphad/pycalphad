@@ -42,7 +42,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
         cdef double[::1,:] debugout
-        cdef double epsilon = 1e-4
+        cdef double epsilon = 1e-12
         cdef int grad_idx
         cdef int col_idx
         if self._hess != NULL:
