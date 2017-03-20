@@ -12,6 +12,10 @@ import pycalphad.variables as v
 _MAX_PARAM_NESTING = 32
 
 def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output_matrix, symbol_matrix, param_symbols):
+    if sympy_obj == v.T:
+        sympy_obj = Mul(1.0, v.T)
+    elif sympy_obj == v.P:
+        sympy_obj = Mul(1.0, v.P)
     if isinstance(sympy_obj, (Float, Integer, Rational)) or \
             (isinstance(sympy_obj, (log, exp)) and isinstance(sympy_obj.args[0], (Float, Integer, Rational))):
         result = float(sympy_obj)
@@ -90,20 +94,25 @@ class RedlichKisterSum(object):
         """
         variable_rename_dict = variable_rename_dict if variable_rename_dict is not None else dict()
         rk_terms = []
+        possible_comps = set([x.upper() for x in comps])
         dof = [v.SiteFraction(phase.name, subl_index, comp)
                for subl_index, subl in enumerate(phase.constituents) for comp in sorted(set(subl).intersection(comps))]
         self.output_matrix = []
         self.symbol_matrix = []
+        self.components = set()
+        for sublattice in phase.constituents:
+            self.components |= set(sublattice).intersection(possible_comps)
+        self.components = sorted(self.components)
 
         # search for desired parameters
         params = param_search(param_query)
         for param in params:
             # iterate over every sublattice
             mixing_term = S.One
-            for subl_index, comps in enumerate(param['constituent_array']):
+            for subl_index, cps in enumerate(param['constituent_array']):
                 comp_symbols = None
                 # convert strings to symbols
-                if comps[0] == '*':
+                if cps[0] == '*':
                     # Handle wildcards in constituent array
                     comp_symbols = \
                         [
@@ -116,15 +125,15 @@ class RedlichKisterSum(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in comps
+                            for comp in cps
                         ]
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
-                if len(comps) == 2 and param['parameter_order'] > 0:
+                if len(cps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     mixing_term *= Pow(comp_symbols[0] - \
                         comp_symbols[1], param['parameter_order'])
-                if len(comps) == 3:
+                if len(cps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
 

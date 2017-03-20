@@ -1,6 +1,6 @@
-"""
-eqsolver handles local energy minimization.
-"""
+#cython: profile=True
+#cython: linetrace=True
+#cython: binding=True
 from collections import defaultdict, OrderedDict
 import copy
 import itertools
@@ -200,6 +200,7 @@ def _compute_constraints(object comps, object phases,
             spidx = site_fracs.shape[0] + phase_idx
             sfview = site_fracs[var_offset:var_offset + prn.phase_dof]
             with nogil:
+                comp_obj_value[0] = 0
                 for grad_idx in range(prn.phase_dof):
                     comp_grad_value[grad_idx] = 0
                     for hess_idx in range(grad_idx, prn.phase_dof):
@@ -296,6 +297,9 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
         prn = phase_records[name]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
+            grad_res[:] = 0
+            obj_res[0] = 0
+            tmp_hess[:,:] = 0
             prn.obj(obj_res, dof_2d_view)
             # This can happen for phases with non-physical vacancy content
             if isnan(obj_res[0]):

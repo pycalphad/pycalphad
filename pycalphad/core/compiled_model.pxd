@@ -29,7 +29,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef double[:,:] disordered_tc_coef_symbol_matrix
     cdef double disordered_ihj_magnetic_structure_factor
     cdef double disordered_afm_factor
-    cdef bint ordered
+    cdef public bint ordered
 
     cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat,
                                 double[:] eval_row, double[:] parameters) nogil

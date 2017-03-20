@@ -39,7 +39,29 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil:
-        self._hess(&dof[0], &self.parameters[0], &out[0,0])
+        cdef double[::1] xx
+        cdef double[::1] grad1, grad2
+        cdef double epsilon = 1e-12
+        cdef int grad_idx
+        cdef int col_idx
+        if self._hess != NULL:
+            self._hess(&dof[0], &self.parameters[0], &out[0,0])
+        else:
+            with gil:
+                grad1 = np.zeros(out.shape[0])
+                grad2 = np.zeros(out.shape[0])
+                xx = np.array(dof)
+                self.cmpmdl.eval_energy_gradient(grad1, dof, self.parameters)
+                for grad_idx in range(dof.shape[0]):
+                    xx[grad_idx] += epsilon
+                    self.cmpmdl.eval_energy_gradient(grad2, xx, self.parameters)
+                    xx[grad_idx] = dof[grad_idx]
+                    for col_idx in range(dof.shape[0]):
+                        out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/epsilon
+                    grad2[:] = 0
+                for grad_idx in range(dof.shape[0]):
+                    for col_idx in range(grad_idx, dof.shape[0]):
+                        out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -135,6 +157,7 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     inst.parameters = parameters
     inst.num_sites = cmpmdl.site_ratios
     inst.composition_matrices = cmpmdl.composition_matrices
+    inst.vacancy_index = cmpmdl.vacancy_index
     inst._obj = NULL
     inst._grad = NULL
     inst._hess = NULL

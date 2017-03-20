@@ -1,3 +1,4 @@
+# cython: profile=True
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -504,7 +505,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         for entry_idx in range(self.site_ratios.shape[0]):
             for dof_idx in range(prev_idx, prev_idx+self.sublattice_dof[entry_idx]):
                 if dof[2+dof_idx] > 1e-16:
-                    # wrt P: 0l
+                    # wrt P: 0
                     # wrt T
                     out[1] += 8.3145 * self.site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
                 # wrt y
@@ -572,9 +573,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
         for dof_idx in range(dof.shape[0]):
-            out[dof_idx] /= mass_normalization_factor
-            if (dof_idx > 1) and out[dof_idx] != 0:
-                out[dof_idx] -= energy[0] * mass_normalization_vacancy_factor[dof_idx-2] / mass_normalization_factor**2
+            if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / (mass_normalization_factor**2)
+            else:
+                out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(dof.shape[0]):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
 

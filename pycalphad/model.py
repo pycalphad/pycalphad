@@ -337,8 +337,8 @@ class Model(object):
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
-                            for comp in set(phase.constituents[subl_index])\
-                                .intersection(self.components)
+                            for comp in sorted(set(phase.constituents[subl_index])\
+                                .intersection(self.components))
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:

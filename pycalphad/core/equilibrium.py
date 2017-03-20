@@ -22,8 +22,8 @@ import numpy as np
 from collections import namedtuple, OrderedDict
 from datetime import datetime
 
-#def delayed(func, *fargs, **fkwargs):
-#    return func
+def delayed(func, *fargs, **fkwargs):
+    return func
 
 PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
                                    ['variables', 'parameters', 'num_sites', 'obj', 'grad', 'hess'])
@@ -31,6 +31,20 @@ PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
+
+
+class FallbackModel(object):
+    "Compatibility layer while transitioning to CompiledModel."
+    def __new__(cls, *args, **kwargs):
+        try:
+            ret = CompiledModel(*args, **kwargs)
+        except NotImplementedError:
+            return Model(*args, **kwargs)
+        if ret.ordered:
+            return Model(*args, **kwargs)
+        else:
+            return ret
+
 
 
 class ConditionError(EquilibriumError):
@@ -202,7 +216,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
-    model = model if model is not None else Model
+    model = model if model is not None else FallbackModel
     phase_records = dict()
     diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
