@@ -305,8 +305,8 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
             if isnan(obj_res[0]):
                 obj_res[0] = MAX_ENERGY
             total_obj += obj_weight * phase_frac * obj_res[0]
-            prn.grad(grad_res, dof)
-            prn.hess(tmp_hess, dof)
+            prn.grad(grad_res, dof[:2+prn.phase_dof])
+            prn.hess(tmp_hess, dof[:2+prn.phase_dof])
             for dof_x_idx in range(prn.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
                     obj_weight * phase_frac * grad_res[2+dof_x_idx]  # Remove P,T grad part
