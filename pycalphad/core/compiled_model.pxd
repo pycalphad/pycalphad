@@ -1,3 +1,5 @@
+from pycalphad.core.phase_rec cimport func_t, func_novec_t
+
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
     cdef public object variables
@@ -30,6 +32,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef double disordered_ihj_magnetic_structure_factor
     cdef double disordered_afm_factor
     cdef public bint ordered
+    cdef public bint _debug
+    cdef func_t* _debugobj
+    cdef func_novec_t* _debuggrad
+    cdef func_novec_t* _debughess
 
     cdef double _eval_rk_matrix(self, double[:,:] coef_mat, double[:,:] symbol_mat,
                                 double[:] eval_row, double[:] parameters) nogil
@@ -41,3 +47,5 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters)
     cdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign)
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters)
+    cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters)
+    cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)

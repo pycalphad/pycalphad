@@ -5,10 +5,13 @@ cimport cython
 from libc.math cimport log
 from sympy import Symbol
 from tinydb import where
+from collections import OrderedDict
 from pycalphad.core.rksum import RedlichKisterSum
+from pycalphad.core.sympydiff_utils import build_functions
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
+from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -28,11 +31,21 @@ cdef inline int _intsum(int[:] arr) nogil:
         result += arr[idx]
     return result
 
+# From https://gist.github.com/pv/5437087
+cdef void* f2py_pointer(obj):
+    if PY_VERSION_HEX < 0x03000000:
+        if (PyCObject_Check(obj)):
+            return PyCObject_AsVoidPtr(obj)
+    elif PY_VERSION_HEX >= 0x02070000:
+        if (PyCapsule_CheckExact(obj)):
+            return PyCapsule_GetPointer(obj, NULL);
+    raise ValueError("Not an object containing a void ptr")
+
 # Forward declaration necessary for some self-referencing below
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
-    def __cinit__(self, dbe, comps, phase_name, parameters=None):
+    def __cinit__(self, dbe, comps, phase_name, parameters=None, _debug=False):
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
@@ -56,6 +69,29 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for comp in sublattice:
                 self.variables.append(v.Y(phase_name, idx, comp))
         parameters = parameters if parameters is not None else {}
+        self._debug = _debug
+        if _debug:
+            debugmodel = Model(dbe, comps, phase_name, parameters)
+            out = debugmodel.energy
+            if isinstance(parameters, dict):
+                parameters = OrderedDict(sorted(parameters.items(), key=str))
+            param_symbols = tuple(parameters.keys())
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+            _debugobj, _debuggrad, _debughess = build_functions(out, tuple([v.P, v.T] + self.variables),
+                                                                parameters=param_symbols)
+            # Trigger lazy computation
+            if _debugobj is not None:
+                _debugobj.kernel
+                self._debugobj = <func_t*> f2py_pointer(_debugobj._kernel._cpointer)
+            if _debuggrad is not None:
+                _debuggrad.kernel
+                self._debuggrad = <func_novec_t*> f2py_pointer(_debuggrad._kernel._cpointer)
+            if _debughess is not None:
+                _debughess.kernel
+                self._debughess = <func_novec_t*> f2py_pointer(_debughess._kernel._cpointer)
+
         self.site_ratios = np.array(phase.sublattices)
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
         # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
@@ -274,7 +310,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
-        cdef double[:,:] eval_row = np.zeros((dof.shape[0], 2+dof.shape[1]))
+        cdef double[:,:] eval_row = np.zeros((dof.shape[0], 4+sum(self.sublattice_dof)))
         cdef double[:] mass_normalization_factor = np.zeros(dof.shape[0])
         cdef double[:] curie_temp = np.zeros(dof.shape[0])
         cdef double[:] tau = np.zeros(dof.shape[0])
@@ -291,7 +327,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 eval_row[out_idx, 1] = dof[out_idx, 1]
                 eval_row[out_idx, 2] = log(dof[out_idx, 0])
                 eval_row[out_idx, 3] = log(dof[out_idx, 1])
-                for eval_idx in range(dof.shape[1]-2):
+                for eval_idx in range(eval_row.shape[1]-4):
                     eval_row[out_idx, 4+eval_idx] = dof[out_idx, 2+eval_idx]
                 # Ideal mixing
                 prev_idx[out_idx] = 0
@@ -390,7 +426,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, subl_idx+2]
 
     cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters):
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[1])
+        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(4+sum(self.sublattice_dof))
         cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
         cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
         cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
@@ -477,9 +513,25 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
                 disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
+        if self._debug:
+            debugout = np.zeros_like(out)
+            self._debug_energy(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
+            np.testing.assert_allclose(out,debugout)
+
+    cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters):
+        if parameters.shape[0] == 0:
+            self._debugobj(&debugout[0], &dof[0,0], NULL, <int*>&debugout.shape[0])
+        else:
+            self._debugobj(&debugout[0], &dof[0,0], &parameters[0], <int*>&debugout.shape[0])
+
+    cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters):
+        if parameters.shape[0] == 0:
+            self._debuggrad(&dof[0], NULL, &debugout[0])
+        else:
+            self._debuggrad(&dof[0], &parameters[0], &debugout[0])
 
     cdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign):
-        cdef double[:] eval_row = np.zeros(2+dof.shape[0])
+        cdef double[:] eval_row = np.zeros(4+sum(self.sublattice_dof))
         cdef double[:] out = np.zeros(dof.shape[0])
         cdef double[::1] energy = np.atleast_1d(np.zeros(1))
         cdef double mass_normalization_factor = 0
@@ -500,7 +552,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         eval_row[1] = dof[1]
         eval_row[2] = log(dof[0])
         eval_row[3] = log(dof[1])
-        for eval_idx in range(dof.shape[0]-2):
+        for eval_idx in range(sum(self.sublattice_dof)):
             eval_row[4+eval_idx] = dof[2+eval_idx]
         # Ideal mixing
         for entry_idx in range(self.site_ratios.shape[0]):
@@ -573,16 +625,16 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     self.eval_energy(energy, np.array([dof]), parameters)
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
-        for dof_idx in range(dof.shape[0]):
+        for dof_idx in range(2+sum(self.sublattice_dof)):
             if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
                 out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / (mass_normalization_factor**2)
             else:
                 out[dof_idx] /= mass_normalization_factor
-        for dof_idx in range(dof.shape[0]):
+        for dof_idx in range(2+sum(self.sublattice_dof)):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
 
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters):
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(2+dof.shape[0])
+        cdef np.ndarray[ndim=1, dtype=np.float64_t] eval_row = np.zeros(4+sum(self.sublattice_dof))
         cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_eval_row
         cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
         cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
@@ -598,3 +650,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         self._eval_energy_gradient(out, dof, parameters, 1)
         if self.ordered:
             raise NotImplementedError
+        if self._debug:
+            debugout = np.zeros_like(out)
+            self._debug_energy_gradient(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
+            try:
+                np.testing.assert_allclose(out,debugout)
+            except AssertionError as e:
+                print('--')
+                print(e)
+                print(np.array(debugout)-np.array(out))
+                print('DOF:', np.array(dof))
+                print(self.constituents)
+                print('--')
