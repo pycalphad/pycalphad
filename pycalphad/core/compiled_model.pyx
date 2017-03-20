@@ -588,7 +588,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             if curie_temp < 0:
                 curie_temp /= self.afm_factor
                 for dof_idx in range(dof.shape[0]):
-                    bmagn_prime[dof_idx] /= self.afm_factor
+                    curie_temp_prime[dof_idx] /= self.afm_factor
             if curie_temp > 1e-6:
                 tau = dof[1] / curie_temp
                 for dof_idx in range(dof.shape[0]):
