@@ -58,6 +58,7 @@ class Model(object):
     def __init__(self, dbe, comps, phase_name, parameters=None):
         # Constrain possible components to those within phase's d.o.f
         possible_comps = set([x.upper() for x in comps])
+        comps = sorted(comps, key=str)
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()

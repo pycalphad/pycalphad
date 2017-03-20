@@ -34,6 +34,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     def __cinit__(self, dbe, comps, phase_name, parameters=None):
         possible_comps = set([x.upper() for x in comps])
+        comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
         self.constituents = []
         self.components = set()
