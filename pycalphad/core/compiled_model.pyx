@@ -657,6 +657,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 np.testing.assert_allclose(out,debugout)
             except AssertionError as e:
                 print('--')
+                print('Gradient mismatch')
                 print(e)
                 print(np.array(debugout)-np.array(out))
                 print('DOF:', np.array(dof))
