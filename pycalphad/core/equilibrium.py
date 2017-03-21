@@ -40,10 +40,7 @@ class FallbackModel(object):
             ret = CompiledModel(*args, **kwargs)
         except NotImplementedError:
             return Model(*args, **kwargs)
-        if ret.ordered:
-            return Model(*args, **kwargs)
-        else:
-            return ret
+        return ret
 
 
 
@@ -366,6 +363,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
+        for phase_name, mod in models.items():
+            if isinstance(mod, CompiledModel) or isinstance(mod, FallbackModel):
+                models[phase_name] = Model(dbf, comps, phase_name)
         delayed(properties.merge, pure=False)(delayed(_eqcalculate, pure=False)(dbf, comps, active_phases,
                                                                                           conditions, out,
                                                                                           data=properties,

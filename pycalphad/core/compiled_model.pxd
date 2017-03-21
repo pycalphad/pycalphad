@@ -44,6 +44,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil
     cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil
     cdef _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign)
+    cdef _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign)
     cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters)
     cdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign)
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters)
