@@ -295,6 +295,8 @@ cdef _build_multiphase_system(int[:] phase_dof, phases, cur_conds, double[::1] s
 
     for name, phase_frac in zip(phases, phase_fracs):
         prn = phase_records[name]
+        tmp_hess = np.zeros((2+prn.phase_dof, 2+prn.phase_dof), order='F')
+        tmp_hess_ptr = &tmp_hess[0,0]
         with nogil:
             dof[2:2+prn.phase_dof] = site_fracs[var_offset:var_offset + prn.phase_dof]
             grad_res[:] = 0
