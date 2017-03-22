@@ -222,8 +222,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                          np.asarray(self.disordered_bm_coef_symbol_matrix),
                                          np.asarray(self.disordered_tc_coef_matrix),
                                          np.asarray(self.disordered_tc_coef_symbol_matrix),
-                                         np.asarray(self.disordered_ihj_magnetic_structure_factor),
-                                         np.asarray(self.disordered_afm_factor),
+                                         self.disordered_ihj_magnetic_structure_factor,
+                                         self.disordered_afm_factor,
                                          self.ordered, self._debug))
 
     def _purity_test(self, constituent_array):
