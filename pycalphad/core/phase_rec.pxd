@@ -10,6 +10,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef func_t* _obj
     cdef func_novec_t* _grad
     cdef func_novec_t* _hess
+    cdef public object _ofunc
+    cdef public object _gfunc
+    cdef public object _hfunc
     cdef CompiledModel cmpmdl
     cdef public object variables
     cdef public double[::1] parameters

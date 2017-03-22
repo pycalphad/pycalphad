@@ -18,6 +18,14 @@ cdef void* f2py_pointer(obj):
 
 
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
+    def __reduce__(self):
+        if self.cmpmdl is not None:
+            return PhaseRecord_from_compiledmodel, (self.cmpmdl, np.asarray(self.parameters))
+        else:
+            return PhaseRecord_from_f2py_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
+                                                  self.parameters, self.num_sites, self.composition_matrices,
+                                                  self.vacancy_index, self._ofunc, self._gfunc, self._hfunc)
+
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void obj(self, double[::1] out, double[::1,:] dof) nogil:
@@ -221,6 +229,33 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
         inst.sublattice_dof[subl_index] += 1
         var_idx += 1
         inst.phase_dof += 1
+    # Trigger lazy computation
+    if ofunc is not None:
+        inst._ofunc = ofunc
+        ofunc.kernel
+        inst._obj = <func_t*> f2py_pointer(ofunc._kernel._cpointer)
+    if gfunc is not None:
+        inst._gfunc = gfunc
+        gfunc.kernel
+        inst._grad = <func_novec_t*> f2py_pointer(gfunc._kernel._cpointer)
+    if hfunc is not None:
+        inst._hfunc = hfunc
+        hfunc.kernel
+        inst._hess = <func_novec_t*> f2py_pointer(hfunc._kernel._cpointer)
+    return inst
+
+def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
+                                 vacancy_index, ofunc, gfunc, hfunc):
+    inst = PhaseRecord()
+    # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
+    inst.variables = variables
+    inst.phase_dof = 0
+    inst.sublattice_dof = sublattice_dof
+    inst.parameters = parameters
+    inst.num_sites = num_sites
+    inst.composition_matrices = composition_matrices
+    inst.vacancy_index = vacancy_index
+    inst.phase_dof = phase_dof
     # Trigger lazy computation
     if ofunc is not None:
         ofunc.kernel

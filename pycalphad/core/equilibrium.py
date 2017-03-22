@@ -25,9 +25,6 @@ from datetime import datetime
 def delayed(func, *fargs, **fkwargs):
     return func
 
-PickleablePhaseRecord = namedtuple('PickleablePhaseRecord',
-                                   ['variables', 'parameters', 'num_sites', 'obj', 'grad', 'hess'])
-
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
