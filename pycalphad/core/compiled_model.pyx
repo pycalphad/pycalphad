@@ -93,7 +93,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 _debughess.kernel
                 self._debughess = <func_novec_t*> f2py_pointer(_debughess._kernel._cpointer)
 
-        self.site_ratios = np.array(phase.sublattices)
+        self.site_ratios = np.array([float(x) for x in phase.sublattices])
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
         # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
         # of the same type in the same sublattice for, e.g., same species with different charges

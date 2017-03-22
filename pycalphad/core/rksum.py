@@ -131,8 +131,10 @@ class RedlichKisterSum(object):
                 # is this a higher-order interaction parameter?
                 if len(cps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
+                    if not float(param['parameter_order']).is_integer():
+                        raise ValueError('Non-integer Redlich-Kister exponents are unsupported')
                     mixing_term *= Pow(comp_symbols[0] - \
-                        comp_symbols[1], param['parameter_order'])
+                        comp_symbols[1], int(param['parameter_order']))
                 if len(cps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
