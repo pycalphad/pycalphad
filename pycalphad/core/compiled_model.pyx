@@ -12,6 +12,7 @@ import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
 from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
+from pickle import PicklingError
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -45,7 +46,7 @@ cdef void* f2py_pointer(obj):
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
-    def __cinit__(self, dbe, comps, phase_name, parameters=None, _debug=False):
+    def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
@@ -185,6 +186,45 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             self.disordered_afm_factor = disordered_model.afm_factor
         else:
             self.ordered = False
+            self.disordered_sublattice_dof = np.array([], dtype=np.int32)
+            self.disordered_site_ratios = np.array([])
+            self.disordered_composition_matrices = np.ascontiguousarray(np.atleast_3d([]))
+            self.disordered_pure_coef_matrix = np.atleast_2d([])
+            self.disordered_pure_coef_symbol_matrix = np.atleast_2d([])
+            self.disordered_excess_coef_matrix = np.atleast_2d([])
+            self.disordered_excess_coef_symbol_matrix = np.atleast_2d([])
+            self.disordered_bm_coef_matrix = np.atleast_2d([])
+            self.disordered_bm_coef_symbol_matrix = np.atleast_2d([])
+            self.disordered_tc_coef_matrix = np.atleast_2d([])
+            self.disordered_tc_coef_symbol_matrix = np.atleast_2d([])
+            self.disordered_ihj_magnetic_structure_factor = 0
+            self.disordered_afm_factor = 0
+
+    def __reduce__(self):
+        if self._debug:
+            raise PicklingError('Cannot pickle CompiledModel in debug mode')
+        return (_rebuild_compiledmodel, (self.constituents, self.variables, self.components,
+                                         np.asarray(self.sublattice_dof), np.asarray(self.composition_matrices),
+                                         np.asarray(self.site_ratios), np.asarray(self.vacancy_index),
+                                         np.asarray(self.pure_coef_matrix), np.asarray(self.pure_coef_symbol_matrix),
+                                         np.asarray(self.excess_coef_matrix), np.asarray(self.excess_coef_symbol_matrix),
+                                         np.asarray(self.bm_coef_matrix), np.asarray(self.bm_coef_symbol_matrix),
+                                         np.asarray(self.tc_coef_matrix), np.asarray(self.tc_coef_symbol_matrix),
+                                         self.ihj_magnetic_structure_factor, self.afm_factor,
+                                         np.asarray(self.disordered_sublattice_dof),
+                                         np.asarray(self.disordered_composition_matrices),
+                                         np.asarray(self.disordered_site_ratios),
+                                         np.asarray(self.disordered_pure_coef_matrix),
+                                         np.asarray(self.disordered_pure_coef_symbol_matrix),
+                                         np.asarray(self.disordered_excess_coef_matrix),
+                                         np.asarray(self.disordered_excess_coef_symbol_matrix),
+                                         np.asarray(self.disordered_bm_coef_matrix),
+                                         np.asarray(self.disordered_bm_coef_symbol_matrix),
+                                         np.asarray(self.disordered_tc_coef_matrix),
+                                         np.asarray(self.disordered_tc_coef_symbol_matrix),
+                                         np.asarray(self.disordered_ihj_magnetic_structure_factor),
+                                         np.asarray(self.disordered_afm_factor),
+                                         self.ordered, self._debug))
 
     def _purity_test(self, constituent_array):
         """
@@ -860,3 +900,39 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print('DOF:', np.array(dof))
                 print(self.constituents)
                 print('--')
+
+def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof,
+                           composition_matrices, site_ratios, vacancy_index,
+                           pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
+                           excess_coef_symbol_matrix, bm_coef_matrix, bm_coef_symbol_matrix,
+                           tc_coef_matrix, tc_coef_symbol_matrix, ihj_magnetic_structure_factor,
+                           afm_factor, disordered_sublattice_dof, disordered_composition_matrices,
+                           disordered_site_ratios, disordered_pure_coef_matrix, disordered_pure_coef_symbol_matrix,
+                           disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
+                           disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
+                           disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
+                           disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, _debug):
+    inst = CompiledModel.__new__(CompiledModel)
+    (inst.constituents, inst.variables, inst.components, inst.sublattice_dof,
+    inst.composition_matrices, inst.site_ratios, inst.vacancy_index,
+    inst.pure_coef_matrix, inst.pure_coef_symbol_matrix, inst.excess_coef_matrix,
+    inst.excess_coef_symbol_matrix, inst.bm_coef_matrix, inst.bm_coef_symbol_matrix,
+    inst.tc_coef_matrix, inst.tc_coef_symbol_matrix, inst.ihj_magnetic_structure_factor,
+    inst.afm_factor, inst.disordered_sublattice_dof, inst.disordered_composition_matrices,
+    inst.disordered_site_ratios, inst.disordered_pure_coef_matrix, inst.disordered_pure_coef_symbol_matrix,
+    inst.disordered_excess_coef_matrix, inst.disordered_excess_coef_symbol_matrix,
+    inst.disordered_bm_coef_matrix, inst.disordered_bm_coef_symbol_matrix,
+    inst.disordered_tc_coef_matrix, inst.disordered_tc_coef_symbol_matrix,
+    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered, inst._debug) = \
+    (constituents, variables, components, sublattice_dof,
+    composition_matrices, site_ratios, vacancy_index,
+    pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
+    excess_coef_symbol_matrix, bm_coef_matrix, bm_coef_symbol_matrix,
+    tc_coef_matrix, tc_coef_symbol_matrix, ihj_magnetic_structure_factor,
+    afm_factor, disordered_sublattice_dof, disordered_composition_matrices,
+    disordered_site_ratios, disordered_pure_coef_matrix, disordered_pure_coef_symbol_matrix,
+    disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
+    disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
+    disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
+    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, _debug)
+    return inst

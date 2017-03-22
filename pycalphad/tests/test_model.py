@@ -2,8 +2,9 @@
 The test_model module contains unit tests for the Model object.
 """
 from __future__ import print_function
-from pycalphad import Database, Model
+from pycalphad import Database, Model, CompiledModel
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB
+import numpy as np
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
 ALNIPT_DBF = Database(ALNIPT_TDB)
@@ -49,3 +50,11 @@ def test_custom_model_contributions():
         def test3(self, dbe):
             return 0
     CustomModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+
+def test_compiledmodel_pickling():
+    "CompiledModel class will pickle and unpickle."
+    import pickle
+    cmpmdl = CompiledModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+    cmpmdl2 = pickle.loads(pickle.dumps(cmpmdl))
+    np.testing.assert_array_equal(np.asarray(cmpmdl2.disordered_composition_matrices),
+                                  np.asarray(cmpmdl.disordered_composition_matrices))

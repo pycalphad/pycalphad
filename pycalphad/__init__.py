@@ -21,6 +21,7 @@ else:
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database
+from pycalphad.core.compiled_model import CompiledModel
 
 # Trigger format extension hooks
 import pycalphad.io.tdb
