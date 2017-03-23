@@ -99,6 +99,11 @@ def _infer_language(backend):
 def import_extension(path, modname):
     import glob
     npath = glob.glob(os.path.join(path, modname+'.*'))
+    # Blacklist fixes gh-65.
+    # We filter out any files that can be created by compilers which are not our actual compiled file.
+    # We cannot more directly search for our files because of differing platforms.
+    blacklist = ['dSYM']
+    npath = [x for x in npath if x.split('.')[-1] not in blacklist]
     if len(npath) == 1:
         npath = npath[0]
     else:
