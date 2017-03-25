@@ -1,3 +1,4 @@
 include versioneer.py
+include pycalphad/core/_isnan.h
 include pycalphad/_version.py
 include README.rst

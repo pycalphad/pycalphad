@@ -7,8 +7,8 @@ import itertools
 import numpy as np
 cimport numpy as np
 cimport cython
-# XXX: This breaks Windows support, it's spelled _isnan in float.h on Windows
-from libc.math cimport isnan
+cdef extern from "_isnan.h":
+    bint isnan (double) nogil
 import scipy.spatial
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
