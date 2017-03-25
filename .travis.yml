@@ -63,8 +63,7 @@ script:
 after_success:
   - |
       if [ -z "$DOCKER_TAG" ]; then
-        pip install git+git://git@github.com:z4r/python-coveralls.git@00c6270e4a36690c427bbf28aac4859728c89765
         coveralls
       else
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; pip install git+git://git@github.com:z4r/python-coveralls.git@00c6270e4a36690c427bbf28aac4859728c89765 && coveralls"
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; coveralls"
       fi
