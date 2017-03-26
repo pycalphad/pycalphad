@@ -14,6 +14,7 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
+from pycalphad.io.database import DatabaseExportError
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -24,6 +25,9 @@ import functools
 import itertools
 import getpass
 import datetime
+import warnings
+import hashlib
+from copy import deepcopy
 
 _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
                   ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
@@ -563,9 +567,46 @@ def reflow_text(text, linewidth=80):
     return "\n".join(output_lines)
 
 
-def write_tdb(dbf, fd, groupby='subsystem'):
+def _apply_new_symbol_names(dbf, symbol_name_map):
+    """
+    Push changes in symbol names through the Sympy expressions in symbols and parameters
+
+    Parameters
+    ----------
+    dbf : Database
+        A pycalphad Database.
+    symbol_name_map : dict
+        Map of {old_symbol_name: new_symbol_name}
+    """
+    # first apply the rename to the keys
+    dbf.symbols = {symbol_name_map.get(name, name): expr for name, expr in dbf.symbols.items()}
+    # then propagate through to the symbol SymPy expression values
+    dbf.symbols = {name: S(expr).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()}) for name, expr in dbf.symbols.items()}
+    # finally propagate through to the parameters
+    for p in dbf._parameters.all():
+        dbf._parameters.update({'parameter': S(p['parameter']).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()})}, eids=[p.eid])
+
+
+def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     """
     Write a TDB file from a pycalphad Database object.
+
+    The goal is to produce TDBs that conform to the most restrictive subset of database specifications. Some of these
+    can be adjusted for automatically, such as the Thermo-Calc line length limit of 78. Others require changing the
+    database in non-trivial ways, such as the maximum length of function names (8). The default is to warn the user when
+    attempting to write an incompatible database and the user must choose whether to warn and write the file anyway or
+    to fix the incompatibility.
+
+    Currently the supported compatibility fixes are:
+    - Line length <= 78 characters (Thermo-Calc)
+    - Function names <= 8 characters (Thermo-Calc)
+
+    The current unsupported fixes include:
+    - Keyword length <= 2000 characters (Thermo-Calc)
+    - Element names <= 2 characters (Thermo-Calc)
+    - Phase names <= 24 characters (Thermo-Calc)
+
+    Other TDB compatibility issues required by Thermo-Calc or other software should be reported to the issue tracker.
 
     Parameters
     ----------
@@ -575,7 +616,32 @@ def write_tdb(dbf, fd, groupby='subsystem'):
         File descriptor.
     groupby : ['subsystem', 'phase'], optional
         Desired grouping of parameters in the file.
+    if_incompatible : string, optional ['raise', 'warn', 'fix']
+        Strategy if the database does not conform to the most restrictive database specification.
+        The 'warn' option (default) will write out the incompatible database with a warning.
+        The 'raise' option will raise a DatabaseExportError.
+        The 'ignore' option will write out the incompatible database silently.
+        The 'fix' option will rectify the incompatibilities e.g. through name mangling.
     """
+    # Before writing anything, check that the TDB is valid and take the appropriate action if not
+    if if_incompatible not in ['warn', 'raise', 'ignore', 'fix']:
+        raise ValueError('Incorrect options passed to \'if_invalid\'. Valid args are \'raise\', \'warn\', or \'fix\'.')
+    # Handle function names > 8 characters
+    long_function_names = {k for k in dbf.symbols.keys() if len(k) > 8}
+    if len(long_function_names) > 0:
+        if if_incompatible == 'raise':
+            raise DatabaseExportError('The following function names are beyond the 8 character TDB limit: {}. Use the keyword argument \'if_incompatible\' to control this behavior.'.format(long_function_names))
+        elif if_incompatible == 'fix':
+            # if we are going to make changes, make the changes to a copy and leave the original object untouched
+            dbf = deepcopy(dbf) # TODO: if we do multiple fixes, we should only copy once
+            symbol_name_map = {}
+            for name in long_function_names:
+                hashed_name = 'F' + str(hashlib.md5(name.encode('UTF-8')).hexdigest()).upper()[:7] # this is implictly upper(), but it is explicit here
+                symbol_name_map[name] = hashed_name
+            _apply_new_symbol_names(dbf, symbol_name_map)
+        elif if_incompatible == 'warn':
+            warnings.warn('Ignoring that the following function names are beyond the 8 character TDB limit: {}. Use the keyword argument \'if_incompatible\' to control this behavior.'.format(long_function_names))
+    # Begin constructing the written database
     writetime = datetime.datetime.now()
     maxlen = 78
     output = ""
