@@ -35,7 +35,7 @@ def test_model_ne():
 
 def test_export_import():
     "Equivalence of Model using re-imported database."
-    test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
+    test_model = Model(Database.from_string(ALNIPT_DBF.to_string(fmt='tdb', if_incompatible='ignore'), fmt='tdb'), ['PT', 'NI', 'VA'], 'FCC_L12')
     ref_model = Model(ALNIPT_DBF, ['NI', 'PT', 'VA'], 'FCC_L12')
     assert test_model == ref_model
 
