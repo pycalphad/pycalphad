@@ -111,7 +111,7 @@ def old_lower_convex_hull(global_grid, result_array, verbose=False):
         comp_values = cartesian([result_array.coords[cond] for cond in comp_conds])
         # Insert dependent composition value
         # TODO: Handle W(comp) as well as X(comp) here
-        specified_components = set([x[2:] for x in comp_conds])
+        specified_components = {x[2:] for x in comp_conds}
         dependent_component = set(result_array.coords['component'].values) - specified_components
         dependent_component = list(dependent_component)
         if len(dependent_component) != 1:
@@ -382,7 +382,7 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
         comp_values = cartesian([result_array.coords[cond] for cond in comp_conds])
         # Insert dependent composition value
         # TODO: Handle W(comp) as well as X(comp) here
-        specified_components = set([x[2:] for x in comp_conds])
+        specified_components = {x[2:] for x in comp_conds}
         dependent_component = set(result_array.coords['component'].values) - specified_components
         dependent_component = list(dependent_component)
         if len(dependent_component) != 1:

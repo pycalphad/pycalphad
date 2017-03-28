@@ -57,7 +57,7 @@ class Model(object):
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
         # Constrain possible components to those within phase's d.o.f
-        possible_comps = set([x.upper() for x in comps])
+        possible_comps = {x.upper() for x in comps}
         comps = sorted(comps, key=str)
         self.components = set()
         self.constituents = []
@@ -787,7 +787,7 @@ class TestModel(Model):
     None yet.
     """
     def __init__(self, dbf, comps, phase, solution=None, kmax=None):
-        self.components = set([x.upper() for x in comps])
+        self.components = {x.upper() for x in comps}
         if 'VA' in self.components:
             raise ValueError('Vacancies are unsupported in TestModel')
         self.models = dict()
