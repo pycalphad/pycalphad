@@ -94,7 +94,7 @@ class RedlichKisterSum(object):
         """
         variable_rename_dict = variable_rename_dict if variable_rename_dict is not None else dict()
         rk_terms = []
-        possible_comps = set([x.upper() for x in comps])
+        possible_comps = {x.upper() for x in comps}
         dof = [v.SiteFraction(phase.name, subl_index, comp)
                for subl_index, subl in enumerate(phase.constituents) for comp in sorted(set(subl).intersection(comps))]
         self.output_matrix = []
