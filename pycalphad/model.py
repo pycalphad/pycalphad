@@ -81,7 +81,7 @@ class Model(object):
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
-        symbols = dict([(Symbol(s), val) for s, val in dbe.symbols.items()])
+        symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
 
         if parameters is not None:
             symbols.update([(Symbol(s), val) for s, val in parameters.items()])
