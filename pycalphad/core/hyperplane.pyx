@@ -119,6 +119,7 @@ def hyperplane(double[:,::1] compositions,
             tmp3 = bounding_indices[i]
             if tmp3:
                 saved_trial = i
+                break
         bounding_indices[...] = True
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
