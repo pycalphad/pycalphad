@@ -39,7 +39,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.NP = phase_amt
 
 def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
-                             double[:,:] site_fractions, double[:] phase_fractions):
+                             double[:,:] site_fractions, double[:] phase_fractions, bint allow_negative_fractions):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -100,7 +100,9 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
         if <unicode>phases[phase_idx] == <unicode>'_FAKE_':
             phase_fractions[phase_idx] = np.nan
             phases[phase_idx] = <unicode>''
-        elif phase_fractions[phase_idx] <= MIN_SITE_FRACTION:
+        elif abs(phase_fractions[phase_idx]) <= MIN_SITE_FRACTION:
+            phase_fractions[phase_idx] = MIN_SITE_FRACTION
+        elif (phase_fractions[phase_idx] <= MIN_SITE_FRACTION) and (not allow_negative_fractions):
             phase_fractions[phase_idx] = np.nan
             phases[phase_idx] = <unicode>''
     # Rewrite properties to delete all the nulled out phase entries
@@ -436,12 +438,13 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         if diagnostic:
             diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape + len(set(comps) - {'VA'})), np.nan)
             debug_fn = 'debug-{}.csv'.format('-'.join([str(x) for x in it.multi_index]))
-        vmax_window_size = 20
+        vmax_window_size = 10
         previous_window_average = np.inf
         vmax_averages = np.zeros(vmax_window_size)
         obj_decreases = 0
         alpha = 1
         obj_weight = INITIAL_OBJECTIVE_WEIGHT
+        allow_negative_fractions = False
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
             phases = list(prop_Phase_values[it.multi_index])
@@ -449,8 +452,10 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 old_phase_length = phases.index('')
             else:
                 old_phase_length = -1
+            if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
+                allow_negative_fractions = False
             remove_degenerate_phases(prop_Phase_values[it.multi_index], prop_X_values[it.multi_index],
-                                     prop_Y_values[it.multi_index], prop_NP_values[it.multi_index])
+                                     prop_Y_values[it.multi_index], prop_NP_values[it.multi_index], allow_negative_fractions)
             phases = list(prop_Phase_values[it.multi_index])
             if '' in phases:
                 new_phase_length = phases.index('')
@@ -515,11 +520,15 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             master_grad = np.zeros(l_hessian.shape[0] + l_constraints.shape[0])
             master_grad[:l_hessian.shape[0]] = -np.array(gradient_term)
             master_grad[l_hessian.shape[0]:] = -l_constraints
-            step = np.linalg.solve(master_hess, master_grad)
+            try:
+                step = np.linalg.solve(master_hess, master_grad)
+            except np.linalg.LinAlgError:
+                print(cur_conds)
+                raise
             for sfidx in range(site_fracs.shape[0]):
                 site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
             for pfidx in range(phase_fracs.shape[0]):
-                phase_fracs[pfidx] = phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx]
+                phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx], -4), 5)
             if verbose:
                 print('Phases', phases)
                 print('step', step)
@@ -586,6 +595,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.1
             no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
+            if no_progress:
+                for pfidx in range(phase_fracs.shape[0]):
+                    if phase_fracs[pfidx] < 0:
+                        no_progress = False
+                        allow_negative_fractions = False
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
                 prop_MU_values[it.multi_index] = np.nan
