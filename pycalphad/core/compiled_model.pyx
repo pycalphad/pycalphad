@@ -796,7 +796,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             disordered_eval_row[1] = dof[1]
             disordered_eval_row[2] = log(dof[0])
             disordered_eval_row[3] = log(dof[1])
-            for eval_idx in range(sum(self.disordered_sublattice_dof)):
+            for eval_idx in range(self.disordered_phase_dof):
                 disordered_eval_row[4+eval_idx] = disordered_dof[2+eval_idx]
             # Ideal mixing
             for entry_idx in range(self.disordered_site_ratios.shape[0]):
@@ -874,7 +874,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         self._eval_disordered_energy(disordered_energy, disordered_dof, parameters, 1)
                 else:
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            for dof_idx in range(2+sum(self.disordered_sublattice_dof)):
+            for dof_idx in range(2+self.disordered_phase_dof):
                 if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
                     disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / (disordered_mass_normalization_factor**2)
                 else:
@@ -885,20 +885,20 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             # y derivatives for disordered contribution are computed via the chain rule
             # First case: there is a different last sublattice; probably interstitial
             if self.disordered_sublattice_dof[0] != self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]:
-                for disordered_dof_idx in range(2,2+sum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])):
+                for disordered_dof_idx in range(2,2+_intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])):
                     for subl_idx in range(self.sublattice_dof.shape[0]-1):
                         dof_idx = subl_idx * self.sublattice_dof[0] + disordered_dof_idx
-                        out[dof_idx] += (self.site_ratios[subl_idx] / sum(self.site_ratios[:self.site_ratios.shape[0]-1])) * disordered_out[disordered_dof_idx]
+                        out[dof_idx] += (self.site_ratios[subl_idx] / _sum(self.site_ratios[:self.site_ratios.shape[0]-1])) * disordered_out[disordered_dof_idx]
                 # last sublattice is handled separately
                 for disordered_dof_idx in range(2+self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
                     dof_idx = (self.sublattice_dof.shape[0]-1) * self.sublattice_dof[0] + disordered_dof_idx
                     out[dof_idx] += disordered_out[disordered_dof_idx]
             else:
                 # Second case: all sublattices have the same degrees of freedom
-                for disordered_dof_idx in range(2,2+sum(self.disordered_sublattice_dof)):
+                for disordered_dof_idx in range(2,2+self.disordered_phase_dof):
                     for subl_idx in range(self.sublattice_dof.shape[0]):
                         dof_idx = subl_idx * self.sublattice_dof[0] + disordered_dof_idx
-                        out[dof_idx] += (self.site_ratios[subl_idx] / sum(self.site_ratios)) * disordered_out[disordered_dof_idx]
+                        out[dof_idx] += (self.site_ratios[subl_idx] / _sum(self.site_ratios)) * disordered_out[disordered_dof_idx]
         if self._debug:
             debugout = np.zeros_like(out)
             self._debug_energy_gradient(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
