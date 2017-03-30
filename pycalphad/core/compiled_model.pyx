@@ -491,9 +491,11 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil:
-        cdef int out_idx, dof_idx, comp_idx, subl_idx, disordered_dof_idx
+        cdef int out_idx, dof_idx, comp_idx, subl_idx, disordered_dof_idx, copy_idx
         cdef int num_comps
         cdef double site_sum
+        dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
+        disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
         for out_idx in range(disordered_dof.shape[0]):
             site_sum = 0
             num_comps = 0
@@ -509,10 +511,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 for subl_idx in range(self.site_ratios.shape[0]-1):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
                         disordered_dof[out_idx, comp_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
-                dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
-                disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
+
                 # Copy interstitial values directly
-                disordered_dof[out_idx, disordered_dof_idx+2:] = dof[out_idx, dof_idx+2:]
+                for copy_idx in range(self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
+                    disordered_dof[out_idx, disordered_dof_idx+2+copy_idx] = dof[out_idx, dof_idx+2+copy_idx]
             else:
                 site_sum = _sum(self.site_ratios)
                 for subl_idx in range(self.site_ratios.shape[0]):
@@ -522,8 +524,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil:
-        cdef int dof_idx, out_idx, subl_idx, comp_idx, disordered_dof_idx
+        cdef int dof_idx, out_idx, subl_idx, comp_idx, disordered_dof_idx, copy_idx
         cdef int num_comps = self.sublattice_dof[0]
+        dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
+        disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
         for out_idx in range(ordered_dof.shape[0]):
             # Subtract ordered energy at disordered configuration
             ordered_dof[out_idx, 0] = disordered_dof[out_idx, 0]
@@ -532,10 +536,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 for subl_idx in range(self.site_ratios.shape[0]-1):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
                         ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, comp_idx+2]
-                dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
-                disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
+
                 # Copy interstitial values directly
-                ordered_dof[out_idx, dof_idx+2:] = disordered_dof[out_idx, disordered_dof_idx+2:]
+                for copy_idx in range(self.sublattice_dof[self.sublattice_dof.shape[0]-1]):
+                    ordered_dof[out_idx, dof_idx+2+copy_idx] = disordered_dof[out_idx, disordered_dof_idx+2+copy_idx]
             else:
                 for subl_idx in range(self.site_ratios.shape[0]):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
