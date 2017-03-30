@@ -15,9 +15,16 @@ except ImportError:
     from io import StringIO
 
 
+
+class DatabaseExportError(Exception):
+    """Raised when a database cannot be written."""
+    pass
+
+
 def _to_tuple(lst):
     "Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow"
     return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
+
 
 class Phase(object): #pylint: disable=R0903
     """

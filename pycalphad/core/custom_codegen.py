@@ -153,7 +153,7 @@ class FCodeGen(sympy_FCodeGen):
             expressions = Tuple(expr)
 
         # local variables
-        local_vars = set([i.label for i in expressions.atoms(Idx)])
+        local_vars = {i.label for i in expressions.atoms(Idx)}
 
         # global variables
         global_vars = set() if global_vars is None else set(global_vars)
@@ -239,7 +239,7 @@ class FCodeGen(sympy_FCodeGen):
                 raise CodeGenArgumentListError(msg, missing)
 
             # create redundant arguments to produce the requested sequence
-            name_arg_dict = dict([(x.name, x) for x in arg_list])
+            name_arg_dict = {x.name: x for x in arg_list}
             new_args = []
             for symbol in argument_sequence:
                 try:
