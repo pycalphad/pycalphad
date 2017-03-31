@@ -15,7 +15,7 @@ matrix:
         - python: 3.5
           env: DOCKER_TAG=linux-python35
         - python: 3.6
-          env: DEPLOY_ENC_LABEL=e64cfe3b4e81 DOCKER_TAG=linux-python36
+          env: DOCKER_TAG=linux-python36
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -27,7 +27,7 @@ matrix:
           env: TRAVIS_PYTHON_VERSION=3.5
         - language: generic
           os: osx
-          env: TRAVIS_PYTHON_VERSION=3.6
+          env: TRAVIS_PYTHON_VERSION=3.6 DEPLOY_ENC_LABEL=e64cfe3b4e81
 
 # Setup anaconda
 before_install:
