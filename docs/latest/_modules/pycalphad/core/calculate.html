@@ -1,0 +1,743 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.calculate &mdash; pycalphad 0+untagged.g2818036 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g2818036 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.g2818036
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.calculate</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.calculate</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The calculate module contains a routine for calculating the</span>
+<span class="sd">property surface of a system.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Model</span>
+<span class="kn">from</span> <span class="nn">pycalphad.model</span> <span class="k">import</span> <span class="n">DofError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.sympydiff_utils</span> <span class="k">import</span> <span class="n">build_functions</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">point_sample</span><span class="p">,</span> <span class="n">generate_dof</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">broadcast_to</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span><span class="p">,</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
+<span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="kn">from</span> <span class="nn">xarray</span> <span class="k">import</span> <span class="n">Dataset</span><span class="p">,</span> <span class="n">Variable</span>
+<span class="kn">from</span> <span class="nn">xarray.core.dataset</span> <span class="k">import</span> <span class="n">as_dataset</span>
+<span class="kn">from</span> <span class="nn">xarray.core.combine</span> <span class="k">import</span> <span class="n">_calc_concat_over</span><span class="p">,</span> <span class="n">_calc_concat_dim_coord</span><span class="p">,</span> <span class="n">concat_vars</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
+<span class="kn">import</span> <span class="nn">pandas</span> <span class="k">as</span> <span class="nn">pd</span>
+
+<span class="k">def</span> <span class="nf">_fast_concat</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Fork of xarray.concat for Datasets.</span>
+<span class="sd">    This function assumes everything is already aligned, and skips error checking.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    datasets</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">data_vars</span> <span class="o">=</span> <span class="s1">&#39;all&#39;</span>
+    <span class="n">coords</span> <span class="o">=</span> <span class="s1">&#39;different&#39;</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="n">dim</span><span class="p">,</span> <span class="n">coord</span> <span class="o">=</span> <span class="n">_calc_concat_dim_coord</span><span class="p">(</span><span class="n">dim</span><span class="p">)</span>
+    <span class="n">datasets</span> <span class="o">=</span> <span class="p">[</span><span class="n">as_dataset</span><span class="p">(</span><span class="n">ds</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">]</span>
+
+    <span class="n">concat_over</span> <span class="o">=</span> <span class="n">_calc_concat_over</span><span class="p">(</span><span class="n">datasets</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">data_vars</span><span class="p">,</span> <span class="n">coords</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">insert_result_variable</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">):</span>
+        <span class="k">assert</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">:</span>
+            <span class="n">result_coord_names</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">k</span><span class="p">)</span>
+        <span class="n">result_vars</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span>
+
+    <span class="c1"># create the new dataset and add constant variables</span>
+    <span class="n">result_vars</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
+    <span class="n">result_coord_names</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">coords</span><span class="p">)</span>
+    <span class="n">result_attrs</span> <span class="o">=</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">attrs</span>
+
+    <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">variables</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">k</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">concat_over</span><span class="p">:</span>
+            <span class="n">insert_result_variable</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">v</span><span class="p">)</span>
+
+    <span class="c1"># we&#39;ve already verified everything is consistent; now, calculate</span>
+    <span class="c1"># shared dimension sizes so we can expand the necessary variables</span>
+    <span class="n">dim_lengths</span> <span class="o">=</span> <span class="p">[</span><span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">]</span>
+    <span class="n">non_concat_dims</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">:</span>
+        <span class="n">non_concat_dims</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ds</span><span class="o">.</span><span class="n">dims</span><span class="p">)</span>
+    <span class="n">non_concat_dims</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">dim</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">ensure_common_dims</span><span class="p">(</span><span class="nb">vars</span><span class="p">):</span>
+        <span class="c1"># ensure each variable with the given name shares the same</span>
+        <span class="c1"># dimensions and the same shape for all of them except along the</span>
+        <span class="c1"># concat dimension</span>
+        <span class="n">common_dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">pd</span><span class="o">.</span><span class="n">unique</span><span class="p">([</span><span class="n">d</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="nb">vars</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">v</span><span class="o">.</span><span class="n">dims</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">dim</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">common_dims</span><span class="p">:</span>
+            <span class="n">common_dims</span> <span class="o">=</span> <span class="p">(</span><span class="n">dim</span><span class="p">,)</span> <span class="o">+</span> <span class="n">common_dims</span>
+        <span class="k">for</span> <span class="n">var</span><span class="p">,</span> <span class="n">dim_len</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="nb">vars</span><span class="p">,</span> <span class="n">dim_lengths</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">var</span><span class="o">.</span><span class="n">dims</span> <span class="o">!=</span> <span class="n">common_dims</span><span class="p">:</span>
+                <span class="n">common_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">non_concat_dims</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">d</span><span class="p">,</span> <span class="n">dim_len</span><span class="p">)</span>
+                                     <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">common_dims</span><span class="p">)</span>
+                <span class="n">var</span> <span class="o">=</span> <span class="n">var</span><span class="o">.</span><span class="n">expand_dims</span><span class="p">(</span><span class="n">common_dims</span><span class="p">,</span> <span class="n">common_shape</span><span class="p">)</span>
+            <span class="k">yield</span> <span class="n">var</span>
+
+    <span class="c1"># stack up each variable to fill-out the dataset</span>
+    <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">concat_over</span><span class="p">:</span>
+        <span class="nb">vars</span> <span class="o">=</span> <span class="n">ensure_common_dims</span><span class="p">([</span><span class="n">ds</span><span class="o">.</span><span class="n">variables</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="k">for</span> <span class="n">ds</span> <span class="ow">in</span> <span class="n">datasets</span><span class="p">])</span>
+        <span class="n">combined</span> <span class="o">=</span> <span class="n">concat_vars</span><span class="p">(</span><span class="nb">vars</span><span class="p">,</span> <span class="n">dim</span><span class="p">,</span> <span class="n">positions</span><span class="p">)</span>
+        <span class="n">insert_result_variable</span><span class="p">(</span><span class="n">k</span><span class="p">,</span> <span class="n">combined</span><span class="p">)</span>
+
+    <span class="n">result</span> <span class="o">=</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">result_vars</span><span class="p">,</span> <span class="n">attrs</span><span class="o">=</span><span class="n">result_attrs</span><span class="p">)</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">set_coords</span><span class="p">(</span><span class="n">result_coord_names</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="n">coord</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="c1"># add concat dimension last to ensure that its in the final Dataset</span>
+        <span class="n">result</span><span class="p">[</span><span class="n">coord</span><span class="o">.</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">coord</span>
+
+    <span class="k">return</span> <span class="n">result</span>
+
+
+<span class="k">def</span> <span class="nf">_generate_fake_points</span><span class="p">(</span><span class="n">components</span><span class="p">,</span> <span class="n">statevar_dict</span><span class="p">,</span> <span class="n">energy_limit</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">broadcast</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Generate points for a fictitious hyperplane used as a starting point for energy minimization.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">coordinate_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="n">components</span><span class="p">}</span>
+    <span class="n">largest_energy</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">energy_limit</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">largest_energy</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">largest_energy</span> <span class="o">*=</span> <span class="mf">0.01</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">largest_energy</span> <span class="o">*=</span> <span class="mi">10</span>
+    <span class="k">if</span> <span class="n">broadcast</span><span class="p">:</span>
+        <span class="n">output_columns</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
+        <span class="n">statevar_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">coordinate_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="c1"># The internal dof for the fake points are all NaNs</span>
+        <span class="n">expanded_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="n">maximum_internal_dof</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">data_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span>
+                             <span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)),</span> <span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)))),</span>
+                       <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;internal_dof&#39;</span><span class="p">],</span> <span class="n">expanded_points</span><span class="p">),</span>
+                       <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),),</span> <span class="s1">&#39;_FAKE_&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S6&#39;</span><span class="p">)),</span>
+                       <span class="n">output</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),),</span> <span class="n">largest_energy</span><span class="p">))</span>
+                       <span class="p">}</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
+        <span class="n">statevar_shape</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="o">*</span> <span class="nb">max</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">values</span><span class="p">()]),)</span>
+        <span class="c1"># The internal dof for the fake points are all NaNs</span>
+        <span class="n">expanded_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">data_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span>
+                             <span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">tile</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)),</span> <span class="p">(</span><span class="n">statevar_shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">/</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="mi">1</span><span class="p">)),</span>
+                                                  <span class="n">statevar_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),))),</span>
+                       <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;internal_dof&#39;</span><span class="p">],</span> <span class="n">expanded_points</span><span class="p">),</span>
+                       <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span><span class="p">,</span> <span class="s1">&#39;_FAKE_&#39;</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;S6&#39;</span><span class="p">)),</span>
+                       <span class="n">output</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">statevar_shape</span><span class="p">,</span> <span class="n">largest_energy</span><span class="p">))</span>
+                       <span class="p">}</span>
+        <span class="c1"># Add state variables as data variables if broadcast=False</span>
+        <span class="n">data_arrays</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)))</span>
+                            <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+    <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coordinate_dict</span><span class="p">)</span>
+
+
+<span class="nd">@cacheit</span>
+<span class="k">def</span> <span class="nf">_sample_phase_constitution</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_constituents</span><span class="p">,</span> <span class="n">sublattice_dof</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span>
+                               <span class="n">variables</span><span class="p">,</span> <span class="n">sampler</span><span class="p">,</span> <span class="n">fixed_grid</span><span class="p">,</span> <span class="n">pdens</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the internal degrees of freedom of a phase.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    phase_name</span>
+<span class="sd">    phase_constituents</span>
+<span class="sd">    sublattice_dof</span>
+<span class="sd">    comps</span>
+<span class="sd">    variables</span>
+<span class="sd">    sampler</span>
+<span class="sd">    fixed_grid</span>
+<span class="sd">    pdens</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray of points</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Eliminate pure vacancy endmembers from the calculation</span>
+    <span class="n">vacancy_indices</span> <span class="o">=</span> <span class="nb">list</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">):</span>
+        <span class="n">active_in_subl</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">comps</span><span class="p">))</span>
+        <span class="k">if</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">in</span> <span class="n">active_in_subl</span> <span class="ow">and</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">comps</span><span class="p">):</span>
+            <span class="n">vacancy_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">active_in_subl</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">):</span>
+        <span class="n">vacancy_indices</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="c1"># Add all endmembers to guarantee their presence</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">endmember_matrix</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">,</span>
+                              <span class="n">vacancy_indices</span><span class="o">=</span><span class="n">vacancy_indices</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fixed_grid</span> <span class="ow">is</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="c1"># Sample along the edges of the endmembers</span>
+        <span class="c1"># These constitution space edges are often the equilibrium points!</span>
+        <span class="n">em_pairs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="mi">2</span><span class="p">))</span>
+        <span class="n">lingrid</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">linspace</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="n">pdens</span><span class="p">)</span>
+        <span class="n">extra_points</span> <span class="o">=</span> <span class="p">[</span><span class="n">first_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span> <span class="o">+</span>
+                        <span class="n">second_em</span> <span class="o">*</span> <span class="n">lingrid</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">newaxis</span><span class="p">]</span><span class="o">.</span><span class="n">T</span>
+                        <span class="k">for</span> <span class="n">first_em</span><span class="p">,</span> <span class="n">second_em</span> <span class="ow">in</span> <span class="n">em_pairs</span><span class="p">]</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">([</span><span class="n">points</span><span class="p">],</span> <span class="n">extra_points</span><span class="p">)))</span>
+
+    <span class="c1"># Sample composition space for more points</span>
+    <span class="k">if</span> <span class="nb">sum</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">)</span> <span class="o">&gt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">):</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">points</span><span class="p">,</span>
+                                 <span class="n">sampler</span><span class="p">(</span><span class="n">sublattice_dof</span><span class="p">,</span>
+                                         <span class="n">pdof</span><span class="o">=</span><span class="n">pdens</span><span class="p">)</span>
+                                 <span class="p">))</span>
+
+    <span class="c1"># If there are nontrivial sublattices with vacancies in them,</span>
+    <span class="c1"># generate a set of points where their fraction is zero and renormalize</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase_constituents</span><span class="p">):</span>
+        <span class="k">if</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">var_idx</span> <span class="o">=</span> <span class="n">variables</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">))</span>
+            <span class="n">addtl_pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">copy</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+            <span class="c1"># set vacancy fraction to log-spaced between 1e-10 and 1e-6</span>
+            <span class="n">addtl_pts</span><span class="p">[:,</span> <span class="n">var_idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="mf">10.0</span><span class="p">,</span> <span class="o">-</span><span class="mf">10.0</span> <span class="o">*</span> <span class="p">(</span><span class="mf">1.0</span> <span class="o">-</span> <span class="n">addtl_pts</span><span class="p">[:,</span> <span class="n">var_idx</span><span class="p">]))</span>
+            <span class="c1"># renormalize site fractions</span>
+            <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="n">sublattice_dof</span><span class="p">:</span>
+                <span class="n">end_idx</span> <span class="o">=</span> <span class="n">cur_idx</span> <span class="o">+</span> <span class="n">ctx</span>
+                <span class="n">addtl_pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span> <span class="o">/=</span> \
+                    <span class="n">addtl_pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">end_idx</span>
+            <span class="c1"># add to points matrix</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">points</span><span class="p">,</span> <span class="n">addtl_pts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Filter out nan&#39;s that may have slipped in if we sampled too high a vacancy concentration</span>
+    <span class="c1"># Issues with this appear to be platform-dependent</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">points</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">points</span><span class="p">)</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)]</span>
+    <span class="c1"># Ensure that points has the correct dimensions and dtype</span>
+    <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">points</span>
+
+
+<span class="k">def</span> <span class="nf">_compute_phase_values</span><span class="p">(</span><span class="n">phase_obj</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">statevar_dict</span><span class="p">,</span>
+                          <span class="n">points</span><span class="p">,</span> <span class="n">prn</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                          <span class="n">largest_energy</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Calculate output values for a particular phase.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    phase_obj : Phase</span>
+<span class="sd">        Phase object from a thermodynamic database.</span>
+<span class="sd">    components : list</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+<span class="sd">    variables : list</span>
+<span class="sd">        Names of variables in the phase&#39;s internal degrees of freedom.</span>
+<span class="sd">    statevar_dict : OrderedDict {str -&gt; float or sequence}</span>
+<span class="sd">        Mapping of state variables to desired values. This will broadcast if necessary.</span>
+<span class="sd">    points : ndarray</span>
+<span class="sd">        Inputs to &#39;func&#39;, except state variables. Columns should be in &#39;variables&#39; order.</span>
+<span class="sd">    prn : PhaseRecord</span>
+<span class="sd">        Contains callable for energy and phase metadata.</span>
+<span class="sd">    output : string</span>
+<span class="sd">        Desired name of the output result in the Dataset.</span>
+<span class="sd">    maximum_internal_dof : int</span>
+<span class="sd">        Largest number of internal degrees of freedom of any phase. This is used</span>
+<span class="sd">        to guarantee different phase&#39;s Datasets can be concatenated.</span>
+<span class="sd">    broadcast : bool</span>
+<span class="sd">        If True, broadcast state variables against each other to create a grid.</span>
+<span class="sd">        If False, assume state variables are given as equal-length lists (or single-valued).</span>
+<span class="sd">    fake_points : bool, optional (Default: False)</span>
+<span class="sd">        If True, the first few points of the output surface will be fictitious</span>
+<span class="sd">        points used to define an equilibrium hyperplane guaranteed to be above</span>
+<span class="sd">        all the other points. This is used for convex hull computations.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dataset of the output attribute as a function of state variables</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">broadcast</span><span class="p">:</span>
+        <span class="c1"># Broadcast compositions and state variables along orthogonal axes</span>
+        <span class="c1"># This lets us eliminate an expensive Python loop</span>
+        <span class="n">statevars</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">itertools</span><span class="o">.</span><span class="n">chain</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
+                                                     <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">])]),</span>
+                                    <span class="n">sparse</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">)[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">+</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">:])</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">statevars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+        <span class="n">statevars_</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="n">statevars</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="n">statevar</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">repeat</span><span class="p">(</span><span class="n">statevar</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">))</span>
+            <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">points</span><span class="p">))</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">):</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Length of state variable list and number of given points must be equal when &#39;</span>
+                                 <span class="s1">&#39;broadcast=False.&#39;</span><span class="p">)</span>
+            <span class="n">statevars_</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">statevar</span><span class="p">)</span>
+        <span class="n">statevars</span> <span class="o">=</span> <span class="n">statevars_</span>
+    <span class="c1"># func may only have support for vectorization along a single axis (no broadcasting)</span>
+    <span class="c1"># we need to force broadcasting and flatten the result before calling</span>
+    <span class="n">bc_statevars</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevars</span><span class="p">]</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
+    <span class="n">dof</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asfortranarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">bc_statevars</span><span class="p">,</span> <span class="n">pts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dof</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">prn</span><span class="o">.</span><span class="n">obj</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dof</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
+        <span class="n">phase_output</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">phase_output</span><span class="o">.</span><span class="n">shape</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">fake_points</span><span class="p">:</span>
+        <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">largest_energy</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),)),</span> <span class="n">phase_output</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="n">phase_names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">broadcast_to</span><span class="p">(</span><span class="s1">&#39;_FAKE_&#39;</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),)),</span>
+                                      <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)))),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">phase_names</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">name</span><span class="p">)))</span>
+
+    <span class="c1"># Map the internal degrees of freedom to global coordinates</span>
+    <span class="c1"># Normalize site ratios by the sum of site ratios times a factor</span>
+    <span class="c1"># related to the site fraction of vacancies</span>
+    <span class="n">site_ratio_normalization</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+        <span class="n">vacancy_column</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ones</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">if</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">):</span>
+            <span class="n">var_idx</span> <span class="o">=</span> <span class="n">variables</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">))</span>
+            <span class="n">vacancy_column</span> <span class="o">-=</span> <span class="n">points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="n">var_idx</span><span class="p">]</span>
+        <span class="n">site_ratio_normalization</span> <span class="o">+=</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">vacancy_column</span>
+
+    <span class="n">phase_compositions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),))</span>
+    <span class="k">for</span> <span class="n">col</span><span class="p">,</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">components</span><span class="p">):</span>
+        <span class="n">avector</span> <span class="o">=</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">vxx</span><span class="o">.</span><span class="n">species</span> <span class="o">==</span> <span class="n">comp</span><span class="p">)</span> <span class="o">*</span> \
+            <span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">[</span><span class="n">vxx</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">]</span> <span class="k">for</span> <span class="n">vxx</span> <span class="ow">in</span> <span class="n">variables</span><span class="p">]</span>
+        <span class="n">phase_compositions</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="n">col</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">divide</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:,</span> <span class="p">:],</span> <span class="n">avector</span><span class="p">),</span>
+                                               <span class="n">site_ratio_normalization</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">fake_points</span><span class="p">:</span>
+        <span class="n">phase_compositions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)),</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">),</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">))),</span> <span class="n">phase_compositions</span><span class="p">),</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">2</span><span class="p">)</span>
+
+    <span class="n">coordinate_dict</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;component&#39;</span><span class="p">:</span> <span class="n">components</span><span class="p">}</span>
+    <span class="c1"># Resize &#39;points&#39; so it has the same number of columns as the maximum</span>
+    <span class="c1"># number of internal degrees of freedom of any phase in the calculation.</span>
+    <span class="c1"># We do this so that everything is aligned for concat.</span>
+    <span class="c1"># Waste of memory? Yes, but the alternatives are unclear.</span>
+    <span class="k">if</span> <span class="n">fake_points</span><span class="p">:</span>
+        <span class="n">expanded_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span><span class="o">+</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">],</span> <span class="n">maximum_internal_dof</span><span class="p">),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">expanded_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">):,</span> <span class="p">:</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">points</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">expanded_points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,),</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span><span class="p">)</span>
+        <span class="n">expanded_points</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]]</span> <span class="o">=</span> <span class="n">points</span>
+    <span class="k">if</span> <span class="n">broadcast</span><span class="p">:</span>
+        <span class="n">coordinate_dict</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span>
+        <span class="n">output_columns</span> <span class="o">=</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">()]</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">output_columns</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
+    <span class="n">data_arrays</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span> <span class="n">phase_compositions</span><span class="p">),</span>
+                   <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">phase_names</span><span class="p">),</span>
+                   <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;internal_dof&#39;</span><span class="p">],</span> <span class="n">expanded_points</span><span class="p">),</span>
+                   <span class="n">output</span><span class="p">:</span> <span class="p">([</span><span class="s1">&#39;dim_&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase_output</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">output_columns</span><span class="p">))]</span> <span class="o">+</span> <span class="n">output_columns</span><span class="p">,</span> <span class="n">phase_output</span><span class="p">)</span>
+                   <span class="p">}</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">broadcast</span><span class="p">:</span>
+        <span class="c1"># Add state variables as data variables rather than as coordinates</span>
+        <span class="k">for</span> <span class="n">sym</span><span class="p">,</span> <span class="n">vals</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">statevars</span><span class="p">):</span>
+            <span class="n">data_arrays</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">sym</span><span class="p">:</span> <span class="p">(</span><span class="n">output_columns</span><span class="p">,</span> <span class="n">vals</span><span class="p">)})</span>
+
+    <span class="k">return</span> <span class="n">Dataset</span><span class="p">(</span><span class="n">data_arrays</span><span class="p">,</span> <span class="n">coords</span><span class="o">=</span><span class="n">coordinate_dict</span><span class="p">)</span>
+
+<span class="c1">#@cacheit</span>
+<div class="viewcode-block" id="calculate"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.calculate.calculate">[docs]</a><span class="k">def</span> <span class="nf">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample the property surface of &#39;output&#39; containing the specified</span>
+<span class="sd">    components and phases. Model parameters are taken from &#39;dbf&#39; and any</span>
+<span class="sd">    state variables (T, P, etc.) can be specified as keyword arguments.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Thermodynamic database containing the relevant parameters.</span>
+<span class="sd">    comps : str or sequence</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+<span class="sd">    phases : str or sequence</span>
+<span class="sd">        Names of phases to consider in the calculation.</span>
+<span class="sd">    mode : string, optional</span>
+<span class="sd">        See &#39;make_callable&#39; docstring for details.</span>
+<span class="sd">    output : string, optional</span>
+<span class="sd">        Model attribute to sample.</span>
+<span class="sd">    fake_points : bool, optional (Default: False)</span>
+<span class="sd">        If True, the first few points of the output surface will be fictitious</span>
+<span class="sd">        points used to define an equilibrium hyperplane guaranteed to be above</span>
+<span class="sd">        all the other points. This is used for convex hull computations.</span>
+<span class="sd">    broadcast : bool, optional</span>
+<span class="sd">        If True, broadcast given state variable lists against each other to create a grid.</span>
+<span class="sd">        If False, assume state variables are given as equal-length lists.</span>
+<span class="sd">    points : ndarray or a dict of phase names to ndarray, optional</span>
+<span class="sd">        Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.</span>
+<span class="sd">        If this is not specified, points will be generated automatically.</span>
+<span class="sd">    pdens : int, a dict of phase names to int, or a seq of both, optional</span>
+<span class="sd">        Number of points to sample per degree of freedom.</span>
+<span class="sd">    model : Model, a dict of phase names to Model, or a seq of both, optional</span>
+<span class="sd">        Model class to use for each phase.</span>
+<span class="sd">    sampler : callable, a dict of phase names to callable, or a seq of both, optional</span>
+<span class="sd">        Function to sample phase constitution space.</span>
+<span class="sd">        Must have same signature as &#39;pycalphad.core.utils.point_sample&#39;</span>
+<span class="sd">    grid_points : bool, a dict of phase names to bool, or a seq of both, optional (Default: True)</span>
+<span class="sd">        Whether to add evenly spaced points between end-members.</span>
+<span class="sd">        The density of points is determined by &#39;pdens&#39;</span>
+<span class="sd">    parameters : dict, optional</span>
+<span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dataset of the sampled attribute as a function of state variables</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Here we check for any keyword arguments that are special, i.e.,</span>
+    <span class="c1"># there may be keyword arguments that aren&#39;t state variables</span>
+    <span class="n">pdens_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;pdens&#39;</span><span class="p">,</span> <span class="mi">2000</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="mi">2000</span><span class="p">)</span>
+    <span class="n">points_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;points&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">model_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="n">CompiledModel</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="n">CompiledModel</span><span class="p">)</span>
+    <span class="n">callable_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;callables&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">sampler_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sampler&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span>
+    <span class="n">fixedgrid_dict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;grid_points&#39;</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+    <span class="n">param_symbols</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">param_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">values</span><span class="p">()),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">))</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phases</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">comps</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">points_dict</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">broadcast</span> <span class="ow">is</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The </span><span class="se">\&#39;</span><span class="s1">points</span><span class="se">\&#39;</span><span class="s1"> keyword argument must be specified if broadcast=False is also given.&#39;</span><span class="p">)</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)]</span>
+
+    <span class="c1"># Convert keyword strings to proper state variable objects</span>
+    <span class="c1"># If we don&#39;t do this, sympy will get confused during substitution</span>
+    <span class="n">statevar_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> \
+                                            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+    <span class="c1"># XXX: CompiledModel assumes P, T are the only state variables</span>
+    <span class="k">if</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">statevar_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">]</span> <span class="o">=</span> <span class="mi">101325</span>
+    <span class="k">if</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">statevar_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+    <span class="n">str_statevar_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> \
+                                                <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+    <span class="n">all_phase_data</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">comp_sets</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="n">largest_energy</span> <span class="o">=</span> <span class="mf">1e30</span>
+    <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="mi">0</span>
+
+    <span class="c1"># Consider only the active phases</span>
+    <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()])</span> \
+        <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">))</span>
+
+    <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="c1"># Build the symbolic representation of the energy</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">model_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="c1"># if this is an object type, we need to construct it</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">model_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">DofError</span><span class="p">:</span>
+                <span class="c1"># we can&#39;t build the specified phase because the</span>
+                <span class="c1"># specified components aren&#39;t found in every sublattice</span>
+                <span class="c1"># we&#39;ll just skip it</span>
+                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Suspending specified phase </span><span class="si">%s</span><span class="s2"> due to</span>
+<span class="s2">                some sublattices containing only unspecified components&quot;&quot;&quot;</span><span class="p">,</span>
+                               <span class="n">phase_name</span><span class="p">)</span>
+                <span class="k">continue</span>
+        <span class="k">if</span> <span class="n">points_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mod</span><span class="o">.</span><span class="n">constituents</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">points_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+
+    <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">mod</span> <span class="o">=</span> <span class="n">model_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="c1"># this is a phase model we couldn&#39;t construct for whatever reason; skip it</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="k">continue</span>
+        <span class="k">if</span> <span class="p">(</span><span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">CompiledModel</span><span class="p">))</span> <span class="ow">or</span> <span class="p">(</span><span class="n">output</span> <span class="o">!=</span> <span class="s1">&#39;GM&#39;</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">CompiledModel</span><span class="p">):</span>
+                <span class="n">mod</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
+            <span class="c1"># Construct an ordered list of the variables</span>
+            <span class="n">variables</span><span class="p">,</span> <span class="n">sublattice_dof</span> <span class="o">=</span> <span class="n">generate_dof</span><span class="p">(</span><span class="n">phase_obj</span><span class="p">,</span> <span class="n">mod</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+            <span class="c1"># Build the &quot;fast&quot; representation of that model</span>
+            <span class="k">if</span> <span class="n">callable_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="ne">AttributeError</span><span class="p">(</span><span class="s1">&#39;Missing Model attribute </span><span class="si">{0}</span><span class="s1"> specified for </span><span class="si">{1}</span><span class="s1">&#39;</span>
+                                         <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">mod</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
+                <span class="c1"># As a last resort, treat undefined symbols as zero</span>
+                <span class="c1"># But warn the user when we do this</span>
+                <span class="c1"># This is consistent with TC&#39;s behavior</span>
+                <span class="n">undefs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Symbol</span><span class="p">)</span> <span class="o">-</span> <span class="n">out</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">))</span>
+                <span class="k">for</span> <span class="n">undef</span> <span class="ow">in</span> <span class="n">undefs</span><span class="p">:</span>
+                    <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">undef</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)})</span>
+                    <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s1">&#39;Setting undefined symbol </span><span class="si">%s</span><span class="s1"> for phase </span><span class="si">%s</span><span class="s1"> to zero&#39;</span><span class="p">,</span>
+                                   <span class="n">undef</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
+                <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
+                                                        <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                                                        <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callable_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
+            <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
+                                        <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
+                                        <span class="n">param_values</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">variables</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">},</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+            <span class="n">sublattice_dof</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">sublattice_dof</span>
+            <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord_from_compiledmodel</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">param_values</span><span class="p">)</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">points_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">points</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">points</span> <span class="o">=</span> <span class="n">_sample_phase_constitution</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="n">sublattice_dof</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span>
+                                                <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">sampler_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">or</span> <span class="n">point_sample</span><span class="p">,</span>
+                                                <span class="n">fixedgrid_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="n">pdens_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="n">points</span><span class="p">)</span>
+
+        <span class="n">fp</span> <span class="o">=</span> <span class="n">fake_points</span> <span class="ow">and</span> <span class="p">(</span><span class="n">phase_name</span> <span class="o">==</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">active_phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">phase_ds</span> <span class="o">=</span> <span class="n">_compute_phase_values</span><span class="p">(</span><span class="n">phase_obj</span><span class="p">,</span> <span class="n">components</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">str_statevar_dict</span><span class="p">,</span>
+                                         <span class="n">points</span><span class="p">,</span> <span class="n">prn</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span>
+                                         <span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="n">broadcast</span><span class="p">,</span>
+                                         <span class="n">largest_energy</span><span class="o">=</span><span class="nb">float</span><span class="p">(</span><span class="n">largest_energy</span><span class="p">),</span> <span class="n">fake_points</span><span class="o">=</span><span class="n">fp</span><span class="p">)</span>
+        <span class="n">all_phase_data</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_ds</span><span class="p">)</span>
+
+    <span class="c1"># speedup for single-phase case (found by profiling)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">all_phase_data</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">final_ds</span> <span class="o">=</span> <span class="n">_fast_concat</span><span class="p">(</span><span class="n">all_phase_data</span><span class="p">,</span> <span class="n">dim</span><span class="o">=</span><span class="s1">&#39;points&#39;</span><span class="p">)</span>
+        <span class="n">final_ds</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">final_ds</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]))</span>
+        <span class="n">final_ds</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">final_ds</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">final_ds</span> <span class="o">=</span> <span class="n">all_phase_data</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">final_ds</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0+untagged.g2818036',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

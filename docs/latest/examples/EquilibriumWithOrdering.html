@@ -8,9 +8,11 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) &mdash; pycalphad 0+untagged.g137901d documentation</title>
+  <title>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni) &mdash; pycalphad 0+untagged.g2818036 documentation</title>
   
 
+  
+  
   
   
 
@@ -33,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.g137901d documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g2818036 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="API Documentation" href="../api/modules.html"/>
         <link rel="prev" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html"/> 
@@ -45,6 +47,7 @@
 
 <body class="wy-body-for-nav" role="document">
 
+   
   <div class="wy-grid-for-nav">
 
     
@@ -67,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.g137901d
+                0+untagged.g2818036
               </div>
             
           
@@ -88,7 +91,10 @@
           
             
             
-                <ul class="current">
+              
+            
+            
+              <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Calculating Isobaric Binary Phase Diagrams</a></li>
@@ -123,8 +129,10 @@
 
       
       <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
-        <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
-        <a href="../index.html">pycalphad</a>
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
       </nav>
 
 
@@ -133,25 +141,42 @@
         <div class="rst-content">
           
 
- 
+
+
+
+
+
+
+
+
+
+
+
 
 
 
 <div role="navigation" aria-label="breadcrumbs navigation">
+
   <ul class="wy-breadcrumbs">
-    <li><a href="../index.html">Docs</a> &raquo;</li>
-      
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
           <li><a href="index.html">Examples</a> &raquo;</li>
-      
-    <li>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</li>
+        
+      <li>Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</li>
+    
+    
       <li class="wy-breadcrumbs-aside">
         
-          
+            
             <a href="../_sources/examples/EquilibriumWithOrdering.rst.txt" rel="nofollow"> View page source</a>
           
         
       </li>
+    
   </ul>
+
+  
   <hr/>
 </div>
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
@@ -231,7 +256,7 @@ composition.</p>
 <span class="n">Coordinates</span><span class="p">:</span>
   <span class="o">*</span> <span class="n">P</span>                   <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
   <span class="o">*</span> <span class="n">T</span>                   <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">700.0</span>
-  <span class="o">*</span> <span class="n">X_AL</span>                <span class="p">(</span><span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span> <span class="mf">0.01</span> <span class="mf">0.02</span> <span class="mf">0.03</span> <span class="mf">0.04</span> <span class="mf">0.05</span> <span class="mf">0.06</span> <span class="o">...</span>
+  <span class="o">*</span> <span class="n">X_AL</span>                <span class="p">(</span><span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-09</span> <span class="mf">0.01</span> <span class="mf">0.02</span> <span class="mf">0.03</span> <span class="mf">0.04</span> <span class="mf">0.05</span> <span class="mf">0.06</span> <span class="o">...</span>
   <span class="o">*</span> <span class="n">vertex</span>              <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span>
   <span class="o">*</span> <span class="n">component</span>           <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="nb">object</span> <span class="s1">&#39;AL&#39;</span> <span class="s1">&#39;FE&#39;</span>
   <span class="o">*</span> <span class="n">internal_dof</span>        <span class="p">(</span><span class="n">internal_dof</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span> <span class="mi">2</span> <span class="mi">3</span> <span class="mi">4</span>
@@ -239,8 +264,8 @@ composition.</p>
     <span class="n">MU</span>                  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.312e+05</span> <span class="o">...</span>
     <span class="n">GM</span>                  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.447e+04</span> <span class="o">-</span><span class="mf">2.565e+04</span> <span class="o">...</span>
     <span class="n">NP</span>                  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="o">...</span>
-    <span class="n">X</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span> <span class="mf">1.0</span> <span class="o">...</span>
-    <span class="n">Y</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">09</span> <span class="mf">1.0</span> <span class="o">...</span>
+    <span class="n">X</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-09</span> <span class="mf">1.0</span> <span class="o">...</span>
+    <span class="n">Y</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-09</span> <span class="mf">1.0</span> <span class="o">...</span>
     <span class="n">Phase</span>               <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="nb">object</span> <span class="s1">&#39;B2_BCC&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;B2_BCC&#39;</span> <span class="s1">&#39;&#39;</span> <span class="o">...</span>
     <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.137e-15</span> <span class="n">nan</span> <span class="mf">2.015e-16</span> <span class="o">...</span>
 <span class="n">Attributes</span><span class="p">:</span>
@@ -328,7 +353,7 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.</p>
     <span class="n">GM</span>                  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">2.526e+04</span> <span class="o">-</span><span class="mf">2.585e+04</span> <span class="o">...</span>
     <span class="n">NP</span>                  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.3829</span> <span class="mf">0.6171</span> <span class="mf">0.3543</span> <span class="o">...</span>
     <span class="n">X</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">0.25</span> <span class="mf">0.75</span> <span class="o">...</span>
-    <span class="n">Y</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mi">1</span><span class="n">e</span><span class="o">-</span><span class="mi">12</span> <span class="mf">1.0</span> <span class="o">...</span>
+    <span class="n">Y</span>                   <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-12</span> <span class="mf">1.0</span> <span class="o">...</span>
     <span class="n">Phase</span>               <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="nb">object</span> <span class="s1">&#39;FCC_L12&#39;</span> <span class="s1">&#39;FCC_L12&#39;</span> <span class="o">...</span>
     <span class="n">degree_of_ordering</span>  <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_AL</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">7.962e-15</span> <span class="mf">1.0</span> <span class="o">...</span>
 <span class="n">Attributes</span><span class="p">:</span>
@@ -390,15 +415,18 @@ gamma phase. This is a first-order phase transition.</p>
 
 
            </div>
+           <div class="articleComments">
+            
+           </div>
           </div>
           <footer>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="../api/modules.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="../api/modules.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="CementiteAnalysis.html" class="btn btn-neutral" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" accesskey="p"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="CementiteAnalysis.html" class="btn btn-neutral" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -429,10 +457,11 @@ gamma phase. This is a first-order phase transition.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.g137901d',
+            VERSION:'0+untagged.g2818036',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
         };
     </script>
       <script type="text/javascript" src="../_static/jquery.js"></script>

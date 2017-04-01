@@ -1,0 +1,583 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.utils &mdash; pycalphad 0+untagged.g2818036 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0+untagged.g2818036 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0+untagged.g2818036
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The utils module handles helper routines for equilibrium calculation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.halton</span> <span class="k">import</span> <span class="n">halton</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">lambdify</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.lambdarepr</span> <span class="k">import</span> <span class="n">LambdaPrinter</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Only available in numpy 1.10 and newer</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="k">import</span> <span class="n">broadcast_to</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">broadcast_to</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="s2">&quot;Broadcast an array to a desired shape. Returns a view.&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="NumPyPrinter"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.NumPyPrinter">[docs]</a><span class="k">class</span> <span class="nc">NumPyPrinter</span><span class="p">(</span><span class="n">LambdaPrinter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Numpy printer which handles vectorized piecewise functions,</span>
+<span class="sd">    logical operators, etc.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">_default_settings</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
+        <span class="s2">&quot;full_prec&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
+    <span class="p">}</span>
+
+    <span class="k">def</span> <span class="nf">_print_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="p">):</span>
+        <span class="s2">&quot;General sequence printer: converts to tuple&quot;</span>
+        <span class="c1"># Print tuples here instead of lists because numba supports</span>
+        <span class="c1">#     tuples in nopython mode.</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">,)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">))</span>
+
+    <span class="c1">#def _print_Integer(self, expr):</span>
+    <span class="c1">#    # Upcast to work around an integer overflow bug</span>
+    <span class="c1">#    return &#39;asarray({0}, dtype=float)&#39;.format(expr)</span>
+
+    <span class="k">def</span> <span class="nf">_print_MatrixBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;array&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
+
+    <span class="n">_print_SparseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_MutableSparseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_ImmutableSparseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_Matrix</span> <span class="o">=</span> \
+        <span class="n">_print_DenseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_MutableDenseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_ImmutableMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_ImmutableDenseMatrix</span> <span class="o">=</span> \
+        <span class="n">_print_MatrixBase</span>
+
+    <span class="k">def</span> <span class="nf">_print_MatMul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Matrix multiplication printer&quot;</span>
+        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;).dot(&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_print_Piecewise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Piecewise function printer&quot;</span>
+        <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
+        <span class="n">conds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+        <span class="c1"># We expect exprs and conds to be in order here</span>
+        <span class="c1"># First condition to evaluate to True is returned</span>
+        <span class="c1"># Default result: float zero</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;where(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">, 0.)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">exprs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">exprs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">conds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;where(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">, </span><span class="si">{2}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_print_And</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Logical And printer&quot;</span>
+        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;and&#39; keyword.</span>
+        <span class="c1"># If LambdaPrinter didn&#39;t define it, we could use StrPrinter&#39;s</span>
+        <span class="c1"># version of the function and add &#39;logical_and&#39; to NUMPY_TRANSLATIONS.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_and(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_and(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span>  <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_print_Or</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Logical Or printer&quot;</span>
+        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;or&#39; keyword.</span>
+        <span class="c1"># If LambdaPrinter didn&#39;t define it, we could use StrPrinter&#39;s</span>
+        <span class="c1"># version of the function and add &#39;logical_or&#39; to NUMPY_TRANSLATIONS.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_or(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_or(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span>  <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_print_Not</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Logical Not printer&quot;</span>
+        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;not&#39; keyword.</span>
+        <span class="c1"># If LambdaPrinter didn&#39;t define it, we would still have to define our</span>
+        <span class="c1">#     own because StrPrinter doesn&#39;t define it.</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_not(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_not(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
+        <span class="k">return</span>  <span class="n">result</span></div>
+
+
+<div class="viewcode-block" id="point_sample"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.point_sample">[docs]</a><span class="k">def</span> <span class="nf">point_sample</span><span class="p">(</span><span class="n">comp_count</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample &#39;pdof * (sum(comp_count) - len(comp_count))&#39; points in</span>
+<span class="sd">    composition space for the sublattice configuration specified</span>
+<span class="sd">    by &#39;comp_count&#39;. Points are sampled quasi-randomly from a Halton sequence.</span>
+<span class="sd">    A Halton sequence is like a uniform random distribution, but the</span>
+<span class="sd">    result will always be the same for a given &#39;comp_count&#39; and &#39;pdof&#39;.</span>
+<span class="sd">    Note: For systems with only one component, only one point will be</span>
+<span class="sd">    returned, regardless of &#39;pdof&#39;. This is because the degrees of freedom</span>
+<span class="sd">    are zero for that case.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    comp_count : list</span>
+<span class="sd">        Number of components in each sublattice.</span>
+<span class="sd">    pdof : int</span>
+<span class="sd">        Number of points to sample per degree of freedom.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray of generated points satisfying the mass balance.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; comps = [8,1] # 8 components in sublattice 1; only 1 in sublattice 2</span>
+<span class="sd">    &gt;&gt;&gt; pts = point_sample(comps, pdof=20) # 7 d.o.f, returns a 140x7 ndarray</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Generate Halton sequence with appropriate dimensions and size</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">halton</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">comp_count</span><span class="p">),</span>
+                 <span class="n">pdof</span> <span class="o">*</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">comp_count</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_count</span><span class="p">)),</span> <span class="n">scramble</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Convert low-discrepancy sequence to normalized exponential</span>
+    <span class="c1"># This will be uniformly distributed over the simplices</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="n">comp_count</span><span class="p">:</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">cur_idx</span> <span class="o">+</span> <span class="n">ctx</span>
+        <span class="n">pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">end_idx</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_count</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pts</span></div>
+
+<div class="viewcode-block" id="make_callable"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.make_callable">[docs]</a><span class="k">def</span> <span class="nf">make_callable</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a SymPy object and create a callable function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model, SymPy object</span>
+<span class="sd">        Abstract representation of function</span>
+<span class="sd">    variables, list</span>
+<span class="sd">        Input variables, ordered in the way the return function will expect</span>
+<span class="sd">    mode, [&#39;numpy&#39;, &#39;numba&#39;, &#39;sympy&#39;], optional</span>
+<span class="sd">        Method to use when &#39;compiling&#39; the function. SymPy mode is</span>
+<span class="sd">        slow and should only be used for debugging. If Numba is installed,</span>
+<span class="sd">        it can offer speed-ups when calling the energy function many</span>
+<span class="sd">        times on multi-core CPUs.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Function that takes arguments in the same order as &#39;variables&#39;</span>
+<span class="sd">    and returns the energy according to &#39;model&#39;.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;numpy&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sympy&#39;</span><span class="p">:</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">vs</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">vs</span><span class="p">))</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
+    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">modules</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;where&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="s1">&#39;Abs&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">},</span> <span class="s1">&#39;numpy&#39;</span><span class="p">],</span> <span class="n">printer</span><span class="o">=</span><span class="n">NumPyPrinter</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">modules</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">energy</span></div>
+
+<div class="viewcode-block" id="sizeof_fmt"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.sizeof_fmt">[docs]</a><span class="k">def</span> <span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Human-readable string for a number of bytes.</span>
+<span class="sd">    http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1000.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">/=</span> <span class="mf">1000.0</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="unpack_condition"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_condition">[docs]</a><span class="k">def</span> <span class="nf">unpack_condition</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a condition to a list of values.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Rules for keys of conditions dicts:</span>
+<span class="sd">    (1) If it&#39;s numeric, treat as a point value</span>
+<span class="sd">    (2) If it&#39;s a tuple with one element, treat as a point value</span>
+<span class="sd">    (3) If it&#39;s a tuple with two elements, treat as lower/upper limits and guess a step size.</span>
+<span class="sd">    (4) If it&#39;s a tuple with three elements, treat as lower/upper/step</span>
+<span class="sd">    (5) If it&#39;s a list, ndarray or other non-tuple ordered iterable, use those values directly.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Condition tuple is length </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="unpack_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_phases">[docs]</a><span class="k">def</span> <span class="nf">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">):</span>
+    <span class="s2">&quot;Convert a phases list/dict into a sorted list.&quot;</span>
+    <span class="n">active_phases</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">phn</span> <span class="k">for</span> <span class="n">phn</span><span class="p">,</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> \
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;entered&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phases</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">active_phases</span></div>
+
+<div class="viewcode-block" id="generate_dof"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.generate_dof">[docs]</a><span class="k">def</span> <span class="nf">generate_dof</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">active_comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accept a Phase object and a set() of the active components.</span>
+<span class="sd">    Return a tuple of variable names and the sublattice degrees of freedom.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sublattice_dof</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+        <span class="n">dof</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_comps</span><span class="p">)):</span>
+            <span class="n">variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span><span class="p">))</span>
+            <span class="n">dof</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">sublattice_dof</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dof</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">variables</span><span class="p">,</span> <span class="n">sublattice_dof</span></div>
+
+<div class="viewcode-block" id="endmember_matrix"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.endmember_matrix">[docs]</a><span class="k">def</span> <span class="nf">endmember_matrix</span><span class="p">(</span><span class="n">dof</span><span class="p">,</span> <span class="n">vacancy_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accept the number of components in each sublattice.</span>
+<span class="sd">    Return a matrix corresponding to the compositions of all endmembers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dof : list of int</span>
+<span class="sd">        Number of components in each sublattice.</span>
+<span class="sd">    vacancy_indices, list of int, optional</span>
+<span class="sd">        If vacancies are present in every sublattice, specify their indices</span>
+<span class="sd">        in each sublattice to ensure the &quot;pure vacancy&quot; endmember is excluded.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Sublattice configuration like: `(AL, NI, VA):(AL, NI, VA):(VA)`</span>
+<span class="sd">    &gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">total_endmembers</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">dof</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_endmembers</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">dof_arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dof</span><span class="p">]</span>
+    <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">dof_arrays</span><span class="p">):</span>
+        <span class="n">res_matrix</span><span class="p">[</span><span class="n">row_idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">row_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">vacancy_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">):</span>
+        <span class="n">dof_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">))])</span>
+        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">+</span> <span class="n">dof_adj</span>
+        <span class="n">row_idx_to_delete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                                            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+        <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">row_idx_to_delete</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Adjust site fractions to the numerical limit</span>
+    <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">res_matrix</span><span class="p">[</span><span class="n">res_matrix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MIN_SITE_FRACTION</span>
+    <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="n">dof</span><span class="p">:</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">cur_idx</span> <span class="o">+</span> <span class="n">ctx</span>
+        <span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">end_idx</span>
+    <span class="k">return</span> <span class="n">res_matrix</span></div>
+
+<div class="viewcode-block" id="unpack_kwarg"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_kwarg">[docs]</a><span class="k">def</span> <span class="nf">unpack_kwarg</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Keyword arguments in pycalphad can be passed as a constant value, a</span>
+<span class="sd">    dict of phase names and values, or a list containing both of these. If</span>
+<span class="sd">    the latter, then the dict is checked first; if the phase of interest is not</span>
+<span class="sd">    there, then the constant value is used.</span>
+
+<span class="sd">    This function is a way to construct defaultdicts out of keyword arguments.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kwarg_obj : dict, iterable, or None</span>
+<span class="sd">        Argument to unpack into a defaultdict</span>
+<span class="sd">    default_arg : object</span>
+<span class="sd">        Default value to use if iterable isn&#39;t specified</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    defaultdict for the keyword argument of interest</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; test_func = lambda **kwargs: print(unpack_kwarg(&#39;opt&#39;))</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt=100)</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt={&#39;FCC_A1&#39;: 50, &#39;BCC_B2&#39;: 10})</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt=[{&#39;FCC_A1&#39;: 30}, 200])</span>
+<span class="sd">    &gt;&gt;&gt; test_func()</span>
+<span class="sd">    &gt;&gt;&gt; test_func2 = lambda **kwargs: print(unpack_kwarg(&#39;opt&#39;, default_arg=1))</span>
+<span class="sd">    &gt;&gt;&gt; test_func2()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">default_arg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">)</span>
+    <span class="c1"># kwarg_obj is a list containing a dict and a default</span>
+    <span class="c1"># For now at least, we don&#39;t treat ndarrays the same as other iterables</span>
+    <span class="c1"># ndarrays are assumed to be numeric arrays containing &quot;default values&quot;, so don&#39;t match here</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">kwarg_obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+                <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># element=element syntax to silence var-from-loop warning</span>
+                <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">:</span> <span class="n">element</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kwarg_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">kwarg_obj</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_dict</span></div>
+
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0+untagged.g2818036',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
