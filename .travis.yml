@@ -59,6 +59,6 @@ script:
         bash ci/deploy.sh
         coveralls
       else
-        env > ./env.list
+        env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME > ./env.list
         docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
       fi
