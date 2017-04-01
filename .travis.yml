@@ -15,7 +15,7 @@ matrix:
         - python: 3.5
           env: DOCKER_TAG=linux-python35
         - python: 3.6
-          env: DOCKER_TAG=linux-python36
+          env: DOCKER_TAG=linux-python36 DEPLOY_ENC_LABEL=e64cfe3b4e81
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -27,7 +27,7 @@ matrix:
           env: TRAVIS_PYTHON_VERSION=3.5
         - language: generic
           os: osx
-          env: TRAVIS_PYTHON_VERSION=3.6 DEPLOY_ENC_LABEL=e64cfe3b4e81
+          env: TRAVIS_PYTHON_VERSION=3.6
 
 # Setup anaconda
 before_install:
@@ -58,7 +58,7 @@ script:
         nosetests --with-coverage
         bash ci/deploy.sh
       else
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage"
+        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage ; bash ci/deploy.sh"
       fi
 after_success:
-  - pip install coveralls && coveralls
+  - coveralls

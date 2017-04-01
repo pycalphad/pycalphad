@@ -47,7 +47,8 @@ RUN wget -O miniconda.sh \
       distributed \
       xarray \
       pip \
-    && conda clean -tipsy
+    && conda clean -tipsy \
+    && pip install sphinx_rtd_theme coveralls
 
 ENV PATH="/work/miniconda/envs/condaenv/bin:/work/miniconda/envs/condaenv/lib:$PATH"
 ENV MATPLOTLIBRC="/work/miniconda/envs/condaenv"
