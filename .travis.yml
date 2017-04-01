@@ -57,8 +57,8 @@ script:
         pip install sphinx sphinx_rtd_theme coveralls
         nosetests --with-coverage
         bash ci/deploy.sh
+        coveralls
       else
-        docker run --rm -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh"
+        env > ./env.list
+        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/sh -c "cd /pycalphad ; python setup.py nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
       fi
-after_success:
-  - coveralls
