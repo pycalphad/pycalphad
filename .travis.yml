@@ -36,7 +36,7 @@ before_install:
         ./ci/travis_legacy_deps.sh
       else
         export DOCKER_USER=richardotis
-        docker run --cidfile /tmp/build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; conda develop . ; pip install coveralls nose-cov; python setup.py build_ext --inplace ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
+        docker run --cidfile /tmp/build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; conda develop . ; pip install coveralls nose-cov; python setup.py build_ext --inplace ; python setup.py install ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
         docker commit `cat /tmp/build.cid` $DOCKER_USER/pycalphad:$DOCKER_TAG
       fi
 # Install packages
@@ -60,5 +60,5 @@ script:
         coveralls
       else
         env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME > ./env.list
-        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; python setup.py nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
+        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
       fi
