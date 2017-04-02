@@ -14,14 +14,6 @@ Subpackages
 Submodules
 ----------
 
-pycalphad.constraints module
-----------------------------
-
-.. automodule:: pycalphad.constraints
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad.fitting module
 ------------------------
 
