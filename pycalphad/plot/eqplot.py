@@ -95,8 +95,6 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, phases=None, **kwargs):
         raise NotImplementedError('Plotting {} is not yet implemented'.format(x))
     # Have to do some extra work to get all potential values for the given tie lines
     temps = np.take(eq[str(y)].values, two_phase_indices[list(str(i) for i in conds.keys()).index(str(y))])
-    if ax is None:
-        ax = plt.gca()
     # Draw zero phase-fraction lines
     ax.scatter(compositions[..., 0], temps, s=3, c=plotcolors[..., 0], edgecolors='None', zorder=2, **kwargs)
     ax.scatter(compositions[..., 1], temps, s=3, c=plotcolors[..., 1], edgecolors='None', zorder=2, **kwargs)
