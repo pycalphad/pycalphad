@@ -913,6 +913,54 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
+    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
+        cdef double[::1] x1,x2
+        cdef double[::1] grad1, grad2
+        cdef double[::1,:] debugout
+        cdef double epsilon = 1e-12
+        cdef int grad_idx
+        cdef int col_idx
+        cdef int total_dof = 2 + self.phase_dof
+        grad1 = np.zeros(total_dof)
+        grad2 = np.zeros(total_dof)
+        x1 = np.array(dof)
+        x2 = np.array(dof)
+
+        for grad_idx in range(total_dof):
+            if grad_idx > 1:
+                x1[grad_idx] = max(x1[grad_idx] - epsilon, 1e-12)
+                x2[grad_idx] = min(x2[grad_idx] + epsilon, 1)
+            else:
+                x1[grad_idx] = x1[grad_idx] - 1e6 * epsilon
+                x2[grad_idx] = x2[grad_idx] + 1e6 * epsilon
+            self.eval_energy_gradient(grad1, x1, parameters)
+            self.eval_energy_gradient(grad2, x2, parameters)
+            for col_idx in range(total_dof):
+                out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
+            x1[grad_idx] = dof[grad_idx]
+            x2[grad_idx] = dof[grad_idx]
+            grad1[:] = 0
+            grad2[:] = 0
+        for grad_idx in range(total_dof):
+            for col_idx in range(grad_idx, total_dof):
+                out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
+        if self._debug:
+            debugout = np.asfortranarray(np.zeros_like(out))
+            if parameters.shape[0] == 0:
+                self._debughess(&dof[0], NULL, &debugout[0,0])
+            else:
+                self._debughess(&dof[0], &parameters[0], &debugout[0,0])
+            try:
+                np.testing.assert_allclose(out,debugout)
+            except AssertionError as e:
+                print('--')
+                print('Hessian mismatch')
+                print(e)
+                print(np.array(debugout)-np.array(out))
+                print('DOF:', np.array(dof))
+                print(self.constituents)
+                print('--')
+
 def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, phase_dof,
                            composition_matrices, site_ratios, vacancy_index,
                            pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,

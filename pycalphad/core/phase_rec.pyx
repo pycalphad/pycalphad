@@ -47,56 +47,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil:
-        cdef double[::1] x1,x2
-        cdef double[::1] grad1, grad2
-        cdef double[::1,:] debugout
-        cdef double epsilon = 1e-12
-        cdef int grad_idx
-        cdef int col_idx
-        cdef int total_dof = 2 + self.phase_dof
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
         else:
             with gil:
-                grad1 = np.zeros(total_dof)
-                grad2 = np.zeros(total_dof)
-                x1 = np.array(dof)
-                x2 = np.array(dof)
-
-                for grad_idx in range(total_dof):
-                    if grad_idx > 1:
-                        x1[grad_idx] = max(x1[grad_idx] - epsilon, 1e-12)
-                        x2[grad_idx] = min(x2[grad_idx] + epsilon, 1)
-                    else:
-                        x1[grad_idx] = x1[grad_idx] - 1e6 * epsilon
-                        x2[grad_idx] = x2[grad_idx] + 1e6 * epsilon
-                    self.cmpmdl.eval_energy_gradient(grad1, x1, self.parameters)
-                    self.cmpmdl.eval_energy_gradient(grad2, x2, self.parameters)
-                    for col_idx in range(total_dof):
-                        out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
-                    x1[grad_idx] = dof[grad_idx]
-                    x2[grad_idx] = dof[grad_idx]
-                    grad1[:] = 0
-                    grad2[:] = 0
-                for grad_idx in range(total_dof):
-                    for col_idx in range(grad_idx, total_dof):
-                        out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
-                if self.cmpmdl._debug:
-                    debugout = np.asfortranarray(np.zeros_like(out))
-                    if self.parameters.shape[0] == 0:
-                        self.cmpmdl._debughess(&dof[0], NULL, &debugout[0,0])
-                    else:
-                        self.cmpmdl._debughess(&dof[0], &self.parameters[0], &debugout[0,0])
-                    try:
-                        np.testing.assert_allclose(out,debugout)
-                    except AssertionError as e:
-                        print('--')
-                        print('Hessian mismatch')
-                        print(e)
-                        print(np.array(debugout)-np.array(out))
-                        print('DOF:', np.array(dof))
-                        print(self.cmpmdl.constituents)
-                        print('--')
+                self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
