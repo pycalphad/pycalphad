@@ -36,6 +36,10 @@ pycalphad, a library for the CALculation of PHAse Diagrams
 .. image:: http://img.shields.io/badge/benchmarked%20by-asv-green.svg
     :target: https://github.com/spacetelescope/asv
 
+.. image:: http://mybinder.org/badge.svg 
+    :target: http://mybinder.org:/repo/pycalphad/pycalphad
+    :alt: Binder
+
 **Note**: Unsolicited pull requests are _happily_ accepted!
 
 pycalphad is a free and open-source Python library for 
