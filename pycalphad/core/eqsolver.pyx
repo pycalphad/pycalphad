@@ -413,9 +413,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             # Skip this condition set
             # We silently allow this to make 2-D composition mapping easier
             prop_MU_values[it.multi_index] = np.nan
-            prop_NP_values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
-            prop_Phase_values[it.multi_index + np.index_exp[:len(phases)]] = ''
-            prop_X_values[it.multi_index + np.index_exp[:len(phases)]] = np.nan
+            prop_NP_values[it.multi_index + np.index_exp[:]] = np.nan
+            prop_Phase_values[it.multi_index + np.index_exp[:]] = ''
+            prop_X_values[it.multi_index + np.index_exp[:]] = np.nan
             prop_Y_values[it.multi_index] = np.nan
             prop_GM_values[it.multi_index] = np.nan
             it.iternext()
