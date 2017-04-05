@@ -106,7 +106,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_hess(self, double[::1,:] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void mass_hess(self, double[:,:] out, double[::1] dof, int comp_idx) nogil:
         cdef double mass_normalization_factor = 0
         cdef double mass = 0
         cdef int hess_x_idx, hess_y_comp_idx, hess_y_idx, subl_x_idx, subl_y_idx, subl_idx

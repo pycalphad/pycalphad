@@ -26,20 +26,72 @@ INITIAL_OBJECTIVE_WEIGHT = 1
 cdef double MAX_ENERGY = BIGNUM
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
-    cdef PhaseRecord phase_record
-    cdef public double[::1] dof, X
+    cdef public PhaseRecord phase_record
+    cdef readonly double[::1] dof, X
+    cdef double[::1,:] _dof_2d_view
+    cdef double[:,::1] _X_2d_view
+    cdef readonly double[:, ::1] mass_grad
+    cdef readonly double[:, :, :] mass_hess
     cdef public double NP
-    def __cinit__(self, PhaseRecord prx, double[::1] site_fracs, double phase_amt,
-                  double pressure, double temperature):
+    cdef readonly double energy
+    cdef double[::1] _energy_2d_view
+    cdef readonly double[::1] grad
+    cdef readonly double[::1,:] hess
+    cdef readonly double[::1] _prev_dof
+    cdef readonly double _prev_energy
+    cdef readonly double[::1] _prev_grad
+    cdef readonly double[::1,:] _prev_hess
+    cdef readonly bint _first_iteration
+
+    def __cinit__(self, PhaseRecord prx):
         self.phase_record = prx
-        self.dof = np.zeros(len(prx.variables)+2)
+        self.dof = np.zeros(len(self.phase_record.variables)+2)
+        self.X = np.zeros(self.phase_record.composition_matrices.shape[0])
+        self.mass_grad = np.zeros((self.X.shape[0], self.phase_record.phase_dof))
+        self.mass_hess = np.zeros((self.X.shape[0], self.phase_record.phase_dof, self.phase_record.phase_dof))
+        self._dof_2d_view = <double[:1:1,:self.dof.shape[0]]>&self.dof[0]
+        self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
+        self.energy = 0
+        self._energy_2d_view = <double[:1]>&self.energy
+        self.grad = np.zeros(self.dof.shape[0])
+        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self._prev_energy = 0
+        self._prev_dof = np.zeros(self.dof.shape[0])
+        self._prev_grad = np.zeros(self.dof.shape[0])
+        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self._first_iteration = True
+
+    cdef void reset(self):
+        self._prev_energy = 0
+        self._prev_dof[:] = 0
+        self._prev_grad[:] = 0
+        self._prev_hess[:,:] = 0
+        self._first_iteration = True
+
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature):
+        cdef int comp_idx
+        self._prev_dof[:] = self.dof
+        self._prev_energy = self.energy
+        self._prev_grad[:] = self.grad
+        self._prev_hess[:,:] = self.hess
         self.dof[0] = pressure
         self.dof[1] = temperature
         self.dof[2:] = site_fracs
         self.NP = phase_amt
+        self.energy = 0
+        self.grad[:] = 0
+        self.hess[:,:] = 0
+        self._first_iteration = False
+        self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
+        self.phase_record.grad(self.grad, self.dof)
+        self.phase_record.hess(self.hess, self.dof)
+        for comp_idx in range(self.X.shape[0]):
+            self.phase_record.mass_obj(self._X_2d_view[comp_idx], self.dof, comp_idx)
+            self.phase_record.mass_grad(self.mass_grad[comp_idx], self.dof, comp_idx)
+            self.phase_record.mass_hess(self.mass_hess[comp_idx], self.dof, comp_idx)
 
-def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
-                             double[:,:] site_fractions, double[:] phase_fractions, bint allow_negative_fractions):
+
+def remove_degenerate_phases(object composition_sets, bint allow_negative_fractions):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -54,13 +106,14 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
     cdef double[:,:] comp_distances
     cdef double phfsum = 0
     cdef object redundant_phases, kept_phase, removed_phases, saved_indices
-    cdef int num_phases = len(phases)
+    cdef int num_phases = len(composition_sets)
     cdef int phase_idx, sidx
     cdef int[:] indices
+    cdef CompositionSet compset
     # Group phases into multiple composition sets
     cdef object phase_indices = defaultdict(lambda: list())
     for phase_idx in range(num_phases):
-        name = <unicode>phases[phase_idx]
+        name = <unicode>composition_sets[phase_idx].phase_record.name
         if name == "":
             continue
         phase_indices[name].append(phase_idx)
@@ -70,12 +123,14 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
         if indices.shape[0] == 1:
             # Phase is unique
             continue
-        comp_matrix = np.empty((np.max(indices)+1, mole_fractions.shape[1]))
+        # All composition sets should have the same X shape (same number of possible components)
+        comp_matrix = np.empty((np.max(indices)+1, composition_sets[0].X.shape[0]))
         # The reason we don't do this based on Y fractions is because
         # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
         for idx in range(indices.shape[0]):
-            comp_matrix[indices[idx], :] = mole_fractions[indices[idx], :]
+            compset = composition_sets[indices[idx]]
+            comp_matrix[indices[idx], :] = compset.X
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
         redundant_phases = set()
         redundant_phases |= {indices[0]}
@@ -88,48 +143,21 @@ def remove_degenerate_phases(object phases, double[:,:] mole_fractions,
         redundant_phases = sorted(redundant_phases)
         kept_phase = redundant_phases[0]
         removed_phases = redundant_phases[1:]
-        # Their NP values will be added to redundant_phases[0]
+        # Their NP values will be added to the kept phase
         # and they will be nulled out
         for redundant in removed_phases:
-            phase_fractions[kept_phase] += phase_fractions[redundant]
-            phase_fractions[redundant] = np.nan
-            phases[redundant] = <unicode>''
-    # Eliminate any 'fake points' that made it through the convex hull routine
-    # These can show up from phases which aren't defined over all of composition space
+            composition_sets[kept_phase].NP += composition_sets[redundant].NP
+            composition_sets[redundant].NP = np.nan
     for phase_idx in range(num_phases):
-        if <unicode>phases[phase_idx] == <unicode>'_FAKE_':
-            phase_fractions[phase_idx] = np.nan
-            phases[phase_idx] = <unicode>''
-        elif abs(phase_fractions[phase_idx]) <= MIN_SITE_FRACTION:
-            phase_fractions[phase_idx] = MIN_SITE_FRACTION
-        elif (phase_fractions[phase_idx] <= MIN_SITE_FRACTION) and (not allow_negative_fractions):
-            phase_fractions[phase_idx] = np.nan
-            phases[phase_idx] = <unicode>''
-    # Rewrite properties to delete all the nulled out phase entries
-    # Then put them at the end
-    # That will let us rewrite 'phases' to have only the independent phases
-    # And still preserve convenient indexing with phase_idx
-    saved_indices = []
-    for phase_idx in range(num_phases):
-        if phases[phase_idx] != '':
-            saved_indices.append(phase_idx)
-    saved_indices = np.array(saved_indices, dtype=np.int32)
-    for sidx in saved_indices:
-        # TODO: Assumes N=1 always
-        phfsum += phase_fractions[sidx]
-    phase_idx = 0
-    for sidx in saved_indices:
-        # TODO: Assumes N=1 always
-        phase_fractions[phase_idx] = phase_fractions[sidx]
-        phase_fractions[phase_idx] /= abs(phfsum)
-        phases[phase_idx] = phases[sidx]
-        mole_fractions[phase_idx, :] = mole_fractions[sidx, :]
-        site_fractions[phase_idx, :] = site_fractions[sidx, :]
-        phase_idx += 1
-    phases[saved_indices.shape[0]:] = <unicode>''
-    phase_fractions[saved_indices.shape[0]:] = np.nan
-    mole_fractions[saved_indices.shape[0]:, :] = np.nan
-    site_fractions[saved_indices.shape[0]:, :] = np.nan
+        if abs(composition_sets[phase_idx].NP) <= MIN_SITE_FRACTION:
+            composition_sets[phase_idx].NP = MIN_SITE_FRACTION
+        elif (composition_sets[phase_idx].NP <= MIN_SITE_FRACTION) and (not allow_negative_fractions):
+            composition_sets[phase_idx].NP = np.nan
+
+    entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
+                               reverse=True)
+    for idx in entries_to_delete:
+        del composition_sets[idx]
 
 
 def _compute_phase_dof(dbf, comps, phases):
@@ -367,6 +395,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         int obj_decreases
         double previous_window_average, obj_weight, vmax
         PhaseRecord prn
+        CompositionSet compset
         cdef int[:] phase_dof
         cdef double[::1,:] l_hessian
         cdef double[::1] gradient_term, mass_buf
@@ -427,13 +456,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             raise ValueError('Number of dependent components different from one')
         composition_sets = []
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
-            if phase_name == '':
+            if phase_name == '' or phase_name == '_FAKE_':
                 continue
             phrec = phase_records[phase_name]
             phrec.reset_model_state()
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
-            compset = CompositionSet(phrec, sfx, phase_amt, cur_conds['P'], cur_conds['T'])
+            compset = CompositionSet(phrec)
+            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'])
             composition_sets.append(compset)
         diagnostic_matrix_shape = 7
         if diagnostic:
@@ -448,56 +478,35 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         allow_negative_fractions = False
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
-            phases = list(prop_Phase_values[it.multi_index])
-            if '' in phases:
-                old_phase_length = phases.index('')
-            else:
-                old_phase_length = -1
+            old_phase_length = len(composition_sets)
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
-            remove_degenerate_phases(prop_Phase_values[it.multi_index], prop_X_values[it.multi_index],
-                                     prop_Y_values[it.multi_index], prop_NP_values[it.multi_index], allow_negative_fractions)
-            phases = list(prop_Phase_values[it.multi_index])
-            if '' in phases:
-                new_phase_length = phases.index('')
-            else:
-                new_phase_length = -1
-            # Are there removed phases?
-            if '' in phases:
-                num_phases = phases.index('')
-            else:
-                num_phases = len(phases)
+            remove_degenerate_phases(composition_sets, allow_negative_fractions)
+            num_phases = len(composition_sets)
+            # XXX: 'phases' is here for compatibility until full support for CompositionSet
+            phases = prop_Phase_values[it.multi_index + np.index_exp[:num_phases]]
+            new_phase_length = len(composition_sets)
+            total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
             if num_phases == 0:
                 raise ValueError('Zero phases are left in the system', cur_conds)
-            zero_dof = np.all(
-                (prop_Y_values[it.multi_index] == 1.) | np.isnan(prop_Y_values[it.multi_index]))
-            if (num_phases == 1) and zero_dof:
+            if (num_phases == 1) and np.all(composition_sets[0].dof[2:] == 1.):
                 # Single phase with zero internal degrees of freedom, can't do any refinement
                 # TODO: In the future we may be able to refine other degrees of freedom like temperature
                 # Chemical potentials have no meaning for this case
                 prop_MU_values[it.multi_index] = np.nan
                 break
-            phases = prop_Phase_values[it.multi_index + np.index_exp[:num_phases]]
-            # num_sitefrac_bals = sum([len(dbf.phases[i].sublattices) for i in phases])
-            # num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-            phase_fracs = prop_NP_values[it.multi_index + np.index_exp[:len(phases)]]
+            phase_fracs = np.empty(num_phases)
+            for phase_idx in range(num_phases):
+                phase_fracs[phase_idx] = composition_sets[phase_idx].NP
             phase_dof = np.array([phase_dof_dict[name] for name in phases], dtype=np.int32)
-            # Flatten site fractions array and remove nan padding
-            site_fracs = prop_Y_values[it.multi_index].ravel()
-            # That *should* give us the internal dof
-            # This may break if non-padding nan's slipped in from elsewhere...
-            site_fracs = site_fracs[~np.isnan(site_fracs)]
-            site_fracs[site_fracs < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+            dof_idx = 0
+            site_fracs = np.empty(total_dof)
+            for phase_idx in range(num_phases):
+                site_fracs[dof_idx:dof_idx+composition_sets[phase_idx].phase_record.phase_dof] = composition_sets[phase_idx].dof[2:]
+                dof_idx += composition_sets[phase_idx].phase_record.phase_dof
             if len(site_fracs) == 0:
                 print(properties)
                 raise ValueError('Site fractions are invalid')
-            var_idx = 0
-            for name in phases:
-                for idx in range(len(dbf.phases[name].sublattices)):
-                    active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-                    for ais in range(len(active_in_subl)):
-                        site_fracs[var_idx + ais] = site_fracs[var_idx + ais] / sum(site_fracs[var_idx:var_idx + len(active_in_subl)])
-                    var_idx += len(active_in_subl)
             l_constraints, constraint_jac, constraint_hess  = \
                 compute_constraints(comps, phases, cur_conds, site_fracs, phase_fracs, phase_records)
             # Reset Lagrange multipliers if active set of phases change
@@ -530,6 +539,12 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
             for pfidx in range(phase_fracs.shape[0]):
                 phase_fracs[pfidx] = min(max(phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx], -4), 5)
+            dof_idx = 0
+            for phase_idx in range(num_phases):
+                compset = composition_sets[phase_idx]
+                compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
+                                                   phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
+                dof_idx += compset.phase_record.phase_dof
             if verbose:
                 print('Phases', phases)
                 print('step', step)
