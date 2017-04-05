@@ -974,13 +974,11 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double[::1] current_grad
         cdef double[:] yk
         cdef double[:] bk_sk
-        cdef double yk_sk = 0
-        cdef double rhok = 0
-        cdef double muk = 0
-        cdef double sbs = 0
+        cdef double[:] ybk
+        cdef denominator = 0
         cdef int dof_idx, dof_idx_2
         cdef int dof_len = dof.shape[0]
-        # XXX: We should check for changing 'parameters' and reset BFGS if they changed between iterations
+        # XXX: We should check for changing 'parameters' and reset if they changed between iterations
         if self._bfgs_first_iteration == True:
             self._bfgs_prev_dof[:] = dof
             self.eval_energy_gradient(self._bfgs_prev_grad, dof, parameters)
@@ -991,31 +989,39 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         sk = np.empty(dof_len)
         yk = np.empty(dof_len)
         bk_sk = np.empty(dof_len)
+        ybk = np.empty(dof_len)
         current_grad = np.zeros(dof_len)
         self.eval_energy_gradient(current_grad, dof, parameters)
         for dof_idx in range(dof_len):
             sk[dof_idx] = dof[dof_idx] - self._bfgs_prev_dof[dof_idx]
             yk[dof_idx] = current_grad[dof_idx] - self._bfgs_prev_grad[dof_idx]
-            yk_sk += sk[dof_idx] * yk[dof_idx]
             self._bfgs_prev_dof[dof_idx] = dof[dof_idx]
             self._bfgs_prev_grad[dof_idx] = current_grad[dof_idx]
         for dof_idx in range(dof_len):
             bk_sk[dof_idx] = 0
             for dof_idx_2 in range(dof_len):
-                bk_sk[dof_idx] += self._bfgs_prev_hess[dof_idx, dof_idx_2] * sk[dof_idx]
-            sbs += sk[dof_idx] * bk_sk[dof_idx]
-        if yk_sk < 1e-2 * sbs:
-            # Curvature condition not satisfied: skip Hessian update
+                bk_sk[dof_idx] += self._bfgs_prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
+            ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
+            denominator += ybk[dof_idx] * sk[dof_idx]
+        if abs(denominator) <= 1e-3:
             out[:,:] = self._bfgs_prev_hess
             return
-        rhok = 1. / yk_sk
-        muk = 1. / sbs
+        elif abs(denominator) > 50:
+            self.eval_energy_hessian_finitediff(self._bfgs_prev_hess, dof, parameters)
+            out[:,:] = self._bfgs_prev_hess
+            return
+
+        # Symmetric Rank 1 (SR1) update
         for dof_idx in range(dof_len):
             for dof_idx_2 in range(dof_idx, dof_len):
                 out[dof_idx, dof_idx_2] = out[dof_idx_2, dof_idx] = \
-                    self._bfgs_prev_hess[dof_idx, dof_idx_2] - (muk * bk_sk[dof_idx] * sk[dof_idx_2] * self._bfgs_prev_hess[dof_idx, dof_idx_2]) + \
-                    rhok * yk[dof_idx] * yk[dof_idx_2]
+                    self._bfgs_prev_hess[dof_idx, dof_idx_2] + (ybk[dof_idx] * ybk[dof_idx_2] / denominator)
         self._bfgs_prev_hess[:,:] = out
+
+    cpdef void reset_state(self):
+        self._bfgs_first_iteration = True
+        self._bfgs_prev_grad[:] = 0
+        self._bfgs_prev_hess[:,:] = 0
 
 def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, phase_dof,
                            composition_matrices, site_ratios, vacancy_index,
@@ -1054,4 +1060,6 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
     disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered,
     _bfgs_first_iteration, _bfgs_prev_dof, _bfgs_prev_grad, _bfgs_prev_hess, Pool(), _debug)
+
+    inst.reset_state()
     return inst

@@ -28,6 +28,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[::1,:] out, double[::1] dof, int comp_idx) nogil
+    cpdef void reset_model_state(self)
 
 cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::1] parameters)
 cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[::1] num_sites, double[::1] parameters,

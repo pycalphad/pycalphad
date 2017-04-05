@@ -135,6 +135,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                     if hess_y_comp_idx > -1:
                         out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (self.num_sites[subl_x_idx] * self.num_sites[subl_y_idx]) / mass_normalization_factor**2
 
+    cpdef void reset_model_state(self):
+        if self._hess == NULL:
+            self.cmpmdl.reset_state()
+
 # cdef classmethods are not yet supported, otherwise we would use that
 # it's not a big deal since we declare PhaseRecord final to allow cpdef nogil functions
 cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::1] parameters):

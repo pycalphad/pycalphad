@@ -430,6 +430,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             if phase_name == '':
                 continue
             phrec = phase_records[phase_name]
+            phrec.reset_model_state()
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
             compset = CompositionSet(phrec, sfx, phase_amt, cur_conds['P'], cur_conds['T'])

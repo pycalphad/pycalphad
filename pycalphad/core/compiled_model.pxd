@@ -60,3 +60,4 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)
     cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters)
     cpdef void eval_energy_hessian_finitediff(self, double[::1, :] out, double[:] dof, double[:] parameters)
+    cpdef void reset_state(self)
