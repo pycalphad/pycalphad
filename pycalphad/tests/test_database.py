@@ -139,6 +139,17 @@ def test_symbol_names_are_propagated_through_symbols_and_parameters():
     assert test_dbf.symbols['RENAMED_FN2'] == Piecewise((Symbol('RENAMED_FN1'), And(v.T < 6000.0, v.T >= 298.15)), (0, True))
     assert test_dbf._parameters.all()[0]['parameter'] == Piecewise((Symbol('RENAMED_FN1')+Symbol('RENAMED_FN2'), And(v.T < 6000.0, v.T >= 298.15)), (0, True))
 
+def test_tdb_content_after_line_end_is_neglected():
+    """Any characters after the line ending '!' are neglected as in commercial software."""
+    tdb_line_ending_str = """$ Characters after line endings should be discarded.
+    PARAMETER G(PH,A;0) 298.15 +42; 6000 N ! SHOULD_NOT_RAISE_ERROR
+    $ G(PH,C;0) should not parse
+    PARAMETER G(PH,B;0) 298.15 +9001; 6000 N ! PARAMETER G(PH,C;0) 298.15 +2; 600 N !
+    PARAMETER G(PH,D;0) 298.15 -42; 6000 N !
+    """
+    test_dbf = Database.from_string(tdb_line_ending_str, fmt='tdb')
+    assert len(test_dbf._parameters) == 3
+
 @nose.tools.raises(ValueError)
 def test_unspecified_format_from_string():
     "from_string: Unspecified string format raises ValueError."
