@@ -1003,7 +1003,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 bk_sk[dof_idx] += self._bfgs_prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
             ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
             denominator += ybk[dof_idx] * sk[dof_idx]
-        if abs(denominator) <= 1e-3:
+        if abs(np.dot(sk, ybk)) < 1e-10 * np.linalg.norm(sk) * np.linalg.norm(ybk):
             out[:,:] = self._bfgs_prev_hess
             return
         elif abs(denominator) > 50:
