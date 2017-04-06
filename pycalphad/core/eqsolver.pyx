@@ -94,19 +94,9 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             if comp_idx == self.phase_record.vacancy_index:
                 past_va = 1
                 continue
-
             self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], site_fracs, comp_idx)
             self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
             self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
-        print('---')
-        print('dof', np.asarray(self.dof))
-        print('phasemt', self.NP)
-        print('energy', self.energy)
-        print('grad', np.asarray(self.grad))
-        print('hess', np.asarray(self.hess))
-        print('X', np.asarray(self.X))
-        print('mass_grad', np.asarray(self.mass_grad))
-        print('mass_hess', np.asarray(self.mass_hess))
 
 
 def remove_degenerate_phases(object composition_sets, bint allow_negative_fractions):
@@ -260,9 +250,6 @@ def _compute_constraints(composition_sets, object comps, object cur_conds):
             # TODO: Assuming N=1 (fixed for dependent component)
             l_constraints[constraint_offset] -= (1 - indep_sum)
         constraint_offset += 1
-    print('l_constraints', np.array(l_constraints))
-    print('constraint_jac', np.array(constraint_jac))
-    print('constraint_hess', np.array(constraint_hess))
     return np.array(l_constraints), np.array(constraint_jac), constraint_hess
 
 @cython.boundscheck(False)
