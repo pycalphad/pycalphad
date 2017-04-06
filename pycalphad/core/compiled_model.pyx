@@ -979,7 +979,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int dof_idx, dof_idx_2
         cdef int dof_len = dof.shape[0]
         # XXX: We should check for changing 'parameters' and reset if they changed between iterations
-        if self._bfgs_first_iteration == True:
+        if self._bfgs_first_iteration == True or True:
             self._bfgs_prev_dof[:] = dof
             self.eval_energy_gradient(self._bfgs_prev_grad, dof, parameters)
             self.eval_energy_hessian_finitediff(self._bfgs_prev_hess, dof, parameters)
