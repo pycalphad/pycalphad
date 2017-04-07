@@ -537,6 +537,11 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
             prop_X_values[it.multi_index + np.index_exp[:]] = 0
             prop_GM_values[it.multi_index] = energy / obj_weight
+            for phase_idx in range(len(composition_sets)):
+                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = composition_sets[phase_idx].phase_record.phase_name
+            for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
+                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = ''
+                prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
             var_offset = 0
             for phase_idx in range(num_phases):
                 compset = composition_sets[phase_idx]
