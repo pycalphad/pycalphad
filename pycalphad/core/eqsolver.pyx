@@ -62,6 +62,9 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
         self._first_iteration = True
 
+    def __repr__(self):
+        return str(self.__class__.__name__) + "({0}, {1})".format(self.phase_record.phase_name, np.asarray(self.X))
+
     cdef void reset(self):
         self._prev_energy = 0
         self._prev_dof[:] = 0
@@ -69,13 +72,45 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess[:,:] = 0
         self._first_iteration = True
 
+    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[::1,:] current_hess,
+                              double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
+                              double* energy, double* prev_energy):
+        # Notation from Nocedal and Wright, 2006, Equation 8.19
+        cdef int dof_idx, dof_idx_2
+        cdef int dof_len = dof.shape[0]
+        cdef double[:] sk = np.empty(dof_len)
+        cdef double[:] yk = np.empty(dof_len)
+        cdef double[:] bk_sk = np.empty(dof_len)
+        cdef double[:] ybk = np.empty(dof_len)
+        cdef denominator = 0
+
+        for dof_idx in range(dof_len):
+            sk[dof_idx] = dof[dof_idx] - prev_dof[dof_idx]
+            yk[dof_idx] = current_grad[dof_idx] - prev_grad[dof_idx]
+            prev_dof[dof_idx] = dof[dof_idx]
+            prev_grad[dof_idx] = current_grad[dof_idx]
+        for dof_idx in range(dof_len):
+            bk_sk[dof_idx] = 0
+            for dof_idx_2 in range(dof_len):
+                bk_sk[dof_idx] += prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
+            ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
+            denominator += ybk[dof_idx] * sk[dof_idx]
+        if abs(denominator) < 1e-4:
+            current_hess[:,:] = prev_hess
+        elif abs(denominator) > 50:
+            self.phase_record.hess(current_hess, dof)
+        else:
+            # Symmetric Rank 1 (SR1) update
+            for dof_idx in range(dof_len):
+                for dof_idx_2 in range(dof_idx, dof_len):
+                    current_hess[dof_idx, dof_idx_2] = current_hess[dof_idx_2, dof_idx] = \
+                        prev_hess[dof_idx, dof_idx_2] + (ybk[dof_idx] * ybk[dof_idx_2] / denominator)
+            prev_hess[:,:] = current_hess
+        prev_energy[0] = energy[0]
+
     cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature):
         cdef int comp_idx
         cdef int past_va = 0
-        self._prev_dof[:] = self.dof
-        self._prev_energy = self.energy
-        self._prev_grad[:] = self.grad
-        self._prev_hess[:,:] = self.hess
         self.dof[0] = pressure
         self.dof[1] = temperature
         self.dof[2:] = site_fracs
@@ -86,10 +121,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.X[:] = 0
         self.mass_grad[:,:] = 0
         self.mass_hess[:,:,:] = 0
-        self._first_iteration = False
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
         self.phase_record.grad(self.grad, self.dof)
-        self.phase_record.hess(self.hess, self.dof)
         for comp_idx in range(self.mass_grad.shape[0]):
             if comp_idx == self.phase_record.vacancy_index:
                 past_va = 1
@@ -97,6 +130,16 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], site_fracs, comp_idx)
             self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
             self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
+        if self._first_iteration == True:
+            self.phase_record.hess(self.hess, self.dof)
+            self._prev_dof[:] = self.dof
+            self._prev_energy = self.energy
+            self._prev_grad[:] = self.grad
+            self._prev_hess[:,:] = self.hess
+            #self._first_iteration = False
+        else:
+            self._hessian_update(self.dof, self._prev_dof, self.hess, self._prev_hess, self.grad, self._prev_grad,
+                                 &self.energy, &self._prev_energy)
 
 
 def remove_degenerate_phases(object composition_sets, bint allow_negative_fractions):
@@ -121,7 +164,7 @@ def remove_degenerate_phases(object composition_sets, bint allow_negative_fracti
     # Group phases into multiple composition sets
     cdef object phase_indices = defaultdict(lambda: list())
     for phase_idx in range(num_phases):
-        name = <unicode>composition_sets[phase_idx].phase_record.name
+        name = <unicode>composition_sets[phase_idx].phase_record.phase_name
         if name == "":
             continue
         phase_indices[name].append(phase_idx)
@@ -389,7 +432,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
             phrec = phase_records[phase_name]
-            phrec.reset_model_state()
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
             compset = CompositionSet(phrec)

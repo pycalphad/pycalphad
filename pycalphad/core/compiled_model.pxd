@@ -5,6 +5,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef public object constituents
     cdef public object variables
     cdef public object components
+    cdef readonly unicode phase_name
     cdef public int[::1] sublattice_dof
     cdef public int phase_dof
     cdef public double[:,:,::1] composition_matrices
@@ -35,10 +36,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef public double disordered_ihj_magnetic_structure_factor
     cdef public double disordered_afm_factor
     cdef public bint ordered
-    cdef public bint _bfgs_first_iteration
-    cdef public double[:] _bfgs_prev_dof
-    cdef public double[::1] _bfgs_prev_grad
-    cdef public double[::1,:] _bfgs_prev_hess
     cdef public Pool mem
     cdef public bint _debug
     cdef func_t* _debugobj
@@ -59,5 +56,3 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters)
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)
     cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters)
-    cpdef void eval_energy_hessian_finitediff(self, double[::1, :] out, double[:] dof, double[:] parameters)
-    cpdef void reset_state(self)

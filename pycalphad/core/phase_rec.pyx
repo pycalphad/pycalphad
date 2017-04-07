@@ -135,10 +135,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                     if hess_y_comp_idx > -1:
                         out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (self.num_sites[subl_x_idx] * self.num_sites[subl_y_idx]) / mass_normalization_factor**2
 
-    cpdef void reset_model_state(self):
-        if self._hess == NULL:
-            self.cmpmdl.reset_state()
-
 # cdef classmethods are not yet supported, otherwise we would use that
 # it's not a big deal since we declare PhaseRecord final to allow cpdef nogil functions
 cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::1] parameters):
@@ -146,6 +142,7 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     inst = PhaseRecord()
     inst.cmpmdl = cmpmdl
     inst.variables = cmpmdl.variables
+    inst.phase_name = cmpmdl.phase_name
     inst.sublattice_dof = cmpmdl.sublattice_dof
     inst.phase_dof = sum(cmpmdl.sublattice_dof)
     inst.parameters = parameters
@@ -163,6 +160,7 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
         int var_idx, subl_index
         PhaseRecord inst
     inst = PhaseRecord()
+    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
     inst.phase_dof = 0
@@ -206,6 +204,7 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
 def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
                                  vacancy_index, ofunc, gfunc, hfunc):
     inst = PhaseRecord()
+    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
     inst.phase_dof = 0

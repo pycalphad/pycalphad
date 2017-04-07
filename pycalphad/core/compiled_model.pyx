@@ -52,6 +52,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
+        self.phase_name = phase_name
         self.constituents = []
         self.components = set()
         # Verify that this phase is still possible to build
@@ -98,10 +99,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         self.site_ratios = np.array([float(x) for x in phase.sublattices])
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
         self.phase_dof = sum(self.sublattice_dof)
-        self._bfgs_first_iteration = True
-        self._bfgs_prev_dof = np.zeros(2+self.phase_dof)
-        self._bfgs_prev_grad = np.zeros(2+self.phase_dof)
-        self._bfgs_prev_hess = np.zeros((2+self.phase_dof, 2+self.phase_dof), order='F')
         # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
         # of the same type in the same sublattice for, e.g., same species with different charges
         self.composition_matrices = np.full((len(comps), len(self.site_ratios), 2), -1.)
@@ -234,11 +231,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                          np.asarray(self.disordered_tc_coef_matrix),
                                          np.asarray(self.disordered_tc_coef_symbol_matrix),
                                          self.disordered_ihj_magnetic_structure_factor,
-                                         self.disordered_afm_factor, self.ordered,
-                                         self._bfgs_first_iteration, np.asarray(self._bfgs_prev_dof),
-                                         np.ascontiguousarray(self._bfgs_prev_grad),
-                                         np.asfortranarray(self._bfgs_prev_hess),
-                                         self._debug))
+                                         self.disordered_afm_factor, self.ordered, self._debug))
 
     def _purity_test(self, constituent_array):
         """
@@ -920,7 +913,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
-    cpdef void eval_energy_hessian_finitediff(self, double[::1, :] out, double[:] dof, double[:] parameters):
+    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
         cdef double[::1,:] debugout
@@ -968,61 +961,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
-    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
-        # Notation from Nocedal and Wright, 2006, Equation 8.19
-        cdef double[:] sk
-        cdef double[::1] current_grad
-        cdef double[:] yk
-        cdef double[:] bk_sk
-        cdef double[:] ybk
-        cdef denominator = 0
-        cdef int dof_idx, dof_idx_2
-        cdef int dof_len = dof.shape[0]
-        # XXX: We should check for changing 'parameters' and reset if they changed between iterations
-        if self._bfgs_first_iteration == True or True:
-            self._bfgs_prev_dof[:] = dof
-            self.eval_energy_gradient(self._bfgs_prev_grad, dof, parameters)
-            self.eval_energy_hessian_finitediff(self._bfgs_prev_hess, dof, parameters)
-            out[:,:] = self._bfgs_prev_hess
-            self._bfgs_first_iteration = False
-            return
-        sk = np.empty(dof_len)
-        yk = np.empty(dof_len)
-        bk_sk = np.empty(dof_len)
-        ybk = np.empty(dof_len)
-        current_grad = np.zeros(dof_len)
-        self.eval_energy_gradient(current_grad, dof, parameters)
-        for dof_idx in range(dof_len):
-            sk[dof_idx] = dof[dof_idx] - self._bfgs_prev_dof[dof_idx]
-            yk[dof_idx] = current_grad[dof_idx] - self._bfgs_prev_grad[dof_idx]
-            self._bfgs_prev_dof[dof_idx] = dof[dof_idx]
-            self._bfgs_prev_grad[dof_idx] = current_grad[dof_idx]
-        for dof_idx in range(dof_len):
-            bk_sk[dof_idx] = 0
-            for dof_idx_2 in range(dof_len):
-                bk_sk[dof_idx] += self._bfgs_prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
-            ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
-            denominator += ybk[dof_idx] * sk[dof_idx]
-        if abs(np.dot(sk, ybk)) < 1e-10 * np.linalg.norm(sk) * np.linalg.norm(ybk):
-            out[:,:] = self._bfgs_prev_hess
-            return
-        elif abs(denominator) > 50:
-            self.eval_energy_hessian_finitediff(self._bfgs_prev_hess, dof, parameters)
-            out[:,:] = self._bfgs_prev_hess
-            return
-
-        # Symmetric Rank 1 (SR1) update
-        for dof_idx in range(dof_len):
-            for dof_idx_2 in range(dof_idx, dof_len):
-                out[dof_idx, dof_idx_2] = out[dof_idx_2, dof_idx] = \
-                    self._bfgs_prev_hess[dof_idx, dof_idx_2] + (ybk[dof_idx] * ybk[dof_idx_2] / denominator)
-        self._bfgs_prev_hess[:,:] = out
-
-    cpdef void reset_state(self):
-        self._bfgs_first_iteration = True
-        self._bfgs_prev_grad[:] = 0
-        self._bfgs_prev_hess[:,:] = 0
-
 def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, phase_dof,
                            composition_matrices, site_ratios, vacancy_index,
                            pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
@@ -1033,8 +971,7 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
                            disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
                            disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
                            disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
-                           disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered,
-                           _bfgs_first_iteration, _bfgs_prev_dof, _bfgs_prev_grad, _bfgs_prev_hess, _debug):
+                           disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, _debug):
     inst = CompiledModel.__new__(CompiledModel)
     (inst.constituents, inst.variables, inst.components, inst.sublattice_dof, inst.phase_dof,
     inst.composition_matrices, inst.site_ratios, inst.vacancy_index,
@@ -1047,7 +984,7 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     inst.disordered_bm_coef_matrix, inst.disordered_bm_coef_symbol_matrix,
     inst.disordered_tc_coef_matrix, inst.disordered_tc_coef_symbol_matrix,
     inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered,
-    inst._bfgs_first_iteration, inst._bfgs_prev_dof, inst._bfgs_prev_grad, inst._bfgs_prev_hess, inst.mem, inst._debug) = \
+    inst.mem, inst._debug) = \
     (constituents, variables, components, sublattice_dof, phase_dof,
     composition_matrices, site_ratios, vacancy_index,
     pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
@@ -1058,8 +995,5 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
     disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
     disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
-    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered,
-    _bfgs_first_iteration, _bfgs_prev_dof, _bfgs_prev_grad, _bfgs_prev_hess, Pool(), _debug)
-
-    inst.reset_state()
+    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, Pool(), _debug)
     return inst
