@@ -211,7 +211,42 @@ def remove_degenerate_phases(object composition_sets, bint allow_negative_fracti
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
     for idx in entries_to_delete:
+        print('Removing ' + repr(composition_sets[idx]))
         del composition_sets[idx]
+
+def add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials):
+    cdef double[:] driving_forces
+    cdef int df_idx = 0
+    cdef double largest_df = -np.inf
+    cdef double[:] df_comp
+    cdef unicode df_phase_name
+    cdef CompositionSet compset
+    cdef bint distinct = False
+    driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
+    for i in range(driving_forces.shape[0]):
+        if driving_forces[i] > largest_df:
+            largest_df = driving_forces[i]
+            df_idx = i
+    if largest_df > -10:
+        # To add a phase, must not be within 1% of composition of the same phase of its type
+        df_comp = current_grid.X.values[df_idx]
+        df_phase_name = str(current_grid.Phase.values[df_idx])
+        for compset in composition_sets:
+            if compset.phase_record.phase_name != df_phase_name:
+                continue
+            distinct = False
+            for comp_idx in range(df_comp.shape[0]):
+                if abs(df_comp[comp_idx] - compset.X[comp_idx]) > 0.01:
+                    distinct = True
+            if not distinct:
+                print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
+                return
+        # This phase is distinct from the others
+        compset = CompositionSet(phase_records[df_phase_name])
+        compset.update(current_grid.Y.values[df_idx, :compset.phase_record.phase_dof], 10 * MIN_SITE_FRACTION,
+                       current_grid.coords['P'], current_grid.coords['T'])
+        composition_sets.append(compset)
+        print('Adding ' + repr(compset))
 
 
 def _compute_phase_dof(dbf, comps, phases):
@@ -335,7 +370,8 @@ cdef _build_multiphase_system(composition_sets, l_constraints, constraint_jac,
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, verbose, diagnostic, compute_constraints):
+def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_keys, verbose,
+                            diagnostic, compute_constraints):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -352,6 +388,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
         Will be modified! Thermodynamic properties and conditions.
     phase_records : dict of PhaseRecord
         Details on phase callables.
+    grid : Dataset
+        Sample of energy landscape of the system.
     conds_keys : list of str
         List of conditions axes in dimension order.
     verbose : bool
@@ -410,6 +448,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                                      for a, b in zip(it.multi_index, conds_keys)]))
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
+        current_grid = grid.sel(P=cur_conds['P'], T=cur_conds['T'])
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
@@ -455,6 +494,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             old_phase_length = len(composition_sets)
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
+            chemical_potentials = prop_MU_values[it.multi_index]
+            add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials)
             remove_degenerate_phases(composition_sets, allow_negative_fractions)
             num_phases = len(composition_sets)
             new_phase_length = len(composition_sets)
@@ -552,18 +593,19 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = ''
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
             var_offset = 0
+            total_comp = np.zeros(prop_X_values.shape[-1])
             for phase_idx in range(num_phases):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
                     site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
+                for comp_idx in range(total_comp.shape[0]):
+                    total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
                 var_offset += compset.phase_record.phase_dof
 
             properties.attrs['solve_iterations'] += 1
-            total_comp = np.nansum(prop_NP_values[it.multi_index][..., np.newaxis] * \
-                                   prop_X_values[it.multi_index], axis=-2)
-            driving_force = (prop_MU_values[it.multi_index] * total_comp).sum(axis=-1) - \
-                             prop_GM_values[it.multi_index]
+            driving_force = (chemical_potentials * total_comp).sum(axis=-1) - \
+                             energy / obj_weight
             driving_force = np.squeeze(driving_force)
             if diagnostic:
                 diagnostic_matrix[cur_iter, 0] = cur_iter
@@ -571,17 +613,17 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
                 diagnostic_matrix[cur_iter, 2] = np.linalg.norm(step)
                 diagnostic_matrix[cur_iter, 3] = driving_force
                 diagnostic_matrix[cur_iter, 4] = vmax
-                diagnostic_matrix[cur_iter, 5] = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max()
+                diagnostic_matrix[cur_iter, 5] = np.abs(chemical_potentials - old_chem_pots).max()
                 diagnostic_matrix[cur_iter, 6] = obj_weight
-                for iy, mu in enumerate(prop_MU_values[it.multi_index]):
+                for iy, mu in enumerate(chemical_potentials):
                     diagnostic_matrix[cur_iter, 7+iy] = mu
             if verbose:
-                print('Chem pot progress', prop_MU_values[it.multi_index] - old_chem_pots)
-                print('Energy progress', prop_GM_values[it.multi_index] - old_energy)
+                print('Chem pot progress', chemical_potentials - old_chem_pots)
+                print('Energy progress', energy / obj_weight - old_energy)
                 print('Driving force', driving_force)
                 print('obj weight', obj_weight)
-            no_progress = np.abs(prop_MU_values[it.multi_index] - old_chem_pots).max() < 0.1
-            no_progress &= np.abs(prop_GM_values[it.multi_index] - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            no_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.1
+            no_progress &= np.abs(energy / obj_weight - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             if no_progress:
                 for pfidx in range(phase_fracs.shape[0]):

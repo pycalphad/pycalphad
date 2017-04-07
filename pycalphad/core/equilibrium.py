@@ -338,13 +338,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         for chunk in chunk_grid:
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
-            job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice, phase_records,
+            job = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, prop_slice, phase_records, grid,
                                                               list(str_conds.keys()), verbose, diagnostic, compute_constraints)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
-        properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records,
+        properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records, grid,
                                                                  list(str_conds.keys()), verbose, diagnostic, compute_constraints)
 
     # Compute equilibrium values of any additional user-specified properties
