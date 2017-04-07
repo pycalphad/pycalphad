@@ -82,6 +82,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         cdef double[:] yk = np.empty(dof_len)
         cdef double[:] bk_sk = np.empty(dof_len)
         cdef double[:] ybk = np.empty(dof_len)
+        cdef double ybk_norm
         cdef denominator = 0
 
         for dof_idx in range(dof_len):
@@ -95,9 +96,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
                 bk_sk[dof_idx] += prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
             ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
             denominator += ybk[dof_idx] * sk[dof_idx]
-        if abs(denominator) < 1e-4:
-            current_hess[:,:] = prev_hess
-        elif abs(denominator) > 50:
+        ybk_norm = np.linalg.norm(ybk)
+        # Fall back to finite difference approximation unless it's a "medium-size" step
+        # This is a really conservative approach and could probably be improved for performance
+        if abs(denominator) < 1e-2 or (ybk_norm < 1e-2) or (ybk_norm > 10):
             self.phase_record.hess(current_hess, dof)
         else:
             # Symmetric Rank 1 (SR1) update
@@ -136,7 +138,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             self._prev_energy = self.energy
             self._prev_grad[:] = self.grad
             self._prev_hess[:,:] = self.hess
-            #self._first_iteration = False
+            self._first_iteration = False
         else:
             self._hessian_update(self.dof, self._prev_dof, self.hess, self._prev_hess, self.grad, self._prev_grad,
                                  &self.energy, &self._prev_energy)
