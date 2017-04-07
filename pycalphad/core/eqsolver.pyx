@@ -460,7 +460,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, conds_keys, v
             new_phase_length = len(composition_sets)
             total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
             if num_phases == 0:
-                raise ValueError('Zero phases are left in the system', cur_conds)
+                print('Zero phases are left in the system: {}'.format(cur_conds))
+                prop_MU_values[it.multi_index] = np.nan
+                prop_NP_values[it.multi_index] = np.nan
+                prop_X_values[it.multi_index] = np.nan
+                prop_Y_values[it.multi_index] = np.nan
+                prop_GM_values[it.multi_index] = np.nan
+                prop_Phase_values[it.multi_index] = ''
+                if diagnostic:
+                    np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
+                break
             if (num_phases == 1) and np.all(np.asarray(composition_sets[0].dof[2:]) == 1.):
                 # Single phase with zero internal degrees of freedom, can't do any refinement
                 # TODO: In the future we may be able to refine other degrees of freedom like temperature
