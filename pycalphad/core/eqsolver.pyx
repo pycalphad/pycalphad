@@ -407,13 +407,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
         int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
         int vmax_window_size
         int obj_decreases
+        bint converged
         double previous_window_average, obj_weight, vmax
         PhaseRecord prn
         CompositionSet compset
         cdef double[::1,:] l_hessian
         cdef double[::1] gradient_term, mass_buf
         double[::1] vmax_averages
-        np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step
+        np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
         np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
         np.ndarray[ndim=2, dtype=np.float64_t] ymat, zmat, qmat, rmat, constraint_jac
         np.ndarray[ndim=2, dtype=np.float64_t] diagnostic_matrix
@@ -443,6 +444,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
     #    print('---------------------')
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
+        converged = False
         cur_conds = OrderedDict(zip(conds_keys,
                                     [np.asarray(properties['GM'].coords[b][a], dtype=np.float)
                                      for a, b in zip(it.multi_index, conds_keys)]))
@@ -478,6 +480,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
             compset = CompositionSet(phrec)
             compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'])
             composition_sets.append(compset)
+        chemical_potentials = prop_MU_values[it.multi_index]
+        energy = prop_GM_values[it.multi_index]
         diagnostic_matrix_shape = 7
         if diagnostic:
             diagnostic_matrix = np.full((MAX_SOLVE_ITERATIONS, diagnostic_matrix_shape + len(set(comps) - {'VA'})), np.nan)
@@ -494,28 +498,17 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
             old_phase_length = len(composition_sets)
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
-            chemical_potentials = prop_MU_values[it.multi_index]
-            add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials)
+
+            #add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials)
             remove_degenerate_phases(composition_sets, allow_negative_fractions)
             num_phases = len(composition_sets)
             new_phase_length = len(composition_sets)
             total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
             if num_phases == 0:
                 print('Zero phases are left in the system: {}'.format(cur_conds))
-                prop_MU_values[it.multi_index] = np.nan
-                prop_NP_values[it.multi_index] = np.nan
-                prop_X_values[it.multi_index] = np.nan
-                prop_Y_values[it.multi_index] = np.nan
-                prop_GM_values[it.multi_index] = np.nan
-                prop_Phase_values[it.multi_index] = ''
+                converged = False
                 if diagnostic:
                     np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
-                break
-            if (num_phases == 1) and np.all(np.asarray(composition_sets[0].dof[2:]) == 1.):
-                # Single phase with zero internal degrees of freedom, can't do any refinement
-                # TODO: In the future we may be able to refine other degrees of freedom like temperature
-                # Chemical potentials have no meaning for this case
-                prop_MU_values[it.multi_index] = np.nan
                 break
             phase_fracs = np.empty(num_phases)
             for phase_idx in range(num_phases):
@@ -525,14 +518,22 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
             for phase_idx in range(num_phases):
                 site_fracs[dof_idx:dof_idx+composition_sets[phase_idx].phase_record.phase_dof] = composition_sets[phase_idx].dof[2:]
                 dof_idx += composition_sets[phase_idx].phase_record.phase_dof
-            if len(site_fracs) == 0:
-                print(properties)
-                raise ValueError('Site fractions are invalid')
+
+            if (num_phases == 1) and np.all(np.asarray(composition_sets[0].dof[2:]) == 1.):
+                # Single phase with zero internal degrees of freedom, can't do any refinement
+                # TODO: In the future we may be able to refine other degrees of freedom like temperature
+                # Chemical potentials have no meaning for this case
+                chemical_potentials[:] = np.nan
+                converged = True
+                break
+
             l_constraints, constraint_jac, constraint_hess = compute_constraints(composition_sets, comps, cur_conds)
             # Reset Lagrange multipliers if active set of phases change
             if cur_iter == 0 or (old_phase_length != new_phase_length) or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
             num_vars = len(site_fracs) + len(composition_sets)
+            old_energy = energy / obj_weight
+            old_chem_pots = chemical_potentials.copy()
             energy, l_hessian, gradient_term = _build_multiphase_system(composition_sets, l_constraints,
                                                                         constraint_jac, constraint_hess,
                                                                         l_multipliers, obj_weight)
@@ -564,13 +565,14 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                 print('Site fractions', site_fracs)
                 print('Phase fractions', phase_fracs)
             dof_idx = 0
+            total_comp = np.zeros(prop_X_values.shape[-1])
             for phase_idx in range(num_phases):
                 compset = composition_sets[phase_idx]
                 compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
                                                    phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
+                for comp_idx in range(total_comp.shape[0]):
+                    total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
                 dof_idx += compset.phase_record.phase_dof
-            old_energy = copy.deepcopy(prop_GM_values[it.multi_index])
-            old_chem_pots = copy.deepcopy(prop_MU_values[it.multi_index])
             l_multipliers = np.array(step[num_vars:])
             np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
             if np.any(np.isnan(l_multipliers)):
@@ -580,30 +582,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                 print('NEW_L_MULTIPLIERS', l_multipliers)
             vmax = np.max(np.abs(l_constraints))
             num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-            chemical_potentials = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
-                                                sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals] / obj_weight
-            prop_MU_values[it.multi_index] = chemical_potentials
-            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
-            prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
-            prop_X_values[it.multi_index + np.index_exp[:]] = 0
-            prop_GM_values[it.multi_index] = energy / obj_weight
-            for phase_idx in range(len(composition_sets)):
-                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = composition_sets[phase_idx].phase_record.phase_name
-            for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
-                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = ''
-                prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
-            var_offset = 0
-            total_comp = np.zeros(prop_X_values.shape[-1])
-            for phase_idx in range(num_phases):
-                compset = composition_sets[phase_idx]
-                prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
-                    site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
-                prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
-                for comp_idx in range(total_comp.shape[0]):
-                    total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
-                var_offset += compset.phase_record.phase_dof
+            chemical_potentials[:] = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
+                                                   sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals] / obj_weight
 
-            properties.attrs['solve_iterations'] += 1
             driving_force = (chemical_potentials * total_comp).sum(axis=-1) - \
                              energy / obj_weight
             driving_force = np.squeeze(driving_force)
@@ -632,14 +613,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                         allow_negative_fractions = False
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
-                prop_MU_values[it.multi_index] = np.nan
-                prop_NP_values[it.multi_index] = np.nan
-                prop_X_values[it.multi_index] = np.nan
-                prop_Y_values[it.multi_index] = np.nan
-                prop_GM_values[it.multi_index] = np.nan
-                prop_Phase_values[it.multi_index] = ''
                 if diagnostic:
                     np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
+                converged = False
                 break
             elif no_progress:
                 if verbose:
@@ -647,20 +623,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                 num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
                 chemical_potentials = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
                                                 sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals] / obj_weight
-                prop_MU_values[it.multi_index] = chemical_potentials
                 if diagnostic:
                     np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
+                converged = True
                 break
             elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 if diagnostic:
                     np.savetxt(debug_fn, diagnostic_matrix, delimiter=',')
                 print('Failed to converge: {}'.format(cur_conds))
-                prop_MU_values[it.multi_index] = np.nan
-                prop_NP_values[it.multi_index] = np.nan
-                prop_X_values[it.multi_index] = np.nan
-                prop_Y_values[it.multi_index] = np.nan
-                prop_GM_values[it.multi_index] = np.nan
-                prop_Phase_values[it.multi_index] = ''
+                converged = False
+                break
             if (cur_iter > 0) and cur_iter % vmax_window_size == 0:
                 new_window_average = np.median(vmax_averages)
                 if (obj_decreases < 2) and (previous_window_average * new_window_average < 1e-20) and (cur_iter < 0.8 * MAX_SOLVE_ITERATIONS):
@@ -690,5 +662,32 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                 if verbose:
                     print('Increasing objective weight to force convergence')
             vmax_averages[cur_iter % vmax_window_size] = vmax
+
+        if converged:
+            prop_MU_values[it.multi_index] = chemical_potentials
+            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
+            prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
+            prop_X_values[it.multi_index + np.index_exp[:]] = 0
+            prop_GM_values[it.multi_index] = energy / obj_weight
+            for phase_idx in range(len(composition_sets)):
+                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = composition_sets[phase_idx].phase_record.phase_name
+            for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
+                prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = ''
+                prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
+            var_offset = 0
+            total_comp = np.zeros(prop_X_values.shape[-1])
+            for phase_idx in range(num_phases):
+                compset = composition_sets[phase_idx]
+                prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
+                    site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
+                prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
+                var_offset += compset.phase_record.phase_dof
+        else:
+            prop_MU_values[it.multi_index] = np.nan
+            prop_NP_values[it.multi_index] = np.nan
+            prop_X_values[it.multi_index] = np.nan
+            prop_Y_values[it.multi_index] = np.nan
+            prop_GM_values[it.multi_index] = np.nan
+            prop_Phase_values[it.multi_index] = ''
         it.iternext()
     return properties
