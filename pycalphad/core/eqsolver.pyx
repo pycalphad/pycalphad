@@ -144,7 +144,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
                                  &self.energy, &self._prev_energy)
 
 
-def remove_degenerate_phases(object composition_sets, bint allow_negative_fractions):
+cdef bint remove_degenerate_phases(object composition_sets, bint allow_negative_fractions, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -211,10 +211,15 @@ def remove_degenerate_phases(object composition_sets, bint allow_negative_fracti
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
     for idx in entries_to_delete:
-        print('Removing ' + repr(composition_sets[idx]))
+        if verbose:
+            print('Removing ' + repr(composition_sets[idx]))
         del composition_sets[idx]
+    if len(entries_to_delete) > 0:
+        return True
+    else:
+        return False
 
-def add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials):
+cdef bint add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials, minimum_df, verbose):
     cdef double[:] driving_forces
     cdef int df_idx = 0
     cdef double largest_df = -np.inf
@@ -227,8 +232,8 @@ def add_new_phases(composition_sets, phase_records, current_grid, chemical_poten
         if driving_forces[i] > largest_df:
             largest_df = driving_forces[i]
             df_idx = i
-    if largest_df > -10:
-        # To add a phase, must not be within 1% of composition of the same phase of its type
+    if largest_df > minimum_df:
+        # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid.X.values[df_idx]
         df_phase_name = str(current_grid.Phase.values[df_idx])
         for compset in composition_sets:
@@ -236,17 +241,23 @@ def add_new_phases(composition_sets, phase_records, current_grid, chemical_poten
                 continue
             distinct = False
             for comp_idx in range(df_comp.shape[0]):
-                if abs(df_comp[comp_idx] - compset.X[comp_idx]) > 0.01:
+                if abs(df_comp[comp_idx] - compset.X[comp_idx]) > COMP_DIFFERENCE_TOL:
                     distinct = True
             if not distinct:
-                print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
-                return
-        # This phase is distinct from the others
+                if verbose:
+                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
+                return False
+        # Set all phases to have equal amounts as new phase is added
+        for compset in composition_sets:
+            compset.NP = 1./(len(composition_sets)+1)
         compset = CompositionSet(phase_records[df_phase_name])
-        compset.update(current_grid.Y.values[df_idx, :compset.phase_record.phase_dof], 10 * MIN_SITE_FRACTION,
+        compset.update(current_grid.Y.values[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
                        current_grid.coords['P'], current_grid.coords['T'])
         composition_sets.append(compset)
-        print('Adding ' + repr(compset))
+        if verbose:
+            print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
+        return True
+    return False
 
 
 def _compute_phase_dof(dbf, comps, phases):
@@ -407,8 +418,8 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
         int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
         int vmax_window_size
         int obj_decreases
-        bint converged
-        double previous_window_average, obj_weight, vmax
+        bint converged, changed_phases
+        double previous_window_average, obj_weight, vmax, minimum_df
         PhaseRecord prn
         CompositionSet compset
         cdef double[::1,:] l_hessian
@@ -445,6 +456,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
     while not it.finished:
         # A lot of this code relies on cur_conds being ordered!
         converged = False
+        changed_phases = False
         cur_conds = OrderedDict(zip(conds_keys,
                                     [np.asarray(properties['GM'].coords[b][a], dtype=np.float)
                                      for a, b in zip(it.multi_index, conds_keys)]))
@@ -495,14 +507,16 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
         allow_negative_fractions = False
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             # print('CUR_ITER:', cur_iter)
-            old_phase_length = len(composition_sets)
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
-
-            #add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials)
-            remove_degenerate_phases(composition_sets, allow_negative_fractions)
+            if cur_iter > 0 and cur_iter % 5 == 0:
+                if cur_iter == 0:
+                    minimum_df = -10
+                else:
+                    minimum_df = 0
+                changed_phases |= add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials, minimum_df, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, allow_negative_fractions, verbose)
             num_phases = len(composition_sets)
-            new_phase_length = len(composition_sets)
             total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
             if num_phases == 0:
                 print('Zero phases are left in the system: {}'.format(cur_conds))
@@ -529,8 +543,9 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
 
             l_constraints, constraint_jac, constraint_hess = compute_constraints(composition_sets, comps, cur_conds)
             # Reset Lagrange multipliers if active set of phases change
-            if cur_iter == 0 or (old_phase_length != new_phase_length) or np.any(np.isnan(l_multipliers)):
+            if cur_iter == 0 or changed_phases or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
+                changed_phases = False
             num_vars = len(site_fracs) + len(composition_sets)
             old_energy = energy / obj_weight
             old_chem_pots = chemical_potentials.copy()
@@ -599,6 +614,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
                 for iy, mu in enumerate(chemical_potentials):
                     diagnostic_matrix[cur_iter, 7+iy] = mu
             if verbose:
+                print('Chemical potentials', np.asarray(chemical_potentials))
                 print('Chem pot progress', chemical_potentials - old_chem_pots)
                 print('Energy progress', energy / obj_weight - old_energy)
                 print('Driving force', driving_force)
@@ -606,6 +622,7 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
             no_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.1
             no_progress &= np.abs(energy / obj_weight - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
+            no_progress &= num_phases <= prop_Phase_values.shape[-1]
             if no_progress:
                 for pfidx in range(phase_fracs.shape[0]):
                     if phase_fracs[pfidx] < 0:
