@@ -746,7 +746,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 mass_normalization_factor += self.site_ratios[subl_idx]
         for dof_idx in range(2+self.phase_dof):
             if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / (mass_normalization_factor**2)
+                # Remember that energy is already equal to the energy divided by the mass normalization factor
+                # That is why one factor of it disappears in the formula
+                out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
             else:
                 out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
@@ -876,7 +878,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
             for dof_idx in range(2+self.disordered_phase_dof):
                 if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                    disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / (disordered_mass_normalization_factor**2)
+                    # Remember that energy is already equal to the energy divided by the mass normalization factor
+                    # That is why one factor of it disappears in the formula
+                    disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
                 else:
                     disordered_out[dof_idx] /= disordered_mass_normalization_factor
             # P,T derivatives can be directly added
