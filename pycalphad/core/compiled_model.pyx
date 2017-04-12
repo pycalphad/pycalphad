@@ -484,7 +484,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
                     mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
-                    mass_normalization_factor += self.site_ratios[subl_idx]
+                    mass_normalization_factor += self.disordered_site_ratios[subl_idx]
             out_energy /= mass_normalization_factor
             out[0] = out[0] + sign * out_energy
 
@@ -878,7 +878,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
             for dof_idx in range(2+self.disordered_phase_dof):
                 if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                    # Remember that energy is already equal to the energy divided by the mass normalization factor
+                    # Remember that disordered_energy is already equal to the energy divided by the mass normalization factor
                     # That is why one factor of it disappears in the formula
                     disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
                 else:
@@ -894,9 +894,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         dof_idx = subl_idx * self.sublattice_dof[0] + disordered_dof_idx
                         out[dof_idx] += (self.site_ratios[subl_idx] / _sum(self.site_ratios[:self.site_ratios.shape[0]-1])) * disordered_out[disordered_dof_idx]
                 # last sublattice is handled separately
-                for disordered_dof_idx in range(2+self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
+                for disordered_dof_idx in range(2,2+self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
                     dof_idx = (self.sublattice_dof.shape[0]-1) * self.sublattice_dof[0] + disordered_dof_idx
-                    out[dof_idx] += disordered_out[disordered_dof_idx]
+                    out[dof_idx] += disordered_out[_intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])+disordered_dof_idx]
             else:
                 # Second case: all sublattices have the same degrees of freedom
                 for disordered_dof_idx in range(2,2+self.disordered_phase_dof):
