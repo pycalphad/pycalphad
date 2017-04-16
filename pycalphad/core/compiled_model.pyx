@@ -925,6 +925,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int grad_idx
         cdef int col_idx
         cdef int total_dof = 2 + self.phase_dof
+        if self.mem.size > 2**16:
+            self.mem = Pool()
         grad1 = np.zeros(total_dof)
         grad2 = np.zeros(total_dof)
         x1 = np.array(dof)
