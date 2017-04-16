@@ -22,8 +22,6 @@ import numpy as np
 from collections import namedtuple, OrderedDict
 from datetime import datetime
 
-def delayed(func, *fargs, **fkwargs):
-    return func
 
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
