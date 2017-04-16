@@ -1,6 +1,3 @@
-#cython: profile=True
-#cython: linetrace=True
-#cython: binding=True
 from collections import defaultdict, OrderedDict
 import copy
 import itertools
