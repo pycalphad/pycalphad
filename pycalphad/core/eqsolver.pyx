@@ -139,20 +139,6 @@ cdef bint add_new_phases(composition_sets, phase_records, current_grid, chemical
         return True
     return False
 
-
-def _compute_phase_dof(dbf, comps, phases):
-    """
-    Generate a list of the number of each phase's internal phase degrees of freedom.
-    """
-    phase_dof = []
-    for name in phases:
-        total = 0
-        for idx in range(len(dbf.phases[name].sublattices)):
-            active_in_subl = set(dbf.phases[name].constituents[idx]).intersection(comps)
-            total += len(active_in_subl)
-        phase_dof.append(total)
-    return np.array(phase_dof, dtype=np.int)
-
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _compute_constraints(composition_sets, object comps, object cur_conds):
@@ -261,7 +247,7 @@ cdef _build_multiphase_system(composition_sets, l_constraints, constraint_jac,
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
-def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_keys, verbose,
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
                             diagnostic, compute_constraints):
     """
     Compute equilibrium for the given conditions.
@@ -271,8 +257,6 @@ def _solve_eq_at_conditions(dbf, comps, properties, phase_records, grid, conds_k
 
     Parameters
     ----------
-    dbf : Database
-        Thermodynamic database containing the relevant parameters.
     comps : list
         Names of components to consider in the calculation.
     properties : Dataset

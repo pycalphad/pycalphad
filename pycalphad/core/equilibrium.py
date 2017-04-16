@@ -342,7 +342,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
-        properties = delayed(_solve_eq_at_conditions, pure=False)(dbf, comps, properties, phase_records, grid,
+        properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
                                                                  list(str_conds.keys()), verbose, diagnostic, compute_constraints)
 
     # Compute equilibrium values of any additional user-specified properties
