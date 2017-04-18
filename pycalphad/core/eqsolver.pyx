@@ -19,7 +19,6 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 INITIAL_OBJECTIVE_WEIGHT = 1
-cdef double MAX_ENERGY = BIGNUM
 
 
 cdef bint remove_degenerate_phases(object composition_sets, bint allow_negative_fractions, bint verbose):

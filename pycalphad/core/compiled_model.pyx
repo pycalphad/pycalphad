@@ -9,11 +9,15 @@ from tinydb import where
 from collections import OrderedDict
 from pycalphad.core.rksum import RedlichKisterSum
 from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
 from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
+
+
+cdef double MAX_ENERGY = BIGNUM
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -422,7 +426,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     mass_normalization_factor[out_idx] += self.site_ratios[subl_idx] * (1-dof[out_idx, 2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
                     mass_normalization_factor[out_idx] += self.site_ratios[subl_idx]
-            out_energy[out_idx] /= mass_normalization_factor[out_idx]
+            if mass_normalization_factor[out_idx] <= 1e-6:
+                out_energy[out_idx] = MAX_ENERGY
+            else:
+                out_energy[out_idx] /= mass_normalization_factor[out_idx]
             out[out_idx] = out[out_idx] + sign * out_energy[out_idx]
 
     @cython.boundscheck(False)
@@ -485,7 +492,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
                     mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            out_energy /= mass_normalization_factor
+            if mass_normalization_factor <= 1e-6:
+                out_energy = MAX_ENERGY
+            else:
+                out_energy /= mass_normalization_factor
             out[0] = out[0] + sign * out_energy
 
     @cython.boundscheck(False)
@@ -625,7 +635,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[out_idx, 2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                     else:
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-                disordered_energy /= disordered_mass_normalization_factor
+                if disordered_mass_normalization_factor <= 1e-6:
+                    disordered_energy = MAX_ENERGY
+                else:
+                    disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
         if self._debug:
             debugout = np.zeros_like(out)
@@ -744,13 +757,16 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     self.eval_energy(energy, dof_2d_view, parameters)
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
-        for dof_idx in range(2+self.phase_dof):
-            if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                # Remember that energy is already equal to the energy divided by the mass normalization factor
-                # That is why one factor of it disappears in the formula
-                out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
-            else:
-                out[dof_idx] /= mass_normalization_factor
+        if mass_normalization_factor <= 1e-6:
+            out[dof_idx] = MAX_ENERGY
+        else:
+            for dof_idx in range(2+self.phase_dof):
+                if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                    # Remember that energy is already equal to the energy divided by the mass normalization factor
+                    # That is why one factor of it disappears in the formula
+                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
+                else:
+                    out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
 
@@ -876,13 +892,16 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         self._eval_disordered_energy(disordered_energy, disordered_dof, parameters, 1)
                 else:
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            for dof_idx in range(2+self.disordered_phase_dof):
-                if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                    # Remember that disordered_energy is already equal to the energy divided by the mass normalization factor
-                    # That is why one factor of it disappears in the formula
-                    disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
-                else:
-                    disordered_out[dof_idx] /= disordered_mass_normalization_factor
+            if disordered_mass_normalization_factor <= 1e-6:
+                disordered_out[dof_idx] = MAX_ENERGY
+            else:
+                for dof_idx in range(2+self.disordered_phase_dof):
+                    if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                        # Remember that disordered_energy is already equal to the energy divided by the mass normalization factor
+                        # That is why one factor of it disappears in the formula
+                        disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
+                    else:
+                        disordered_out[dof_idx] /= disordered_mass_normalization_factor
             # P,T derivatives can be directly added
             out[0] += disordered_out[0]
             out[1] += disordered_out[1]
