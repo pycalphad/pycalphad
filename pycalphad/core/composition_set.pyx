@@ -10,7 +10,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.X = np.zeros(self.phase_record.composition_matrices.shape[0]-has_va)
         self.mass_grad = np.zeros((self.X.shape[0]+has_va, self.phase_record.phase_dof))
         self.mass_hess = np.zeros((self.X.shape[0]+has_va, self.phase_record.phase_dof, self.phase_record.phase_dof))
-        self._dof_2d_view = <double[:1:1,:self.dof.shape[0]]>&self.dof[0]
+        self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
         self.energy = 0
         self._energy_2d_view = <double[:1]>&self.energy

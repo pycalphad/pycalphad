@@ -28,9 +28,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void obj(self, double[::1] out, double[::1,:] dof) nogil:
+    cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil:
         if self._obj != NULL:
-            self._obj(&out[0], &dof[0,0], &self.parameters[0], <int*>&out.shape[0])
+            self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
         else:
             with gil:
                 self.cmpmdl.eval_energy(out, dof, self.parameters)
@@ -190,15 +190,15 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
     if ofunc is not None:
         inst._ofunc = ofunc
         ofunc.kernel
-        inst._obj = <func_t*> f2py_pointer(ofunc._kernel._cpointer)
+        inst._obj = <func_t*> f2py_pointer(ofunc._cpointer)
     if gfunc is not None:
         inst._gfunc = gfunc
         gfunc.kernel
-        inst._grad = <func_novec_t*> f2py_pointer(gfunc._kernel._cpointer)
+        inst._grad = <func_novec_t*> f2py_pointer(gfunc._cpointer)
     if hfunc is not None:
         inst._hfunc = hfunc
         hfunc.kernel
-        inst._hess = <func_novec_t*> f2py_pointer(hfunc._kernel._cpointer)
+        inst._hess = <func_novec_t*> f2py_pointer(hfunc._cpointer)
     return inst
 
 def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
@@ -217,11 +217,11 @@ def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameter
     # Trigger lazy computation
     if ofunc is not None:
         ofunc.kernel
-        inst._obj = <func_t*> f2py_pointer(ofunc._kernel._cpointer)
+        inst._obj = <func_t*> f2py_pointer(ofunc._cpointer)
     if gfunc is not None:
         gfunc.kernel
-        inst._grad = <func_novec_t*> f2py_pointer(gfunc._kernel._cpointer)
+        inst._grad = <func_novec_t*> f2py_pointer(gfunc._cpointer)
     if hfunc is not None:
         hfunc.kernel
-        inst._hess = <func_novec_t*> f2py_pointer(hfunc._kernel._cpointer)
+        inst._hess = <func_novec_t*> f2py_pointer(hfunc._cpointer)
     return inst

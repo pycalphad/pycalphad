@@ -277,8 +277,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
     pts = points.reshape(-1, points.shape[-1]).T
-    dof = np.asfortranarray(np.concatenate((bc_statevars, pts), axis=0).T)
-    phase_output = np.zeros(dof.shape[0])
+    dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
+    phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
     prn.obj(phase_output, dof)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])

@@ -647,9 +647,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
-            self._debugobj(&debugout[0], &dof[0,0], NULL, <int*>&debugout.shape[0])
+            self._debugobj(&debugout[0], &dof[0,0], NULL, debugout.shape[0])
         else:
-            self._debugobj(&debugout[0], &dof[0,0], &parameters[0], <int*>&debugout.shape[0])
+            self._debugobj(&debugout[0], &dof[0,0], &parameters[0], debugout.shape[0])
 
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:

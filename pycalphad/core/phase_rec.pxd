@@ -1,4 +1,4 @@
-ctypedef void func_t(double *out, double *dof, double* params, int *bounds) nogil
+ctypedef void func_t(double *out, double *dof, double *params, int bounds) nogil
 ctypedef void func_novec_t(double *dof, double* params, double *out) nogil
 ctypedef void func_simple_t(double *out, double *dof, double* params, int *comp_idx) nogil
 ctypedef void func_novec_simple_t(double *dof, double* params, double *out) nogil
@@ -22,7 +22,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public unicode phase_name
     cdef public double[:,:,::1] composition_matrices
     cdef public int vacancy_index
-    cpdef void obj(self, double[::1] out, double[::1,:] dof) nogil
+    cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil
     cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil

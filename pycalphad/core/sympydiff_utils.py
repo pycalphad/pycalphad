@@ -33,6 +33,7 @@ class PickleableFunction(object):
         self._module_name = None
         self._routine_name = None
         self._kernel = None
+        self._cpointer = None
 
     @property
     def kernel(self):
@@ -65,7 +66,7 @@ class PickleableFunction(object):
     def __getstate__(self):
         # Explicitly drop the compiled function when pickling
         # The architecture of the unpickling machine may be incompatible with it
-        return {key: value for key, value in self.__dict__.items() if str(key) != '_kernel'}
+        return {key: value for key, value in self.__dict__.items() if str(key) not in ['_kernel', '_cpointer']}
 
     def __setstate__(self, state):
         self._kernel = None
@@ -76,9 +77,7 @@ class PickleableFunction(object):
 class AutowrapFunction(PickleableFunction):
     def compile(self):
         with CompileLock:
-            result = autowrap(self._sympyobj, args=self._sympyvars, backend='f2py', language='F95', tempdir=self._workdir)
-            self._module_name = str(result.module_name)
-            self._routine_name = str(result.routine_name)
+            result, self._cpointer, self._module_name, self._routine_name = autowrap(self._sympyobj, args=self._sympyvars, backend='Cython', language='C', tempdir=self._workdir)
         return result
 
 
@@ -127,7 +126,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     args_with_indices = []
     args_nobroadcast = []
     for indx in range(len(variables)):
-        args_with_indices.append(inp[i-1, indx])
+        args_with_indices.append(inp[i, indx])
         args_nobroadcast.append(inp_nobroadcast[0, indx])
     for indx in range(len(parameters)):
         args_with_indices.append(params[0, indx])
