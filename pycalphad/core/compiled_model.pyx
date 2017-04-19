@@ -51,7 +51,7 @@ cdef void* f2py_pointer(obj):
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
-    def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
+    def __init__(self, dbe, comps, unicode phase_name, parameters=None, _debug=False):
         self.mem = Pool()
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
