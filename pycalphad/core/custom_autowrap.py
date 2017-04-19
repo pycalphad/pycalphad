@@ -240,8 +240,6 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
             raise CodeWrapError(
                 "Error while executing command: %s. Command output is:\n%s" % (
                     " ".join(command), e.output.decode()))
-        if not self.quiet:
-            print(retoutput)
 
     def _prototype_arg(self, arg):
         mat_dec = "np.ndarray[{mtype}, ndim={ndim}] {name}"

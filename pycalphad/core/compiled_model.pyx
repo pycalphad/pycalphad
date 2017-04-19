@@ -92,13 +92,13 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             # Trigger lazy computation
             if _debugobj is not None:
                 _debugobj.kernel
-                self._debugobj = <func_t*> f2py_pointer(_debugobj._kernel._cpointer)
+                self._debugobj = <func_t*> f2py_pointer(_debugobj._cpointer)
             if _debuggrad is not None:
                 _debuggrad.kernel
-                self._debuggrad = <func_novec_t*> f2py_pointer(_debuggrad._kernel._cpointer)
+                self._debuggrad = <func_novec_t*> f2py_pointer(_debuggrad._cpointer)
             if _debughess is not None:
                 _debughess.kernel
-                self._debughess = <func_novec_t*> f2py_pointer(_debughess._kernel._cpointer)
+                self._debughess = <func_novec_t*> f2py_pointer(_debughess._cpointer)
 
         self.site_ratios = np.array([float(x) for x in phase.sublattices])
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
@@ -642,10 +642,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 out[out_idx] += disordered_energy
         if self._debug:
             debugout = np.zeros_like(out)
-            self._debug_energy(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
+            self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
             np.testing.assert_allclose(out,debugout)
 
-    cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters):
+    cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
             self._debugobj(&debugout[0], &dof[0,0], NULL, debugout.shape[0])
         else:
