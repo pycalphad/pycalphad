@@ -3,12 +3,15 @@ The equilibrium test module verifies that the Equilibrium class produces the
 correct solution for thermodynamic equilibrium.
 """
 
+import warnings
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
+
+warnings.simplefilter("always", UserWarning) # so we can test warnings
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
@@ -251,3 +254,13 @@ def test_eq_issue62_last_component_not_va():
     """
     equilibrium(Database(test_tdb), ['AL', 'CO', 'CR', 'W', 'VA'], ['FCC_A1'],
                 {"T": 1248, "P": 101325, v.X("AL"): 0.081, v.X("CR"): 0.020, v.X("W"): 0.094})
+
+def test_unused_equilibrium_kwarg_warns():
+    "Check that an unused keyword argument raises a warning"
+    with warnings.catch_warnings(record=True) as w:
+        equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
+        categories = [warning.__dict__['_category_name'] for warning in w]
+        assert 'UserWarning' in categories
+        assert len(w) == 1 # make sure we don't raise other warnings later that make this test falsely pass
+
+
