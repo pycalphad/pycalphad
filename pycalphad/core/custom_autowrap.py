@@ -212,7 +212,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
 
         # pyx
         with open(os.path.join(self.filepath, pyxfilename), 'w') as f:
-            self.dump_pyx([routine], f, os.path.abspath(os.path.join(self.filepath, self.filename)))
+            self.dump_pyx([routine], f, str(os.path.join(self.filepath, self.filename)).replace(os.sep, '/'))
 
         # setup.py
         ext_args = [repr(self.module_name), repr([os.path.join(self.filepath, pyxfilename),
