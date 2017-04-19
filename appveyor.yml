@@ -37,7 +37,7 @@ install:
   - "conda config --add channels conda-forge"
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
-  - "conda install --yes -n condaenv --quiet tinydb autograd cython"
+  - "conda install --yes -n condaenv --quiet tinydb cython"
   - "pip install -i https://pypi.anaconda.org/carlkl/simple mingwpy"
   - "pip install -e ."
 

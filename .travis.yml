@@ -46,7 +46,6 @@ install:
         source $HOME/miniconda2/bin/activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
         conda install --yes xarray gcc libgfortran cython
-        conda install --yes autograd
         pip install -e .
       fi
  

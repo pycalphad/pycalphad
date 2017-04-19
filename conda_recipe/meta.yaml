@@ -28,7 +28,6 @@ requirements:
     - sympy
     - pyparsing
     - tinydb
-    - autograd
     - scipy
     - dask >=0.10
     - distributed
@@ -48,11 +47,11 @@ requirements:
     - sympy
     - pyparsing
     - tinydb
-    - autograd
     - scipy
     - dask >=0.10
     - distributed
     - numpy >=1.9
+    - Cython >=0.24
     - dill
 
 build:
