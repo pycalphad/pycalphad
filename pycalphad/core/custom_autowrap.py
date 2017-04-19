@@ -272,7 +272,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         try:
             print(os.path.join(workdir, self.filename))
             self.generator.write(
-                [routine]+helpers, os.path.join(workdir, self.filename), True, self.include_header,
+                [routine]+helpers, str(os.path.join(workdir, self.filename)).replace(os.sep, '/'), True, self.include_header,
                 self.include_empty)
             self._prepare_files(routine)
             self._process_files(routine)
