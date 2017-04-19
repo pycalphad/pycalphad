@@ -174,7 +174,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         "from cpython cimport PY_VERSION_HEX, PyCObject_FromVoidPtr, PyCapsule_New\n\n")
 
     pyx_header = (
-        "cdef extern from '{header_file}.h':\n"
+        "cdef extern from r'{header_file}.h':\n"
         "    {prototype}\n\n")
 
     pyx_func = (
