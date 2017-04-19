@@ -51,12 +51,12 @@ cdef void* f2py_pointer(obj):
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
-    def __init__(self, dbe, comps, unicode phase_name, parameters=None, _debug=False):
+    def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
         self.mem = Pool()
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
-        self.phase_name = phase_name
+        self.phase_name = <unicode>phase_name
         self.constituents = []
         self.components = set()
         # Verify that this phase is still possible to build
