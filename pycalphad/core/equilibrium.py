@@ -3,6 +3,7 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 from __future__ import print_function
+import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_condition, unpack_phases
@@ -372,4 +373,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
     if scheduler is not None:
         properties = dask.compute(properties, get=scheduler)[0]
+    if len(kwargs) > 0:
+        warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties
