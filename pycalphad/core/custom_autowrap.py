@@ -152,6 +152,54 @@ class CustomCCodeGen(CCodeGen):
                 type_args.append((arg.get_datatype('C'), name))
         arguments = ", ".join([ "%s %s" % t for t in type_args])
         return "%s %s(%s)" % (ctype, routine.name, arguments)
+    def dump_h(self, routines, f, prefix, header=True, empty=True):
+        """Writes the C header file.
+
+        This file contains all the function declarations.
+
+        Parameters
+        ==========
+
+        routines : list
+            A list of Routine instances.
+
+        f : file-like
+            Where to write the file.
+
+        prefix : string
+            The filename prefix, used to construct the include guards.
+            Only the basename of the prefix is used.
+
+        header : bool, optional
+            When True, a header comment is included on top of each source
+            file.  [default : True]
+
+        empty : bool, optional
+            When True, empty lines are included to structure the source
+            files.  [default : True]
+
+        """
+        if header:
+            print(''.join(self._get_header()), file=f)
+        guard_name = "%s__%s__H" % (self.project.replace(
+            " ", "_").upper(), prefix.replace("/", "_").replace(":", "_").upper())
+        # include guards
+        if empty:
+            print(file=f)
+        print("#ifndef %s" % guard_name, file=f)
+        print("#define %s" % guard_name, file=f)
+        if empty:
+            print(file=f)
+        # declaration of the function prototypes
+        for routine in routines:
+            prototype = self.get_prototype(routine)
+            print("%s;" % prototype, file=f)
+        # end if include guards
+        if empty:
+            print(file=f)
+        print("#endif", file=f)
+        if empty:
+            print(file=f)
 
 
 class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
