@@ -2,7 +2,7 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from cymem.cymem cimport Pool
+from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
 from sympy import Symbol
 from tinydb import where

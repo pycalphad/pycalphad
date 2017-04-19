@@ -1,5 +1,5 @@
 from pycalphad.core.phase_rec cimport func_t, func_novec_t
-from cymem.cymem cimport Pool
+from pycalphad.core.cymem cimport Pool
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
