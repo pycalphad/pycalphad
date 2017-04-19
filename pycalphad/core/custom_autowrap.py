@@ -65,12 +65,11 @@ When is this module NOT the best approach?
 
 """
 from sympy.core.compatibility import iterable
-from sympy.utilities.codegen import (OutputArgument, InOutArgument, ResultBase,
-                                     CodeGenArgumentListError, InputArgument,
-                                     CCodeGen, JuliaCodeGen, OctaveCodeGen)
-from pycalphad.core.custom_codegen import FCodeGen
+from sympy.utilities.codegen import (OutputArgument, ResultBase,
+                                     CodeGenArgumentListError,
+                                     CCodeGen)
 from sympy.utilities.lambdify import implemented_function
-from sympy.utilities.autowrap import F2PyCodeWrapper, CythonCodeWrapper, DummyWrapper, CodeWrapper
+from sympy.utilities.autowrap import CythonCodeWrapper, DummyWrapper
 from subprocess import STDOUT, CalledProcessError
 from sympy.printing.ccode import ccode
 from sympy.core.compatibility import check_output
@@ -84,8 +83,6 @@ import uuid
 # tuple is of length 1, but if a backend supports more than one language,
 # the most preferable language is listed first.
 _lang_lookup = {'CYTHON': ('C',),
-                'F2PY': ('F95',),
-                'NUMPY': ('C',),
                 'DUMMY': ('F95',)}     # Dummy here just for testing
 
 
@@ -284,57 +281,9 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
             self._module_id = str(uuid.uuid4()).replace('-', '_')
         return self._get_wrapped_function(mod, routine.name), self._get_wrapped_function(mod, 'get_pointer')(), str(self.module_name), str(routine.name)
 
-class ThreadSafeF2PyCodeWrapper(F2PyCodeWrapper):
-    def __init__(self, *args, **kwargs):
-        super(ThreadSafeF2PyCodeWrapper, self).__init__(*args, **kwargs)
-        self._module_id = str(uuid.uuid4()).replace('-', '_')
-        self.filepath = self.filepath or tempfile.mkdtemp("_sympy_compile")
-
-    @property
-    def command(self):
-        filename = os.path.join(self.filepath, self.filename) + '.' + self.generator.code_extension
-        args = ['-c', '-m', self.module_name, filename]
-        command = [sys.executable, "-c", "import numpy.f2py as f2py2e;f2py2e.main()"]+args
-        return command
-
-    @property
-    def filename(self):
-        return "%s_%s" % (self._filename, self._module_id)
-
-    @property
-    def module_name(self):
-        return "%s_%s" % (self._module_basename, self._module_id)
-
-    def _process_files(self, routine):
-        command = self.command
-        command.extend(self.flags)
-        try:
-            retoutput = check_output(command, stderr=STDOUT, cwd=self.filepath)
-        except CalledProcessError as e:
-            raise CodeWrapError(
-                "Error while executing command: %s. Command output is:\n%s" % (
-                    " ".join(command), e.output.decode()))
-        if not self.quiet:
-            print(retoutput)
-
-    def wrap_code(self, routine, helpers=None):
-        helpers = helpers if helpers is not None else []
-        workdir = self.filepath
-        if not os.access(workdir, os.F_OK):
-            os.mkdir(workdir)
-        try:
-            self.generator.write(
-                [routine]+helpers, os.path.join(workdir, self.filename), True, self.include_header,
-                self.include_empty)
-            self._process_files(routine)
-            mod = import_extension(workdir, self.module_name)
-        finally:
-            self._module_id = str(uuid.uuid4()).replace('-', '_')
-        return self._get_wrapped_function(mod, routine.name), str(self.module_name), str(routine.name)
-
 
 def _get_code_wrapper_class(backend):
-    wrappers = {'F2PY': ThreadSafeF2PyCodeWrapper, 'CYTHON': ThreadSafeCythonCodeWrapper,
+    wrappers = {'CYTHON': ThreadSafeCythonCodeWrapper,
         'DUMMY': DummyWrapper}
     return wrappers[backend.upper()]
 
@@ -350,15 +299,14 @@ def _validate_backend_language(backend, language):
 
 
 def get_code_generator(language, project):
-    CodeGenClass = {"C": CustomCCodeGen, "F95": FCodeGen, "JULIA": JuliaCodeGen,
-                    "OCTAVE": OctaveCodeGen}.get(language.upper())
+    CodeGenClass = {"C": CustomCCodeGen}.get(language.upper())
     if CodeGenClass is None:
         raise ValueError("Language '%s' is not supported." % language)
     return CodeGenClass(project)
 
 
 def make_routine(name, expr, argument_sequence=None,
-                 global_vars=None, language="F95"):
+                 global_vars=None, language="C"):
     """A factory that makes an appropriate Routine from an expression.
 
     Parameters
@@ -447,7 +395,7 @@ def make_routine(name, expr, argument_sequence=None,
 
 
 def autowrap(
-    expr, language=None, backend='f2py', tempdir=None, args=None, flags=None,
+    expr, language=None, backend='Cython', tempdir=None, args=None, flags=None,
     verbose=False, helpers=None):
     """Generates python callable binaries based on the math expression.
 
