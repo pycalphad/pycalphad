@@ -86,7 +86,7 @@ def test_incompatible_db_warns_by_default():
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
     with warnings.catch_warnings(record=True) as w:
         invalid_dbf = test_dbf.to_string(fmt='tdb')
-        assert len(w) > 0
+        assert len(w) == 1
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 @nose.tools.raises(DatabaseExportError)
@@ -100,7 +100,7 @@ def test_incompatible_db_warns_with_kwarg_warn():
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
     with warnings.catch_warnings(record=True) as w:
         invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='warn')
-        assert len(w) > 0
+        assert len(w) == 1
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_ignores_with_kwarg_ignore():
