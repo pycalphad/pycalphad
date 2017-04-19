@@ -112,7 +112,7 @@ cdef bint add_new_phases(composition_sets, phase_records, current_grid, chemical
     if largest_df > minimum_df:
         # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid.X.values[df_idx]
-        df_phase_name = str(current_grid.Phase.values[df_idx])
+        df_phase_name = <unicode>str(current_grid.Phase.values[df_idx])
         for compset in composition_sets:
             if compset.phase_record.phase_name != df_phase_name:
                 continue

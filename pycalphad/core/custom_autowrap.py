@@ -174,7 +174,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         "from cpython cimport PY_VERSION_HEX, PyCObject_FromVoidPtr, PyCapsule_New\n\n")
 
     pyx_header = (
-        "cdef extern from r'{header_file}.h':\n"
+        "cdef extern from '{header_file}.h':\n"
         "    {prototype}\n\n")
 
     pyx_func = (
@@ -212,7 +212,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
 
         # pyx
         with open(os.path.join(self.filepath, pyxfilename), 'w') as f:
-            self.dump_pyx([routine], f, os.path.join(self.filepath, self.filename))
+            self.dump_pyx([routine], f, os.path.abspath(os.path.join(self.filepath, self.filename)))
 
         # setup.py
         ext_args = [repr(self.module_name), repr([os.path.join(self.filepath, pyxfilename),
