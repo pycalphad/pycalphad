@@ -3,7 +3,7 @@
 
 environment:
   global:
-    WITH_COMPILER: "cmd /E:ON /V:ON /C ./ci/with-compiler.cmd"
+    WITH_COMPILER: "cmd /E:ON /V:ON /C ci/with-compiler.cmd"
   matrix:
     - PYTHON: "C:\\Python27-conda32"
       PYTHON_VERSION: "2.7"
