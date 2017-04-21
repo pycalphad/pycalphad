@@ -1,19 +1,14 @@
 cimport cython
 import numpy as np
 cimport numpy as np
-from cpython cimport (PY_VERSION_HEX, PyCObject_Check,
-    PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer, Py_INCREF, Py_DECREF)
+from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
 from pycalphad.core.compiled_model cimport CompiledModel
 import pycalphad.variables as v
 
 # From https://gist.github.com/pv/5437087
 cdef void* f2py_pointer(obj):
-    if PY_VERSION_HEX < 0x03000000:
-        if (PyCObject_Check(obj)):
-            return PyCObject_AsVoidPtr(obj)
-    elif PY_VERSION_HEX >= 0x02070000:
-        if (PyCapsule_CheckExact(obj)):
-            return PyCapsule_GetPointer(obj, NULL);
+    if PyCapsule_CheckExact(obj):
+        return PyCapsule_GetPointer(obj, NULL);
     raise ValueError("Not an object containing a void ptr")
 
 
