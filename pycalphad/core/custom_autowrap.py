@@ -201,6 +201,7 @@ class CustomCCodeGen(CCodeGen):
         print("#endif", file=f)
         if empty:
             print(file=f)
+    dump_h.extension = CCodeGen.interface_extension
 
     dump_fns = [CCodeGen.dump_c, dump_h]
 
