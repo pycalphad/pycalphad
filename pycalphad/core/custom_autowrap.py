@@ -187,7 +187,7 @@ class CustomCCodeGen(CCodeGen):
         # include guards
         if empty:
             print(file=f)
-        print('GUARD_NAME', guard_name)
+        raise ValueError('GUARD_NAME', guard_name)
         print("#ifndef %s" % guard_name, file=f)
         print("#define %s" % guard_name, file=f)
         if empty:
