@@ -66,9 +66,9 @@ When is this module NOT the best approach?
 """
 from __future__ import print_function
 from sympy.core.compatibility import iterable
-from sympy.utilities.codegen import (OutputArgument, ResultBase,
-                                     CodeGenArgumentListError,
-                                     CCodeGen)
+from sympy.utilities.codegen import (AssignmentError, OutputArgument, ResultBase,
+                                     Result, CodeGenArgumentListError,
+                                     CCodePrinter, CCodeGen, Variable)
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import CythonCodeWrapper, DummyWrapper
 from subprocess import STDOUT, CalledProcessError
@@ -127,6 +127,20 @@ def import_extension(path, modname):
 class CodeWrapError(Exception):
     pass
 
+class C89CodePrinter(CCodePrinter):
+    def _get_loop_opening_ending(self, indices):
+        # The purpose is to enable C89-compliant loops (indices are pre-declared)
+        open_lines = []
+        close_lines = []
+        loopstart = "for (%(var)s=%(start)s; %(var)s<%(end)s; %(var)s++){"
+        for i in indices:
+            # C arrays start at 0 and end at dimension-1
+            open_lines.append(loopstart % {
+                'var': self._print(i.label),
+                'start': self._print(i.lower),
+                'end': self._print(i.upper + 1)})
+            close_lines.append("}")
+        return open_lines, close_lines
 
 class CustomCCodeGen(CCodeGen):
     def get_prototype(self, routine):
@@ -153,6 +167,54 @@ class CustomCCodeGen(CCodeGen):
                 type_args.append((arg.get_datatype('C'), name))
         arguments = ", ".join([ "%s %s" % t for t in type_args])
         return "%s %s(%s)" % (ctype, routine.name, arguments)
+
+    def _declare_locals(self, routine):
+        # loop variables are declared at the top to enable C89 support
+        retlines = []
+        for lcv in routine.local_vars:
+            t = Variable(lcv).get_datatype('c')
+            retlines.append('{0} {1};\n'.format(t, lcv.name))
+        return retlines
+
+    def _call_printer(self, routine):
+        code_lines = []
+
+        # Compose a list of symbols to be dereferenced in the function
+        # body. These are the arguments that were passed by a reference
+        # pointer, excluding arrays.
+        dereference = []
+        for arg in routine.arguments:
+            if isinstance(arg, ResultBase) and not arg.dimensions:
+                dereference.append(arg.name)
+
+        return_val = None
+        for result in routine.result_variables:
+            if isinstance(result, Result):
+                assign_to = routine.name + "_result"
+                t = result.get_datatype('c')
+                code_lines.append("{0} {1};\n".format(t, str(assign_to)))
+                return_val = assign_to
+            else:
+                assign_to = result.result_var
+
+            try:
+                constants, not_c, c_expr = C89CodePrinter({'human': False, 'dereference': dereference}).doprint(
+                    result.expr, assign_to)
+            except AssignmentError:
+                assign_to = result.result_var
+                code_lines.append(
+                    "%s %s;\n" % (result.get_datatype('c'), str(assign_to)))
+                constants, not_c, c_expr = C89CodePrinter({'human': False, 'dereference': dereference}).doprint(
+                    result.expr, assign_to)
+
+            for name, value in sorted(constants, key=str):
+                code_lines.append("double const %s = %s;\n" % (name, value))
+            code_lines.append("%s\n" % c_expr)
+
+        if return_val:
+            code_lines.append("   return %s;\n" % return_val)
+        return code_lines
+
     def dump_h(self, routines, f, prefix, header=True, empty=True):
         """Writes the C header file.
 
