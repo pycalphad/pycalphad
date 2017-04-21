@@ -183,10 +183,11 @@ class CustomCCodeGen(CCodeGen):
         if header:
             print(''.join(self._get_header()), file=f)
         guard_name = "%s__%s__H" % (self.project.replace(
-            " ", "_").upper(), prefix.replace("/", "_").replace(":", "_").upper())
+            " ", "_").upper(), prefix.replace("/", "_").replace(" ", "_").replace(":", "_").upper())
         # include guards
         if empty:
             print(file=f)
+        print('GUARD_NAME', guard_name)
         print("#ifndef %s" % guard_name, file=f)
         print("#define %s" % guard_name, file=f)
         if empty:
