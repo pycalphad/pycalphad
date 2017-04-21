@@ -187,7 +187,6 @@ class CustomCCodeGen(CCodeGen):
         # include guards
         if empty:
             print(file=f)
-        raise ValueError('GUARD_NAME', guard_name)
         print("#ifndef %s" % guard_name, file=f)
         print("#define %s" % guard_name, file=f)
         if empty:
@@ -202,6 +201,8 @@ class CustomCCodeGen(CCodeGen):
         print("#endif", file=f)
         if empty:
             print(file=f)
+
+    dump_fns = [CCodeGen.dump_c, dump_h]
 
 
 class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
