@@ -64,6 +64,7 @@ When is this module NOT the best approach?
        don't need the binaries for another project.
 
 """
+from __future__ import print_function
 from sympy.core.compatibility import iterable
 from sympy.utilities.codegen import (OutputArgument, ResultBase,
                                      CodeGenArgumentListError,
