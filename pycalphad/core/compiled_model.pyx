@@ -13,7 +13,7 @@ from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
-from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
+from cpython cimport PY_VERSION_HEX, PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
 
 
@@ -39,12 +39,8 @@ cdef inline int _intsum(int[:] arr) nogil:
 
 # From https://gist.github.com/pv/5437087
 cdef void* f2py_pointer(obj):
-    if PY_VERSION_HEX < 0x03000000:
-        if (PyCObject_Check(obj)):
-            return PyCObject_AsVoidPtr(obj)
-    elif PY_VERSION_HEX >= 0x02070000:
-        if (PyCapsule_CheckExact(obj)):
-            return PyCapsule_GetPointer(obj, NULL);
+    if (PyCapsule_CheckExact(obj)):
+        return PyCapsule_GetPointer(obj, NULL)
     raise ValueError("Not an object containing a void ptr")
 
 # Forward declaration necessary for some self-referencing below

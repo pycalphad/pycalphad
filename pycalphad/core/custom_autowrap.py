@@ -285,7 +285,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
     pyx_imports = (
         "import numpy as np\n"
         "cimport numpy as np\n"
-        "from cpython cimport PY_VERSION_HEX, PyCObject_FromVoidPtr, PyCapsule_New\n\n")
+        "from cpython cimport PyCapsule_New\n\n")
 
     pyx_header = (
         "cdef extern from '{header_file}.h':\n"
@@ -297,10 +297,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         "{declarations}"
         "{body}\n"
         "def get_pointer_c():\n"
-        "    if PY_VERSION_HEX < 0x03000000:\n"
-        "        return PyCObject_FromVoidPtr(<void*>{name}, NULL)\n"
-        "    else:\n"
-        "        return PyCapsule_New(<void*>{name}, NULL, NULL)\n")
+        "    return PyCapsule_New(<void*>{name}, NULL, NULL)\n")
 
     def __init__(self, *args, **kwargs):
         super(ThreadSafeCythonCodeWrapper, self).__init__(*args, **kwargs)
