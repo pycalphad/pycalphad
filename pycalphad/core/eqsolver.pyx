@@ -286,7 +286,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         cdef double[::1,:] l_hessian
         cdef double[::1] gradient_term, mass_buf
         double[::1] vmax_averages
-        np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
+        np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials, old_chem_pots
         np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
         np.ndarray[ndim=2, dtype=np.float64_t] ymat, zmat, qmat, rmat, constraint_jac
         np.ndarray[ndim=2, dtype=np.float64_t] diagnostic_matrix
@@ -323,6 +323,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                      for a, b in zip(it.multi_index, conds_keys)]))
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
+        num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
         current_grid = grid.sel(P=cur_conds['P'], T=cur_conds['T'])
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
@@ -403,13 +404,13 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 break
 
             l_constraints, constraint_jac, constraint_hess = compute_constraints(composition_sets, comps, cur_conds)
+            old_energy = energy / obj_weight
+            old_chem_pots = chemical_potentials.copy()
             # Reset Lagrange multipliers if active set of phases change
             if cur_iter == 0 or changed_phases or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
                 changed_phases = False
             num_vars = len(site_fracs) + len(composition_sets)
-            old_energy = energy / obj_weight
-            old_chem_pots = chemical_potentials.copy()
             energy, l_hessian, gradient_term = _build_multiphase_system(composition_sets, l_constraints,
                                                                         constraint_jac, constraint_hess,
                                                                         l_multipliers, obj_weight)
@@ -424,13 +425,20 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             master_hess[:num_vars, num_vars:] = -constraint_jac.T
             master_hess[num_vars:, :num_vars] = constraint_jac
             master_grad = np.zeros(l_hessian.shape[0] + l_constraints.shape[0])
-            master_grad[:l_hessian.shape[0]] = -np.array(gradient_term)
+            master_grad[:l_hessian.shape[0]] = -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers)
             master_grad[l_hessian.shape[0]:] = -l_constraints
             try:
                 step = np.linalg.solve(master_hess, master_grad)
             except np.linalg.LinAlgError:
                 print(cur_conds)
                 raise
+            l_multipliers += np.array(step[num_vars:])
+            np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
+            if np.any(np.isnan(l_multipliers)):
+                print('Invalid l_multipliers after recalculation', l_multipliers)
+                l_multipliers[:] = 0
+            if verbose:
+                print('NEW_L_MULTIPLIERS', l_multipliers)
             for sfidx in range(site_fracs.shape[0]):
                 site_fracs[sfidx] = min(max(site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
             for pfidx in range(phase_fracs.shape[0]):
@@ -449,15 +457,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 for comp_idx in range(total_comp.shape[0]):
                     total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
                 dof_idx += compset.phase_record.phase_dof
-            l_multipliers = np.array(step[num_vars:])
-            np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
-            if np.any(np.isnan(l_multipliers)):
-                print('Invalid l_multipliers after recalculation', l_multipliers)
-                l_multipliers[:] = 0
-            if verbose:
-                print('NEW_L_MULTIPLIERS', l_multipliers)
             vmax = np.max(np.abs(l_constraints))
-            num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
             chemical_potentials[:] = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
                                                    sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals] / obj_weight
 
@@ -540,6 +540,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print('Increasing objective weight to force convergence')
             vmax_averages[cur_iter % vmax_window_size] = vmax
+            obj_weight = 1
 
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
