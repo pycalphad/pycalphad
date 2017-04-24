@@ -5,6 +5,7 @@ cimport cython
 cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
+import collections
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
@@ -21,7 +22,7 @@ MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 INITIAL_OBJECTIVE_WEIGHT = 1
 
 
-cdef bint remove_degenerate_phases(object composition_sets, bint allow_negative_fractions, bint verbose):
+cdef bint remove_degenerate_phases(object composition_sets, removed_compsets, bint allow_negative_fractions, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -90,13 +91,15 @@ cdef bint remove_degenerate_phases(object composition_sets, bint allow_negative_
     for idx in entries_to_delete:
         if verbose:
             print('Removing ' + repr(composition_sets[idx]))
+        removed_compsets.append(composition_sets[idx])
         del composition_sets[idx]
     if len(entries_to_delete) > 0:
         return True
     else:
         return False
 
-cdef bint add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials, minimum_df, verbose):
+cdef bint add_new_phases(composition_sets, removed_compsets, phase_records, current_grid,
+                         chemical_potentials, minimum_df, verbose):
     cdef double[:] driving_forces
     cdef int df_idx = 0
     cdef double largest_df = -np.inf
@@ -107,6 +110,23 @@ cdef bint add_new_phases(composition_sets, phase_records, current_grid, chemical
     driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
     for i in range(driving_forces.shape[0]):
         if driving_forces[i] > largest_df:
+            df_comp = current_grid.Y.values[i]
+            df_phase_name = <unicode>str(current_grid.Phase.values[i])
+            distinct = True
+            for compset in removed_compsets:
+                if df_phase_name != compset.phase_record.phase_name:
+                    continue
+                distinct = False
+                for comp_idx in range(compset.phase_record.phase_dof):
+                    if abs(df_comp[comp_idx] - compset.dof[2+comp_idx]) > COMP_DIFFERENCE_TOL:
+                        distinct = True
+                        break
+                if not distinct:
+                    break
+            if not distinct:
+                if verbose:
+                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct from previously removed phase')
+                continue
             largest_df = driving_forces[i]
             df_idx = i
     if largest_df > minimum_df:
@@ -345,6 +365,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         else:
             raise ValueError('Number of dependent components different from one')
         composition_sets = []
+        removed_compsets = collections.deque(maxlen=6)
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
@@ -376,8 +397,10 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                     minimum_df = -10
                 else:
                     minimum_df = 0
-                changed_phases |= add_new_phases(composition_sets, phase_records, current_grid, chemical_potentials, minimum_df, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, allow_negative_fractions, verbose)
+                changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
+                                                 current_grid, chemical_potentials, minimum_df, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets,
+                                                       allow_negative_fractions, verbose)
             num_phases = len(composition_sets)
             total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
             if num_phases == 0:
