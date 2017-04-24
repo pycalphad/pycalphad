@@ -251,3 +251,13 @@ def test_eq_issue62_last_component_not_va():
     """
     equilibrium(Database(test_tdb), ['AL', 'CO', 'CR', 'W', 'VA'], ['FCC_A1'],
                 {"T": 1248, "P": 101325, v.X("AL"): 0.081, v.X("CR"): 0.020, v.X("W"): 0.094})
+
+
+def test_eq_avoid_phase_cycling():
+    """
+    Converge without getting stuck in an add/remove phase cycle.
+    """
+    # This set of conditions is known to trigger the issue
+    my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
+    equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
+                                                               v.T: 1600, v.P: 101325}, verbose=True)
