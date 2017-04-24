@@ -118,14 +118,14 @@ cdef bint add_new_phases(composition_sets, removed_compsets, phase_records, curr
                     continue
                 distinct = False
                 for comp_idx in range(compset.phase_record.phase_dof):
-                    if abs(df_comp[comp_idx] - compset.dof[2+comp_idx]) > COMP_DIFFERENCE_TOL:
+                    if abs(df_comp[comp_idx] - compset.dof[2+comp_idx]) > 10*COMP_DIFFERENCE_TOL:
                         distinct = True
                         break
                 if not distinct:
                     break
             if not distinct:
                 if verbose:
-                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct from previously removed phase')
+                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(compset.X)) + ' is not distinct from previously removed phase')
                 continue
             largest_df = driving_forces[i]
             df_idx = i
