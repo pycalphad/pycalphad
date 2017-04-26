@@ -8,7 +8,7 @@ import scipy.spatial
 import collections
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
-from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
+from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, MIN_PHASE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
 # Maximum residual driving force (J/mol-atom) allowed for convergence
@@ -55,22 +55,26 @@ cdef bint remove_degenerate_phases(object composition_sets, removed_compsets, bi
             # Phase is unique
             continue
         # All composition sets should have the same X shape (same number of possible components)
-        comp_matrix = np.empty((np.max(indices)+1, composition_sets[0].X.shape[0]))
+        comp_matrix = np.full((len(composition_sets), composition_sets[0].X.shape[0]), np.inf)
         # The reason we don't do this based on Y fractions is because
         # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
-        for idx in range(indices.shape[0]):
-            compset = composition_sets[indices[idx]]
-            comp_matrix[indices[idx], :] = compset.X
+        for idx in indices:
+            compset = composition_sets[idx]
+            comp_matrix[idx, :] = compset.X
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
+        for idx in range(comp_distances.shape[0]):
+            if idx not in indices:
+                comp_distances[idx,:] = np.inf
+                comp_distances[:,idx] = np.inf
         redundant_phases = set()
         redundant_phases |= {indices[0]}
-        for i in range(len(indices)):
-            for j in range(i, len(indices)):
+        for i in range(comp_distances.shape[0]):
+            for j in range(i, comp_distances.shape[0]):
                 if i == j:
                     continue
                 if comp_distances[i, j] < COMP_DIFFERENCE_TOL:
-                    redundant_phases |= {indices[i], indices[j]}
+                    redundant_phases |= {i, j}
         redundant_phases = sorted(redundant_phases)
         kept_phase = redundant_phases[0]
         removed_phases = redundant_phases[1:]
@@ -80,10 +84,10 @@ cdef bint remove_degenerate_phases(object composition_sets, removed_compsets, bi
             composition_sets[kept_phase].NP += composition_sets[redundant].NP
             composition_sets[redundant].NP = np.nan
     for phase_idx in range(num_phases):
-        if (composition_sets[phase_idx].NP <= MIN_SITE_FRACTION) and (not allow_negative_fractions):
+        if (composition_sets[phase_idx].NP <= MIN_PHASE_FRACTION) and (not allow_negative_fractions):
             composition_sets[phase_idx].NP = np.nan
-        elif abs(composition_sets[phase_idx].NP) <= MIN_SITE_FRACTION:
-            composition_sets[phase_idx].NP = MIN_SITE_FRACTION
+        elif abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
+            composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
 
 
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
