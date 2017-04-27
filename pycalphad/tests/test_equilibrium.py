@@ -261,3 +261,15 @@ def test_eq_avoid_phase_cycling():
     my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases_alfe, {v.X('AL'): 0.44,
                                                                v.T: 1600, v.P: 101325}, verbose=True)
+
+def test_eq_issue76_dilute_potentials():
+    """
+    Convergence for two-phase mixtures at dilute composition (gh-76).
+    """
+    my_phases = ['LIQUID', 'FCC_A1']
+    Tvector = np.arange(900.0, 950.0, 1.0)
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], my_phases,
+                     {v.X('FE'): 1.5e-3, v.T: Tvector, v.P: 101325}, verbose=True)
+    # Spot check at one temperature, plus monotonic decrease of chemical potential
+    np.testing.assert_allclose(eq.GM.sel(T=930, P=101325).values, -37799.510894)
+    assert np.all(np.diff(eq.MU.sel(component='FE').values <= 0))
