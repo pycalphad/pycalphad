@@ -477,7 +477,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if driving_force - old_driving_force < 0 or (vmax - old_vmax <= -MIN_SITE_FRACTION):
+                if driving_force - old_driving_force < 1 or (vmax - old_vmax <= -MIN_SITE_FRACTION):
                     break
             if verbose:
                 print('alpha', alpha)
