@@ -155,7 +155,6 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
         int var_idx, subl_index
         PhaseRecord inst
     inst = PhaseRecord()
-    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
     inst.phase_dof = 0
@@ -173,6 +172,7 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
     for variable in variables:
         if not isinstance(variable, v.SiteFraction):
             continue
+        inst.phase_name = <unicode>variable.phase_name
         subl_index = variable.sublattice_index
         species = variable.species
         comp_index = comps.index(species)
@@ -199,9 +199,13 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
 def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
                                  vacancy_index, ofunc, gfunc, hfunc):
     inst = PhaseRecord()
-    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
+    for variable in variables:
+        if not isinstance(variable, v.SiteFraction):
+            continue
+        inst.phase_name = <unicode>variable.phase_name
+        break
     inst.phase_dof = 0
     inst.sublattice_dof = sublattice_dof
     inst.parameters = parameters
