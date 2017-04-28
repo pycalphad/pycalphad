@@ -6,7 +6,7 @@ correct solution for thermodynamic equilibrium.
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
+from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -273,3 +273,11 @@ def test_eq_issue76_dilute_potentials():
     # Spot check at one temperature, plus monotonic decrease of chemical potential
     np.testing.assert_allclose(eq.GM.sel(T=930, P=101325).values, -37799.510894)
     assert np.all(np.diff(eq.MU.sel(component='FE').values <= 0))
+
+def test_eq_model_phase_name():
+    """
+    Phase name is set in PhaseRecord when using Model-based JIT compilation.
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
+                     {v.X('FE'): 0.3, v.T: 1000, v.P: 101325}, model=Model)
+    assert eq.Phase.sel(vertex=0).isel(T=0, P=0, X_FE=0) == 'LIQUID'
