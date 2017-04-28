@@ -12,7 +12,7 @@ from pycalphad.core.sympydiff_utils import build_functions as compiled_build_fun
 from pycalphad.core.phase_rec import PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.eqsolver import _solve_eq_at_conditions, _compute_constraints
+from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
 import dask
 from dask import delayed
@@ -156,7 +156,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
                 scheduler=dask.async.get_sync,
-                parameters=None, compute_constraints=_compute_constraints, **kwargs):
+                parameters=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -337,13 +337,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                              list(str_conds.keys()), verbose, diagnostic, compute_constraints)
+                                                              list(str_conds.keys()), verbose)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                 list(str_conds.keys()), verbose, diagnostic, compute_constraints)
+                                                                 list(str_conds.keys()), verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]
