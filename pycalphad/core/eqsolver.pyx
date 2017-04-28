@@ -6,7 +6,7 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 from pycalphad.core.composition_set cimport CompositionSet
-from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
+from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
@@ -293,7 +293,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord_from_f2py(comps, value.variables, np.array(value.num_sites, dtype=np.float),
+            phase_records[key] = PhaseRecord_from_cython(comps, value.variables, np.array(value.num_sites, dtype=np.float),
                                                        value.parameters, value.obj, value.grad, value.hess)
     # Factored out via profiling
     prop_MU_values = properties['MU'].values

@@ -9,7 +9,7 @@ from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
-from pycalphad.core.phase_rec import PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
+from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions, _compute_constraints
@@ -272,7 +272,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 if hess_callable_dict.get(name, None) is None:
                     hess_callable_dict[name] = hf
 
-            phase_records[name.upper()] = PhaseRecord_from_f2py(comps, variables,
+            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
                                                                 np.array(dbf.phases[name].sublattices, dtype=np.float),
                                                                 param_values, callable_dict[name],
                                                                 grad_callable_dict[name], hess_callable_dict[name])

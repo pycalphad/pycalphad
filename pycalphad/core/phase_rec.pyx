@@ -6,7 +6,7 @@ from pycalphad.core.compiled_model cimport CompiledModel
 import pycalphad.variables as v
 
 # From https://gist.github.com/pv/5437087
-cdef void* f2py_pointer(obj):
+cdef void* cython_pointer(obj):
     if PyCapsule_CheckExact(obj):
         return PyCapsule_GetPointer(obj, NULL);
     raise ValueError("Not an object containing a void ptr")
@@ -17,7 +17,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self.cmpmdl is not None:
             return PhaseRecord_from_compiledmodel, (self.cmpmdl, np.asarray(self.parameters))
         else:
-            return PhaseRecord_from_f2py_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
+            return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
                                                   self.parameters, self.num_sites, self.composition_matrices,
                                                   self.vacancy_index, self._ofunc, self._gfunc, self._hfunc)
 
@@ -149,7 +149,7 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     inst._hess = NULL
     return inst
 
-cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[::1] num_sites, double[::1] parameters,
+cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
               object ofunc, object gfunc, object hfunc):
     cdef:
         int var_idx, subl_index
@@ -185,18 +185,18 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
     if ofunc is not None:
         inst._ofunc = ofunc
         ofunc.kernel
-        inst._obj = <func_t*> f2py_pointer(ofunc._cpointer)
+        inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
     if gfunc is not None:
         inst._gfunc = gfunc
         gfunc.kernel
-        inst._grad = <func_novec_t*> f2py_pointer(gfunc._cpointer)
+        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
     if hfunc is not None:
         inst._hfunc = hfunc
         hfunc.kernel
-        inst._hess = <func_novec_t*> f2py_pointer(hfunc._cpointer)
+        inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
     return inst
 
-def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
+def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
                                  vacancy_index, ofunc, gfunc, hfunc):
     inst = PhaseRecord()
     # XXX: Missing inst.phase_name
@@ -212,11 +212,11 @@ def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameter
     # Trigger lazy computation
     if ofunc is not None:
         ofunc.kernel
-        inst._obj = <func_t*> f2py_pointer(ofunc._cpointer)
+        inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
     if gfunc is not None:
         gfunc.kernel
-        inst._grad = <func_novec_t*> f2py_pointer(gfunc._cpointer)
+        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
     if hfunc is not None:
         hfunc.kernel
-        inst._hess = <func_novec_t*> f2py_pointer(hfunc._cpointer)
+        inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
     return inst
