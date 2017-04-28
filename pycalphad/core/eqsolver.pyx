@@ -211,7 +211,7 @@ def _compute_constraints(object composition_sets, object comps, object cur_conds
 @cython.boundscheck(False)
 @cython.wraparound(False)
 cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=np.float64_t] l_constraints,
-                              np.ndarray[ndim=1, dtype=np.float64_t] constraint_jac,
+                              np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac,
                               np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
                               np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers):
     cdef CompositionSet compset
