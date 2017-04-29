@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.g864c668 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.g864c668 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.53.gcae7953
+                0+untagged.53.g864c668
               </div>
             
           
@@ -173,7 +173,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.lower_convex_hull</span> <span class="k">import</span> <span class="n">lower_convex_hull</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.sympydiff_utils</span> <span class="k">import</span> <span class="n">build_functions</span> <span class="k">as</span> <span class="n">compiled_build_functions</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord_from_cython</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
@@ -436,7 +436,7 @@
                 <span class="k">if</span> <span class="n">hess_callable_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">hess_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf</span>
 
-            <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span>
+            <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord_from_cython</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span>
                                                                 <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
                                                                 <span class="n">param_values</span><span class="p">,</span> <span class="n">callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span>
                                                                 <span class="n">grad_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">],</span> <span class="n">hess_callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">])</span>
@@ -573,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.53.gcae7953',
+            VERSION:'0+untagged.53.g864c668',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

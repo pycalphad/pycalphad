@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.sympydiff_utils &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
+  <title>pycalphad.core.sympydiff_utils &mdash; pycalphad 0+untagged.53.g864c668 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.g864c668 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.53.gcae7953
+                0+untagged.53.g864c668
               </div>
             
           
@@ -196,6 +196,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpointer</span> <span class="o">=</span> <span class="kc">None</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -228,7 +229,7 @@
     <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># Explicitly drop the compiled function when pickling</span>
         <span class="c1"># The architecture of the unpickling machine may be incompatible with it</span>
-        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">!=</span> <span class="s1">&#39;_kernel&#39;</span><span class="p">}</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_kernel&#39;</span><span class="p">,</span> <span class="s1">&#39;_cpointer&#39;</span><span class="p">]}</span>
 
     <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="kc">None</span>
@@ -239,9 +240,7 @@
 <div class="viewcode-block" id="AutowrapFunction"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.AutowrapFunction">[docs]</a><span class="k">class</span> <span class="nc">AutowrapFunction</span><span class="p">(</span><span class="n">PickleableFunction</span><span class="p">):</span>
 <div class="viewcode-block" id="AutowrapFunction.compile"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.AutowrapFunction.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyobj</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyvars</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;f2py&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s1">&#39;F95&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">module_name</span><span class="p">)</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">routine_name</span><span class="p">)</span>
+            <span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpointer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyobj</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyvars</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;Cython&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span></div></div>
 
 
@@ -290,7 +289,7 @@
     <span class="n">args_with_indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">args_nobroadcast</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">indx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)):</span>
-        <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="n">i</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
+        <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
         <span class="n">args_nobroadcast</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp_nobroadcast</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">indx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)):</span>
         <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
@@ -362,7 +361,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.53.gcae7953',
+            VERSION:'0+untagged.53.g864c668',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

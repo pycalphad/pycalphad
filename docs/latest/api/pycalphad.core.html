@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.g864c668 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.g864c668 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.53.gcae7953
+                0+untagged.53.g864c668
               </div>
             
           
@@ -189,20 +189,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pycalphad.core.autograd_utils">
-<span id="pycalphad-core-autograd-utils-module"></span><h2>pycalphad.core.autograd_utils module<a class="headerlink" href="#module-pycalphad.core.autograd_utils" title="Permalink to this headline">¶</a></h2>
-<p>This module manages interactions with the autograd library.</p>
-<dl class="function">
-<dt id="pycalphad.core.autograd_utils.build_functions">
-<code class="descclassname">pycalphad.core.autograd_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/autograd_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.autograd_utils.build_functions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.core.autograd_utils.elementwise_hess">
-<code class="descclassname">pycalphad.core.autograd_utils.</code><code class="descname">elementwise_hess</code><span class="sig-paren">(</span><em>fun</em>, <em>argnum=0</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/autograd_utils.html#elementwise_hess"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.autograd_utils.elementwise_hess" title="Permalink to this definition">¶</a></dt>
-<dd><p>From <a class="reference external" href="https://github.com/HIPS/autograd/issues/60">https://github.com/HIPS/autograd/issues/60</a></p>
-</dd></dl>
-
+<div class="section" id="pycalphad-core-autograd-utils-module">
+<h2>pycalphad.core.autograd_utils module<a class="headerlink" href="#pycalphad-core-autograd-utils-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.core.cache">
 <span id="pycalphad-core-cache-module"></span><h2>pycalphad.core.cache module<a class="headerlink" href="#module-pycalphad.core.cache" title="Permalink to this headline">¶</a></h2>
@@ -608,6 +596,14 @@ tempdir=&#8221;path/to/files/&#8221;.</li>
 don&#8217;t need the binaries for another project.</li>
 </ol>
 </div></blockquote>
+<dl class="class">
+<dt id="pycalphad.core.custom_autowrap.C89CodePrinter">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">C89CodePrinter</code><span class="sig-paren">(</span><em>settings={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#C89CodePrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.C89CodePrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.ccode.CCodePrinter</span></code></p>
+<p>C89-compatible code printing allows for Windows compatibility.
+(MSVC 14 and newer support C99, but we are going for broad compatibility.)</p>
+</dd></dl>
+
 <dl class="exception">
 <dt id="pycalphad.core.custom_autowrap.CodeWrapError">
 <em class="property">exception </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CodeWrapError</code><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CodeWrapError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CodeWrapError" title="Permalink to this definition">¶</a></dt>
@@ -615,34 +611,99 @@ don&#8217;t need the binaries for another project.</li>
 </dd></dl>
 
 <dl class="class">
-<dt id="pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper">
-<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">ThreadSafeF2PyCodeWrapper</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeF2PyCodeWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.autowrap.F2PyCodeWrapper</span></code></p>
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CustomCCodeGen</code><span class="sig-paren">(</span><em>project='project'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.codegen.CCodeGen</span></code></p>
 <dl class="attribute">
-<dt id="pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.command">
-<code class="descname">command</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.command" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.filename">
-<code class="descname">filename</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.filename" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.module_name">
-<code class="descname">module_name</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.module_name" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns">
+<code class="descname">dump_fns</code><em class="property"> = [&lt;function CCodeGen.dump_c&gt;, &lt;function CustomCCodeGen.dump_h&gt;]</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.wrap_code">
-<code class="descname">wrap_code</code><span class="sig-paren">(</span><em>routine</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeF2PyCodeWrapper.wrap_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.wrap_code" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.dump_h">
+<code class="descname">dump_h</code><span class="sig-paren">(</span><em>routines</em>, <em>f</em>, <em>prefix</em>, <em>header=True</em>, <em>empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen.dump_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the C header file.</p>
+<p>This file contains all the function declarations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>routines</strong> (<em>list</em>) &#8211; A list of Routine instances.</li>
+<li><strong>f</strong> (<em>file-like</em>) &#8211; Where to write the file.</li>
+<li><strong>prefix</strong> (<em>string</em>) &#8211; The filename prefix, used to construct the include guards.
+Only the basename of the prefix is used.</li>
+<li><strong>header</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; When True, a header comment is included on top of each source
+file.  [default : True]</li>
+<li><strong>empty</strong> (<em>bool</em><em>, </em><em>optional</em>) &#8211; When True, empty lines are included to structure the source
+files.  [default : True]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype">
+<code class="descname">get_prototype</code><span class="sig-paren">(</span><em>routine</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen.get_prototype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string for the function prototype of the routine.</p>
+<p>If the routine has multiple result objects, an CodeGenError is
+raised.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Function_prototype">http://en.wikipedia.org/wiki/Function_prototype</a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">ThreadSafeCythonCodeWrapper</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeCythonCodeWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.autowrap.CythonCodeWrapper</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command">
+<code class="descname">command</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.filename">
+<code class="descname">filename</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name">
+<code class="descname">module_name</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func">
+<code class="descname">pyx_func</code><em class="property"> = 'def {name}_c({arg_string}):\n\n{declarations}{body}\ndef get_pointer_c():\n    return PyCapsule_New(&lt;void*&gt;{name}, NULL, NULL)\n'</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header">
+<code class="descname">pyx_header</code><em class="property"> = &quot;cdef extern from '{header_file}.h':\n    {prototype}\n\n&quot;</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports">
+<code class="descname">pyx_imports</code><em class="property"> = 'import numpy as np\ncimport numpy as np\nfrom cpython cimport PyCapsule_New\n\n'</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template">
+<code class="descname">setup_template</code><em class="property"> = &quot;from distutils.core import setup\nfrom distutils.extension import Extension\nfrom Cython.Distutils import build_ext\n{np_import}\nsetup(\n    cmdclass = {{'build_ext': build_ext}},\n    ext_modules = [Extension({ext_args},\n                             extra_compile_args=['-std=c99'])],\n{np_includes}        )&quot;</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code">
+<code class="descname">wrap_code</code><span class="sig-paren">(</span><em>routine</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeCythonCodeWrapper.wrap_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </dd></dl>
 
 <dl class="function">
 <dt id="pycalphad.core.custom_autowrap.autowrap">
-<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">autowrap</code><span class="sig-paren">(</span><em>expr</em>, <em>language=None</em>, <em>backend='f2py'</em>, <em>tempdir=None</em>, <em>args=None</em>, <em>flags=None</em>, <em>verbose=False</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#autowrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.autowrap" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">autowrap</code><span class="sig-paren">(</span><em>expr</em>, <em>language=None</em>, <em>backend='Cython'</em>, <em>tempdir=None</em>, <em>args=None</em>, <em>flags=None</em>, <em>verbose=False</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#autowrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.autowrap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates python callable binaries based on the math expression.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -653,8 +714,8 @@ don&#8217;t need the binaries for another project.</li>
 <li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; If supplied, (options: &#8216;C&#8217; or &#8216;F95&#8217;), specifies the language of the
 generated code. If <code class="docutils literal"><span class="pre">None</span></code> [default], the language is inferred based
 upon the specified backend.</li>
-<li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; Backend used to wrap the generated code. Either &#8216;f2py&#8217; [default],
-or &#8216;cython&#8217;.</li>
+<li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; Backend used to wrap the generated code. Either &#8216;f2py&#8217;,
+or &#8216;cython&#8217; [default].</li>
 <li><strong>tempdir</strong> (<em>string</em><em>, </em><em>optional</em>) &#8211; Path to directory for temporary files. If this argument is supplied,
 the generated code and the wrapper input files are left intact in the
 specified path.</li>
@@ -715,7 +776,7 @@ with implemented_function().</p>
 
 <dl class="function">
 <dt id="pycalphad.core.custom_autowrap.make_routine">
-<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">make_routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence=None</em>, <em>global_vars=None</em>, <em>language='F95'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#make_routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.make_routine" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">make_routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence=None</em>, <em>global_vars=None</em>, <em>language='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#make_routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.make_routine" title="Permalink to this definition">¶</a></dt>
 <dd><p>A factory that makes an appropriate Routine from an expression.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -794,40 +855,8 @@ automatically-assigned names.  Also has Matrix output.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-pycalphad.core.custom_codegen">
-<span id="pycalphad-core-custom-codegen-module"></span><h2>pycalphad.core.custom_codegen module<a class="headerlink" href="#module-pycalphad.core.custom_codegen" title="Permalink to this headline">¶</a></h2>
-<p>This module contains a patched version of sympy&#8217;s CCodeGen to optimize the code printing.</p>
-<dl class="class">
-<dt id="pycalphad.core.custom_codegen.FCodeGen">
-<em class="property">class </em><code class="descclassname">pycalphad.core.custom_codegen.</code><code class="descname">FCodeGen</code><span class="sig-paren">(</span><em>project='project'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_codegen.html#FCodeGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_codegen.FCodeGen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.codegen.FCodeGen</span></code></p>
-<p>Generator for Fortran 95 code</p>
-<p>The .write() method inherited from CodeGen will output a code file and
-an interface file, &lt;prefix&gt;.f90 and &lt;prefix&gt;.h respectively.</p>
-<dl class="method">
-<dt id="pycalphad.core.custom_codegen.FCodeGen.routine">
-<code class="descname">routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence</em>, <em>global_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_codegen.html#FCodeGen.routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_codegen.FCodeGen.routine" title="Permalink to this definition">¶</a></dt>
-<dd><p>Creates an Routine object that is appropriate for this language.</p>
-<p>This implementation is appropriate for at least C/Fortran.  Subclasses
-can override this if necessary.</p>
-<p>Here, we assume at most one return value (the l-value) which must be
-scalar.  Additional outputs are OutputArguments (e.g., pointers on
-right-hand-side or pass-by-reference).  Matrices are always returned
-via OutputArguments.  If <code class="docutils literal"><span class="pre">argument_sequence</span></code> is None, arguments will
-be ordered alphabetically, but with all InputArguments first, and then
-OutputArgument and InOutArguments.</p>
-<p>Note: All this code had to be copied to make a one-line change
-to how the hashing for output arguments is performed.</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="class">
-<dt id="pycalphad.core.custom_codegen.FCodePrinter">
-<em class="property">class </em><code class="descclassname">pycalphad.core.custom_codegen.</code><code class="descname">FCodePrinter</code><span class="sig-paren">(</span><em>settings={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_codegen.html#FCodePrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_codegen.FCodePrinter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.fcode.FCodePrinter</span></code></p>
-</dd></dl>
-
+<div class="section" id="pycalphad-core-custom-codegen-module">
+<h2>pycalphad.core.custom_codegen module<a class="headerlink" href="#pycalphad-core-custom-codegen-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.core.eqresult">
 <span id="pycalphad-core-eqresult-module"></span><h2>pycalphad.core.eqresult module<a class="headerlink" href="#module-pycalphad.core.eqresult" title="Permalink to this headline">¶</a></h2>
@@ -1171,13 +1200,13 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="pycalphad.core.phase_rec.PhaseRecord_from_f2py">
-<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_f2py</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_f2py" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython">
+<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="function">
-<dt id="pycalphad.core.phase_rec.PhaseRecord_from_f2py_pickle">
-<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_f2py_pickle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_f2py_pickle" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle">
+<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython_pickle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -1511,7 +1540,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.53.gcae7953',
+            VERSION:'0+untagged.53.g864c668',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

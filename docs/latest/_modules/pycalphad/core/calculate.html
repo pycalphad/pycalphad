@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0+untagged.53.g864c668 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.g864c668 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.53.gcae7953
+                0+untagged.53.g864c668
               </div>
             
           
@@ -174,7 +174,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">endmember_matrix</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">broadcast_to</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span><span class="p">,</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span><span class="p">,</span> <span class="n">PhaseRecord_from_cython</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
@@ -440,8 +440,8 @@
     <span class="c1"># we need to force broadcasting and flatten the result before calling</span>
     <span class="n">bc_statevars</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">statevars</span><span class="p">]</span>
     <span class="n">pts</span> <span class="o">=</span> <span class="n">points</span><span class="o">.</span><span class="n">reshape</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span><span class="o">.</span><span class="n">T</span>
-    <span class="n">dof</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asfortranarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">bc_statevars</span><span class="p">,</span> <span class="n">pts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
-    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dof</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+    <span class="n">dof</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">bc_statevars</span><span class="p">,</span> <span class="n">pts</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="n">phase_output</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ascontiguousarray</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="n">dof</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]))</span>
     <span class="n">prn</span><span class="o">.</span><span class="n">obj</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">dof</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="nb">int</span><span class="p">)):</span>
         <span class="n">phase_output</span> <span class="o">=</span> <span class="n">broadcast_to</span><span class="p">(</span><span class="n">phase_output</span><span class="p">,</span> <span class="n">points</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
@@ -646,7 +646,7 @@
                                                         <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callable_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span>
-            <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
+            <span class="n">prn</span> <span class="o">=</span> <span class="n">PhaseRecord_from_cython</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
                                         <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
                                         <span class="n">param_values</span><span class="p">,</span> <span class="n">comp_sets</span><span class="p">[</span><span class="n">phase_name</span><span class="p">],</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
@@ -711,7 +711,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.53.gcae7953',
+            VERSION:'0+untagged.53.g864c668',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0+untagged.53.g864c668 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.g864c668 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.53.gcae7953
+                0+untagged.53.g864c668
               </div>
             
           
@@ -227,14 +227,15 @@
 <span class="sd">       don&#39;t need the binaries for another project.</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="n">iterable</span>
-<span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">OutputArgument</span><span class="p">,</span>
-                                     <span class="n">CodeGenArgumentListError</span><span class="p">,</span>
-                                     <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">JuliaCodeGen</span><span class="p">,</span> <span class="n">OctaveCodeGen</span><span class="p">)</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.custom_codegen</span> <span class="k">import</span> <span class="n">FCodeGen</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">AssignmentError</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">,</span>
+                                     <span class="n">Result</span><span class="p">,</span> <span class="n">CodeGenArgumentListError</span><span class="p">,</span>
+                                     <span class="n">CCodePrinter</span><span class="p">,</span> <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">implemented_function</span>
-<span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">F2PyCodeWrapper</span><span class="p">,</span> <span class="n">CythonCodeWrapper</span><span class="p">,</span> <span class="n">DummyWrapper</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">CythonCodeWrapper</span><span class="p">,</span> <span class="n">DummyWrapper</span>
 <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">STDOUT</span><span class="p">,</span> <span class="n">CalledProcessError</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.ccode</span> <span class="k">import</span> <span class="n">ccode</span>
 <span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="n">check_output</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
@@ -246,8 +247,6 @@
 <span class="c1"># tuple is of length 1, but if a backend supports more than one language,</span>
 <span class="c1"># the most preferable language is listed first.</span>
 <span class="n">_lang_lookup</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CYTHON&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,),</span>
-                <span class="s1">&#39;F2PY&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;F95&#39;</span><span class="p">,),</span>
-                <span class="s1">&#39;NUMPY&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">,),</span>
                 <span class="s1">&#39;DUMMY&#39;</span><span class="p">:</span> <span class="p">(</span><span class="s1">&#39;F95&#39;</span><span class="p">,)}</span>     <span class="c1"># Dummy here just for testing</span>
 
 
@@ -265,7 +264,7 @@
     <span class="c1"># Blacklist fixes gh-65.</span>
     <span class="c1"># We filter out any files that can be created by compilers which are not our actual compiled file.</span>
     <span class="c1"># We cannot more directly search for our files because of differing platforms.</span>
-    <span class="n">blacklist</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dSYM&#39;</span><span class="p">]</span>
+    <span class="n">blacklist</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;dSYM&#39;</span><span class="p">,</span> <span class="s1">&#39;c&#39;</span><span class="p">,</span> <span class="s1">&#39;pyx&#39;</span><span class="p">]</span>
     <span class="n">npath</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">npath</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;.&#39;</span><span class="p">)[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">blacklist</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">npath</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">npath</span> <span class="o">=</span> <span class="n">npath</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -291,58 +290,277 @@
 <div class="viewcode-block" id="CodeWrapError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CodeWrapError">[docs]</a><span class="k">class</span> <span class="nc">CodeWrapError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="k">pass</span></div>
 
+<div class="viewcode-block" id="C89CodePrinter"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.C89CodePrinter">[docs]</a><span class="k">class</span> <span class="nc">C89CodePrinter</span><span class="p">(</span><span class="n">CCodePrinter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    C89-compatible code printing allows for Windows compatibility.</span>
+<span class="sd">    (MSVC 14 and newer support C99, but we are going for broad compatibility.)</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_get_loop_opening_ending</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
+        <span class="c1"># The purpose is to enable C89-compliant loops (indices are pre-declared)</span>
+        <span class="n">open_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">close_lines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">loopstart</span> <span class="o">=</span> <span class="s2">&quot;for (</span><span class="si">%(var)s</span><span class="s2">=</span><span class="si">%(start)s</span><span class="s2">; </span><span class="si">%(var)s</span><span class="s2">&lt;</span><span class="si">%(end)s</span><span class="s2">; </span><span class="si">%(var)s</span><span class="s2">++){&quot;</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">indices</span><span class="p">:</span>
+            <span class="c1"># C arrays start at 0 and end at dimension-1</span>
+            <span class="n">open_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">loopstart</span> <span class="o">%</span> <span class="p">{</span>
+                <span class="s1">&#39;var&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">label</span><span class="p">),</span>
+                <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">),</span>
+                <span class="s1">&#39;end&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)})</span>
+            <span class="n">close_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">open_lines</span><span class="p">,</span> <span class="n">close_lines</span></div>
 
-<div class="viewcode-block" id="ThreadSafeF2PyCodeWrapper"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper">[docs]</a><span class="k">class</span> <span class="nc">ThreadSafeF2PyCodeWrapper</span><span class="p">(</span><span class="n">F2PyCodeWrapper</span><span class="p">):</span>
+<div class="viewcode-block" id="CustomCCodeGen"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen">[docs]</a><span class="k">class</span> <span class="nc">CustomCCodeGen</span><span class="p">(</span><span class="n">CCodeGen</span><span class="p">):</span>
+<div class="viewcode-block" id="CustomCCodeGen.get_prototype"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype">[docs]</a>    <span class="k">def</span> <span class="nf">get_prototype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Returns a string for the function prototype of the routine.</span>
+
+<span class="sd">        If the routine has multiple result objects, an CodeGenError is</span>
+<span class="sd">        raised.</span>
+
+<span class="sd">        See: http://en.wikipedia.org/wiki/Function_prototype</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">routine</span><span class="o">.</span><span class="n">results</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">ctype</span> <span class="o">=</span> <span class="n">routine</span><span class="o">.</span><span class="n">results</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ctype</span> <span class="o">=</span> <span class="s2">&quot;void&quot;</span>
+
+        <span class="n">type_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">routine</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="n">name</span> <span class="o">=</span> <span class="n">ccode</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+            <span class="c1"># Hack to make all double-valued arguments into pointers</span>
+            <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">)</span> <span class="ow">or</span> <span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;double&#39;</span><span class="p">:</span>
+                <span class="n">type_args</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="s2">&quot;*</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">type_args</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="n">name</span><span class="p">))</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ctype</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="nf">_declare_locals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
+        <span class="c1"># loop variables are declared at the top to enable C89 support</span>
+        <span class="n">retlines</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">lcv</span> <span class="ow">in</span> <span class="n">routine</span><span class="o">.</span><span class="n">local_vars</span><span class="p">:</span>
+            <span class="n">t</span> <span class="o">=</span> <span class="n">Variable</span><span class="p">(</span><span class="n">lcv</span><span class="p">)</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+            <span class="n">retlines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">lcv</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="k">return</span> <span class="n">retlines</span>
+
+    <span class="k">def</span> <span class="nf">_call_printer</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
+        <span class="n">code_lines</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># Compose a list of symbols to be dereferenced in the function</span>
+        <span class="c1"># body. These are the arguments that were passed by a reference</span>
+        <span class="c1"># pointer, excluding arrays.</span>
+        <span class="n">dereference</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">routine</span><span class="o">.</span><span class="n">arguments</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">dereference</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="n">return_val</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">result</span> <span class="ow">in</span> <span class="n">routine</span><span class="o">.</span><span class="n">result_variables</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">result</span><span class="p">,</span> <span class="n">Result</span><span class="p">):</span>
+                <span class="n">assign_to</span> <span class="o">=</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;_result&quot;</span>
+                <span class="n">t</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+                <span class="n">code_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">assign_to</span><span class="p">)))</span>
+                <span class="n">return_val</span> <span class="o">=</span> <span class="n">assign_to</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">assign_to</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">result_var</span>
+
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">constants</span><span class="p">,</span> <span class="n">not_c</span><span class="p">,</span> <span class="n">c_expr</span> <span class="o">=</span> <span class="n">C89CodePrinter</span><span class="p">({</span><span class="s1">&#39;human&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;dereference&#39;</span><span class="p">:</span> <span class="n">dereference</span><span class="p">})</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">assign_to</span><span class="p">)</span>
+            <span class="k">except</span> <span class="n">AssignmentError</span><span class="p">:</span>
+                <span class="n">assign_to</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">result_var</span>
+                <span class="n">code_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">assign_to</span><span class="p">)))</span>
+                <span class="n">constants</span><span class="p">,</span> <span class="n">not_c</span><span class="p">,</span> <span class="n">c_expr</span> <span class="o">=</span> <span class="n">C89CodePrinter</span><span class="p">({</span><span class="s1">&#39;human&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">,</span> <span class="s1">&#39;dereference&#39;</span><span class="p">:</span> <span class="n">dereference</span><span class="p">})</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span>
+                    <span class="n">result</span><span class="o">.</span><span class="n">expr</span><span class="p">,</span> <span class="n">assign_to</span><span class="p">)</span>
+
+            <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">constants</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+                <span class="n">code_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;double const </span><span class="si">%s</span><span class="s2"> = </span><span class="si">%s</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">value</span><span class="p">))</span>
+            <span class="n">code_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">c_expr</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">return_val</span><span class="p">:</span>
+            <span class="n">code_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;   return </span><span class="si">%s</span><span class="s2">;</span><span class="se">\n</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">return_val</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">code_lines</span>
+
+<div class="viewcode-block" id="CustomCCodeGen.dump_h"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_h">[docs]</a>    <span class="k">def</span> <span class="nf">dump_h</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routines</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">prefix</span><span class="p">,</span> <span class="n">header</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">empty</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Writes the C header file.</span>
+
+<span class="sd">        This file contains all the function declarations.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ==========</span>
+
+<span class="sd">        routines : list</span>
+<span class="sd">            A list of Routine instances.</span>
+
+<span class="sd">        f : file-like</span>
+<span class="sd">            Where to write the file.</span>
+
+<span class="sd">        prefix : string</span>
+<span class="sd">            The filename prefix, used to construct the include guards.</span>
+<span class="sd">            Only the basename of the prefix is used.</span>
+
+<span class="sd">        header : bool, optional</span>
+<span class="sd">            When True, a header comment is included on top of each source</span>
+<span class="sd">            file.  [default : True]</span>
+
+<span class="sd">        empty : bool, optional</span>
+<span class="sd">            When True, empty lines are included to structure the source</span>
+<span class="sd">            files.  [default : True]</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="n">header</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_get_header</span><span class="p">()),</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="n">guard_name</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">__</span><span class="si">%s</span><span class="s2">__H&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">project</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                    <span class="n">prefix</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;/&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\\</span><span class="s2">&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;:&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s2">&quot;-&quot;</span><span class="p">,</span> <span class="s2">&quot;_&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="c1"># include guards</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#ifndef </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guard_name</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#define </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">guard_name</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="c1"># declaration of the function prototypes</span>
+        <span class="k">for</span> <span class="n">routine</span> <span class="ow">in</span> <span class="n">routines</span><span class="p">:</span>
+            <span class="n">prototype</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">get_prototype</span><span class="p">(</span><span class="n">routine</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;</span><span class="si">%s</span><span class="s2">;&quot;</span> <span class="o">%</span> <span class="n">prototype</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="c1"># end if include guards</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#endif&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span></div>
+    <span class="n">dump_h</span><span class="o">.</span><span class="n">extension</span> <span class="o">=</span> <span class="n">CCodeGen</span><span class="o">.</span><span class="n">interface_extension</span>
+
+    <span class="n">dump_fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">CCodeGen</span><span class="o">.</span><span class="n">dump_c</span><span class="p">,</span> <span class="n">dump_h</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="ThreadSafeCythonCodeWrapper"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">[docs]</a><span class="k">class</span> <span class="nc">ThreadSafeCythonCodeWrapper</span><span class="p">(</span><span class="n">CythonCodeWrapper</span><span class="p">):</span>
+    <span class="n">setup_template</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;from distutils.core import setup</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;from distutils.extension import Extension</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;from Cython.Distutils import build_ext</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="si">{np_import}</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;setup(</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    cmdclass = {{&#39;build_ext&#39;: build_ext}},</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    ext_modules = [Extension(</span><span class="si">{ext_args}</span><span class="s2">,</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;                             extra_compile_args=[&#39;-std=c99&#39;])],</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="si">{np_includes}</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;        )&quot;</span><span class="p">)</span>
+
+    <span class="n">pyx_imports</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;import numpy as np</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;cimport numpy as np</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;from cpython cimport PyCapsule_New</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">pyx_header</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;cdef extern from &#39;</span><span class="si">{header_file}</span><span class="s2">.h&#39;:</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    </span><span class="si">{prototype}</span><span class="se">\n\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
+    <span class="n">pyx_func</span> <span class="o">=</span> <span class="p">(</span>
+        <span class="s2">&quot;def </span><span class="si">{name}</span><span class="s2">_c(</span><span class="si">{arg_string}</span><span class="s2">):</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="si">{declarations}</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;</span><span class="si">{body}</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;def get_pointer_c():</span><span class="se">\n</span><span class="s2">&quot;</span>
+        <span class="s2">&quot;    return PyCapsule_New(&lt;void*&gt;</span><span class="si">{name}</span><span class="s2">, NULL, NULL)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+
     <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="nb">super</span><span class="p">(</span><span class="n">ThreadSafeF2PyCodeWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+        <span class="nb">super</span><span class="p">(</span><span class="n">ThreadSafeCythonCodeWrapper</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_module_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span> <span class="ow">or</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="s2">&quot;_sympy_compile&quot;</span><span class="p">)</span>
-
-    <span class="nd">@property</span>
-    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="n">filename</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">)</span> <span class="o">+</span> <span class="s1">&#39;.&#39;</span> <span class="o">+</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">code_extension</span>
-        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;-c&#39;</span><span class="p">,</span> <span class="s1">&#39;-m&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">,</span> <span class="n">filename</span><span class="p">]</span>
-        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="s2">&quot;-c&quot;</span><span class="p">,</span> <span class="s2">&quot;import numpy.f2py as f2py2e;f2py2e.main()&quot;</span><span class="p">]</span><span class="o">+</span><span class="n">args</span>
-        <span class="k">return</span> <span class="n">command</span>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">filename</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_id</span><span class="p">)</span>
 
     <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">command</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">command</span> <span class="o">=</span> <span class="p">[</span><span class="n">sys</span><span class="o">.</span><span class="n">executable</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s2">&quot;setup.py&quot;</span><span class="p">),</span> <span class="s2">&quot;build_ext&quot;</span><span class="p">,</span> <span class="s2">&quot;--build-lib&quot;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">command</span>
+
+    <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">module_name</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">_</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_module_basename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_id</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_prepare_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
+        <span class="n">pyxfilename</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_name</span> <span class="o">+</span> <span class="s1">&#39;.pyx&#39;</span>
+        <span class="n">codefilename</span> <span class="o">=</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">.</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">code_extension</span><span class="p">)</span>
+
+        <span class="c1"># pyx</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">dump_pyx</span><span class="p">([</span><span class="n">routine</span><span class="p">],</span> <span class="n">f</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">))</span>
+
+        <span class="c1"># setup.py</span>
+        <span class="n">ext_args</span> <span class="o">=</span> <span class="p">[</span><span class="nb">repr</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">),</span> <span class="nb">repr</span><span class="p">([</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">pyxfilename</span><span class="p">),</span>
+                                                  <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="n">codefilename</span><span class="p">)])]</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_need_numpy</span><span class="p">:</span>
+            <span class="n">np_import</span> <span class="o">=</span> <span class="s1">&#39;import numpy as np</span><span class="se">\n</span><span class="s1">&#39;</span>
+            <span class="n">np_includes</span> <span class="o">=</span> <span class="s1">&#39;    include_dirs = [np.get_include()],</span><span class="se">\n</span><span class="s1">&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">np_import</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">np_includes</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;setup.py&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
+            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext_args</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ext_args</span><span class="p">),</span>
+                                               <span class="n">np_import</span><span class="o">=</span><span class="n">np_import</span><span class="p">,</span>
+                                               <span class="n">np_includes</span><span class="o">=</span><span class="n">np_includes</span><span class="p">))</span>
 
     <span class="k">def</span> <span class="nf">_process_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
         <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
         <span class="n">command</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">flags</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">retoutput</span> <span class="o">=</span> <span class="n">check_output</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">,</span> <span class="n">cwd</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">)</span>
+            <span class="n">retoutput</span> <span class="o">=</span> <span class="n">check_output</span><span class="p">(</span><span class="n">command</span><span class="p">,</span> <span class="n">stderr</span><span class="o">=</span><span class="n">STDOUT</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">CalledProcessError</span> <span class="k">as</span> <span class="n">e</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">CodeWrapError</span><span class="p">(</span>
                 <span class="s2">&quot;Error while executing command: </span><span class="si">%s</span><span class="s2">. Command output is:</span><span class="se">\n</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span>
                     <span class="s2">&quot; &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">command</span><span class="p">),</span> <span class="n">e</span><span class="o">.</span><span class="n">output</span><span class="o">.</span><span class="n">decode</span><span class="p">()))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">quiet</span><span class="p">:</span>
-            <span class="nb">print</span><span class="p">(</span><span class="n">retoutput</span><span class="p">)</span>
 
-<div class="viewcode-block" id="ThreadSafeF2PyCodeWrapper.wrap_code"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeF2PyCodeWrapper.wrap_code">[docs]</a>    <span class="k">def</span> <span class="nf">wrap_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">_prototype_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+        <span class="n">mat_dec</span> <span class="o">=</span> <span class="s2">&quot;np.ndarray[</span><span class="si">{mtype}</span><span class="s2">, ndim=</span><span class="si">{ndim}</span><span class="s2">] </span><span class="si">{name}</span><span class="s2">&quot;</span>
+        <span class="n">np_types</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;double&#39;</span><span class="p">:</span> <span class="s1">&#39;np.double_t&#39;</span><span class="p">,</span>
+                    <span class="s1">&#39;int&#39;</span><span class="p">:</span> <span class="s1">&#39;np.int_t&#39;</span><span class="p">}</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+        <span class="c1"># Hack to force all doubles to be at least 1-D arrays</span>
+        <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="s1">&#39;double&#39;</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_need_numpy</span> <span class="o">=</span> <span class="kc">True</span>
+            <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span><span class="p">:</span>
+                <span class="n">ndim</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">ndim</span> <span class="o">=</span> <span class="mi">1</span>
+            <span class="n">mtype</span> <span class="o">=</span> <span class="n">np_types</span><span class="p">[</span><span class="n">t</span><span class="p">]</span>
+            <span class="k">return</span> <span class="n">mat_dec</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">mtype</span><span class="o">=</span><span class="n">mtype</span><span class="p">,</span> <span class="n">ndim</span><span class="o">=</span><span class="n">ndim</span><span class="p">,</span> <span class="n">name</span><span class="o">=</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">_call_arg</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">arg</span><span class="p">):</span>
+        <span class="n">t</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;c&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">dimensions</span> <span class="ow">or</span> <span class="n">t</span> <span class="o">==</span> <span class="s1">&#39;double&#39;</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;&lt;</span><span class="si">{0}</span><span class="s2">*&gt; </span><span class="si">{1}</span><span class="s2">.data&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">t</span><span class="p">,</span> <span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">):</span>
+            <span class="k">return</span> <span class="s2">&quot;&amp;</span><span class="si">{0}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+<div class="viewcode-block" id="ThreadSafeCythonCodeWrapper.wrap_code"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code">[docs]</a>    <span class="k">def</span> <span class="nf">wrap_code</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
         <span class="n">helpers</span> <span class="o">=</span> <span class="n">helpers</span> <span class="k">if</span> <span class="n">helpers</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">[]</span>
         <span class="n">workdir</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">filepath</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">os</span><span class="o">.</span><span class="n">access</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">F_OK</span><span class="p">):</span>
             <span class="n">os</span><span class="o">.</span><span class="n">mkdir</span><span class="p">(</span><span class="n">workdir</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">generator</span><span class="o">.</span><span class="n">write</span><span class="p">(</span>
-                <span class="p">[</span><span class="n">routine</span><span class="p">]</span><span class="o">+</span><span class="n">helpers</span><span class="p">,</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_header</span><span class="p">,</span>
+                <span class="p">[</span><span class="n">routine</span><span class="p">]</span><span class="o">+</span><span class="n">helpers</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">filename</span><span class="p">))</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">sep</span><span class="p">,</span> <span class="s1">&#39;/&#39;</span><span class="p">),</span> <span class="kc">True</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">include_header</span><span class="p">,</span>
                 <span class="bp">self</span><span class="o">.</span><span class="n">include_empty</span><span class="p">)</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_files</span><span class="p">(</span><span class="n">routine</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_process_files</span><span class="p">(</span><span class="n">routine</span><span class="p">)</span>
             <span class="n">mod</span> <span class="o">=</span> <span class="n">import_extension</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">)</span>
         <span class="k">finally</span><span class="p">:</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">_module_id</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">uuid</span><span class="o">.</span><span class="n">uuid4</span><span class="p">())</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="p">,</span> <span class="s1">&#39;_&#39;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;get_pointer&#39;</span><span class="p">)(),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">_get_code_wrapper_class</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
-    <span class="n">wrappers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;F2PY&#39;</span><span class="p">:</span> <span class="n">ThreadSafeF2PyCodeWrapper</span><span class="p">,</span> <span class="s1">&#39;CYTHON&#39;</span><span class="p">:</span> <span class="n">CythonCodeWrapper</span><span class="p">,</span>
+    <span class="n">wrappers</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;CYTHON&#39;</span><span class="p">:</span> <span class="n">ThreadSafeCythonCodeWrapper</span><span class="p">,</span>
         <span class="s1">&#39;DUMMY&#39;</span><span class="p">:</span> <span class="n">DummyWrapper</span><span class="p">}</span>
     <span class="k">return</span> <span class="n">wrappers</span><span class="p">[</span><span class="n">backend</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span>
 
@@ -358,15 +576,14 @@
 
 
 <div class="viewcode-block" id="get_code_generator"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.get_code_generator">[docs]</a><span class="k">def</span> <span class="nf">get_code_generator</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
-    <span class="n">CodeGenClass</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="n">CCodeGen</span><span class="p">,</span> <span class="s2">&quot;F95&quot;</span><span class="p">:</span> <span class="n">FCodeGen</span><span class="p">,</span> <span class="s2">&quot;JULIA&quot;</span><span class="p">:</span> <span class="n">JuliaCodeGen</span><span class="p">,</span>
-                    <span class="s2">&quot;OCTAVE&quot;</span><span class="p">:</span> <span class="n">OctaveCodeGen</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="n">CodeGenClass</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="n">CustomCCodeGen</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">CodeGenClass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Language &#39;</span><span class="si">%s</span><span class="s2">&#39; is not supported.&quot;</span> <span class="o">%</span> <span class="n">language</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">CodeGenClass</span><span class="p">(</span><span class="n">project</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="make_routine"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.make_routine">[docs]</a><span class="k">def</span> <span class="nf">make_routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">argument_sequence</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
-                 <span class="n">global_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s2">&quot;F95&quot;</span><span class="p">):</span>
+                 <span class="n">global_vars</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s2">&quot;C&quot;</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;A factory that makes an appropriate Routine from an expression.</span>
 
 <span class="sd">    Parameters</span>
@@ -455,7 +672,7 @@
 
 
 <div class="viewcode-block" id="autowrap"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.autowrap">[docs]</a><span class="k">def</span> <span class="nf">autowrap</span><span class="p">(</span>
-    <span class="n">expr</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;f2py&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+    <span class="n">expr</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;Cython&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
     <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Generates python callable binaries based on the math expression.</span>
 
@@ -468,8 +685,8 @@
 <span class="sd">        generated code. If ``None`` [default], the language is inferred based</span>
 <span class="sd">        upon the specified backend.</span>
 <span class="sd">    backend : string, optional</span>
-<span class="sd">        Backend used to wrap the generated code. Either &#39;f2py&#39; [default],</span>
-<span class="sd">        or &#39;cython&#39;.</span>
+<span class="sd">        Backend used to wrap the generated code. Either &#39;f2py&#39;,</span>
+<span class="sd">        or &#39;cython&#39; [default].</span>
 <span class="sd">    tempdir : string, optional</span>
 <span class="sd">        Path to directory for temporary files. If this argument is supplied,</span>
 <span class="sd">        the generated code and the wrapper input files are left intact in the</span>
@@ -531,12 +748,7 @@
             <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">routine</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;autofunc&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">args</span> <span class="o">+</span> <span class="n">new_args</span><span class="p">)</span>
 
-    <span class="c1"># Have to watch order of call here, since a counter gets incremented in CodeWrapper</span>
-    <span class="n">modname</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">code_wrapper</span><span class="o">.</span><span class="n">module_name</span><span class="p">)</span>
-    <span class="n">result</span> <span class="o">=</span> <span class="n">code_wrapper</span><span class="o">.</span><span class="n">wrap_code</span><span class="p">(</span><span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="n">helps</span><span class="p">)</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">module_name</span> <span class="o">=</span> <span class="n">modname</span>
-    <span class="n">result</span><span class="o">.</span><span class="n">routine_name</span> <span class="o">=</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span>
-    <span class="k">return</span> <span class="n">result</span></div>
+    <span class="k">return</span> <span class="n">code_wrapper</span><span class="o">.</span><span class="n">wrap_code</span><span class="p">(</span><span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="n">helps</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="binary_function"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.binary_function">[docs]</a><span class="k">def</span> <span class="nf">binary_function</span><span class="p">(</span><span class="n">symfunc</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -595,7 +807,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.53.gcae7953',
+            VERSION:'0+untagged.53.g864c668',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
