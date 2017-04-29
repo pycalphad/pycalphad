@@ -13,6 +13,11 @@ cdef void* cython_pointer(obj):
 
 
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
+    """
+    This object exposes a common API to the solver so it doesn't need to know about the differences
+    between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
+    these objects are pickleable. PhaseRecords are immutable after initialization.
+    """
     def __reduce__(self):
         if self.cmpmdl is not None:
             return PhaseRecord_from_compiledmodel, (self.cmpmdl, np.asarray(self.parameters))

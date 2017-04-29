@@ -3,6 +3,14 @@ cimport numpy as np
 import numpy as np
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
+    """
+    This is the primary object the solver interacts with. It keeps the state of a phase (P, T, y...) at a
+    particular solver iteration and can be updated using the update() member function. Every CompositionSet
+    has a reference to a particular PhaseRecord which describes the prototype of the phase. These objects
+    can be created and destroyed by the solver as needed to describe the stable set of phases. Multiple
+    CompositionSets can point to the same PhaseRecord for the case of miscibility gaps. CompositionSets are
+    not pickleable. They are used in miscibility gap deteciton.
+    """
     def __cinit__(self, PhaseRecord prx):
         cdef int has_va = <int>(prx.vacancy_index > -1)
         self.phase_record = prx
