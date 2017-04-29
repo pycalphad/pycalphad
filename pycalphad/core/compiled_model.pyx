@@ -932,10 +932,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
-    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
+    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters):
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
-        cdef double[::1,:] debugout
+        cdef double[:,::1] debugout
         cdef double epsilon = 1e-12
         cdef int grad_idx
         cdef int col_idx
@@ -966,7 +966,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
         if self._debug:
-            debugout = np.asfortranarray(np.zeros_like(out))
+            debugout = np.ascontiguousarray(np.zeros_like(out))
             if parameters.shape[0] == 0:
                 self._debughess(&dof[0], NULL, &debugout[0,0])
             else:

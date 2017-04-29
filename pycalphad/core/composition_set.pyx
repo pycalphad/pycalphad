@@ -15,11 +15,11 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.energy = 0
         self._energy_2d_view = <double[:1]>&self.energy
         self.grad = np.zeros(self.dof.shape[0])
-        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._prev_energy = 0
         self._prev_dof = np.zeros(self.dof.shape[0])
         self._prev_grad = np.zeros(self.dof.shape[0])
-        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._first_iteration = True
 
     def __repr__(self):
@@ -32,7 +32,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess[:,:] = 0
         self._first_iteration = True
 
-    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[::1,:] current_hess,
+    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[:,::1] current_hess,
                               double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
                               double* energy, double* prev_energy):
         # Notation from Nocedal and Wright, 2006, Equation 8.19

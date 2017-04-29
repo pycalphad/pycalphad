@@ -41,7 +41,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil:
+    cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil:
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
         else:

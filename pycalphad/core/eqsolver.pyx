@@ -153,7 +153,7 @@ def _compute_constraints(composition_sets, object comps, object cur_conds):
     cdef int num_phases = len(composition_sets)
     cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
     cdef double[::1] l_constraints = np.zeros(num_constraints)
-    cdef double[::1,:] constraint_jac = np.zeros((num_constraints, num_vars), order='F')
+    cdef double[:,::1] constraint_jac = np.zeros((num_constraints, num_vars))
     cdef np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess = np.zeros((num_constraints, num_vars, num_vars), order='F')
     cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
         hess_idx, comp_idx, idx, sum_idx, ais_len, phase_offset
@@ -215,7 +215,7 @@ cdef _build_multiphase_system(composition_sets, l_constraints, constraint_jac,
     cdef CompositionSet compset
     cdef int num_phases = len(composition_sets)
     cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
-    cdef double[::1,:] l_hessian = np.zeros((num_vars, num_vars), order='F')
+    cdef double[:,::1] l_hessian = np.zeros((num_vars, num_vars))
     cdef double[::1] gradient_term = np.zeros(num_vars)
     cdef int var_offset = 0
     cdef int phase_idx = 0
@@ -283,7 +283,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         double previous_window_average, obj_weight, vmax, minimum_df
         PhaseRecord prn
         CompositionSet compset
-        cdef double[::1,:] l_hessian
+        cdef double[:,::1] l_hessian
         cdef double[::1] gradient_term, mass_buf
         double[::1] vmax_averages
         np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
@@ -415,7 +415,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                                         l_multipliers, obj_weight)
             if np.any(np.isnan(l_hessian)):
                 print('Invalid l_hessian')
-                l_hessian = np.asfortranarray(np.eye(l_hessian.shape[0]))
+                l_hessian = np.ascontiguousarray(np.eye(l_hessian.shape[0]))
             if np.any(np.isnan(gradient_term)):
                 raise ValueError('Invalid gradient_term')
             # Equation 18.10 in Nocedal and Wright
