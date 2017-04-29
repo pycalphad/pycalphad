@@ -3,6 +3,14 @@ cimport numpy as np
 import numpy as np
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
+    """
+    This is the primary object the solver interacts with. It keeps the state of a phase (P, T, y...) at a
+    particular solver iteration and can be updated using the update() member function. Every CompositionSet
+    has a reference to a particular PhaseRecord which describes the prototype of the phase. These objects
+    can be created and destroyed by the solver as needed to describe the stable set of phases. Multiple
+    CompositionSets can point to the same PhaseRecord for the case of miscibility gaps. CompositionSets are
+    not pickleable. They are used in miscibility gap deteciton.
+    """
     def __cinit__(self, PhaseRecord prx):
         cdef int has_va = <int>(prx.vacancy_index > -1)
         self.phase_record = prx
@@ -15,11 +23,11 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.energy = 0
         self._energy_2d_view = <double[:1]>&self.energy
         self.grad = np.zeros(self.dof.shape[0])
-        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._prev_energy = 0
         self._prev_dof = np.zeros(self.dof.shape[0])
         self._prev_grad = np.zeros(self.dof.shape[0])
-        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]), order='F')
+        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._first_iteration = True
 
     def __repr__(self):
@@ -32,7 +40,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess[:,:] = 0
         self._first_iteration = True
 
-    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[::1,:] current_hess,
+    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[:,::1] current_hess,
                               double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
                               double* energy, double* prev_energy):
         # Notation from Nocedal and Wright, 2006, Equation 8.19

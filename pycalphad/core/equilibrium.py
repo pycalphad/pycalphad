@@ -3,16 +3,17 @@ The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
 from __future__ import print_function
+import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_condition, unpack_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
-from pycalphad.core.phase_rec import PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
+from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.eqsolver import _solve_eq_at_conditions, _compute_constraints
+from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
 import dask
 from dask import delayed
@@ -156,7 +157,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
                 scheduler=dask.async.get_sync,
-                parameters=None, compute_constraints=_compute_constraints, **kwargs):
+                parameters=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -272,7 +273,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 if hess_callable_dict.get(name, None) is None:
                     hess_callable_dict[name] = hf
 
-            phase_records[name.upper()] = PhaseRecord_from_f2py(comps, variables,
+            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
                                                                 np.array(dbf.phases[name].sublattices, dtype=np.float),
                                                                 param_values, callable_dict[name],
                                                                 grad_callable_dict[name], hess_callable_dict[name])
@@ -337,13 +338,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                              list(str_conds.keys()), verbose, diagnostic, compute_constraints)
+                                                              list(str_conds.keys()), verbose)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                 list(str_conds.keys()), verbose, diagnostic, compute_constraints)
+                                                                 list(str_conds.keys()), verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]
@@ -370,4 +371,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
     if scheduler is not None:
         properties = dask.compute(properties, get=scheduler)[0]
+    if len(kwargs) > 0:
+        warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties

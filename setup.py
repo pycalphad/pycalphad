@@ -1,8 +1,13 @@
 from setuptools import setup
 import os
 import versioneer
-from Cython.Build import cythonize
-import numpy as np
+
+try:
+    from Cython.Build import cythonize
+    import numpy as np
+    import scipy
+except ImportError:
+     raise ImportError("Cython, numpy and scipy must be installed before pycalphad can be installed.")
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -49,7 +54,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'
     ],
 
 )

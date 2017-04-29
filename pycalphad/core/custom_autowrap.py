@@ -128,6 +128,10 @@ class CodeWrapError(Exception):
     pass
 
 class C89CodePrinter(CCodePrinter):
+    """
+    C89-compatible code printing allows for Windows compatibility.
+    (MSVC 14 and newer support C99, but we are going for broad compatibility.)
+    """
     def _get_loop_opening_ending(self, indices):
         # The purpose is to enable C89-compliant loops (indices are pre-declared)
         open_lines = []
@@ -519,8 +523,8 @@ def autowrap(
         generated code. If ``None`` [default], the language is inferred based
         upon the specified backend.
     backend : string, optional
-        Backend used to wrap the generated code. Either 'f2py' [default],
-        or 'cython'.
+        Backend used to wrap the generated code. Either 'f2py',
+        or 'cython' [default].
     tempdir : string, optional
         Path to directory for temporary files. If this argument is supplied,
         the generated code and the wrapper input files are left intact in the

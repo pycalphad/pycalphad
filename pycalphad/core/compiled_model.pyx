@@ -38,7 +38,7 @@ cdef inline int _intsum(int[:] arr) nogil:
     return result
 
 # From https://gist.github.com/pv/5437087
-cdef void* f2py_pointer(obj):
+cdef void* cython_pointer(obj):
     if (PyCapsule_CheckExact(obj)):
         return PyCapsule_GetPointer(obj, NULL)
     raise ValueError("Not an object containing a void ptr")
@@ -88,13 +88,13 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             # Trigger lazy computation
             if _debugobj is not None:
                 _debugobj.kernel
-                self._debugobj = <func_t*> f2py_pointer(_debugobj._cpointer)
+                self._debugobj = <func_t*> cython_pointer(_debugobj._cpointer)
             if _debuggrad is not None:
                 _debuggrad.kernel
-                self._debuggrad = <func_novec_t*> f2py_pointer(_debuggrad._cpointer)
+                self._debuggrad = <func_novec_t*> cython_pointer(_debuggrad._cpointer)
             if _debughess is not None:
                 _debughess.kernel
-                self._debughess = <func_novec_t*> f2py_pointer(_debughess._cpointer)
+                self._debughess = <func_novec_t*> cython_pointer(_debughess._cpointer)
 
         self.site_ratios = np.array([float(x) for x in phase.sublattices])
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
@@ -932,10 +932,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
-    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
+    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters):
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
-        cdef double[::1,:] debugout
+        cdef double[:,::1] debugout
         cdef double epsilon = 1e-12
         cdef int grad_idx
         cdef int col_idx
@@ -966,7 +966,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
         if self._debug:
-            debugout = np.asfortranarray(np.zeros_like(out))
+            debugout = np.ascontiguousarray(np.zeros_like(out))
             if parameters.shape[0] == 0:
                 self._debughess(&dof[0], NULL, &debugout[0,0])
             else:
