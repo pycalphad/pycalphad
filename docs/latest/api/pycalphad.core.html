@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.g1ab09c0 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.g1ab09c0 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.53.g1ab09c0
+                0+untagged.53.gcae7953
               </div>
             
           
@@ -451,6 +451,11 @@ formed of input arrays.</p>
 <code class="descname">eval_energy_gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.eval_energy_gradient" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="pycalphad.core.compiled_model.CompiledModel.eval_energy_hessian">
+<code class="descname">eval_energy_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.eval_energy_hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
 <dt id="pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix">
 <code class="descname">excess_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix" title="Permalink to this definition">¶</a></dt>
@@ -479,6 +484,11 @@ formed of input arrays.</p>
 <dl class="attribute">
 <dt id="pycalphad.core.compiled_model.CompiledModel.phase_dof">
 <code class="descname">phase_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.phase_name">
+<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -853,35 +863,6 @@ to how the hashing for output arguments is performed.</p>
 </div>
 <div class="section" id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="pycalphad.core.eqsolver.CompositionSet">
-<em class="property">class </em><code class="descclassname">pycalphad.core.eqsolver.</code><code class="descname">CompositionSet</code><a class="headerlink" href="#pycalphad.core.eqsolver.CompositionSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="pycalphad.core.eqsolver.CompositionSet.NP">
-<code class="descname">NP</code><a class="headerlink" href="#pycalphad.core.eqsolver.CompositionSet.NP" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.eqsolver.CompositionSet.X">
-<code class="descname">X</code><a class="headerlink" href="#pycalphad.core.eqsolver.CompositionSet.X" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.eqsolver.CompositionSet.dof">
-<code class="descname">dof</code><a class="headerlink" href="#pycalphad.core.eqsolver.CompositionSet.dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.eqsolver.remove_degenerate_phases">
-<code class="descclassname">pycalphad.core.eqsolver.</code><code class="descname">remove_degenerate_phases</code><a class="headerlink" href="#pycalphad.core.eqsolver.remove_degenerate_phases" title="Permalink to this definition">¶</a></dt>
-<dd><p>For each phase pair with composition difference below tolerance,
-eliminate phase with largest index.
-Also remove phases with phase fractions close to zero.</p>
-</dd></dl>
-
 </div>
 <div class="section" id="module-pycalphad.core.equilibrium">
 <span id="pycalphad-core-equilibrium-module"></span><h2>pycalphad.core.equilibrium module<a class="headerlink" href="#module-pycalphad.core.equilibrium" title="Permalink to this headline">¶</a></h2>
@@ -909,13 +890,8 @@ calculated phase equilibria.</p>
 </dd></dl>
 
 <dl class="function">
-<dt id="pycalphad.core.equilibrium.delayed">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">delayed</code><span class="sig-paren">(</span><em>func</em>, <em>*fargs</em>, <em>**fkwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#delayed"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.delayed" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>compute_constraints=&lt;cyfunction _compute_constraints&gt;</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -1114,6 +1090,9 @@ Source: <a class="reference external" href="http://stackoverflow.com/questions/3
 <dt id="pycalphad.core.phase_rec.PhaseRecord">
 <em class="property">class </em><code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This object exposes a common API to the solver so it doesn&#8217;t need to know about the differences
+between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
+these objects are pickleable. PhaseRecords are immutable after initialization.</p>
 <dl class="attribute">
 <dt id="pycalphad.core.phase_rec.PhaseRecord.composition_matrices">
 <code class="descname">composition_matrices</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.composition_matrices" title="Permalink to this definition">¶</a></dt>
@@ -1145,11 +1124,6 @@ Source: <a class="reference external" href="http://stackoverflow.com/questions/3
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.name">
-<code class="descname">name</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="pycalphad.core.phase_rec.PhaseRecord.num_sites">
 <code class="descname">num_sites</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_sites" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1167,6 +1141,11 @@ Source: <a class="reference external" href="http://stackoverflow.com/questions/3
 <dl class="attribute">
 <dt id="pycalphad.core.phase_rec.PhaseRecord.phase_dof">
 <code class="descname">phase_dof</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.phase_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.phase_name">
+<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.phase_name" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1532,7 +1511,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.53.g1ab09c0',
+            VERSION:'0+untagged.53.gcae7953',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.g1ab09c0 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.gcae7953 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.g1ab09c0 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.gcae7953 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.53.g1ab09c0
+                0+untagged.53.gcae7953
               </div>
             
           
@@ -166,6 +166,7 @@
 <span class="sd">calculated phase equilibria.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_kwarg</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span>
@@ -175,7 +176,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord_from_f2py</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">_compute_constraints</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Symbol</span>
 <span class="kn">import</span> <span class="nn">dask</span>
 <span class="kn">from</span> <span class="nn">dask</span> <span class="k">import</span> <span class="n">delayed</span>
@@ -185,8 +186,6 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span><span class="p">,</span> <span class="n">OrderedDict</span>
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 
-<div class="viewcode-block" id="delayed"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.delayed">[docs]</a><span class="k">def</span> <span class="nf">delayed</span><span class="p">(</span><span class="n">func</span><span class="p">,</span> <span class="o">*</span><span class="n">fargs</span><span class="p">,</span> <span class="o">**</span><span class="n">fkwargs</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">func</span></div>
 
 <div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="s2">&quot;Exception related to calculation of equilibrium&quot;</span>
@@ -321,7 +320,7 @@
 <div class="viewcode-block" id="equilibrium"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.equilibrium">[docs]</a><span class="k">def</span> <span class="nf">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">calc_opts</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                 <span class="n">scheduler</span><span class="o">=</span><span class="n">dask</span><span class="o">.</span><span class="k">async</span><span class="o">.</span><span class="n">get_sync</span><span class="p">,</span>
-                <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">compute_constraints</span><span class="o">=</span><span class="n">_compute_constraints</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+                <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Calculate the equilibrium state of a system containing the specified</span>
 <span class="sd">    components and phases, under the specified conditions.</span>
@@ -501,14 +500,14 @@
         <span class="k">for</span> <span class="n">chunk</span> <span class="ow">in</span> <span class="n">chunk_grid</span><span class="p">:</span>
             <span class="n">prop_slice</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="n">OrderedDict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
                                                          <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">sl</span><span class="p">)[</span><span class="n">ch</span><span class="p">]</span> <span class="k">for</span> <span class="n">ch</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">slices</span><span class="p">)])))]</span>
-            <span class="n">job</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">prop_slice</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span>
-                                                              <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">diagnostic</span><span class="p">,</span> <span class="n">compute_constraints</span><span class="p">)</span>
+            <span class="n">job</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">comps</span><span class="p">,</span> <span class="n">prop_slice</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span>
+                                                              <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">)</span>
             <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_merge_property_slices</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">properties</span><span class="p">,</span> <span class="n">chunk_grid</span><span class="p">,</span> <span class="n">slices</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">res</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Single-process job; don&#39;t create child processes</span>
-        <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span>
-                                                                 <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">diagnostic</span><span class="p">,</span> <span class="n">compute_constraints</span><span class="p">)</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">comps</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span>
+                                                                 <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">)</span>
 
     <span class="c1"># Compute equilibrium values of any additional user-specified properties</span>
     <span class="n">output</span> <span class="o">=</span> <span class="n">output</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">))</span> <span class="k">else</span> <span class="p">[</span><span class="n">output</span><span class="p">]</span>
@@ -535,6 +534,8 @@
     <span class="n">delayed</span><span class="p">(</span><span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">scheduler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">get</span><span class="o">=</span><span class="n">scheduler</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">properties</span></div>
 </pre></div>
 
@@ -572,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.53.g1ab09c0',
+            VERSION:'0+untagged.53.gcae7953',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
