@@ -439,7 +439,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                        phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
                     candidate_energy += compset.NP * compset.energy
                     dof_idx += compset.phase_record.phase_dof
-                l_constraints, constraint_jac, constraint_hess = compute_constraints(composition_sets, comps, cur_conds)
+                l_constraints, constraint_jac, constraint_hess = _compute_constraints(composition_sets, comps, cur_conds)
                 vmax = np.max(np.abs(l_constraints))
                 driving_force = candidate_energy - (l_multipliers * l_constraints).sum(axis=-1)
                 if verbose:
