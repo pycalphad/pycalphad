@@ -8,9 +8,7 @@ ENV LC_ALL=C.UTF-8
 ENV LANG=C.UTF-8
 RUN apt-get -y update  && apt-get install -y \
   build-essential \
-  gfortran \
   git-core \
-  libgfortran3 \
   libopenblas-dev \
   linux-headers-amd64 \
   wget \
@@ -31,7 +29,6 @@ RUN wget -O miniconda.sh \
     conda config --add channels conda-forge && \
     conda create -n condaenv --quiet -y python=$python \
       cython \
-      cymem \
       matplotlib \
       pyparsing \
       sphinx \

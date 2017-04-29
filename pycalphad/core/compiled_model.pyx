@@ -2,7 +2,7 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from cymem.cymem cimport Pool
+from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
 from sympy import Symbol
 from tinydb import where
@@ -13,7 +13,7 @@ from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
-from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
+from cpython cimport PY_VERSION_HEX, PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
 
 
@@ -38,13 +38,9 @@ cdef inline int _intsum(int[:] arr) nogil:
     return result
 
 # From https://gist.github.com/pv/5437087
-cdef void* f2py_pointer(obj):
-    if PY_VERSION_HEX < 0x03000000:
-        if (PyCObject_Check(obj)):
-            return PyCObject_AsVoidPtr(obj)
-    elif PY_VERSION_HEX >= 0x02070000:
-        if (PyCapsule_CheckExact(obj)):
-            return PyCapsule_GetPointer(obj, NULL);
+cdef void* cython_pointer(obj):
+    if (PyCapsule_CheckExact(obj)):
+        return PyCapsule_GetPointer(obj, NULL)
     raise ValueError("Not an object containing a void ptr")
 
 # Forward declaration necessary for some self-referencing below
@@ -56,7 +52,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
-        self.phase_name = phase_name
+        self.phase_name = <unicode>phase_name
         self.constituents = []
         self.components = set()
         # Verify that this phase is still possible to build
@@ -92,13 +88,13 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             # Trigger lazy computation
             if _debugobj is not None:
                 _debugobj.kernel
-                self._debugobj = <func_t*> f2py_pointer(_debugobj._kernel._cpointer)
+                self._debugobj = <func_t*> cython_pointer(_debugobj._cpointer)
             if _debuggrad is not None:
                 _debuggrad.kernel
-                self._debuggrad = <func_novec_t*> f2py_pointer(_debuggrad._kernel._cpointer)
+                self._debuggrad = <func_novec_t*> cython_pointer(_debuggrad._cpointer)
             if _debughess is not None:
                 _debughess.kernel
-                self._debughess = <func_novec_t*> f2py_pointer(_debughess._kernel._cpointer)
+                self._debughess = <func_novec_t*> cython_pointer(_debughess._cpointer)
 
         self.site_ratios = np.array([float(x) for x in phase.sublattices])
         self.sublattice_dof = np.array([len(c) for c in self.constituents], dtype=np.int32)
@@ -642,14 +638,14 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 out[out_idx] += disordered_energy
         if self._debug:
             debugout = np.zeros_like(out)
-            self._debug_energy(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
+            self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
             np.testing.assert_allclose(out,debugout)
 
-    cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters):
+    cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
-            self._debugobj(&debugout[0], &dof[0,0], NULL, <int*>&debugout.shape[0])
+            self._debugobj(&debugout[0], &dof[0,0], NULL, debugout.shape[0])
         else:
-            self._debugobj(&debugout[0], &dof[0,0], &parameters[0], <int*>&debugout.shape[0])
+            self._debugobj(&debugout[0], &dof[0,0], &parameters[0], debugout.shape[0])
 
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
@@ -936,10 +932,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 print(self.constituents)
                 print('--')
 
-    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
+    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters):
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
-        cdef double[::1,:] debugout
+        cdef double[:,::1] debugout
         cdef double epsilon = 1e-12
         cdef int grad_idx
         cdef int col_idx
@@ -970,7 +966,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
         if self._debug:
-            debugout = np.asfortranarray(np.zeros_like(out))
+            debugout = np.ascontiguousarray(np.zeros_like(out))
             if parameters.shape[0] == 0:
                 self._debughess(&dof[0], NULL, &debugout[0,0])
             else:

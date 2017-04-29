@@ -6,7 +6,7 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 from pycalphad.core.composition_set cimport CompositionSet
-from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_f2py
+from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
 import pycalphad.variables as v
 
@@ -114,7 +114,7 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
     if largest_df > minimum_df:
         # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid.X.values[df_idx]
-        df_phase_name = str(current_grid.Phase.values[df_idx])
+        df_phase_name = <unicode>str(current_grid.Phase.values[df_idx])
         for compset in composition_sets:
             if compset.phase_record.phase_name != df_phase_name:
                 continue
@@ -155,7 +155,7 @@ def _compute_constraints(object composition_sets, object comps, object cur_conds
     cdef int num_phases = len(composition_sets)
     cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
     cdef double[::1] l_constraints = np.zeros(num_constraints)
-    cdef double[::1,:] constraint_jac = np.zeros((num_constraints, num_vars), order='F')
+    cdef double[:,::1] constraint_jac = np.zeros((num_constraints, num_vars))
     cdef np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess = np.zeros((num_constraints, num_vars, num_vars), order='F')
     cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
         hess_idx, comp_idx, idx, sum_idx, active_in_subl, phase_offset
@@ -217,7 +217,7 @@ cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=
     cdef CompositionSet compset
     cdef int num_phases = len(composition_sets)
     cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
-    cdef double[::1,:] l_hessian = np.zeros((num_vars, num_vars), order='F')
+    cdef double[:,::1] l_hessian = np.zeros((num_vars, num_vars))
     cdef double[::1] gradient_term = np.zeros(num_vars)
     cdef int var_offset = 0
     cdef int phase_idx = 0
@@ -281,7 +281,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef double previous_window_average, vmax, minimum_df
     cdef PhaseRecord prn
     cdef CompositionSet compset
-    cdef double[::1,:] l_hessian
+    cdef double[:,::1] l_hessian
     cdef double[::1] gradient_term, mass_buf
     cdef double[::1] vmax_averages
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
@@ -290,7 +290,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord_from_f2py(comps, value.variables, np.array(value.num_sites, dtype=np.float),
+            phase_records[key] = PhaseRecord_from_cython(comps, value.variables, np.array(value.num_sites, dtype=np.float),
                                                        value.parameters, value.obj, value.grad, value.hess)
     # Factored out via profiling
     prop_MU_values = properties['MU'].values
@@ -389,7 +389,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                                         l_multipliers)
             if np.any(np.isnan(l_hessian)):
                 print('Invalid l_hessian')
-                l_hessian = np.asfortranarray(np.eye(l_hessian.shape[0]))
+                l_hessian = np.ascontiguousarray(np.eye(l_hessian.shape[0]))
             if np.any(np.isnan(gradient_term)):
                 raise ValueError('Invalid gradient_term')
             # Equation 18.10 in Nocedal and Wright

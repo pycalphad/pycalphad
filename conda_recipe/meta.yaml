@@ -28,7 +28,6 @@ requirements:
     - sympy
     - pyparsing
     - tinydb
-    - autograd
     - scipy
     - dask >=0.10
     - distributed
@@ -39,20 +38,17 @@ requirements:
   run:
     - python
     - gcc # [osx or linux]
-    - libgfortran # [osx or linux]
-    - mingw # [win32]
-    - mingw-w64 # [win64]
     - matplotlib
     - pandas
     - xarray !=0.8
     - sympy
     - pyparsing
     - tinydb
-    - autograd
     - scipy
     - dask >=0.10
     - distributed
     - numpy >=1.9
+    - Cython >=0.24
     - dill
 
 build:

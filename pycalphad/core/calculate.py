@@ -11,7 +11,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_f2py, PhaseRecord_from_compiledmodel
+from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.log import logger
 import pycalphad.variables as v
@@ -277,8 +277,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
     pts = points.reshape(-1, points.shape[-1]).T
-    dof = np.asfortranarray(np.concatenate((bc_statevars, pts), axis=0).T)
-    phase_output = np.zeros(dof.shape[0])
+    dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
+    phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
     prn.obj(phase_output, dof)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
@@ -483,7 +483,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                                         parameters=param_symbols)
             else:
                 comp_sets[phase_name] = callable_dict[phase_name]
-            prn = PhaseRecord_from_f2py(comps, list(statevar_dict.keys()) + variables,
+            prn = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
                                         np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
                                         param_values, comp_sets[phase_name], None, None)
         else:

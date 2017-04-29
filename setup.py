@@ -6,9 +6,8 @@ try:
     from Cython.Build import cythonize
     import numpy as np
     import scipy
-    import cymem
 except ImportError:
-     raise ImportError("Cython, cymem, numpy and scipy must be installed before pycalphad can be installed.")
+     raise ImportError("Cython, numpy and scipy must be installed before pycalphad can be installed.")
 
 # Utility function to read the README file.
 # Used for the long_description.  It's nice, because now 1) we have a top level
@@ -27,13 +26,13 @@ setup(
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
     ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
                            'pycalphad/core/phase_rec.pyx', 'pycalphad/core/compiled_model.pyx',
-                           'pycalphad/core/composition_set.pyx']),
+                           'pycalphad/core/composition_set.pyx', 'pycalphad/core/cymem.pyx']),
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
-    install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy', 'pyparsing', 'tqdm', 'Cython>=0.24',
-                      'autograd', 'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.10', 'dill', 'cymem'],
+    install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy', 'pyparsing', 'Cython>=0.24',
+                      'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.10', 'dill'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha
@@ -55,7 +54,8 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.4',
-        'Programming Language :: Python :: 3.5'
+        'Programming Language :: Python :: 3.5',
+        'Programming Language :: Python :: 3.6'
     ],
 
 )

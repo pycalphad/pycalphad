@@ -1,5 +1,5 @@
 from pycalphad.core.phase_rec cimport func_t, func_novec_t
-from cymem.cymem cimport Pool
+from pycalphad.core.cymem cimport Pool
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
@@ -53,6 +53,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters)
     cpdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign)
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters)
-    cdef _debug_energy(self, double[::1] debugout, double[::1,:] dof, double[::1] parameters)
+    cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters)
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)
-    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters)
+    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters)

@@ -64,14 +64,15 @@ When is this module NOT the best approach?
        don't need the binaries for another project.
 
 """
+from __future__ import print_function
 from sympy.core.compatibility import iterable
-from sympy.utilities.codegen import (OutputArgument,
-                                     CodeGenArgumentListError,
-                                     CCodeGen, JuliaCodeGen, OctaveCodeGen)
-from pycalphad.core.custom_codegen import FCodeGen
+from sympy.utilities.codegen import (AssignmentError, OutputArgument, ResultBase,
+                                     Result, CodeGenArgumentListError,
+                                     CCodePrinter, CCodeGen, Variable)
 from sympy.utilities.lambdify import implemented_function
-from sympy.utilities.autowrap import F2PyCodeWrapper, CythonCodeWrapper, DummyWrapper
+from sympy.utilities.autowrap import CythonCodeWrapper, DummyWrapper
 from subprocess import STDOUT, CalledProcessError
+from sympy.printing.ccode import ccode
 from sympy.core.compatibility import check_output
 import os
 import sys
@@ -83,8 +84,6 @@ import uuid
 # tuple is of length 1, but if a backend supports more than one language,
 # the most preferable language is listed first.
 _lang_lookup = {'CYTHON': ('C',),
-                'F2PY': ('F95',),
-                'NUMPY': ('C',),
                 'DUMMY': ('F95',)}     # Dummy here just for testing
 
 
@@ -102,7 +101,7 @@ def import_extension(path, modname):
     # Blacklist fixes gh-65.
     # We filter out any files that can be created by compilers which are not our actual compiled file.
     # We cannot more directly search for our files because of differing platforms.
-    blacklist = ['dSYM']
+    blacklist = ['dSYM', 'c', 'pyx']
     npath = [x for x in npath if x.split('.')[-1] not in blacklist]
     if len(npath) == 1:
         npath = npath[0]
@@ -128,39 +127,257 @@ def import_extension(path, modname):
 class CodeWrapError(Exception):
     pass
 
+class C89CodePrinter(CCodePrinter):
+    """
+    C89-compatible code printing allows for Windows compatibility.
+    (MSVC 14 and newer support C99, but we are going for broad compatibility.)
+    """
+    def _get_loop_opening_ending(self, indices):
+        # The purpose is to enable C89-compliant loops (indices are pre-declared)
+        open_lines = []
+        close_lines = []
+        loopstart = "for (%(var)s=%(start)s; %(var)s<%(end)s; %(var)s++){"
+        for i in indices:
+            # C arrays start at 0 and end at dimension-1
+            open_lines.append(loopstart % {
+                'var': self._print(i.label),
+                'start': self._print(i.lower),
+                'end': self._print(i.upper + 1)})
+            close_lines.append("}")
+        return open_lines, close_lines
 
-class ThreadSafeF2PyCodeWrapper(F2PyCodeWrapper):
+class CustomCCodeGen(CCodeGen):
+    def get_prototype(self, routine):
+        """Returns a string for the function prototype of the routine.
+
+        If the routine has multiple result objects, an CodeGenError is
+        raised.
+
+        See: http://en.wikipedia.org/wiki/Function_prototype
+
+        """
+        if len(routine.results) == 1:
+            ctype = routine.results[0].get_datatype('C')
+        else:
+            ctype = "void"
+
+        type_args = []
+        for arg in routine.arguments:
+            name = ccode(arg.name)
+            # Hack to make all double-valued arguments into pointers
+            if arg.dimensions or isinstance(arg, ResultBase) or arg.get_datatype('C') == 'double':
+                type_args.append((arg.get_datatype('C'), "*%s" % name))
+            else:
+                type_args.append((arg.get_datatype('C'), name))
+        arguments = ", ".join([ "%s %s" % t for t in type_args])
+        return "%s %s(%s)" % (ctype, routine.name, arguments)
+
+    def _declare_locals(self, routine):
+        # loop variables are declared at the top to enable C89 support
+        retlines = []
+        for lcv in routine.local_vars:
+            t = Variable(lcv).get_datatype('c')
+            retlines.append('{0} {1};\n'.format(t, lcv.name))
+        return retlines
+
+    def _call_printer(self, routine):
+        code_lines = []
+
+        # Compose a list of symbols to be dereferenced in the function
+        # body. These are the arguments that were passed by a reference
+        # pointer, excluding arrays.
+        dereference = []
+        for arg in routine.arguments:
+            if isinstance(arg, ResultBase) and not arg.dimensions:
+                dereference.append(arg.name)
+
+        return_val = None
+        for result in routine.result_variables:
+            if isinstance(result, Result):
+                assign_to = routine.name + "_result"
+                t = result.get_datatype('c')
+                code_lines.append("{0} {1};\n".format(t, str(assign_to)))
+                return_val = assign_to
+            else:
+                assign_to = result.result_var
+
+            try:
+                constants, not_c, c_expr = C89CodePrinter({'human': False, 'dereference': dereference}).doprint(
+                    result.expr, assign_to)
+            except AssignmentError:
+                assign_to = result.result_var
+                code_lines.append(
+                    "%s %s;\n" % (result.get_datatype('c'), str(assign_to)))
+                constants, not_c, c_expr = C89CodePrinter({'human': False, 'dereference': dereference}).doprint(
+                    result.expr, assign_to)
+
+            for name, value in sorted(constants, key=str):
+                code_lines.append("double const %s = %s;\n" % (name, value))
+            code_lines.append("%s\n" % c_expr)
+
+        if return_val:
+            code_lines.append("   return %s;\n" % return_val)
+        return code_lines
+
+    def dump_h(self, routines, f, prefix, header=True, empty=True):
+        """Writes the C header file.
+
+        This file contains all the function declarations.
+
+        Parameters
+        ==========
+
+        routines : list
+            A list of Routine instances.
+
+        f : file-like
+            Where to write the file.
+
+        prefix : string
+            The filename prefix, used to construct the include guards.
+            Only the basename of the prefix is used.
+
+        header : bool, optional
+            When True, a header comment is included on top of each source
+            file.  [default : True]
+
+        empty : bool, optional
+            When True, empty lines are included to structure the source
+            files.  [default : True]
+
+        """
+        if header:
+            print(''.join(self._get_header()), file=f)
+        guard_name = "%s__%s__H" % (self.project.replace(" ", "_").upper(),
+                                    prefix.replace("/", "_").replace("\\", "_").replace(" ", "_").replace(":", "_").replace("-", "_").upper())
+        # include guards
+        if empty:
+            print(file=f)
+        print("#ifndef %s" % guard_name, file=f)
+        print("#define %s" % guard_name, file=f)
+        if empty:
+            print(file=f)
+        # declaration of the function prototypes
+        for routine in routines:
+            prototype = self.get_prototype(routine)
+            print("%s;" % prototype, file=f)
+        # end if include guards
+        if empty:
+            print(file=f)
+        print("#endif", file=f)
+        if empty:
+            print(file=f)
+    dump_h.extension = CCodeGen.interface_extension
+
+    dump_fns = [CCodeGen.dump_c, dump_h]
+
+
+class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
+    setup_template = (
+        "from distutils.core import setup\n"
+        "from distutils.extension import Extension\n"
+        "from Cython.Distutils import build_ext\n"
+        "{np_import}"
+        "\n"
+        "setup(\n"
+        "    cmdclass = {{'build_ext': build_ext}},\n"
+        "    ext_modules = [Extension({ext_args},\n"
+        "                             extra_compile_args=['-std=c99'])],\n"
+        "{np_includes}"
+        "        )")
+
+    pyx_imports = (
+        "import numpy as np\n"
+        "cimport numpy as np\n"
+        "from cpython cimport PyCapsule_New\n\n")
+
+    pyx_header = (
+        "cdef extern from '{header_file}.h':\n"
+        "    {prototype}\n\n")
+
+    pyx_func = (
+        "def {name}_c({arg_string}):\n"
+        "\n"
+        "{declarations}"
+        "{body}\n"
+        "def get_pointer_c():\n"
+        "    return PyCapsule_New(<void*>{name}, NULL, NULL)\n")
+
     def __init__(self, *args, **kwargs):
-        super(ThreadSafeF2PyCodeWrapper, self).__init__(*args, **kwargs)
+        super(ThreadSafeCythonCodeWrapper, self).__init__(*args, **kwargs)
         self._module_id = str(uuid.uuid4()).replace('-', '_')
         self.filepath = self.filepath or tempfile.mkdtemp("_sympy_compile")
-
-    @property
-    def command(self):
-        filename = os.path.join(self.filepath, self.filename) + '.' + self.generator.code_extension
-        args = ['-c', '-m', self.module_name, filename]
-        command = [sys.executable, "-c", "import numpy.f2py as f2py2e;f2py2e.main()"]+args
-        return command
 
     @property
     def filename(self):
         return "%s_%s" % (self._filename, self._module_id)
 
     @property
+    def command(self):
+        command = [sys.executable, os.path.join(self.filepath, "setup.py"), "build_ext", "--build-lib", self.filepath]
+        return command
+
+    @property
     def module_name(self):
         return "%s_%s" % (self._module_basename, self._module_id)
+
+    def _prepare_files(self, routine):
+        pyxfilename = self.module_name + '.pyx'
+        codefilename = "%s.%s" % (self.filename, self.generator.code_extension)
+
+        # pyx
+        with open(os.path.join(self.filepath, pyxfilename), 'w') as f:
+            self.dump_pyx([routine], f, str(os.path.join(self.filepath, self.filename)).replace(os.sep, '/'))
+
+        # setup.py
+        ext_args = [repr(self.module_name), repr([os.path.join(self.filepath, pyxfilename),
+                                                  os.path.join(self.filepath, codefilename)])]
+        if self._need_numpy:
+            np_import = 'import numpy as np\n'
+            np_includes = '    include_dirs = [np.get_include()],\n'
+        else:
+            np_import = ''
+            np_includes = ''
+        with open(os.path.join(self.filepath, 'setup.py'), 'w') as f:
+            f.write(self.setup_template.format(ext_args=", ".join(ext_args),
+                                               np_import=np_import,
+                                               np_includes=np_includes))
 
     def _process_files(self, routine):
         command = self.command
         command.extend(self.flags)
         try:
-            retoutput = check_output(command, stderr=STDOUT, cwd=self.filepath)
+            retoutput = check_output(command, stderr=STDOUT)
         except CalledProcessError as e:
             raise CodeWrapError(
                 "Error while executing command: %s. Command output is:\n%s" % (
                     " ".join(command), e.output.decode()))
-        if not self.quiet:
-            print(retoutput)
+
+    def _prototype_arg(self, arg):
+        mat_dec = "np.ndarray[{mtype}, ndim={ndim}] {name}"
+        np_types = {'double': 'np.double_t',
+                    'int': 'np.int_t'}
+        t = arg.get_datatype('c')
+        # Hack to force all doubles to be at least 1-D arrays
+        if arg.dimensions or t == 'double':
+            self._need_numpy = True
+            if arg.dimensions:
+                ndim = len(arg.dimensions)
+            else:
+                ndim = 1
+            mtype = np_types[t]
+            return mat_dec.format(mtype=mtype, ndim=ndim, name=arg.name)
+        else:
+            return "%s %s" % (t, str(arg.name))
+
+    def _call_arg(self, arg):
+        t = arg.get_datatype('c')
+        if arg.dimensions or t == 'double':
+            return "<{0}*> {1}.data".format(t, arg.name)
+        elif isinstance(arg, ResultBase):
+            return "&{0}".format(arg.name)
+        else:
+            return str(arg.name)
 
     def wrap_code(self, routine, helpers=None):
         helpers = helpers if helpers is not None else []
@@ -169,17 +386,18 @@ class ThreadSafeF2PyCodeWrapper(F2PyCodeWrapper):
             os.mkdir(workdir)
         try:
             self.generator.write(
-                [routine]+helpers, os.path.join(workdir, self.filename), True, self.include_header,
+                [routine]+helpers, str(os.path.join(workdir, self.filename)).replace(os.sep, '/'), True, self.include_header,
                 self.include_empty)
+            self._prepare_files(routine)
             self._process_files(routine)
             mod = import_extension(workdir, self.module_name)
         finally:
             self._module_id = str(uuid.uuid4()).replace('-', '_')
-        return self._get_wrapped_function(mod, routine.name)
+        return self._get_wrapped_function(mod, routine.name), self._get_wrapped_function(mod, 'get_pointer')(), str(self.module_name), str(routine.name)
 
 
 def _get_code_wrapper_class(backend):
-    wrappers = {'F2PY': ThreadSafeF2PyCodeWrapper, 'CYTHON': CythonCodeWrapper,
+    wrappers = {'CYTHON': ThreadSafeCythonCodeWrapper,
         'DUMMY': DummyWrapper}
     return wrappers[backend.upper()]
 
@@ -195,15 +413,14 @@ def _validate_backend_language(backend, language):
 
 
 def get_code_generator(language, project):
-    CodeGenClass = {"C": CCodeGen, "F95": FCodeGen, "JULIA": JuliaCodeGen,
-                    "OCTAVE": OctaveCodeGen}.get(language.upper())
+    CodeGenClass = {"C": CustomCCodeGen}.get(language.upper())
     if CodeGenClass is None:
         raise ValueError("Language '%s' is not supported." % language)
     return CodeGenClass(project)
 
 
 def make_routine(name, expr, argument_sequence=None,
-                 global_vars=None, language="F95"):
+                 global_vars=None, language="C"):
     """A factory that makes an appropriate Routine from an expression.
 
     Parameters
@@ -292,7 +509,7 @@ def make_routine(name, expr, argument_sequence=None,
 
 
 def autowrap(
-    expr, language=None, backend='f2py', tempdir=None, args=None, flags=None,
+    expr, language=None, backend='Cython', tempdir=None, args=None, flags=None,
     verbose=False, helpers=None):
     """Generates python callable binaries based on the math expression.
 
@@ -305,8 +522,8 @@ def autowrap(
         generated code. If ``None`` [default], the language is inferred based
         upon the specified backend.
     backend : string, optional
-        Backend used to wrap the generated code. Either 'f2py' [default],
-        or 'cython'.
+        Backend used to wrap the generated code. Either 'f2py',
+        or 'cython' [default].
     tempdir : string, optional
         Path to directory for temporary files. If this argument is supplied,
         the generated code and the wrapper input files are left intact in the
@@ -368,12 +585,7 @@ def autowrap(
             new_args.append(missing.name)
         routine = make_routine('autofunc', expr, args + new_args)
 
-    # Have to watch order of call here, since a counter gets incremented in CodeWrapper
-    modname = str(code_wrapper.module_name)
-    result = code_wrapper.wrap_code(routine, helpers=helps)
-    result.module_name = modname
-    result.routine_name = routine.name
-    return result
+    return code_wrapper.wrap_code(routine, helpers=helps)
 
 
 def binary_function(symfunc, expr, **kwargs):
