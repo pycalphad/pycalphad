@@ -20,7 +20,6 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
-
 cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets, bint allow_negative_fractions, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
@@ -94,6 +93,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         return True
     else:
         return False
+
 
 cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
                          object current_grid, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
@@ -266,6 +266,7 @@ cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=
         phase_idx += 1
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
+
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose):
     """

@@ -178,6 +178,7 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     for variable in variables:
         if not isinstance(variable, v.SiteFraction):
             continue
+        inst.phase_name = <unicode>variable.phase_name
         subl_index = variable.sublattice_index
         species = variable.species
         comp_index = comps.index(species)
@@ -207,6 +208,11 @@ def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, paramet
     # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
+    for variable in variables:
+        if not isinstance(variable, v.SiteFraction):
+            continue
+        inst.phase_name = <unicode>variable.phase_name
+        break
     inst.phase_dof = 0
     inst.sublattice_dof = sublattice_dof
     inst.parameters = parameters

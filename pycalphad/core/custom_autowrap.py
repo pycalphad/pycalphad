@@ -385,6 +385,7 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         if not os.access(workdir, os.F_OK):
             os.mkdir(workdir)
         try:
+            print(os.path.join(workdir, self.filename))
             self.generator.write(
                 [routine]+helpers, str(os.path.join(workdir, self.filename)).replace(os.sep, '/'), True, self.include_header,
                 self.include_empty)

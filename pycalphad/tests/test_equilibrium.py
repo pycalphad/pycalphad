@@ -7,7 +7,7 @@ import warnings
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
-from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
+from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -276,6 +276,14 @@ def test_eq_issue76_dilute_potentials():
     np.testing.assert_allclose(eq.GM.sel(T=930, P=101325).values, -37799.510894)
     assert np.all(np.diff(eq.MU.sel(component='FE').values <= 0))
 
+def test_eq_model_phase_name():
+    """
+    Phase name is set in PhaseRecord when using Model-based JIT compilation.
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
+                     {v.X('FE'): 0.3, v.T: 1000, v.P: 101325}, model=Model)
+    assert eq.Phase.sel(vertex=0).isel(T=0, P=0, X_FE=0) == 'LIQUID'
+
 def test_unused_equilibrium_kwarg_warns():
     "Check that an unused keyword argument raises a warning"
     with warnings.catch_warnings(record=True) as w:
@@ -283,4 +291,3 @@ def test_unused_equilibrium_kwarg_warns():
         categories = [warning.__dict__['_category_name'] for warning in w]
         assert 'UserWarning' in categories
         assert len(w) == 1 # make sure we don't raise other warnings later that make this test falsely pass
-
