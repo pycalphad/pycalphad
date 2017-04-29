@@ -128,6 +128,10 @@ class CodeWrapError(Exception):
     pass
 
 class C89CodePrinter(CCodePrinter):
+    """
+    C89-compatible code printing allows for Windows compatibility.
+    (MSVC 14 and newer support C99, but we are going for broad compatibility.)
+    """
     def _get_loop_opening_ending(self, indices):
         # The purpose is to enable C89-compliant loops (indices are pre-declared)
         open_lines = []
