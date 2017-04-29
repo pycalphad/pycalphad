@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.g41111bb documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.ga64d484 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.g41111bb documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.ga64d484 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.53.g41111bb
+                0+untagged.53.ga64d484
               </div>
             
           
@@ -253,7 +253,8 @@ all the other points. This is used for convex hull computations.</li>
 If False, assume state variables are given as equal-length lists.</li>
 <li><strong>points</strong> (<em>ndarray</em><em> or </em><em>a dict of phase names to ndarray</em><em>, </em><em>optional</em>) &#8211; Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
 If this is not specified, points will be generated automatically.</li>
-<li><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Number of points to sample per degree of freedom.</li>
+<li><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Number of points to sample per degree of freedom.
+Default: 2000; Default when called from equilibrium(): 500</li>
 <li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Model class to use for each phase.</li>
 <li><strong>sampler</strong> (<em>callable</em><em>, </em><em>a dict of phase names to callable</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) &#8211; Function to sample phase constitution space.
 Must have same signature as &#8216;pycalphad.core.utils.point_sample&#8217;</li>
@@ -1540,7 +1541,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.53.g41111bb',
+            VERSION:'0+untagged.53.ga64d484',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
