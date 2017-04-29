@@ -38,9 +38,6 @@ requirements:
   run:
     - python
     - gcc # [osx or linux]
-    - libgfortran # [osx or linux]
-    - mingw # [win32]
-    - mingw-w64 # [win64]
     - matplotlib
     - pandas
     - xarray !=0.8
