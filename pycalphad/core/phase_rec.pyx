@@ -18,6 +18,11 @@ cdef void* f2py_pointer(obj):
 
 
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
+    """
+    This object exposes a common API to the solver so it doesn't need to know about the differences
+    between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
+    these objects are pickleable. PhaseRecords are immutable after initialization.
+    """
     def __reduce__(self):
         if self.cmpmdl is not None:
             return PhaseRecord_from_compiledmodel, (self.cmpmdl, np.asarray(self.parameters))
@@ -47,56 +52,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil:
-        cdef double[::1] x1,x2
-        cdef double[::1] grad1, grad2
-        cdef double[::1,:] debugout
-        cdef double epsilon = 1e-12
-        cdef int grad_idx
-        cdef int col_idx
-        cdef int total_dof = 2 + self.phase_dof
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
         else:
             with gil:
-                grad1 = np.zeros(total_dof)
-                grad2 = np.zeros(total_dof)
-                x1 = np.array(dof)
-                x2 = np.array(dof)
-
-                for grad_idx in range(total_dof):
-                    if grad_idx > 1:
-                        x1[grad_idx] = max(x1[grad_idx] - epsilon, 1e-12)
-                        x2[grad_idx] = min(x2[grad_idx] + epsilon, 1)
-                    else:
-                        x1[grad_idx] = x1[grad_idx] - 1e6 * epsilon
-                        x2[grad_idx] = x2[grad_idx] + 1e6 * epsilon
-                    self.cmpmdl.eval_energy_gradient(grad1, x1, self.parameters)
-                    self.cmpmdl.eval_energy_gradient(grad2, x2, self.parameters)
-                    for col_idx in range(total_dof):
-                        out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
-                    x1[grad_idx] = dof[grad_idx]
-                    x2[grad_idx] = dof[grad_idx]
-                    grad1[:] = 0
-                    grad2[:] = 0
-                for grad_idx in range(total_dof):
-                    for col_idx in range(grad_idx, total_dof):
-                        out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
-                if self.cmpmdl._debug:
-                    debugout = np.asfortranarray(np.zeros_like(out))
-                    if self.parameters.shape[0] == 0:
-                        self.cmpmdl._debughess(&dof[0], NULL, &debugout[0,0])
-                    else:
-                        self.cmpmdl._debughess(&dof[0], &self.parameters[0], &debugout[0,0])
-                    try:
-                        np.testing.assert_allclose(out,debugout)
-                    except AssertionError as e:
-                        print('--')
-                        print('Hessian mismatch')
-                        print(e)
-                        print(np.array(debugout)-np.array(out))
-                        print('DOF:', np.array(dof))
-                        print(self.cmpmdl.constituents)
-                        print('--')
+                self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -151,7 +111,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_hess(self, double[::1,:] out, double[::1] dof, int comp_idx) nogil:
+    cpdef void mass_hess(self, double[:,:] out, double[::1] dof, int comp_idx) nogil:
         cdef double mass_normalization_factor = 0
         cdef double mass = 0
         cdef int hess_x_idx, hess_y_comp_idx, hess_y_idx, subl_x_idx, subl_y_idx, subl_idx
@@ -187,6 +147,7 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     inst = PhaseRecord()
     inst.cmpmdl = cmpmdl
     inst.variables = cmpmdl.variables
+    inst.phase_name = cmpmdl.phase_name
     inst.sublattice_dof = cmpmdl.sublattice_dof
     inst.phase_dof = sum(cmpmdl.sublattice_dof)
     inst.parameters = parameters
@@ -204,6 +165,7 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
         int var_idx, subl_index
         PhaseRecord inst
     inst = PhaseRecord()
+    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
     inst.phase_dof = 0
@@ -247,6 +209,7 @@ cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[:
 def PhaseRecord_from_f2py_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
                                  vacancy_index, ofunc, gfunc, hfunc):
     inst = PhaseRecord()
+    # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
     inst.phase_dof = 0

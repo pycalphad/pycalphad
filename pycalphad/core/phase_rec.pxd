@@ -19,7 +19,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public double[::1] num_sites
     cdef public int[::1] sublattice_dof
     cdef public int phase_dof
-    cdef public unicode name
+    cdef public unicode phase_name
     cdef public double[:,:,::1] composition_matrices
     cdef public int vacancy_index
     cpdef void obj(self, double[::1] out, double[::1,:] dof) nogil
@@ -27,7 +27,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void hess(self, double[::1,:] out, double[::1] dof) nogil
     cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
-    cpdef void mass_hess(self, double[::1,:] out, double[::1] dof, int comp_idx) nogil
+    cpdef void mass_hess(self, double[:,:] out, double[::1] dof, int comp_idx) nogil
 
 cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::1] parameters)
 cpdef PhaseRecord PhaseRecord_from_f2py(object comps, object variables, double[::1] num_sites, double[::1] parameters,

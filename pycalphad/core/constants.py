@@ -5,8 +5,9 @@ Note that modifying these may yield unpredictable results.
 """
 # Force zero values to this amount, for numerical stability
 MIN_SITE_FRACTION = 1e-12
-# For each phase pair with composition difference below tolerance, eliminate phase with largest index
-COMP_DIFFERENCE_TOL = 1e-9
+# Phases with mole fractions less than COMP_DIFFERENCE_TOL apart (by Chebyshev distance) are considered "the same" for
+# the purposes of CompositionSet addition and removal during energy minimization.
+COMP_DIFFERENCE_TOL = 1e-2
 
 # 'infinity' for numerical purposes
 BIGNUM = 1e60

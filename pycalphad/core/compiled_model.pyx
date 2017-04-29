@@ -9,11 +9,15 @@ from tinydb import where
 from collections import OrderedDict
 from pycalphad.core.rksum import RedlichKisterSum
 from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
 from cpython cimport PY_VERSION_HEX, PyCObject_Check, PyCObject_AsVoidPtr, PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
+
+
+cdef double MAX_ENERGY = BIGNUM
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -52,6 +56,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
+        self.phase_name = phase_name
         self.constituents = []
         self.components = set()
         # Verify that this phase is still possible to build
@@ -230,8 +235,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                          np.asarray(self.disordered_tc_coef_matrix),
                                          np.asarray(self.disordered_tc_coef_symbol_matrix),
                                          self.disordered_ihj_magnetic_structure_factor,
-                                         self.disordered_afm_factor,
-                                         self.ordered, self._debug))
+                                         self.disordered_afm_factor, self.ordered, self._debug))
 
     def _purity_test(self, constituent_array):
         """
@@ -422,7 +426,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     mass_normalization_factor[out_idx] += self.site_ratios[subl_idx] * (1-dof[out_idx, 2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
                     mass_normalization_factor[out_idx] += self.site_ratios[subl_idx]
-            out_energy[out_idx] /= mass_normalization_factor[out_idx]
+            if mass_normalization_factor[out_idx] <= 1e-6:
+                out_energy[out_idx] = MAX_ENERGY
+            else:
+                out_energy[out_idx] /= mass_normalization_factor[out_idx]
             out[out_idx] = out[out_idx] + sign * out_energy[out_idx]
 
     @cython.boundscheck(False)
@@ -484,8 +491,11 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
                     mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
-                    mass_normalization_factor += self.site_ratios[subl_idx]
-            out_energy /= mass_normalization_factor
+                    mass_normalization_factor += self.disordered_site_ratios[subl_idx]
+            if mass_normalization_factor <= 1e-6:
+                out_energy = MAX_ENERGY
+            else:
+                out_energy /= mass_normalization_factor
             out[0] = out[0] + sign * out_energy
 
     @cython.boundscheck(False)
@@ -625,7 +635,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[out_idx, 2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                     else:
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-                disordered_energy /= disordered_mass_normalization_factor
+                if disordered_mass_normalization_factor <= 1e-6:
+                    disordered_energy = MAX_ENERGY
+                else:
+                    disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
         if self._debug:
             debugout = np.zeros_like(out)
@@ -744,11 +757,16 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     self.eval_energy(energy, dof_2d_view, parameters)
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
-        for dof_idx in range(2+self.phase_dof):
-            if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / (mass_normalization_factor**2)
-            else:
-                out[dof_idx] /= mass_normalization_factor
+        if mass_normalization_factor <= 1e-6:
+            out[dof_idx] = MAX_ENERGY
+        else:
+            for dof_idx in range(2+self.phase_dof):
+                if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                    # Remember that energy is already equal to the energy divided by the mass normalization factor
+                    # That is why one factor of it disappears in the formula
+                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
+                else:
+                    out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
 
@@ -874,11 +892,16 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         self._eval_disordered_energy(disordered_energy, disordered_dof, parameters, 1)
                 else:
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            for dof_idx in range(2+self.disordered_phase_dof):
-                if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
-                    disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / (disordered_mass_normalization_factor**2)
-                else:
-                    disordered_out[dof_idx] /= disordered_mass_normalization_factor
+            if disordered_mass_normalization_factor <= 1e-6:
+                disordered_out[dof_idx] = MAX_ENERGY
+            else:
+                for dof_idx in range(2+self.disordered_phase_dof):
+                    if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
+                        # Remember that disordered_energy is already equal to the energy divided by the mass normalization factor
+                        # That is why one factor of it disappears in the formula
+                        disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
+                    else:
+                        disordered_out[dof_idx] /= disordered_mass_normalization_factor
             # P,T derivatives can be directly added
             out[0] += disordered_out[0]
             out[1] += disordered_out[1]
@@ -890,9 +913,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         dof_idx = subl_idx * self.sublattice_dof[0] + disordered_dof_idx
                         out[dof_idx] += (self.site_ratios[subl_idx] / _sum(self.site_ratios[:self.site_ratios.shape[0]-1])) * disordered_out[disordered_dof_idx]
                 # last sublattice is handled separately
-                for disordered_dof_idx in range(2+self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
+                for disordered_dof_idx in range(2,2+self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
                     dof_idx = (self.sublattice_dof.shape[0]-1) * self.sublattice_dof[0] + disordered_dof_idx
-                    out[dof_idx] += disordered_out[disordered_dof_idx]
+                    out[dof_idx] += disordered_out[_intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])+disordered_dof_idx]
             else:
                 # Second case: all sublattices have the same degrees of freedom
                 for disordered_dof_idx in range(2,2+self.disordered_phase_dof):
@@ -907,6 +930,56 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             except AssertionError as e:
                 print('--')
                 print('Gradient mismatch')
+                print(e)
+                print(np.array(debugout)-np.array(out))
+                print('DOF:', np.array(dof))
+                print(self.constituents)
+                print('--')
+
+    cpdef void eval_energy_hessian(self, double[::1, :] out, double[:] dof, double[:] parameters):
+        cdef double[::1] x1,x2
+        cdef double[::1] grad1, grad2
+        cdef double[::1,:] debugout
+        cdef double epsilon = 1e-12
+        cdef int grad_idx
+        cdef int col_idx
+        cdef int total_dof = 2 + self.phase_dof
+        if self.mem.size > 2**16:
+            self.mem = Pool()
+        grad1 = np.zeros(total_dof)
+        grad2 = np.zeros(total_dof)
+        x1 = np.array(dof)
+        x2 = np.array(dof)
+
+        for grad_idx in range(total_dof):
+            if grad_idx > 1:
+                x1[grad_idx] = max(x1[grad_idx] - epsilon, 1e-12)
+                x2[grad_idx] = min(x2[grad_idx] + epsilon, 1)
+            else:
+                x1[grad_idx] = x1[grad_idx] - 1e6 * epsilon
+                x2[grad_idx] = x2[grad_idx] + 1e6 * epsilon
+            self.eval_energy_gradient(grad1, x1, parameters)
+            self.eval_energy_gradient(grad2, x2, parameters)
+            for col_idx in range(total_dof):
+                out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
+            x1[grad_idx] = dof[grad_idx]
+            x2[grad_idx] = dof[grad_idx]
+            grad1[:] = 0
+            grad2[:] = 0
+        for grad_idx in range(total_dof):
+            for col_idx in range(grad_idx, total_dof):
+                out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
+        if self._debug:
+            debugout = np.asfortranarray(np.zeros_like(out))
+            if parameters.shape[0] == 0:
+                self._debughess(&dof[0], NULL, &debugout[0,0])
+            else:
+                self._debughess(&dof[0], &parameters[0], &debugout[0,0])
+            try:
+                np.testing.assert_allclose(out,debugout)
+            except AssertionError as e:
+                print('--')
+                print('Hessian mismatch')
                 print(e)
                 print(np.array(debugout)-np.array(out))
                 print('DOF:', np.array(dof))
@@ -935,7 +1008,8 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     inst.disordered_excess_coef_matrix, inst.disordered_excess_coef_symbol_matrix,
     inst.disordered_bm_coef_matrix, inst.disordered_bm_coef_symbol_matrix,
     inst.disordered_tc_coef_matrix, inst.disordered_tc_coef_symbol_matrix,
-    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered, inst.mem, inst._debug) = \
+    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered,
+    inst.mem, inst._debug) = \
     (constituents, variables, components, sublattice_dof, phase_dof,
     composition_matrices, site_ratios, vacancy_index,
     pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
