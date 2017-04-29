@@ -3,12 +3,15 @@ The equilibrium test module verifies that the Equilibrium class produces the
 correct solution for thermodynamic equilibrium.
 """
 
+import warnings
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, calculate, equilibrium, EquilibriumError, ConditionError
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
+
+warnings.simplefilter("always", UserWarning) # so we can test warnings
 
 ROSE_DBF = Database(ROSE_TDB)
 ALFE_DBF = Database(ALFE_TDB)
@@ -25,7 +28,7 @@ def test_rose_nine():
     conds = dict({v.T: 1000, v.P: 101325})
     for comp in comps[:-1]:
         conds[v.X(comp)] = 1.0/float(len(comps))
-    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, pbar=False, verbose=True)
+    eqx = equilibrium(ROSE_DBF, comps, my_phases_rose, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -5.8351e3, atol=0.1)
 
 # OTHER TESTS
@@ -35,7 +38,7 @@ def test_eq_binary():
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, pbar=False)
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 def test_eq_single_phase():
@@ -45,7 +48,7 @@ def test_eq_single_phase():
                                        [0.7, 0.3], [0.8, 0.2]]})
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
-                      v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True, pbar=False)
+                      v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True)
     assert_allclose(eq.GM, res.GM, atol=0.1)
 
 
@@ -55,7 +58,7 @@ def test_eq_b2_without_all_comps():
     all components in a Database are selected for the calculation.
     """
     equilibrium(Database(ALNIPT_TDB), ['AL', 'NI', 'VA'], 'BCC_B2', {v.X('NI'): 0.4, v.P: 101325, v.T: 1200},
-                verbose=True, pbar=False)
+                verbose=True)
 
 
 @raises(ValueError)
@@ -64,7 +67,7 @@ def test_eq_underdetermined_comps():
     The number of composition conditions should yield exactly one dependent component.
     This is the underdetermined case.
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325}, pbar=False)
+    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
 
 
 @raises(ValueError)
@@ -74,15 +77,15 @@ def test_eq_overdetermined_comps():
     This is the overdetermined case.
     """
     equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
-                                                   v.X('FE'): 0.2, v.X('AL'): 0.8}, pbar=False)
+                                                   v.X('FE'): 0.2, v.X('AL'): 0.8})
 
 def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, pbar=False)
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0})
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8}, pbar=False)
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8})
     assert_allclose(np.squeeze(eq.GM.values), -64415.84069827)
     assert_allclose(eq.MU.values, [[[[-335723.04320981,  -64415.8379852]]]], atol=0.1)
 
@@ -93,7 +96,7 @@ def test_eq_illcond_hessian():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
-                     {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5}, pbar=False)
+                     {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5})
     assert_allclose(eq.GM.values, [[[-16507.22325998]]])
     # chemical potentials were checked in TC and accurate to 1 J/mol
     # pycalphad values used for more significant figures
@@ -107,7 +110,7 @@ def test_eq_illcond_magnetic_hessian():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
-                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, pbar=False, verbose=True)
+                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, verbose=True)
     assert_allclose(eq.GM.values, [[[-31414.46677]]])
     assert_allclose(eq.MU.values, [[[[-8490.140, -123111.773]]]], atol=0.1)
 
@@ -118,7 +121,7 @@ def test_eq_composition_cond_sorting():
     come last in alphabetical order (gh-21).
     """
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
-                     {v.T: 2000, v.P: 101325, v.X('FE'): 0.2}, pbar=False)
+                     {v.T: 2000, v.P: 101325, v.X('FE'): 0.2})
     # Values computed by Thermo-Calc
     tc_energy = -143913.3
     tc_mu_fe = -184306.01
@@ -132,7 +135,7 @@ def test_eq_output_property():
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
                 {v.X('AL'): 0.25, v.T: (300, 2000, 500), v.P: 101325},
-                output=['heat_capacity', 'degree_of_ordering'], pbar=False)
+                output=['heat_capacity', 'degree_of_ordering'])
 
 def test_eq_on_endmember():
     """
@@ -140,14 +143,14 @@ def test_eq_on_endmember():
     the convex hull is still correctly constructed (gh-28).
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
-                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, pbar=False)
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
 
 def test_eq_four_sublattice():
     """
     Balancing mass in a multi-sublattice phase in a single-phase configuration.
     """
     eq = equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], 'FCC_L12',
-                     {v.T: 1073, v.X('NI'): 0.7601, v.P: 101325}, pbar=False)
+                     {v.T: 1073, v.X('NI'): 0.7601, v.P: 101325})
     assert_allclose(np.squeeze(eq.X.sel(vertex=0).values), [1-.7601, .7601])
     # Not a strict equality here because we can't yet reach TC's value of -87260.6
     assert eq.GM.values < -87256.3
@@ -160,7 +163,7 @@ def test_eq_missing_component():
     # No Co or Cr in this database ; Co component specification should cause failure
     equilibrium(ALNIFCC4SL_DBF, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
                 {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                 v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+                 v.X('CO'): 0.11188888888888888, v.P: 101325})
 
 @raises(ConditionError)
 def test_eq_missing_component():
@@ -170,7 +173,7 @@ def test_eq_missing_component():
     # No Co or Cr in this database ; Co condition specification should cause failure
     equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
                 {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                 v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False)
+                 v.X('CO'): 0.11188888888888888, v.P: 101325})
 
 def test_eq_ternary_edge_case_mass():
     """
@@ -178,7 +181,7 @@ def test_eq_ternary_edge_case_mass():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                      v.X('CO'): 0.11188888888888888, v.P: 101325}, pbar=False, verbose=True)
+                      v.X('CO'): 0.11188888888888888, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.88811111111111107, 0.11188888888888888, 0]
     assert np.all(np.abs(mass_error) < 0.01)
@@ -189,7 +192,7 @@ def test_eq_ternary_inside_mass():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.44455555555555554,
-                      v.X('CO'): 0.22277777777777777, v.P: 101325}, pbar=False, verbose=True)
+                      v.X('CO'): 0.22277777777777777, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.44455555555555554, 0.22277777777777777, 0.333]
     assert np.all(np.abs(mass_error) < 0.01)
@@ -200,7 +203,7 @@ def test_eq_ternary_edge_misc_gap():
     """
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.33366666666666667,
-                      v.X('CO'): 0.44455555555555554, v.P: 101325}, pbar=False, verbose=True)
+                      v.X('CO'): 0.44455555555555554, v.P: 101325}, verbose=True)
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.33366666666666667, 0.44455555555555554, 0.22177777777777785]
     assert np.all(np.abs(mass_error) < 0.001)
@@ -211,7 +214,7 @@ def test_eq_issue43_chempots_misc_gap():
     """
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
-                     verbose=True, pbar=False)
+                     verbose=True)
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
@@ -222,7 +225,7 @@ def test_eq_issue43_chempots_tricky_potentials():
     """
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
                      {v.X('AL'): .1246, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
-                     verbose=True, pbar=False)
+                     verbose=True)
     chempots = np.array([-135620.9960449, -47269.29002414, -92304.23688281])
     assert_allclose(eq.GM.values, -70680.53695)
     assert_allclose(np.squeeze(eq.MU.values), chempots)
@@ -252,7 +255,6 @@ def test_eq_issue62_last_component_not_va():
     equilibrium(Database(test_tdb), ['AL', 'CO', 'CR', 'W', 'VA'], ['FCC_A1'],
                 {"T": 1248, "P": 101325, v.X("AL"): 0.081, v.X("CR"): 0.020, v.X("W"): 0.094})
 
-
 def test_eq_avoid_phase_cycling():
     """
     Converge without getting stuck in an add/remove phase cycle.
@@ -273,3 +275,12 @@ def test_eq_issue76_dilute_potentials():
     # Spot check at one temperature, plus monotonic decrease of chemical potential
     np.testing.assert_allclose(eq.GM.sel(T=930, P=101325).values, -37799.510894)
     assert np.all(np.diff(eq.MU.sel(component='FE').values <= 0))
+
+def test_unused_equilibrium_kwarg_warns():
+    "Check that an unused keyword argument raises a warning"
+    with warnings.catch_warnings(record=True) as w:
+        equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
+        categories = [warning.__dict__['_category_name'] for warning in w]
+        assert 'UserWarning' in categories
+        assert len(w) == 1 # make sure we don't raise other warnings later that make this test falsely pass
+

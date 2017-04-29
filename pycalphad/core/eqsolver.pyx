@@ -83,6 +83,16 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         elif abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
             composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
 
+    entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
+                               reverse=True)
+    for idx in entries_to_delete:
+        if verbose:
+            print('Removing ' + repr(composition_sets[idx]))
+        del composition_sets[idx]
+    if len(entries_to_delete) > 0:
+        return True
+    else:
+        return False
 
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
@@ -137,6 +147,17 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid.X.values[df_idx]
         df_phase_name = <unicode>str(current_grid.Phase.values[df_idx])
+        for compset in composition_sets:
+            if compset.phase_record.phase_name != df_phase_name:
+                continue
+            distinct = False
+            for comp_idx in range(df_comp.shape[0]):
+                if abs(df_comp[comp_idx] - compset.X[comp_idx]) > COMP_DIFFERENCE_TOL:
+                    distinct = True
+            if not distinct:
+                if verbose:
+                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
+                return False
         # Set all phases to have equal amounts as new phase is added
         for compset in composition_sets:
             compset.NP = 1./(len(composition_sets)+1)
