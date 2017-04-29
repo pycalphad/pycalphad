@@ -826,13 +826,12 @@ def read_tdb(dbf, fd):
     splitlines = [' '.join(k.split()) for k in splitlines]
     # Remove comments
     splitlines = [k.strip().split('$', 1)[0] for k in splitlines]
+    # Remove everything after command delimiter, but keep the delimiter so we can split later
+    splitlines = [k.split('!')[0] + ('!' if len(k.split('!')) > 1 else '') for k in splitlines]
     # Combine everything back together
     lines = ' '.join(splitlines)
     # Now split by the command delimeter
     commands = lines.split('!')
-    # Filter out comments one more time
-    # It's possible they were at the end of a command
-    commands = [k.strip() for k in commands if not k.startswith("$")]
 
     # Temporary storage while we process type definitions
     dbf.tdbtypedefs = {}
