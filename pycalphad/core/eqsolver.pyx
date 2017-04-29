@@ -88,17 +88,6 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     for idx in entries_to_delete:
         if verbose:
             print('Removing ' + repr(composition_sets[idx]))
-        del composition_sets[idx]
-    if len(entries_to_delete) > 0:
-        return True
-    else:
-        return False
-
-    entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
-                               reverse=True)
-    for idx in entries_to_delete:
-        if verbose:
-            print('Removing ' + repr(composition_sets[idx]))
         removed_compsets.append(composition_sets[idx])
         del composition_sets[idx]
     if len(entries_to_delete) > 0:
