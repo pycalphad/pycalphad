@@ -370,6 +370,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         If this is not specified, points will be generated automatically.
     pdens : int, a dict of phase names to int, or a seq of both, optional
         Number of points to sample per degree of freedom.
+        Default: 2000; Default when called from equilibrium(): 500
     model : Model, a dict of phase names to Model, or a seq of both, optional
         Model class to use for each phase.
     sampler : callable, a dict of phase names to callable, or a seq of both, optional
