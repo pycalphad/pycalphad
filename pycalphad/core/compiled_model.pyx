@@ -1,4 +1,3 @@
-# cython: profile=True
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -13,7 +12,7 @@ from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
-from cpython cimport PY_VERSION_HEX, PyCapsule_CheckExact, PyCapsule_GetPointer
+from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
 
 
