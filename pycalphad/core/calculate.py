@@ -461,7 +461,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             continue
         if (not isinstance(mod, CompiledModel)) or (output != 'GM'):
             if isinstance(mod, CompiledModel):
-                mod = Model(dbf, comps, phase_name)
+                mod = Model(dbf, comps, phase_name, parameters=parameters)
             # Construct an ordered list of the variables
             variables, sublattice_dof = generate_dof(phase_obj, mod.components)
             # Build the "fast" representation of that model

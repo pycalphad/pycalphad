@@ -240,7 +240,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                       for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
     # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(model, default_arg=Model)
+    models = unpack_kwarg(model, default_arg=FallbackModel)
     if verbose:
         print('Components:', ' '.join(comps))
         print('Phases:', end=' ')
@@ -250,7 +250,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name)
+            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
         if isinstance(mod, CompiledModel):
             phase_records[name.upper()] = PhaseRecord_from_compiledmodel(mod, param_values)
             maximum_internal_dof = max(maximum_internal_dof, sum(mod.sublattice_dof))
@@ -361,16 +361,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = False
         for phase_name, mod in models.items():
             if isinstance(mod, CompiledModel) or isinstance(mod, FallbackModel):
-                models[phase_name] = Model(dbf, comps, phase_name)
-        delayed(properties.merge, pure=False)(delayed(_eqcalculate, pure=False)(dbf, comps, active_phases,
-                                                                                          conditions, out,
-                                                                                          data=properties,
-                                                                                          per_phase=per_phase,
-                                                                                          model=models, **calc_opts),
-                                                   inplace=True, compat='equals')
-    delayed(properties.attrs.__setitem__, pure=False)('created', datetime.utcnow())
+                models[phase_name] = Model(dbf, comps, phase_name, parameters=parameters)
+        eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
+                                                  data=properties, per_phase=per_phase, model=models, **calc_opts)
+        properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
     if scheduler is not None:
         properties = dask.compute(properties, get=scheduler)[0]
+    properties.attrs['created'] = datetime.utcnow()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties

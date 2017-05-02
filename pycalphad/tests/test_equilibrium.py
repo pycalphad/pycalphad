@@ -296,5 +296,6 @@ def test_eq_unary_issue78():
     "Unary equilibrium calculations work with property calculations."
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM')
     np.testing.assert_allclose(eq.SM, 68.143273)
-    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, parameters={'GHSERAL': 1000})
+    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
+    np.testing.assert_allclose(eq.SM, 0)
