@@ -314,11 +314,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                           np.empty(grid_shape, dtype=np.int32))
                                                },
                                               coords=coord_dict,
-                                              attrs={'hull_iterations': 1, 'solve_iterations': 0,
-                                                     'engine': 'pycalphad %s' % pycalphad_version},
+                                              attrs={'engine': 'pycalphad %s' % pycalphad_version},
                                               )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, properties, verbose=verbose)
+    properties = delayed(lower_convex_hull, pure=False)(grid, properties)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
