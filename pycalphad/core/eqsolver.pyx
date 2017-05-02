@@ -394,8 +394,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if (num_phases == 1) and np.all(np.asarray(composition_sets[0].dof[2:]) == 1.):
                 # Single phase with zero internal degrees of freedom, can't do any refinement
                 # TODO: In the future we may be able to refine other degrees of freedom like temperature
-                # Chemical potentials have no meaning for this case
-                chemical_potentials[:] = np.nan
+                chemical_potentials[:] = energy
                 converged = True
                 break
 

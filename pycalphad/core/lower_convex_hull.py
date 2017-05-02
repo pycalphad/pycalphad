@@ -419,10 +419,13 @@ def lower_convex_hull(global_grid, result_array, verbose=False):
     comp_coord_shape = tuple(len(result_array.coords[cond]) for cond in comp_conds)
     while not it.finished:
         indep_idx = it.multi_index[:len(indep_conds)]
-        comp_idx = np.ravel_multi_index(it.multi_index[len(indep_conds):], comp_coord_shape)
+        if len(comp_conds) > 0:
+            comp_idx = np.ravel_multi_index(it.multi_index[len(indep_conds):], comp_coord_shape)
+            idx_comp_values = comp_values[comp_idx]
+        else:
+            idx_comp_values = np.atleast_1d(1.)
         idx_global_grid_X_values = global_grid_X_values[indep_idx]
         idx_global_grid_GM_values = global_grid_GM_values[indep_idx]
-        idx_comp_values = comp_values[comp_idx]
         idx_result_array_MU_values = result_array_MU_values[it.multi_index]
         idx_result_array_NP_values = result_array_NP_values[it.multi_index]
         idx_result_array_GM_values = result_array_GM_values[it.multi_index]
