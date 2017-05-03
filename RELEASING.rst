@@ -37,7 +37,7 @@ Uploading to PyPI
 -----------------
 1. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
 2. With the commit checked out which was tagged with the new version:
-   ``python setup.py sdist bdist_wheel``
+   ``python setup.py sdist``
 
    **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
 
