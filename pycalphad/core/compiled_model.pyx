@@ -71,7 +71,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         for idx, sublattice in enumerate(self.constituents):
             for comp in sublattice:
                 self.variables.append(v.Y(phase_name, idx, comp))
-        parameters = parameters if parameters is not None else {}
+        parameters = parameters or dict()
         renamed_params = []
         for param, val in parameters.items():
             if not isinstance(param, Symbol):
