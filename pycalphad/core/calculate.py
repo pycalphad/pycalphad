@@ -215,7 +215,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
 
 def _compute_phase_values(phase_obj, components, variables, statevar_dict,
-                          points, prn, output, maximum_internal_dof, broadcast=True, fake_points=False,
+                          points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
                           largest_energy=None):
     """
     Calculate output values for a particular phase.
@@ -232,7 +232,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         Mapping of state variables to desired values. This will broadcast if necessary.
     points : ndarray
         Inputs to 'func', except state variables. Columns should be in 'variables' order.
-    prn : PhaseRecord
+    phase_record : PhaseRecord
         Contains callable for energy and phase metadata.
     output : string
         Desired name of the output result in the Dataset.
@@ -279,7 +279,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
-    prn.obj(phase_output, dof)
+    phase_record.obj(phase_output, dof)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)
@@ -484,13 +484,13 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                                         parameters=param_symbols)
             else:
                 comp_sets[phase_name] = callable_dict[phase_name]
-            prn = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
+            phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
                                         np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
                                         param_values, comp_sets[phase_name], None, None)
         else:
             variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
             sublattice_dof = mod.sublattice_dof
-            prn = PhaseRecord_from_compiledmodel(mod, param_values)
+            phase_record = PhaseRecord_from_compiledmodel(mod, param_values)
         points = points_dict[phase_name]
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
@@ -500,7 +500,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
         phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
-                                         points, prn, output,
+                                         points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)
         all_phase_data.append(phase_ds)

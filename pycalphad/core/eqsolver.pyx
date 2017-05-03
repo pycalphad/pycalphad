@@ -299,7 +299,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
     cdef bint converged, changed_phases
     cdef double vmax, minimum_df
-    cdef PhaseRecord prn
+    cdef PhaseRecord phase_record
     cdef CompositionSet compset
     cdef double[:,::1] l_hessian
     cdef double[:,:] inv_hess
@@ -358,10 +358,10 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
-            phrec = phase_records[phase_name]
-            sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phrec.phase_dof]]
+            phase_record = phase_records[phase_name]
+            sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_record.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
-            compset = CompositionSet(phrec)
+            compset = CompositionSet(phase_record)
             compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'])
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
