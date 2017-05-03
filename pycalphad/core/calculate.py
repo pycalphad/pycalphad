@@ -339,7 +339,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     return Dataset(data_arrays, coords=coordinate_dict)
 
-#@cacheit
+
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
@@ -398,7 +398,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
-    parameters = parameters if parameters is not None else dict()
+    parameters = parameters or dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
     param_symbols = tuple(parameters.keys())
