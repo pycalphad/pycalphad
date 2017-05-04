@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.52.g320e531 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.gecb2361 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.52.g320e531 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.gecb2361 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.52.g320e531
+                0+untagged.53.gecb2361
               </div>
             
           
@@ -403,7 +403,7 @@
                       <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">str_conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">indep_vars</span><span class="p">)</span>
     <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="k">if</span> <span class="ow">not</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)]</span>
     <span class="c1"># Construct models for each phase; prioritize user models</span>
-    <span class="n">models</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="n">Model</span><span class="p">)</span>
+    <span class="n">models</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="n">FallbackModel</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Components:&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">comps</span><span class="p">))</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Phases:&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39; &#39;</span><span class="p">)</span>
@@ -413,7 +413,7 @@
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">:</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
-            <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">name</span><span class="p">)</span>
+            <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">CompiledModel</span><span class="p">):</span>
             <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord_from_compiledmodel</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">param_values</span><span class="p">)</span>
             <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">sublattice_dof</span><span class="p">))</span>
@@ -477,11 +477,10 @@
                                                           <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
                                                <span class="p">},</span>
                                               <span class="n">coords</span><span class="o">=</span><span class="n">coord_dict</span><span class="p">,</span>
-                                              <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;hull_iterations&#39;</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="s1">&#39;solve_iterations&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
-                                                     <span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="s1">&#39;pycalphad </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pycalphad_version</span><span class="p">},</span>
+                                              <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="s1">&#39;pycalphad </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pycalphad_version</span><span class="p">},</span>
                                               <span class="p">)</span>
     <span class="c1"># One last call to ensure &#39;properties&#39; and &#39;grid&#39; are consistent with one another</span>
-    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">lower_convex_hull</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">grid</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">lower_convex_hull</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">grid</span><span class="p">,</span> <span class="n">properties</span><span class="p">)</span>
     <span class="n">conditions_per_chunk_per_axis</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">num_calcs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># Generate slices of &#39;properties&#39;</span>
@@ -524,16 +523,13 @@
             <span class="n">per_phase</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">CompiledModel</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">FallbackModel</span><span class="p">):</span>
-                <span class="n">models</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
-        <span class="n">delayed</span><span class="p">(</span><span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">delayed</span><span class="p">(</span><span class="n">_eqcalculate</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span>
-                                                                                          <span class="n">conditions</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
-                                                                                          <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span>
-                                                                                          <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span>
-                                                                                          <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_opts</span><span class="p">),</span>
-                                                   <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
-    <span class="n">delayed</span><span class="p">(</span><span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="o">.</span><span class="fm">__setitem__</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="s1">&#39;created&#39;</span><span class="p">,</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">())</span>
+                <span class="n">models</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="n">eqcal</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_eqcalculate</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
+                                                  <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_opts</span><span class="p">)</span>
+        <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">eqcal</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">scheduler</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">get</span><span class="o">=</span><span class="n">scheduler</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">properties</span></div>
@@ -573,7 +569,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.52.g320e531',
+            VERSION:'0+untagged.53.gecb2361',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
