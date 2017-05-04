@@ -42,19 +42,12 @@ Uploading to PyPI
    Assuming a correctly configured .pypirc:
    ``twine upload -r pypi --sign -u rotis -i 98628A70 dist/*``
 
-Uploading to Anaconda.org
--------------------------
+Uploading to conda-forge
+------------------------
 Start with the commit checked out which was tagged with the new version.
 
-1. ``rm /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2`` on Linux/OSX (use ``del`` and correct path on Windows)
-2. ``rm -R dist/*`` on Linux/OSX or ``del dist/*`` on Windows
-3. ``conda build --python 2.7 conda_recipe/``
-
-   ``conda build --python 3.4 conda_recipe/``
-
-   ``conda build --python 3.5 conda_recipe/``
-
-   ``conda build --python 3.6 conda_recipe/``
-
-4. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2 -o ./dist``
-5. ``anaconda upload -u richardotis dist/*/*``
+1. Generate the SHA256 hash of the build artifact (tarball) submitted to PyPI.
+2. Fork the conda-forge/pycalphad-feedstock repo.
+3. Update the version and sha256 strings in the recipe/meta.yaml file.
+4. Submit a pull request to the main pycalphad feedstock repo.
+5. Once the tests pass, merge the pull request.
