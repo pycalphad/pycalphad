@@ -54,5 +54,7 @@ Start with the commit checked out which was tagged with the new version.
 
    ``conda build --python 3.5 conda_recipe/``
 
+   ``conda build --python 3.6 conda_recipe/``
+
 4. ``conda convert --platform all /home/rotis/anaconda/conda-bld/linux-64/pycalphad-*.tar.bz2 -o ./dist``
 5. ``anaconda upload -u richardotis dist/*/*``
