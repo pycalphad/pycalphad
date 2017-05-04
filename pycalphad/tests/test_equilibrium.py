@@ -291,3 +291,11 @@ def test_unused_equilibrium_kwarg_warns():
         categories = [warning.__dict__['_category_name'] for warning in w]
         assert 'UserWarning' in categories
         assert len(w) == 1 # make sure we don't raise other warnings later that make this test falsely pass
+
+def test_eq_unary_issue78():
+    "Unary equilibrium calculations work with property calculations."
+    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM')
+    np.testing.assert_allclose(eq.SM, 68.143273)
+    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
+    np.testing.assert_allclose(eq.GM, 1000)
+    np.testing.assert_allclose(eq.SM, 0)

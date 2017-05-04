@@ -83,13 +83,13 @@ class Model(object):
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
 
-        if parameters is not None:
-            symbols.update([(Symbol(s), val) for s, val in parameters.items()])
         def wrap_symbol(obj):
             if isinstance(obj, Symbol):
                 return obj
             else:
                 return Symbol(obj)
+        if parameters is not None:
+            symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
