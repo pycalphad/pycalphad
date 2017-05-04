@@ -1,6 +1,32 @@
 What's New
 ==========
 
+0.5 (2017-05-04)
+----------------
+
+This is a major release with bug fixes and performance improvements.
+
+* Python 3.6 is now supported. Python 3.3 support has been dropped.
+* The equilibrium solver is now significantly faster and more robust. A new Cython-based implementation of the Model class,
+CompiledModel, has virtually eliminated cold-start calculation time.
+* Cython is now a run-time and build-time dependency. Obsolete dependencies have been removed. Windows is still supported
+with the caveat that users will need to install the Microsoft Visual C++ Build Tools to get a working C compiler.
+* The [pycalphad paper](http://doi.org/10.5334/jors.140) has been published.
+* The progress bar has been removed along with the dependency on tqdm.
+* ENH: Raise warning if unused kwargs are passed to equilibrium
+* ENH: TDB compatibility: All characters after command delimiters should be ignored.
+* FIX: Fix solver when sum of compositions > 1
+* DOC: calculate: Add default pdens value to docstring. Fixes  :issue:`85`.
+* FIX: Indexing errors ( :issue:`63` ).
+* FIX: eqsolver: Handle component index correctly when VA is not last component in alphabetical order. Fixes :issue:`62`.
+* ENH: calculate/equilibrium: Add parameters kwarg to allow users to override Database FUNCTIONs.
+* DOC: Add Getting Help section to readme and docs.
+* FIX: binplot: Fix ordering of phase labels and colors.
+* tdb: Make ELEMENT grammar more strict to catch typos easier. Fixes :issue:`57`.
+* ENH: Caching rewrite and performance increase. Database objects are now hashable.
+* ENH: calculate: Performance enhancements via profiling.
+* ENH: equilibrium: Break computation up into parallelizable pieces using dask.
+
 0.4.2 (2016-08-26)
 ------------------
 
