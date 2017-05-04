@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.54.g4abb4fd documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.gf9b60fd documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.54.g4abb4fd documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.gf9b60fd documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.54.g4abb4fd
+                0+untagged.53.gf9b60fd
               </div>
             
           
@@ -230,6 +230,13 @@ Access the underlying function with f.__wrapped__.</p>
 <span id="pycalphad-core-calculate-module"></span><h2>pycalphad.core.calculate module<a class="headerlink" href="#module-pycalphad.core.calculate" title="Permalink to this headline">¶</a></h2>
 <p>The calculate module contains a routine for calculating the
 property surface of a system.</p>
+<dl class="class">
+<dt id="pycalphad.core.calculate.FallbackModel">
+<em class="property">class </em><code class="descclassname">pycalphad.core.calculate.</code><code class="descname">FallbackModel</code><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#FallbackModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.FallbackModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Compatibility layer while transitioning to CompiledModel.</p>
+</dd></dl>
+
 <dl class="function">
 <dt id="pycalphad.core.calculate.calculate">
 <code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
@@ -912,13 +919,6 @@ calculated phase equilibria.</p>
 <p>Exception related to calculation of equilibrium</p>
 </dd></dl>
 
-<dl class="class">
-<dt id="pycalphad.core.equilibrium.FallbackModel">
-<em class="property">class </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">FallbackModel</code><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#FallbackModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.FallbackModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
-<p>Compatibility layer while transitioning to CompiledModel.</p>
-</dd></dl>
-
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
 <code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
@@ -1498,7 +1498,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.54.g4abb4fd',
+            VERSION:'0+untagged.53.gf9b60fd',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

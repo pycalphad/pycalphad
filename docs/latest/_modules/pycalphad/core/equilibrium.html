@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.54.g4abb4fd documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0+untagged.53.gf9b60fd documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.54.g4abb4fd documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.53.gf9b60fd documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0+untagged.54.g4abb4fd
+                0+untagged.53.gf9b60fd
               </div>
             
           
@@ -175,6 +175,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.sympydiff_utils</span> <span class="k">import</span> <span class="n">build_functions</span> <span class="k">as</span> <span class="n">compiled_build_functions</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord_from_cython</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.calculate</span> <span class="k">import</span> <span class="n">FallbackModel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Symbol</span>
@@ -190,17 +191,6 @@
 <div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="s2">&quot;Exception related to calculation of equilibrium&quot;</span>
     <span class="k">pass</span></div>
-
-
-<div class="viewcode-block" id="FallbackModel"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.FallbackModel">[docs]</a><span class="k">class</span> <span class="nc">FallbackModel</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="s2">&quot;Compatibility layer while transitioning to CompiledModel.&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">ret</span> <span class="o">=</span> <span class="n">CompiledModel</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Model</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">ret</span></div>
-
 
 
 <div class="viewcode-block" id="ConditionError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.ConditionError">[docs]</a><span class="k">class</span> <span class="nc">ConditionError</span><span class="p">(</span><span class="n">EquilibriumError</span><span class="p">):</span>
@@ -569,7 +559,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0+untagged.54.g4abb4fd',
+            VERSION:'0+untagged.53.gf9b60fd',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
