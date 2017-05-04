@@ -436,7 +436,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1)
             if verbose:
                 print('old_driving_force', old_driving_force)
-            for new_alpha in [0.5**n for n in range(4)] + [0]:
+            for new_alpha in [0.5**n for n in range(12)] + [0]:
                 alpha = new_alpha
                 for sfidx in range(site_fracs.shape[0]):
                     site_fracs[sfidx] = min(max(old_site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
