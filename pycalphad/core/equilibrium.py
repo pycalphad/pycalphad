@@ -12,6 +12,7 @@ from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
 from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
+from pycalphad.core.calculate import FallbackModel
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
@@ -27,17 +28,6 @@ from datetime import datetime
 class EquilibriumError(Exception):
     "Exception related to calculation of equilibrium"
     pass
-
-
-class FallbackModel(object):
-    "Compatibility layer while transitioning to CompiledModel."
-    def __new__(cls, *args, **kwargs):
-        try:
-            ret = CompiledModel(*args, **kwargs)
-        except NotImplementedError:
-            return Model(*args, **kwargs)
-        return ret
-
 
 
 class ConditionError(EquilibriumError):

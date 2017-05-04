@@ -25,6 +25,15 @@ from xarray.core.combine import _calc_concat_over, _calc_concat_dim_coord, conca
 from collections import OrderedDict
 import pandas as pd
 
+class FallbackModel(object):
+    "Compatibility layer while transitioning to CompiledModel."
+    def __new__(cls, *args, **kwargs):
+        try:
+            ret = CompiledModel(*args, **kwargs)
+        except NotImplementedError:
+            return Model(*args, **kwargs)
+        return ret
+
 def _fast_concat(datasets, dim=None):
     """
     Fork of xarray.concat for Datasets.
@@ -394,7 +403,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
-    model_dict = unpack_kwarg(kwargs.pop('model', CompiledModel), default_arg=CompiledModel)
+    model_dict = unpack_kwarg(kwargs.pop('model', FallbackModel), default_arg=FallbackModel)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
