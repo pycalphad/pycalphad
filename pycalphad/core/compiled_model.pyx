@@ -1,4 +1,3 @@
-# cython: profile=True
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -13,7 +12,7 @@ from pycalphad.core.constants import BIGNUM
 import pycalphad.variables as v
 from pycalphad import Model
 from pycalphad.model import DofError
-from cpython cimport PY_VERSION_HEX, PyCapsule_CheckExact, PyCapsule_GetPointer
+from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
 from pickle import PicklingError
 
 
@@ -72,14 +71,21 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         for idx, sublattice in enumerate(self.constituents):
             for comp in sublattice:
                 self.variables.append(v.Y(phase_name, idx, comp))
-        parameters = parameters if parameters is not None else {}
+        parameters = parameters or dict()
+        renamed_params = []
+        for param, val in parameters.items():
+            if not isinstance(param, Symbol):
+                parameters[Symbol(param)] = val
+                renamed_params.append(param)
+        for param in renamed_params:
+            parameters.pop(param)
+        if isinstance(parameters, dict):
+            parameters = OrderedDict(sorted(parameters.items(), key=str))
+        param_symbols = tuple(parameters.keys())
         self._debug = _debug
         if _debug:
             debugmodel = Model(dbe, comps, phase_name, parameters)
             out = debugmodel.energy
-            if isinstance(parameters, dict):
-                parameters = OrderedDict(sorted(parameters.items(), key=str))
-            param_symbols = tuple(parameters.keys())
             undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
