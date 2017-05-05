@@ -4,14 +4,6 @@ pycalphad.core package
 Submodules
 ----------
 
-pycalphad.core.autograd_utils module
-------------------------------------
-
-.. automodule:: pycalphad.core.autograd_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad.core.cache module
 ---------------------------
 
@@ -44,6 +36,14 @@ pycalphad.core.compiled_model module
     :undoc-members:
     :show-inheritance:
 
+pycalphad.core.composition_set module
+-------------------------------------
+
+.. automodule:: pycalphad.core.composition_set
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycalphad.core.constants module
 -------------------------------
 
@@ -60,10 +60,10 @@ pycalphad.core.custom_autowrap module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.core.custom_codegen module
-------------------------------------
+pycalphad.core.cymem module
+---------------------------
 
-.. automodule:: pycalphad.core.custom_codegen
+.. automodule:: pycalphad.core.cymem
     :members:
     :undoc-members:
     :show-inheritance:

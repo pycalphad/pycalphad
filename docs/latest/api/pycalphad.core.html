@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0+untagged.53.gf9b60fd documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0+untagged.50.g6c8215a documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0+untagged.53.gf9b60fd documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0+untagged.50.g6c8215a documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0+untagged.53.gf9b60fd
+                0+untagged.50.g6c8215a
               </div>
             
           
@@ -188,9 +188,6 @@
 <h1>pycalphad.core package<a class="headerlink" href="#pycalphad-core-package" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
-</div>
-<div class="section" id="pycalphad-core-autograd-utils-module">
-<h2>pycalphad.core.autograd_utils module<a class="headerlink" href="#pycalphad-core-autograd-utils-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.core.cache">
 <span id="pycalphad-core-cache-module"></span><h2>pycalphad.core.cache module<a class="headerlink" href="#module-pycalphad.core.cache" title="Permalink to this headline">¶</a></h2>
@@ -530,6 +527,66 @@ formed of input arrays.</p>
 </dd></dl>
 
 </div>
+<div class="section" id="module-pycalphad.core.composition_set">
+<span id="pycalphad-core-composition-set-module"></span><h2>pycalphad.core.composition_set module<a class="headerlink" href="#module-pycalphad.core.composition_set" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.composition_set.CompositionSet">
+<em class="property">class </em><code class="descclassname">pycalphad.core.composition_set.</code><code class="descname">CompositionSet</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This is the primary object the solver interacts with. It keeps the state of a phase (P, T, y...) at a
+particular solver iteration and can be updated using the update() member function. Every CompositionSet
+has a reference to a particular PhaseRecord which describes the prototype of the phase. These objects
+can be created and destroyed by the solver as needed to describe the stable set of phases. Multiple
+CompositionSets can point to the same PhaseRecord for the case of miscibility gaps. CompositionSets are
+not pickleable. They are used in miscibility gap deteciton.</p>
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.NP">
+<code class="descname">NP</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.NP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.X">
+<code class="descname">X</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.X" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.dof">
+<code class="descname">dof</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.energy">
+<code class="descname">energy</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.grad">
+<code class="descname">grad</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.hess">
+<code class="descname">hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.mass_grad">
+<code class="descname">mass_grad</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.mass_hess">
+<code class="descname">mass_hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.phase_record">
+<code class="descname">phase_record</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.phase_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-pycalphad.core.constants">
 <span id="pycalphad-core-constants-module"></span><h2>pycalphad.core.constants module<a class="headerlink" href="#module-pycalphad.core.constants" title="Permalink to this headline">¶</a></h2>
 <p>The constants module contains some numerical constants for use
@@ -863,8 +920,138 @@ automatically-assigned names.  Also has Matrix output.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="pycalphad-core-custom-codegen-module">
-<h2>pycalphad.core.custom_codegen module<a class="headerlink" href="#pycalphad-core-custom-codegen-module" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="module-pycalphad.core.cymem">
+<span id="pycalphad-core-cymem-module"></span><h2>pycalphad.core.cymem module<a class="headerlink" href="#module-pycalphad.core.cymem" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.cymem.Address">
+<em class="property">class </em><code class="descclassname">pycalphad.core.cymem.</code><code class="descname">Address</code><span class="sig-paren">(</span><em>size_t number</em>, <em>size_t elem_size</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.cymem.Address" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A block of number * size-bytes of 0-initialized memory, tied to a Python
+ref-counted object. When the object is garbage collected, the memory is freed.
+&gt;&gt;&gt; from cymem.cymem cimport Address
+&gt;&gt;&gt; cdef Address address = Address(10, sizeof(double))
+&gt;&gt;&gt; d10 = &lt;double*&gt;address.ptr
+:param number: The number of elements in the memory block.
+:type number: size_t
+:param elem_size: The size of each element.
+:type elem_size: size_t</p>
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Address.ptr">
+<code class="descname">ptr</code><a class="headerlink" href="#pycalphad.core.cymem.Address.ptr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>void*</em> &#8211; Pointer to the memory block.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Address.addr">
+<code class="descname">addr</code><a class="headerlink" href="#pycalphad.core.cymem.Address.addr" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>size_t</em> &#8211; Read-only size_t cast of the pointer.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Address.pymalloc">
+<code class="descname">pymalloc</code><a class="headerlink" href="#pycalphad.core.cymem.Address.pymalloc" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PyMalloc</em> &#8211; The allocator to use (default uses PyMem_Malloc).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Address.pyfree">
+<code class="descname">pyfree</code><a class="headerlink" href="#pycalphad.core.cymem.Address.pyfree" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PyFree</em> &#8211; The free to use (default uses PyMem_Free).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">addr</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">pyfree</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">pymalloc</code></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.cymem.Pool">
+<em class="property">class </em><code class="descclassname">pycalphad.core.cymem.</code><code class="descname">Pool</code><a class="headerlink" href="#pycalphad.core.cymem.Pool" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Track allocated memory addresses, and free them all when the Pool is
+garbage collected.  This provides an easy way to avoid memory leaks, and
+removes the need for deallocation functions for complicated structs.
+&gt;&gt;&gt; from cymem.cymem cimport Pool
+&gt;&gt;&gt; cdef Pool mem = Pool()
+&gt;&gt;&gt; data1 = &lt;int*&gt;mem.alloc(10, sizeof(int))
+&gt;&gt;&gt; data2 = &lt;float*&gt;mem.alloc(12, sizeof(float))
+.. attribute:: size</p>
+<blockquote>
+<div><em>size_t</em> &#8211; The current size (in bytes) allocated by the pool.</div></blockquote>
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Pool.addresses">
+<code class="descname">addresses</code><a class="headerlink" href="#pycalphad.core.cymem.Pool.addresses" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> &#8211; The currently allocated addresses and their sizes. Read-only.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Pool.pymalloc">
+<code class="descname">pymalloc</code><a class="headerlink" href="#pycalphad.core.cymem.Pool.pymalloc" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PyMalloc</em> &#8211; The allocator to use (default uses PyMem_Malloc).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Pool.pyfree">
+<code class="descname">pyfree</code><a class="headerlink" href="#pycalphad.core.cymem.Pool.pyfree" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>PyFree</em> &#8211; The free to use (default uses PyMem_Free).</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">addresses</code></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.cymem.Pool.own_pyref">
+<code class="descname">own_pyref</code><span class="sig-paren">(</span><em>self</em>, <em>py_ref</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.cymem.Pool.own_pyref" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">pyfree</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt>
+<code class="descname">pymalloc</code></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Pool.refs">
+<code class="descname">refs</code><a class="headerlink" href="#pycalphad.core.cymem.Pool.refs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.cymem.Pool.size">
+<code class="descname">size</code><a class="headerlink" href="#pycalphad.core.cymem.Pool.size" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.cymem.PyFree">
+<em class="property">class </em><code class="descclassname">pycalphad.core.cymem.</code><code class="descname">PyFree</code><a class="headerlink" href="#pycalphad.core.cymem.PyFree" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.cymem.PyMalloc">
+<em class="property">class </em><code class="descclassname">pycalphad.core.cymem.</code><code class="descname">PyMalloc</code><a class="headerlink" href="#pycalphad.core.cymem.PyMalloc" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+</dd></dl>
+
 </div>
 <div class="section" id="module-pycalphad.core.eqresult">
 <span id="pycalphad-core-eqresult-module"></span><h2>pycalphad.core.eqresult module<a class="headerlink" href="#module-pycalphad.core.eqresult" title="Permalink to this headline">¶</a></h2>
@@ -1498,7 +1685,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0+untagged.53.gf9b60fd',
+            VERSION:'0+untagged.50.g6c8215a',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
