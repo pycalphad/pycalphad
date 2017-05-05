@@ -446,7 +446,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         # if this is an object type, we need to construct it
         if isinstance(mod, type):
             try:
-                model_dict[phase_name] = mod = mod(dbf, comps, phase_name)
+                model_dict[phase_name] = mod = mod(dbf, comps, phase_name, parameters=parameters)
             except DofError:
                 # we can't build the specified phase because the
                 # specified components aren't found in every sublattice

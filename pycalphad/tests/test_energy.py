@@ -4,7 +4,7 @@ correct abstract syntax tree for the energy.
 """
 
 import nose.tools
-from pycalphad import Database, Model
+from pycalphad import Database, Model, calculate
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB
 import pycalphad.variables as v
@@ -262,3 +262,13 @@ def test_zero_site_fraction():
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
              v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
         5.52773e3, mode='numpy')
+
+def test_invalid_arguments_energy_zero():
+    ""
+    TEST_TDB = """PHASE M7C3_D101 %  2 7 3 !
+                  CONSTITUENT M7C3_D101 :MN:C: !
+                  PARAMETER G(M7C3_D101,MN:C;0)  1 VV22+VV23*T**2+VV24*T**3
+                  +VV25*T**4+VV26*T**5; 6000 N !"""
+    dbf = Database(TEST_TDB)
+    from sympy import Symbol
+    calculate(dbf, ['MN', 'C'], 'M7C3_D101', T=300, P=101325, parameters={Symbol('VV22'): 0})
