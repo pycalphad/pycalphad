@@ -11,12 +11,13 @@ are not drawn on the diagram.
 
 .. code:: python
 
+    %matplotlib inline
     import matplotlib.pyplot as plt
     from pycalphad import Database, binplot
     import pycalphad.variables as v
 
 Al-Zn (S. Mey, 1993)
-====================
+--------------------
 
 The miscibility gap in the fcc phase is included in the Al-Zn diagram,
 shown below.
@@ -34,16 +35,12 @@ The format for specifying a range of a state variable is (*start*,
     plt.show()
 
 
-.. parsed-literal::
 
-    
-
-
-.. image:: BinaryExamples_files/BinaryExamples_5_1.png
+.. image:: BinaryExamples_files/BinaryExamples_5_0.png
 
 
 Al-Fe (M.Seiersten et al., 1991)
-================================
+--------------------------------
 
 .. code:: python
 
@@ -55,16 +52,12 @@ Al-Fe (M.Seiersten et al., 1991)
     plt.show()
 
 
-.. parsed-literal::
 
-    
-
-
-.. image:: BinaryExamples_files/BinaryExamples_7_1.png
+.. image:: BinaryExamples_files/BinaryExamples_7_0.png
 
 
 Al-Ni (Work in progress) (N. Dupin et al., 2001)
-================================================
+------------------------------------------------
 
 .. code:: python
 
@@ -78,14 +71,16 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 
 .. parsed-literal::
 
-    
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1260.0)), ('X_AL', array(0.16001))])
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1270.0)), ('X_AL', array(0.16001))])
+
 
 
 .. image:: BinaryExamples_files/BinaryExamples_9_1.png
 
 
 Nb-Re (X. L. Liu et al., 2013)
-==============================
+------------------------------
 
 .. code:: python
 
@@ -98,7 +93,7 @@ Nb-Re (X. L. Liu et al., 2013)
 
 
 
-.. image:: BinaryExamples_files/BinaryExamples_11_1.png
+.. image:: BinaryExamples_files/BinaryExamples_11_0.png
 
 
 Calculating Energy Surfaces of Binary Systems
