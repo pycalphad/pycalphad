@@ -1,0 +1,393 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.sympydiff_utils &mdash; pycalphad 0.5 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0.5 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.sympydiff_utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.sympydiff_utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">This module constructs gradient functions for Models.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">.custom_autowrap</span> <span class="k">import</span> <span class="n">autowrap</span><span class="p">,</span> <span class="n">import_extension</span>
+<span class="kn">from</span> <span class="nn">.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">IndexedBase</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">Dummy</span><span class="p">,</span> <span class="n">Lambda</span><span class="p">,</span> <span class="n">Eq</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">time</span>
+<span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">RLock</span>
+<span class="n">CompileLock</span> <span class="o">=</span> <span class="n">RLock</span><span class="p">()</span>
+
+<div class="viewcode-block" id="chunks"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.chunks">[docs]</a><span class="k">def</span> <span class="nf">chunks</span><span class="p">(</span><span class="n">l</span><span class="p">,</span> <span class="n">n</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Yield successive n-sized chunks from l.</span>
+<span class="sd">    Source: http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">l</span><span class="p">),</span> <span class="n">n</span><span class="p">):</span>
+        <span class="k">yield</span> <span class="n">l</span><span class="p">[</span><span class="n">i</span><span class="p">:</span><span class="n">i</span><span class="o">+</span><span class="n">n</span><span class="p">]</span></div>
+
+
+<div class="viewcode-block" id="PickleableFunction"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.PickleableFunction">[docs]</a><span class="k">class</span> <span class="nc">PickleableFunction</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    A compiled function that is recompiled when unpickled.</span>
+<span class="sd">    This works around several issues with sending JIT&#39;d functions over the wire.</span>
+<span class="sd">    This approach means only the underlying SymPy object must be pickleable.</span>
+<span class="sd">    This also means multiprocessing using fork() will NOT force a recompile.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">sympy_vars</span><span class="p">,</span> <span class="n">sympy_obj</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sympyobj</span> <span class="o">=</span> <span class="n">sympy_obj</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_sympyvars</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">sympy_vars</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span> <span class="o">=</span> <span class="n">tempfile</span><span class="o">.</span><span class="n">mkdtemp</span><span class="p">(</span><span class="n">prefix</span><span class="o">=</span><span class="s1">&#39;pycalphad-&#39;</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_cpointer</span> <span class="o">=</span> <span class="kc">None</span>
+
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">kernel</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                    <span class="n">start</span> <span class="o">=</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">()</span>
+                    <span class="n">mod</span> <span class="o">=</span> <span class="kc">None</span>
+                    <span class="k">while</span> <span class="n">mod</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="k">try</span><span class="p">:</span>
+                            <span class="n">mod</span> <span class="o">=</span> <span class="n">import_extension</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span><span class="p">)</span>
+                            <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span><span class="p">)</span>
+                        <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+                            <span class="k">if</span> <span class="n">start</span> <span class="o">+</span> <span class="mi">60</span> <span class="o">&gt;</span> <span class="n">time</span><span class="o">.</span><span class="n">time</span><span class="p">():</span>
+                                <span class="k">raise</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">compile</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span>
+
+<div class="viewcode-block" id="PickleableFunction.compile"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.PickleableFunction.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">((</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyobj</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_sympyvars</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span><span class="p">))</span>
+
+    <span class="k">def</span> <span class="nf">__call__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+        <span class="c1"># XXX: Hardcode until code rewrite is finished</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">kernel</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">__getstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="c1"># Explicitly drop the compiled function when pickling</span>
+        <span class="c1"># The architecture of the unpickling machine may be incompatible with it</span>
+        <span class="k">return</span> <span class="p">{</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__dict__</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;_kernel&#39;</span><span class="p">,</span> <span class="s1">&#39;_cpointer&#39;</span><span class="p">]}</span>
+
+    <span class="k">def</span> <span class="nf">__setstate__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">state</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_kernel</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">state</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="nb">setattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="AutowrapFunction"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.AutowrapFunction">[docs]</a><span class="k">class</span> <span class="nc">AutowrapFunction</span><span class="p">(</span><span class="n">PickleableFunction</span><span class="p">):</span>
+<div class="viewcode-block" id="AutowrapFunction.compile"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.AutowrapFunction.compile">[docs]</a>    <span class="k">def</span> <span class="nf">compile</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
+            <span class="n">result</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_cpointer</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_module_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_routine_name</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyobj</span><span class="p">,</span> <span class="n">args</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_sympyvars</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;Cython&#39;</span><span class="p">,</span> <span class="n">language</span><span class="o">=</span><span class="s1">&#39;C&#39;</span><span class="p">,</span> <span class="n">tempdir</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_workdir</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
+
+<span class="nd">@cacheit</span>
+<div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.sympydiff_utils.build_functions">[docs]</a><span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                    <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sympy_graph</span>
+<span class="sd">    variables : tuple of Symbols</span>
+<span class="sd">        Input arguments.</span>
+<span class="sd">    wrt : tuple of Symbols, optional</span>
+<span class="sd">        Variables to differentiate with respect to. (Default: equal to variables)</span>
+<span class="sd">    include_obj</span>
+<span class="sd">    include_grad</span>
+<span class="sd">    include_hess</span>
+<span class="sd">    parameters</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    One or more functions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">wrt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">wrt</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+    <span class="n">restup</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">hess</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">m</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;veclen&#39;</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="n">i</span> <span class="o">=</span> <span class="n">Idx</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;vecidx&#39;</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">),</span> <span class="n">m</span><span class="p">)</span>
+    <span class="n">y</span> <span class="o">=</span> <span class="n">IndexedBase</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;outp&#39;</span><span class="p">))</span>
+    <span class="n">params</span> <span class="o">=</span> <span class="n">MatrixSymbol</span><span class="p">(</span><span class="s1">&#39;params&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">))</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">MatrixSymbol</span><span class="p">(</span><span class="s1">&#39;inp&#39;</span><span class="p">,</span> <span class="n">m</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">))</span>
+    <span class="n">inp_nobroadcast</span> <span class="o">=</span> <span class="n">MatrixSymbol</span><span class="p">(</span><span class="s1">&#39;inp&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">))</span>
+
+    <span class="c1"># workaround for sympy/sympy#11692</span>
+    <span class="c1"># that is why we don&#39;t use implemented_function</span>
+    <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Function</span>
+    <span class="k">class</span> <span class="nc">f</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
+        <span class="n">_imp_</span> <span class="o">=</span> <span class="n">Lambda</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span> <span class="n">sympy_graph</span><span class="p">)</span>
+    <span class="n">args_with_indices</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">args_nobroadcast</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">indx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)):</span>
+        <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
+        <span class="n">args_nobroadcast</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">inp_nobroadcast</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">indx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)):</span>
+        <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
+        <span class="n">args_nobroadcast</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
+
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+    <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
+        <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args_with_indices</span><span class="p">))))</span>
+    <span class="k">if</span> <span class="n">include_grad</span> <span class="ow">or</span> <span class="n">include_hess</span><span class="p">:</span>
+        <span class="n">diffargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">inp_nobroadcast</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="c1"># Replacing zoo&#39;s is necessary because sympy&#39;s CCodePrinter doesn&#39;t handle them</span>
+        <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
+            <span class="n">grad_diffs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sympy_graph</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">i</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">})</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span>
+                                                                                        <span class="n">args_nobroadcast</span><span class="p">)))</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span>
+        <span class="n">hess_diffs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398</span>
+        <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
+                <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wrt</span><span class="p">)):</span>
+                    <span class="n">gdiff</span> <span class="o">=</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">wrt</span><span class="p">[</span><span class="n">i</span><span class="p">])</span>
+                    <span class="n">hess_diffs</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">gdiff</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">wrt</span><span class="p">[</span><span class="n">j</span><span class="p">])</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">})</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span>
+                                                                                                <span class="n">args_nobroadcast</span><span class="p">)))</span>
+                                       <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">wrt</span><span class="p">))])</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">diffargs</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">(</span><span class="n">hess_diffs</span><span class="p">))</span>
+        <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">diffargs</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">(</span><span class="n">grad_diffs</span><span class="p">))</span>
+
+        <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
+            <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
+            <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">hess</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">restup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">restup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">restup</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.5',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
