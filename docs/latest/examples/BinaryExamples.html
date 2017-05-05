@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Calculating Isobaric Binary Phase Diagrams &mdash; pycalphad 0.5 documentation</title>
+  <title>Calculating Isobaric Binary Phase Diagrams &mdash; pycalphad 0.5+1.g4b55e1b documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5+1.g4b55e1b documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html"/>
         <link rel="prev" title="Examples" href="index.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5
+                0.5+1.g4b55e1b
               </div>
             
           
@@ -97,11 +97,13 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculating Isobaric Binary Phase Diagrams</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#al-fe-m-seiersten-et-al-1991">Al-Fe (M.Seiersten et al., 1991)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#al-ni-work-in-progress-n-dupin-et-al-2001">Al-Ni (Work in progress) (N. Dupin et al., 2001)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#nb-re-x-l-liu-et-al-2013">Nb-Re (X. L. Liu et al., 2013)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculating Isobaric Binary Phase Diagrams</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#al-fe-m-seiersten-et-al-1991">Al-Fe (M.Seiersten et al., 1991)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#al-ni-work-in-progress-n-dupin-et-al-2001">Al-Ni (Work in progress) (N. Dupin et al., 2001)</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#nb-re-x-l-liu-et-al-2013">Nb-Re (X. L. Liu et al., 2013)</a></li>
+</ul>
+</li>
 <li class="toctree-l2"><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
@@ -183,14 +185,14 @@ calculate isobaric binary phase diagrams.</p>
 <p>Note that, at the time of writing, invariant reactions (three-phase
 &#8216;regions&#8217; on binary diagrams) are not yet automatically detected so they
 are not drawn on the diagram.</p>
-<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 </pre></div>
 </div>
-</div>
 <div class="section" id="al-zn-s-mey-1993">
-<h1>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#al-zn-s-mey-1993" title="Permalink to this headline">¶</a></h1>
+<h2>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#al-zn-s-mey-1993" title="Permalink to this headline">¶</a></h2>
 <p>The miscibility gap in the fcc phase is included in the Al-Zn diagram,
 shown below.</p>
 <p>The format for specifying a range of a state variable is (<em>start</em>,
@@ -203,10 +205,10 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_5_1.png" src="../_images/BinaryExamples_5_1.png" />
+<img alt="../_images/BinaryExamples_5_0.png" src="../_images/BinaryExamples_5_0.png" />
 </div>
 <div class="section" id="al-fe-m-seiersten-et-al-1991">
-<h1>Al-Fe (M.Seiersten et al., 1991)<a class="headerlink" href="#al-fe-m-seiersten-et-al-1991" title="Permalink to this headline">¶</a></h1>
+<h2>Al-Fe (M.Seiersten et al., 1991)<a class="headerlink" href="#al-fe-m-seiersten-et-al-1991" title="Permalink to this headline">¶</a></h2>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">db_alfe</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alfe_sei.TDB&#39;</span><span class="p">)</span>
 <span class="n">my_phases_alfe</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL2FE&#39;</span><span class="p">,</span> <span class="s1">&#39;AL13FE4&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE4&#39;</span><span class="p">]</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
@@ -215,10 +217,10 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_7_1.png" src="../_images/BinaryExamples_7_1.png" />
+<img alt="../_images/BinaryExamples_7_0.png" src="../_images/BinaryExamples_7_0.png" />
 </div>
 <div class="section" id="al-ni-work-in-progress-n-dupin-et-al-2001">
-<h1>Al-Ni (Work in progress) (N. Dupin et al., 2001)<a class="headerlink" href="#al-ni-work-in-progress-n-dupin-et-al-2001" title="Permalink to this headline">¶</a></h1>
+<h2>Al-Ni (Work in progress) (N. Dupin et al., 2001)<a class="headerlink" href="#al-ni-work-in-progress-n-dupin-et-al-2001" title="Permalink to this headline">¶</a></h2>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">db_alni</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;NI_AL_DUPIN_2001.TDB&#39;</span><span class="p">)</span>
 <span class="n">my_phases_alni</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_L12&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_B2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI5&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI1&#39;</span><span class="p">]</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
@@ -227,10 +229,14 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="n">Failed</span> <span class="n">to</span> <span class="n">converge</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">101325.0</span><span class="p">)),</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">1260.0</span><span class="p">)),</span> <span class="p">(</span><span class="s1">&#39;X_AL&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">0.16001</span><span class="p">))])</span>
+<span class="n">Failed</span> <span class="n">to</span> <span class="n">converge</span><span class="p">:</span> <span class="n">OrderedDict</span><span class="p">([(</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">101325.0</span><span class="p">)),</span> <span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">1270.0</span><span class="p">)),</span> <span class="p">(</span><span class="s1">&#39;X_AL&#39;</span><span class="p">,</span> <span class="n">array</span><span class="p">(</span><span class="mf">0.16001</span><span class="p">))])</span>
+</pre></div>
+</div>
 <img alt="../_images/BinaryExamples_9_1.png" src="../_images/BinaryExamples_9_1.png" />
 </div>
 <div class="section" id="nb-re-x-l-liu-et-al-2013">
-<h1>Nb-Re (X. L. Liu et al., 2013)<a class="headerlink" href="#nb-re-x-l-liu-et-al-2013" title="Permalink to this headline">¶</a></h1>
+<h2>Nb-Re (X. L. Liu et al., 2013)<a class="headerlink" href="#nb-re-x-l-liu-et-al-2013" title="Permalink to this headline">¶</a></h2>
 <div class="code python highlight-default"><div class="highlight"><pre><span></span><span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
 <span class="n">my_phases_nbre</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;SIGMARENB&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_RENB&#39;</span><span class="p">]</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
@@ -239,7 +245,8 @@ shown below.</p>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
-<img alt="../_images/BinaryExamples_11_1.png" src="../_images/BinaryExamples_11_1.png" />
+<img alt="../_images/BinaryExamples_11_0.png" src="../_images/BinaryExamples_11_0.png" />
+</div>
 </div>
 <div class="section" id="calculating-energy-surfaces-of-binary-systems">
 <h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#calculating-energy-surfaces-of-binary-systems" title="Permalink to this headline">¶</a></h1>
@@ -317,7 +324,7 @@ it is simpler for the user.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5',
+            VERSION:'0.5+1.g4b55e1b',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
