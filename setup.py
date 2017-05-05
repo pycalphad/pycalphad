@@ -27,6 +27,9 @@ setup(
     ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
                            'pycalphad/core/phase_rec.pyx', 'pycalphad/core/compiled_model.pyx',
                            'pycalphad/core/composition_set.pyx', 'pycalphad/core/cymem.pyx']),
+    package_data={
+        'pycalphad/core': ['*.pxd'],
+    },
     include_dirs=[np.get_include()],
     license='MIT',
     long_description=read('README.rst'),
