@@ -4,7 +4,7 @@ from sympy import Add, Float, Integer, Rational, Mul, Pow, S, collect, Symbol, \
 from sympy import log as sympy_log
 import copy
 import numpy as np
-from pycalphad.log import logger
+import warnings
 from pycalphad.io.tdb import to_interval
 import pycalphad.variables as v
 
@@ -42,7 +42,7 @@ def build_piecewise_matrix(sympy_obj, cur_exponents, low_temp, high_temp, output
         if sympy_obj in param_symbols:
             symbol_matrix.append([low_temp, high_temp] + list(cur_exponents) + [param_symbols.index(sympy_obj)])
         else:
-            logger.warning('Setting undefined symbol %s to zero', sympy_obj)
+            warnings.warn('Setting undefined symbol {0} to zero'.format(sympy_obj))
     elif isinstance(sympy_obj, Add):
         sympy_obj = sympy_obj.expand()
         for arg in sympy_obj.args:
