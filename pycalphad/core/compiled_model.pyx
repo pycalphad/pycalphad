@@ -72,15 +72,13 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for comp in sublattice:
                 self.variables.append(v.Y(phase_name, idx, comp))
         parameters = parameters or dict()
-        renamed_params = []
-        for param, val in parameters.items():
+        new_parameters = OrderedDict()
+        for param, val in sorted(parameters.items(), key=str):
             if not isinstance(param, Symbol):
-                parameters[Symbol(param)] = val
-                renamed_params.append(param)
-        for param in renamed_params:
-            parameters.pop(param)
-        if isinstance(parameters, dict):
-            parameters = OrderedDict(sorted(parameters.items(), key=str))
+                new_parameters[Symbol(param)] = val
+            else:
+                new_parameters[param] = val
+        parameters = new_parameters
         param_symbols = tuple(parameters.keys())
         self._debug = _debug
         if _debug:
