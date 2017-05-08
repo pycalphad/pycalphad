@@ -311,10 +311,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int row_idx2 = 0
         cdef int col_idx = 0
         cdef int dof_idx
+        # Either of these matrices could be empty; check both to be safe
+        cdef int dof_len = max(coef_mat.shape[1]-6, symbol_mat.shape[1]-6)
         # eval_row order: P,T,ln(P),ln(T),y...
         # dof order: P,T,y...
         # coef_mat order: low_temp,high_temp,P,T,ln(P),ln(T),y...,constant_term,parameter_value
-        for dof_idx in range(coef_mat.shape[1]-6):
+        for dof_idx in range(dof_len):
             if coef_mat.shape[1] > 0:
                 for row_idx1 in range(coef_mat.shape[0]):
                     if (eval_row[1] >= coef_mat[row_idx1, 0]) and (eval_row[1] < coef_mat[row_idx1, 1]):
