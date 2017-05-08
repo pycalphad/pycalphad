@@ -273,7 +273,8 @@ def test_invalid_arguments_energy_zero():
     dbf = Database(TEST_TDB)
     from sympy import Symbol
     with warnings.catch_warnings(record=True) as w:
-        calculate(dbf, ['MN', 'C'], 'M7C3_D101', T=300, P=101325, parameters={Symbol('VV22'): 0})
+        res = calculate(dbf, ['MN', 'C'], 'M7C3_D101', T=300, P=101325, parameters={Symbol('VV22'): 100})
+        assert res.GM.values[0, 0, 0] == 10.  # 100 / 10 moles per formula-unit
         categories = [warning.__dict__['_category_name'] for warning in w]
         assert 'UserWarning' in categories
         assert len(w) == 4
