@@ -19,6 +19,7 @@ from sympy import Symbol
 import numpy as np
 import itertools
 import collections
+import warnings
 from xarray import Dataset, Variable
 from xarray.core.dataset import as_dataset
 from xarray.core.combine import _calc_concat_over, _calc_concat_dim_coord, concat_vars
@@ -446,7 +447,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         # if this is an object type, we need to construct it
         if isinstance(mod, type):
             try:
-                model_dict[phase_name] = mod = mod(dbf, comps, phase_name)
+                model_dict[phase_name] = mod = mod(dbf, comps, phase_name, parameters=parameters)
             except DofError:
                 # we can't build the specified phase because the
                 # specified components aren't found in every sublattice
@@ -486,8 +487,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
                 for undef in undefs:
                     out = out.xreplace({undef: float(0)})
-                    logger.warning('Setting undefined symbol %s for phase %s to zero',
-                                   undef, phase_name)
+                    warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
                 comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
                                                         include_obj=True, include_grad=False, include_hess=False,
                                                         parameters=param_symbols)
