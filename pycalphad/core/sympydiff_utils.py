@@ -3,7 +3,7 @@ This module constructs gradient functions for Models.
 """
 from .custom_autowrap import autowrap, import_extension
 from .cache import cacheit
-from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Dummy, Lambda, Eq
+from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Dummy, Lambda, Eq, S
 import numpy as np
 import time
 import tempfile
@@ -128,7 +128,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     # that is why we don't use implemented_function
     from sympy import Function
     class f(Function):
-        _imp_ = Lambda(variables+parameters, sympy_graph)
+        _imp_ = Lambda(variables+parameters, sympy_graph.xreplace({zoo: oo, S.Pi: 3.14159265359}))
     args_with_indices = []
     args_nobroadcast = []
     for indx in range(len(variables)):
