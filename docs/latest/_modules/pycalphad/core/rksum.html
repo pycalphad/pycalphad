@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.rksum &mdash; pycalphad 0.5+2.gf7372da documentation</title>
+  <title>pycalphad.core.rksum &mdash; pycalphad 0.5+3.g5bc5ed3 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5+2.gf7372da documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5+3.g5bc5ed3 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5+2.gf7372da
+                0.5+3.g5bc5ed3
               </div>
             
           
@@ -167,6 +167,7 @@
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">sympy_log</span>
 <span class="kn">import</span> <span class="nn">copy</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
 <span class="kn">from</span> <span class="nn">pycalphad.io.tdb</span> <span class="k">import</span> <span class="n">to_interval</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 
@@ -201,7 +202,10 @@
                 <span class="k">continue</span>
             <span class="n">build_piecewise_matrix</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">cur_exponents</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">lowlim</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highlim</span><span class="p">),</span> <span class="n">output_matrix</span><span class="p">,</span> <span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">)</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
-        <span class="n">symbol_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">cur_exponents</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">param_symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">)])</span>
+        <span class="k">if</span> <span class="n">sympy_obj</span> <span class="ow">in</span> <span class="n">param_symbols</span><span class="p">:</span>
+            <span class="n">symbol_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">cur_exponents</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">param_symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Setting undefined symbol </span><span class="si">{0}</span><span class="s1"> to zero&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">))</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Add</span><span class="p">):</span>
         <span class="n">sympy_obj</span> <span class="o">=</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
@@ -480,7 +484,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5+2.gf7372da',
+            VERSION:'0.5+3.g5bc5ed3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
