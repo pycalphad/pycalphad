@@ -106,7 +106,13 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         wrt = tuple(variables)
     if parameters is None:
         parameters = []
-    parameters = tuple(parameters)
+    new_parameters = []
+    for param in parameters:
+        if isinstance(param, Symbol):
+            new_parameters.append(param)
+        else:
+            new_parameters.append(Symbol(param))
+    parameters = tuple(new_parameters)
     variables = tuple(variables)
     restup = []
     grad = None
