@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.sympydiff_utils &mdash; pycalphad 0.5+3.g5bc5ed3 documentation</title>
+  <title>pycalphad.core.sympydiff_utils &mdash; pycalphad 0.5+4.g667ec53 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5+3.g5bc5ed3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5+4.g667ec53 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5+3.g5bc5ed3
+                0.5+4.g667ec53
               </div>
             
           
@@ -166,7 +166,7 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">.custom_autowrap</span> <span class="k">import</span> <span class="n">autowrap</span><span class="p">,</span> <span class="n">import_extension</span>
 <span class="kn">from</span> <span class="nn">.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">IndexedBase</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">Dummy</span><span class="p">,</span> <span class="n">Lambda</span><span class="p">,</span> <span class="n">Eq</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">IndexedBase</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">Dummy</span><span class="p">,</span> <span class="n">Lambda</span><span class="p">,</span> <span class="n">Eq</span><span class="p">,</span> <span class="n">S</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -291,7 +291,7 @@
     <span class="c1"># that is why we don&#39;t use implemented_function</span>
     <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Function</span>
     <span class="k">class</span> <span class="nc">f</span><span class="p">(</span><span class="n">Function</span><span class="p">):</span>
-        <span class="n">_imp_</span> <span class="o">=</span> <span class="n">Lambda</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span> <span class="n">sympy_graph</span><span class="p">)</span>
+        <span class="n">_imp_</span> <span class="o">=</span> <span class="n">Lambda</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Pi</span><span class="p">:</span> <span class="mf">3.14159265359</span><span class="p">}))</span>
     <span class="n">args_with_indices</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="n">args_nobroadcast</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">indx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">variables</span><span class="p">)):</span>
@@ -367,7 +367,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5+3.g5bc5ed3',
+            VERSION:'0.5+4.g667ec53',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
