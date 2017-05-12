@@ -1,6 +1,14 @@
 What's New
 ==========
 
+0.5.1 (2017-05-12)
+------------------
+
+This is a minor release with bug fixes.
+
+* FIX: Custom Models involving certain mathematical constants will compile. Fixes :issue:`91`.
+* FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes :issue:`90`.
+
 0.5 (2017-05-04)
 ----------------
 
@@ -8,9 +16,9 @@ This is a major release with bug fixes and performance improvements.
 
 * Python 3.6 is now supported. Python 3.3 support has been dropped.
 * The equilibrium solver is now significantly faster and more robust. A new Cython-based implementation of the Model class,
-CompiledModel, has virtually eliminated cold-start calculation time.
+  CompiledModel, has virtually eliminated cold-start calculation time.
 * Cython is now a run-time and build-time dependency. Obsolete dependencies have been removed. Windows is still supported
-with the caveat that users will need to install the Microsoft Visual C++ Build Tools to get a working C compiler.
+  with the caveat that users will need to install the Microsoft Visual C++ Build Tools to get a working C compiler.
 * The [pycalphad paper](http://doi.org/10.5334/jors.140) has been published.
 * The progress bar has been removed along with the dependency on tqdm.
 * ENH: Raise warning if unused kwargs are passed to equilibrium
