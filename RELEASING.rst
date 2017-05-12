@@ -40,7 +40,9 @@ Uploading to PyPI
    **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
 
    Assuming a correctly configured .pypirc:
-   ``twine upload -r pypi --sign -u rotis -i 98628A70 dist/*``
+   ``gpg --output dist/pycalphad-0.2.tar.gz.asc --armor --detach-sig dist/pycalphad-0.2.tar.gz``
+
+   ``twine upload -r pypi -u rotis dist/*``
 
 Uploading to conda-forge
 ------------------------
