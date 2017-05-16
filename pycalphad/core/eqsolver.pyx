@@ -107,14 +107,16 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef int df_idx = 0
     cdef double largest_df = -np.inf
     cdef double[:] df_comp
+    cdef double[:,::1] current_grid_Y = current_grid.Y.values
+    cdef np.ndarray current_grid_Phase = current_grid.Phase.values
     cdef unicode df_phase_name
     cdef CompositionSet compset
     cdef bint distinct = False
     driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
     for i in range(driving_forces.shape[0]):
         if driving_forces[i] > largest_df:
-            df_comp = current_grid.Y.values[i]
-            df_phase_name = <unicode>str(current_grid.Phase.values[i])
+            df_comp = current_grid_Y[i]
+            df_phase_name = <unicode>current_grid_Phase[i]
             distinct = True
             for compset in removed_compsets:
                 if df_phase_name != compset.phase_record.phase_name:
@@ -135,7 +137,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     if largest_df > minimum_df:
         # To add a phase, must not be within COMP_DIFFERENCE_TOL of composition of the same phase of its type
         df_comp = current_grid.X.values[df_idx]
-        df_phase_name = <unicode>str(current_grid.Phase.values[df_idx])
+        df_phase_name = <unicode>current_grid_Phase[df_idx]
         for compset in composition_sets:
             if compset.phase_record.phase_name != df_phase_name:
                 continue
@@ -151,7 +153,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         for compset in composition_sets:
             compset.NP = 1./(len(composition_sets)+1)
         compset = CompositionSet(phase_records[df_phase_name])
-        compset.update(current_grid.Y.values[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
+        compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
                        current_grid.coords['P'], current_grid.coords['T'])
         composition_sets.append(compset)
         if verbose:
