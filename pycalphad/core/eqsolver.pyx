@@ -1,3 +1,6 @@
+# cython: linetrace=True
+# cython: binding=True
+# cython: profile=True
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np
@@ -154,7 +157,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             compset.NP = 1./(len(composition_sets)+1)
         compset = CompositionSet(phase_records[df_phase_name])
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
-                       current_grid.coords['P'], current_grid.coords['T'])
+                       current_grid.coords['P'], current_grid.coords['T'], False)
         composition_sets.append(compset)
         if verbose:
             print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
@@ -364,7 +367,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_record.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
             compset = CompositionSet(phase_record)
-            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'])
+            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'], False)
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
@@ -448,7 +451,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 for phase_idx in range(num_phases):
                     compset = composition_sets[phase_idx]
                     compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
-                                                       phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
+                                                       phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'], True)
                     candidate_energy += compset.NP * compset.energy
                     dof_idx += compset.phase_record.phase_dof
                 l_constraints, constraint_jac, constraint_hess = _compute_constraints(composition_sets, comps, cur_conds)
@@ -470,7 +473,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             for phase_idx in range(num_phases):
                 compset = composition_sets[phase_idx]
                 compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
-                                                   phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
+                                                   phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'], False)
                 for comp_idx in range(total_comp.shape[0]):
                     total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
                 dof_idx += compset.phase_record.phase_dof

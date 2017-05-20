@@ -78,7 +78,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             prev_hess[:,:] = current_hess
         prev_energy[0] = energy[0]
 
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature):
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives):
         cdef int comp_idx
         cdef int past_va = 0
         self.dof[0] = pressure
@@ -92,7 +92,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.mass_grad[:,:] = 0
         self.mass_hess[:,:,:] = 0
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
-        self.phase_record.grad(self.grad, self.dof)
+        if not skip_derivatives:
+            self.phase_record.grad(self.grad, self.dof)
         for comp_idx in range(self.mass_grad.shape[0]):
             if comp_idx == self.phase_record.vacancy_index:
                 past_va = 1
@@ -100,13 +101,14 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], site_fracs, comp_idx)
             self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
             self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
-        if self._first_iteration == True:
-            self.phase_record.hess(self.hess, self.dof)
-            self._prev_dof[:] = self.dof
-            self._prev_energy = self.energy
-            self._prev_grad[:] = self.grad
-            self._prev_hess[:,:] = self.hess
-            self._first_iteration = False
-        else:
-            self._hessian_update(self.dof, self._prev_dof, self.hess, self._prev_hess, self.grad, self._prev_grad,
-                                 &self.energy, &self._prev_energy)
+        if not skip_derivatives:
+            if self._first_iteration == True:
+                self.phase_record.hess(self.hess, self.dof)
+                self._prev_dof[:] = self.dof
+                self._prev_energy = self.energy
+                self._prev_grad[:] = self.grad
+                self._prev_hess[:,:] = self.hess
+                self._first_iteration = False
+            else:
+                self._hessian_update(self.dof, self._prev_dof, self.hess, self._prev_hess, self.grad, self._prev_grad,
+                                     &self.energy, &self._prev_energy)
