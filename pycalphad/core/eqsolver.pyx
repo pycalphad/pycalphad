@@ -105,6 +105,7 @@ def remove_degenerate_phases(object composition_sets, object removed_compsets, b
         return False
 
 @profile
+@cython.boundscheck(False)
 def add_new_phases(object composition_sets, object removed_compsets, object phase_records,
                          object current_grid, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                          double minimum_df, bint verbose):
@@ -114,7 +115,9 @@ def add_new_phases(object composition_sets, object removed_compsets, object phas
     whether it modified composition_sets.
     """
     cdef double[::1] driving_forces
+    cdef long[::1] largest_driving_forces_indices
     cdef int df_idx = 0
+    cdef int i
     cdef double largest_df = -np.inf
     cdef double[:] df_comp
     cdef double[:,::1] current_grid_Y = current_grid.Y.values
@@ -123,7 +126,12 @@ def add_new_phases(object composition_sets, object removed_compsets, object phas
     cdef CompositionSet compset
     cdef bint distinct = False
     driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
-    for i in range(driving_forces.shape[0]):
+    # Look at only N points with the largest driving forces
+    if driving_forces.shape[0] <= 100:
+        largest_driving_forces_indices = np.arange(driving_forces.shape[0])
+    else:
+        largest_driving_forces_indices = np.argpartition(driving_forces, -100)[-100:]
+    for i in largest_driving_forces_indices:
         if driving_forces[i] > largest_df:
             df_comp = current_grid_Y[i]
             df_phase_name = <unicode>current_grid_Phase[i]
@@ -170,6 +178,63 @@ def add_new_phases(object composition_sets, object removed_compsets, object phas
             print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
         return True
     return False
+
+@profile
+@cython.boundscheck(False)
+@cython.wraparound(False)
+def _compute_constraints_only(object composition_sets, object comps, object cur_conds):
+    """
+    Compute the constraint vector only.
+    """
+    cdef CompositionSet compset
+    cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets])
+    cdef int num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
+    cdef double indep_sum = sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
+    cdef double[::1] comp_obj_value = np.atleast_1d(np.zeros(1))
+    cdef object dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
+    dependent_comp = list(dependent_comp)[0]
+    cdef int num_constraints = num_sitefrac_bals + num_mass_bals
+    cdef int num_phases = len(composition_sets)
+    cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
+    cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(num_constraints)
+    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
+        hess_idx, comp_idx, idx, sum_idx, active_in_subl, phase_offset
+    cdef int vacancy_offset = 0
+
+    # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
+    # Ordering of constraints by column: site fractions of each phase, then phase fractions
+    # First: Site fraction balance constraints
+    var_idx = 0
+    constraint_offset = 0
+    for phase_idx in range(num_phases):
+        compset = composition_sets[phase_idx]
+        phase_offset = 0
+        for idx in range(compset.phase_record.sublattice_dof.shape[0]):
+            active_in_subl = compset.phase_record.sublattice_dof[idx]
+            l_constraints[constraint_offset + idx] = -1
+            for sum_idx in range(active_in_subl):
+                l_constraints[constraint_offset + idx] += compset.dof[2+sum_idx+phase_offset]
+            var_idx += active_in_subl
+            phase_offset += active_in_subl
+        constraint_offset += compset.phase_record.sublattice_dof.shape[0]
+    # Second: Mass balance of each component
+    for comp_idx, comp in enumerate(comps):
+        if comp == 'VA':
+            vacancy_offset = 1
+            continue
+        var_offset = 0
+        for phase_idx in range(num_phases):
+            compset = composition_sets[phase_idx]
+            spidx = num_vars - num_phases + phase_idx
+            l_constraints[constraint_offset] += compset.NP * compset.X[comp_idx-vacancy_offset]
+            var_offset += compset.phase_record.phase_dof
+        if comp != dependent_comp:
+            l_constraints[constraint_offset] -= float(cur_conds['X_' + comp])
+        else:
+            # TODO: Assuming N=1 (fixed for dependent component)
+            l_constraints[constraint_offset] -= (1 - indep_sum)
+        constraint_offset += 1
+    return l_constraints
 
 @profile
 @cython.boundscheck(False)
@@ -463,7 +528,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                        phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'], True)
                     candidate_energy += compset.NP * compset.energy
                     dof_idx += compset.phase_record.phase_dof
-                l_constraints, constraint_jac, constraint_hess = _compute_constraints(composition_sets, comps, cur_conds)
+                l_constraints = _compute_constraints_only(composition_sets, comps, cur_conds)
                 vmax = np.max(np.abs(l_constraints))
                 driving_force = candidate_energy - (l_multipliers * l_constraints).sum(axis=-1)
                 if verbose:
