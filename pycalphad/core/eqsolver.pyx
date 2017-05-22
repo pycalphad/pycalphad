@@ -1,6 +1,12 @@
+# distutils: define_macros = CYTHON_TRACE=1
 # cython: linetrace=True
 # cython: binding=True
 # cython: profile=True
+import builtins
+try:
+    profile = builtins.__dict__['profile']
+except KeyError:
+    profile = lambda x: x
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np
@@ -23,7 +29,8 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
-cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets, bint allow_negative_fractions, bint verbose):
+#@profile
+def remove_degenerate_phases(object composition_sets, object removed_compsets, bint allow_negative_fractions, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -97,8 +104,8 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     else:
         return False
 
-
-cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
+@profile
+def add_new_phases(object composition_sets, object removed_compsets, object phase_records,
                          object current_grid, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                          double minimum_df, bint verbose):
     """
@@ -106,7 +113,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     are taken from current_grid and modify the composition_sets object. The function returns a boolean indicating
     whether it modified composition_sets.
     """
-    cdef double[:] driving_forces
+    cdef double[::1] driving_forces
     cdef int df_idx = 0
     cdef double largest_df = -np.inf
     cdef double[:] df_comp
@@ -164,6 +171,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+@profile
 @cython.boundscheck(False)
 @cython.wraparound(False)
 def _compute_constraints(object composition_sets, object comps, object cur_conds):
@@ -234,9 +242,10 @@ def _compute_constraints(object composition_sets, object comps, object cur_conds
         constraint_offset += 1
     return np.array(l_constraints), np.array(constraint_jac), constraint_hess
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=np.float64_t] l_constraints,
+#@cython.boundscheck(False)
+#@cython.wraparound(False)
+@profile
+def _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=np.float64_t] l_constraints,
                               np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac,
                               np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
                               np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers):
@@ -272,7 +281,7 @@ cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
-
+@profile
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose):
     """
     Compute equilibrium for the given conditions.
