@@ -447,8 +447,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         free(prev_idx)
 
     @cython.boundscheck(False)
-    cdef _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign):
-        cdef double* eval_row = <double*>self.mem.alloc(4+self.disordered_phase_dof, sizeof(double))
+    cdef void _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign) nogil:
+        cdef double* eval_row = <double*>malloc((4+self.disordered_phase_dof) * sizeof(double))
         cdef double mass_normalization_factor = 0
         cdef double curie_temp = 0
         cdef double tau = 0
@@ -459,58 +459,58 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double out_energy = 0
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
-        with nogil:
-            eval_row[0] = dof[0]
-            eval_row[1] = dof[1]
-            eval_row[2] = log(dof[0])
-            eval_row[3] = log(dof[1])
-            for eval_idx in range(self.disordered_phase_dof):
-                eval_row[4+eval_idx] = dof[2+eval_idx]
-            # Ideal mixing
-            prev_idx = 0
-            for entry_idx in range(self.disordered_site_ratios.shape[0]):
-                for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
-                    if dof[2+dof_idx] > 1e-16:
-                        out_energy += 8.3145 * dof[1] * self.disordered_site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
-                prev_idx += self.disordered_sublattice_dof[entry_idx]
+        eval_row[0] = dof[0]
+        eval_row[1] = dof[1]
+        eval_row[2] = log(dof[0])
+        eval_row[3] = log(dof[1])
+        for eval_idx in range(self.disordered_phase_dof):
+            eval_row[4+eval_idx] = dof[2+eval_idx]
+        # Ideal mixing
+        prev_idx = 0
+        for entry_idx in range(self.disordered_site_ratios.shape[0]):
+            for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
+                if dof[2+dof_idx] > 1e-16:
+                    out_energy += 8.3145 * dof[1] * self.disordered_site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
+            prev_idx += self.disordered_sublattice_dof[entry_idx]
 
-            # End-member contribution
-            out_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix, self.disordered_pure_coef_symbol_matrix,
-                                               eval_row, parameters)
-            # Interaction contribution
-            out_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix, self.disordered_excess_coef_symbol_matrix,
-                                               eval_row, parameters)
-            # Magnetic contribution
-            curie_temp = self._eval_rk_matrix(self.disordered_tc_coef_matrix, self.disordered_tc_coef_symbol_matrix,
-                                              eval_row, parameters)
-            bmagn = self._eval_rk_matrix(self.disordered_bm_coef_matrix, self.disordered_bm_coef_symbol_matrix,
-                                         eval_row, parameters)
-            if (curie_temp != 0) and (bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
-                if bmagn < 0:
-                    bmagn /= self.disordered_afm_factor
-                if curie_temp < 0:
-                    curie_temp /= self.disordered_afm_factor
-                if curie_temp > 1e-6:
-                    tau = dof[1] / curie_temp
-                    # factor when tau < 1
-                    if tau < 1:
-                        res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
-                            * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
-                                          )
-                    else:
-                        # factor when tau >= 1
-                        res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
-                    out_energy += 8.3145 * dof[1] * log(bmagn+1) * res_tau
-            for subl_idx in range(self.disordered_site_ratios.shape[0]):
-                if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                    mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+        # End-member contribution
+        out_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix, self.disordered_pure_coef_symbol_matrix,
+                                           eval_row, parameters)
+        # Interaction contribution
+        out_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix, self.disordered_excess_coef_symbol_matrix,
+                                           eval_row, parameters)
+        # Magnetic contribution
+        curie_temp = self._eval_rk_matrix(self.disordered_tc_coef_matrix, self.disordered_tc_coef_symbol_matrix,
+                                          eval_row, parameters)
+        bmagn = self._eval_rk_matrix(self.disordered_bm_coef_matrix, self.disordered_bm_coef_symbol_matrix,
+                                     eval_row, parameters)
+        if (curie_temp != 0) and (bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
+            if bmagn < 0:
+                bmagn /= self.disordered_afm_factor
+            if curie_temp < 0:
+                curie_temp /= self.disordered_afm_factor
+            if curie_temp > 1e-6:
+                tau = dof[1] / curie_temp
+                # factor when tau < 1
+                if tau < 1:
+                    res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                        * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                      )
                 else:
-                    mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            if mass_normalization_factor <= 1e-6:
-                out_energy = MAX_ENERGY
+                    # factor when tau >= 1
+                    res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+                out_energy += 8.3145 * dof[1] * log(bmagn+1) * res_tau
+        for subl_idx in range(self.disordered_site_ratios.shape[0]):
+            if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
             else:
-                out_energy /= mass_normalization_factor
-            out[0] = out[0] + sign * out_energy
+                mass_normalization_factor += self.disordered_site_ratios[subl_idx]
+        if mass_normalization_factor <= 1e-6:
+            out_energy = MAX_ENERGY
+        else:
+            out_energy /= mass_normalization_factor
+        out[0] = out[0] + sign * out_energy
+        free(eval_row)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -677,26 +677,29 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             self._debuggrad(&dof[0], &parameters[0], &debugout[0])
 
     @cython.boundscheck(False)
-    cpdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign):
+    cdef void _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign) nogil:
         # This 2-D array will be C-ordered
-        cdef double *eval_row = <double*>self.mem.alloc(4+self.phase_dof, sizeof(double))
-        cdef double *out = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
-        cdef double[::1] energy = np.atleast_1d(np.zeros(1))
-        cdef double[::1,:] dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
+        cdef double *eval_row = <double*>malloc((4+self.phase_dof) * sizeof(double))
+        cdef double *out = <double*>malloc((2+self.phase_dof) * sizeof(double))
+        cdef double[::1] energy
+        cdef double[::1,:] dof_2d_view
         cdef double mass_normalization_factor = 0
-        cdef double *mass_normalization_vacancy_factor = <double*>self.mem.alloc(self.phase_dof, sizeof(double))
+        cdef double *mass_normalization_vacancy_factor = <double*>malloc(self.phase_dof * sizeof(double))
         cdef double curie_temp = 0
-        cdef double *curie_temp_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *curie_temp_prime = <double*>malloc((2+self.phase_dof) * sizeof(double))
         cdef double tau = 0
-        cdef double *tau_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *tau_prime = <double*>malloc((2+self.phase_dof) * sizeof(double))
         cdef double bmagn = 0
-        cdef double *bmagn_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *bmagn_prime = <double*>malloc((2+self.phase_dof) * sizeof(double))
         cdef double g_func = 0
         cdef double g_func_prime = 0
         cdef double p
         cdef double A
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
+        with gil:
+            energy = np.atleast_1d(np.zeros(1))
+            dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
         eval_row[0] = dof[0]
         eval_row[1] = dof[1]
         eval_row[2] = log(dof[0])
@@ -788,6 +791,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
+        free(eval_row)
+        free(out)
+        free(mass_normalization_vacancy_factor)
+        free(curie_temp_prime)
+        free(tau_prime)
+        free(bmagn_prime)
 
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters):
         cdef double *disordered_eval_row = NULL
