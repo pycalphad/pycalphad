@@ -6,7 +6,7 @@ cimport numpy as np
 cimport cython
 from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
-from libc.stdlib cimport malloc, free
+from libc.stdlib cimport calloc, malloc, free
 from sympy import Symbol
 from tinydb import where
 from collections import OrderedDict
@@ -677,26 +677,29 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             self._debuggrad(&dof[0], &parameters[0], &debugout[0])
 
     @cython.boundscheck(False)
-    cpdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign):
+    cdef void _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign) nogil:
         # This 2-D array will be C-ordered
-        cdef double *eval_row = <double*>self.mem.alloc(4+self.phase_dof, sizeof(double))
-        cdef double *out = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
-        cdef double[::1] energy = np.atleast_1d(np.zeros(1))
-        cdef double[::1,:] dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
+        cdef double *eval_row = <double*>calloc((4+self.phase_dof), sizeof(double))
+        cdef double *out = <double*>calloc((2+self.phase_dof), sizeof(double))
+        cdef double[::1] energy
+        cdef double[::1,:] dof_2d_view
         cdef double mass_normalization_factor = 0
-        cdef double *mass_normalization_vacancy_factor = <double*>self.mem.alloc(self.phase_dof, sizeof(double))
+        cdef double *mass_normalization_vacancy_factor = <double*>calloc(self.phase_dof, sizeof(double))
         cdef double curie_temp = 0
-        cdef double *curie_temp_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *curie_temp_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double tau = 0
-        cdef double *tau_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *tau_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double bmagn = 0
-        cdef double *bmagn_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *bmagn_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double g_func = 0
         cdef double g_func_prime = 0
         cdef double p
         cdef double A
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
+        with gil:
+            energy = np.atleast_1d(np.zeros(1))
+            dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
         eval_row[0] = dof[0]
         eval_row[1] = dof[1]
         eval_row[2] = log(dof[0])
@@ -734,15 +737,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                               eval_row, parameters)
             if bmagn < 0:
                 bmagn /= self.afm_factor
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     bmagn_prime[dof_idx] /= self.afm_factor
             if curie_temp < 0:
                 curie_temp /= self.afm_factor
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     curie_temp_prime[dof_idx] /= self.afm_factor
             if curie_temp > 1e-6:
                 tau = dof[1] / curie_temp
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     if dof_idx == 1:
                         # wrt T
                         tau_prime[1] = (curie_temp - dof[1]*curie_temp_prime[1])/(curie_temp**2)
@@ -788,6 +791,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
+        free(eval_row)
+        free(out)
+        free(mass_normalization_vacancy_factor)
+        free(curie_temp_prime)
+        free(tau_prime)
+        free(bmagn_prime)
 
     cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters):
         cdef double *disordered_eval_row = NULL
