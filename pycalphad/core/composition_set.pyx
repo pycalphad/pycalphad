@@ -1,6 +1,10 @@
 from pycalphad.core.phase_rec cimport PhaseRecord
 cimport numpy as np
 import numpy as np
+from libc.stdlib cimport malloc, free
+from libc.string cimport memset
+from libc.math cimport fabs
+cimport cython
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
     """
@@ -40,18 +44,20 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess[:,:] = 0
         self._first_iteration = True
 
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[:,::1] current_hess,
                               double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
-                              double* energy, double* prev_energy):
+                              double* energy, double* prev_energy) nogil:
         # Notation from Nocedal and Wright, 2006, Equation 8.19
         cdef int dof_idx, dof_idx_2
         cdef int dof_len = dof.shape[0]
-        cdef double[:] sk = np.empty(dof_len)
-        cdef double[:] yk = np.empty(dof_len)
-        cdef double[:] bk_sk = np.empty(dof_len)
-        cdef double[:] ybk = np.empty(dof_len)
-        cdef double ybk_norm
-        cdef denominator = 0
+        cdef double *sk = <double*>malloc(dof_len * sizeof(double))
+        cdef double *yk = <double*>malloc(dof_len * sizeof(double))
+        cdef double *bk_sk = <double*>malloc(dof_len * sizeof(double))
+        cdef double *ybk = <double*>malloc(dof_len * sizeof(double))
+        cdef double ybk_norm = 0
+        cdef double denominator = 0
 
         for dof_idx in range(dof_len):
             sk[dof_idx] = dof[dof_idx] - prev_dof[dof_idx]
@@ -63,11 +69,12 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             for dof_idx_2 in range(dof_len):
                 bk_sk[dof_idx] += prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
             ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
+            ybk_norm += ybk[dof_idx] ** 2
             denominator += ybk[dof_idx] * sk[dof_idx]
-        ybk_norm = np.linalg.norm(ybk)
+        ybk_norm = ybk_norm ** 0.5
         # Fall back to finite difference approximation unless it's a "medium-size" step
         # This is a really conservative approach and could probably be improved for performance
-        if abs(denominator) < 1e-2 or (ybk_norm < 1e-2) or (ybk_norm > 10):
+        if fabs(denominator) < 1e-2 or (ybk_norm < 1e-2) or (ybk_norm > 10):
             self.phase_record.hess(current_hess, dof)
         else:
             # Symmetric Rank 1 (SR1) update
@@ -77,8 +84,14 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
                         prev_hess[dof_idx, dof_idx_2] + (ybk[dof_idx] * ybk[dof_idx_2] / denominator)
             prev_hess[:,:] = current_hess
         prev_energy[0] = energy[0]
+        free(sk)
+        free(yk)
+        free(bk_sk)
+        free(ybk)
 
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives) nogil:
         cdef int comp_idx
         cdef int past_va = 0
         self.dof[0] = pressure
@@ -86,11 +99,11 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.dof[2:] = site_fracs
         self.NP = phase_amt
         self.energy = 0
-        self.grad[:] = 0
-        self.hess[:,:] = 0
-        self.X[:] = 0
-        self.mass_grad[:,:] = 0
-        self.mass_hess[:,:,:] = 0
+        memset(&self.grad[0], 0, self.grad.shape[0] * sizeof(double))
+        memset(&self.hess[0,0], 0, self.hess.shape[0] * self.hess.shape[1] * sizeof(double))
+        memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
+        memset(&self.mass_grad[0,0], 0, self.mass_grad.shape[0] * self.mass_grad.shape[1] * sizeof(double))
+        memset(&self.mass_hess[0,0,0], 0, self.mass_hess.shape[0] * self.mass_hess.shape[1] * self.mass_hess.shape[2] * sizeof(double))
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
         if not skip_derivatives:
             self.phase_record.grad(self.grad, self.dof)

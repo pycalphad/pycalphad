@@ -7,6 +7,7 @@ cimport cython
 from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
 from libc.stdlib cimport calloc, malloc, free
+from libc.string cimport memcpy, memset
 from sympy import Symbol
 from tinydb import where
 from collections import OrderedDict
@@ -974,7 +975,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     print(self.constituents)
                     print('--')
 
-    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters) nogil:
         cdef double[::1] x1,x2
         cdef double[::1] grad1, grad2
         cdef double[:,::1] debugout
@@ -982,12 +985,11 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int grad_idx
         cdef int col_idx
         cdef int total_dof = 2 + self.phase_dof
-        if self.mem.size > 2**16:
-            self.mem = Pool()
-        grad1 = np.zeros(total_dof)
-        grad2 = np.zeros(total_dof)
-        x1 = np.array(dof)
-        x2 = np.array(dof)
+        with gil:
+            grad1 = np.zeros(total_dof)
+            grad2 = np.zeros(total_dof)
+            x1 = np.array(dof)
+            x2 = np.array(dof)
 
         for grad_idx in range(total_dof):
             if grad_idx > 1:
@@ -1008,21 +1010,22 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
         if self._debug:
-            debugout = np.ascontiguousarray(np.zeros_like(out))
-            if parameters.shape[0] == 0:
-                self._debughess(&dof[0], NULL, &debugout[0,0])
-            else:
-                self._debughess(&dof[0], &parameters[0], &debugout[0,0])
-            try:
-                np.testing.assert_allclose(out,debugout)
-            except AssertionError as e:
-                print('--')
-                print('Hessian mismatch')
-                print(e)
-                print(np.array(debugout)-np.array(out))
-                print('DOF:', np.array(dof))
-                print(self.constituents)
-                print('--')
+            with gil:
+                debugout = np.ascontiguousarray(np.zeros_like(out))
+                if parameters.shape[0] == 0:
+                    self._debughess(&dof[0], NULL, &debugout[0,0])
+                else:
+                    self._debughess(&dof[0], &parameters[0], &debugout[0,0])
+                try:
+                    np.testing.assert_allclose(out,debugout)
+                except AssertionError as e:
+                    print('--')
+                    print('Hessian mismatch')
+                    print(e)
+                    print(np.array(debugout)-np.array(out))
+                    print('DOF:', np.array(dof))
+                    print(self.constituents)
+                    print('--')
 
 def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, phase_dof,
                            composition_matrices, site_ratios, vacancy_index,
