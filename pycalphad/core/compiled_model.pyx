@@ -6,6 +6,7 @@ cimport numpy as np
 cimport cython
 from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
+from libc.stdlib cimport malloc, free
 from sympy import Symbol
 from tinydb import where
 from collections import OrderedDict
@@ -367,20 +368,20 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
+    cdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign) nogil:
         cdef int num_pts = dof.shape[0]
         cdef int eval_row_len = 4+self.phase_dof
         # This 2-D array will be C-ordered
-        cdef double *eval_row = <double*>self.mem.alloc(num_pts*eval_row_len, sizeof(double))
-        cdef double *mass_normalization_factor = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *curie_temp = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *tau = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *bmagn = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *res_tau = <double*>self.mem.alloc(num_pts, sizeof(double))
+        cdef double *eval_row = <double*>malloc(num_pts*eval_row_len * sizeof(double))
+        cdef double *mass_normalization_factor = <double*>malloc(num_pts * sizeof(double))
+        cdef double *curie_temp = <double*>malloc(num_pts * sizeof(double))
+        cdef double *tau = <double*>malloc(num_pts * sizeof(double))
+        cdef double *bmagn = <double*>malloc(num_pts * sizeof(double))
+        cdef double *res_tau = <double*>malloc(num_pts * sizeof(double))
         cdef double p = self.ihj_magnetic_structure_factor
         cdef double A = 518./1125 + (11692./15975)*(1./p - 1.)
-        cdef double *out_energy = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef int *prev_idx = <int*>self.mem.alloc(num_pts, sizeof(int))
+        cdef double *out_energy = <double*>malloc(num_pts * sizeof(double))
+        cdef int *prev_idx = <int*>malloc(num_pts * sizeof(int))
         cdef int dof_idx, out_idx, eval_idx
         for out_idx in range(out.shape[0]):
             out_energy[out_idx] = 0
@@ -436,6 +437,14 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             else:
                 out_energy[out_idx] /= mass_normalization_factor[out_idx]
             out[out_idx] = out[out_idx] + sign * out_energy[out_idx]
+        free(eval_row)
+        free(mass_normalization_factor)
+        free(curie_temp)
+        free(tau)
+        free(bmagn)
+        free(res_tau)
+        free(out_energy)
+        free(prev_idx)
 
     @cython.boundscheck(False)
     cdef _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign):
@@ -560,7 +569,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
                         ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, subl_idx+2]
 
-    cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters):
+    cdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters) nogil:
         cdef double *disordered_eval_row = NULL
         cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
         cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
