@@ -569,10 +569,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
                         ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, subl_idx+2]
 
-    cdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters) nogil:
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters) nogil:
         cdef double *disordered_eval_row = NULL
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
+        cdef double[:,:] disordered_dof
+        cdef double[:,:] ordered_dof
         cdef double disordered_mass_normalization_factor = 0
         cdef double disordered_curie_temp = 0
         cdef double tau = 0
@@ -583,13 +585,14 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int dof_idx, out_idx, subl_idx, disordered_dof_idx
         self._eval_energy(out, dof, parameters, 1)
         if self.ordered:
-            disordered_dof = np.zeros((dof.shape[0], _intsum(self.disordered_sublattice_dof)+2))
-            ordered_dof = np.zeros((dof.shape[0], dof.shape[1]))
+            with gil:
+                disordered_dof = np.zeros((dof.shape[0], _intsum(self.disordered_sublattice_dof)+2))
+                ordered_dof = np.zeros((dof.shape[0], dof.shape[1]))
             self._compute_disordered_dof(disordered_dof, dof)
             self._compute_ordered_dof(ordered_dof, disordered_dof)
             # Subtract ordered energy at disordered configuration
             self._eval_energy(out, ordered_dof, parameters, -1)
-            disordered_eval_row = <double*>self.mem.alloc(self.disordered_phase_dof+4, sizeof(double))
+            disordered_eval_row = <double*>malloc((self.disordered_phase_dof+4) * sizeof(double))
             for out_idx in range(out.shape[0]):
                 disordered_mass_normalization_factor = 0
                 disordered_curie_temp = 0
@@ -654,10 +657,12 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 else:
                     disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
+            free(disordered_eval_row)
         if self._debug:
-            debugout = np.zeros_like(out)
-            self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
-            np.testing.assert_allclose(out,debugout)
+            with gil:
+                debugout = np.zeros_like(out)
+                self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
+                np.testing.assert_allclose(out,debugout)
 
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
