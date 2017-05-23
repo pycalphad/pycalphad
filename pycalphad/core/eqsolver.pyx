@@ -31,7 +31,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     cdef double phfsum = 0
     cdef object redundant_phases, kept_phase, removed_phases, saved_indices
     cdef int num_phases = len(composition_sets)
-    cdef int phase_idx, sidx
+    cdef int phase_idx, sidx, idx
     cdef int[:] indices
     cdef CompositionSet compset
     # Group phases into multiple composition sets
@@ -106,7 +106,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef double[::1] driving_forces
     cdef long[::1] largest_driving_forces_indices
     cdef int df_idx = 0
-    cdef int i
+    cdef int i, comp_idx
     cdef double largest_df = -np.inf
     cdef double[:] df_comp
     cdef double[:,::1] current_grid_Y = current_grid.Y.values
@@ -360,7 +360,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         Modified with equilibrium values.
     """
     cdef double indep_sum
-    cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
+    cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, dof_idx, comp_idx, phase_idx, sfidx, pfidx, m, n
     cdef bint converged, changed_phases
     cdef double vmax, minimum_df
     cdef PhaseRecord phase_record
