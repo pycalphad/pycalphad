@@ -52,6 +52,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
+        cdef int subl_index, comp_index
         self.mem = Pool()
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
@@ -369,7 +370,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign) nogil:
+    cdef void _eval_energy(self, double *out, double[:,:] dof, double[:] parameters, double sign) nogil:
         cdef int num_pts = dof.shape[0]
         cdef int eval_row_len = 4+self.phase_dof
         # This 2-D array will be C-ordered
@@ -384,7 +385,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double *out_energy = <double*>malloc(num_pts * sizeof(double))
         cdef int *prev_idx = <int*>malloc(num_pts * sizeof(int))
         cdef int dof_idx, out_idx, eval_idx
-        for out_idx in range(out.shape[0]):
+        for out_idx in range(num_pts):
             out_energy[out_idx] = 0
             mass_normalization_factor[out_idx] = 0
             eval_row[eval_row_len*out_idx + 0] = dof[out_idx, 0]
@@ -572,7 +573,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters) nogil:
+    cdef void eval_energy(self, double *out, double[:,:] dof, double[:] parameters) nogil:
         cdef double *disordered_eval_row = NULL
         cdef double[:,:] disordered_dof
         cdef double[:,:] ordered_dof
@@ -583,6 +584,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double A, p, res_tau
         cdef double disordered_energy = 0
         cdef int prev_idx = 0
+        cdef size_t num_pts = dof.shape[0]
         cdef int dof_idx, out_idx, subl_idx, disordered_dof_idx
         self._eval_energy(out, dof, parameters, 1)
         if self.ordered:
@@ -594,7 +596,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             # Subtract ordered energy at disordered configuration
             self._eval_energy(out, ordered_dof, parameters, -1)
             disordered_eval_row = <double*>malloc((self.disordered_phase_dof+4) * sizeof(double))
-            for out_idx in range(out.shape[0]):
+            for out_idx in range(num_pts):
                 disordered_mass_normalization_factor = 0
                 disordered_curie_temp = 0
                 disordered_bmagn = 0
@@ -661,9 +663,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             free(disordered_eval_row)
         if self._debug:
             with gil:
-                debugout = np.zeros_like(out)
+                debugout = np.zeros(dof.shape[0])
                 self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
-                np.testing.assert_allclose(out,debugout)
+                np.testing.assert_allclose(<double[:dof.shape[0]]>out,debugout)
 
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
@@ -682,7 +684,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         # This 2-D array will be C-ordered
         cdef double *eval_row = <double*>calloc((4+self.phase_dof), sizeof(double))
         cdef double *out = <double*>calloc((2+self.phase_dof), sizeof(double))
-        cdef double[::1] energy
+        cdef double energy = 0
         cdef double[::1,:] dof_2d_view
         cdef double mass_normalization_factor = 0
         cdef double *mass_normalization_vacancy_factor = <double*>calloc(self.phase_dof, sizeof(double))
@@ -699,7 +701,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
         with gil:
-            energy = np.atleast_1d(np.zeros(1))
             dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
         eval_row[0] = dof[0]
         eval_row[1] = dof[1]
@@ -776,8 +777,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
                 mass_normalization_factor += self.site_ratios[subl_idx] * (1-dof[2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
                 mass_normalization_vacancy_factor[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]] = -self.site_ratios[subl_idx]
-                if energy[0] == 0:
-                    self.eval_energy(energy, dof_2d_view, parameters)
+                if energy == 0:
+                    self.eval_energy(&energy, dof_2d_view, parameters)
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
         if mass_normalization_factor <= 1e-6:
@@ -787,7 +788,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
                     # Remember that energy is already equal to the energy divided by the mass normalization factor
                     # That is why one factor of it disappears in the formula
-                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
+                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
                 else:
                     out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
@@ -825,9 +826,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int dof_idx, out_idx, subl_idx, eval_idx, disordered_dof_idx
         self._eval_energy_gradient(out, dof, parameters, 1)
         if self.ordered:
+            disordered_out = <double*>calloc(2+self.disordered_phase_dof, sizeof(double))
             with gil:
                 disordered_dof_2d = np.zeros((1,_intsum(self.disordered_sublattice_dof)+2))
-                disordered_out = <double*>calloc(2+self.disordered_phase_dof, sizeof(double))
                 ordered_dof_2d = np.zeros((1, _intsum(self.sublattice_dof)+2))
                 self._compute_disordered_dof(disordered_dof_2d, np.array([dof]))
                 disordered_dof = np.ascontiguousarray(disordered_dof_2d[0, :])

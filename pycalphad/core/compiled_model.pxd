@@ -48,9 +48,9 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                            double *eval_row, double[:] parameters) nogil
     cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil
     cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil
-    cdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign) nogil
+    cdef void _eval_energy(self, double *out, double[:,:] dof, double[:] parameters, double sign) nogil
     cdef void _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign) nogil
-    cdef void eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters) nogil
+    cdef void eval_energy(self, double *out, double[:,:] dof, double[:] parameters) nogil
     cdef void _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign) nogil
     cdef void eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters) nogil
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters)
