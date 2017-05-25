@@ -475,8 +475,13 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                                         constraint_jac, constraint_hess,
                                                                         l_multipliers)
             inv_hess = np.linalg.inv(l_hessian)
-            l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
-            step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
+            try:
+                l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
+                step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
+            except np.linalg.LinAlgError:
+                print('Failed to converge: {}'.format(cur_conds))
+                converged = False
+                break
             np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
             if np.any(np.isnan(l_multipliers)):
                 print('Invalid l_multipliers after recalculation', l_multipliers)
