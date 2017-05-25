@@ -32,7 +32,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._obj != NULL:
             self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
         else:
-            self.cmpmdl.eval_energy(&out[0], dof, self.parameters)
+            self.cmpmdl.eval_energy(&out[0], &dof[0,0], self.parameters, <size_t>out.shape[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
