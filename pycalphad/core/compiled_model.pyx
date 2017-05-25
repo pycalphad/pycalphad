@@ -7,7 +7,7 @@ cimport cython
 from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
 from libc.stdlib cimport calloc, malloc, free
-from libc.string cimport memcpy, memset
+from libc.string cimport memset
 from sympy import Symbol
 from tinydb import where
 from collections import OrderedDict
@@ -691,7 +691,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             self._debuggrad(&dof[0], &parameters[0], &debugout[0])
 
     @cython.boundscheck(False)
-    cdef void _eval_energy_gradient(self, double[::1] out_grad, double *dof, double[:] parameters, double sign) nogil:
+    cdef void _eval_energy_gradient(self, double *out_grad, double *dof, double[:] parameters, double sign) nogil:
         # This 2-D array will be C-ordered
         cdef size_t dof_len = 2 + self.phase_dof
         cdef double *eval_row = <double*>calloc((4+self.phase_dof), sizeof(double))
@@ -812,7 +812,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters) nogil:
+    cdef void eval_energy_gradient(self, double *out, double *dof, double[:] parameters) nogil:
         # 1-D
         cdef double *disordered_eval_row = NULL
         # 2-D C-ordered
@@ -837,7 +837,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef int prev_idx = 0
         cdef int dof_idx, out_idx, subl_idx, eval_idx, disordered_dof_idx
         cdef size_t disordered_dof_len = 0
-        self._eval_energy_gradient(out, &dof[0], parameters, 1)
+        self._eval_energy_gradient(out, dof, parameters, 1)
         if self.ordered:
             disordered_dof_len = 2 + self.disordered_phase_dof
             disordered_out = <double*>calloc(disordered_dof_len, sizeof(double))
@@ -975,34 +975,35 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             free(ordered_dof)
         if self._debug:
             with gil:
-                debugout = np.zeros_like(out)
-                self._debug_energy_gradient(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
+                debugout = np.zeros(2+self.phase_dof)
+                self._debug_energy_gradient(debugout, np.asfortranarray(<double[:2+self.phase_dof]>dof), np.ascontiguousarray(parameters))
                 try:
-                    np.testing.assert_allclose(out,debugout)
+                    np.testing.assert_allclose(np.array(<double[:2+self.phase_dof]>out),debugout)
                 except AssertionError as e:
                     print('--')
                     print('Gradient mismatch')
                     print(e)
-                    print(np.array(debugout)-np.array(out))
-                    print('DOF:', np.array(dof))
+                    print(np.array(debugout)-np.array(<double[:2+self.phase_dof]>out))
+                    print('DOF:', np.array(<double[:2+self.phase_dof]>dof))
                     print(self.constituents)
                     print('--')
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters) nogil:
-        cdef double[::1] x1,x2
-        cdef double[::1] grad1, grad2
         cdef double[:,::1] debugout
         cdef double epsilon = 1e-12
-        cdef int grad_idx
-        cdef int col_idx
-        cdef int total_dof = 2 + self.phase_dof
-        with gil:
-            grad1 = np.zeros(total_dof)
-            grad2 = np.zeros(total_dof)
-            x1 = np.array(dof)
-            x2 = np.array(dof)
+        cdef size_t grad_idx
+        cdef size_t col_idx
+        cdef size_t total_dof = 2 + self.phase_dof
+        cdef double *x1 = <double*>malloc(total_dof * sizeof(double))
+        cdef double *x2 = <double*>malloc(total_dof * sizeof(double))
+        cdef double *grad1 = <double*>calloc(total_dof, sizeof(double))
+        cdef double *grad2 = <double*>calloc(total_dof,  sizeof(double))
+
+        for grad_idx in range(total_dof):
+            x1[grad_idx] = dof[grad_idx]
+            x2[grad_idx] = dof[grad_idx]
 
         for grad_idx in range(total_dof):
             if grad_idx > 1:
@@ -1017,11 +1018,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
             x1[grad_idx] = dof[grad_idx]
             x2[grad_idx] = dof[grad_idx]
-            grad1[:] = 0
-            grad2[:] = 0
+            memset(grad1, 0, total_dof * sizeof(double))
+            memset(grad2, 0, total_dof * sizeof(double))
         for grad_idx in range(total_dof):
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
+        free(x1)
+        free(x2)
+        free(grad1)
+        free(grad2)
         if self._debug:
             with gil:
                 debugout = np.ascontiguousarray(np.zeros_like(out))

@@ -40,7 +40,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._grad != NULL:
             self._grad(&dof[0], &self.parameters[0], &out[0])
         else:
-            self.cmpmdl.eval_energy_gradient(out, dof, self.parameters)
+            self.cmpmdl.eval_energy_gradient(&out[0], &dof[0], self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

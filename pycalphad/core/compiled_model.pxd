@@ -51,8 +51,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef void _eval_energy(self, double *out, double *dof, double[:] parameters, double sign, size_t num_pts) nogil
     cdef void _eval_disordered_energy(self, double *out, double *dof, double[:] parameters, double sign) nogil
     cdef void eval_energy(self, double *out, double *dof, double[:] parameters, size_t num_pts) nogil
-    cdef void _eval_energy_gradient(self, double[::1] out_grad, double *dof, double[:] parameters, double sign) nogil
-    cdef void eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters) nogil
+    cdef void _eval_energy_gradient(self, double *out_grad, double *dof, double[:] parameters, double sign) nogil
+    cdef void eval_energy_gradient(self, double *out, double *dof, double[:] parameters) nogil
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters)
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)
     cdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters) nogil
