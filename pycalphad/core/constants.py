@@ -8,7 +8,7 @@ MIN_SITE_FRACTION = 1e-12
 MIN_PHASE_FRACTION = 1e-12
 # Phases with mole fractions less than COMP_DIFFERENCE_TOL apart (by Chebyshev distance) are considered "the same" for
 # the purposes of CompositionSet addition and removal during energy minimization.
-COMP_DIFFERENCE_TOL = 1e-2
+COMP_DIFFERENCE_TOL = 1e-4
 
 # 'infinity' for numerical purposes
 BIGNUM = 1e60

@@ -186,11 +186,8 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             if verbose:
                 print('Removing ' + repr(composition_sets[min_phase_fraction_idx]) + ' to obey Gibbs phase rule')
             removed_compsets.append(composition_sets.pop(min_phase_fraction_idx))
-        # Set all phases to have equal amounts as new phase is added
-        for compset in composition_sets:
-            compset.NP = 1./(len(composition_sets)+1)
         compset = CompositionSet(phase_records[df_phase_name])
-        compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
+        compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 100*MIN_PHASE_FRACTION,
                        current_grid.coords['P'], current_grid.coords['T'], False)
         composition_sets.append(compset)
         if verbose:
@@ -462,11 +459,12 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         energy = prop_GM_values[it.multi_index]
         alpha = 1
         allow_negative_fractions = False
+        wiggle = False
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
             if cur_iter > 0 and cur_iter % 5 == 0:
-                minimum_df = 0
+                minimum_df = 1000
                 changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
                                                  current_grid, chemical_potentials, minimum_df, verbose)
             changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, verbose)
@@ -504,12 +502,12 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             energy, l_hessian, gradient_term = _build_multiphase_system(composition_sets, l_constraints,
                                                                         constraint_jac, constraint_hess,
                                                                         l_multipliers)
-            inv_hess = np.linalg.inv(l_hessian)
             try:
+                inv_hess = np.linalg.inv(l_hessian)
                 l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
                 step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
             except np.linalg.LinAlgError:
-                print('Failed to converge: {}'.format(cur_conds))
+                print('Failed to converge due to singular matrix: {}'.format(cur_conds))
                 converged = False
                 break
             np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
@@ -534,7 +532,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1)
             if verbose:
                 print('old_driving_force', old_driving_force)
-            for new_alpha in [0.5**n for n in range(30)] + [0]:
+            if wiggle:
+                alpha_range = range(3,30)
+            else:
+                alpha_range = range(30)
+            for new_alpha in [0.5**n for n in alpha_range] + [0]:
                 alpha = new_alpha
                 for sfidx in range(site_fracs.shape[0]):
                     site_fracs[sfidx] = min(max(old_site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
@@ -579,20 +581,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 print('Chem pot progress', chemical_potentials - old_chem_pots)
                 print('Energy progress', energy - old_energy)
                 print('Driving force', driving_force)
+            wiggle = (np.abs(chemical_potentials - old_chem_pots).max() > 1e4) and (np.abs(chemical_potentials - old_chem_pots).min() < 1e2)
             no_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.01
             no_progress &= np.abs(energy - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
-            if no_progress:
-                removed_compsets.clear()
-                changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
-                             current_grid, chemical_potentials, 50.0, verbose)
-                if changed_phases:
-                    no_progress = False
-                for pfidx in range(phase_fracs.shape[0]):
-                    if phase_fracs[pfidx] < 0:
-                        no_progress = False
-                        allow_negative_fractions = False
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
                 converged = False
