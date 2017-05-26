@@ -8,6 +8,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     cdef readonly double[:, ::1] mass_grad
     cdef readonly double[:, :, :] mass_hess
     cdef public double NP
+    cdef public int zero_seen
     cdef readonly double energy
     cdef double[::1] _energy_2d_view
     cdef readonly double[::1] grad

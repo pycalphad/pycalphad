@@ -52,7 +52,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         # The reason we don't do this based on Y fractions is because
         # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
-        for idx in indices:
+        for idx in range(num_phases):
             compset = composition_sets[idx]
             comp_matrix[idx, :] = compset.X
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
@@ -61,7 +61,6 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
                 comp_distances[idx,:] = np.inf
                 comp_distances[:,idx] = np.inf
         redundant_phases = set()
-        redundant_phases |= {indices[0]}
         for i in range(comp_distances.shape[0]):
             for j in range(i, comp_distances.shape[0]):
                 if i == j:
@@ -69,8 +68,11 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
                 if comp_distances[i, j] < COMP_DIFFERENCE_TOL:
                     redundant_phases |= {i, j}
         redundant_phases = sorted(redundant_phases)
-        kept_phase = redundant_phases[0]
-        removed_phases = redundant_phases[1:]
+        if len(redundant_phases) > 1:
+            kept_phase = redundant_phases[0]
+            removed_phases = redundant_phases[1:]
+        else:
+            removed_phases = []
         # Their NP values will be added to the kept phase
         # and they will be nulled out
         for redundant in removed_phases:
@@ -78,9 +80,16 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
             composition_sets[redundant].NP = np.nan
     for phase_idx in range(num_phases):
         if (composition_sets[phase_idx].NP <= MIN_PHASE_FRACTION) and (not allow_negative_fractions):
-            composition_sets[phase_idx].NP = np.nan
+            # Let a phase remain for one removal pass at minimum phase fraction
+            if composition_sets[phase_idx].zero_seen >= 1:
+                composition_sets[phase_idx].NP = np.nan
+            else:
+                composition_sets[phase_idx].zero_seen += 1
+                composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
         elif abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
             composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
+        else:
+            composition_sets[phase_idx].zero_seen = 0
 
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
@@ -108,6 +117,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef int df_idx = 0
     cdef int i, comp_idx
     cdef double largest_df = -np.inf
+    cdef size_t min_phase_fraction_idx
     cdef double[:] df_comp
     cdef double[:,::1] current_grid_Y = current_grid.Y.values
     cdef np.ndarray current_grid_Phase = current_grid.Phase.values
@@ -125,6 +135,20 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             df_comp = current_grid_Y[i]
             df_phase_name = <unicode>current_grid_Phase[i]
             distinct = True
+            for compset in composition_sets:
+                if df_phase_name != compset.phase_record.phase_name:
+                    continue
+                distinct = False
+                for comp_idx in range(compset.phase_record.phase_dof):
+                    if abs(df_comp[comp_idx] - compset.dof[2+comp_idx]) > 10*COMP_DIFFERENCE_TOL:
+                        distinct = True
+                        break
+                if not distinct:
+                    break
+            if not distinct:
+                if verbose:
+                    print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(compset.X)) + ' is not distinct from active phase')
+                continue
             for compset in removed_compsets:
                 if df_phase_name != compset.phase_record.phase_name:
                     continue
@@ -156,6 +180,12 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 if verbose:
                     print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
                 return False
+        # If adding a new phase violates Gibbs phase rule, remove phase with smallest phase fraction
+        min_phase_fraction_idx = np.argmin([compset.NP for compset in composition_sets])
+        if len(composition_sets) >= chemical_potentials.shape[0]:
+            if verbose:
+                print('Removing ' + repr(composition_sets[min_phase_fraction_idx]) + ' to obey Gibbs phase rule')
+            removed_compsets.append(composition_sets.pop(min_phase_fraction_idx))
         # Set all phases to have equal amounts as new phase is added
         for compset in composition_sets:
             compset.NP = 1./(len(composition_sets)+1)

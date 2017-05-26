@@ -18,6 +18,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     def __cinit__(self, PhaseRecord prx):
         cdef int has_va = <int>(prx.vacancy_index > -1)
         self.phase_record = prx
+        self.zero_seen = 0
         self.dof = np.zeros(len(self.phase_record.variables)+2)
         self.X = np.zeros(self.phase_record.composition_matrices.shape[0]-has_va)
         self.mass_grad = np.zeros((self.X.shape[0]+has_va, self.phase_record.phase_dof))
@@ -38,6 +39,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         return str(self.__class__.__name__) + "({0}, {1})".format(self.phase_record.phase_name, np.asarray(self.X))
 
     cdef void reset(self):
+        self.zero_seen = 0
         self._prev_energy = 0
         self._prev_dof[:] = 0
         self._prev_grad[:] = 0
