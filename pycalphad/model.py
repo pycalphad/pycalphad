@@ -1,5 +1,5 @@
 """
-The Model module provides support for using a Database to perform
+The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
 from __future__ import division
