@@ -30,6 +30,7 @@ from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
 from pycalphad.core.equilibrium import EquilibriumError, ConditionError
 from pycalphad.plot.binary import binplot
+from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot
 from ._version import get_versions
 __version__ = get_versions()['version']
