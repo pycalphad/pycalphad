@@ -1,6 +1,5 @@
 """
-The binary module enables plotting of binary
-isobaric phase diagrams.
+The binary module enables plotting of binary isobaric phase diagrams.
 """
 import numpy as np
 
@@ -47,4 +46,4 @@ def binplot(dbf, comps, phases, conds, eq_kwargs=None, **plot_kwargs):
     indep_pot = indep_pot[0]
 
     full_eq = equilibrium(dbf, comps, phases, conds, **eq_kwargs)
-    return eqplot(full_eq, x=indep_comp, y=indep_pot, phases=phases, **plot_kwargs)
+    return eqplot(full_eq, x=indep_comp, y=indep_pot, **plot_kwargs)

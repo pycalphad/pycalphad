@@ -10,9 +10,17 @@ import matplotlib.pyplot as plt
 import numpy as np
 from collections import OrderedDict
 
-
+# TODO: support other state variables here or make isinstance elif == v.T or v.P
 _plot_labels = {v.T: 'Temperature (K)', v.P: 'Pressure (Pa)'}
 
+
+def _axis_label(ax_var):
+    if isinstance(ax_var, v.Composition):
+        return 'X({})'.format(ax_var.species)
+    elif isinstance(ax_var, v.StateVariable):
+        return _plot_labels[ax_var]
+    else:
+        return ax_var
 
 def _map_coord_to_variable(coord):
     """
@@ -35,9 +43,12 @@ def _map_coord_to_variable(coord):
     else:
         return coord
 
-def eqplot(eq, ax=None, x=None, y=None, z=None, phases=None, **kwargs):
+
+def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
     """
     Plot the result of an equilibrium calculation.
+
+    The type of plot is controlled by the degrees of freedom in the equilibrium calculation.
 
     Parameters
     ----------
@@ -55,62 +66,113 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, phases=None, **kwargs):
     -------
     matplotlib AxesSubplot
     """
-    ax = plt.gca() if ax is None else ax
     conds = OrderedDict([(_map_coord_to_variable(key), unpack_condition(np.asarray(value)))
                          for key, value in sorted(eq.coords.items(), key=str)
                          if (key == 'T') or (key == 'P') or (key.startswith('X_'))])
-    indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(value) > 1]
-    indep_pot = [key for key, value in conds.items() if ((key == v.T) or (key == v.P)) and len(value) > 1]
-    if (len(indep_comp) != 1) or (len(indep_pot) != 1):
-        raise ValueError('Plot currently requires exactly one composition and one potential coordinate')
-    indep_comp = indep_comp[0]
-    indep_pot = indep_pot[0]
-    x = indep_comp if x is None else x
-    y = indep_pot if y is None else y
+    indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.Composition) and len(value) > 1], key=str)
+    indep_pots = [key for key, value in conds.items() if ((key == v.T) or (key == v.P)) and len(value) > 1]
+
+    # determine what the type of plot will be
+    if len(indep_comps) == 1 and len(indep_pots) == 1:
+        projection = None
+    elif len(indep_comps) == 2 and len(indep_pots) == 0:
+        projection = 'triangular'
+    else:
+        raise ValueError('The eqplot projection is not defined and cannot be autodetected. There are {} independent compositions and {} indepedent potentials.'.format(len(indep_comps), len(indep_pots)))
     if z is not None:
         raise NotImplementedError('3D plotting is not yet implemented')
-    # TODO: Temporary workaround to fix string encoding issue when loading netcdf files from disk
-    phases = phases if phases is not None else \
-        map(str, sorted(set(np.array(eq.Phase.values.ravel(), dtype='U')) - {''}, key=str))
+    if ax is None:
+        fig = plt.figure()
+        ax = fig.gca(projection=projection)
+    ax = plt.gca(projection=projection) if ax is None else ax
+
+    # Handle cases for different plot types
+    if projection is None:
+        x = indep_comps[0] if x is None else x
+        y = indep_pots[0] if y is None else y
+        # plot settings
+        ax.set_xlim([np.min(conds[x]) - 1e-2, np.max(conds[x]) + 1e-2])
+        ax.set_ylim([np.min(conds[y]), np.max(conds[y])])
+    elif projection == 'triangular':
+        x = indep_comps[0] if x is None else x
+        y = indep_comps[1] if y is None else y
+        # plot settings
+        ax.yaxis.label.set_rotation(60)
+        # Here we adjust the x coordinate of the ylabel.
+        # We make it reasonably comparable to the position of the xlabel from the xaxis
+        # As the figure size gets very large, the label approaches ~0.55 on the yaxis
+        # 0.55*cos(60 deg)=0.275, so that is the xcoord we are approaching.
+        ax.yaxis.label.set_va('baseline')
+        fig_x_size = ax.figure.get_size_inches()[0]
+        y_label_offset = 1 / fig_x_size
+        ax.yaxis.set_label_coords(x=(0.275 - y_label_offset), y=0.5)
+
+    # get the active phases and support loading netcdf files from disk
+    phases = map(str, sorted(set(np.array(eq.Phase.values.ravel(), dtype='U')) - {''}, key=str))
     comps = map(str, sorted(np.array(eq.coords['component'].values, dtype='U'), key=str))
     eq['component'] = np.array(eq['component'], dtype='U')
     eq['Phase'].values = np.array(eq['Phase'].values, dtype='U')
 
-    # Select all two-phase regions
-    two_phase_indices = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 2)
-    found_phases = eq.Phase.values[two_phase_indices][..., :2]
+    # Select all two- and three-phase regions
+    three_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 3)
+    two_phase_idx = np.nonzero(np.sum(eq.Phase.values != '', axis=-1, dtype=np.int) == 2)
 
     legend_handles, colorlist = phase_legend(phases)
-    # position the phase legend
+
+    # For both two and three phase, cast the tuple of indices to an array and flatten
+    # If we found two phase regions:
+    if two_phase_idx[0].size > 0:
+        found_two_phase = eq.Phase.values[two_phase_idx][..., :2]
+        # get tieline endpoint compositions
+        two_phase_x = eq.X.sel(component=x.species).values[two_phase_idx][..., :2]
+        # handle special case for potential
+        if isinstance(y, v.Composition):
+            two_phase_y = eq.X.sel(component=y.species).values[two_phase_idx][..., :2]
+        else:
+            # it's a StateVariable. This must be True
+            two_phase_y = np.take(eq[str(y)].values, two_phase_idx[list(str(i) for i in conds.keys()).index(str(y))])
+            # because the above gave us a shape of (n,) instead of (n,2) we are going to create it ourselves
+            two_phase_y = np.array([two_phase_y, two_phase_y]).swapaxes(0, 1)
+
+        # construct tielines
+        tielines = np.array([np.concatenate((two_phase_x[..., 0][..., np.newaxis], two_phase_y[..., 0][..., np.newaxis]), axis=-1),
+                     np.concatenate((two_phase_x[..., 1][..., np.newaxis], two_phase_y[..., 1][..., np.newaxis]), axis=-1)])
+        tielines = np.rollaxis(tielines,1)
+        lc = mc.LineCollection(tielines, zorder=1, colors=[0,1,0,1], linewidths=[0.5, 0.5])
+        # plot two phase points and tielines
+        two_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], found_two_phase)), dtype='U') # from pycalphad
+        ax.scatter(two_phase_x[..., 0], two_phase_y[..., 0], s=3, c=two_phase_plotcolors[:,0], edgecolors='None', zorder=2, **kwargs)
+        ax.scatter(two_phase_x[..., 1], two_phase_y[..., 1], s=3, c=two_phase_plotcolors[:,1], edgecolors='None', zorder=2, **kwargs)
+        ax.add_collection(lc)
+
+    # If we found three phase regions:
+    if three_phase_idx[0].size > 0:
+        found_three_phase = eq.Phase.values[three_phase_idx][..., :3]
+        # get tieline endpoints
+        three_phase_x = eq.X.sel(component=x.species).values[three_phase_idx][..., :3]
+        three_phase_y = eq.X.sel(component=y.species).values[three_phase_idx][..., :3]
+        # three phase tielines
+        three_phase_tielines = np.array([np.concatenate((three_phase_x[..., 0][..., np.newaxis], three_phase_y[..., 0][..., np.newaxis]), axis=-1),
+                                     np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),
+                                     np.concatenate((three_phase_x[..., 2][..., np.newaxis], three_phase_y[..., 2][..., np.newaxis]), axis=-1)])
+        three_phase_tielines = np.rollaxis(three_phase_tielines,1)
+        three_lc = mc.LineCollection(three_phase_tielines, zorder=1, colors=[1,0,0,1], linewidths=[0.5, 0.5])
+        # plot three phase points and tielines
+        three_phase_plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]], colorlist[x[2]]], found_three_phase)), dtype='U') # from pycalphad
+        ax.scatter(three_phase_x[..., 0], three_phase_y[..., 0], s=3, c=three_phase_plotcolors[:, 0], edgecolors='None', zorder=2, **kwargs)
+        ax.scatter(three_phase_x[..., 1], three_phase_y[..., 1], s=3, c=three_phase_plotcolors[:, 1], edgecolors='None', zorder=2, **kwargs)
+        ax.scatter(three_phase_x[..., 2], three_phase_y[..., 2], s=3, c=three_phase_plotcolors[:, 2], edgecolors='None', zorder=2, **kwargs)
+        ax.add_collection(three_lc)
+
+    # position the phase legend and configure plot
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.grid(True)
-    plotcolors = np.array(list(map(lambda x: [colorlist[x[0]], colorlist[x[1]]], found_phases)), dtype='U')
-
-    if isinstance(x, v.Composition):
-        compositions = eq.X.sel(component=x.species).values[two_phase_indices][..., :2]
-    else:
-        raise NotImplementedError('Plotting {} is not yet implemented'.format(x))
-    # Have to do some extra work to get all potential values for the given tie lines
-    temps = np.take(eq[str(y)].values, two_phase_indices[list(str(i) for i in conds.keys()).index(str(y))])
-    # Draw zero phase-fraction lines
-    ax.scatter(compositions[..., 0], temps, s=3, c=plotcolors[..., 0], edgecolors='None', zorder=2, **kwargs)
-    ax.scatter(compositions[..., 1], temps, s=3, c=plotcolors[..., 1], edgecolors='None', zorder=2, **kwargs)
-    # Draw tie-lines
-    tielines = np.array([np.concatenate((compositions[..., 0][..., np.newaxis], temps[..., np.newaxis]), axis=-1),
-                         np.concatenate((compositions[..., 1][..., np.newaxis], temps[..., np.newaxis]), axis=-1)])
-    tielines = np.rollaxis(tielines, 1)
-    lc = mc.LineCollection(tielines, zorder=1, colors=[0, 1, 0, 1], linewidths=[0.5, 0.5])
-    ax.add_collection(lc)
     plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlim([np.min(conds[indep_comp])-1e-2, np.max(conds[indep_comp])+1e-2])
-    ax.set_ylim([np.min(conds[indep_pot]), np.max(conds[indep_pot])])
-    if isinstance(x, v.Composition):
-        ax.set_xlabel('X({})'.format(indep_comp.species), labelpad=15, fontsize=20)
-    else:
-        ax.set_xlabel(indep_comp, labelpad=15, fontsize=20)
-    ax.set_ylabel(_plot_labels[indep_pot], fontsize=20)
+    ax.set_xlabel(_axis_label(x), labelpad=15, fontsize=20)
+    ax.set_ylabel(_axis_label(y), fontsize=20)
+
     return ax
