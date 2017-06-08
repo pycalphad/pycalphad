@@ -183,9 +183,9 @@ def _tdb_grammar(): #pylint: disable=R0914
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
-    ref_phase_name = symbol_name = Word(alphanums+'_:()', min=1)
+    ref_phase_name = symbol_name = Word(alphanums+'_:()/', min=1)
     # species name, e.g., CO2, AL, FE3+
-    species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
+    species_name = Word(alphanums+'+-*/_.', min=1) + Optional(Suppress('%'))
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
     constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
@@ -198,6 +198,8 @@ def _tdb_grammar(): #pylint: disable=R0914
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
+    # SPECIES
+    cmd_species = TCCommand('SPECIES') + species_name + species_name + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
@@ -229,6 +231,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(')') + func_expr.setParseAction(_make_piecewise_ast)
     # Now combine the grammar together
     all_commands = cmd_element | \
+                    cmd_species | \
                     cmd_typedef | \
                     cmd_function | \
                     cmd_ass_sys | \
@@ -327,6 +330,7 @@ def _setitem_raise_duplicates(dictionary, key, value):
 
 _TDB_PROCESSOR = {
     'ELEMENT': lambda db, el: db.elements.add(el),
+    'SPECIES': _unimplemented,
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
