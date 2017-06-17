@@ -20,7 +20,8 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
-cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets, bint allow_negative_fractions, bint verbose):
+cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
+                                   bint allow_negative_fractions, int allowed_zero_seen, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -81,6 +82,9 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     for phase_idx in range(num_phases):
         if abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
             composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
+            composition_sets[phase_idx].zero_seen += 1
+            if composition_sets[phase_idx].zero_seen > allowed_zero_seen:
+                composition_sets[phase_idx].NP = np.nan
 
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
@@ -150,15 +154,27 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 reduced_constraint_jac = constraint_jac[:-len(set(comps) - {'VA'}), :-1]
                 # Equation 18.13a in Nocedal and Wright
                 cons_hess_inv = np.dot(reduced_constraint_jac, np.linalg.inv(compset.hess[2:,2:]))
-                l_multipliers = np.linalg.solve(np.dot(cons_hess_inv, reduced_constraint_jac.T),
-                                                np.dot(cons_hess_inv, compset.grad[2:] - np.dot(constraint_jac[-len(set(comps) - {'VA'}):,:-1].T, chemical_potentials)) - np.array(l_constraints[:-len(set(comps) - {'VA'})]))
+                try:
+                    l_multipliers = np.linalg.solve(np.dot(cons_hess_inv, reduced_constraint_jac.T),
+                                                    np.dot(cons_hess_inv, compset.grad[2:] - np.dot(constraint_jac[-len(set(comps) - {'VA'}):,:-1].T, chemical_potentials)) - np.array(l_constraints[:-len(set(comps) - {'VA'})]))
+                except np.linalg.LinAlgError:
+                    print(df_phase_name, np.array(sfx))
+                    print(np.array(constraint_jac))
+                    print(cur_conds['T'])
+                    print(np.array(cons_hess_inv))
+                    break
                 l_multipliers = np.r_[l_multipliers, chemical_potentials]
-                step = np.linalg.solve(compset.hess[2:,2:],
-                                       -np.array(compset.grad[2:]) + np.dot(constraint_jac[:,:-1].T, l_multipliers))
+                try:
+                    step = np.linalg.solve(compset.hess[2:,2:],
+                                           -np.array(compset.grad[2:]) + np.dot(constraint_jac[:,:-1].T, l_multipliers))
+                except np.linalg.LinAlgError:
+                    print(np.array(l_multipliers))
+                    print(np.array(constraint_jac))
+                    break
                 if np.linalg.norm(step) < 1e-7:
                     break
                 for sfidx in range(sfx.shape[0]):
-                    sfx[sfidx] = min(max(sfx[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1)
+                    sfx[sfidx] = min(max(sfx[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1.0)
             df = np.multiply(chemical_potentials, compset.X).sum() - compset.energy
             if df > largest_df:
                 candidate_compset = compset
@@ -173,11 +189,10 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         if len(composition_sets) >= chemical_potentials.shape[0]:
             if verbose:
                 print('Removing ' + repr(composition_sets[min_dist_idx]) + ' to obey Gibbs phase rule')
-            candidate_compset.NP = composition_sets[min_dist_idx].NP
             removed_compsets.append(composition_sets.pop(min_dist_idx))
-        else:
-            candidate_compset.NP = 100*MIN_PHASE_FRACTION
         composition_sets.append(candidate_compset)
+        for compset in composition_sets:
+            compset.NP = 1.0
         if verbose:
             print('Adding ' + repr(candidate_compset) + ' Driving force: ' + str(largest_df))
         return True
@@ -451,11 +466,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
-            if cur_iter > 0 and cur_iter % 5 == 0:
-                minimum_df = 5.0
-                changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
-                                                 current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, verbose)
+            #if cur_iter > 0 and cur_iter % 10 == 0:
+            #    minimum_df = 10*MAX_SOLVE_DRIVING_FORCE
+            #    changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
+            #                                     current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 2, verbose)
             if verbose:
                 print('Composition Sets', composition_sets)
             num_phases = len(composition_sets)
@@ -546,7 +561,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
+                if (driving_force - old_driving_force < 1):# and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
                     break
             if verbose:
                 print('alpha', alpha)
@@ -576,10 +591,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             no_progress &= np.abs(energy - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
-            if no_progress and cur_iter <= 5:
+            if no_progress:
                 changed_phases |= add_new_phases(composition_sets, [], phase_records,
                                                  current_grid, chemical_potentials, 10*MAX_SOLVE_DRIVING_FORCE, comps, cur_conds, verbose)
-                no_progress &= ~changed_phases
+                changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0, verbose)
+            no_progress &= ~changed_phases
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
                 converged = False
