@@ -1,4 +1,6 @@
 from collections import defaultdict, OrderedDict
+import operator
+from itertools import chain
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -21,7 +23,7 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
 cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
-                                   bint allow_negative_fractions, int allowed_zero_seen, bint verbose):
+                                   bint allow_negative_fractions, double comp_diff_tol, int allowed_zero_seen, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -66,7 +68,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
             for j in range(i, comp_distances.shape[0]):
                 if i == j:
                     continue
-                if comp_distances[i, j] < COMP_DIFFERENCE_TOL:
+                if comp_distances[i, j] < comp_diff_tol:
                     redundant_phases |= {i, j}
         redundant_phases = sorted(redundant_phases)
         if len(redundant_phases) > 1:
@@ -122,6 +124,8 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef unicode df_phase_name
     cdef CompositionSet compset
     cdef CompositionSet candidate_compset
+    cdef CompositionSet existing_candidate
+    cdef object candidates = defaultdict(list)
     cdef bint distinct = False
     cdef long[::1] part_indices
     cdef double df
@@ -144,7 +148,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 continue
             compset = CompositionSet(phase_records[df_phase_name])
             sfx = current_grid_Y[i, :compset.phase_record.phase_dof].copy()
-            for solve_iter in range(10):
+            for solve_iter in range(50):
                 compset.update(sfx, 1.0, cur_conds['P'], cur_conds['T'], False)
                 # We assume here that all single-phase constraints are satisfied
                 # Potentially not true for charge balance constraints
@@ -171,32 +175,42 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     print(np.array(l_multipliers))
                     print(np.array(constraint_jac))
                     break
-                if np.linalg.norm(step) < 1e-7:
-                    break
+                #if np.linalg.norm(step) < 1e-7:
+                #    print('Breaking at', np.array(step))
+                #    break
                 for sfidx in range(sfx.shape[0]):
                     sfx[sfidx] = min(max(sfx[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1.0)
             df = np.multiply(chemical_potentials, compset.X).sum() - compset.energy
-            if df > largest_df:
-                candidate_compset = compset
-                largest_df = df
-            if verbose:
-                print(compset, 'Driving Force: ', df)
+            #print('Testing', (compset, df))
+            if df > minimum_df:
+                comp_distances = np.array([np.max(np.array(existing_candidate.X) - np.array(compset.X))
+                                           for existing_candidate, existing_df in candidates[df_phase_name]])
+                if comp_distances.shape[0] == 0 or np.all(comp_distances > 1e-2):
+                    candidates[df_phase_name].append((compset, df))
             df_idx += 1
 
-    if largest_df > minimum_df:
-        # If adding a new phase violates Gibbs phase rule, remove closest phase
-        min_dist_idx = np.argmin([np.max(np.array(compset.X) - np.array(candidate_compset.X)) for compset in composition_sets])
-        if len(composition_sets) >= chemical_potentials.shape[0]:
+    if verbose:
+        print('Candidates to add: ')
+        print(candidates)
+
+    # Identify N candidates with largest driving force (N = chemical_potentials.shape[0])
+    candidates = list(chain(*candidates.values()))
+    candidate_dfs = [x[1] for x in candidates]
+    if len(candidates) <= 3:
+        pass
+    else:
+        candidate_indices = np.argpartition(candidate_dfs, -3)[-3:]
+        candidates = operator.itemgetter(*candidate_indices)(candidates)
+    if len(candidates) > 0 and max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE:
+        for cst in candidates:
+            compset = cst[0]
+            df = cst[1]
+            composition_sets.append(compset)
             if verbose:
-                print('Removing ' + repr(composition_sets[min_dist_idx]) + ' to obey Gibbs phase rule')
-            removed_compsets.append(composition_sets.pop(min_dist_idx))
-        composition_sets.append(candidate_compset)
-        for compset in composition_sets:
-            compset.NP = 1.0
-        if verbose:
-            print('Adding ' + repr(candidate_compset) + ' Driving force: ' + str(largest_df))
+                print('Adding ' + repr(compset) + ' Driving force: ' + str(df) + str(np.array(compset.dof)))
         return True
-    return False
+    else:
+        return False
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -463,6 +477,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         alpha = 1
         allow_negative_fractions = False
         wiggle = False
+        # Remove duplicate phases -- we will add them back later
+        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
@@ -470,7 +486,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             #    minimum_df = 10*MAX_SOLVE_DRIVING_FORCE
             #    changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
             #                                     current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 2, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
             if verbose:
                 print('Composition Sets', composition_sets)
             num_phases = len(composition_sets)
@@ -509,7 +525,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                                         l_multipliers)
             try:
                 inv_hess = np.linalg.inv(l_hessian)
-                l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
+                l_multipliers = np.linalg.lstsq(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)[0]
                 step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
             except np.linalg.LinAlgError:
                 print('Failed to converge due to singular matrix: {}'.format(cur_conds))
@@ -561,7 +577,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if (driving_force - old_driving_force < 1):# and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
+                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
                     break
             if verbose:
                 print('alpha', alpha)
@@ -593,8 +609,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
             if no_progress:
                 changed_phases |= add_new_phases(composition_sets, [], phase_records,
-                                                 current_grid, chemical_potentials, 10*MAX_SOLVE_DRIVING_FORCE, comps, cur_conds, verbose)
-                changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0, verbose)
+                                                 current_grid, chemical_potentials, 0.0, comps, cur_conds, verbose)
+                changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 0, verbose)
             no_progress &= ~changed_phases
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
