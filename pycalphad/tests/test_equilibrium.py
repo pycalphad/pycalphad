@@ -38,7 +38,7 @@ def test_eq_binary():
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 def test_eq_single_phase():

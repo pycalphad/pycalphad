@@ -8,6 +8,7 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 import collections
+from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
@@ -112,13 +113,14 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef double[::1] driving_forces
     cdef np.ndarray largest_driving_forces_indices = np.full((len(phase_records), 10), -1, dtype=int)
     cdef int df_idx = 0
-    cdef int i, comp_idx, sfidx
+    cdef int i, idx, comp_idx, sfidx
     cdef double largest_df = -np.inf
     cdef size_t min_phase_fraction_idx
     cdef double[:] df_comp
     cdef double[::1] sfx
     cdef double[:] step
     cdef double[:,::1] current_grid_Y = current_grid.Y.values
+    cdef double[:,::1] current_grid_X = current_grid.X.values
     cdef np.ndarray current_grid_Phase = current_grid.Phase.values
     cdef object phase_indices = [(idx, np.sort(np.argwhere(current_grid_Phase == <unicode>key))[:,0]) for idx, key in enumerate(sorted(phase_records.keys()))]
     cdef unicode df_phase_name
@@ -148,7 +150,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 continue
             compset = CompositionSet(phase_records[df_phase_name])
             sfx = current_grid_Y[i, :compset.phase_record.phase_dof].copy()
-            for solve_iter in range(50):
+            for solve_iter in range(100):
                 compset.update(sfx, 1.0, cur_conds['P'], cur_conds['T'], False)
                 # We assume here that all single-phase constraints are satisfied
                 # Potentially not true for charge balance constraints
@@ -182,37 +184,64 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     sfx[sfidx] = min(max(sfx[sfidx] + step[sfidx], MIN_SITE_FRACTION), 1.0)
             df = np.multiply(chemical_potentials, compset.X).sum() - compset.energy
             #print('Testing', (compset, df))
-            if df > minimum_df:
-                comp_distances = np.array([np.max(np.array(existing_candidate.X) - np.array(compset.X))
-                                           for existing_candidate, existing_df in candidates[df_phase_name]])
-                if comp_distances.shape[0] == 0 or np.all(comp_distances > 1e-2):
-                    candidates[df_phase_name].append((compset, df))
+            comp_distances = np.array([np.max(np.array(existing_candidate.X) - np.array(compset.X))
+                                       for existing_candidate, existing_df in candidates[df_phase_name]])
+            if comp_distances.shape[0] == 0:
+                candidates[df_phase_name].append((compset, df))
             df_idx += 1
 
     if verbose:
         print('Candidates to add: ')
         print(candidates)
 
-    # Identify N candidates with largest driving force (N = chemical_potentials.shape[0])
     candidates = list(chain(*candidates.values()))
     candidate_dfs = [x[1] for x in candidates]
-    if len(candidates) <= 3:
-        pass
-    else:
-        candidate_indices = np.argpartition(candidate_dfs, -3)[-3:]
-        candidates = operator.itemgetter(*candidate_indices)(candidates)
+    candidates = [x[0] for x in candidates]
+    phases_changed = False
     if len(candidates) > 0 and max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE:
-        for cst in candidates:
-            compset = cst[0]
-            df = cst[1]
-            composition_sets.append(compset)
+        phases_changed = True
+        compositions = np.concatenate((current_grid.X.values, np.array([compset.X for compset in candidates])), axis=0)
+        energies = np.concatenate((current_grid.GM.values, np.array([compset.energy for compset in candidates])))
+        result_fractions = np.zeros(chemical_potentials.shape[0])
+        best_guess_simplex = np.array(np.arange(chemical_potentials.shape[0]), dtype=np.int32)
+        comp_conds = sorted([x for x in sorted(cur_conds.keys()) if x.startswith('X_')])
+        pot_conds = sorted([x for x in sorted(cur_conds.keys()) if x.startswith('MU_')])
+
+        comp_values = [cur_conds[cond] for cond in comp_conds]
+        # Insert dependent composition value
+        # TODO: Handle W(comp) as well as X(comp) here
+        specified_components = {x[2:] for x in comp_conds}
+        dependent_component = set(current_grid.coords['component'].values) - specified_components
+        dependent_component = list(dependent_component)
+        if len(dependent_component) != 1:
+            raise ValueError('Number of dependent components is different from one')
+        insert_idx = sorted(current_grid.coords['component'].values).index(dependent_component[0])
+        comp_values = np.r_[comp_values[:insert_idx], 1 - np.sum(comp_values), comp_values[insert_idx:]]
+        # Prevent compositions near an edge from going negative
+        comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
+        # TODO: Assumes N=1
+        comp_values /= comp_values.sum(axis=-1, keepdims=True)
+
+        result_energy = hyperplane(compositions, energies, comp_values,
+                                   chemical_potentials, result_fractions, best_guess_simplex)
+        composition_sets.clear()
+        for idx in range(best_guess_simplex.shape[0]):
+            i = best_guess_simplex[idx]
+            if i < current_grid_X.shape[0]:
+                df_phase_name = <unicode>current_grid_Phase[i]
+                compset = CompositionSet(phase_records[df_phase_name])
+                sfx = current_grid_Y[i, :compset.phase_record.phase_dof].copy()
+                compset.update(sfx, result_fractions[idx], cur_conds['P'], cur_conds['T'], False)
+            else:
+                compset = candidates[i - current_grid_X.shape[0]]
+                if result_fractions[idx] > MIN_PHASE_FRACTION:
+                    compset.NP = result_fractions[idx]
+                else:
+                    compset.NP = MIN_PHASE_FRACTION
             if verbose:
-                print('Adding ' + repr(compset) + ' Driving force: ' + str(df) + str(np.array(compset.dof)))
-        for compset in composition_sets:
-            compset.NP = 1./len(composition_sets)
-        return True
-    else:
-        return False
+                print('Adding ' + repr(compset))
+            composition_sets.append(compset)
+    return phases_changed
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -480,15 +509,20 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         allow_negative_fractions = False
         wiggle = False
         # Remove duplicate phases -- we will add them back later
-        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
+        #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
             #if cur_iter > 0 and cur_iter % 10 == 0:
-            #    minimum_df = 10*MAX_SOLVE_DRIVING_FORCE
-            #    changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
-            #                                     current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
+            minimum_df = 10*MAX_SOLVE_DRIVING_FORCE
             changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 0, verbose)
+            if cur_iter > 0 and cur_iter % 5 == 0:
+                changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
+                                                 current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
+            if changed_phases:
+                energy = 0.0
+                for compset in composition_sets:
+                    energy += compset.NP * compset.energy
             if verbose:
                 print('Composition Sets', composition_sets)
             num_phases = len(composition_sets)
@@ -579,7 +613,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-3)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
+                if (driving_force - old_driving_force < 1):# and (vmax < old_vmax or vmax < 1e-3)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
                     break
             if verbose:
                 print('alpha', alpha)
@@ -612,7 +646,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if no_progress:
                 changed_phases |= add_new_phases(composition_sets, [], phase_records,
                                                  current_grid, chemical_potentials, 10*MAX_SOLVE_DRIVING_FORCE, comps, cur_conds, verbose)
-                changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 0, verbose)
+                if not changed_phases:
+                    changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
             no_progress &= ~changed_phases
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))

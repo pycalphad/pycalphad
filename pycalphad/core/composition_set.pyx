@@ -26,6 +26,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
         self.energy = 0
+        self.NP = 0
         self._energy_2d_view = <double[:1]>&self.energy
         self.grad = np.zeros(self.dof.shape[0])
         self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
@@ -36,7 +37,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._first_iteration = True
 
     def __repr__(self):
-        return str(self.__class__.__name__) + "({0}, {1})".format(self.phase_record.phase_name, np.asarray(self.X))
+        return str(self.__class__.__name__) + "({0}, {1}, NP={2})".format(self.phase_record.phase_name,
+                                                                          np.asarray(self.X), self.NP)
 
     cdef void reset(self):
         self.zero_seen = 0
