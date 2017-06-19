@@ -208,6 +208,8 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             composition_sets.append(compset)
             if verbose:
                 print('Adding ' + repr(compset) + ' Driving force: ' + str(df) + str(np.array(compset.dof)))
+        for compset in composition_sets:
+            compset.NP = 1./len(composition_sets)
         return True
     else:
         return False
@@ -486,7 +488,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             #    minimum_df = 10*MAX_SOLVE_DRIVING_FORCE
             #    changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
             #                                     current_grid, chemical_potentials, minimum_df, comps, cur_conds, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 0, verbose)
             if verbose:
                 print('Composition Sets', composition_sets)
             num_phases = len(composition_sets)
@@ -552,7 +554,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
             old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1)
             if verbose:
-                print('old_driving_force', old_driving_force)
+                print('old_driving_force', old_driving_force, old_vmax)
             if wiggle:
                 alpha_range = range(3,30)
             else:
@@ -577,7 +579,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
+                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-3)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
                     break
             if verbose:
                 print('alpha', alpha)
@@ -609,7 +611,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
             if no_progress:
                 changed_phases |= add_new_phases(composition_sets, [], phase_records,
-                                                 current_grid, chemical_potentials, 0.0, comps, cur_conds, verbose)
+                                                 current_grid, chemical_potentials, 10*MAX_SOLVE_DRIVING_FORCE, comps, cur_conds, verbose)
                 changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 0, verbose)
             no_progress &= ~changed_phases
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
