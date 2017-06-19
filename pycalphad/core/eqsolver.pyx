@@ -509,7 +509,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         allow_negative_fractions = False
         wiggle = False
         # Remove duplicate phases -- we will add them back later
-        #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
+        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
         for cur_iter in range(MAX_SOLVE_ITERATIONS):
             if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
                 allow_negative_fractions = False
