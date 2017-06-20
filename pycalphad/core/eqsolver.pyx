@@ -231,7 +231,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 
         result_energy = hyperplane(compositions, energies, comp_values,
                                    chemical_potentials, result_fractions, best_guess_simplex)
-        composition_sets.clear()
+        del composition_sets[:]
         for idx in range(best_guess_simplex.shape[0]):
             i = best_guess_simplex[idx]
             if i < current_grid_X.shape[0]:
