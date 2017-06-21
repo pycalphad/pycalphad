@@ -612,6 +612,10 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 print('sublsum', sublsum)
             alpha_range = range(6)
             c = 1e-4
+            if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
+                slack = 0
+            else:
+                slack = 1
             for new_alpha in [0.5**n for n in alpha_range] + [0]:
                 alpha = new_alpha
                 for sfidx in range(site_fracs.shape[0]):
@@ -632,7 +636,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if driving_force < old_driving_force + 1:
+                if driving_force < old_driving_force:
                     break
             if alpha == 0:
                 decrease_penalty = True
@@ -663,10 +667,14 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 print('Energy progress', energy - old_energy)
                 print('Driving force', driving_force)
             wiggle = (np.abs(chemical_potentials - old_chem_pots).max() > 1e4) and (np.abs(chemical_potentials - old_chem_pots).min() < 1e2)
-            no_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.01
-            no_progress &= np.abs(energy - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            energy_progress = np.abs(energy - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
+            chempot_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.01
+            no_progress = chempot_progress
+            no_progress &= energy_progress
             no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
+            if energy_progress and not chempot_progress:
+                changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
             if no_progress:
                 changed_phases |= add_new_phases(composition_sets, [], phase_records,
                                                  current_grid, chemical_potentials, 10*MAX_SOLVE_DRIVING_FORCE, comps, cur_conds, verbose)
