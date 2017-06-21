@@ -179,7 +179,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     print(np.array(l_multipliers))
                     print(np.array(constraint_jac))
                     break
-                if max(abs(step)) < 1e-7:
+                if np.max(np.abs(step)) < 1e-7:
                     #print('Breaking at', np.array(step))
                     break
                 for sfidx in range(sfx.shape[0]):
@@ -514,7 +514,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         energy = prop_GM_values[it.multi_index]
         alpha = 1
         allow_negative_fractions = False
-        big_step = False
+        decrease_penalty = False
+        penalty = 10000
         wiggle = False
         # Remove duplicate phases -- we will add them back later
         remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
@@ -561,7 +562,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if cur_iter == 0 or changed_phases or np.any(np.isnan(l_multipliers)):
                 l_multipliers = np.zeros(l_constraints.shape[0])
                 changed_phases = False
-                big_step = True
             l_multipliers[l_multipliers.shape[0] - chemical_potentials.shape[0]:] = chemical_potentials
             num_vars = len(site_fracs) + len(composition_sets)
             energy, l_hessian, gradient_term = _build_multiphase_system(composition_sets, l_constraints,
@@ -571,6 +571,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 inv_hess = np.linalg.inv(l_hessian)
                 l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
                 step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
+                conv_angle = np.dot(-np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers), step) \
+                             / (np.linalg.norm(np.array(gradient_term) - np.dot(constraint_jac.T, l_multipliers)) *
+                                np.linalg.norm(step))
+                sublsum = np.dot(np.array(gradient_term) - np.dot(constraint_jac.T, l_multipliers), step)
+                conv_angle = np.rad2deg(np.arccos(conv_angle))
             except np.linalg.LinAlgError:
                 print('Failed to converge due to singular matrix: {}'.format(cur_conds))
                 converged = False
@@ -581,6 +586,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 l_multipliers[:] = 0
             if verbose:
                 print('NEW_L_MULTIPLIERS', l_multipliers)
+                print('L_CONSTRAINTS', l_constraints)
             chemical_potentials[:] = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
                                                    sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals]
             old_site_fracs = site_fracs.copy()
@@ -594,13 +600,18 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                     old_total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
                 dof_idx += compset.phase_record.phase_dof
 
-            old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1)
-            if verbose:
-                print('old_driving_force', old_driving_force, old_vmax)
-            if wiggle and not big_step:
-                alpha_range = range(3,30)
+            if decrease_penalty:
+                penalty /= 10
+                decrease_penalty = False
             else:
-                alpha_range = range(30)
+                penalty = 100000
+            old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1) + penalty * np.abs(l_constraints).sum()
+            if verbose:
+                print('penalty', penalty)
+                print('old_driving_force', old_driving_force, old_vmax)
+                print('sublsum', sublsum)
+            alpha_range = range(6)
+            c = 1e-4
             for new_alpha in [0.5**n for n in alpha_range] + [0]:
                 alpha = new_alpha
                 for sfidx in range(site_fracs.shape[0]):
@@ -617,20 +628,21 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                     dof_idx += compset.phase_record.phase_dof
                 l_constraints = _compute_constraints_only(composition_sets, comps, cur_conds)
                 vmax = np.max(np.abs(l_constraints))
-                driving_force = candidate_energy - (l_multipliers * l_constraints).sum(axis=-1)
+                driving_force = candidate_energy - (l_multipliers * l_constraints).sum(axis=-1) + penalty * np.abs(l_constraints).sum()
                 if verbose:
                     print(alpha, driving_force, np.max(np.abs(l_constraints)))
                 energy = candidate_energy
-                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-3)) or (vmax - old_vmax <= -MIN_SITE_FRACTION) or big_step:
-                    if big_step:
-                        if verbose:
-                            print('Forcing alpha=1 because phases just changed')
-                        big_step = False
+                if driving_force < old_driving_force + 1:
                     break
+            if alpha == 0:
+                decrease_penalty = True
+                if verbose:
+                    print('Decreasing constraint penalty because alpha is zero')
             if verbose:
                 print('alpha', alpha)
                 print('Phases', composition_sets)
                 print('step', step)
+                print('conv_angle', conv_angle)
                 print('Site fractions', site_fracs)
                 print('Phase fractions', phase_fracs)
             dof_idx = 0
@@ -661,6 +673,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 if not changed_phases:
                     changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
             no_progress &= ~changed_phases
+            no_progress |= (penalty <= 1)
             if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
                 print('Driving force failed to converge: {}'.format(cur_conds))
                 converged = False
