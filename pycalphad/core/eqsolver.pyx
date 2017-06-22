@@ -636,11 +636,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 print('old_driving_force', old_driving_force, old_vmax)
                 print('sublsum', sublsum)
             alpha_range = range(6)
-            c = 1e-4
-            if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
-                slack = 0
-            else:
-                slack = 1
             for new_alpha in [0.5**n for n in alpha_range] + [0]:
                 alpha = new_alpha
                 for sfidx in range(site_fracs.shape[0]):
