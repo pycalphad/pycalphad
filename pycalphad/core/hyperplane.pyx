@@ -108,7 +108,7 @@ cpdef double hyperplane(double[:,::1] compositions,
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
             for j in range(num_components):
-                bounding_indices[i] &= fractions[i,j]>=0.
+                bounding_indices[i] &= fractions[i,j]>=-1e-12
 
         # If more than one trial simplex satisfies the non-negativity criteria
         # then just choose the first non-degenerate one. This addresses gh-28.
