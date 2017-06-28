@@ -33,6 +33,17 @@ cdef int argmin(double[::1] a, double[::1] lowest) nogil:
     return result
 
 
+@cython.boundscheck(False)
+cdef int argmax(double[::1] a) nogil:
+    cdef int result = 0
+    cdef double highest = -1e30
+    for i in range(a.shape[0]):
+        if a[i] > highest:
+            highest = a[i]
+            result = i
+    return result
+
+
 cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
                         double[::1] composition,
@@ -87,7 +98,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double[::1,:] candidate_tieline = np.empty((num_components, num_components), order='F')
     cdef double[::1] candidate_energies = np.empty(num_components)
     cdef double[::1] candidate_potentials = np.empty(num_components)
-    cdef bint[::1] bounding_indices = np.ones(num_components, dtype=np.int32)
+    cdef double[::1] smallest_fractions = np.empty(num_components)
     cdef double[::1] tmp = np.empty(num_components)
     cdef double[::1, :] f_contig_trial
     # Not sure how to create scalar memoryviews...
@@ -107,20 +118,15 @@ cpdef double hyperplane(double[:,::1] compositions,
             f_contig_trial = trial_matrix[:, :, i]
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
+            smallest_fractions[i] = min(fractions[i, :])
+            # Penalize simplices with fictitious vertices
             for j in range(num_components):
-                bounding_indices[i] &= fractions[i,j]>=-1e-12
+                if trial_simplices[i,j] < result_fractions.shape[0]:
+                    smallest_fractions[i] = min(fractions[i, :]) - 1
 
-        # If more than one trial simplex satisfies the non-negativity criteria
-        # then just choose the first non-degenerate one. This addresses gh-28.
-        # There is also the possibility that *none* of the trials were successful.
-        # This is usually due to numerical problems at the limit of composition space.
-        # We will sidestep the issue here by forcing the last first non-degenerate simplex to match in that case.
-        for i in range(bounding_indices.shape[0]):
-            tmp3 = bounding_indices[i]
-            if tmp3:
-                saved_trial = i
-                break
-        bounding_indices[...] = True
+        # Choose simplex with the largest smallest-fraction
+        saved_trial = argmax(smallest_fractions)
+
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
