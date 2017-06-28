@@ -675,10 +675,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 energy = candidate_energy
                 if (driving_force < old_driving_force and vmax < 1e-3) or vmax < old_vmax:
                     break
-            if alpha == 0:
-                decrease_penalty = True
-                if verbose:
-                    print('Decreasing constraint penalty because alpha is zero')
             if verbose:
                 print('alpha', alpha)
                 print('Phases', composition_sets)
@@ -710,6 +706,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             no_progress &= energy_progress
             #no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
             no_progress &= num_phases <= prop_Phase_values.shape[-1]
+            no_progress |= (alpha==0)
             if energy_progress and not chempot_progress:
                 changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, COMP_DIFFERENCE_TOL, 1, verbose)
             if no_progress:
