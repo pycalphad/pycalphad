@@ -122,7 +122,7 @@ cpdef double hyperplane(double[:,::1] compositions,
             # Penalize simplices with fictitious vertices
             for j in range(num_components):
                 if trial_simplices[i,j] < result_fractions.shape[0]:
-                    smallest_fractions[i] = min(fractions[i, :]) - 1
+                    smallest_fractions[i] -= 1
 
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
