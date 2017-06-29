@@ -42,7 +42,7 @@ def _make_key(args, kwds, typed,
              kwd_mark = (object(),),
              fasttypes = {int, str, frozenset, type(None)},
              sorted=sorted, tuple=tuple, type=type, len=len):
-    'Make a cache key from optionally typed positional and keyword arguments'
+    "Make a cache key from optionally typed positional and keyword arguments."
     key = args
     if kwds:
         sorted_items = sorted(kwds.items())
@@ -168,12 +168,12 @@ def lru_cache(maxsize=100, typed=False):
                 return result
 
         def cache_info():
-            """Report cache statistics"""
+            "Report cache statistics."
             with lock:
                 return _CacheInfo(stats[HITS], stats[MISSES], maxsize, len(cache))
 
         def cache_clear():
-            """Clear the cache and cache statistics"""
+            "Clear the cache and cache statistics."
             with lock:
                 cache.clear()
                 root = nonlocal_root[0]

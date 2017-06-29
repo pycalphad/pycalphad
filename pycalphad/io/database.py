@@ -1,4 +1,5 @@
-"""The database module provides support for reading and writing data types
+"""
+The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
 from tinydb import TinyDB

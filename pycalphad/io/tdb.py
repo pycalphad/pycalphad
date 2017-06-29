@@ -1,4 +1,5 @@
-"""The tdb module provides support for reading and writing databases in
+"""
+The tdb module provides support for reading and writing databases in
 Thermo-Calc TDB format.
 """
 

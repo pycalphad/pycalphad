@@ -14,5 +14,5 @@ logger.setLevel(logging.INFO)
 logger.propagate = False
 
 def debug_mode():
-    "Set logger level to log debug messages."
+   "Set logger level to log debug messages."
     logger.setLevel(logging.DEBUG)
