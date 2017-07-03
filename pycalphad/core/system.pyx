@@ -1,5 +1,6 @@
 from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
+import numpy as np
 from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
 
 cdef class System:
@@ -15,6 +16,7 @@ cdef class System:
         cdef object dependent_comp = set(comps) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
         dependent_comp = list(dependent_comp)[0]
         self.composition_sets = comp_sets
+        print('Composition Sets', self.composition_sets)
         self.conditions = conditions
         self.components = sorted(comps)
         self.num_phases = len(self.composition_sets)
@@ -39,7 +41,7 @@ cdef class System:
         self.cl[:num_sitefrac_bals] = 1
         self.cu[:num_sitefrac_bals] = 1
         # Mass balance constraints
-        for constraint_idx, comp in enumerate(self.components):
+        for constraint_idx, comp in enumerate(sorted(set(self.components) - {'VA'})):
             if comp == dependent_comp:
                 # TODO: Only handles N=1
                 self.cl[num_sitefrac_bals+constraint_idx] = 1-indep_sum
@@ -68,6 +70,7 @@ cdef class System:
     def gradient(self, x_in):
         cdef CompositionSet compset
         cdef int phase_idx = 0
+        cdef int var_offset = 0
         cdef int dof_x_idx
         cdef double total_obj = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
@@ -98,10 +101,11 @@ cdef class System:
         cdef double indep_sum = sum([float(val) for i, val in self.conditions.items() if i.startswith('X_')])
         cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(self.num_constraints)
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
-            hess_idx, comp_idx, idx, sum_idx, active_in_subl, phase_offset
+            hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
         cdef int vacancy_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
+        print('x', np.array(x))
 
         # First: Site fraction balance constraints
         var_idx = 0
@@ -110,9 +114,11 @@ cdef class System:
             compset = self.composition_sets[phase_idx]
             phase_offset = 0
             for idx in range(compset.phase_record.sublattice_dof.shape[0]):
+                print('subl', idx)
                 active_in_subl = compset.phase_record.sublattice_dof[idx]
                 for sum_idx in range(active_in_subl):
-                    l_constraints[constraint_offset + idx] += x[2+sum_idx+phase_offset]
+                    print('index', 2+sum_idx+var_idx)
+                    l_constraints[constraint_offset + idx] += x[2+sum_idx+var_idx]
                 var_idx += active_in_subl
                 phase_offset += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
@@ -130,6 +136,7 @@ cdef class System:
                 var_offset += compset.phase_record.phase_dof
                 tmp_mass[0] = 0
             constraint_offset += 1
+        print('l_constraints', l_constraints)
         return l_constraints
 
     def jacobian(self, x_in):
@@ -139,7 +146,7 @@ cdef class System:
         cdef double[::1] tmp_mass_grad = np.zeros(self.num_vars)
         cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
-            hess_idx, comp_idx, idx, sum_idx, active_in_subl, phase_offset
+            hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
         cdef int vacancy_offset = 0
 
         # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance

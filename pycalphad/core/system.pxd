@@ -1,0 +1,14 @@
+cdef class System:
+    cdef int num_constraints
+    cdef object composition_sets
+    cdef object conditions
+    cdef object components
+    cdef int num_phases
+    cdef int num_vars
+    cdef double temperature
+    cdef double pressure
+    cdef double[::1] xl
+    cdef double[::1] xu
+    cdef double[::1] x0
+    cdef double[::1] cl
+    cdef double[::1] cu
