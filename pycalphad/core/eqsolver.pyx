@@ -215,12 +215,12 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     candidate_dfs = [x[1] for x in candidates]
     candidates = [x[0] for x in candidates]
     phases_changed = False
-    if len(candidates) > 0 and max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE:
+    if (len(candidates) > 0) and (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
         phases_changed = True
         # First N points are fictitious
         compositions = np.r_[np.eye(chemical_potentials.shape[0]), np.array([compset.X for compset in chain(composition_sets, candidates)])]
         energies = np.array([compset.energy for compset in chain(composition_sets, candidates)])
-        energies = np.r_[np.repeat(np.max(energies)+1e6, chemical_potentials.shape[0]), energies]
+        energies = np.r_[np.repeat(1e16, chemical_potentials.shape[0]), energies]
         result_fractions = np.zeros(chemical_potentials.shape[0])
         best_guess_simplex = np.array(np.arange(chemical_potentials.shape[0]), dtype=np.int32)
         comp_conds = sorted([x for x in sorted(cur_conds.keys()) if x.startswith('X_')])
@@ -534,9 +534,9 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         penalty = 10000
         wiggle = False
         # Remove duplicate phases -- we will add them back later
-        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
+        #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
         iterations = 0
-        while iterations < 5:
+        while iterations < 10:
             system = System(composition_sets, comps, cur_conds)
             nlp = ipopt.problem(
                 n=system.num_vars,
@@ -547,10 +547,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 cl=system.cl,
                 cu=system.cu
                 )
-            nlp.addOption(b'derivative_test', b'first-order')
+            #nlp.addOption(b'derivative_test', b'first-order')
+            nlp.addOption(b'print_level', 0)
             nlp.addOption(b'mu_strategy', b'adaptive')
             nlp.addOption(b'tol', 1e-6)
-            nlp.addOption(b'max_iter', 100)
+            nlp.addOption(b'max_iter', 3000)
             x, info = nlp.solve(system.x0)
             chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
             var_offset = 0
@@ -563,24 +564,24 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
-            remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
+            if changed_phases:
+                remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
 
             iterations += 1
             if not changed_phases:
                 converged = True
                 break
 
-        site_fracs = np.concatenate([compset.dof[2:] for compset in composition_sets])
-        phase_fracs = np.array([compset.NP for compset in composition_sets])
         # TODO: Check error from ipopt
-        converged = True
         if converged:
+            chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
             prop_MU_values[it.multi_index] = chemical_potentials
-            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
+            prop_Phase_values[it.multi_index] = ''
+            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = [compset.NP for compset in composition_sets]
             prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
             prop_Y_values[it.multi_index] = np.nan
             prop_X_values[it.multi_index + np.index_exp[:]] = 0
-            prop_GM_values[it.multi_index] = energy
+            prop_GM_values[it.multi_index] = 0
             for phase_idx in range(len(composition_sets)):
                 prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = composition_sets[phase_idx].phase_record.phase_name
             for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
@@ -591,8 +592,9 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             for phase_idx in range(len(composition_sets)):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
-                    site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
+                    compset.dof[2:]
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
+                prop_GM_values[it.multi_index] += compset.NP * compset.energy
                 var_offset += compset.phase_record.phase_dof
         else:
             prop_MU_values[it.multi_index] = np.nan
