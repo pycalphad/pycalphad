@@ -101,7 +101,7 @@ cdef class System:
         cdef double indep_sum = sum([float(val) for i, val in self.conditions.items() if i.startswith('X_')])
         cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(self.num_constraints)
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
-            hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
+            hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl
         cdef int vacancy_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
@@ -112,15 +112,11 @@ cdef class System:
         constraint_offset = 0
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
-            phase_offset = 0
             for idx in range(compset.phase_record.sublattice_dof.shape[0]):
-                print('subl', idx)
                 active_in_subl = compset.phase_record.sublattice_dof[idx]
                 for sum_idx in range(active_in_subl):
-                    print('index', 2+sum_idx+var_idx)
                     l_constraints[constraint_offset + idx] += x[2+sum_idx+var_idx]
                 var_idx += active_in_subl
-                phase_offset += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
         # Second: Mass balance of each component
         for comp_idx, comp in enumerate(self.components):
@@ -131,7 +127,8 @@ cdef class System:
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
-                compset.phase_record.mass_obj(tmp_mass, x[2:], comp_idx)
+                compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
+                print(comp_idx, phase_idx, tmp_mass[0])
                 l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
                 var_offset += compset.phase_record.phase_dof
                 tmp_mass[0] = 0
@@ -173,12 +170,12 @@ cdef class System:
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
-                compset.phase_record.mass_grad(tmp_mass_grad, x[2:], comp_idx)
+                compset.phase_record.mass_grad(tmp_mass_grad, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
                 # current phase frac times the comp_grad
                 for grad_idx in range(var_offset, var_offset + compset.phase_record.phase_dof):
                     constraint_jac[constraint_offset, grad_idx] = \
                         x[2+spidx] * tmp_mass_grad[grad_idx - var_offset]
-                compset.phase_record.mass_obj(tmp_mass, x[2:], comp_idx)
+                compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
                 constraint_jac[constraint_offset, spidx] += tmp_mass[0]
                 tmp_mass[0] = 0
                 tmp_mass_grad[:] = 0
