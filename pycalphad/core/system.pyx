@@ -16,7 +16,6 @@ cdef class System:
         cdef object dependent_comp = set(comps) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
         dependent_comp = list(dependent_comp)[0]
         self.composition_sets = comp_sets
-        print('Composition Sets', self.composition_sets)
         self.conditions = conditions
         self.components = sorted(comps)
         self.num_phases = len(self.composition_sets)
