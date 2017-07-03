@@ -80,7 +80,7 @@ cdef class System:
         cdef double tmp = 0
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
-        cdef double[::1] grad_tmp = np.zeros(self.num_vars)
+        cdef double[::1] grad_tmp = np.zeros(x.shape[0])
         cdef np.ndarray[ndim=1, dtype=np.float64_t] gradient_term = np.zeros(self.num_vars)
 
         for compset in self.composition_sets:

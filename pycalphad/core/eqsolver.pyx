@@ -180,12 +180,12 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 np.clip(s, 1e-4, 1e6)
                 S = np.diag(s)
                 reduced_hess = np.dot(U, np.dot(S, V))
-                cons_hess_inv = np.linalg.inv(reduced_hess)
+
                 try:
+                    cons_hess_inv = np.linalg.inv(reduced_hess)
                     a = np.dot(z.T, compset.grad[2:] - np.dot(constraint_jac[-len(set(comps) - {'VA'}):,:-1].T, chemical_potentials))
                     b = np.dot(cons_hess_inv, a)
                     step = -np.dot(z, b)
-                    #print('Unnormalized step', np.array(step))
                 except np.linalg.LinAlgError:
                     print(np.array(constraint_jac))
                     break
@@ -220,7 +220,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         # First N points are fictitious
         compositions = np.r_[np.eye(chemical_potentials.shape[0]), np.array([compset.X for compset in chain(composition_sets, candidates)])]
         energies = np.array([compset.energy for compset in chain(composition_sets, candidates)])
-        energies = np.r_[np.repeat(np.max(energies)+1000, chemical_potentials.shape[0]), energies]
+        energies = np.r_[np.repeat(np.max(energies)+1e6, chemical_potentials.shape[0]), energies]
         result_fractions = np.zeros(chemical_potentials.shape[0])
         best_guess_simplex = np.array(np.arange(chemical_potentials.shape[0]), dtype=np.int32)
         comp_conds = sorted([x for x in sorted(cur_conds.keys()) if x.startswith('X_')])
@@ -534,38 +534,51 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         penalty = 10000
         wiggle = False
         # Remove duplicate phases -- we will add them back later
-        #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 2, verbose)
-        system = System(composition_sets, comps, cur_conds)
-        nlp = ipopt.problem(
-            n=system.num_vars,
-            m=system.num_constraints,
-            problem_obj=system,
-            lb=system.xl,
-            ub=system.xu,
-            cl=system.cl,
-            cu=system.cu
-            )
-        nlp.addOption(b'derivative_test', b'first-order')
-        nlp.addOption(b'mu_strategy', b'adaptive')
-        nlp.addOption(b'tol', 1e-4)
-        nlp.addOption(b'max_iter', 100)
-        x, info = nlp.solve(system.x0)
-        var_offset = 0
-        phase_idx = 0
-        for compset in composition_sets:
-            compset.update(x[var_offset:var_offset+compset.phase_record.phase_dof],
-                           x[system.num_vars-system.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], False)
-            var_offset += compset.phase_record.phase_dof
-            phase_idx += 1
-        chemical_potentials = -np.array(info['mult_g'])[-system.num_phases:]
-        site_fracs = x[:system.num_vars-system.num_phases]
-        phase_fracs = x[-system.num_phases:]
+        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
+        iterations = 0
+        while iterations < 5:
+            system = System(composition_sets, comps, cur_conds)
+            nlp = ipopt.problem(
+                n=system.num_vars,
+                m=system.num_constraints,
+                problem_obj=system,
+                lb=system.xl,
+                ub=system.xu,
+                cl=system.cl,
+                cu=system.cu
+                )
+            nlp.addOption(b'derivative_test', b'first-order')
+            nlp.addOption(b'mu_strategy', b'adaptive')
+            nlp.addOption(b'tol', 1e-6)
+            nlp.addOption(b'max_iter', 100)
+            x, info = nlp.solve(system.x0)
+            chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
+            var_offset = 0
+            phase_idx = 0
+            for compset in composition_sets:
+                compset.update(x[var_offset:var_offset+compset.phase_record.phase_dof],
+                               x[system.num_vars-system.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], True)
+                var_offset += compset.phase_record.phase_dof
+                phase_idx += 1
+            changed_phases = add_new_phases(composition_sets, [], phase_records,
+                                            current_grid, chemical_potentials,
+                                            1e-4, comps, cur_conds, verbose)
+            remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
+
+            iterations += 1
+            if not changed_phases:
+                converged = True
+                break
+
+        site_fracs = np.concatenate([compset.dof[2:] for compset in composition_sets])
+        phase_fracs = np.array([compset.NP for compset in composition_sets])
         # TODO: Check error from ipopt
         converged = True
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
             prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
+            prop_Y_values[it.multi_index] = np.nan
             prop_X_values[it.multi_index + np.index_exp[:]] = 0
             prop_GM_values[it.multi_index] = energy
             for phase_idx in range(len(composition_sets)):
@@ -575,7 +588,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
             var_offset = 0
             total_comp = np.zeros(prop_X_values.shape[-1])
-            for phase_idx in range(system.num_phases):
+            for phase_idx in range(len(composition_sets)):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
                     site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
