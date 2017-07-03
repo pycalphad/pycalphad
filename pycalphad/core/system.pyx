@@ -54,15 +54,19 @@ cdef class System:
         cdef CompositionSet compset
         cdef int phase_idx = 0
         cdef double total_obj = 0
+        cdef int var_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double tmp = 0
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
 
         for compset in self.composition_sets:
+            x = np.r_[self.pressure, self.temperature, x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
+            dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
             compset.phase_record.obj(energy_2d_view, dof_2d_view)
-            total_obj += x[2+self.num_vars-self.num_phases+phase_idx] * tmp
+            total_obj += x_in[self.num_vars-self.num_phases+phase_idx] * tmp
             phase_idx += 1
+            var_offset += compset.phase_record.phase_dof
             tmp = 0
 
         return total_obj
@@ -81,11 +85,13 @@ cdef class System:
         cdef np.ndarray[ndim=1, dtype=np.float64_t] gradient_term = np.zeros(self.num_vars)
 
         for compset in self.composition_sets:
+            x = np.r_[self.pressure, self.temperature, x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
+            dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
             compset.phase_record.obj(energy_2d_view, dof_2d_view)
             compset.phase_record.grad(grad_tmp, x)
             for dof_x_idx in range(compset.phase_record.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
-                    x[2+self.num_vars-self.num_phases+phase_idx] * grad_tmp[2+dof_x_idx]  # Remove P,T grad part
+                    x_in[self.num_vars-self.num_phases+phase_idx] * grad_tmp[2+dof_x_idx]  # Remove P,T grad part
             gradient_term[self.num_vars - self.num_phases + phase_idx] = tmp
             grad_tmp[:] = 0
             tmp = 0
@@ -105,7 +111,6 @@ cdef class System:
         cdef int vacancy_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
-        print('x', np.array(x))
 
         # First: Site fraction balance constraints
         var_idx = 0
@@ -128,12 +133,10 @@ cdef class System:
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
                 compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
-                print(comp_idx, phase_idx, tmp_mass[0])
                 l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
                 var_offset += compset.phase_record.phase_dof
                 tmp_mass[0] = 0
             constraint_offset += 1
-        print('l_constraints', l_constraints)
         return l_constraints
 
     def jacobian(self, x_in):
