@@ -550,13 +550,18 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         nlp.addOption(b'tol', 1e-4)
         nlp.addOption(b'max_iter', 100)
         x, info = nlp.solve(system.x0)
-
-        print("Solution of the primal variables: x=%s\n" % repr(x))
-
-        print("Solution of the dual variables: lambda=%s\n" % repr(info['mult_g']))
-
-        print("Objective=%s\n" % repr(info['obj_val']))
-        raise ValueError(info)
+        var_offset = 0
+        phase_idx = 0
+        for compset in composition_sets:
+            compset.update(x[var_offset:var_offset+compset.phase_record.phase_dof],
+                           x[system.num_vars-system.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], False)
+            var_offset += compset.phase_record.phase_dof
+            phase_idx += 1
+        chemical_potentials = -np.array(info['mult_g'])[-system.num_phases:]
+        site_fracs = x[:system.num_vars-system.num_phases]
+        phase_fracs = x[-system.num_phases:]
+        # TODO: Check error from ipopt
+        converged = True
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
@@ -570,7 +575,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
             var_offset = 0
             total_comp = np.zeros(prop_X_values.shape[-1])
-            for phase_idx in range(num_phases):
+            for phase_idx in range(system.num_phases):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
                     site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
