@@ -17,7 +17,7 @@ from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, COMP
 import pycalphad.variables as v
 
 # Maximum residual driving force (J/mol-atom) allowed for convergence
-MAX_SOLVE_DRIVING_FORCE = 1e-4
+MAX_SOLVE_DRIVING_FORCE = 1e-1
 # Maximum number of multi-phase solver iterations
 MAX_SOLVE_ITERATIONS = 300
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
@@ -237,13 +237,18 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         insert_idx = sorted(current_grid.coords['component'].values).index(dependent_component[0])
         comp_values = np.r_[comp_values[:insert_idx], 1 - np.sum(comp_values), comp_values[insert_idx:]]
         # Prevent compositions near an edge from going negative
-        comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
-        # TODO: Assumes N=1
-        comp_values /= comp_values.sum(axis=-1, keepdims=True)
+        np.clip(comp_values, MIN_SITE_FRACTION*10, 1.0, out=comp_values)
 
-        result_energy = hyperplane(compositions, energies, comp_values,
-                                   chemical_potentials, result_fractions, best_guess_simplex)
+        try:
+            result_energy = hyperplane(compositions, energies, comp_values,
+                                       chemical_potentials, result_fractions, best_guess_simplex)
+        except ValueError as e:
+            if verbose:
+                print(e)
+            return False
         new_composition_sets = []
+        # Duplicate vertices may show up; they should be removed
+        best_guess_simplex = np.array(sorted(set(best_guess_simplex)), dtype=np.int32)
         if verbose:
             print('best_guess_simplex', np.array(best_guess_simplex))
         for idx in range(best_guess_simplex.shape[0]):
@@ -255,14 +260,17 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 compset = composition_sets[i-chemical_potentials.shape[0]]
             else:
                 compset = candidates[i - len(composition_sets) - chemical_potentials.shape[0]]
-            if result_fractions[idx] > MIN_PHASE_FRACTION:
-                compset.NP = result_fractions[idx]
-            else:
-                compset.NP = MIN_PHASE_FRACTION
+            compset.NP = max(MIN_PHASE_FRACTION, result_fractions[idx])
             if verbose:
                 print('Adding ' + repr(compset))
             new_composition_sets.append(compset)
-        composition_sets[:] = new_composition_sets
+        cs_sum = sum(compset.NP for compset in new_composition_sets)
+        for compset in new_composition_sets:
+            compset.NP /= cs_sum
+        if len(new_composition_sets) > 0:
+            composition_sets[:] = new_composition_sets
+        else:
+            phases_changed = False
     return phases_changed
 
 @cython.boundscheck(False)
@@ -548,11 +556,27 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 cu=system.cu
                 )
             #nlp.addOption(b'derivative_test', b'first-order')
+            #nlp.addOption(b'check_derivatives_for_naninf', b'yes')
+            ipopt.setLoggingLevel(50)
             nlp.addOption(b'print_level', 0)
             nlp.addOption(b'mu_strategy', b'adaptive')
             nlp.addOption(b'tol', 1e-6)
-            nlp.addOption(b'max_iter', 3000)
+            nlp.addOption(b'acceptable_tol', 1.0)
+            nlp.addOption(b'acceptable_constr_viol_tol', 1e-9)
+            nlp.addOption(b'constr_viol_tol', 1e-12)
+            #nlp.addOption(b'max_iter', 3000)
             x, info = nlp.solve(system.x0)
+            if info['status'] == -10:
+                # Not enough degrees of freedom; nothing to do
+                converged = True
+                break
+            if info['status'] < 0:
+                if verbose:
+                    print('Calculation Failed: ', cur_conds, info['status_msg'])
+                    print(np.array(system.num_vars), np.array(system.num_constraints),
+                          np.array(system.xl), np.array(system.xu), np.array(system.cl), np.array(system.cu))
+                converged = False
+                break
             chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
             var_offset = 0
             phase_idx = 0
@@ -572,9 +596,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 converged = True
                 break
 
-        # TODO: Check error from ipopt
         if converged:
-            chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''
             prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = [compset.NP for compset in composition_sets]

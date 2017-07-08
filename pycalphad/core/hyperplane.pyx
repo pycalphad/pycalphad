@@ -149,8 +149,8 @@ cpdef double hyperplane(double[:,::1] compositions,
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
             break
-    #if lowest_df[0] < -1e-8:
-    #    raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
+    if lowest_df[0] < -1e-8:
+        raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
     out_energy = 0
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]

@@ -14,6 +14,8 @@ cdef class System:
         cdef int phase_idx = 0
         cdef double indep_sum = sum([float(val) for i, val in conditions.items() if i.startswith('X_')])
         cdef object dependent_comp = set(comps) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
+        if len(comp_sets) == 0:
+            raise ValueError('Number of phases is zero')
         dependent_comp = list(dependent_comp)[0]
         self.composition_sets = comp_sets
         self.conditions = conditions
@@ -97,6 +99,7 @@ cdef class System:
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
 
+        gradient_term[np.isnan(gradient_term)] = 0
         return gradient_term
 
     def constraints(self, x_in):

@@ -143,7 +143,7 @@ def test_eq_on_endmember():
     the convex hull is still correctly constructed (gh-28).
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
-                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
 def test_eq_four_sublattice():
     """
