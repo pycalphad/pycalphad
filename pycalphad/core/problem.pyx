@@ -3,7 +3,7 @@ cimport numpy as np
 import numpy as np
 from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
 
-cdef class System:
+cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
         cdef CompositionSet compset
         cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in comp_sets])

@@ -1,4 +1,4 @@
-cdef class System:
+cdef class Problem:
     cdef int num_constraints
     cdef object composition_sets
     cdef object conditions

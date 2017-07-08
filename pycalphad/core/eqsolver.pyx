@@ -9,7 +9,7 @@ cdef extern from "_isnan.h":
 import scipy.spatial
 import collections
 import ipopt
-from pycalphad.core.system cimport System
+from pycalphad.core.problem cimport Problem
 from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
@@ -545,15 +545,15 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
         iterations = 0
         while iterations < 10:
-            system = System(composition_sets, comps, cur_conds)
+            prob = Problem(composition_sets, comps, cur_conds)
             nlp = ipopt.problem(
-                n=system.num_vars,
-                m=system.num_constraints,
-                problem_obj=system,
-                lb=system.xl,
-                ub=system.xu,
-                cl=system.cl,
-                cu=system.cu
+                n=prob.num_vars,
+                m=prob.num_constraints,
+                problem_obj=prob,
+                lb=prob.xl,
+                ub=prob.xu,
+                cl=prob.cl,
+                cu=prob.cu
                 )
             #nlp.addOption(b'derivative_test', b'first-order')
             #nlp.addOption(b'check_derivatives_for_naninf', b'yes')
@@ -565,7 +565,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             nlp.addOption(b'acceptable_constr_viol_tol', 1e-9)
             nlp.addOption(b'constr_viol_tol', 1e-12)
             #nlp.addOption(b'max_iter', 3000)
-            x, info = nlp.solve(system.x0)
+            x, info = nlp.solve(prob.x0)
             if info['status'] == -10:
                 # Not enough degrees of freedom; nothing to do
                 converged = True
@@ -573,8 +573,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if info['status'] < 0:
                 if verbose:
                     print('Calculation Failed: ', cur_conds, info['status_msg'])
-                    print(np.array(system.num_vars), np.array(system.num_constraints),
-                          np.array(system.xl), np.array(system.xu), np.array(system.cl), np.array(system.cu))
+                    print(np.array(prob.num_vars), np.array(prob.num_constraints),
+                          np.array(prob.xl), np.array(prob.xu), np.array(prob.cl), np.array(prob.cu))
                 converged = False
                 break
             chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
@@ -582,7 +582,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             phase_idx = 0
             for compset in composition_sets:
                 compset.update(x[var_offset:var_offset+compset.phase_record.phase_dof],
-                               x[system.num_vars-system.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], True)
+                               x[prob.num_vars-prob.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], True)
                 var_offset += compset.phase_record.phase_dof
                 phase_idx += 1
             changed_phases = add_new_phases(composition_sets, [], phase_records,
