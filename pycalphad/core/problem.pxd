@@ -1,14 +1,14 @@
 cdef class Problem:
-    cdef int num_constraints
-    cdef object composition_sets
-    cdef object conditions
-    cdef object components
-    cdef int num_phases
-    cdef int num_vars
-    cdef double temperature
-    cdef double pressure
-    cdef double[::1] xl
-    cdef double[::1] xu
-    cdef double[::1] x0
-    cdef double[::1] cl
-    cdef double[::1] cu
+    cdef public int num_constraints
+    cdef public object composition_sets
+    cdef public object conditions
+    cdef public object components
+    cdef public int num_phases
+    cdef public int num_vars
+    cdef public double temperature
+    cdef public double pressure
+    cdef public double[::1] xl
+    cdef public double[::1] xu
+    cdef public double[::1] x0
+    cdef public double[::1] cl
+    cdef public double[::1] cu

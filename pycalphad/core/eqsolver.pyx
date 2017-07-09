@@ -8,8 +8,8 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 import collections
-import ipopt
 from pycalphad.core.problem cimport Problem
+from pycalphad.core.solver import InteriorPointSolver
 from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
@@ -437,7 +437,8 @@ cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=
     l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
     return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose):
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
+                            problem=Problem, solver=InteriorPointSolver):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -543,48 +544,21 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         wiggle = False
         # Remove duplicate phases -- we will add them back later
         #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
+        iter_solver = solver(verbose=verbose)
         iterations = 0
         while iterations < 10:
-            prob = Problem(composition_sets, comps, cur_conds)
-            nlp = ipopt.problem(
-                n=prob.num_vars,
-                m=prob.num_constraints,
-                problem_obj=prob,
-                lb=prob.xl,
-                ub=prob.xu,
-                cl=prob.cl,
-                cu=prob.cu
-                )
-            #nlp.addOption(b'derivative_test', b'first-order')
-            #nlp.addOption(b'check_derivatives_for_naninf', b'yes')
-            ipopt.setLoggingLevel(50)
-            nlp.addOption(b'print_level', 0)
-            nlp.addOption(b'mu_strategy', b'adaptive')
-            nlp.addOption(b'tol', 1e-6)
-            nlp.addOption(b'acceptable_tol', 1.0)
-            nlp.addOption(b'acceptable_constr_viol_tol', 1e-9)
-            nlp.addOption(b'constr_viol_tol', 1e-12)
-            #nlp.addOption(b'max_iter', 3000)
-            x, info = nlp.solve(prob.x0)
-            if info['status'] == -10:
-                # Not enough degrees of freedom; nothing to do
-                converged = True
-                break
-            if info['status'] < 0:
-                if verbose:
-                    print('Calculation Failed: ', cur_conds, info['status_msg'])
-                    print(np.array(prob.num_vars), np.array(prob.num_constraints),
-                          np.array(prob.xl), np.array(prob.xu), np.array(prob.cl), np.array(prob.cu))
-                converged = False
-                break
-            chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
-            var_offset = 0
-            phase_idx = 0
-            for compset in composition_sets:
-                compset.update(x[var_offset:var_offset+compset.phase_record.phase_dof],
-                               x[prob.num_vars-prob.num_phases+phase_idx], cur_conds['P'], cur_conds['T'], True)
-                var_offset += compset.phase_record.phase_dof
-                phase_idx += 1
+            prob = problem(composition_sets, comps, cur_conds)
+            result = iter_solver.solve(prob)
+            if result.converged:
+                x = result.x
+                chemical_potentials = result.chemical_potentials
+                var_offset = 0
+                phase_idx = 0
+                for compset in composition_sets:
+                    compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                                   x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+                    var_offset += compset.phase_record.phase_dof
+                    phase_idx += 1
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
