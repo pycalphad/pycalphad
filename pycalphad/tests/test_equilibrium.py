@@ -83,7 +83,7 @@ def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0})
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8})
     assert_allclose(np.squeeze(eq.GM.values), -64415.84069827)
@@ -143,7 +143,7 @@ def test_eq_on_endmember():
     the convex hull is still correctly constructed (gh-28).
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
-                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
 def test_eq_four_sublattice():
     """

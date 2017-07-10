@@ -37,8 +37,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._first_iteration = True
 
     def __repr__(self):
-        return str(self.__class__.__name__) + "({0}, {1}, NP={2})".format(self.phase_record.phase_name,
-                                                                          np.asarray(self.X), self.NP)
+        return str(self.__class__.__name__) + "({0}, {1}, NP={2}, GM={3})".format(self.phase_record.phase_name,
+                                                                          np.asarray(self.X), self.NP, self.energy)
 
     cdef void reset(self):
         self.zero_seen = 0
