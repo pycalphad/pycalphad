@@ -8,7 +8,8 @@ cdef class Problem:
         cdef CompositionSet compset
         cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in comp_sets])
         cdef int num_mass_bals = len([i for i in conditions.keys() if i.startswith('X_')]) + 1
-        cdef int num_constraints = num_sitefrac_bals + num_mass_bals
+        cdef int num_chempots = len(set(comps) - {'VA'})
+        cdef int num_constraints = num_sitefrac_bals + num_mass_bals + 1
         cdef int constraint_idx = 0
         cdef int var_idx = 0
         cdef int phase_idx = 0
@@ -21,19 +22,23 @@ cdef class Problem:
         self.conditions = conditions
         self.components = sorted(comps)
         self.num_phases = len(self.composition_sets)
-        self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases
+        self.num_chempots = num_chempots
+        num_phase_dof = sum(compset.phase_record.phase_dof for compset in comp_sets)
+        self.num_phase_dof = num_phase_dof
+        self.num_vars = num_phase_dof + self.num_phases + self.num_chempots
         self.num_constraints = num_constraints
         # TODO: No more special-casing T and P conditions
         self.temperature = self.conditions['T']
         self.pressure = self.conditions['P']
-        self.xl = np.r_[np.full(self.num_vars - self.num_phases, MIN_SITE_FRACTION),
-                        np.full(self.num_phases, MIN_PHASE_FRACTION)]
-        self.xu = np.r_[np.ones(self.num_vars - self.num_phases),
-                        np.ones(self.num_phases)]
+        self.xl = np.r_[np.full(num_phase_dof, MIN_SITE_FRACTION),
+                        np.full(self.num_phases, MIN_PHASE_FRACTION), np.full(self.num_chempots, -2e19)]
+        self.xu = np.r_[np.ones(num_phase_dof),
+                        np.ones(self.num_phases),
+                        np.full(self.num_chempots, 2e19)]
         self.x0 = np.zeros(self.num_vars)
         for compset in self.composition_sets:
             self.x0[var_idx:var_idx+compset.phase_record.phase_dof] = compset.dof[2:]
-            self.x0[self.num_vars-self.num_phases+phase_idx] = compset.NP
+            self.x0[num_phase_dof+phase_idx] = compset.NP
             var_idx += compset.phase_record.phase_dof
             phase_idx += 1
         self.cl = np.zeros(num_constraints)
@@ -50,6 +55,9 @@ cdef class Problem:
             else:
                 self.cl[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + comp]
                 self.cu[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + comp]
+        # Driving force constraint
+        self.cl[num_sitefrac_bals+num_mass_bals] = 0
+        self.cu[num_sitefrac_bals+num_mass_bals] = 0
 
     def objective(self, x_in):
         cdef CompositionSet compset
@@ -65,7 +73,7 @@ cdef class Problem:
             x = np.r_[self.pressure, self.temperature, x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
             dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
             compset.phase_record.obj(energy_2d_view, dof_2d_view)
-            total_obj += x_in[self.num_vars-self.num_phases+phase_idx] * tmp
+            total_obj += x_in[self.num_phase_dof+phase_idx] * tmp
             phase_idx += 1
             var_offset += compset.phase_record.phase_dof
             tmp = 0
@@ -92,13 +100,13 @@ cdef class Problem:
             compset.phase_record.grad(grad_tmp, x)
             for dof_x_idx in range(compset.phase_record.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
-                    x_in[self.num_vars-self.num_phases+phase_idx] * grad_tmp[2+dof_x_idx]  # Remove P,T grad part
-            gradient_term[self.num_vars - self.num_phases + phase_idx] = tmp
+                    x_in[self.num_phase_dof+phase_idx] * grad_tmp[2+dof_x_idx]  # Remove P,T grad part
+            gradient_term[self.num_phase_dof + phase_idx] = tmp
             grad_tmp[:] = 0
             tmp = 0
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
-
+        gradient_term[self.num_phase_dof+self.num_phases:] = 0
         gradient_term[np.isnan(gradient_term)] = 0
         return gradient_term
 
@@ -133,12 +141,16 @@ cdef class Problem:
             var_offset = 0
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
-                spidx = self.num_vars - self.num_phases + phase_idx
+                spidx = self.num_phase_dof + phase_idx
                 compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
                 l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
                 var_offset += compset.phase_record.phase_dof
                 tmp_mass[0] = 0
             constraint_offset += 1
+        # Driving Force
+        mass = l_constraints[-self.num_chempots-1:-1]
+        l_constraints[constraint_offset] = (np.dot(x_in[self.num_phase_dof+self.num_phases:], mass) - self.objective(x_in)) #** 2
+        constraint_offset += 1
         return l_constraints
 
     def jacobian(self, x_in):
@@ -146,7 +158,7 @@ cdef class Problem:
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
         cdef double[::1] tmp_mass_grad = np.zeros(self.num_vars)
-        cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
+        cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
         cdef int vacancy_offset = 0
@@ -174,7 +186,7 @@ cdef class Problem:
             var_offset = 0
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
-                spidx = self.num_vars - self.num_phases + phase_idx
+                spidx = self.num_phase_dof + phase_idx
                 compset.phase_record.mass_grad(tmp_mass_grad, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
                 # current phase frac times the comp_grad
                 for grad_idx in range(var_offset, var_offset + compset.phase_record.phase_dof):
@@ -186,6 +198,13 @@ cdef class Problem:
                 tmp_mass_grad[:] = 0
                 var_offset += compset.phase_record.phase_dof
             constraint_offset += 1
+        # Driving Force
+        mass = self.constraints(x_in)[-self.num_chempots-1:-1]
+        df = np.dot(x[-self.num_chempots:], mass) - self.objective(x_in)
+        constraint_jac[constraint_offset, :self.num_phase_dof+self.num_phases] = np.dot(constraint_jac[-self.num_chempots-1:-1, :self.num_phase_dof+self.num_phases].T, x[-self.num_chempots:]) - self.gradient(x_in)[:self.num_phase_dof+self.num_phases]
+        constraint_jac[constraint_offset, self.num_phase_dof+self.num_phases:] = mass
+        #constraint_jac[constraint_offset, :] *= 2 * df
+        constraint_offset += 1
         return np.array(constraint_jac)
 
     #def hessian(self, x, lagrange, obj_factor):

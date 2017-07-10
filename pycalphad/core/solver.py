@@ -22,9 +22,9 @@ class InteriorPointSolver(object):
             cl=prob.cl,
             cu=prob.cu
         )
-        # nlp.addOption(b'derivative_test', b'first-order')
-        # nlp.addOption(b'check_derivatives_for_naninf', b'yes')
-        nlp.addOption(b'print_level', 0)
+        nlp.addOption(b'derivative_test', b'first-order')
+        nlp.addOption(b'check_derivatives_for_naninf', b'yes')
+        nlp.addOption(b'print_level', 5)
         nlp.addOption(b'mu_strategy', b'adaptive')
         nlp.addOption(b'tol', 1e-6)
         nlp.addOption(b'acceptable_tol', 1.0)
@@ -43,6 +43,6 @@ class InteriorPointSolver(object):
             converged = False
         else:
             converged = True
-        chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
+        chemical_potentials = x[-prob.num_chempots:]
 
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
