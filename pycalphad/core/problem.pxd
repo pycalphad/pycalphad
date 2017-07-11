@@ -5,8 +5,6 @@ cdef class Problem:
     cdef public object components
     cdef public int num_phases
     cdef public int num_vars
-    cdef public int num_phase_dof
-    cdef public int num_chempots
     cdef public double temperature
     cdef public double pressure
     cdef public double[::1] xl
