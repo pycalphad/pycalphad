@@ -115,7 +115,8 @@ cpdef double hyperplane(double[:,::1] compositions,
         for i in range(num_components):
             for j in range(num_components):
                 trial_matrix[:, j, i] = compositions[trial_simplices[i,j]]
-            f_contig_trial = trial_matrix[:, :, i]
+        for i in range(num_components):
+            f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] = min(fractions[i, :])
