@@ -13,7 +13,7 @@ cdef void solve(double[::1, :] A, double[::1] x, int[::1] ipiv) nogil:
     cython_lapack.dgesv(&N, &NRHS, &A[0,0], &N, &ipiv[0], &x[0], &N, &info)
     # Special for our case: singular matrix results get set to -1
     if info != 0:
-        x[:] = -1
+        x[:] = -100
 
 
 @cython.boundscheck(False)

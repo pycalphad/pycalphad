@@ -32,9 +32,14 @@ class InteriorPointSolver(object):
         nlp.addOption(b'constr_viol_tol', 1e-12)
         # nlp.addOption(b'max_iter', 3000)
         x, info = nlp.solve(prob.x0)
+        chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
         if info['status'] == -10:
             # Not enough degrees of freedom; nothing to do
-            converged = True
+            if len(prob.composition_sets) == 1:
+                converged = True
+                chemical_potentials[:] = prob.composition_sets[0].energy
+            else:
+                converged = False
         elif info['status'] < 0:
             if self.verbose:
                 print('Calculation Failed: ', cur_conds, info['status_msg'])
@@ -43,6 +48,9 @@ class InteriorPointSolver(object):
             converged = False
         else:
             converged = True
-        chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
-
+        print('Chemical Potentials', chemical_potentials)
+        print('mult_g', info['mult_g'])
+        print('constraints', prob.constraints(x)-info['g'])
+        print('mult_x_L', info['mult_x_L'])
+        print('Status:', info['status'], info['status_msg'])
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)

@@ -28,8 +28,8 @@ cdef class Problem:
         self.pressure = self.conditions['P']
         self.xl = np.r_[np.full(self.num_vars - self.num_phases, MIN_SITE_FRACTION),
                         np.full(self.num_phases, MIN_PHASE_FRACTION)]
-        self.xu = np.r_[np.ones(self.num_vars - self.num_phases),
-                        np.ones(self.num_phases)]
+        self.xu = np.r_[np.ones(self.num_vars - self.num_phases)*2e19,
+                        np.ones(self.num_phases)*2e19]
         self.x0 = np.zeros(self.num_vars)
         for compset in self.composition_sets:
             self.x0[var_idx:var_idx+compset.phase_record.phase_dof] = compset.dof[2:]
