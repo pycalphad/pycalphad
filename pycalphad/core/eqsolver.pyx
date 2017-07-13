@@ -17,7 +17,7 @@ from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, COMP
 import pycalphad.variables as v
 
 # Maximum residual driving force (J/mol-atom) allowed for convergence
-MAX_SOLVE_DRIVING_FORCE = 1e-1
+MAX_SOLVE_DRIVING_FORCE = 1e-4
 # Maximum number of multi-phase solver iterations
 MAX_SOLVE_ITERATIONS = 300
 # Minimum energy (J/mol-atom) difference between iterations before stopping solver
@@ -218,9 +218,11 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     if (len(candidates) > 0) and (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
         phases_changed = True
         # First N points are fictitious
-        compositions = np.r_[np.eye(chemical_potentials.shape[0]), np.array([compset.X for compset in chain(composition_sets, candidates)])]
+        fict_matrix = np.full((chemical_potentials.shape[0], chemical_potentials.shape[0]), MIN_SITE_FRACTION)
+        fict_matrix[np.diag_indices(fict_matrix.shape[0])] = 1
+        compositions = np.r_[fict_matrix, np.array([compset.X for compset in chain(composition_sets, candidates)])]
         energies = np.array([compset.energy for compset in chain(composition_sets, candidates)])
-        energies = np.r_[np.repeat(1e16, chemical_potentials.shape[0]), energies]
+        energies = np.r_[np.repeat(np.max(energies)+1e4, chemical_potentials.shape[0]), energies]
         result_fractions = np.zeros(chemical_potentials.shape[0])
         best_guess_simplex = np.array(np.arange(chemical_potentials.shape[0]), dtype=np.int32)
         comp_conds = sorted([x for x in sorted(cur_conds.keys()) if x.startswith('X_')])
@@ -261,13 +263,15 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             else:
                 compset = candidates[i - len(composition_sets) - chemical_potentials.shape[0]]
             compset.NP = max(MIN_PHASE_FRACTION, result_fractions[idx])
+            if compset.NP == MIN_PHASE_FRACTION:
+                continue
             if verbose:
                 print('Adding ' + repr(compset))
             new_composition_sets.append(compset)
         cs_sum = sum(compset.NP for compset in new_composition_sets)
         for compset in new_composition_sets:
             compset.NP /= cs_sum
-        if len(new_composition_sets) > 0:
+        if (len(new_composition_sets) > 0) and (composition_sets != new_composition_sets):
             composition_sets[:] = new_composition_sets
         else:
             phases_changed = False
@@ -559,17 +563,15 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                    x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
                     var_offset += compset.phase_record.phase_dof
                     phase_idx += 1
+            print('Result Composition Sets', composition_sets)
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
-            if changed_phases:
-                remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
-
             iterations += 1
             if not changed_phases:
                 converged = True
                 break
-
+        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''

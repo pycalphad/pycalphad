@@ -11,9 +11,9 @@ cdef void solve(double[::1, :] A, double[::1] x, int[::1] ipiv) nogil:
     cdef int info = 0
     cdef int NRHS = 1
     cython_lapack.dgesv(&N, &NRHS, &A[0,0], &N, &ipiv[0], &x[0], &N, &info)
-    # Special for our case: singular matrix results get set to -1
+    # Special for our case: singular matrix results get set to a special value
     if info != 0:
-        x[:] = -100
+        x[:] = -1e19
 
 
 @cython.boundscheck(False)
@@ -121,20 +121,32 @@ cpdef double hyperplane(double[:,::1] compositions,
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] = min(fractions[i, :])
             # Penalize simplices with fictitious vertices
-            for j in range(num_components):
-                if trial_simplices[i,j] < result_fractions.shape[0]:
-                    smallest_fractions[i] -= 1
-
+            if iterations > 1:
+                for j in range(num_components):
+                    if trial_simplices[i,j] < result_fractions.shape[0]:
+                        smallest_fractions[i] -= 1
+        print('trial_matrix.T', np.array(trial_matrix).T)
+        print('fractions', np.array(fractions))
+        print('smallest_fractions', np.array(smallest_fractions))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
-
+        print('saved_trial', saved_trial)
+        if smallest_fractions[saved_trial] < -1:
+            print('hyperplane: No further progress is possible')
+            break
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
             idx = candidate_simplex[i]
             candidate_tieline[i, :] = compositions[idx]
             candidate_potentials[i] = energies[idx]
+        print('candidate_tieline', np.array(candidate_tieline))
+        print('energies', np.array(candidate_potentials))
         solve(candidate_tieline, candidate_potentials, int_tmp)
+        print('candidate_potentials', np.array(candidate_potentials))
+        if candidate_potentials[0] == -1e19:
+            print('hyperplane: No further progress is possible due to chemical potentials')
+            break
         driving_forces[:] = energies
         prodsum(candidate_potentials, compositions, driving_forces)
         best_guess_simplex[:] = candidate_simplex
@@ -146,6 +158,7 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
+        print('Lowest driving force', lowest_df[0])
         for i in range(num_components):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
