@@ -120,17 +120,12 @@ cpdef double hyperplane(double[:,::1] compositions,
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] = min(fractions[i, :])
-            # Penalize simplices with fictitious vertices
-            if iterations > 1:
-                for j in range(num_components):
-                    if trial_simplices[i,j] < result_fractions.shape[0]:
-                        smallest_fractions[i] -= 1
-        print('trial_matrix.T', np.array(trial_matrix).T)
-        print('fractions', np.array(fractions))
-        print('smallest_fractions', np.array(smallest_fractions))
+        #print('trial_matrix.T', np.array(trial_matrix).T)
+        #print('fractions', np.array(fractions))
+        #print('smallest_fractions', np.array(smallest_fractions))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
-        print('saved_trial', saved_trial)
+        #print('saved_trial', saved_trial)
         if smallest_fractions[saved_trial] < -1:
             print('hyperplane: No further progress is possible')
             break
@@ -140,10 +135,10 @@ cpdef double hyperplane(double[:,::1] compositions,
             idx = candidate_simplex[i]
             candidate_tieline[i, :] = compositions[idx]
             candidate_potentials[i] = energies[idx]
-        print('candidate_tieline', np.array(candidate_tieline))
-        print('energies', np.array(candidate_potentials))
+        #print('candidate_tieline', np.array(candidate_tieline))
+        #print('energies', np.array(candidate_potentials))
         solve(candidate_tieline, candidate_potentials, int_tmp)
-        print('candidate_potentials', np.array(candidate_potentials))
+        #print('candidate_potentials', np.array(candidate_potentials))
         if candidate_potentials[0] == -1e19:
             print('hyperplane: No further progress is possible due to chemical potentials')
             break
@@ -158,13 +153,13 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
-        print('Lowest driving force', lowest_df[0])
+        #print('Lowest driving force', lowest_df[0])
         for i in range(num_components):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
             break
-    if lowest_df[0] < -1e-8:
-        raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
+    #if lowest_df[0] < -1e-8:
+    #    raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
     out_energy = 0
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]

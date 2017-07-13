@@ -263,8 +263,6 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
             else:
                 compset = candidates[i - len(composition_sets) - chemical_potentials.shape[0]]
             compset.NP = max(MIN_PHASE_FRACTION, result_fractions[idx])
-            if compset.NP == MIN_PHASE_FRACTION:
-                continue
             if verbose:
                 print('Adding ' + repr(compset))
             new_composition_sets.append(compset)
@@ -549,21 +547,21 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         # Remove duplicate phases -- we will add them back later
         #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
         iter_solver = solver(verbose=verbose)
+        prob = problem(composition_sets, comps, cur_conds)
+        result = iter_solver.solve(prob)
+        if result.converged:
+            x = result.x
+            chemical_potentials = result.chemical_potentials
+            var_offset = 0
+            phase_idx = 0
+            for compset in composition_sets:
+                compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                               x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+                var_offset += compset.phase_record.phase_dof
+                phase_idx += 1
+        print('Result Composition Sets', composition_sets)
         iterations = 0
         while iterations < 10:
-            prob = problem(composition_sets, comps, cur_conds)
-            result = iter_solver.solve(prob)
-            if result.converged:
-                x = result.x
-                chemical_potentials = result.chemical_potentials
-                var_offset = 0
-                phase_idx = 0
-                for compset in composition_sets:
-                    compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                                   x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
-                    var_offset += compset.phase_record.phase_dof
-                    phase_idx += 1
-            print('Result Composition Sets', composition_sets)
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
