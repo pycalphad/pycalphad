@@ -561,7 +561,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 phase_idx += 1
         print('Result Composition Sets', composition_sets)
         iterations = 0
-        while iterations < 10:
+        while False:#iterations < 10:
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
@@ -569,7 +569,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 converged = True
                 break
-        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-4, 0, verbose)
+        converged = result.converged
+        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-9, 0, verbose)
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''
