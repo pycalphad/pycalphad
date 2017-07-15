@@ -545,7 +545,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         penalty = 10000
         wiggle = False
         # Remove duplicate phases -- we will add them back later
-        #remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 1e-4, 0, verbose)
+        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 100, verbose)
         iter_solver = solver(verbose=verbose)
         prob = problem(composition_sets, comps, cur_conds)
         result = iter_solver.solve(prob)
