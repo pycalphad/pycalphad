@@ -37,9 +37,9 @@ class InteriorPointSolver(object):
         # This option improves convergence when using L-BFGS
         nlp.addOption(b'limited_memory_max_history', 100)
         nlp.addOption(b'acceptable_dual_inf_tol', MAX_SOLVE_DRIVING_FORCE)
-        #nlp.addOption(b'acceptable_constr_viol_tol', 1e-12)
-        #nlp.addOption(b'constr_viol_tol', 1e-12)
-        nlp.addOption(b'bound_relax_factor', 1e-6)
+        nlp.addOption(b'acceptable_constr_viol_tol', 1e-12)
+        nlp.addOption(b'constr_viol_tol', 1e-12)
+        nlp.addOption(b'bound_relax_factor', 1e-10)
         # nlp.addOption(b'max_iter', 3000)
         x, info = nlp.solve(prob.x0)
         chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
