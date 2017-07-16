@@ -465,7 +465,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
                 var_offset += compset.phase_record.phase_dof
                 phase_idx += 1
-        print('Result Composition Sets', composition_sets)
+        #print('Result Composition Sets', composition_sets)
         iterations = 0
         while False:#iterations < 10:
             changed_phases = add_new_phases(composition_sets, [], phase_records,
