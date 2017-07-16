@@ -277,62 +277,6 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-cdef np.ndarray[ndim=1, dtype=np.float64_t] _compute_constraints_only(object composition_sets, object comps, object cur_conds):
-    """
-    Compute the constraint vector only.
-    """
-    cdef CompositionSet compset
-    cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets])
-    cdef int num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-    cdef double indep_sum = sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
-    cdef double[::1] comp_obj_value = np.atleast_1d(np.zeros(1))
-    cdef object dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
-    dependent_comp = list(dependent_comp)[0]
-    cdef int num_constraints = num_sitefrac_bals + num_mass_bals
-    cdef int num_phases = len(composition_sets)
-    cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
-    cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(num_constraints)
-    cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
-        hess_idx, comp_idx, idx, sum_idx, active_in_subl, phase_offset
-    cdef int vacancy_offset = 0
-
-    # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
-    # Ordering of constraints by column: site fractions of each phase, then phase fractions
-    # First: Site fraction balance constraints
-    var_idx = 0
-    constraint_offset = 0
-    for phase_idx in range(num_phases):
-        compset = composition_sets[phase_idx]
-        phase_offset = 0
-        for idx in range(compset.phase_record.sublattice_dof.shape[0]):
-            active_in_subl = compset.phase_record.sublattice_dof[idx]
-            l_constraints[constraint_offset + idx] = -1
-            for sum_idx in range(active_in_subl):
-                l_constraints[constraint_offset + idx] += compset.dof[2+sum_idx+phase_offset]
-            var_idx += active_in_subl
-            phase_offset += active_in_subl
-        constraint_offset += compset.phase_record.sublattice_dof.shape[0]
-    # Second: Mass balance of each component
-    for comp_idx, comp in enumerate(comps):
-        if comp == 'VA':
-            vacancy_offset = 1
-            continue
-        var_offset = 0
-        for phase_idx in range(num_phases):
-            compset = composition_sets[phase_idx]
-            spidx = num_vars - num_phases + phase_idx
-            l_constraints[constraint_offset] += compset.NP * compset.X[comp_idx-vacancy_offset]
-            var_offset += compset.phase_record.phase_dof
-        if comp != dependent_comp:
-            l_constraints[constraint_offset] -= float(cur_conds['X_' + comp])
-        else:
-            # TODO: Assuming N=1 (fixed for dependent component)
-            l_constraints[constraint_offset] -= (1 - indep_sum)
-        constraint_offset += 1
-    return l_constraints
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
 cdef _compute_constraints(object composition_sets, object comps, object cur_conds):
     """
     Compute the constraint vector and constraint Jacobian matrix.
@@ -400,44 +344,6 @@ cdef _compute_constraints(object composition_sets, object comps, object cur_cond
             l_constraints[constraint_offset] -= (1 - indep_sum)
         constraint_offset += 1
     return np.array(l_constraints), np.array(constraint_jac), constraint_hess
-
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=np.float64_t] l_constraints,
-                              np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac,
-                              np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
-                              np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers):
-    cdef CompositionSet compset
-    cdef int num_phases = len(composition_sets)
-    cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
-    cdef double[:,::1] l_hessian = np.zeros((num_vars, num_vars))
-    cdef double[::1] gradient_term = np.zeros(num_vars)
-    cdef int var_offset = 0
-    cdef int phase_idx = 0
-    cdef int constraint_idx, dof_x_idx, dof_y_idx, hess_x, hess_y, hess_idx
-    cdef double total_obj = 0
-
-    for compset in composition_sets:
-        for dof_x_idx in range(compset.phase_record.phase_dof):
-            gradient_term[var_offset + dof_x_idx] = \
-                compset.NP * compset.grad[2+dof_x_idx]  # Remove P,T grad part
-        gradient_term[num_vars - num_phases + phase_idx] = compset.energy
-        total_obj += compset.NP * compset.energy
-
-        for dof_x_idx in range(compset.phase_record.phase_dof):
-            for dof_y_idx in range(dof_x_idx,compset.phase_record.phase_dof):
-                l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx] = \
-                  compset.NP * compset.hess[2+dof_x_idx,2+dof_y_idx]
-                l_hessian[var_offset+dof_y_idx, var_offset+dof_x_idx] = \
-                  l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx]
-            # Phase fraction / site fraction cross derivative
-            l_hessian[num_vars - num_phases + phase_idx, var_offset + dof_x_idx] = \
-                 compset.grad[2+dof_x_idx] # Remove P,T grad part
-            l_hessian[var_offset + dof_x_idx, num_vars - num_phases + phase_idx] = compset.grad[2+dof_x_idx]
-        var_offset += compset.phase_record.phase_dof
-        phase_idx += 1
-    l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
-    return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
                             problem=Problem, solver=InteriorPointSolver):
