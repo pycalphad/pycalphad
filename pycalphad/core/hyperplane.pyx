@@ -113,20 +113,24 @@ cpdef double hyperplane(double[:,::1] compositions,
     while iterations < max_iterations:
         iterations += 1
         for i in range(num_components):
+            smallest_fractions[i] = 0
             for j in range(num_components):
                 trial_matrix[:, j, i] = compositions[trial_simplices[i,j]]
+                if iterations > 1:
+                    if trial_simplices[i,j] < result_fractions.shape[0]:
+                        smallest_fractions[i] -= 1
         for i in range(num_components):
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
-            smallest_fractions[i] = min(fractions[i, :])
+            smallest_fractions[i] += min(fractions[i, :])
         #print('trial_matrix.T', np.array(trial_matrix).T)
         #print('fractions', np.array(fractions))
         #print('smallest_fractions', np.array(smallest_fractions))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
         #print('saved_trial', saved_trial)
-        if smallest_fractions[saved_trial] < -1:
+        if smallest_fractions[saved_trial] < -num_components:
             print('hyperplane: No further progress is possible')
             break
         # Should be exactly one candidate simplex

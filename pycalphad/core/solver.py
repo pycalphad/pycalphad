@@ -58,8 +58,9 @@ class InteriorPointSolver(object):
             converged = False
         else:
             converged = True
-        #print('Chemical Potentials', chemical_potentials)
-        #print(info['mult_x_L'])
-       #print(x)
-        #print('Status:', info['status'], info['status_msg'])
+        if self.verbose:
+            print('Chemical Potentials', chemical_potentials)
+            print(info['mult_x_L'])
+            print(x)
+            print('Status:', info['status'], info['status_msg'])
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)

@@ -453,30 +453,30 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         # Remove duplicate phases -- we will add them back later
         remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 100, verbose)
         iter_solver = solver(verbose=verbose)
-        prob = problem(composition_sets, comps, cur_conds)
-        result = iter_solver.solve(prob)
-        if result.converged:
-            x = result.x
-            chemical_potentials = result.chemical_potentials
-            var_offset = 0
-            phase_idx = 0
-            for compset in composition_sets:
-                compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                               x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
-                var_offset += compset.phase_record.phase_dof
-                phase_idx += 1
-        #print('Result Composition Sets', composition_sets)
         iterations = 0
-        while False:#iterations < 10:
+        while iterations < 10:
+            prob = problem(composition_sets, comps, cur_conds)
+            result = iter_solver.solve(prob)
+            composition_sets = prob.composition_sets
+            if result.converged:
+                x = result.x
+                chemical_potentials = result.chemical_potentials
+                var_offset = 0
+                phase_idx = 0
+                for compset in composition_sets:
+                    compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                                   x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+                    var_offset += compset.phase_record.phase_dof
+                    phase_idx += 1
             changed_phases = add_new_phases(composition_sets, [], phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
             iterations += 1
             if not changed_phases:
-                converged = True
+                chemical_potentials[:] = result.chemical_potentials
                 break
         converged = result.converged
-        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-9, 0, verbose)
+        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-3, 0, verbose)
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''
