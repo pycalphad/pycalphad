@@ -202,7 +202,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     dof_idx += i
             df = np.multiply(chemical_potentials, compset.X).sum() - compset.energy
             #print('Testing', (compset, df))
-            comp_distances = np.array([np.max(np.array(existing_candidate.X) - np.array(compset.X))
+            comp_distances = np.array([np.max(np.abs(np.array(existing_candidate.X) - np.array(compset.X)))
                                        for existing_candidate, existing_df in candidates[df_phase_name]])
             if df > -MAX_SOLVE_DRIVING_FORCE and (comp_distances.shape[0] == 0 or np.min(comp_distances) > 1e-4):
                 candidates[df_phase_name].append((compset, df))
