@@ -30,8 +30,8 @@ class InteriorPointSolver(object):
         #nlp.addOption(b'tol', 1e-2)
         #nlp.addOption(b'acceptable_tol', 1e-1)
         nlp.addOption(b'dual_inf_tol', MAX_SOLVE_DRIVING_FORCE)
-        #nlp.addOption(b'compl_inf_tol', 1e-9)
-        #nlp.addOption(b'acceptable_compl_inf_tol', 1e-9)
+        nlp.addOption(b'compl_inf_tol', 1e-16)
+        nlp.addOption(b'acceptable_compl_inf_tol', 1e-16)
         nlp.addOption(b'bound_push', 1e-12)
         nlp.addOption(b'slack_bound_push', 1e-12)
         # This option improves convergence when using L-BFGS
