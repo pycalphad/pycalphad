@@ -45,7 +45,7 @@ install:
       if [ -z "$DOCKER_TAG" ]; then
         source $HOME/miniconda2/bin/activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-        conda install --yes xarray gcc cython
+        conda install --yes xarray gcc cython cyipopt
         pip install -e .
       fi
  
@@ -59,5 +59,5 @@ script:
         coveralls
       else
         env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME -u TRAVIS_COMMIT_MESSAGE > ./env.list
-        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
+        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv && nosetests --with-coverage && pip install sphinx sphinx_rtd_theme coveralls && bash ci/deploy.sh && coveralls"
       fi
