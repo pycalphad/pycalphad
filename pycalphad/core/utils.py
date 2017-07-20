@@ -22,95 +22,6 @@ except ImportError:
         return np.broadcast_arrays(arr, np.empty(shape, dtype=np.bool))[0]
 
 
-class NumPyPrinter(LambdaPrinter):
-    """
-    Numpy printer which handles vectorized piecewise functions,
-    logical operators, etc.
-    """
-    _default_settings = {
-        "order": "none",
-        "full_prec": "auto",
-    }
-
-    def _print_seq(self, seq, delimiter=', '):
-        "General sequence printer: converts to tuple"
-        # Print tuples here instead of lists because numba supports
-        #     tuples in nopython mode.
-        return '({},)'.format(delimiter.join(self._print(item) for item in seq))
-
-    #def _print_Integer(self, expr):
-    #    # Upcast to work around an integer overflow bug
-    #    return 'asarray({0}, dtype=float)'.format(expr)
-
-    def _print_MatrixBase(self, expr):
-        return "%s(%s)" % ('array', self._print(expr.tolist()))
-
-    _print_SparseMatrix = \
-        _print_MutableSparseMatrix = \
-        _print_ImmutableSparseMatrix = \
-        _print_Matrix = \
-        _print_DenseMatrix = \
-        _print_MutableDenseMatrix = \
-        _print_ImmutableMatrix = \
-        _print_ImmutableDenseMatrix = \
-        _print_MatrixBase
-
-    def _print_MatMul(self, expr):
-        "Matrix multiplication printer"
-        return '({0})'.format(').dot('.join(self._print(i) for i in expr.args))
-
-    def _print_Piecewise(self, expr):
-        "Piecewise function printer"
-        exprs = [self._print(arg.expr) for arg in expr.args]
-        conds = [self._print(arg.cond) for arg in expr.args]
-        if (len(conds) == 1) and exprs[0] == '0':
-            return '0'
-        # We expect exprs and conds to be in order here
-        # First condition to evaluate to True is returned
-        # Default result: float zero
-        result = 'where({0}, {1}, 0.)'.format(conds[-1], exprs[-1])
-        for expr, cond in reversed(list(zip(exprs[:-1], conds[:-1]))):
-            result = 'where({0}, {1}, {2})'.format(cond, expr, result)
-
-        return result
-
-    def _print_And(self, expr):
-        "Logical And printer"
-        # We have to override LambdaPrinter because it uses Python 'and' keyword.
-        # If LambdaPrinter didn't define it, we could use StrPrinter's
-        # version of the function and add 'logical_and' to NUMPY_TRANSLATIONS.
-        if len(expr.args) == 1:
-            return self._print(expr.args[0])
-        result = 'logical_and({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
-        for arg in reversed(expr.args[:-2]):
-            result = 'logical_and({0}, {1})'.format(self._print(arg), result)
-        return  result
-
-    def _print_Or(self, expr):
-        "Logical Or printer"
-        # We have to override LambdaPrinter because it uses Python 'or' keyword.
-        # If LambdaPrinter didn't define it, we could use StrPrinter's
-        # version of the function and add 'logical_or' to NUMPY_TRANSLATIONS.
-        if len(expr.args) == 1:
-            return self._print(expr.args[0])
-        result = 'logical_or({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
-        for arg in reversed(expr.args[:-2]):
-            result = 'logical_or({0}, {1})'.format(self._print(arg), result)
-        return  result
-
-    def _print_Not(self, expr):
-        "Logical Not printer"
-        # We have to override LambdaPrinter because it uses Python 'not' keyword.
-        # If LambdaPrinter didn't define it, we would still have to define our
-        #     own because StrPrinter doesn't define it.
-        if len(expr.args) == 1:
-            return self._print(expr.args[0])
-        result = 'logical_not({0}, {1})'.format(self._print(expr.args[-2]), self._print(expr.args[-1]))
-        for arg in reversed(expr.args[:-2]):
-            result = 'logical_not({0}, {1})'.format(self._print(arg), result)
-        return  result
-
-
 def point_sample(comp_count, pdof=10):
     """
     Sample 'pdof * (sum(comp_count) - len(comp_count))' points in
@@ -185,9 +96,6 @@ def make_callable(model, variables, mode=None):
 
     if mode == 'sympy':
         energy = lambda *vs: model.subs(zip(variables, vs)).evalf()
-    elif mode == 'numpy':
-        energy = lambdify(tuple(variables), model, dummify=True,
-                          modules=[{'where': np.where, 'Abs': np.abs}, 'numpy'], printer=NumPyPrinter)
     else:
         energy = lambdify(tuple(variables), model, dummify=True,
                           modules=mode)
