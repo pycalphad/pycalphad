@@ -86,7 +86,9 @@ def test_incompatible_db_warns_by_default():
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
     with warnings.catch_warnings(record=True) as w:
         invalid_dbf = test_dbf.to_string(fmt='tdb')
-        assert len(w) == 1
+        assert len(w) >= 1
+        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
+        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 @nose.tools.raises(DatabaseExportError)
@@ -100,7 +102,9 @@ def test_incompatible_db_warns_with_kwarg_warn():
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
     with warnings.catch_warnings(record=True) as w:
         invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='warn')
-        assert len(w) == 1
+        assert len(w) >= 1
+        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
+        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_ignores_with_kwarg_ignore():
@@ -108,7 +112,8 @@ def test_incompatible_db_ignores_with_kwarg_ignore():
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
     with warnings.catch_warnings(record=True) as w:
         invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='ignore')
-        assert len(w) == 0
+        not_expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
+        assert all([not_expected_string_fragment not in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_mangles_names_with_kwarg_fix():
