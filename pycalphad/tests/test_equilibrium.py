@@ -4,6 +4,7 @@ correct solution for thermodynamic equilibrium.
 """
 
 import warnings
+import os
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
@@ -301,3 +302,13 @@ def test_eq_unary_issue78():
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
     np.testing.assert_allclose(eq.SM, 0)
+
+
+def test_equilibrium_result_dataset_can_serialize_to_netcdf():
+    """
+    The xarray Dataset returned by equilibrium should serializable to a netcdf file.
+    """
+    fname = 'eq_result_netcdf_test.nc'
+    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325})
+    eq.to_netcdf(fname)
+    os.remove(fname)  # cleanup

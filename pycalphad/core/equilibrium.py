@@ -356,7 +356,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
     if scheduler is not None:
         properties = dask.compute(properties, get=scheduler)[0]
-    properties.attrs['created'] = datetime.utcnow()
+    properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
     return properties
