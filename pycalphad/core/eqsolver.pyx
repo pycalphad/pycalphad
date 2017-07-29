@@ -25,8 +25,8 @@ MIN_SOLVE_ENERGY_PROGRESS = 1e-3
 # Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
 MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
-cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
-                                   bint allow_negative_fractions, double comp_diff_tol, int allowed_zero_seen, bint verbose):
+cdef bint remove_degenerate_phases(object composition_sets,
+                                   double comp_diff_tol, int allowed_zero_seen, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -100,7 +100,6 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     for idx in entries_to_delete:
         if verbose:
             print('Removing ' + repr(composition_sets[idx]))
-        removed_compsets.append(composition_sets[idx])
         del composition_sets[idx]
     if len(entries_to_delete) > 0:
         return True
@@ -108,7 +107,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         return False
 
 @cython.boundscheck(False)
-cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
+cdef bint add_new_phases(object composition_sets, object phase_records,
                          object current_grid, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
                          double minimum_df, comps, cur_conds, bint verbose) except *:
     """
@@ -432,7 +431,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         else:
             raise ValueError('Number of dependent components different from one')
         composition_sets = []
-        removed_compsets = collections.deque(maxlen=6)
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
@@ -445,13 +443,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
-        alpha = 1
-        allow_negative_fractions = False
-        decrease_penalty = False
-        penalty = 10000
-        wiggle = False
         # Remove duplicate phases -- we will add them back later
-        remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, 0.5, 100, verbose)
+        remove_degenerate_phases(composition_sets, 0.5, 100, verbose)
         iter_solver = solver(verbose=verbose)
         iterations = 0
         while iterations < 10:
@@ -468,7 +461,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                    x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
                     var_offset += compset.phase_record.phase_dof
                     phase_idx += 1
-            changed_phases = add_new_phases(composition_sets, [], phase_records,
+            changed_phases = add_new_phases(composition_sets, phase_records,
                                             current_grid, chemical_potentials,
                                             1e-4, comps, cur_conds, verbose)
             iterations += 1
@@ -476,7 +469,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 chemical_potentials[:] = result.chemical_potentials
                 break
         converged = result.converged
-        remove_degenerate_phases(composition_sets, [], allow_negative_fractions, 1e-3, 0, verbose)
+        remove_degenerate_phases(composition_sets, 1e-3, 0, verbose)
         if converged:
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''
