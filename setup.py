@@ -34,7 +34,7 @@ setup(
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
-    install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy', 'pyparsing', 'Cython>=0.24',
+    install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy>1.1', 'pyparsing', 'Cython>=0.24',
                       'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.10', 'dill'],
     classifiers=[
         # How mature is this project? Common values are
