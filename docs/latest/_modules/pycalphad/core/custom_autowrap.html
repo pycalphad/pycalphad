@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.5.1+9.gb63820b documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.5.1+10.g57103aa documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.1+9.gb63820b documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.1+10.g57103aa documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.1+9.gb63820b
+                0.5.1+10.g57103aa
               </div>
             
           
@@ -229,14 +229,17 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
 <span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="n">iterable</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">CCodePrinter</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">sympy.printing.ccode</span> <span class="k">import</span> <span class="n">C89CodePrinter</span> <span class="k">as</span> <span class="n">CCodePrinter</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">AssignmentError</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">,</span>
                                      <span class="n">Result</span><span class="p">,</span> <span class="n">CodeGenArgumentListError</span><span class="p">,</span>
-                                     <span class="n">CCodePrinter</span><span class="p">,</span> <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
+                                     <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">implemented_function</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">CythonCodeWrapper</span><span class="p">,</span> <span class="n">DummyWrapper</span>
-<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">STDOUT</span><span class="p">,</span> <span class="n">CalledProcessError</span>
+<span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">STDOUT</span><span class="p">,</span> <span class="n">CalledProcessError</span><span class="p">,</span> <span class="n">check_output</span>
 <span class="kn">from</span> <span class="nn">sympy.printing.ccode</span> <span class="k">import</span> <span class="n">ccode</span>
-<span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="n">check_output</span>
 <span class="kn">import</span> <span class="nn">os</span>
 <span class="kn">import</span> <span class="nn">sys</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
@@ -807,7 +810,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.1+9.gb63820b',
+            VERSION:'0.5.1+10.g57103aa',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

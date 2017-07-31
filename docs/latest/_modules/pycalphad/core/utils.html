@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.5.1+9.gb63820b documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.5.1+10.g57103aa documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.1+9.gb63820b documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.1+10.g57103aa documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.1+9.gb63820b
+                0.5.1+10.g57103aa
               </div>
             
           
@@ -185,95 +185,6 @@
         <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
 
 
-<div class="viewcode-block" id="NumPyPrinter"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.NumPyPrinter">[docs]</a><span class="k">class</span> <span class="nc">NumPyPrinter</span><span class="p">(</span><span class="n">LambdaPrinter</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Numpy printer which handles vectorized piecewise functions,</span>
-<span class="sd">    logical operators, etc.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">_default_settings</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s2">&quot;order&quot;</span><span class="p">:</span> <span class="s2">&quot;none&quot;</span><span class="p">,</span>
-        <span class="s2">&quot;full_prec&quot;</span><span class="p">:</span> <span class="s2">&quot;auto&quot;</span><span class="p">,</span>
-    <span class="p">}</span>
-
-    <span class="k">def</span> <span class="nf">_print_seq</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">seq</span><span class="p">,</span> <span class="n">delimiter</span><span class="o">=</span><span class="s1">&#39;, &#39;</span><span class="p">):</span>
-        <span class="s2">&quot;General sequence printer: converts to tuple&quot;</span>
-        <span class="c1"># Print tuples here instead of lists because numba supports</span>
-        <span class="c1">#     tuples in nopython mode.</span>
-        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{}</span><span class="s1">,)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">delimiter</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">item</span><span class="p">)</span> <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">seq</span><span class="p">))</span>
-
-    <span class="c1">#def _print_Integer(self, expr):</span>
-    <span class="c1">#    # Upcast to work around an integer overflow bug</span>
-    <span class="c1">#    return &#39;asarray({0}, dtype=float)&#39;.format(expr)</span>
-
-    <span class="k">def</span> <span class="nf">_print_MatrixBase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="s1">&#39;array&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">tolist</span><span class="p">()))</span>
-
-    <span class="n">_print_SparseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_MutableSparseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_ImmutableSparseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_Matrix</span> <span class="o">=</span> \
-        <span class="n">_print_DenseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_MutableDenseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_ImmutableMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_ImmutableDenseMatrix</span> <span class="o">=</span> \
-        <span class="n">_print_MatrixBase</span>
-
-    <span class="k">def</span> <span class="nf">_print_MatMul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="s2">&quot;Matrix multiplication printer&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;(</span><span class="si">{0}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;).dot(&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">))</span>
-
-    <span class="k">def</span> <span class="nf">_print_Piecewise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="s2">&quot;Piecewise function printer&quot;</span>
-        <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
-        <span class="n">conds</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">]</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;0&#39;</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
-        <span class="c1"># We expect exprs and conds to be in order here</span>
-        <span class="c1"># First condition to evaluate to True is returned</span>
-        <span class="c1"># Default result: float zero</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;where(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">, 0.)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">conds</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">exprs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
-        <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">exprs</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">],</span> <span class="n">conds</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]))):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;where(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">, </span><span class="si">{2}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">result</span><span class="p">)</span>
-
-        <span class="k">return</span> <span class="n">result</span>
-
-    <span class="k">def</span> <span class="nf">_print_And</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="s2">&quot;Logical And printer&quot;</span>
-        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;and&#39; keyword.</span>
-        <span class="c1"># If LambdaPrinter didn&#39;t define it, we could use StrPrinter&#39;s</span>
-        <span class="c1"># version of the function and add &#39;logical_and&#39; to NUMPY_TRANSLATIONS.</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_and(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_and(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span>  <span class="n">result</span>
-
-    <span class="k">def</span> <span class="nf">_print_Or</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="s2">&quot;Logical Or printer&quot;</span>
-        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;or&#39; keyword.</span>
-        <span class="c1"># If LambdaPrinter didn&#39;t define it, we could use StrPrinter&#39;s</span>
-        <span class="c1"># version of the function and add &#39;logical_or&#39; to NUMPY_TRANSLATIONS.</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_or(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_or(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span>  <span class="n">result</span>
-
-    <span class="k">def</span> <span class="nf">_print_Not</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="s2">&quot;Logical Not printer&quot;</span>
-        <span class="c1"># We have to override LambdaPrinter because it uses Python &#39;not&#39; keyword.</span>
-        <span class="c1"># If LambdaPrinter didn&#39;t define it, we would still have to define our</span>
-        <span class="c1">#     own because StrPrinter doesn&#39;t define it.</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
-            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
-        <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_not(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">2</span><span class="p">]),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]))</span>
-        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="mi">2</span><span class="p">]):</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;logical_not(</span><span class="si">{0}</span><span class="s1">, </span><span class="si">{1}</span><span class="s1">)&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="p">),</span> <span class="n">result</span><span class="p">)</span>
-        <span class="k">return</span>  <span class="n">result</span></div>
-
-
 <div class="viewcode-block" id="point_sample"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.point_sample">[docs]</a><span class="k">def</span> <span class="nf">point_sample</span><span class="p">(</span><span class="n">comp_count</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Sample &#39;pdof * (sum(comp_count) - len(comp_count))&#39; points in</span>
@@ -348,9 +259,6 @@
 
     <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sympy&#39;</span><span class="p">:</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">vs</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">vs</span><span class="p">))</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-    <span class="k">elif</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span>
-        <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                          <span class="n">modules</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;where&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">,</span> <span class="s1">&#39;Abs&#39;</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">},</span> <span class="s1">&#39;numpy&#39;</span><span class="p">],</span> <span class="n">printer</span><span class="o">=</span><span class="n">NumPyPrinter</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
                           <span class="n">modules</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
@@ -551,7 +459,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.1+9.gb63820b',
+            VERSION:'0.5.1+10.g57103aa',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
