@@ -66,14 +66,17 @@ When is this module NOT the best approach?
 """
 from __future__ import print_function
 from sympy.core.compatibility import iterable
+try:
+    from sympy.utilities.codegen import CCodePrinter
+except ImportError:
+    from sympy.printing.ccode import C89CodePrinter as CCodePrinter
 from sympy.utilities.codegen import (AssignmentError, OutputArgument, ResultBase,
                                      Result, CodeGenArgumentListError,
-                                     CCodePrinter, CCodeGen, Variable)
+                                     CCodeGen, Variable)
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import CythonCodeWrapper, DummyWrapper
-from subprocess import STDOUT, CalledProcessError
+from subprocess import STDOUT, CalledProcessError, check_output
 from sympy.printing.ccode import ccode
-from sympy.core.compatibility import check_output
 import os
 import sys
 import tempfile
