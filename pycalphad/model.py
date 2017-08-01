@@ -8,7 +8,6 @@ from sympy import exp, log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol, zoo, 
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.log import logger
 import numpy as np
 from collections import OrderedDict
 
@@ -66,7 +65,6 @@ class Model(object):
         self.site_ratios = phase.sublattices
         for sublattice in phase.constituents:
             self.components |= set(sublattice).intersection(possible_comps)
-        logger.debug('Model of %s has components %s', self.phase_name, self.components)
         # Verify that this phase is still possible to build
         for sublattice in phase.constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
