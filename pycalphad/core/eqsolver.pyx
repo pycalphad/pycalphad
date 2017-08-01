@@ -248,8 +248,7 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
                 print(e)
             return False
         new_composition_sets = []
-        # Duplicate vertices may show up; they should be removed
-        best_guess_simplex = np.array(sorted(set(best_guess_simplex)), dtype=np.int32)
+        best_guess_simplex = np.array(best_guess_simplex, dtype=np.int32)
         if verbose:
             print('best_guess_simplex', np.array(best_guess_simplex))
         for idx in range(best_guess_simplex.shape[0]):
