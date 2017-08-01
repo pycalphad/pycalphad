@@ -69,7 +69,7 @@ from sympy.core.compatibility import iterable
 try:
     from sympy.utilities.codegen import CCodePrinter
 except ImportError:
-    from sympy.printing.ccode import C99CodePrinter as CCodePrinter
+    from sympy.printing.ccode import C89CodePrinter as CCodePrinter
 from sympy.utilities.codegen import (AssignmentError, OutputArgument, ResultBase,
                                      Result, CodeGenArgumentListError,
                                      CCodeGen, Variable)

@@ -4,6 +4,7 @@ correct solution for thermodynamic equilibrium.
 """
 
 import warnings
+import os
 from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
@@ -292,9 +293,11 @@ def test_unused_equilibrium_kwarg_warns():
     "Check that an unused keyword argument raises a warning"
     with warnings.catch_warnings(record=True) as w:
         equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, unused_kwarg='should raise a warning')
+        assert len(w) >= 1
         categories = [warning.__dict__['_category_name'] for warning in w]
         assert 'UserWarning' in categories
-        assert len(w) == 1 # make sure we don't raise other warnings later that make this test falsely pass
+        expected_string_fragment = 'keyword arguments were passed, but unused'
+        assert any([expected_string_fragment in str(warning.message) for warning in w])
 
 def test_eq_unary_issue78():
     "Unary equilibrium calculations work with property calculations."
@@ -303,3 +306,13 @@ def test_eq_unary_issue78():
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
     np.testing.assert_allclose(eq.SM, 0)
+
+
+def test_equilibrium_result_dataset_can_serialize_to_netcdf():
+    """
+    The xarray Dataset returned by equilibrium should serializable to a netcdf file.
+    """
+    fname = 'eq_result_netcdf_test.nc'
+    eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325})
+    eq.to_netcdf(fname)
+    os.remove(fname)  # cleanup
