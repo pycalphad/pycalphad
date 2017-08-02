@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.cache &mdash; pycalphad 0.5.1+12.g4240729 documentation</title>
+  <title>pycalphad.core.cache &mdash; pycalphad 0.5.1+13.g6ad41e6 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.1+12.g4240729 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.1+13.g6ad41e6 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.1+12.g4240729
+                0.5.1+13.g6ad41e6
               </div>
             
           
@@ -205,7 +205,7 @@
              <span class="n">kwd_mark</span> <span class="o">=</span> <span class="p">(</span><span class="nb">object</span><span class="p">(),),</span>
              <span class="n">fasttypes</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)},</span>
              <span class="nb">sorted</span><span class="o">=</span><span class="nb">sorted</span><span class="p">,</span> <span class="nb">tuple</span><span class="o">=</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="nb">len</span><span class="o">=</span><span class="nb">len</span><span class="p">):</span>
-    <span class="s1">&#39;Make a cache key from optionally typed positional and keyword arguments&#39;</span>
+    <span class="s2">&quot;Make a cache key from optionally typed positional and keyword arguments.&quot;</span>
     <span class="n">key</span> <span class="o">=</span> <span class="n">args</span>
     <span class="k">if</span> <span class="n">kwds</span><span class="p">:</span>
         <span class="n">sorted_items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwds</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
@@ -331,12 +331,12 @@
                 <span class="k">return</span> <span class="n">result</span>
 
         <span class="k">def</span> <span class="nf">cache_info</span><span class="p">():</span>
-            <span class="sd">&quot;&quot;&quot;Report cache statistics&quot;&quot;&quot;</span>
+            <span class="s2">&quot;Report cache statistics.&quot;</span>
             <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_CacheInfo</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">HITS</span><span class="p">],</span> <span class="n">stats</span><span class="p">[</span><span class="n">MISSES</span><span class="p">],</span> <span class="n">maxsize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cache</span><span class="p">))</span>
 
         <span class="k">def</span> <span class="nf">cache_clear</span><span class="p">():</span>
-            <span class="sd">&quot;&quot;&quot;Clear the cache and cache statistics&quot;&quot;&quot;</span>
+            <span class="s2">&quot;Clear the cache and cache statistics.&quot;</span>
             <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
                 <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
                 <span class="n">root</span> <span class="o">=</span> <span class="n">nonlocal_root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
@@ -388,7 +388,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.1+12.g4240729',
+            VERSION:'0.5.1+13.g6ad41e6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

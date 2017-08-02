@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.5.1+12.g4240729 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.5.1+13.g6ad41e6 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.1+12.g4240729 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.1+13.g6ad41e6 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.1+12.g4240729
+                0.5.1+13.g6ad41e6
               </div>
             
           
@@ -176,7 +176,6 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span><span class="p">,</span> <span class="n">PhaseRecord_from_cython</span><span class="p">,</span> <span class="n">PhaseRecord_from_compiledmodel</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.compiled_model</span> <span class="k">import</span> <span class="n">CompiledModel</span>
-<span class="kn">from</span> <span class="nn">pycalphad.log</span> <span class="k">import</span> <span class="n">logger</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -615,9 +614,8 @@
                 <span class="c1"># we can&#39;t build the specified phase because the</span>
                 <span class="c1"># specified components aren&#39;t found in every sublattice</span>
                 <span class="c1"># we&#39;ll just skip it</span>
-                <span class="n">logger</span><span class="o">.</span><span class="n">warning</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Suspending specified phase </span><span class="si">%s</span><span class="s2"> due to</span>
-<span class="s2">                some sublattices containing only unspecified components&quot;&quot;&quot;</span><span class="p">,</span>
-                               <span class="n">phase_name</span><span class="p">)</span>
+                <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;&quot;&quot;Suspending specified phase </span><span class="si">{}</span><span class="s2"> due to</span>
+<span class="s2">                some sublattices containing only unspecified components&quot;&quot;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase_name</span><span class="p">))</span>
                 <span class="k">continue</span>
         <span class="k">if</span> <span class="n">points_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mod</span><span class="o">.</span><span class="n">constituents</span><span class="p">))</span>
@@ -721,7 +719,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.1+12.g4240729',
+            VERSION:'0.5.1+13.g6ad41e6',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
