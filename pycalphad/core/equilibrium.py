@@ -26,12 +26,12 @@ from datetime import datetime
 
 
 class EquilibriumError(Exception):
-    "Exception related to calculation of equilibrium"
+    "Exception related to calculation of equilibrium."
     pass
 
 
 class ConditionError(EquilibriumError):
-    "Exception related to equilibrium conditions"
+    "Exception related to equilibrium conditions."
     pass
 
 
@@ -47,7 +47,7 @@ def _adjust_conditions(conds):
 
 
 def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
-    "Merge back together slices of 'properties'"
+    "Merge back together slices of 'properties'."
     for prop_slice, prop_arr in zip(chunk_grid, results):
         if not isinstance(prop_arr, Dataset):
             print('Error: {}'.format(prop_arr))
