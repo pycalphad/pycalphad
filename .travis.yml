@@ -31,6 +31,7 @@ matrix:
 
 # Setup anaconda
 before_install:
+  - set -e # Exit immediately if a command exits with a non-zero status
   - |
       if [ -z "$DOCKER_TAG" ]; then
         ./ci/travis_legacy_deps.sh
