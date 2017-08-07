@@ -115,8 +115,11 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
     are taken from current_grid and modify the composition_sets object. The function returns a boolean indicating
     whether it modified composition_sets.
     """
+    cdef object solver = InteriorPointSolver(verbose=verbose)
     cdef double[::1] driving_forces
-    cdef np.ndarray largest_driving_forces_indices = np.full((len(phase_records), 10), -1, dtype=int)
+    cdef int max_endmembers = max([np.prod(x.sublattice_dof) for x in phase_records.values()])
+    cdef int num_df_candidates = 10
+    cdef np.ndarray largest_driving_forces_indices = np.full((len(phase_records), num_df_candidates+max_endmembers), -1, dtype=int)
     cdef int df_idx = 0
     cdef int i, idx, comp_idx, sfidx, dof_idx
     cdef double largest_df = -np.inf
@@ -137,14 +140,21 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
     cdef long[::1] part_indices
     cdef double df, sublsum
     driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
-    # For each phase, choose 10 points with the most driving force
+    # For each phase, choose 'num_df_candidates' points with the most driving force
     for phase_idx, phase_idx_arr in phase_indices:
-        if phase_idx_arr.shape[0] <= 10:
+        df_phase_name = <unicode>current_grid_Phase[phase_idx_arr[0]]
+        if phase_idx_arr.shape[0] <= num_df_candidates:
             largest_driving_forces_indices[phase_idx, :phase_idx_arr.shape[0]] = phase_idx_arr
         else:
-            part_indices = np.argpartition(driving_forces[phase_idx_arr[0]:phase_idx_arr[-1]], -10)[-10:]
-            largest_driving_forces_indices[phase_idx, :] = phase_idx_arr[part_indices]
-
+            part_indices = np.argpartition(driving_forces[phase_idx_arr[0]:phase_idx_arr[-1]], -num_df_candidates)[-num_df_candidates:]
+            largest_driving_forces_indices[phase_idx, :num_df_candidates] = phase_idx_arr[part_indices]
+            # Force endmembers to be candidates regardless of driving force
+            # This addresses an issue with missing candidates due to sampling too few points (gh-103).
+            # Doing this helps escape metastable configurations.
+            largest_driving_forces_indices[phase_idx,
+                                           num_df_candidates:num_df_candidates+np.prod(phase_records[df_phase_name].sublattice_dof)] = \
+                np.arange(phase_idx_arr[0],
+                          phase_idx_arr[0]+np.prod(phase_records[df_phase_name].sublattice_dof))
     # For each phase's point, generate a CompositionSet and try to refine it at fixed potential
     for phase_idx in range(len(phase_records)):
         df_phase_name = <unicode>current_grid_Phase[phase_indices[phase_idx][1][0]]
