@@ -224,7 +224,25 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
     candidate_dfs = [x[1] for x in candidates]
     candidates = [x[0] for x in candidates]
     phases_changed = False
-    if (len(candidates) > 0) and (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
+    if (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
+        #compset = candidates[np.argmax(candidate_dfs)]
+        composition_sets[:] = candidates
+
+        #for cset,df in zip(candidates,candidate_dfs):
+        #    if cset == compset:
+        #        continue
+        #    if abs(df) <= MAX_SOLVE_DRIVING_FORCE:
+        #        composition_sets.append(cset)
+        #comp_distances = np.array([np.max(np.abs(np.array(existing_candidate.X) - np.array(compset.X)))
+        #                           for existing_candidate in composition_sets
+        #                           if compset.phase_record.phase_name == existing_candidate.phase_record.phase_name])
+        #if (comp_distances.shape[0] == 0 or np.min(comp_distances) > 1e-3):
+        #    compset.NP = 1e-3
+        #    composition_sets.append(compset)
+        if verbose:
+            print('New Composition Sets', composition_sets)
+        phases_changed = True
+    if False:#(len(candidates) > 0) and (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
         phases_changed = True
         # First N points are fictitious
         fict_matrix = np.full((chemical_potentials.shape[0], chemical_potentials.shape[0]), MIN_SITE_FRACTION)
@@ -477,9 +495,25 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if not changed_phases:
                 chemical_potentials[:] = result.chemical_potentials
                 break
+        if changed_phases:
+            prob = problem(composition_sets, comps, cur_conds)
+            result = iter_solver.solve(prob)
+            composition_sets = prob.composition_sets
+            if result.converged:
+                x = result.x
+                chemical_potentials = result.chemical_potentials
+                var_offset = 0
+                phase_idx = 0
+                for compset in composition_sets:
+                    compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                                   x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+                    var_offset += compset.phase_record.phase_dof
+                    phase_idx += 1
         converged = result.converged
         remove_degenerate_phases(composition_sets, 1e-3, 0, verbose)
         if converged:
+            if verbose:
+                print('Composition Sets', composition_sets)
             prop_MU_values[it.multi_index] = chemical_potentials
             prop_Phase_values[it.multi_index] = ''
             prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = [compset.NP for compset in composition_sets]

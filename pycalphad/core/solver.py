@@ -26,7 +26,7 @@ class InteriorPointSolver(object):
         # nlp.addOption(b'check_derivatives_for_naninf', b'yes')
         MAX_SOLVE_DRIVING_FORCE = 1e-4
         nlp.addOption(b'print_level', 0)
-        #nlp.addOption(b'mu_strategy', b'adaptive')
+        nlp.addOption(b'mu_strategy', b'adaptive')
         #nlp.addOption(b'tol', 1e-2)
         #nlp.addOption(b'acceptable_tol', 1e-1)
         nlp.addOption(b'dual_inf_tol', MAX_SOLVE_DRIVING_FORCE)
