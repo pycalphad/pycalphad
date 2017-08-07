@@ -226,8 +226,16 @@ cdef bint add_new_phases(object composition_sets, object phase_records,
     phases_changed = False
     if (max(candidate_dfs) > MAX_SOLVE_DRIVING_FORCE):
         #compset = candidates[np.argmax(candidate_dfs)]
-        composition_sets[:] = candidates
+        stable_compsets = [compset for compset,df in zip(candidates,candidate_dfs) if abs(df) <= MAX_SOLVE_DRIVING_FORCE]
 
+        composition_sets[:] = stable_compsets
+        # If there are fewer stable phases than allowed by Gibbs phase rule, add one with biggest driving force
+        if len(composition_sets) < chemical_potentials.shape[0]:
+            largest_df_idx = np.argmax(candidate_dfs)
+            new_compset = candidates[largest_df_idx]
+            composition_sets.append(new_compset)
+        for compset in composition_sets:
+            compset.NP = 1./len(composition_sets)
         #for cset,df in zip(candidates,candidate_dfs):
         #    if cset == compset:
         #        continue
