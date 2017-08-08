@@ -9,6 +9,7 @@ from copy import deepcopy
 from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
+from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB

@@ -15,7 +15,13 @@ except ImportError:
     # Python 3
     from io import StringIO
 
-
+# handle missing FileExistsError in Python2
+try:
+    FileExistsError = FileExistsError
+except NameError:
+    class FileExistsError(OSError):
+        """Python 2 backported FileExistsError wrapping OSError"""
+        pass
 
 class DatabaseExportError(Exception):
     """Raised when a database cannot be written."""
