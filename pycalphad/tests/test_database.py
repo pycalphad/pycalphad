@@ -4,10 +4,12 @@ The test_database module contains tests for the Database object.
 from __future__ import print_function
 import warnings
 import hashlib
+import os
 from copy import deepcopy
 from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
+from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
@@ -154,6 +156,39 @@ def test_tdb_content_after_line_end_is_neglected():
     """
     test_dbf = Database.from_string(tdb_line_ending_str, fmt='tdb')
     assert len(test_dbf._parameters) == 3
+
+def _remove_file_with_name_testwritedb():
+    fname = 'testwritedb.tdb'
+    os.remove(fname)
+
+@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
+@nose.tools.raises(FileExistsError)
+def test_to_file_defaults_to_raise_if_exists():
+    "Attempting to use Database.to_file should raise by default if it exists"
+    fname = 'testwritedb.tdb'
+    test_dbf = Database(ALNIPT_TDB)
+    test_dbf.to_file(fname)  # establish the initial file
+    test_dbf.to_file(fname)  # test if_exists behavior
+
+@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
+@nose.tools.raises(FileExistsError)
+def test_to_file_raises_with_bad_if_exists_argument():
+    "Database.to_file should raise if a bad behavior string is passed to if_exists"
+    fname = 'testwritedb.tdb'
+    test_dbf = Database(ALNIPT_TDB)
+    test_dbf.to_file(fname)  # establish the initial file
+    test_dbf.to_file(fname, if_exists='TEST_BAD_ARGUMENT')  # test if_exists behavior
+
+@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
+def test_to_file_overwrites_with_if_exists_argument():
+    "Database.to_file should overwrite if 'overwrite' is passed to if_exists"
+    fname = 'testwritedb.tdb'
+    test_dbf = Database(ALNIPT_TDB)
+    test_dbf.to_file(fname)  # establish the initial file
+    inital_modification_time = os.path.getmtime(fname)
+    test_dbf.to_file(fname, if_exists='overwrite')  # test if_exists behavior
+    overwrite_modification_time = os.path.getmtime(fname)
+    assert overwrite_modification_time > inital_modification_time
 
 @nose.tools.raises(ValueError)
 def test_unspecified_format_from_string():
