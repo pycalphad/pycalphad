@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.database &mdash; pycalphad 0.5.1+16.g06f5df0 documentation</title>
+  <title>pycalphad.io.database &mdash; pycalphad 0.5.1+17.g3d6c91b documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.1+16.g06f5df0 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.1+17.g3d6c91b documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.1+16.g06f5df0
+                0.5.1+17.g3d6c91b
               </div>
             
           
@@ -178,7 +178,13 @@
     <span class="c1"># Python 3</span>
     <span class="kn">from</span> <span class="nn">io</span> <span class="k">import</span> <span class="n">StringIO</span>
 
-
+<span class="c1"># handle missing FileExistsError in Python2</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="ne">FileExistsError</span> <span class="o">=</span> <span class="ne">FileExistsError</span>
+<span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
+    <span class="k">class</span> <span class="nc">FileExistsError</span><span class="p">(</span><span class="ne">OSError</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Python 2 backported FileExistsError wrapping OSError&quot;&quot;&quot;</span>
+        <span class="k">pass</span>
 
 <div class="viewcode-block" id="DatabaseExportError"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.DatabaseExportError">[docs]</a><span class="k">class</span> <span class="nc">DatabaseExportError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Raised when a database cannot be written.&quot;&quot;&quot;</span>
@@ -447,12 +453,13 @@
             <span class="n">format_registry</span><span class="p">[</span><span class="n">fmt</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fname</span><span class="p">,</span> <span class="o">**</span><span class="n">write_kwargs</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">exists</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span> <span class="ow">and</span> <span class="n">if_exists</span> <span class="o">!=</span> <span class="s1">&#39;overwrite&#39;</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">if_exists</span> <span class="o">==</span> <span class="s1">&#39;raise&#39;</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s1">&#39;File </span><span class="si">{}</span><span class="s1"> already exists&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
-                <span class="k">elif</span> <span class="n">if_exists</span> <span class="o">==</span> <span class="s1">&#39;rename&#39;</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">if_exists</span> <span class="o">==</span> <span class="s1">&#39;rename&#39;</span><span class="p">:</span>
                     <span class="n">writetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
                     <span class="n">fname</span> <span class="o">=</span> <span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">splitext</span><span class="p">(</span><span class="n">fname</span><span class="p">)</span>
                     <span class="n">fname</span> <span class="o">=</span> <span class="n">fname</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="s2">&quot;.&quot;</span> <span class="o">+</span> <span class="n">writetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2">-%H-%M&quot;</span><span class="p">)</span> <span class="o">+</span> <span class="n">fname</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># equivalent to &#39;raise&#39;</span>
+                    <span class="k">raise</span> <span class="ne">FileExistsError</span><span class="p">(</span><span class="s1">&#39;File </span><span class="si">{}</span><span class="s1"> already exists&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">fname</span><span class="p">))</span>
             <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">fname</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">fd</span><span class="p">:</span>
                 <span class="n">format_registry</span><span class="p">[</span><span class="n">fmt</span><span class="p">]</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="o">**</span><span class="n">write_kwargs</span><span class="p">)</span></div>
 
@@ -665,7 +672,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.1+16.g06f5df0',
+            VERSION:'0.5.1+17.g3d6c91b',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
