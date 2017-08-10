@@ -20,6 +20,22 @@ pycalphad.plot.eqplot module
     :undoc-members:
     :show-inheritance:
 
+pycalphad.plot.ternary module
+-----------------------------
+
+.. automodule:: pycalphad.plot.ternary
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.plot.triangular module
+--------------------------------
+
+.. automodule:: pycalphad.plot.triangular
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycalphad.plot.utils module
 ---------------------------
 
