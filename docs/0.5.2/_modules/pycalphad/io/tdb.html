@@ -1,0 +1,1083 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.5.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0.5.2 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.io.tdb</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.io.tdb</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The tdb module provides support for reading and writing databases in</span>
+<span class="sd">Thermo-Calc TDB format.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">CaselessKeyword</span><span class="p">,</span> <span class="n">CharsNotIn</span><span class="p">,</span> <span class="n">Group</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">LineEnd</span><span class="p">,</span> <span class="n">MatchFirst</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Regex</span><span class="p">,</span> <span class="n">SkipTo</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">ZeroOrMore</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">White</span><span class="p">,</span> <span class="n">Word</span><span class="p">,</span> <span class="n">alphanums</span><span class="p">,</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">delimitedList</span><span class="p">,</span> <span class="n">ParseException</span>
+<span class="kn">import</span> <span class="nn">re</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">Intersection</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">GreaterThan</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">Complement</span><span class="p">,</span> <span class="n">S</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">Rational</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.str</span> <span class="k">import</span> <span class="n">StrPrinter</span>
+<span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="k">import</span> <span class="n">_keep_coeff</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="k">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
+<span class="kn">import</span> <span class="nn">ast</span>
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="kn">import</span> <span class="nn">inspect</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">getpass</span>
+<span class="kn">import</span> <span class="nn">datetime</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">import</span> <span class="nn">hashlib</span>
+<span class="kn">from</span> <span class="nn">copy</span> <span class="k">import</span> <span class="n">deepcopy</span>
+
+<span class="n">_AST_WHITELIST</span> <span class="o">=</span> <span class="p">[</span><span class="n">ast</span><span class="o">.</span><span class="n">Add</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">BinOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Call</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Div</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">,</span>
+                  <span class="n">ast</span><span class="o">.</span><span class="n">Load</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Sub</span><span class="p">,</span>
+                  <span class="n">ast</span><span class="o">.</span><span class="n">UAdd</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">]</span>
+
+<span class="k">def</span> <span class="nf">_sympify_string</span><span class="p">(</span><span class="n">math_string</span><span class="p">):</span>
+    <span class="s2">&quot;Convert math string into SymPy object.&quot;</span>
+    <span class="c1"># drop pound symbols (&#39;#&#39;) since they denote function names</span>
+    <span class="c1"># we detect those automatically</span>
+    <span class="n">expr_string</span> <span class="o">=</span> <span class="n">math_string</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;#&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+    <span class="c1"># sympify doesn&#39;t recognize LN as ln()</span>
+    <span class="n">expr_string</span> <span class="o">=</span> \
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?&lt;!\w)LN(?!\w)&#39;</span><span class="p">,</span> <span class="s1">&#39;ln&#39;</span><span class="p">,</span> <span class="n">expr_string</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">expr_string</span> <span class="o">=</span> \
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?&lt;!\w)LOG(?!\w)&#39;</span><span class="p">,</span> <span class="s1">&#39;log&#39;</span><span class="p">,</span> <span class="n">expr_string</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="n">expr_string</span> <span class="o">=</span> \
+        <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?&lt;!\w)EXP(?!\w)&#39;</span><span class="p">,</span> <span class="s1">&#39;exp&#39;</span><span class="p">,</span> <span class="n">expr_string</span><span class="p">,</span>
+               <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
+    <span class="c1"># Convert raw variables into StateVariable objects</span>
+    <span class="n">variable_fixes</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
+        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span>
+        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span>
+    <span class="p">}</span>
+    <span class="c1"># sympify uses eval, so we need to sanitize the input</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">expr_string</span><span class="p">)</span>
+    <span class="n">nodes</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
+
+    <span class="k">for</span> <span class="n">node</span> <span class="ow">in</span> <span class="n">ast</span><span class="o">.</span><span class="n">walk</span><span class="p">(</span><span class="n">nodes</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AST_WHITELIST</span><span class="p">:</span> <span class="c1">#pylint: disable=W1504</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expression from TDB file not in whitelist: &#39;</span>
+                             <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expr_string</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">sympify</span><span class="p">(</span><span class="n">expr_string</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_fixes</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_parse_action</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Decorator for pyparsing parse actions to ease debugging.</span>
+
+<span class="sd">    pyparsing uses trial &amp; error to deduce the number of arguments a parse</span>
+<span class="sd">    action accepts. Unfortunately any ``TypeError`` raised by a parse action</span>
+<span class="sd">    confuses that mechanism.</span>
+
+<span class="sd">    This decorator replaces the trial &amp; error mechanism with one based on</span>
+<span class="sd">    reflection. If the decorated function itself raises a ``TypeError`` then</span>
+<span class="sd">    that exception is re-raised if the wrapper is called with less arguments</span>
+<span class="sd">    than required. This makes sure that the actual ``TypeError`` bubbles up</span>
+<span class="sd">    from the call to the parse action (instead of the one caused by pyparsing&#39;s</span>
+<span class="sd">    trial &amp; error).</span>
+
+<span class="sd">    Modified slightly from the original for Py3 compatibility</span>
+<span class="sd">    Source: Florian Brucker on StackOverflow</span>
+<span class="sd">    http://stackoverflow.com/questions/10177276/pyparsing-setparseaction-function-is-getting-no-arguments</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">num_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">num_args</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input function must take at most 3 parameters.&#39;</span><span class="p">)</span>
+
+    <span class="nd">@functools</span><span class="o">.</span><span class="n">wraps</span><span class="p">(</span><span class="n">func</span><span class="p">)</span>
+    <span class="k">def</span> <span class="nf">action</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">):</span>
+        <span class="s2">&quot;Wrapped function.&quot;</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">&lt;</span> <span class="n">num_args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span><span class="p">[</span><span class="mi">0</span><span class="p">](</span><span class="n">action</span><span class="o">.</span><span class="n">exc_info</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span>
+        <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">[:</span><span class="o">-</span><span class="p">(</span><span class="n">num_args</span> <span class="o">+</span> <span class="mi">1</span><span class="p">):</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">except</span> <span class="ne">TypeError</span> <span class="k">as</span> <span class="n">err</span><span class="p">:</span>
+            <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span> <span class="o">=</span> <span class="n">sys</span><span class="o">.</span><span class="n">exc_info</span><span class="p">()</span>
+            <span class="k">raise</span> <span class="n">err</span>
+
+    <span class="n">action</span><span class="o">.</span><span class="n">exc_info</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">return</span> <span class="n">action</span>
+
+<span class="nd">@_parse_action</span>
+<span class="k">def</span> <span class="nf">_make_piecewise_ast</span><span class="p">(</span><span class="n">toks</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function for converting tokens into a piecewise sympy AST.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">cur_tok</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">expr_cond_pairs</span> <span class="o">=</span> <span class="p">[]</span>
+
+    <span class="c1"># Only one token: Not a piecewise function; just return the AST</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_sympify_string</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">strip</span><span class="p">(</span><span class="s1">&#39; ,&#39;</span><span class="p">))</span>
+
+    <span class="k">while</span> <span class="n">cur_tok</span> <span class="o">&lt;</span> <span class="nb">len</span><span class="p">(</span><span class="n">toks</span><span class="p">)</span><span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+        <span class="n">low_temp</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="n">cur_tok</span><span class="p">]</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">high_temp</span> <span class="o">=</span> <span class="n">toks</span><span class="p">[</span><span class="n">cur_tok</span><span class="o">+</span><span class="mi">2</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">IndexError</span><span class="p">:</span>
+            <span class="c1"># No temperature limit specified</span>
+            <span class="n">high_temp</span> <span class="o">=</span> <span class="kc">None</span>
+
+        <span class="k">if</span> <span class="n">high_temp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">expr_cond_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">_sympify_string</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="n">cur_tok</span><span class="o">+</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">And</span><span class="p">(</span><span class="n">low_temp</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expr_cond_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                <span class="p">(</span>
+                    <span class="n">_sympify_string</span><span class="p">(</span><span class="n">toks</span><span class="p">[</span><span class="n">cur_tok</span><span class="o">+</span><span class="mi">1</span><span class="p">]),</span>
+                    <span class="n">And</span><span class="p">(</span><span class="n">low_temp</span> <span class="o">&lt;=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="n">high_temp</span><span class="p">)</span>
+                <span class="p">)</span>
+            <span class="p">)</span>
+        <span class="n">cur_tok</span> <span class="o">=</span> <span class="n">cur_tok</span> <span class="o">+</span> <span class="mi">2</span>
+    <span class="n">expr_cond_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TCCommand"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCCommand">[docs]</a><span class="k">class</span> <span class="nc">TCCommand</span><span class="p">(</span><span class="n">CaselessKeyword</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parser element for dealing with Thermo-Calc command abbreviations.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+<div class="viewcode-block" id="TCCommand.parseImpl"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCCommand.parseImpl">[docs]</a>    <span class="k">def</span> <span class="nf">parseImpl</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="n">doActions</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+        <span class="c1"># Find the end of the keyword by searching for an end character</span>
+        <span class="n">start</span> <span class="o">=</span> <span class="n">loc</span>
+        <span class="n">endchars</span> <span class="o">=</span> <span class="s1">&#39; ():,&#39;</span>
+        <span class="n">loc</span> <span class="o">=</span> <span class="o">-</span><span class="mi">1</span>
+        <span class="k">for</span> <span class="n">charx</span> <span class="ow">in</span> <span class="n">endchars</span><span class="p">:</span>
+            <span class="n">locx</span> <span class="o">=</span> <span class="n">instring</span><span class="o">.</span><span class="n">find</span><span class="p">(</span><span class="n">charx</span><span class="p">,</span> <span class="n">start</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">locx</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                <span class="c1"># match the end-character closest to the start character</span>
+                <span class="k">if</span> <span class="n">loc</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">loc</span> <span class="o">=</span> <span class="nb">min</span><span class="p">(</span><span class="n">loc</span><span class="p">,</span> <span class="n">locx</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">loc</span> <span class="o">=</span> <span class="n">locx</span>
+        <span class="c1"># if no end character found, just match the whole thing</span>
+        <span class="k">if</span> <span class="n">loc</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+            <span class="n">loc</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">instring</span><span class="p">)</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">res</span> <span class="o">=</span> <span class="n">expand_keyword</span><span class="p">([</span><span class="bp">self</span><span class="o">.</span><span class="n">match</span><span class="p">],</span> <span class="n">instring</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">loc</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">res</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">errmsg</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0!r}</span><span class="s1"> is ambiguous: matches </span><span class="si">{1}</span><span class="s1">&#39;</span> \
+                    <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">instring</span><span class="p">[</span><span class="n">start</span><span class="p">:</span><span class="n">loc</span><span class="p">],</span> <span class="n">res</span><span class="p">)</span>
+                <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">errmsg</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="c1"># res[0] is the unambiguous expanded keyword</span>
+            <span class="c1"># in principle, res[0] == self.match</span>
+            <span class="k">return</span> <span class="n">loc</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+            <span class="k">pass</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">errmsg</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div></div>
+
+<span class="k">def</span> <span class="nf">_tdb_grammar</span><span class="p">():</span> <span class="c1">#pylint: disable=R0914</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convenience function for getting the pyparsing grammar of a TDB file.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="c1"># matching float w/ regex is ugly but is recommended by pyparsing</span>
+    <span class="n">float_number</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?&#39;</span><span class="p">)</span> \
+        <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="c1"># symbol name, e.g., phase name, function name</span>
+    <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:()&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="c1"># species name, e.g., CO2, AL, FE3+</span>
+    <span class="n">species_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;+-*&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">))</span>
+    <span class="c1"># constituent arrays are colon-delimited</span>
+    <span class="c1"># each subarray can be comma- or space-delimited</span>
+    <span class="n">constituent_array</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">delimitedList</span><span class="p">(</span><span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">species_name</span><span class="p">)),</span> <span class="s1">&#39;:&#39;</span><span class="p">))</span>
+    <span class="n">param_types</span> <span class="o">=</span> <span class="n">MatchFirst</span><span class="p">([</span><span class="n">TCCommand</span><span class="p">(</span><span class="n">param_type</span><span class="p">)</span> <span class="k">for</span> <span class="n">param_type</span> <span class="ow">in</span> <span class="n">TDB_PARAM_TYPES</span><span class="p">])</span>
+    <span class="c1"># Let sympy do heavy arithmetic / algebra parsing for us</span>
+    <span class="c1"># a convenience function will handle the piecewise details</span>
+    <span class="n">func_expr</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">SkipTo</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> \
+        <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;YNyn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">White</span><span class="p">()))</span>
+    <span class="c1"># ELEMENT</span>
+    <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">ref_phase_name</span><span class="p">))</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+    <span class="c1"># TYPE_DEFINITION</span>
+    <span class="n">cmd_typedef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># FUNCTION</span>
+    <span class="n">cmd_function</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;FUNCTION&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
+        <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span>
+    <span class="c1"># ASSESSED_SYSTEMS</span>
+    <span class="n">cmd_ass_sys</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># DEFINE_SYSTEM_DEFAULT</span>
+    <span class="n">cmd_defsysdef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># DEFAULT_COMMAND</span>
+    <span class="n">cmd_defcmd</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;DEFAULT_COMMAND&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># LIST_OF_REFERENCES</span>
+    <span class="n">cmd_lor</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;LIST_OF_REFERENCES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># PHASE</span>
+    <span class="n">cmd_phase</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;PHASE&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">int_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+    <span class="c1"># CONSTITUENT</span>
+    <span class="n">cmd_constituent</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;CONSTITUENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">constituent_array</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+    <span class="c1"># PARAMETER</span>
+    <span class="n">cmd_parameter</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;PARAMETER&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">param_types</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;(&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;&amp;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">),</span> <span class="n">default</span><span class="o">=</span><span class="kc">None</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">constituent_array</span> <span class="o">+</span> \
+        <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">int_number</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span>
+    <span class="c1"># Now combine the grammar together</span>
+    <span class="n">all_commands</span> <span class="o">=</span> <span class="n">cmd_element</span> <span class="o">|</span> \
+                    <span class="n">cmd_typedef</span> <span class="o">|</span> \
+                    <span class="n">cmd_function</span> <span class="o">|</span> \
+                    <span class="n">cmd_ass_sys</span> <span class="o">|</span> \
+                    <span class="n">cmd_defsysdef</span> <span class="o">|</span> \
+                    <span class="n">cmd_defcmd</span> <span class="o">|</span> \
+                    <span class="n">cmd_lor</span> <span class="o">|</span> \
+                    <span class="n">cmd_phase</span> <span class="o">|</span> \
+                    <span class="n">cmd_constituent</span> <span class="o">|</span> \
+                    <span class="n">cmd_parameter</span>
+    <span class="k">return</span> <span class="n">all_commands</span>
+
+<span class="k">def</span> <span class="nf">_process_typedef</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process the TYPE_DEFINITION command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># GES A_P_D BCC_A2 MAGNETIC  -1    0.4</span>
+    <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">return</span>
+    <span class="n">keyword</span> <span class="o">=</span> <span class="n">expand_keyword</span><span class="p">([</span><span class="s1">&#39;DISORDERED_PART&#39;</span><span class="p">,</span> <span class="s1">&#39;MAGNETIC&#39;</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown keyword: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">&#39;MAGNETIC&#39;</span><span class="p">:</span>
+        <span class="c1"># magnetic model (IHJ model assumed by default)</span>
+        <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">:[</span><span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">5</span><span class="p">])]</span>
+        <span class="p">}</span>
+    <span class="c1"># GES A_P_D L12_FCC DIS_PART FCC_A1</span>
+    <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">&#39;DISORDERED_PART&#39;</span><span class="p">:</span>
+        <span class="c1"># order-disorder model</span>
+        <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;disordered_phase&#39;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+            <span class="s1">&#39;ordered_phase&#39;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+            <span class="c1"># Since TDB files do not enforce any kind of ordering</span>
+            <span class="c1"># on the specification of ordered and disordered phases,</span>
+            <span class="c1"># we need to handle the case of when either phase is specified</span>
+            <span class="c1"># first. In this case, we imagine the ordered phase is</span>
+            <span class="c1"># specified first. If the disordered phase is specified</span>
+            <span class="c1"># first, we will have to catch it in _process_phase().</span>
+            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
+                <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
+            <span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_process_phase</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">typedefs</span><span class="p">,</span> <span class="n">subls</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process the PHASE command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">splitname</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
+    <span class="n">phase_name</span> <span class="o">=</span> <span class="n">splitname</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">splitname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="n">options</span> <span class="o">=</span> <span class="n">splitname</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">targetdb</span><span class="o">.</span><span class="n">add_structure_entry</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
+    <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">typedefs</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="k">if</span> <span class="s1">&#39;ihj_magnetic&#39;</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+            <span class="k">if</span> <span class="s1">&#39;ordered_phase&#39;</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span>
+                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span> <span class="o">=</span> \
+                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span>
+                <span class="k">if</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+                    <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]]</span>\
+                        <span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">:</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">],</span>
+                                             <span class="s1">&#39;disordered_phase&#39;</span><span class="p">:</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]})</span>
+    <span class="n">targetdb</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">subls</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_process_parameter</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span>
+                       <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Process the PARAMETER command.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># sorting lx is _required_ here: see issue #17 on GitHub</span>
+    <span class="n">targetdb</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                           <span class="p">[[</span><span class="n">c</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lx</span><span class="p">)]</span>
+                            <span class="k">for</span> <span class="n">lx</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="o">.</span><span class="n">asList</span><span class="p">()],</span>
+                           <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">)</span>
+
+<span class="k">def</span> <span class="nf">_unimplemented</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1">#pylint: disable=W0613</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Null function.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">pass</span>
+
+<span class="k">def</span> <span class="nf">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TDB contains duplicate FUNCTION </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
+    <span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
+
+<span class="n">_TDB_PROCESSOR</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">el</span><span class="p">),</span>
+    <span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">:</span> <span class="n">_process_typedef</span><span class="p">,</span>
+    <span class="s1">&#39;FUNCTION&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">:</span> <span class="n">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">symbols</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">),</span>
+    <span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;DEFAULT_COMMAND&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;LIST_OF_REFERENCES&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;PHASE&#39;</span><span class="p">:</span> <span class="n">_process_phase</span><span class="p">,</span>
+    <span class="s1">&#39;CONSTITUENT&#39;</span><span class="p">:</span> \
+        <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">add_phase_constituents</span><span class="p">(</span>
+            <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">c</span><span class="p">),</span>
+    <span class="s1">&#39;PARAMETER&#39;</span><span class="p">:</span> <span class="n">_process_parameter</span>
+<span class="p">}</span>
+
+<div class="viewcode-block" id="to_interval"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.to_interval">[docs]</a><span class="k">def</span> <span class="nf">to_interval</span><span class="p">(</span><span class="n">relational</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">And</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Intersection</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">Or</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Union</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">Not</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">Complement</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+    <span class="k">if</span> <span class="n">relational</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Relational must only have one free symbol&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Relational must only have two arguments&#39;</span><span class="p">)</span>
+    <span class="n">free_symbol</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">lhs</span> <span class="o">=</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">rhs</span> <span class="o">=</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">GreaterThan</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">free_symbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lhs</span> <span class="o">==</span> <span class="n">free_symbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lhs</span> <span class="o">!=</span> <span class="n">free_symbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">lhs</span> <span class="o">!=</span> <span class="n">free_symbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported Relational: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span></div>
+
+<div class="viewcode-block" id="TCPrinter"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter">[docs]</a><span class="k">class</span> <span class="nc">TCPrinter</span><span class="p">(</span><span class="n">StrPrinter</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Prints Thermo-Calc style function expressions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="nf">_print_Piecewise</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="c1"># Filter out default zeros since they are implicit in a TDB</span>
+        <span class="n">filtered_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="ow">not</span> <span class="p">((</span><span class="n">i</span><span class="o">.</span><span class="n">cond</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">expr</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">))]</span>
+        <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]</span>
+        <span class="c1"># Only a small subset of piecewise functions can be represented</span>
+        <span class="c1"># Need to verify that each cond&#39;s highlim equals the next cond&#39;s lowlim</span>
+        <span class="c1"># to_interval() is used instead of sympy.Relational.as_set() for performance reasons</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Intersection</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">EmptySet</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Overlapping intervals cannot be represented: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">intervals</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Union</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span> <span class="n">Interval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Piecewise intervals must be continuous&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">cond</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only temperature-dependent piecewise conditions are supported&#39;</span><span class="p">)</span>
+        <span class="c1"># Sort expressions based on intervals</span>
+        <span class="n">sortindices</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">enumerate</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span><span class="n">x</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">)]</span>
+        <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="n">exprs</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">sortindices</span><span class="p">]</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">intervals</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="n">sortindices</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">exprs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{1}</span><span class="s1"> </span><span class="si">{0}</span><span class="s1">; </span><span class="si">{2}</span><span class="s1"> Y&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">),</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="s1">&#39;Y&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39; </span><span class="si">{0}</span><span class="s1">; </span><span class="si">{1}</span><span class="s1"> &#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span>
+                                                   <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">end</span><span class="p">))</span> <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="mi">1</span><span class="p">:],</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">1</span><span class="p">:])])</span>
+            <span class="n">result</span> <span class="o">+=</span> <span class="s1">&#39;N&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="s1">&#39;</span><span class="si">{0}</span><span class="s1"> </span><span class="si">{1}</span><span class="s1">; </span><span class="si">{2}</span><span class="s1"> N&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">start</span><span class="p">),</span> <span class="n">exprs</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span>
+                                             <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">intervals</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">end</span><span class="p">))</span>
+
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="k">def</span> <span class="nf">_print_Mul</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="s2">&quot;Copied from sympy StrPrinter and modified to remove division.&quot;</span>
+
+        <span class="n">prec</span> <span class="o">=</span> <span class="n">precedence</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+
+        <span class="n">c</span><span class="p">,</span> <span class="n">e</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">as_coeff_Mul</span><span class="p">()</span>
+        <span class="k">if</span> <span class="n">c</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">_keep_coeff</span><span class="p">(</span><span class="o">-</span><span class="n">c</span><span class="p">,</span> <span class="n">e</span><span class="p">)</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="s2">&quot;-&quot;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">sign</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># items in the numerator</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># items that are in the denominator (if any)</span>
+
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">order</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">(</span><span class="s1">&#39;old&#39;</span><span class="p">,</span> <span class="s1">&#39;none&#39;</span><span class="p">):</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">as_ordered_factors</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># use make_args in case expr was something like -x -&gt; x</span>
+            <span class="n">args</span> <span class="o">=</span> <span class="n">Mul</span><span class="o">.</span><span class="n">make_args</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+
+        <span class="c1"># Gather args for numerator/denominator</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">is_commutative</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">is_Pow</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">exp</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="n">item</span><span class="o">.</span><span class="n">exp</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">exp</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Pow</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="o">-</span><span class="n">item</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Pow</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="o">-</span><span class="n">item</span><span class="o">.</span><span class="n">exp</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">item</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="n">item</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">p</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Rational</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
+                <span class="k">if</span> <span class="n">item</span><span class="o">.</span><span class="n">q</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="n">b</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Rational</span><span class="p">(</span><span class="n">item</span><span class="o">.</span><span class="n">q</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">a</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">item</span><span class="p">)</span>
+
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="ow">or</span> <span class="p">[</span><span class="n">S</span><span class="o">.</span><span class="n">One</span><span class="p">]</span>
+
+        <span class="n">a_str</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">prec</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">a</span><span class="p">]</span>
+        <span class="n">b_str</span> <span class="o">=</span> <span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">prec</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">b</span><span class="p">]</span>
+
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a_str</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">b</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># Thermo-Calc&#39;s parser can&#39;t handle division operators</span>
+            <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a_str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;*</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">b</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">**</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">),</span> <span class="n">prec</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># TODO: Make this Thermo-Calc compatible by removing division operation</span>
+            <span class="k">return</span> <span class="n">sign</span> <span class="o">+</span> <span class="s1">&#39;*&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">a_str</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;/(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="s1">&#39;*&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">b_str</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_print_Pow</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">rational</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="s2">&quot;Copied from sympy StrPrinter to remove TC-incompatible Pow simplifications.&quot;</span>
+        <span class="n">PREC</span> <span class="o">=</span> <span class="n">precedence</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+
+        <span class="n">e</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">exp</span><span class="p">,</span> <span class="n">PREC</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">printmethod</span> <span class="o">==</span> <span class="s1">&#39;_sympyrepr&#39;</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">exp</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="n">expr</span><span class="o">.</span><span class="n">exp</span><span class="o">.</span><span class="n">q</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># the parenthesized exp should be &#39;(Rational(a, b))&#39; so strip parens,</span>
+            <span class="c1"># but just check to be sure.</span>
+            <span class="k">if</span> <span class="n">e</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;(Rational&#39;</span><span class="p">):</span>
+                <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">**</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">PREC</span><span class="p">),</span> <span class="n">e</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s1">&#39;</span><span class="si">%s</span><span class="s1">**</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">parenthesize</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">base</span><span class="p">,</span> <span class="n">PREC</span><span class="p">),</span> <span class="n">e</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_print_Infinity</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="c1"># Use &quot;default value&quot; though TC&#39;s Database Checker complains about this</span>
+        <span class="k">return</span> <span class="s2">&quot;,&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_print_Symbol</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">name</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># Thermo-Calc likes symbol references to be marked with a &#39;#&#39; at the end</span>
+            <span class="k">return</span> <span class="n">expr</span><span class="o">.</span><span class="n">name</span> <span class="o">+</span> <span class="s2">&quot;#&quot;</span>
+
+    <span class="k">def</span> <span class="nf">_print_Function</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="n">func_translations</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;log&#39;</span><span class="p">:</span> <span class="s1">&#39;ln&#39;</span><span class="p">,</span> <span class="s1">&#39;exp&#39;</span><span class="p">:</span> <span class="s1">&#39;exp&#39;</span><span class="p">}</span>
+        <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()</span> <span class="ow">in</span> <span class="n">func_translations</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">func_translations</span><span class="p">[</span><span class="n">expr</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="o">.</span><span class="n">lower</span><span class="p">()]</span> <span class="o">+</span> <span class="s2">&quot;(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">stringify</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">,</span> <span class="s2">&quot;, &quot;</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unable to represent function: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                             <span class="n">expr</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+
+<div class="viewcode-block" id="TCPrinter.blacklisted"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter.blacklisted">[docs]</a>    <span class="k">def</span> <span class="nf">blacklisted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unable to represent expression: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                        <span class="n">expr</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
+
+
+    <span class="c1"># blacklist all Matrix printing</span>
+    <span class="n">_print_SparseMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_MutableSparseMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_ImmutableSparseMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_Matrix</span> <span class="o">=</span> \
+    <span class="n">_print_DenseMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_MutableDenseMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_ImmutableMatrix</span> <span class="o">=</span> \
+    <span class="n">_print_ImmutableDenseMatrix</span> <span class="o">=</span> \
+    <span class="n">blacklisted</span>
+    <span class="c1"># blacklist other operations</span>
+    <span class="n">_print_Derivative</span> <span class="o">=</span> \
+    <span class="n">_print_Integral</span> <span class="o">=</span> \
+    <span class="n">blacklisted</span>
+    <span class="c1"># blacklist some logical operations</span>
+    <span class="c1"># These should never show up outside a piecewise function</span>
+    <span class="c1"># Piecewise handles them directly</span>
+    <span class="n">_print_And</span> <span class="o">=</span> \
+    <span class="n">_print_Or</span> <span class="o">=</span> \
+    <span class="n">_print_Not</span> <span class="o">=</span> \
+    <span class="n">blacklisted</span>
+    <span class="c1"># blacklist some python expressions</span>
+    <span class="n">_print_list</span> <span class="o">=</span> \
+    <span class="n">_print_tuple</span> <span class="o">=</span> \
+    <span class="n">_print_Tuple</span> <span class="o">=</span> \
+    <span class="n">_print_dict</span> <span class="o">=</span> \
+    <span class="n">_print_Dict</span> <span class="o">=</span> \
+    <span class="n">blacklisted</span></div>
+
+
+<div class="viewcode-block" id="reflow_text"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.reflow_text">[docs]</a><span class="k">def</span> <span class="nf">reflow_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Add line breaks to ensure text doesn&#39;t exceed a certain line width.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    text : str</span>
+<span class="sd">    linewidth : int, optional</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    reflowed_text : str</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="s2">&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">text</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="p">)</span>
+    <span class="n">linebreak_chars</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot; &quot;</span><span class="p">,</span> <span class="s2">&quot;$&quot;</span><span class="p">]</span>
+    <span class="n">output_lines</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">lines</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="n">linewidth</span><span class="p">:</span>
+            <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">while</span> <span class="nb">len</span><span class="p">(</span><span class="n">line</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">linewidth</span><span class="p">:</span>
+                <span class="n">linebreak_idx</span> <span class="o">=</span> <span class="n">linewidth</span><span class="o">-</span><span class="mi">1</span>
+                <span class="k">while</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">]</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">linebreak_chars</span><span class="p">:</span>
+                    <span class="n">linebreak_idx</span> <span class="o">-=</span> <span class="mi">1</span>
+                <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">[:</span><span class="n">linebreak_idx</span><span class="p">])</span>
+                <span class="k">if</span> <span class="s2">&quot;$&quot;</span> <span class="ow">in</span> <span class="n">line</span><span class="p">:</span>
+                    <span class="c1"># previous line was a comment</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;$ &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">:]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="c1"># Always put some leading spaces at the start of a new line</span>
+                    <span class="c1"># Otherwise TC may misunderstand the expression</span>
+                    <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">:]</span>
+            <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_lines</span><span class="p">)</span></div>
+
+
+<span class="k">def</span> <span class="nf">_apply_new_symbol_names</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">symbol_name_map</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Push changes in symbol names through the Sympy expressions in symbols and parameters</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        A pycalphad Database.</span>
+<span class="sd">    symbol_name_map : dict</span>
+<span class="sd">        Map of {old_symbol_name: new_symbol_name}</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># first apply the rename to the keys</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">symbol_name_map</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">name</span><span class="p">):</span> <span class="n">expr</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># then propagate through to the symbol SymPy expression values</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">S</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symbol_name_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># finally propagate through to the parameters</span>
+    <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;parameter&#39;</span><span class="p">:</span> <span class="n">S</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symbol_name_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})},</span> <span class="n">eids</span><span class="o">=</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">eid</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="write_tdb"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.write_tdb">[docs]</a><span class="k">def</span> <span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;subsystem&#39;</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Write a TDB file from a pycalphad Database object.</span>
+
+<span class="sd">    The goal is to produce TDBs that conform to the most restrictive subset of database specifications. Some of these</span>
+<span class="sd">    can be adjusted for automatically, such as the Thermo-Calc line length limit of 78. Others require changing the</span>
+<span class="sd">    database in non-trivial ways, such as the maximum length of function names (8). The default is to warn the user when</span>
+<span class="sd">    attempting to write an incompatible database and the user must choose whether to warn and write the file anyway or</span>
+<span class="sd">    to fix the incompatibility.</span>
+
+<span class="sd">    Currently the supported compatibility fixes are:</span>
+<span class="sd">    - Line length &lt;= 78 characters (Thermo-Calc)</span>
+<span class="sd">    - Function names &lt;= 8 characters (Thermo-Calc)</span>
+
+<span class="sd">    The current unsupported fixes include:</span>
+<span class="sd">    - Keyword length &lt;= 2000 characters (Thermo-Calc)</span>
+<span class="sd">    - Element names &lt;= 2 characters (Thermo-Calc)</span>
+<span class="sd">    - Phase names &lt;= 24 characters (Thermo-Calc)</span>
+
+<span class="sd">    Other TDB compatibility issues required by Thermo-Calc or other software should be reported to the issue tracker.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        A pycalphad Database.</span>
+<span class="sd">    fd : file-like</span>
+<span class="sd">        File descriptor.</span>
+<span class="sd">    groupby : [&#39;subsystem&#39;, &#39;phase&#39;], optional</span>
+<span class="sd">        Desired grouping of parameters in the file.</span>
+<span class="sd">    if_incompatible : string, optional [&#39;raise&#39;, &#39;warn&#39;, &#39;fix&#39;]</span>
+<span class="sd">        Strategy if the database does not conform to the most restrictive database specification.</span>
+<span class="sd">        The &#39;warn&#39; option (default) will write out the incompatible database with a warning.</span>
+<span class="sd">        The &#39;raise&#39; option will raise a DatabaseExportError.</span>
+<span class="sd">        The &#39;ignore&#39; option will write out the incompatible database silently.</span>
+<span class="sd">        The &#39;fix&#39; option will rectify the incompatibilities e.g. through name mangling.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Before writing anything, check that the TDB is valid and take the appropriate action if not</span>
+    <span class="k">if</span> <span class="n">if_incompatible</span> <span class="ow">not</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;warn&#39;</span><span class="p">,</span> <span class="s1">&#39;raise&#39;</span><span class="p">,</span> <span class="s1">&#39;ignore&#39;</span><span class="p">,</span> <span class="s1">&#39;fix&#39;</span><span class="p">]:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Incorrect options passed to </span><span class="se">\&#39;</span><span class="s1">if_invalid</span><span class="se">\&#39;</span><span class="s1">. Valid args are </span><span class="se">\&#39;</span><span class="s1">raise</span><span class="se">\&#39;</span><span class="s1">, </span><span class="se">\&#39;</span><span class="s1">warn</span><span class="se">\&#39;</span><span class="s1">, or </span><span class="se">\&#39;</span><span class="s1">fix</span><span class="se">\&#39;</span><span class="s1">.&#39;</span><span class="p">)</span>
+    <span class="c1"># Handle function names &gt; 8 characters</span>
+    <span class="n">long_function_names</span> <span class="o">=</span> <span class="p">{</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">8</span><span class="p">}</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">long_function_names</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">if_incompatible</span> <span class="o">==</span> <span class="s1">&#39;raise&#39;</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="n">DatabaseExportError</span><span class="p">(</span><span class="s1">&#39;The following function names are beyond the 8 character TDB limit: </span><span class="si">{}</span><span class="s1">. Use the keyword argument </span><span class="se">\&#39;</span><span class="s1">if_incompatible</span><span class="se">\&#39;</span><span class="s1"> to control this behavior.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">long_function_names</span><span class="p">))</span>
+        <span class="k">elif</span> <span class="n">if_incompatible</span> <span class="o">==</span> <span class="s1">&#39;fix&#39;</span><span class="p">:</span>
+            <span class="c1"># if we are going to make changes, make the changes to a copy and leave the original object untouched</span>
+            <span class="n">dbf</span> <span class="o">=</span> <span class="n">deepcopy</span><span class="p">(</span><span class="n">dbf</span><span class="p">)</span> <span class="c1"># TODO: if we do multiple fixes, we should only copy once</span>
+            <span class="n">symbol_name_map</span> <span class="o">=</span> <span class="p">{}</span>
+            <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">long_function_names</span><span class="p">:</span>
+                <span class="n">hashed_name</span> <span class="o">=</span> <span class="s1">&#39;F&#39;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">hashlib</span><span class="o">.</span><span class="n">md5</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">encode</span><span class="p">(</span><span class="s1">&#39;UTF-8&#39;</span><span class="p">))</span><span class="o">.</span><span class="n">hexdigest</span><span class="p">())</span><span class="o">.</span><span class="n">upper</span><span class="p">()[:</span><span class="mi">7</span><span class="p">]</span> <span class="c1"># this is implictly upper(), but it is explicit here</span>
+                <span class="n">symbol_name_map</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hashed_name</span>
+            <span class="n">_apply_new_symbol_names</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">symbol_name_map</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">if_incompatible</span> <span class="o">==</span> <span class="s1">&#39;warn&#39;</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Ignoring that the following function names are beyond the 8 character TDB limit: </span><span class="si">{}</span><span class="s1">. Use the keyword argument </span><span class="se">\&#39;</span><span class="s1">if_incompatible</span><span class="se">\&#39;</span><span class="s1"> to control this behavior.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">long_function_names</span><span class="p">))</span>
+    <span class="c1"># Begin constructing the written database</span>
+    <span class="n">writetime</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">datetime</span><span class="o">.</span><span class="n">now</span><span class="p">()</span>
+    <span class="n">maxlen</span> <span class="o">=</span> <span class="mi">78</span>
+    <span class="n">output</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+    <span class="c1"># Comment header block</span>
+    <span class="c1"># Import here to prevent circular imports</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">__version__</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ Date: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">writetime</span><span class="o">.</span><span class="n">strftime</span><span class="p">(</span><span class="s2">&quot;%Y-%m-</span><span class="si">%d</span><span class="s2"> %H:%M&quot;</span><span class="p">))</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ Components: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)))</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ Phases: </span><span class="si">{}</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;, &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())))</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ Generated by </span><span class="si">{}</span><span class="s2"> (pycalphad </span><span class="si">{}</span><span class="s2">)</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">getpass</span><span class="o">.</span><span class="n">getuser</span><span class="p">(),</span> <span class="n">__version__</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="p">(</span><span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span><span class="p">)</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;ELEMENT </span><span class="si">{0}</span><span class="s2"> BLANK 0 0 0 !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">):</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;SPECIES </span><span class="si">{0}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="c1"># Write FUNCTION block</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+            <span class="c1"># Non-piecewise exprs need to be wrapped to print</span>
+            <span class="c1"># Otherwise TC&#39;s TDB parser will complain</span>
+            <span class="n">expr</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">((</span><span class="n">expr</span><span class="p">,</span> <span class="n">And</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">)))</span>
+        <span class="n">expr</span> <span class="o">=</span> <span class="n">TCPrinter</span><span class="p">()</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">expr</span><span class="p">:</span>
+            <span class="n">expr</span> <span class="o">+=</span> <span class="s1">&#39;; N&#39;</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;FUNCTION </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">expr</span><span class="p">)</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="c1"># Boilerplate code</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;TYPE_DEFINITION % SEQ * !</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;DEFINE_SYSTEM_DEFAULT ELEMENT 2 !</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">default_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;VA&#39;</span> <span class="ow">or</span> <span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="o">==</span> <span class="s1">&#39;/-&#39;</span><span class="p">]</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">default_elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s1">&#39;DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT </span><span class="si">{}</span><span class="s1"> !</span><span class="se">\n</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">default_elements</span><span class="p">))</span>
+    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+    <span class="n">typedef_chars</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="s2">&quot;^&amp;*()&#39;ABCDEFGHIJKLMNOPQSRTUVWXYZ&quot;</span><span class="p">)[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="c1">#  Write necessary TYPE_DEF based on model hints</span>
+    <span class="n">typedefs</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;%&quot;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">model_hints</span> <span class="o">=</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span> <span class="ow">in</span> <span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">):</span>
+            <span class="n">new_char</span> <span class="o">=</span> <span class="n">typedef_chars</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+            <span class="n">typedefs</span><span class="p">[</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="s1">&#39;TYPE_DEFINITION </span><span class="si">{}</span><span class="s1"> GES AMEND_PHASE_DESCRIPTION </span><span class="si">{}</span><span class="s1"> DISORDERED_PART </span><span class="si">{}</span><span class="s1"> !</span><span class="se">\n</span><span class="s1">&#39;</span>\
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_char</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                        <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span> <span class="ow">in</span> <span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">):</span>
+            <span class="c1"># We handle adding the correct typedef when we write the ordered phase</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span> <span class="ow">in</span> <span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="n">new_char</span> <span class="o">=</span> <span class="n">typedef_chars</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+            <span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="s1">&#39;TYPE_DEFINITION </span><span class="si">{}</span><span class="s1"> GES AMEND_PHASE_DESCRIPTION </span><span class="si">{}</span><span class="s1"> MAGNETIC </span><span class="si">{}</span><span class="s1"> </span><span class="si">{}</span><span class="s1"> !</span><span class="se">\n</span><span class="s1">&#39;</span>\
+                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">new_char</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">],</span>
+                        <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">])</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">]</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">model_hints</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="c1"># Some model hints were not properly consumed</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not all model hints are supported: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_hints</span><span class="p">))</span>
+    <span class="c1"># Perform a second loop now that all typedefs / model hints are consistent</span>
+    <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;PHASE </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2">  </span><span class="si">{2}</span><span class="s2"> </span><span class="si">{3}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span>
+                                                      <span class="nb">len</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">),</span>
+                                                      <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">]))</span>
+        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;CONSTITUENT </span><span class="si">{0}</span><span class="s2"> :</span><span class="si">{1}</span><span class="s2">: !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">constituents</span><span class="p">)</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+
+    <span class="c1"># PARAMETERs by subsystem</span>
+    <span class="n">param_sorted</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="nb">list</span><span class="p">())</span>
+    <span class="n">paramtuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ParamTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;phase_name&#39;</span><span class="p">,</span> <span class="s1">&#39;parameter_type&#39;</span><span class="p">,</span> <span class="s1">&#39;complexity&#39;</span><span class="p">,</span> <span class="s1">&#39;constituent_array&#39;</span><span class="p">,</span>
+                                           <span class="s1">&#39;parameter_order&#39;</span><span class="p">,</span> <span class="s1">&#39;diffusing_species&#39;</span><span class="p">,</span> <span class="s1">&#39;parameter&#39;</span><span class="p">,</span> <span class="s1">&#39;reference&#39;</span><span class="p">])</span>
+    <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">groupby</span> <span class="o">==</span> <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+            <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">]:</span>
+                <span class="n">components</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">components</span> <span class="o">|=</span> <span class="p">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]}</span>
+            <span class="c1"># Wildcard operator is not a component</span>
+            <span class="n">components</span> <span class="o">-=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">}</span>
+            <span class="c1"># Remove vacancy if it&#39;s not the only component (pure vacancy endmember)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">components</span> <span class="o">-=</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]))</span>
+            <span class="n">grouping</span> <span class="o">=</span> <span class="n">components</span>
+        <span class="k">elif</span> <span class="n">groupby</span> <span class="o">==</span> <span class="s1">&#39;phase&#39;</span><span class="p">:</span>
+            <span class="n">grouping</span> <span class="o">=</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;phase_name&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown groupby attribute </span><span class="se">\&#39;</span><span class="si">{}</span><span class="se">\&#39;</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">groupby</span><span class="p">))</span>
+        <span class="c1"># We use the complexity parameter to help with sorting the parameters logically</span>
+        <span class="n">param_sorted</span><span class="p">[</span><span class="n">grouping</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">paramtuple</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;phase_name&#39;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">],</span>
+                                                 <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">]]),</span>
+                                                 <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">],</span>
+                                                 <span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">],</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">],</span>
+                                                 <span class="n">param</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]))</span>
+
+    <span class="k">def</span> <span class="nf">write_parameter</span><span class="p">(</span><span class="n">param_to_write</span><span class="p">):</span>
+        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">]))</span>
+                         <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">constituent_array</span><span class="p">])</span>
+        <span class="c1"># TODO: Handle references</span>
+        <span class="n">paramx</span> <span class="o">=</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">paramx</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+            <span class="c1"># Non-piecewise parameters need to be wrapped to print correctly</span>
+            <span class="c1"># Otherwise TC&#39;s TDB parser will fail</span>
+            <span class="n">paramx</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">((</span><span class="n">paramx</span><span class="p">,</span> <span class="n">And</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&gt;=</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">&lt;</span> <span class="mi">10000</span><span class="p">)))</span>
+        <span class="n">exprx</span> <span class="o">=</span> <span class="n">TCPrinter</span><span class="p">()</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span><span class="n">paramx</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exprx</span><span class="p">:</span>
+            <span class="n">exprx</span> <span class="o">+=</span> <span class="s1">&#39;; N&#39;</span>
+        <span class="k">if</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
+        <span class="k">return</span> <span class="s2">&quot;PARAMETER </span><span class="si">{}</span><span class="s2">(</span><span class="si">{}{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">;</span><span class="si">{}</span><span class="s2">) </span><span class="si">{}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter_type</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                                        <span class="n">param_to_write</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
+                                                        <span class="n">ds</span><span class="p">,</span>
+                                                        <span class="n">constituents</span><span class="p">,</span>
+                                                        <span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter_order</span><span class="p">,</span>
+                                                        <span class="n">exprx</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">groupby</span> <span class="o">==</span> <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">num_elements</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">subsystems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">]),</span> <span class="n">num_elements</span><span class="p">))</span>
+            <span class="k">for</span> <span class="n">subsystem</span> <span class="ow">in</span> <span class="n">subsystems</span><span class="p">:</span>
+                <span class="n">parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">param_sorted</span><span class="p">[</span><span class="n">subsystem</span><span class="p">])</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;-&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">subsystem</span><span class="p">))</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">maxlen</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;$</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                    <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                        <span class="n">output</span> <span class="o">+=</span> <span class="n">write_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+        <span class="c1"># Don&#39;t generate combinatorics for multi-component subsystems or we&#39;ll run out of memory</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+            <span class="n">subsystems</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">param_sorted</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">]</span>
+            <span class="k">for</span> <span class="n">subsystem</span> <span class="ow">in</span> <span class="n">subsystems</span><span class="p">:</span>
+                <span class="n">parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">param_sorted</span><span class="p">[</span><span class="n">subsystem</span><span class="p">])</span>
+                <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="n">write_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">groupby</span> <span class="o">==</span> <span class="s1">&#39;phase&#39;</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()):</span>
+            <span class="n">parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">param_sorted</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n\n</span><span class="s2">&quot;</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$ </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span><span class="o">.</span><span class="n">center</span><span class="p">(</span><span class="n">maxlen</span><span class="p">,</span> <span class="s2">&quot; &quot;</span><span class="p">)[</span><span class="mi">2</span><span class="p">:</span><span class="o">-</span><span class="mi">1</span><span class="p">])</span> <span class="o">+</span> <span class="s2">&quot;$</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;$&quot;</span> <span class="o">*</span> <span class="n">maxlen</span> <span class="o">+</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
+                <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">output</span> <span class="o">+=</span> <span class="n">write_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown groupby attribute </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">groupby</span><span class="p">))</span>
+    <span class="c1"># Reflow text to respect character limit per line</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">reflow_text</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">maxlen</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="read_tdb"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.read_tdb">[docs]</a><span class="k">def</span> <span class="nf">read_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Parse a TDB file into a pycalphad Database object.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        A pycalphad Database.</span>
+<span class="sd">    fd : file-like</span>
+<span class="sd">        File descriptor.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">fd</span><span class="o">.</span><span class="n">read</span><span class="p">()</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\t</span><span class="s1">&#39;</span><span class="p">,</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span>
+    <span class="c1"># Split the string by newlines</span>
+    <span class="n">splitlines</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+    <span class="c1"># Remove extra whitespace inside line</span>
+    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">())</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
+    <span class="c1"># Remove comments</span>
+    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">strip</span><span class="p">()</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;$&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
+    <span class="c1"># Remove everything after command delimiter, but keep the delimiter so we can split later</span>
+    <span class="n">splitlines</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="s1">&#39;!&#39;</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span> <span class="k">else</span> <span class="s1">&#39;&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">splitlines</span><span class="p">]</span>
+    <span class="c1"># Combine everything back together</span>
+    <span class="n">lines</span> <span class="o">=</span> <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">splitlines</span><span class="p">)</span>
+    <span class="c1"># Now split by the command delimeter</span>
+    <span class="n">commands</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)</span>
+
+    <span class="c1"># Temporary storage while we process type definitions</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span> <span class="o">=</span> <span class="p">{}</span>
+
+    <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">continue</span>
+        <span class="n">tokens</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="n">_TDB_PROCESSOR</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="n">dbf</span><span class="p">,</span> <span class="o">*</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
+        <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
+            <span class="k">raise</span>
+    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span></div>
+
+
+<span class="n">Database</span><span class="o">.</span><span class="n">register_format</span><span class="p">(</span><span class="s2">&quot;tdb&quot;</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">read_tdb</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="n">write_tdb</span><span class="p">)</span>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.5.2',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
