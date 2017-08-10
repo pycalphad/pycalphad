@@ -1,0 +1,812 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad package &mdash; pycalphad 0.5.2.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1 documentation" href="../index.html"/>
+        <link rel="up" title="API Documentation" href="modules.html"/>
+        <link rel="next" title="pycalphad.core package" href="pycalphad.core.html"/>
+        <link rel="prev" title="API Documentation" href="modules.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5.2.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">pycalphad package</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.fitting">pycalphad.fitting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.refdata">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API Documentation</a> &raquo;</li>
+        
+      <li>pycalphad package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/pycalphad.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycalphad-package">
+<h1>pycalphad package<a class="headerlink" href="#pycalphad-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="subpackages">
+<h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
+<div class="toctree-wrapper compound">
+<ul>
+<li class="toctree-l1"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cache">pycalphad.core.cache module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.calculate">pycalphad.core.calculate module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cartesian">pycalphad.core.cartesian module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.compiled_model">pycalphad.core.compiled_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.composition_set">pycalphad.core.composition_set module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.constants">pycalphad.core.constants module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.custom_autowrap">pycalphad.core.custom_autowrap module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cymem">pycalphad.core.cymem module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqresult">pycalphad.core.eqresult module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqsolver">pycalphad.core.eqsolver module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.equilibrium">pycalphad.core.equilibrium module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.halton">pycalphad.core.halton module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.hyperplane">pycalphad.core.hyperplane module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.lower_convex_hull">pycalphad.core.lower_convex_hull module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.rksum">pycalphad.core.rksum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.sympydiff_utils">pycalphad.core.sympydiff_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.utils">pycalphad.core.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.database">pycalphad.io.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.tdb">pycalphad.io.tdb module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.tdb_keywords">pycalphad.io.tdb_keywords module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io">Module contents</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot.binary">pycalphad.plot.binary module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot.eqplot">pycalphad.plot.eqplot module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot.ternary">pycalphad.plot.ternary module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot.triangular">pycalphad.plot.triangular module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot.utils">pycalphad.plot.utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.plot.html#module-pycalphad.plot">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</div>
+</div>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.fitting">
+<span id="pycalphad-fitting-module"></span><h2>pycalphad.fitting module<a class="headerlink" href="#module-pycalphad.fitting" title="Permalink to this headline">¶</a></h2>
+<p>This module contains routines for fitting new CALPHAD models.</p>
+<dl class="class">
+<dt id="pycalphad.fitting.Dataset">
+<em class="property">class </em><code class="descclassname">pycalphad.fitting.</code><code class="descname">Dataset</code><span class="sig-paren">(</span><em>error_func</em>, <em>calc_func</em>, <em>exp_data</em>, <em>json</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.fitting.Dataset" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.fitting.Dataset.calc_func">
+<code class="descname">calc_func</code><a class="headerlink" href="#pycalphad.fitting.Dataset.calc_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.fitting.Dataset.error_func">
+<code class="descname">error_func</code><a class="headerlink" href="#pycalphad.fitting.Dataset.error_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.fitting.Dataset.exp_data">
+<code class="descname">exp_data</code><a class="headerlink" href="#pycalphad.fitting.Dataset.exp_data" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.fitting.Dataset.json">
+<code class="descname">json</code><a class="headerlink" href="#pycalphad.fitting.Dataset.json" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.fitting.build_pymc_model">
+<code class="descclassname">pycalphad.fitting.</code><code class="descname">build_pymc_model</code><span class="sig-paren">(</span><em>dbf</em>, <em>dataset_names</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#build_pymc_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.build_pymc_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a pymc (2.x) Model using the specified data and parameters.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Database with defined parameters, except for params.</li>
+<li><strong>dataset_names</strong> (<em>list of str</em>) &#8211; List of paths to pycalphad JSON files.</li>
+<li><strong>params</strong> (<em>list of pymc.Stochastic</em>) &#8211; Parameters to fit.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(pymc.Model, dict of Dataset)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.fitting.plot_results">
+<code class="descclassname">pycalphad.fitting.</code><code class="descname">plot_results</code><span class="sig-paren">(</span><em>input_database</em>, <em>datasets</em>, <em>params</em>, <em>databases=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#plot_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.plot_results" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate figures using the datasets and trace of the parameters.
+A dict of label-&gt;Database objects may be provided as a kwarg.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.fitting.setup_dataset">
+<code class="descclassname">pycalphad.fitting.</code><code class="descname">setup_dataset</code><span class="sig-paren">(</span><em>file_obj</em>, <em>dbf</em>, <em>params</em>, <em>mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#setup_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.setup_dataset" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.model">
+<span id="pycalphad-model-module"></span><h2>pycalphad.model module<a class="headerlink" href="#module-pycalphad.model" title="Permalink to this headline">¶</a></h2>
+<p>The model module provides support for using a Database to perform
+calculations under specified conditions.</p>
+<dl class="exception">
+<dt id="pycalphad.model.DofError">
+<em class="property">exception </em><code class="descclassname">pycalphad.model.</code><code class="descname">DofError</code><a class="reference internal" href="../_modules/pycalphad/model.html#DofError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.DofError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<p>Error due to missing degrees of freedom.</p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.model.Model">
+<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase_name</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Models use an abstract representation of the function
+for calculation of values under specified conditions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Database containing the relevant parameters.</li>
+<li><strong>comps</strong> (<em>list</em>) &#8211; Names of components to consider in the calculation.</li>
+<li><strong>phase_name</strong> (<em>str</em>) &#8211; Name of phase model to build.</li>
+<li><strong>parameters</strong> (<em>dict</em>) &#8211; Optional dictionary of parameters to be substituted in the model.
+This will overwrite parameters specified in the database</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<code class="descname">None yet.</code></dt>
+<dd></dd></dl>
+
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+<dl class="attribute">
+<dt id="pycalphad.model.Model.CPM">
+<code class="descname">CPM</code><a class="headerlink" href="#pycalphad.model.Model.CPM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.CPM_MIX">
+<code class="descname">CPM_MIX</code><a class="headerlink" href="#pycalphad.model.Model.CPM_MIX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.DOO">
+<code class="descname">DOO</code><a class="headerlink" href="#pycalphad.model.Model.DOO" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.GM">
+<code class="descname">GM</code><a class="headerlink" href="#pycalphad.model.Model.GM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.GM_MIX">
+<code class="descname">GM_MIX</code><a class="headerlink" href="#pycalphad.model.Model.GM_MIX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.HM">
+<code class="descname">HM</code><a class="headerlink" href="#pycalphad.model.Model.HM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.HM_MIX">
+<code class="descname">HM_MIX</code><a class="headerlink" href="#pycalphad.model.Model.HM_MIX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.NT">
+<code class="descname">NT</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.NT" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.SM">
+<code class="descname">SM</code><a class="headerlink" href="#pycalphad.model.Model.SM" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.SM_MIX">
+<code class="descname">SM_MIX</code><a class="headerlink" href="#pycalphad.model.Model.SM_MIX" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.TC">
+<code class="descname">TC</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.TC" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.ast">
+<code class="descname">ast</code><a class="headerlink" href="#pycalphad.model.Model.ast" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the full abstract syntax tree of the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.atomic_ordering_energy">
+<code class="descname">atomic_ordering_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.atomic_ordering_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.atomic_ordering_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the atomic ordering contribution in symbolic form.
+Description follows Servant and Ansara, Calphad, 2001.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.build_phase">
+<code class="descname">build_phase</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_phase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate the symbolic form of all the contributions to this phase.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; </td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.contributions">
+<code class="descname">contributions</code><em class="property"> = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'), ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'), ('2st', 'twostate_energy'), ('ein', 'einstein_energy'), ('ord', 'atomic_ordering_energy')]</em><a class="headerlink" href="#pycalphad.model.Model.contributions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.curie_temperature">
+<code class="descname">curie_temperature</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.curie_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.degree_of_ordering">
+<code class="descname">degree_of_ordering</code><a class="headerlink" href="#pycalphad.model.Model.degree_of_ordering" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.einstein_energy">
+<code class="descname">einstein_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.einstein_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.einstein_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy based on the Einstein model.
+Note that THETA parameters are actually LN(THETA).
+All Redlich-Kister summation is done in log-space,
+then exp() is called on the result.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.energy">
+<code class="descname">energy</code><a class="headerlink" href="#pycalphad.model.Model.energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.enthalpy">
+<code class="descname">enthalpy</code><a class="headerlink" href="#pycalphad.model.Model.enthalpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.entropy">
+<code class="descname">entropy</code><a class="headerlink" href="#pycalphad.model.Model.entropy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.excess_mixing_energy">
+<code class="descname">excess_mixing_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.excess_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.excess_mixing_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build the binary, ternary and higher order interaction term
+Here we use Redlich-Kister polynomial basis by default
+Here we use the Muggianu ternary extension by default
+Replace y_i -&gt; y_i + (1 - sum(y involved in parameter)) / m,
+where m is the arity of the interaction parameter</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.gradient">
+<code class="descname">gradient</code><em class="property"> = None</em><a class="headerlink" href="#pycalphad.model.Model.gradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.heat_capacity">
+<code class="descname">heat_capacity</code><a class="headerlink" href="#pycalphad.model.Model.heat_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.ideal_mixing_energy">
+<code class="descname">ideal_mixing_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.ideal_mixing_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.ideal_mixing_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the ideal mixing energy in symbolic form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.magnetic_energy">
+<code class="descname">magnetic_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.magnetic_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy from magnetic ordering in symbolic form.
+The implemented model is the Inden-Hillert-Jarl formulation.
+The approach follows from the background of W. Xiong et al, Calphad, 2012.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.mixing_energy">
+<code class="descname">mixing_energy</code><a class="headerlink" href="#pycalphad.model.Model.mixing_energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.mixing_enthalpy">
+<code class="descname">mixing_enthalpy</code><a class="headerlink" href="#pycalphad.model.Model.mixing_enthalpy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.mixing_entropy">
+<code class="descname">mixing_entropy</code><a class="headerlink" href="#pycalphad.model.Model.mixing_entropy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.mixing_heat_capacity">
+<code class="descname">mixing_heat_capacity</code><a class="headerlink" href="#pycalphad.model.Model.mixing_heat_capacity" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="staticmethod">
+<dt id="pycalphad.model.Model.mole_fraction">
+<em class="property">static </em><code class="descname">mole_fraction</code><span class="sig-paren">(</span><em>species_name</em>, <em>phase_name</em>, <em>constituent_array</em>, <em>site_ratios</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.mole_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.mole_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return an abstract syntax tree of the mole fraction of the
+given species as a function of its constituent site fractions.</p>
+<p>Note that this will treat vacancies the same as any other component,
+i.e., this will not give the correct _overall_ composition for
+sublattices containing vacancies with other components by normalizing
+by a factor of 1 - y_{VA}. This is because we use this routine in the
+order-disorder model to calculate the disordered site fractions from
+the ordered site fractions, so we need _all_ site fractions, including
+VA, to sum to unity.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.neel_temperature">
+<code class="descname">neel_temperature</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.neel_temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.redlich_kister_sum">
+<code class="descname">redlich_kister_sum</code><span class="sig-paren">(</span><em>phase</em>, <em>param_search</em>, <em>param_query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.redlich_kister_sum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.redlich_kister_sum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Construct parameter in Redlich-Kister polynomial basis, using
+the Muggianu ternary parameter extension.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.reference_energy">
+<code class="descname">reference_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns the weighted average of the endmember energies
+in symbolic form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.standard_mole_fraction">
+<code class="descname">standard_mole_fraction</code><span class="sig-paren">(</span><em>species</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.standard_mole_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.standard_mole_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Mole fraction which correctly normalizes for vacancies.</p>
+</dd></dl>
+
+<dl class="staticmethod">
+<dt id="pycalphad.model.Model.symbol_replace">
+<em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>obj</em>, <em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.symbol_replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Substitute values of symbols into &#8216;obj&#8217;.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> (<em>SymPy object</em>) &#8211; </li>
+<li><strong>symbols</strong> (<em>dict mapping sympy.Symbol to SymPy object</em>) &#8211; </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">SymPy object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.twostate_energy">
+<code class="descname">twostate_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.twostate_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.twostate_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy from liquid-amorphous two-state model.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.Model.variables">
+<code class="descname">variables</code><a class="headerlink" href="#pycalphad.model.Model.variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return state variables in the model.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.xiong_magnetic_energy">
+<code class="descname">xiong_magnetic_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.xiong_magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.xiong_magnetic_energy" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return the energy from magnetic ordering in symbolic form.
+The approach follows W. Xiong et al, Calphad, 2012.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.model.TestModel">
+<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">TestModel</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phase</em>, <em>solution=None</em>, <em>kmax=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#TestModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.TestModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.model.Model" title="pycalphad.model.Model"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.model.Model</span></code></a></p>
+<p>Test Model object for global minimization.</p>
+<p>Equation 15.2 in:
+P.M. Pardalos, H.E. Romeijn (Eds.), Handbook of Global Optimization,
+vol. 2. Kluwer Academic Publishers, Boston/Dordrecht/London (2002)</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Ignored by TestModel but retained for API compatibility.</li>
+<li><strong>comps</strong> (<em>sequence</em>) &#8211; Names of components to consider in the calculation.</li>
+<li><strong>phase</strong> (<em>str</em>) &#8211; Name of phase model to build.</li>
+<li><strong>solution</strong> (<em>sequence</em><em>, </em><em>optional</em>) &#8211; Float array locating the true minimum. Same length as &#8216;comps&#8217;.
+If not specified, randomly generated and saved to self.solution</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<dl class="method">
+<dt>
+<code class="descname">None yet.</code></dt>
+<dd></dd></dl>
+
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.refdata">
+<span id="pycalphad-refdata-module"></span><h2>pycalphad.refdata module<a class="headerlink" href="#module-pycalphad.refdata" title="Permalink to this headline">¶</a></h2>
+<p>The refdata module contains pure-element reference state data.</p>
+</div>
+<div class="section" id="module-pycalphad.variables">
+<span id="pycalphad-variables-module"></span><h2>pycalphad.variables module<a class="headerlink" href="#module-pycalphad.variables" title="Permalink to this headline">¶</a></h2>
+<p>Classes and constants for representing thermodynamic variables.</p>
+<dl class="class">
+<dt id="pycalphad.variables.ChemicalPotential">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">ChemicalPotential</code><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>Chemical potentials are symbols with built-in assumptions of being real.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.ChemicalPotential.default_assumptions">
+<code class="descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.ChemicalPotential.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.Composition">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">Composition</code><a class="reference internal" href="../_modules/pycalphad/variables.html#Composition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.Composition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>Compositions are symbols with built-in assumptions of being real
+and nonnegative.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.Composition.default_assumptions">
+<code class="descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.Composition.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.MU">
+<code class="descclassname">pycalphad.variables.</code><code class="descname">MU</code><a class="headerlink" href="#pycalphad.variables.MU" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.ChemicalPotential" title="pycalphad.variables.ChemicalPotential"><code class="xref py py-class docutils literal"><span class="pre">ChemicalPotential</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.PhaseFraction">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">PhaseFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#PhaseFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.PhaseFraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>Phase fractions are symbols with built-in assumptions of being real
+and nonnegative. The constructor handles formatting of the name.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.PhaseFraction.default_assumptions">
+<code class="descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.PhaseFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.SiteFraction">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">SiteFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#SiteFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.SiteFraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>Site fractions are symbols with built-in assumptions of being real
+and nonnegative. The constructor handles formatting of the name.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.SiteFraction.default_assumptions">
+<code class="descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.SiteFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.StateVariable">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">StateVariable</code><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.core.symbol.Symbol</span></code></p>
+<p>State variables are symbols with built-in assumptions of being real.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.StateVariable.default_assumptions">
+<code class="descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.StateVariable.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.X">
+<code class="descclassname">pycalphad.variables.</code><code class="descname">X</code><a class="headerlink" href="#pycalphad.variables.X" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><code class="xref py py-class docutils literal"><span class="pre">Composition</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Y">
+<code class="descclassname">pycalphad.variables.</code><code class="descname">Y</code><a class="headerlink" href="#pycalphad.variables.Y" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal"><span class="pre">SiteFraction</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.site_fraction">
+<code class="descclassname">pycalphad.variables.</code><code class="descname">site_fraction</code><a class="headerlink" href="#pycalphad.variables.site_fraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal"><span class="pre">SiteFraction</span></code></a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pycalphad.core.html" class="btn btn-neutral float-right" title="pycalphad.core package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="modules.html" class="btn btn-neutral" title="API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.5.2.post1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

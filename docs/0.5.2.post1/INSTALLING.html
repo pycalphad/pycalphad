@@ -1,0 +1,294 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation Instructions &mdash; pycalphad 0.5.2.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="genindex.html"/>
+        <link rel="search" title="Search" href="search.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1 documentation" href="index.html"/>
+        <link rel="next" title="Examples" href="examples/index.html"/>
+        <link rel="prev" title="pycalphad: Computational Thermodynamics" href="index.html"/> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5.2.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Instructions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#windows-anaconda">Windows (Anaconda)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#mac-osx">Mac OSX</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#linux">Linux</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-versions-advanced-users">Development Versions (Advanced Users)</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation Instructions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/INSTALLING.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation-instructions">
+<h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="windows-anaconda">
+<h2>Windows (Anaconda)<a class="headerlink" href="#windows-anaconda" title="Permalink to this headline">¶</a></h2>
+<p>The <a class="reference external" href="http://continuum.io/downloads/">Anaconda</a> scientific Python distribution by Continuum Analytics is recommended
+for Windows users. You can use pycalphad with Python 2 or Python 3, but we recommend
+Python 3 for the best experience. After you have installed either Anaconda or Miniconda, use
+<code class="docutils literal"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code> followed by
+<code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> to install. Note that you will need to have a working
+C/C++ compiler for pycalphad to work, so <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">mingw</span></code> may also be necessary on Windows.
+To install the package into an isolated environment, use <code class="docutils literal"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">-n</span> <span class="pre">[envname]</span> <span class="pre">pycalphad</span></code>
+Then use <code class="docutils literal"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">[envname]</span></code> on Linux/OSX or <code class="docutils literal"><span class="pre">activate</span> <span class="pre">[envname]</span></code> on Windows to enter the environment.</p>
+<p>For interactive pycalphad sessions, we recommend installing the <a class="reference external" href="http://jupyter.readthedocs.org/en/latest/install.html">Jupyter Notebook</a>.</p>
+</div>
+<div class="section" id="mac-osx">
+<h2>Mac OSX<a class="headerlink" href="#mac-osx" title="Permalink to this headline">¶</a></h2>
+<p>If not using a special distribution like Canopy or <a class="reference external" href="http://continuum.io/downloads/">Anaconda</a>, it&#8217;s recommended to install
+pycalphad in a virtualenv using <code class="docutils literal"><span class="pre">virtualenvwrapper</span></code>.
+<code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> inside the virtualenv will install with any required dependencies.
+You may also want to <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fastcache</span></code> for a mild performance boost.
+If you are using Anaconda, see the Windows instructions.</p>
+</div>
+<div class="section" id="linux">
+<h2>Linux<a class="headerlink" href="#linux" title="Permalink to this headline">¶</a></h2>
+<p>If not using a special distribution like Canopy or <a class="reference external" href="http://continuum.io/downloads/">Anaconda</a>, it&#8217;s recommended to install
+pycalphad in a virtualenv using <code class="docutils literal"><span class="pre">virtualenvwrapper</span></code>.
+<code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> inside the virtualenv will install with any required dependencies.
+You may also want to <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">fastcache</span></code> for a mild performance boost.
+If you are using Anaconda, see the Windows instructions.</p>
+</div>
+<div class="section" id="development-versions-advanced-users">
+<h2>Development Versions (Advanced Users)<a class="headerlink" href="#development-versions-advanced-users" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code></li>
+<li><dl class="first docutils">
+<dt>Using conda:</dt>
+<dd><ul class="first last">
+<li><code class="docutils literal"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code></li>
+<li><code class="docutils literal"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">[envname]</span> <span class="pre">pycalphad</span></code></li>
+<li><code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-n</span> <span class="pre">root</span> <span class="pre">conda-build</span></code></li>
+<li><code class="docutils literal"><span class="pre">conda</span> <span class="pre">develop</span> <span class="pre">-b</span> <span class="pre">-n</span> <span class="pre">[envname]</span> <span class="pre">pycalphad/</span></code></li>
+<li><code class="docutils literal"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">[envname]</span></code> on Linux/OSX or <code class="docutils literal"><span class="pre">activate</span> <span class="pre">[envname]</span></code> on Windows to enter the environment.</li>
+</ul>
+</dd>
+</dl>
+</li>
+<li>Or, inside a virtualenv: <code class="docutils literal"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">develop</span></code></li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="pycalphad: Computational Thermodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'./',
+            VERSION:'0.5.2.post1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="_static/jquery.js"></script>
+      <script type="text/javascript" src="_static/underscore.js"></script>
+      <script type="text/javascript" src="_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

@@ -1,0 +1,516 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.rksum &mdash; pycalphad 0.5.2.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.5.2.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What&#8217;s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.rksum</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.rksum</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">tinydb</span> <span class="k">import</span> <span class="n">where</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Rational</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">collect</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> \
+    <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Intersection</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">exp</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">log</span> <span class="k">as</span> <span class="n">sympy_log</span>
+<span class="kn">import</span> <span class="nn">copy</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.tdb</span> <span class="k">import</span> <span class="n">to_interval</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+
+<span class="c1"># Maximum number of levels deep we check for symbols that are functions of</span>
+<span class="c1"># other symbols</span>
+<span class="n">_MAX_PARAM_NESTING</span> <span class="o">=</span> <span class="mi">32</span>
+
+<div class="viewcode-block" id="build_piecewise_matrix"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.rksum.build_piecewise_matrix">[docs]</a><span class="k">def</span> <span class="nf">build_piecewise_matrix</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">cur_exponents</span><span class="p">,</span> <span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">,</span> <span class="n">output_matrix</span><span class="p">,</span> <span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">):</span>
+    <span class="k">if</span> <span class="n">sympy_obj</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+        <span class="n">sympy_obj</span> <span class="o">=</span> <span class="n">Mul</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">sympy_obj</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span>
+        <span class="n">sympy_obj</span> <span class="o">=</span> <span class="n">Mul</span><span class="p">(</span><span class="mf">1.0</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Rational</span><span class="p">))</span> <span class="ow">or</span> \
+            <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="p">(</span><span class="n">log</span><span class="p">,</span> <span class="n">exp</span><span class="p">))</span> <span class="ow">and</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Rational</span><span class="p">))):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="nb">float</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">result</span> <span class="o">!=</span> <span class="mf">0.0</span><span class="p">:</span>
+            <span class="n">output_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">cur_exponents</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">result</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+        <span class="n">piece_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span> <span class="k">if</span> <span class="n">i</span><span class="o">.</span><span class="n">expr</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">]</span>
+        <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">piece_args</span><span class="p">]</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Intersection</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">EmptySet</span><span class="p">():</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Overlapping intervals cannot be represented: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">intervals</span><span class="p">))</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Union</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span> <span class="n">Interval</span><span class="p">):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Piecewise intervals must be continuous&#39;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">cond</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">piece_args</span><span class="p">]):</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only temperature-dependent piecewise conditions are supported&#39;</span><span class="p">)</span>
+        <span class="n">exprs</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">piece_args</span><span class="p">]</span>
+        <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">invl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">exprs</span><span class="p">,</span> <span class="n">intervals</span><span class="p">):</span>
+            <span class="n">lowlim</span> <span class="o">=</span> <span class="n">invl</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="k">if</span> <span class="n">invl</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="n">low_temp</span> <span class="k">else</span> <span class="n">low_temp</span>
+            <span class="n">highlim</span> <span class="o">=</span> <span class="n">invl</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="k">if</span> <span class="n">invl</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">high_temp</span> <span class="k">else</span> <span class="n">high_temp</span>
+            <span class="k">if</span> <span class="n">highlim</span> <span class="o">&lt;</span> <span class="n">lowlim</span><span class="p">:</span>
+                <span class="k">continue</span>
+            <span class="n">build_piecewise_matrix</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">cur_exponents</span><span class="p">,</span> <span class="nb">float</span><span class="p">(</span><span class="n">lowlim</span><span class="p">),</span> <span class="nb">float</span><span class="p">(</span><span class="n">highlim</span><span class="p">),</span> <span class="n">output_matrix</span><span class="p">,</span> <span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">sympy_obj</span> <span class="ow">in</span> <span class="n">param_symbols</span><span class="p">:</span>
+            <span class="n">symbol_matrix</span><span class="o">.</span><span class="n">append</span><span class="p">([</span><span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">]</span> <span class="o">+</span> <span class="nb">list</span><span class="p">(</span><span class="n">cur_exponents</span><span class="p">)</span> <span class="o">+</span> <span class="p">[</span><span class="n">param_symbols</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">)])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;Setting undefined symbol </span><span class="si">{0}</span><span class="s1"> to zero&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Add</span><span class="p">):</span>
+        <span class="n">sympy_obj</span> <span class="o">=</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+            <span class="n">build_piecewise_matrix</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">cur_exponents</span><span class="p">,</span> <span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">,</span> <span class="n">output_matrix</span><span class="p">,</span> <span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="n">Mul</span><span class="p">):</span>
+        <span class="n">new_exponents</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">cur_exponents</span><span class="p">)</span>
+        <span class="n">remaining_argument</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+        <span class="n">num_piecewise</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">num_piecewise</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="n">collected_argument</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+            <span class="n">piecewise_elem</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">):</span>
+                    <span class="n">piecewise_elem</span> <span class="o">=</span> <span class="n">arg</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)):</span>
+                    <span class="n">collected_argument</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">collected_argument</span> <span class="o">*=</span> <span class="n">arg</span>
+            <span class="n">remaining_argument</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">collected_argument</span> <span class="o">*</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">piecewise_elem</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">sympy_obj</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Pow</span><span class="p">):</span>
+                    <span class="k">if</span> <span class="n">arg</span><span class="o">.</span><span class="n">base</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+                        <span class="n">new_exponents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>
+                    <span class="k">elif</span> <span class="n">arg</span><span class="o">.</span><span class="n">base</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span>
+                        <span class="n">new_exponents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="nb">int</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">exp</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+                <span class="k">elif</span> <span class="n">arg</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span>
+                    <span class="n">new_exponents</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">arg</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span>
+                    <span class="n">new_exponents</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">arg</span> <span class="o">==</span> <span class="n">sympy_log</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">):</span>
+                    <span class="n">new_exponents</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">elif</span> <span class="n">arg</span> <span class="o">==</span> <span class="n">sympy_log</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">):</span>
+                    <span class="n">new_exponents</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">remaining_argument</span> <span class="o">*=</span> <span class="n">arg</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">remaining_argument</span><span class="p">,</span> <span class="n">Mul</span><span class="p">):</span>
+            <span class="n">build_piecewise_matrix</span><span class="p">(</span><span class="n">remaining_argument</span><span class="p">,</span> <span class="n">new_exponents</span><span class="p">,</span> <span class="n">low_temp</span><span class="p">,</span> <span class="n">high_temp</span><span class="p">,</span>
+                                   <span class="n">output_matrix</span><span class="p">,</span> <span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="n">sympy_obj</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span></div>
+
+
+<div class="viewcode-block" id="RedlichKisterSum"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.rksum.RedlichKisterSum">[docs]</a><span class="k">class</span> <span class="nc">RedlichKisterSum</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">,</span> <span class="n">all_symbols</span><span class="p">,</span> <span class="n">variable_rename_dict</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Construct parameter in Redlich-Kister polynomial basis, using</span>
+<span class="sd">        the Muggianu ternary parameter extension.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">variable_rename_dict</span> <span class="o">=</span> <span class="n">variable_rename_dict</span> <span class="k">if</span> <span class="n">variable_rename_dict</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">rk_terms</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">possible_comps</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">}</span>
+        <span class="n">dof</span> <span class="o">=</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
+               <span class="k">for</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">subl</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span> <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">comps</span><span class="p">))]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_matrix</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbol_matrix</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">possible_comps</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+
+        <span class="c1"># search for desired parameters</span>
+        <span class="n">params</span> <span class="o">=</span> <span class="n">param_search</span><span class="p">(</span><span class="n">param_query</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">params</span><span class="p">:</span>
+            <span class="c1"># iterate over every sublattice</span>
+            <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+            <span class="k">for</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">cps</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">]):</span>
+                <span class="n">comp_symbols</span> <span class="o">=</span> <span class="kc">None</span>
+                <span class="c1"># convert strings to symbols</span>
+                <span class="k">if</span> <span class="n">cps</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
+                    <span class="c1"># Handle wildcards in constituent array</span>
+                    <span class="n">comp_symbols</span> <span class="o">=</span> \
+                        <span class="p">[</span>
+                            <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="nb">set</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="n">subl_index</span><span class="p">])</span>\
+                                <span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+                        <span class="p">]</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">comp_symbols</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">comp_symbols</span> <span class="o">=</span> \
+                        <span class="p">[</span>
+                            <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
+                            <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">cps</span>
+                        <span class="p">]</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Mul</span><span class="p">(</span><span class="o">*</span><span class="n">comp_symbols</span><span class="p">)</span>
+                <span class="c1"># is this a higher-order interaction parameter?</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="c1"># interacting sublattice, add the interaction polynomial</span>
+                    <span class="k">if</span> <span class="ow">not</span> <span class="nb">float</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">is_integer</span><span class="p">():</span>
+                        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Non-integer Redlich-Kister exponents are unsupported&#39;</span><span class="p">)</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Pow</span><span class="p">(</span><span class="n">comp_symbols</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">-</span> \
+                        <span class="n">comp_symbols</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="nb">int</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]))</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+                    <span class="c1"># &#39;parameter_order&#39; is an index to a variable when</span>
+                    <span class="c1"># we are in the ternary interaction parameter case</span>
+
+                    <span class="c1"># NOTE: The commercial software packages seem to have</span>
+                    <span class="c1"># a &quot;feature&quot; where, if only the zeroth</span>
+                    <span class="c1"># parameter_order term of a ternary parameter is specified,</span>
+                    <span class="c1"># the other two terms are automatically generated in order</span>
+                    <span class="c1"># to make the parameter symmetric.</span>
+                    <span class="c1"># In other words, specifying only this parameter:</span>
+                    <span class="c1"># PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !</span>
+                    <span class="c1"># Actually implies:</span>
+                    <span class="c1"># PARAMETER G(FCC_A1,AL,CR,NI;0) 298.15  +30300; 6000 N !</span>
+                    <span class="c1"># PARAMETER G(FCC_A1,AL,CR,NI;1) 298.15  +30300; 6000 N !</span>
+                    <span class="c1"># PARAMETER G(FCC_A1,AL,CR,NI;2) 298.15  +30300; 6000 N !</span>
+                    <span class="c1">#</span>
+                    <span class="c1"># If either 1 or 2 is specified, no implicit parameters are</span>
+                    <span class="c1"># generated.</span>
+                    <span class="c1"># We need to handle this case.</span>
+                    <span class="k">if</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                        <span class="c1"># are _any_ of the other parameter_orders specified?</span>
+                        <span class="n">ternary_param_query</span> <span class="o">=</span> <span class="p">(</span>
+                            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;phase_name&#39;</span><span class="p">])</span> <span class="o">&amp;</span> \
+                            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> \
+                                <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">])</span> <span class="o">&amp;</span> \
+                            <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span> <span class="o">==</span> \
+                                <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">])</span>
+                        <span class="p">)</span>
+                        <span class="n">other_tern_params</span> <span class="o">=</span> <span class="n">param_search</span><span class="p">(</span><span class="n">ternary_param_query</span><span class="p">)</span>
+                        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">other_tern_params</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> \
+                            <span class="n">other_tern_params</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">param</span><span class="p">:</span>
+                            <span class="c1"># only the current parameter is specified</span>
+                            <span class="c1"># We need to generate the other two parameters.</span>
+                            <span class="n">order_one</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                            <span class="n">order_one</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+                            <span class="n">order_two</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">param</span><span class="p">)</span>
+                            <span class="n">order_two</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">2</span>
+                            <span class="c1"># Add these parameters to our iteration.</span>
+                            <span class="n">params</span><span class="o">.</span><span class="n">extend</span><span class="p">((</span><span class="n">order_one</span><span class="p">,</span> <span class="n">order_two</span><span class="p">))</span>
+                    <span class="c1"># Include variable indicated by parameter order index</span>
+                    <span class="c1"># Perform Muggianu adjustment to site fractions</span>
+                    <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">comp_symbols</span><span class="p">[</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]]</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span>
+                        <span class="bp">self</span><span class="o">.</span><span class="n">_Muggianu_correction_dict</span><span class="p">(</span><span class="n">comp_symbols</span><span class="p">),</span>
+                        <span class="n">simultaneous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+            <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_rename_dict</span><span class="p">)</span>
+            <span class="n">mt_expand</span> <span class="o">=</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mt_expand</span><span class="p">,</span> <span class="n">Add</span><span class="p">):</span>
+                <span class="n">mt_expand</span> <span class="o">=</span> <span class="p">[</span><span class="n">mt_expand</span><span class="p">]</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">mt_expand</span> <span class="o">=</span> <span class="n">mt_expand</span><span class="o">.</span><span class="n">args</span>
+
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">mt_expand</span><span class="p">:</span>
+                <span class="n">dof_param</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
+                <span class="n">dof_param</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">Mul</span><span class="p">):</span>
+                    <span class="n">mulargs</span> <span class="o">=</span> <span class="p">[</span><span class="n">arg</span><span class="p">]</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">mulargs</span> <span class="o">=</span> <span class="n">arg</span><span class="o">.</span><span class="n">args</span>
+                <span class="k">for</span> <span class="n">mularg</span> <span class="ow">in</span> <span class="n">mulargs</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mularg</span><span class="p">,</span> <span class="n">Pow</span><span class="p">):</span>
+                        <span class="k">if</span> <span class="n">dof</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mularg</span><span class="o">.</span><span class="n">base</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Missing variable from degrees of freedom: &#39;</span><span class="p">,</span> <span class="n">mularg</span><span class="o">.</span><span class="n">base</span><span class="p">)</span>
+                        <span class="n">dof_param</span><span class="p">[</span><span class="n">dof</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mularg</span><span class="o">.</span><span class="n">base</span><span class="p">)]</span> <span class="o">=</span> <span class="n">mularg</span><span class="o">.</span><span class="n">exp</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mularg</span><span class="p">,</span> <span class="p">(</span><span class="n">Symbol</span><span class="p">)):</span>
+                        <span class="k">if</span> <span class="n">dof</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mularg</span><span class="p">)</span> <span class="o">==</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
+                            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Missing variable from degrees of freedom: &#39;</span><span class="p">,</span> <span class="n">mularg</span><span class="p">)</span>
+                        <span class="n">dof_param</span><span class="p">[</span><span class="n">dof</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">mularg</span><span class="p">)]</span> <span class="o">=</span> <span class="mi">1</span>
+                    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mularg</span><span class="p">,</span> <span class="p">(</span><span class="n">Float</span><span class="p">,</span> <span class="n">Integer</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)):</span>
+                        <span class="n">dof_param</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">)]</span> <span class="o">*=</span> <span class="nb">float</span><span class="p">(</span><span class="n">mularg</span><span class="p">)</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">mularg</span><span class="p">),</span> <span class="n">mularg</span><span class="p">)</span>
+                <span class="n">filled_param</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">],</span> <span class="n">all_symbols</span><span class="p">)</span>
+                <span class="n">build_piecewise_matrix</span><span class="p">(</span><span class="n">filled_param</span><span class="p">,</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">]</span> <span class="o">+</span> <span class="n">dof_param</span><span class="o">.</span><span class="n">tolist</span><span class="p">(),</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">10000</span><span class="p">,</span>
+                                       <span class="bp">self</span><span class="o">.</span><span class="n">output_matrix</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_matrix</span><span class="p">,</span> <span class="n">param_symbols</span><span class="p">)</span>
+            <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">output_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">output_matrix</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">symbol_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">symbol_matrix</span><span class="p">)</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">rk_terms</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="nf">_eval</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">pressure</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">dof</span><span class="p">):</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="mf">0.0</span>
+        <span class="n">eval_row</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">(</span><span class="mi">4</span><span class="o">+</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">))</span>
+        <span class="n">eval_row</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">pressure</span>
+        <span class="n">eval_row</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">temperature</span>
+        <span class="n">eval_row</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pressure</span><span class="p">)</span>
+        <span class="n">eval_row</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">temperature</span><span class="p">)</span>
+        <span class="n">eval_row</span><span class="p">[</span><span class="mi">4</span><span class="p">:]</span> <span class="o">=</span> <span class="n">dof</span>
+        <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">output_matrix</span><span class="p">:</span>
+            <span class="k">if</span> <span class="p">(</span><span class="n">temperature</span> <span class="o">&gt;=</span> <span class="n">row</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">and</span> <span class="p">(</span><span class="n">temperature</span> <span class="o">&lt;</span> <span class="n">row</span><span class="p">[</span><span class="mi">1</span><span class="p">]):</span>
+                <span class="n">result</span> <span class="o">+=</span> <span class="n">np</span><span class="o">.</span><span class="n">prod</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">power</span><span class="p">(</span><span class="n">eval_row</span><span class="p">,</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="p">:</span><span class="mi">2</span><span class="o">+</span><span class="n">eval_row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]))</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="o">+</span><span class="n">eval_row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span> <span class="o">*</span> <span class="n">row</span><span class="p">[</span><span class="mi">2</span><span class="o">+</span><span class="n">eval_row</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span>
+        <span class="k">return</span> <span class="n">result</span>
+
+    <span class="nd">@staticmethod</span>
+    <span class="k">def</span> <span class="nf">_Muggianu_correction_dict</span><span class="p">(</span><span class="n">comps</span><span class="p">):</span> <span class="c1">#pylint: disable=C0103</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Replace y_i -&gt; y_i + (1 - sum(y involved in parameter)) / m,</span>
+<span class="sd">        where m is the arity of the interaction parameter.</span>
+<span class="sd">        Returns a dict converting the list of Symbols (comps) to this.</span>
+<span class="sd">        m is assumed equal to the length of comps.</span>
+
+<span class="sd">        When incorporating binary, ternary or n-ary interaction parameters</span>
+<span class="sd">        into systems with more than n components, the sum of site fractions</span>
+<span class="sd">        involved in the interaction parameter may no longer be unity. This</span>
+<span class="sd">        breaks the symmetry of the parameter. The solution suggested by</span>
+<span class="sd">        Muggianu, 1975, is to renormalize the site fractions by replacing them</span>
+<span class="sd">        with a term that will sum to unity even in higher-order systems.</span>
+<span class="sd">        There are other solutions that involve retaining the asymmetry for</span>
+<span class="sd">        physical reasons, but this solution works well for components that</span>
+<span class="sd">        are physically similar.</span>
+
+<span class="sd">        This procedure is based on an analysis by Hillert, 1980,</span>
+<span class="sd">        published in the Calphad journal.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">arity</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span>
+        <span class="n">return_dict</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="n">correction_term</span> <span class="o">=</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">One</span> <span class="o">-</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">comps</span><span class="p">))</span> <span class="o">/</span> <span class="n">arity</span>
+        <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">:</span>
+            <span class="n">return_dict</span><span class="p">[</span><span class="n">comp</span><span class="p">]</span> <span class="o">=</span> <span class="n">comp</span> <span class="o">+</span> <span class="n">correction_term</span>
+        <span class="k">return</span> <span class="n">return_dict</span>
+
+    <span class="nd">@staticmethod</span>
+<div class="viewcode-block" id="RedlichKisterSum.symbol_replace"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.rksum.RedlichKisterSum.symbol_replace">[docs]</a>    <span class="k">def</span> <span class="nf">symbol_replace</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Substitute values of symbols into &#39;obj&#39;.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        obj : SymPy object</span>
+<span class="sd">        symbols : dict mapping sympy.Symbol to SymPy object</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SymPy object</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">try</span><span class="p">:</span>
+            <span class="c1"># Need to do more substitutions to catch symbols that are functions</span>
+            <span class="c1"># of other symbols</span>
+            <span class="k">for</span> <span class="n">iteration</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">_MAX_PARAM_NESTING</span><span class="p">):</span>
+                <span class="n">obj</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+                <span class="n">undefs</span> <span class="o">=</span> <span class="n">obj</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Symbol</span><span class="p">)</span> <span class="o">-</span> <span class="n">obj</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+                    <span class="k">break</span>
+        <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
+            <span class="c1"># Can&#39;t use xreplace on a float</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">obj</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.5.2.post1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
