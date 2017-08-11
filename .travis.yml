@@ -62,3 +62,19 @@ script:
         env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME -u TRAVIS_COMMIT_MESSAGE > ./env.list
         docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
       fi
+
+# Still need to add custom keyring
+before_deploy:
+  - git verify-tag --verbose $TRAVIS_TAG
+
+deploy:
+  provider: pypi
+  user: "pycalphad"
+  password:
+      secure: "KwgnsPyBkPipKyDBFjuX2DMUgKMNm8vJ2euE+xr523Glimsgq5ELE4FX+cA0gJ/QT94N2Sv9Geuc/vBGijOulDer3yjg7Py+LhqehOhstowRbtOO41XGqjJZ777zKkRLMi/dRUTZfqHx/VA24Exrt8Ja2oNROXGz1WsT/gopb/I="
+  on:
+      tags: true
+      branch: master
+      python: 3.6
+      # Only deploy from the Mac build
+      condition: -z "$DOCKER_TAG"
