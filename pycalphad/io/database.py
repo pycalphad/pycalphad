@@ -1,4 +1,5 @@
-"""The database module provides support for reading and writing data types
+"""
+The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
 from tinydb import TinyDB
@@ -14,7 +15,13 @@ except ImportError:
     # Python 3
     from io import StringIO
 
-
+# handle missing FileExistsError in Python2
+try:
+    FileExistsError = FileExistsError
+except NameError:
+    class FileExistsError(OSError):
+        """Python 2 backported FileExistsError wrapping OSError"""
+        pass
 
 class DatabaseExportError(Exception):
     """Raised when a database cannot be written."""
@@ -283,12 +290,13 @@ class Database(object): #pylint: disable=R0902
             format_registry[fmt].write(self, fname, **write_kwargs)
         else:
             if os.path.exists(fname) and if_exists != 'overwrite':
-                if if_exists == 'raise':
-                    raise FileExistsError('File {} already exists'.format(fname))
-                elif if_exists == 'rename':
+                if if_exists == 'rename':
                     writetime = datetime.now()
                     fname = os.path.splitext(fname)
                     fname = fname[0] + "." + writetime.strftime("%Y-%m-%d-%H-%M") + fname[1]
+                else:
+                    # equivalent to 'raise'
+                    raise FileExistsError('File {} already exists'.format(fname))
             with open(fname, mode='w') as fd:
                 format_registry[fmt].write(self, fd, **write_kwargs)
 

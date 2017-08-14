@@ -1,6 +1,19 @@
 What's New
 ==========
 
+0.5.2 (2017-08-10)
+------------------
+
+This is a minor release with a new feature, bug fixes and performance improvements.
+
+* ENH: Add ternary isothermal phase diagram plotting. ( :issue:`98` ).
+* FIX: sympy 1.1 compatibility ( :issue:`108` ).
+* ENH/FIX: Make equilibrium Datasets serializable to netCDF ( :issue:`111` ).
+* FIX: Raise an error if invalid keyword arguments are passed to Database.write ( :issue:`117` ).
+* ENH/DOC: Remove log.py module ( :issue:`104` ).
+* FIX: Mistake in the Cementite Analysis example ( :issue:`91` ).
+
+
 0.5.1 (2017-05-12)
 ------------------
 

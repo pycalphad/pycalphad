@@ -37,7 +37,7 @@ Development Versions (Advanced Users)
     * ``conda config --add channels conda-forge``
     * ``conda create -n [envname] pycalphad``
     * ``conda install -n root conda-build``
-    * ``conda develop -n [envname] pycalphad/``
+    * ``conda develop -b -n [envname] pycalphad/``
     * ``source activate [envname]`` on Linux/OSX or ``activate [envname]`` on Windows to enter the environment.
 * Or, inside a virtualenv: ``python setup.py develop``
 

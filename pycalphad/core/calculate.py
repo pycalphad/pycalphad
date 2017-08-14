@@ -13,7 +13,6 @@ from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
-from pycalphad.log import logger
 import pycalphad.variables as v
 from sympy import Symbol
 import numpy as np
@@ -452,9 +451,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 # we can't build the specified phase because the
                 # specified components aren't found in every sublattice
                 # we'll just skip it
-                logger.warning("""Suspending specified phase %s due to
-                some sublattices containing only unspecified components""",
-                               phase_name)
+                warnings.warn("""Suspending specified phase {} due to
+                some sublattices containing only unspecified components""".format(phase_name))
                 continue
         if points_dict[phase_name] is None:
             maximum_internal_dof = max(maximum_internal_dof, sum(len(x) for x in mod.constituents))

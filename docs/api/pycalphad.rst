@@ -22,14 +22,6 @@ pycalphad.fitting module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.log module
---------------------
-
-.. automodule:: pycalphad.log
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad.model module
 ----------------------
 
