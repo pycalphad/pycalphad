@@ -36,6 +36,24 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._first_iteration = True
 
+    def __deepcopy__(self, memodict=None):
+        cdef int has_va = <int>(self.phase_record.vacancy_index > -1)
+        cdef CompositionSet other
+        memodict = {} if memodict is None else memodict
+        other = CompositionSet(self.phase_record)
+        other.phase_record = self.phase_record
+        other.zero_seen = 0
+        other.dof[:] = self.dof
+        other.X[:] = self.X
+        other.mass_grad[:,:] = self.mass_grad
+        other.mass_hess[:,:,:] = self.mass_hess
+        other.energy = 1.0*self.energy
+        other._energy_2d_view = <double[:1]>&other.energy
+        other.NP = 1.0*self.NP
+        other.grad[:] = self.grad
+        other.hess[:,:] = self.hess
+        return other
+
     def __repr__(self):
         return str(self.__class__.__name__) + "({0}, {1}, NP={2}, GM={3})".format(self.phase_record.phase_name,
                                                                           np.asarray(self.X), self.NP, self.energy)
