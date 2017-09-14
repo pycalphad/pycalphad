@@ -40,10 +40,11 @@ class InteriorPointSolver(object):
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
-                nlp.addOption(b'dual_inf_tol', float(length_scale*10.0))
-                nlp.addOption(b'compl_inf_tol', 1e-10)
-                nlp.addOption(b'bound_relax_factor', 1e-10)
-                nlp.addOption(b'bound_push', 1e-10)
+                nlp.addOption(b'compl_inf_tol', 1e-15)
+                nlp.addOption(b'bound_relax_factor', 1e-12)
+                # This option ensures any bounds failures will fail "loudly"
+                # Otherwise we are liable to have subtle mass balance errors
+                nlp.addOption(b'honor_original_bounds', b'no')
             else:
                 nlp.addOption(b'dual_inf_tol', MAX_SOLVE_DRIVING_FORCE)
             accurate_x, accurate_info = nlp.solve(x)
