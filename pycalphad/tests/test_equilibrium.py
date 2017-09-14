@@ -221,6 +221,9 @@ def test_eq_issue43_chempots_misc_gap():
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
+    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
+                 [0.1246, 1e-9, 1-(.1246+1e-9)]
+    print('Mass error', mass_error)
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
 
