@@ -7,3 +7,4 @@ Examples
    BinaryExamples
    CementiteAnalysis
    EquilibriumWithOrdering
+   TernaryExamples
