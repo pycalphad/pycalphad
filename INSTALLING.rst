@@ -1,9 +1,43 @@
 Installation Instructions
 =========================
 
-Windows (Anaconda)
-------------------
-The Anaconda_ scientific Python distribution by Continuum Analytics is recommended
+Prerequisites
+-------------
+
+
+
+Anaconda (recommended)
+----------------------
+
+For all Windows, macOS and Linux platforms, it is recommended to use Anaconda_ to install the latest release of pycalphad.
+Anaconda is a scientific Python distribution by Continuum Analytics.
+It provides good support for various scientific packages and otherwise challenging to install packages such as NumPy, SciPy, and Cython.
+
+TODO: should we mention the mingw stuff?
+TODO: fix development requirements
+TODO: section for development version. Best approach? Include virtualenvs or not? What about with conda?
+
+
+PyPI
+----
+
+Release versions of pycalphad are also available on PyPI.
+NumPy, SciPy and Cython are all *build* requirements of pycalphad and must be installed before you install pycalphad.
+Again, it is recommended to install pycalphad into a virtual environment.
+Several tools are available for this including `virtualenv`_ and `virtualenvwrapper`_.
+
+
+To install pycalphad from PyPI using ``pip``, first create a virtual environment, if desired, then run
+
+.. code-block: bash
+
+
+    pip install numpy scipy cython
+    pip install pycalphad
+
+
+
+
 for Windows users. You can use pycalphad with Python 2 or Python 3, but we recommend
 Python 3 for the best experience. After you have installed either Anaconda or Miniconda, use
 ``conda config --add channels conda-forge`` followed by
