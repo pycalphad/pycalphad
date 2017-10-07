@@ -170,7 +170,7 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, **kwargs):
     ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.grid(True)
-    plot_title = '-'.join([x.title() for x in sorted(comps) if x != 'VA'])
+    plot_title = '-'.join([component.title() for component in sorted(comps) if component != 'VA'])
     ax.set_title(plot_title, fontsize=20)
     ax.set_xlabel(_axis_label(x), labelpad=15, fontsize=20)
     ax.set_ylabel(_axis_label(y), fontsize=20)
