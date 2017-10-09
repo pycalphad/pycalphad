@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Thermodynamic Calculation of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.5.2.post1+4.g4134039 documentation</title>
+  <title>Thermodynamic Calculation of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.5.2.post1+5.g6066930 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+4.g4134039 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+5.g6066930 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/>
         <link rel="prev" title="Calculating Isobaric Binary Phase Diagrams" href="BinaryExamples.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+4.g4134039
+                0.5.2.post1+5.g6066930
               </div>
             
           
@@ -99,10 +99,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Calculating Isobaric Binary Phase Diagrams</a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#bengt-hallstedt-dejan-djurovic-jorg-von-appen-richard-dronskowski-alexey-dick-fritz-kormann-tilmann-hickel-jorg-neugebauer-thermodynamic-properties-of-cementite-calphad-volume-34-issue-1-march-2010-pages-129-133-issn-0364-5916-http-dx-doi-org-10-1016-j-calphad-2010-01-004-http-www-sciencedirect-com-science-article-pii-s0364591610000052">Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski, Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, http://dx.doi.org/10.1016/j.calphad.2010.01.004. (http://www.sciencedirect.com/science/article/pii/S0364591610000052)</a></li>
-</ul>
-</li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Calculating Ternary Phase Diagrams and Properties</a></li>
 </ul>
@@ -176,8 +173,12 @@
             
   <div class="section" id="thermodynamic-calculation-of-cementite">
 <h1>Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)<a class="headerlink" href="#thermodynamic-calculation-of-cementite" title="Permalink to this headline">¶</a></h1>
-<div class="section" id="bengt-hallstedt-dejan-djurovic-jorg-von-appen-richard-dronskowski-alexey-dick-fritz-kormann-tilmann-hickel-jorg-neugebauer-thermodynamic-properties-of-cementite-calphad-volume-34-issue-1-march-2010-pages-129-133-issn-0364-5916-http-dx-doi-org-10-1016-j-calphad-2010-01-004-http-www-sciencedirect-com-science-article-pii-s0364591610000052">
-<h2>Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski, Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, <a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2010.01.004">http://dx.doi.org/10.1016/j.calphad.2010.01.004</a>. (<a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0364591610000052">http://www.sciencedirect.com/science/article/pii/S0364591610000052</a>)<a class="headerlink" href="#bengt-hallstedt-dejan-djurovic-jorg-von-appen-richard-dronskowski-alexey-dick-fritz-kormann-tilmann-hickel-jorg-neugebauer-thermodynamic-properties-of-cementite-calphad-volume-34-issue-1-march-2010-pages-129-133-issn-0364-5916-http-dx-doi-org-10-1016-j-calphad-2010-01-004-http-www-sciencedirect-com-science-article-pii-s0364591610000052" title="Permalink to this headline">¶</a></h2>
+<p>Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
+Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,
+Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1,
+March 2010, Pages 129-133, ISSN 0364-5916,
+<a class="reference external" href="http://dx.doi.org/10.1016/j.calphad.2010.01.004">http://dx.doi.org/10.1016/j.calphad.2010.01.004</a>.
+(<a class="reference external" href="http://www.sciencedirect.com/science/article/pii/S0364591610000052">http://www.sciencedirect.com/science/article/pii/S0364591610000052</a>)</p>
 <p>The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad&#8217;s TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.</p>
@@ -234,7 +235,6 @@ there&#8217;s nothing to minimize, we can do the computation faster with
 </div>
 <img alt="../_images/CementiteAnalysis_8_0.png" src="../_images/CementiteAnalysis_8_0.png" />
 </div>
-</div>
 
 
            </div>
@@ -280,7 +280,7 @@ there&#8217;s nothing to minimize, we can do the computation faster with
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+4.g4134039',
+            VERSION:'0.5.2.post1+5.g6066930',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
