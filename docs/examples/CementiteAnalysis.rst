@@ -2,8 +2,12 @@
 Thermodynamic Calculation of Cementite (:math:`Fe_3C`)
 ======================================================
 
-Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski, Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, http://dx.doi.org/10.1016/j.calphad.2010.01.004. (http://www.sciencedirect.com/science/article/pii/S0364591610000052)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
+Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,
+Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1,
+March 2010, Pages 129-133, ISSN 0364-5916,
+http://dx.doi.org/10.1016/j.calphad.2010.01.004.
+(http://www.sciencedirect.com/science/article/pii/S0364591610000052)
 
 The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad's TDB parser. All phases except cementite
