@@ -2,13 +2,15 @@
 Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)
 =============================================================
 
-.. code:: python
+.. code:: ipython3
 
+    # Only needed in a Jupyter Notebook
+    %matplotlib inline
     # Optional plot styling
     import matplotlib
     matplotlib.style.use('bmh')
 
-.. code:: python
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
     from pycalphad import equilibrium
@@ -17,7 +19,7 @@ Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)
     import numpy as np
 
 Al-Fe (Heat Capacity and Degree of Ordering)
-============================================
+--------------------------------------------
 
 Here we compute equilibrium thermodynamic properties in the Al-Fe
 system. We know that only B2 and liquid are stable in the temperature
@@ -34,7 +36,7 @@ documentation. ``equilibrium`` will always return the Gibbs energy,
 chemical potentials, phase fractions and site fractions, regardless of
 the value of ``output``.
 
-.. code:: python
+.. code:: ipython3
 
     db = Database('alfe_sei.TDB')
     my_phases = ['LIQUID', 'B2_BCC']
@@ -45,10 +47,6 @@ the value of ``output``.
 
 .. parsed-literal::
 
-                                                                  
-
-.. parsed-literal::
-
     <xarray.Dataset>
     Dimensions:             (P: 1, T: 34, X_AL: 1, component: 2, internal_dof: 5, vertex: 2)
     Coordinates:
@@ -56,28 +54,26 @@ the value of ``output``.
       * T                   (T) float64 300.0 350.0 400.0 450.0 500.0 550.0 ...
       * X_AL                (X_AL) float64 0.25
       * vertex              (vertex) int64 0 1
-      * component           (component) object 'AL' 'FE'
-      * internal_dof        (internal_dof) int64 0 1 2 3 4
+      * component           (component) <U2 'AL' 'FE'
+    Dimensions without coordinates: internal_dof
     Data variables:
-        MU                  (P, T, X_AL, component) float64 -7.274e+04 ...
-        GM                  (P, T, X_AL) float64 -2.858e+04 -2.994e+04 -3.15e+04 ...
         NP                  (P, T, X_AL, vertex) float64 1.0 nan 1.0 nan 1.0 nan ...
+        GM                  (P, T, X_AL) float64 -2.858e+04 -2.994e+04 -3.15e+04 ...
+        MU                  (P, T, X_AL, component) float64 -7.274e+04 ...
         X                   (P, T, X_AL, vertex, component) float64 0.25 0.75 ...
         Y                   (P, T, X_AL, vertex, internal_dof) float64 0.5 0.5 ...
-        Phase               (P, T, X_AL, vertex) object 'B2_BCC' '' 'B2_BCC' '' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 0.6666 nan 0.6665 nan ...
-        heat_capacity       (P, T, X_AL) float64 25.45 26.93 28.47 30.18 32.15 ...
+        Phase               (P, T, X_AL, vertex) <U6 'B2_BCC' '' 'B2_BCC' '' ...
+        degree_of_ordering  (P, T, X_AL, vertex) float64 0.6667 nan 0.6667 nan ...
+        heat_capacity       (P, T, X_AL) float64 25.45 26.93 28.47 30.18 32.16 ...
     Attributes:
-        hull_iterations: 5
-        solve_iterations: 146
-        engine: pycalphad 0.2.5+63.g4069829.dirty
-        created: 2016-02-17 16:23:02.404841
- 
+        engine:   pycalphad 0.5.2.post1
+        created:  2017-10-09T13:22:30.263862
+
 
 We also compute degree of ordering at fixed temperature as a function of
 composition.
 
-.. code:: python
+.. code:: ipython3
 
     eq2 = equilibrium(db, ['AL', 'FE', 'VA'], 'B2_BCC', {v.X('AL'): (0,1,0.01), v.T: 700, v.P: 101325},
                       output='degree_of_ordering')
@@ -93,32 +89,30 @@ composition.
       * T                   (T) float64 700.0
       * X_AL                (X_AL) float64 1e-09 0.01 0.02 0.03 0.04 0.05 0.06 ...
       * vertex              (vertex) int64 0 1
-      * component           (component) object 'AL' 'FE'
-      * internal_dof        (internal_dof) int64 0 1 2 3 4
+      * component           (component) <U2 'AL' 'FE'
+    Dimensions without coordinates: internal_dof
     Data variables:
-        MU                  (P, T, X_AL, component) float64 -2.312e+05 ...
-        GM                  (P, T, X_AL) float64 -2.447e+04 -2.565e+04 ...
         NP                  (P, T, X_AL, vertex) float64 1.0 nan 1.0 nan 1.0 nan ...
+        GM                  (P, T, X_AL) float64 -2.447e+04 -2.564e+04 ...
+        MU                  (P, T, X_AL, component) float64 -2.312e+05 ...
         X                   (P, T, X_AL, vertex, component) float64 1e-09 1.0 ...
         Y                   (P, T, X_AL, vertex, internal_dof) float64 1e-09 1.0 ...
-        Phase               (P, T, X_AL, vertex) object 'B2_BCC' '' 'B2_BCC' '' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 1.137e-15 nan 2.015e-16 ...
+        Phase               (P, T, X_AL, vertex) <U6 'B2_BCC' '' 'B2_BCC' '' ...
+        degree_of_ordering  (P, T, X_AL, vertex) float64 6.28e-16 nan 1.292e-14 ...
     Attributes:
-        hull_iterations: 5
-        solve_iterations: 390
-        engine: pycalphad 0.2.5+63.g4069829.dirty
-        created: 2016-02-17 16:25:53.860451
+        engine:   pycalphad 0.5.2.post1
+        created:  2017-10-09T13:22:33.793213
 
 
 Plots
------
+~~~~~
 
 Next we plot the degree of ordering versus temperature. We can see that
 the decrease in the degree of ordering is relatively steady and
 continuous. This is indicative of a second-order transition from
 partially ordered B2 to disordered bcc (A2).
 
-.. code:: python
+.. code:: ipython3
 
     plt.gca().set_title('Al-Fe: Degree of bcc ordering vs T [X(AL)=0.25]')
     plt.gca().set_xlabel('Temperature (K)')
@@ -145,7 +139,7 @@ bcc Al is paramagnetic so it has an effective Curie temperature of 0 K.)
 We also observe a sharp jump in the heat capacity near 1800 K,
 corresponding to the melting of the bcc phase.
 
-.. code:: python
+.. code:: ipython3
 
     plt.gca().set_title('Al-Fe: Heat capacity vs T [X(AL)=0.25]')
     plt.gca().set_xlabel('Temperature (K)')
@@ -166,7 +160,7 @@ degree of ordering versus composition. Note that this plot excludes all
 other phases except ``B2_BCC``. We observe the presence of disordered
 bcc (A2) until around 13% Al or Fe, when the phase begins to order.
 
-.. code:: python
+.. code:: ipython3
 
     plt.gca().set_title('Al-Fe: Degree of bcc ordering vs X(AL) [T=700 K]')
     plt.gca().set_xlabel('X(AL)')
@@ -184,9 +178,9 @@ bcc (A2) until around 13% Al or Fe, when the phase begins to order.
 
 
 Al-Ni (Degree of Ordering)
-==========================
+--------------------------
 
-.. code:: python
+.. code:: ipython3
 
     db_alni = Database('NI_AL_DUPIN_2001.TDB')
     phases = ['LIQUID', 'FCC_L12']
@@ -197,10 +191,6 @@ Al-Ni (Degree of Ordering)
 
 .. parsed-literal::
 
-                                                                    
-
-.. parsed-literal::
-
     <xarray.Dataset>
     Dimensions:             (P: 1, T: 110, X_AL: 1, component: 2, internal_dof: 5, vertex: 2)
     Coordinates:
@@ -208,31 +198,30 @@ Al-Ni (Degree of Ordering)
       * T                   (T) float64 300.0 320.0 340.0 360.0 380.0 400.0 ...
       * X_AL                (X_AL) float64 0.1
       * vertex              (vertex) int64 0 1
-      * component           (component) object 'AL' 'NI'
-      * internal_dof        (internal_dof) int64 0 1 2 3 4
+      * component           (component) <U2 'AL' 'NI'
+    Dimensions without coordinates: internal_dof
     Data variables:
-        MU                  (P, T, X_AL, component) float64 -1.719e+05 ...
+        NP                  (P, T, X_AL, vertex) float64 0.3637 0.6363 0.3543 ...
         GM                  (P, T, X_AL) float64 -2.526e+04 -2.585e+04 ...
-        NP                  (P, T, X_AL, vertex) float64 0.3829 0.6171 0.3543 ...
+        MU                  (P, T, X_AL, component) float64 -1.719e+05 ...
         X                   (P, T, X_AL, vertex, component) float64 0.25 0.75 ...
         Y                   (P, T, X_AL, vertex, internal_dof) float64 1e-12 1.0 ...
-        Phase               (P, T, X_AL, vertex) object 'FCC_L12' 'FCC_L12' ...
-        degree_of_ordering  (P, T, X_AL, vertex) float64 1.0 7.962e-15 1.0 ...
+        Phase               (P, T, X_AL, vertex) <U7 'FCC_L12' 'FCC_L12' ...
+        degree_of_ordering  (P, T, X_AL, vertex) float64 1.0 2.805e-15 1.0 ...
     Attributes:
-        hull_iterations: 5
-        solve_iterations: 1047
-        engine: pycalphad 0.2.5+63.g4069829.dirty
-        created: 2016-02-17 16:32:02.881604 
+        engine:   pycalphad 0.5.2.post1
+        created:  2017-10-09T13:24:01.595109
+
 
 Plots
------
+~~~~~
 
 In the plot below we observe two phases designated ``FCC_L12``. This is
 indicative of a miscibility gap. The ordered gamma-prime phase steadily
 decreases in amount with increasing temperature until it completely
 disappears around 750 K, leaving only the disordered gamma phase.
 
-.. code:: python
+.. code:: ipython3
 
     from pycalphad.plot.utils import phase_legend
     phase_handles, phasemap = phase_legend(phases)
@@ -250,6 +239,14 @@ disappears around 750 K, leaving only the disordered gamma phase.
 
 
 
+
+.. parsed-literal::
+
+    <matplotlib.legend.Legend at 0x111c4f9b0>
+
+
+
+
 .. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_16_1.png
 
 
@@ -258,9 +255,9 @@ all in each phase. There is a very abrupt disappearance of the
 completely ordered gamma-prime phase, leaving the completely disordered
 gamma phase. This is a first-order phase transition.
 
-.. code:: python
+.. code:: ipython3
 
-    plt.gca().set_title('Al-Fe: Degree of fcc ordering vs T [X(AL)=0.1]')
+    plt.gca().set_title('Al-Ni: Degree of fcc ordering vs T [X(AL)=0.1]')
     plt.gca().set_xlabel('Temperature (K)')
     plt.gca().set_ylabel('Degree of ordering')
     plt.gca().set_ylim((-0.1,1.1))

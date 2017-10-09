@@ -1,6 +1,6 @@
 
-Calculating Isothermal Phase Diagrams
-=====================================
+Calculating Ternary Phase Diagrams and Properties
+=================================================
 
 Often in thermodynamics, it is useful to use a two dimensional plot to
 express equilibria in a three component system with fixed potentials.
@@ -13,12 +13,12 @@ ternplot
 --------
 
 Here we well use the ternplot API to plot an isothermal section of the
-Mg-Si-Zn system from the thermodynamic database found at the `NIST
+Al-Cu-Y system from the thermodynamic database found at the `NIST
 CALPHAD assessments <http://hdl.handle.net/11115/101>`__ assessed by
 Zhang et al. `Calphad 35
 (2011) <https://doi.org/10.1016/j.calphad.2011.09.008>`__. Note that we
-have commented out the Cu6Y phase from the database because it utilized
-the Cu2 species. Species are not currently supported in pycalphad.
+have commented out the Cu6Y phase in the TDB because it utilized the Cu2
+species. Species are not currently supported in pycalphad.
 
 .. code:: ipython3
 
@@ -38,7 +38,7 @@ the Cu2 species. Species are not currently supported in pycalphad.
 
 .. parsed-literal::
 
-    <matplotlib.axes._subplots.TriangularAxesSubplot at 0x10adf3390>
+    <matplotlib.axes._subplots.TriangularAxesSubplot at 0x117fcd5f8>
 
 
 
@@ -82,11 +82,11 @@ axes.
                linewidth=0.0)
     
     # label the figure
-    ax.set_xlabel('X (Al)')
-    ax.set_ylabel('X (Cu)')
+    ax.set_xlabel('X (AL)')
+    ax.set_ylabel('X (CU)')
     ax.yaxis.label.set_rotation(60)  # rotate ylabel
     ax.yaxis.set_label_coords(x=0.12, y=0.5)  # move the label to a pleasing position
-    ax.set_title('Al-Cu-Y Mixing Enthalpy 830K')
+    ax.set_title('AL-CU-Y HM_MIX at 830K')
     
     # set up the colorbar
     cm = plt.cm.ScalarMappable(cmap='coolwarm')
@@ -98,10 +98,11 @@ axes.
 
 .. parsed-literal::
 
-    <matplotlib.colorbar.Colorbar at 0x10c878c18>
+    <matplotlib.colorbar.Colorbar at 0x117110588>
 
 
 
 
 .. image:: TernaryExamples_files/TernaryExamples_4_1.png
+
 

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Calculating Isothermal Phase Diagrams &mdash; pycalphad 0.5.2.post1+2.gdb9c596 documentation</title>
+  <title>Calculating Ternary Phase Diagrams and Properties &mdash; pycalphad 0.5.2.post1+4.g4134039 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+2.gdb9c596 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+4.g4134039 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="API Documentation" href="../api/modules.html"/>
         <link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+2.gdb9c596
+                0.5.2.post1+4.g4134039
               </div>
             
           
@@ -101,9 +101,7 @@
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
 <li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html#al-fe-heat-capacity-and-degree-of-ordering">Al-Fe (Heat Capacity and Degree of Ordering)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html#al-ni-degree-of-ordering">Al-Ni (Degree of Ordering)</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculating Isothermal Phase Diagrams</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculating Ternary Phase Diagrams and Properties</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ternplot">ternplot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#triangular-projection">triangular projection</a></li>
 </ul>
@@ -158,7 +156,7 @@
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
-      <li>Calculating Isothermal Phase Diagrams</li>
+      <li>Calculating Ternary Phase Diagrams and Properties</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -177,8 +175,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="calculating-isothermal-phase-diagrams">
-<h1>Calculating Isothermal Phase Diagrams<a class="headerlink" href="#calculating-isothermal-phase-diagrams" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="calculating-ternary-phase-diagrams-and-properties">
+<h1>Calculating Ternary Phase Diagrams and Properties<a class="headerlink" href="#calculating-ternary-phase-diagrams-and-properties" title="Permalink to this headline">¶</a></h1>
 <p>Often in thermodynamics, it is useful to use a two dimensional plot to
 express equilibria in a three component system with fixed potentials.
 The <code class="docutils literal"><span class="pre">ternplot</span></code> API provides a straightforward way to calculate
@@ -188,12 +186,12 @@ already have an equilibrium calculation, you can directly import and use
 <div class="section" id="ternplot">
 <h2>ternplot<a class="headerlink" href="#ternplot" title="Permalink to this headline">¶</a></h2>
 <p>Here we well use the ternplot API to plot an isothermal section of the
-Mg-Si-Zn system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST
+Al-Cu-Y system from the thermodynamic database found at the <a class="reference external" href="http://hdl.handle.net/11115/101">NIST
 CALPHAD assessments</a> assessed by
 Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calphad.2011.09.008">Calphad 35
 (2011)</a>. Note that we
-have commented out the Cu6Y phase from the database because it utilized
-the Cu2 species. Species are not currently supported in pycalphad.</p>
+have commented out the Cu6Y phase in the TDB because it utilized the Cu2
+species. Species are not currently supported in pycalphad.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
@@ -206,7 +204,7 @@ the Cu2 species. Species are not currently supported in pycalphad.</p>
 <span class="n">ternplot</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x10adf3390</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x117fcd5f8</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_2_1.png" src="../_images/TernaryExamples_2_1.png" />
@@ -242,11 +240,11 @@ axes.</p>
            <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
 
 <span class="c1"># label the figure</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X (Al)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X (Cu)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X (AL)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X (CU)&#39;</span><span class="p">)</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># rotate ylabel</span>
 <span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_coords</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># move the label to a pleasing position</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y Mixing Enthalpy 830K&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;AL-CU-Y HM_MIX at 830K&#39;</span><span class="p">)</span>
 
 <span class="c1"># set up the colorbar</span>
 <span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
@@ -254,7 +252,7 @@ axes.</p>
 <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x10c878c18</span><span class="o">&gt;</span>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x117110588</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_4_1.png" src="../_images/TernaryExamples_4_1.png" />
@@ -305,7 +303,7 @@ axes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+2.gdb9c596',
+            VERSION:'0.5.2.post1+4.g4134039',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
