@@ -9,7 +9,7 @@ Note that, at the time of writing, invariant reactions (three-phase
 'regions' on binary diagrams) are not yet automatically detected so they
 are not drawn on the diagram.
 
-.. code:: python
+.. code:: ipython3
 
     %matplotlib inline
     import matplotlib.pyplot as plt
@@ -25,7 +25,7 @@ shown below.
 The format for specifying a range of a state variable is (*start*,
 *stop*, *step*).
 
-.. code:: python
+.. code:: ipython3
 
     db_alzn = Database('alzn_mey.tdb')
     my_phases_alzn = ['LIQUID', 'FCC_A1', 'HCP_A3']
@@ -42,7 +42,7 @@ The format for specifying a range of a state variable is (*start*,
 Al-Fe (M.Seiersten et al., 1991)
 --------------------------------
 
-.. code:: python
+.. code:: ipython3
 
     db_alfe = Database('alfe_sei.TDB')
     my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
@@ -56,10 +56,10 @@ Al-Fe (M.Seiersten et al., 1991)
 .. image:: BinaryExamples_files/BinaryExamples_7_0.png
 
 
-Al-Ni (Work in progress) (N. Dupin et al., 2001)
-------------------------------------------------
+Al-Ni (N. Dupin et al., 2001)
+-----------------------------
 
-.. code:: python
+.. code:: ipython3
 
     db_alni = Database('NI_AL_DUPIN_2001.TDB')
     my_phases_alni = ['LIQUID', 'FCC_L12', 'BCC_B2', 'AL3NI5', 'AL3NI2', 'AL3NI1']
@@ -71,8 +71,12 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 
 .. parsed-literal::
 
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1610.0)), ('X_AL', array(0.50001))])
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1570.0)), ('X_AL', array(0.50001))])
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1320.0)), ('X_AL', array(0.50001))])
     Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1260.0)), ('X_AL', array(0.16001))])
     Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1270.0)), ('X_AL', array(0.16001))])
+    Failed to converge: OrderedDict([('P', array(101325.0)), ('T', array(1920.0)), ('X_AL', array(0.52001))])
 
 
 
@@ -82,7 +86,7 @@ Al-Ni (Work in progress) (N. Dupin et al., 2001)
 Nb-Re (X. L. Liu et al., 2013)
 ------------------------------
 
-.. code:: python
+.. code:: ipython3
 
     db_nbre = Database('nbre_liu.tdb')
     my_phases_nbre = ['CHI_RENB', 'SIGMARENB', 'FCC_RENB', 'LIQUID_RENB', 'BCC_RENB', 'HCP_RENB']
@@ -110,10 +114,7 @@ which allow it to take on multiple states for a given overall
 composition. Only the low-energy states are relevant to calculating the
 equilibrium phase diagram.
 
-In the future this code will be rolled into a pycalphad routine so that
-it is simpler for the user.
-
-.. code:: python
+.. code:: ipython3
 
     from pycalphad import calculate
     from pycalphad.plot.utils import phase_legend
@@ -124,7 +125,7 @@ it is simpler for the user.
     fig = plt.figure(figsize=(9,6))
     ax = fig.gca()
     for name in my_phases_nbre:
-        result = calculate(db_nbre, ['NB', 'RE'], name, T=2800, output='GM')
+        result = calculate(db_nbre, ['NB', 'RE'], name, P=101325, T=2800, output='GM')
         ax.scatter(result.X.sel(component='RE'), result.GM,
                    marker='.', s=5, color=colorlist[name.upper()])
     ax.set_xlim((0, 1))
