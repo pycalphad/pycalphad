@@ -329,8 +329,8 @@ def _setitem_raise_duplicates(dictionary, key, value):
     dictionary[key] = value
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: db.elements.add(el),
-    'SPECIES': _unimplemented,
+    'ELEMENT': lambda db, el: (db.elements.add(el), db.species.add(el)),
+    'SPECIES': lambda db, sp_name, sp_comp: db.species.add(sp_name),
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,

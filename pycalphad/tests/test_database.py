@@ -283,9 +283,37 @@ def test_expand_keyword():
     assert all([full == expand_keyword(test_list, abbrev) for abbrev, full in test_input])
 
 
+def test_tdb_species_are_parsed_correctly():
+    """The TDB species command should be properly parsed."""
+    tdb_specie_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES O3                          O3!
+SPECIES AL1O1                       AL1O1!
+SPECIES AL1O2                       AL1O2!
+SPECIES AL2                         AL2!
+SPECIES AL2O                        AL2O1!
+SPECIES AL2O1                       AL2O1!
+SPECIES AL2O2                       AL2O2!
+SPECIES AL2O3                       AL2O3!
+SPECIES ALO                         AL1O1!
+SPECIES ALO2                        AL1O2!
+SPECIES ALO3/2                      AL1O1.5!
+    """
+    test_dbf = Database.from_string(tdb_specie_str, fmt='tdb')
+    assert len(test_dbf.species) == 18
+
+
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():
     tdb_str = """$ Note missing '!' in next line
                ELEMENT ZR   BCT_A5
                FUNCTION EMBCCTI    298.15 -39.72; 6000 N !"""
     Database(tdb_str)
+
