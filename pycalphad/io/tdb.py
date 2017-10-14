@@ -681,7 +681,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                 charge = '/{}{}'.format(charge_sign, species.charge)
             else:
                 charge = ''
-            specie_constituents = ''.join(['{}{}'.format(el, val) for el, val in species.constituents.items()])
+            specie_constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(species.constituents.items(), key=lambda t: t[0])])
             output += "SPECIES {0} {1}{2} !\n".format(species.name.upper(), specie_constituents, charge)
     if len(dbf.species) > 0:
         output += "\n"
