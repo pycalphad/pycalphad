@@ -200,7 +200,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
     # SPECIES
-    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + float_number)) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
+    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + Optional(float_number, default=1.0))) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())

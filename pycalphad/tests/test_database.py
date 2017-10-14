@@ -293,6 +293,7 @@ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
 
 SPECIES AL+3                        AL1/+3!
 SPECIES O-2                         O1/-2!
+SPECIES O1                          O!
 SPECIES O2                          O2!
 SPECIES O3                          O3!
 SPECIES AL1O1                       AL1O1!
@@ -307,10 +308,11 @@ SPECIES ALO2                        AL1O2!
 SPECIES ALO3/2                      AL1O1.5!
     """
     test_dbf = Database.from_string(tdb_specie_str, fmt='tdb')
-    assert len(test_dbf.species) == 18
+    assert len(test_dbf.species) == 19
     specie_dict = {sp.name: sp for sp in test_dbf.species}
     assert specie_dict['AL'].charge == 0
     assert specie_dict['O2'].constituents['O'] == 2
+    assert specie_dict['O1'].constituents['O'] == 1
     assert specie_dict['AL1O2'].constituents['AL'] == 1
     assert specie_dict['AL1O2'].constituents['O'] == 2
     assert specie_dict['ALO3/2'].constituents['O'] == 1.5
