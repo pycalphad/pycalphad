@@ -178,6 +178,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
+    pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
     # matching float w/ regex is ugly but is recommended by pyparsing
     float_number = Regex(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?') \
         .setParseAction(lambda t: [float(t[0])])
@@ -199,7 +200,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
     # SPECIES
-    cmd_species = TCCommand('SPECIES') + species_name + species_name + LineEnd()
+    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + float_number)) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
@@ -323,14 +324,20 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
+def _process_specie(db, sp_name, sp_comp, charge=0, *args):
+    """Add a species to the Database. If charge not specified, the Specie will be neutral."""
+    # process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]
+    constituents = {sp_comp[i]: sp_comp[i+1] for i in range(0, len(sp_comp), 2)}
+    db.species.add(Specie(sp_name, constituents, charge=charge))
+
 def _setitem_raise_duplicates(dictionary, key, value):
     if key in dictionary:
         raise ValueError("TDB contains duplicate FUNCTION {}".format(key))
     dictionary[key] = value
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: (db.elements.add(el), db.species.add(Specie(el, {el: 1.0}))),
-    'SPECIES': lambda db, sp_name, sp_comp: db.species.add(Specie(sp_name, sp_comp)),
+    'ELEMENT': lambda db, el: (db.elements.add(el), _process_specie(db, el, [el, 1], 0)),
+    'SPECIES': _process_specie,
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,

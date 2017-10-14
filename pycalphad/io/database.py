@@ -43,10 +43,13 @@ class Specie(object):
         Name of the specie
     constituents : dict
         Dictionary of {element: quantity} where the element is a string and the quantity a float.
+    charge : int
+        Integer charge. Can be positive or negative.
     """
-    def __init__(self, name, constituents):
+    def __init__(self, name, constituents, charge):
         self.name = name
         self.constituents = constituents
+        self.charge = charge
 
     def __eq__(self, other):
         """Two species are the same if their names and constituents are the same."""

@@ -308,6 +308,33 @@ SPECIES ALO3/2                      AL1O1.5!
     """
     test_dbf = Database.from_string(tdb_specie_str, fmt='tdb')
     assert len(test_dbf.species) == 18
+    specie_dict = {sp.name: sp for sp in test_dbf.species}
+    assert specie_dict['AL'].charge == 0
+    assert specie_dict['O2'].constituents['O'] == 2
+    assert specie_dict['AL1O2'].constituents['AL'] == 1
+    assert specie_dict['AL1O2'].constituents['O'] == 2
+    assert specie_dict['ALO3/2'].constituents['O'] == 1.5
+
+
+def test_tdb_species_with_charge_are_parsed_correctly():
+    """The TDB species that have a charge should be properly parsed."""
+    tdb_specie_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES AL2                         AL2!
+    """
+    test_dbf = Database.from_string(tdb_specie_str, fmt='tdb')
+    assert len(test_dbf.species) == 8
+    specie_dict = {sp.name: sp for sp in test_dbf.species}
+    assert specie_dict['AL'].charge == 0
+    assert specie_dict['AL+3'].charge == 3
+    assert specie_dict['O-2'].charge == -2
 
 
 @nose.tools.raises(ParseException)
