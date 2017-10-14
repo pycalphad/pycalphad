@@ -672,7 +672,17 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "\n"
     for species in sorted(dbf.species, key=lambda s: s.name):
         if species.name not in dbf.elements:
-            output += "SPECIES {0} {1}!\n".format(species.name.upper(), ''.join(['{}{}'.format(el, val) for el, val in species.constituents.items()]))
+            # construct the charge part of the specie
+            if species.charge != 0:
+                if species.charge >0:
+                    charge_sign = '+'
+                else:
+                    charge_sign = ''
+                charge = '/{}{}'.format(charge_sign, species.charge)
+            else:
+                charge = ''
+            specie_constituents = ''.join(['{}{}'.format(el, val) for el, val in species.constituents.items()])
+            output += "SPECIES {0} {1}{2} !\n".format(species.name.upper(), specie_constituents, charge)
     if len(dbf.species) > 0:
         output += "\n"
     # Write FUNCTION block
