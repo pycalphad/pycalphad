@@ -15,7 +15,7 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError
+from pycalphad.io.database import DatabaseExportError, Specie
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -329,8 +329,8 @@ def _setitem_raise_duplicates(dictionary, key, value):
     dictionary[key] = value
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: (db.elements.add(el), db.species.add(el)),
-    'SPECIES': lambda db, sp_name, sp_comp: db.species.add(sp_name),
+    'ELEMENT': lambda db, el: (db.elements.add(el), db.species.add(Specie(el, {el: 1.0}))),
+    'SPECIES': lambda db, sp_name, sp_comp: db.species.add(Specie(sp_name, sp_comp)),
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
@@ -663,8 +663,9 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "ELEMENT {0} BLANK 0 0 0 !\n".format(element.upper())
     if len(dbf.elements) > 0:
         output += "\n"
-    for species in sorted(dbf.species):
-        output += "SPECIES {0} !\n".format(species.upper())
+    for species in sorted(dbf.species, key=lambda s: s.name):
+        if species.name not in dbf.elements:
+            output += "SPECIES {0} {1}!\n".format(species.name.upper(), ''.join(['{}{}'.format(el, val) for el, val in species.constituents.items()]))
     if len(dbf.species) > 0:
         output += "\n"
     # Write FUNCTION block
