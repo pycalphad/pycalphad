@@ -362,6 +362,37 @@ SPECIES AL2                         AL2!
     assert specie_dict['O-2'].charge == -2
 
 
+def test_species_are_parsed_in_tdb_phases_and_parameters():
+    """Species defined in the tdb phases and parameters should be parsed."""
+    tdb_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES AL2                         AL2!
+
+
+ PHASE TEST_PH % 1 1 !
+ CONSTITUENT TEST_PH :AL,AL2,O-2: !
+ PARA G(TEST_PH,AL;0) 298.15          +10; 6000 N !
+ PARA G(TEST_PH,AL2;0) 298.15          +100; 6000 N !
+ PARA G(TEST_PH,O-2;0) 298.15          +1000; 6000 N !
+
+    """
+    from tinydb import where
+    test_dbf = Database.from_string(tdb_str, fmt='tdb')
+    written_tdb_str = test_dbf.to_string(fmt='tdb')
+    test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
+    assert set(test_dbf_reread.phases.keys()) == {'TEST_PH'}
+    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {'AL', 'AL2', 'O-2'}
+    assert len(test_dbf._parameters.search(where('constituent_array') == (('AL',),))) == 1
+    assert len(test_dbf._parameters.search(where('constituent_array') == (('AL2',),))) == 1
+    assert len(test_dbf._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():
     tdb_str = """$ Note missing '!' in next line
