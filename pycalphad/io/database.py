@@ -33,9 +33,9 @@ def _to_tuple(lst):
     return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
 
 
-class Specie(object):
+class Species(object):
     """
-    A specie in the database.
+    A species in the database.
 
     Attributes
     ----------

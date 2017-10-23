@@ -15,7 +15,7 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError, Specie
+from pycalphad.io.database import DatabaseExportError, Species
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -324,11 +324,11 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
-def _process_specie(db, sp_name, sp_comp, charge=0, *args):
-    """Add a species to the Database. If charge not specified, the Specie will be neutral."""
+def _process_species(db, sp_name, sp_comp, charge=0, *args):
+    """Add a species to the Database. If charge not specified, the Species will be neutral."""
     # process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]
     constituents = {sp_comp[i]: sp_comp[i+1] for i in range(0, len(sp_comp), 2)}
-    db.species.add(Specie(sp_name, constituents, charge=charge))
+    db.species.add(Species(sp_name, constituents, charge=charge))
 
 def _setitem_raise_duplicates(dictionary, key, value):
     if key in dictionary:
@@ -336,8 +336,8 @@ def _setitem_raise_duplicates(dictionary, key, value):
     dictionary[key] = value
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: (db.elements.add(el), _process_specie(db, el, [el, 1], 0)),
-    'SPECIES': _process_specie,
+    'ELEMENT': lambda db, el: (db.elements.add(el), _process_species(db, el, [el, 1], 0)),
+    'SPECIES': _process_species,
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
@@ -681,8 +681,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                 charge = '/{}{}'.format(charge_sign, species.charge)
             else:
                 charge = ''
-            specie_constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(species.constituents.items(), key=lambda t: t[0])])
-            output += "SPECIES {0} {1}{2} !\n".format(species.name.upper(), specie_constituents, charge)
+            species_constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(species.constituents.items(), key=lambda t: t[0])])
+            output += "SPECIES {0} {1}{2} !\n".format(species.name.upper(), species_constituents, charge)
     if len(dbf.species) > 0:
         output += "\n"
     # Write FUNCTION block
