@@ -382,16 +382,22 @@ SPECIES AL2                         AL2!
  PARA G(TEST_PH,AL2;0) 298.15          +100; 6000 N !
  PARA G(TEST_PH,O-2;0) 298.15          +1000; 6000 N !
 
+ PHASE T2SL % 2 1 1 !
+  CONSTITUENT T2SL :AL+3:O-2: !
+  PARA L(T2SL,AL+3:O-2;0) 298.15 +2; 6000 N !
     """
     from tinydb import where
     test_dbf = Database.from_string(tdb_str, fmt='tdb')
     written_tdb_str = test_dbf.to_string(fmt='tdb')
     test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
-    assert set(test_dbf_reread.phases.keys()) == {'TEST_PH'}
+    assert set(test_dbf_reread.phases.keys()) == {'TEST_PH', 'T2SL'}
     assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {'AL', 'AL2', 'O-2'}
-    assert len(test_dbf._parameters.search(where('constituent_array') == (('AL',),))) == 1
-    assert len(test_dbf._parameters.search(where('constituent_array') == (('AL2',),))) == 1
-    assert len(test_dbf._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL',),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL2',),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+
+    assert test_dbf_reread.phases['T2SL'].constituents == ({'AL+3'}, {'O-2'})
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL+3',),('O-2',)))) == 1
 
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():

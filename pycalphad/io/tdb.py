@@ -793,8 +793,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                                                         param_to_write.parameter_order,
                                                         exprx)
     if groupby == 'subsystem':
-        for num_elements in range(1, 5):
-            subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
+        for num_species in range(1, 5):
+            subsystems = list(itertools.combinations(sorted([i.name.upper() for i in dbf.species]), num_species))
             for subsystem in subsystems:
                 parameters = sorted(param_sorted[subsystem])
                 if len(parameters) > 0:
@@ -806,7 +806,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                     for parameter in parameters:
                         output += write_parameter(parameter)
         # Don't generate combinatorics for multi-component subsystems or we'll run out of memory
-        if len(dbf.elements) > 4:
+        if len(dbf.species) > 4:
             subsystems = [k for k in param_sorted.keys() if len(k) > 4]
             for subsystem in subsystems:
                 parameters = sorted(param_sorted[subsystem])
