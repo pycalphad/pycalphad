@@ -33,6 +33,34 @@ def _to_tuple(lst):
     return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
 
 
+class Species(object):
+    """
+    A species in the database.
+
+    Attributes
+    ----------
+    name : string
+        Name of the specie
+    constituents : dict
+        Dictionary of {element: quantity} where the element is a string and the quantity a float.
+    charge : int
+        Integer charge. Can be positive or negative.
+    """
+    def __init__(self, name, constituents, charge):
+        self.name = name
+        self.constituents = constituents
+        self.charge = charge
+
+    def __eq__(self, other):
+        """Two species are the same if their names and constituents are the same."""
+        if isinstance(other, self.__class__):
+            return (self.name == other.name) and (self.constituents == other.constituents)
+        else:
+            return False
+
+    def __hash__(self):
+        return hash(self.name)
+
 class Phase(object): #pylint: disable=R0903
     """
     Phase in the database.
@@ -320,7 +348,7 @@ class Database(object): #pylint: disable=R0902
 
     def __str__(self):
         result = 'Elements: {0}\n'.format(sorted(self.elements))
-        result += 'Species: {0}\n'.format(sorted(self.species))
+        result += 'Species: {0}\n'.format(sorted(self.species, key=lambda s: s.name))
         for name, phase in sorted(self.phases.items()):
             result += str(phase)+'\n'
         result += '{0} symbols in database\n'.format(len(self.symbols))
