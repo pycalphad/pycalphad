@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.5.2.post1+5.g6066930 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.5.2.post1+6.gb39536c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+5.g6066930 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+6.gb39536c documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.2.post1+5.g6066930
+                0.5.2.post1+6.gb39536c
               </div>
             
           
@@ -178,7 +178,7 @@
 <span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="k">import</span> <span class="n">_keep_coeff</span>
 <span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span><span class="p">,</span> <span class="n">Species</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="k">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
@@ -341,14 +341,15 @@
 <span class="sd">    Convenience function for getting the pyparsing grammar of a TDB file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+    <span class="n">pos_neg_int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="s1">&#39;+-&#39;</span><span class="o">+</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="c1"># &#39;+3&#39; or &#39;-2&#39; are examples</span>
     <span class="c1"># matching float w/ regex is ugly but is recommended by pyparsing</span>
     <span class="n">float_number</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?&#39;</span><span class="p">)</span> \
         <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="c1"># symbol name, e.g., phase name, function name</span>
     <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:()&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:()/&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="c1"># species name, e.g., CO2, AL, FE3+</span>
-    <span class="n">species_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;+-*&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">))</span>
+    <span class="n">species_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;+-*/_.&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">))</span>
     <span class="c1"># constituent arrays are colon-delimited</span>
     <span class="c1"># each subarray can be comma- or space-delimited</span>
     <span class="n">constituent_array</span> <span class="o">=</span> <span class="n">Group</span><span class="p">(</span><span class="n">delimitedList</span><span class="p">(</span><span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">species_name</span><span class="p">)),</span> <span class="s1">&#39;:&#39;</span><span class="p">))</span>
@@ -361,6 +362,8 @@
     <span class="c1"># ELEMENT</span>
     <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">ref_phase_name</span><span class="p">))</span> <span class="o">+</span> \
         <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+    <span class="c1"># SPECIES</span>
+    <span class="n">cmd_species</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;SPECIES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">species_name</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos_neg_int_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># TYPE_DEFINITION</span>
     <span class="n">cmd_typedef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
@@ -392,6 +395,7 @@
         <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;)&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">func_expr</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="n">_make_piecewise_ast</span><span class="p">)</span>
     <span class="c1"># Now combine the grammar together</span>
     <span class="n">all_commands</span> <span class="o">=</span> <span class="n">cmd_element</span> <span class="o">|</span> \
+                    <span class="n">cmd_species</span> <span class="o">|</span> \
                     <span class="n">cmd_typedef</span> <span class="o">|</span> \
                     <span class="n">cmd_function</span> <span class="o">|</span> \
                     <span class="n">cmd_ass_sys</span> <span class="o">|</span> \
@@ -483,13 +487,20 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">pass</span>
 
+<span class="k">def</span> <span class="nf">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">sp_name</span><span class="p">,</span> <span class="n">sp_comp</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Add a species to the Database. If charge not specified, the Species will be neutral.&quot;&quot;&quot;</span>
+    <span class="c1"># process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]</span>
+    <span class="n">constituents</span> <span class="o">=</span> <span class="p">{</span><span class="n">sp_comp</span><span class="p">[</span><span class="n">i</span><span class="p">]:</span> <span class="n">sp_comp</span><span class="p">[</span><span class="n">i</span><span class="o">+</span><span class="mi">1</span><span class="p">]</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">sp_comp</span><span class="p">),</span> <span class="mi">2</span><span class="p">)}</span>
+    <span class="n">db</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">Species</span><span class="p">(</span><span class="n">sp_name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="n">charge</span><span class="p">))</span>
+
 <span class="k">def</span> <span class="nf">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">dictionary</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">):</span>
     <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">dictionary</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;TDB contains duplicate FUNCTION </span><span class="si">{}</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">key</span><span class="p">))</span>
     <span class="n">dictionary</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">value</span>
 
 <span class="n">_TDB_PROCESSOR</span> <span class="o">=</span> <span class="p">{</span>
-    <span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">el</span><span class="p">),</span>
+    <span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">:</span> <span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="n">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">)),</span>
+    <span class="s1">&#39;SPECIES&#39;</span><span class="p">:</span> <span class="n">_process_species</span><span class="p">,</span>
     <span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">:</span> <span class="n">_process_typedef</span><span class="p">,</span>
     <span class="s1">&#39;FUNCTION&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">:</span> <span class="n">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">symbols</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">),</span>
     <span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
@@ -822,8 +833,19 @@
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;ELEMENT </span><span class="si">{0}</span><span class="s2"> BLANK 0 0 0 !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">element</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
-    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">):</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;SPECIES </span><span class="si">{0}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">s</span><span class="p">:</span> <span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">:</span>
+            <span class="c1"># construct the charge part of the specie</span>
+            <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="k">if</span> <span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">&gt;</span><span class="mi">0</span><span class="p">:</span>
+                    <span class="n">charge_sign</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">charge_sign</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                <span class="n">charge</span> <span class="o">=</span> <span class="s1">&#39;/</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">charge_sign</span><span class="p">,</span> <span class="n">species</span><span class="o">.</span><span class="n">charge</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">charge</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+            <span class="n">species_constituents</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;</span><span class="si">{}{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">el</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
+            <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;SPECIES </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}{2}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">species</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">species_constituents</span><span class="p">,</span> <span class="n">charge</span><span class="p">)</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
     <span class="c1"># Write FUNCTION block</span>
@@ -934,8 +956,8 @@
                                                         <span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter_order</span><span class="p">,</span>
                                                         <span class="n">exprx</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">groupby</span> <span class="o">==</span> <span class="s1">&#39;subsystem&#39;</span><span class="p">:</span>
-        <span class="k">for</span> <span class="n">num_elements</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
-            <span class="n">subsystems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">]),</span> <span class="n">num_elements</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">num_species</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">5</span><span class="p">):</span>
+            <span class="n">subsystems</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">itertools</span><span class="o">.</span><span class="n">combinations</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">]),</span> <span class="n">num_species</span><span class="p">))</span>
             <span class="k">for</span> <span class="n">subsystem</span> <span class="ow">in</span> <span class="n">subsystems</span><span class="p">:</span>
                 <span class="n">parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">param_sorted</span><span class="p">[</span><span class="n">subsystem</span><span class="p">])</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -947,7 +969,7 @@
                     <span class="k">for</span> <span class="n">parameter</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
                         <span class="n">output</span> <span class="o">+=</span> <span class="n">write_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
         <span class="c1"># Don&#39;t generate combinatorics for multi-component subsystems or we&#39;ll run out of memory</span>
-        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">elements</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">:</span>
             <span class="n">subsystems</span> <span class="o">=</span> <span class="p">[</span><span class="n">k</span> <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">param_sorted</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">k</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">4</span><span class="p">]</span>
             <span class="k">for</span> <span class="n">subsystem</span> <span class="ow">in</span> <span class="n">subsystems</span><span class="p">:</span>
                 <span class="n">parameters</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">param_sorted</span><span class="p">[</span><span class="n">subsystem</span><span class="p">])</span>
@@ -1051,7 +1073,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.2.post1+5.g6066930',
+            VERSION:'0.5.2.post1+6.gb39536c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
