@@ -15,7 +15,7 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError
+from pycalphad.io.database import DatabaseExportError, Species
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -178,14 +178,15 @@ def _tdb_grammar(): #pylint: disable=R0914
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
+    pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
     # matching float w/ regex is ugly but is recommended by pyparsing
     float_number = Regex(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?') \
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
-    ref_phase_name = symbol_name = Word(alphanums+'_:()', min=1)
+    ref_phase_name = symbol_name = Word(alphanums+'_:()/', min=1)
     # species name, e.g., CO2, AL, FE3+
-    species_name = Word(alphanums+'+-*', min=1) + Optional(Suppress('%'))
+    species_name = Word(alphanums+'+-*/_.', min=1) + Optional(Suppress('%'))
     # constituent arrays are colon-delimited
     # each subarray can be comma- or space-delimited
     constituent_array = Group(delimitedList(Group(OneOrMore(Optional(Suppress(',')) + species_name)), ':'))
@@ -198,6 +199,8 @@ def _tdb_grammar(): #pylint: disable=R0914
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
+    # SPECIES
+    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + Optional(float_number, default=1.0))) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
@@ -229,6 +232,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(')') + func_expr.setParseAction(_make_piecewise_ast)
     # Now combine the grammar together
     all_commands = cmd_element | \
+                    cmd_species | \
                     cmd_typedef | \
                     cmd_function | \
                     cmd_ass_sys | \
@@ -320,13 +324,20 @@ def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
     pass
 
+def _process_species(db, sp_name, sp_comp, charge=0, *args):
+    """Add a species to the Database. If charge not specified, the Species will be neutral."""
+    # process the species composition list of [element1, ratio1, element2, ratio2, ..., elementN, ratioN]
+    constituents = {sp_comp[i]: sp_comp[i+1] for i in range(0, len(sp_comp), 2)}
+    db.species.add(Species(sp_name, constituents, charge=charge))
+
 def _setitem_raise_duplicates(dictionary, key, value):
     if key in dictionary:
         raise ValueError("TDB contains duplicate FUNCTION {}".format(key))
     dictionary[key] = value
 
 _TDB_PROCESSOR = {
-    'ELEMENT': lambda db, el: db.elements.add(el),
+    'ELEMENT': lambda db, el: (db.elements.add(el), _process_species(db, el, [el, 1], 0)),
+    'SPECIES': _process_species,
     'TYPE_DEFINITION': _process_typedef,
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
@@ -659,8 +670,19 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "ELEMENT {0} BLANK 0 0 0 !\n".format(element.upper())
     if len(dbf.elements) > 0:
         output += "\n"
-    for species in sorted(dbf.species):
-        output += "SPECIES {0} !\n".format(species.upper())
+    for species in sorted(dbf.species, key=lambda s: s.name):
+        if species.name not in dbf.elements:
+            # construct the charge part of the specie
+            if species.charge != 0:
+                if species.charge >0:
+                    charge_sign = '+'
+                else:
+                    charge_sign = ''
+                charge = '/{}{}'.format(charge_sign, species.charge)
+            else:
+                charge = ''
+            species_constituents = ''.join(['{}{}'.format(el, val) for el, val in sorted(species.constituents.items(), key=lambda t: t[0])])
+            output += "SPECIES {0} {1}{2} !\n".format(species.name.upper(), species_constituents, charge)
     if len(dbf.species) > 0:
         output += "\n"
     # Write FUNCTION block
@@ -771,8 +793,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                                                         param_to_write.parameter_order,
                                                         exprx)
     if groupby == 'subsystem':
-        for num_elements in range(1, 5):
-            subsystems = list(itertools.combinations(sorted([i.upper() for i in dbf.elements]), num_elements))
+        for num_species in range(1, 5):
+            subsystems = list(itertools.combinations(sorted([i.name.upper() for i in dbf.species]), num_species))
             for subsystem in subsystems:
                 parameters = sorted(param_sorted[subsystem])
                 if len(parameters) > 0:
@@ -784,7 +806,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                     for parameter in parameters:
                         output += write_parameter(parameter)
         # Don't generate combinatorics for multi-component subsystems or we'll run out of memory
-        if len(dbf.elements) > 4:
+        if len(dbf.species) > 4:
             subsystems = [k for k in param_sorted.keys() if len(k) > 4]
             for subsystem in subsystems:
                 parameters = sorted(param_sorted[subsystem])
