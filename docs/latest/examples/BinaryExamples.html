@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Calculating Isobaric Binary Phase Diagrams &mdash; pycalphad 0.5.2.post1+6.gb39536c documentation</title>
+  <title>Calculating Isobaric Binary Phase Diagrams &mdash; pycalphad 0.5.2.post1+7.g2baf14c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+6.gb39536c documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+7.g2baf14c documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html"/>
         <link rel="prev" title="Examples" href="index.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+6.gb39536c
+                0.5.2.post1+7.g2baf14c
               </div>
             
           
@@ -208,11 +208,12 @@ shown below.</p>
 </div>
 <div class="section" id="al-fe-m-seiersten-et-al-1991">
 <h2>Al-Fe (M.Seiersten et al., 1991)<a class="headerlink" href="#al-fe-m-seiersten-et-al-1991" title="Permalink to this headline">¶</a></h2>
+<p>Tielines can be removed by passing the <code class="docutils literal"><span class="pre">tielines=False</span></code> argument.</p>
 <div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">db_alfe</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alfe_sei.TDB&#39;</span><span class="p">)</span>
 <span class="n">my_phases_alfe</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL2FE&#39;</span><span class="p">,</span> <span class="s1">&#39;AL13FE4&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE4&#39;</span><span class="p">]</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
-<span class="n">binplot</span><span class="p">(</span><span class="n">db_alfe</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alfe</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span>
-                                                       <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">())</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_alfe</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alfe</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span>
+        <span class="n">tielines</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">ax</span><span class="o">=</span><span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">())</span>
 <span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
 </pre></div>
 </div>
@@ -325,7 +326,7 @@ equilibrium phase diagram.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+6.gb39536c',
+            VERSION:'0.5.2.post1+7.g2baf14c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
