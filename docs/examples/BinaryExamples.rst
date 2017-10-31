@@ -42,13 +42,15 @@ The format for specifying a range of a state variable is (*start*,
 Al-Fe (M.Seiersten et al., 1991)
 --------------------------------
 
+Tielines can be removed by passing the ``tielines=False`` argument.
+
 .. code:: ipython3
 
     db_alfe = Database('alfe_sei.TDB')
     my_phases_alfe = ['LIQUID', 'B2_BCC', 'FCC_A1', 'HCP_A3', 'AL5FE2', 'AL2FE', 'AL13FE4', 'AL5FE4']
     fig = plt.figure(figsize=(9,6))
-    binplot(db_alfe, ['AL', 'FE', 'VA'] , my_phases_alfe, {v.X('AL'):(0,1,0.01),
-                                                           v.T: (300, 2000, 10), v.P:101325}, ax=fig.gca())
+    binplot(db_alfe, ['AL', 'FE', 'VA'] , my_phases_alfe, {v.X('AL'):(0,1,0.01), v.T: (300, 2000, 10), v.P:101325}, 
+            tielines=False, ax=fig.gca())
     plt.show()
 
 
