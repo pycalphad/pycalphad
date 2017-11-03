@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.5.2.post1+7.g2baf14c documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.5.2.post1+8.g3d7a550 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+7.g2baf14c documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+8.g3d7a550 documentation" href="../index.html"/>
         <link rel="up" title="API Documentation" href="modules.html"/>
         <link rel="next" title="pycalphad.core package" href="pycalphad.core.html"/>
         <link rel="prev" title="API Documentation" href="modules.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+7.g2baf14c
+                0.5.2.post1+8.g3d7a550
               </div>
             
           
@@ -106,9 +106,9 @@
 </ul>
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.fitting">pycalphad.fitting module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pycalphad-fitting-module">pycalphad.fitting module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.refdata">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pycalphad-refdata-module">pycalphad.refdata module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.variables">pycalphad.variables module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
 </ul>
@@ -197,7 +197,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.constants">pycalphad.core.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.custom_autowrap">pycalphad.core.custom_autowrap module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cymem">pycalphad.core.cymem module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqresult">pycalphad.core.eqresult module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-eqresult-module">pycalphad.core.eqresult module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqsolver">pycalphad.core.eqsolver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.equilibrium">pycalphad.core.equilibrium module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.halton">pycalphad.core.halton module</a></li>
@@ -234,76 +234,8 @@
 <div class="section" id="submodules">
 <h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
 </div>
-<div class="section" id="module-pycalphad.fitting">
-<span id="pycalphad-fitting-module"></span><h2>pycalphad.fitting module<a class="headerlink" href="#module-pycalphad.fitting" title="Permalink to this headline">¶</a></h2>
-<p>This module contains routines for fitting new CALPHAD models.</p>
-<dl class="class">
-<dt id="pycalphad.fitting.Dataset">
-<em class="property">class </em><code class="descclassname">pycalphad.fitting.</code><code class="descname">Dataset</code><span class="sig-paren">(</span><em>error_func</em>, <em>calc_func</em>, <em>exp_data</em>, <em>json</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.fitting.Dataset" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
-<dl class="attribute">
-<dt id="pycalphad.fitting.Dataset.calc_func">
-<code class="descname">calc_func</code><a class="headerlink" href="#pycalphad.fitting.Dataset.calc_func" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 1</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.fitting.Dataset.error_func">
-<code class="descname">error_func</code><a class="headerlink" href="#pycalphad.fitting.Dataset.error_func" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 0</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.fitting.Dataset.exp_data">
-<code class="descname">exp_data</code><a class="headerlink" href="#pycalphad.fitting.Dataset.exp_data" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 2</p>
-</dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.fitting.Dataset.json">
-<code class="descname">json</code><a class="headerlink" href="#pycalphad.fitting.Dataset.json" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 3</p>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.fitting.build_pymc_model">
-<code class="descclassname">pycalphad.fitting.</code><code class="descname">build_pymc_model</code><span class="sig-paren">(</span><em>dbf</em>, <em>dataset_names</em>, <em>params</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#build_pymc_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.build_pymc_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a pymc (2.x) Model using the specified data and parameters.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) &#8211; Database with defined parameters, except for params.</li>
-<li><strong>dataset_names</strong> (<em>list of str</em>) &#8211; List of paths to pycalphad JSON files.</li>
-<li><strong>params</strong> (<em>list of pymc.Stochastic</em>) &#8211; Parameters to fit.</li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">(pymc.Model, dict of Dataset)</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.fitting.plot_results">
-<code class="descclassname">pycalphad.fitting.</code><code class="descname">plot_results</code><span class="sig-paren">(</span><em>input_database</em>, <em>datasets</em>, <em>params</em>, <em>databases=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#plot_results"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.plot_results" title="Permalink to this definition">¶</a></dt>
-<dd><p>Generate figures using the datasets and trace of the parameters.
-A dict of label-&gt;Database objects may be provided as a kwarg.</p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.fitting.setup_dataset">
-<code class="descclassname">pycalphad.fitting.</code><code class="descname">setup_dataset</code><span class="sig-paren">(</span><em>file_obj</em>, <em>dbf</em>, <em>params</em>, <em>mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/fitting.html#setup_dataset"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.fitting.setup_dataset" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="pycalphad-fitting-module">
+<h2>pycalphad.fitting module<a class="headerlink" href="#pycalphad-fitting-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.model">
 <span id="pycalphad-model-module"></span><h2>pycalphad.model module<a class="headerlink" href="#module-pycalphad.model" title="Permalink to this headline">¶</a></h2>
@@ -636,9 +568,8 @@ If not specified, randomly generated and saved to self.solution</li>
 </dd></dl>
 
 </div>
-<div class="section" id="module-pycalphad.refdata">
-<span id="pycalphad-refdata-module"></span><h2>pycalphad.refdata module<a class="headerlink" href="#module-pycalphad.refdata" title="Permalink to this headline">¶</a></h2>
-<p>The refdata module contains pure-element reference state data.</p>
+<div class="section" id="pycalphad-refdata-module">
+<h2>pycalphad.refdata module<a class="headerlink" href="#pycalphad-refdata-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.variables">
 <span id="pycalphad-variables-module"></span><h2>pycalphad.variables module<a class="headerlink" href="#module-pycalphad.variables" title="Permalink to this headline">¶</a></h2>
@@ -780,7 +711,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+7.g2baf14c',
+            VERSION:'0.5.2.post1+8.g3d7a550',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
