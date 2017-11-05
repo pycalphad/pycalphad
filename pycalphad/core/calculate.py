@@ -422,13 +422,14 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = collections.OrderedDict((v.StateVariable(key), unpack_condition(value)) \
-                                            for (key, value) in sorted(kwargs.items()))
+    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items())
     # XXX: CompiledModel assumes P, T are the only state variables
     if statevar_dict.get(v.P, None) is None:
         statevar_dict[v.P] = 101325
     if statevar_dict.get(v.T, None) is None:
         statevar_dict[v.T] = 300
+    # Sort after default state variable check to fix gh-116
+    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
     all_phase_data = []
