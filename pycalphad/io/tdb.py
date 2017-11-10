@@ -179,8 +179,8 @@ def _tdb_grammar(): #pylint: disable=R0914
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
     pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
-    # matching float w/ regex is ugly but is recommended by pyparsing
-    float_number = Regex(r'[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?') \
+    # https://stackoverflow.com/questions/2293780/how-to-detect-a-floating-point-number-using-a-regular-expression#comment28701224_2293793
+    float_number = Regex(r'-?(0(\.\d*)?|([1-9]\d*\.?\d*)|(\.\d+))([Ee][+-]?\d+)?') \
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
