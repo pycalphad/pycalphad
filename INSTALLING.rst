@@ -1,79 +1,122 @@
 Installation Instructions
 =========================
 
-Prerequisites
--------------
 
-
+This page will guide you through installing pycalphad and the `Jupyter Notebook`_
+application, which is suggested for running pycalphad interactively.
 
 Anaconda (recommended)
 ----------------------
 
-For all Windows, macOS and Linux platforms, it is recommended to use Anaconda_ to install the latest release of pycalphad.
-Anaconda is a scientific Python distribution by Continuum Analytics.
-It provides good support for various scientific packages and otherwise challenging to install packages such as NumPy, SciPy, and Cython.
+For all Windows, macOS and Linux platforms, it is recommended to use Anaconda_
+to install the latest release of pycalphad. Anaconda is a scientific Python
+distribution by Continuum Analytics. It provides good support for various
+scientific packages and otherwise challenging to install packages.
 
-TODO: should we mention the mingw stuff?
-TODO: fix development requirements
-TODO: section for development version. Best approach? Include virtualenvs or not? What about with conda?
+To install pycalphad from Anaconda
 
+1. Download and install Anaconda_
+2. From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run ``conda config --add channels conda-forge``
+3. Run the ``conda install pycalphad`` command to install pycalphad
 
 PyPI
 ----
 
-Release versions of pycalphad are also available on PyPI.
-NumPy, SciPy and Cython are all *build* requirements of pycalphad and must be installed before you install pycalphad.
-Again, it is recommended to install pycalphad into a virtual environment.
-Several tools are available for this including `virtualenv`_ and `virtualenvwrapper`_.
+Release versions of pycalphad are available on PyPI. As of pycalphad 0.6,
+the `Ipopt`_ library is used for numerical optimization and must be installed
+separately in order to install pycalphad from PyPI. Instructions for downloading
+and installating Ipopt are found at https://www.coin-or.org/Ipopt/documentation/node10.html.
 
+NumPy, SciPy and Cython are all *build* requirements of pycalphad and must be
+installed before you install pycalphad.
 
-To install pycalphad from PyPI using ``pip``, first create a virtual environment, if desired, then run
+To install pycalphad from PyPI using pip:
 
-.. code-block: bash
+1. Download and install Ipopt
+2. Run the ``pip install numpy scipy cython`` command in a terminal emulator
+3. Run the ``pip install pycalphad`` command to install pycalphad
+4. (Optional) run ``pip install jupyter`` to install the Jupyter Notebook application
 
-
-    pip install numpy scipy cython
-    pip install pycalphad
-
-
-
-
-for Windows users. You can use pycalphad with Python 2 or Python 3, but we recommend
-Python 3 for the best experience. After you have installed either Anaconda or Miniconda, use
-``conda config --add channels conda-forge`` followed by
-``conda install pycalphad`` to install. Note that you will need to have a working
-C/C++ compiler for pycalphad to work, so ``conda install mingw`` may also be necessary on Windows.
-To install the package into an isolated environment, use ``conda create -c conda-forge -n [envname] pycalphad``
-Then use ``source activate [envname]`` on Linux/OSX or ``activate [envname]`` on Windows to enter the environment.
-
-For interactive pycalphad sessions, we recommend installing the `Jupyter Notebook`_.
-
-Mac OSX
--------
-If not using a special distribution like Canopy or Anaconda_, it's recommended to install
-pycalphad in a virtualenv using ``virtualenvwrapper``.
-``pip install pycalphad`` inside the virtualenv will install with any required dependencies.
-You may also want to ``pip install fastcache`` for a mild performance boost.
-If you are using Anaconda, see the Windows instructions.
-
-Linux
------
-If not using a special distribution like Canopy or Anaconda_, it's recommended to install
-pycalphad in a virtualenv using ``virtualenvwrapper``.
-``pip install pycalphad`` inside the virtualenv will install with any required dependencies.
-You may also want to ``pip install fastcache`` for a mild performance boost.
-If you are using Anaconda, see the Windows instructions.
 
 Development Versions (Advanced Users)
 -------------------------------------
-* ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
-* Using conda:
-    * ``conda config --add channels conda-forge``
-    * ``conda create -n [envname] pycalphad``
-    * ``conda install -n root conda-build``
-    * ``conda develop -b -n [envname] pycalphad/``
-    * ``source activate [envname]`` on Linux/OSX or ``activate [envname]`` on Windows to enter the environment.
-* Or, inside a virtualenv: ``python setup.py develop``
+
+To install a development version of pycalphad, you can use either an Anaconda or
+vanilla Python distribution.
+
+In either case, it is suggested to use a virtual environment. These instructions
+will walk you through installing pycalphad in a virtual environment called
+``pycalphad-dev``.
+
+Anaconda
+~~~~~~~~
+
+From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
+
+1. Create the virtual environment and install pycalphad into it ``conda create -n pycalphad-dev pycalphad``
+2. Remove the installed pycalphad package so the development version can be installed ``conda remove --force -n pycalphad-dev pycalphad``
+3. Activate the environment ``activate pycalphad-dev`` (Windows) or ``source activate pycalphad-dev`` (macOS or Linux)
+4. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
+5. Go to the top level directory of the package ``cd pycalphad``
+6. Run ``pip install -e .``
+
+PyPI
+~~~~
+
+From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
+
+1. Download and install `Ipopt`_
+2. Follow the instructions to install `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/install.html>`_
+3. Make the virtual environment ``mkvirtualenv pycalphad-dev``
+4. Activate the environment ``workon pycalphad``
+5. Install the build requirements ``pip install numpy scipy cython``
+6. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
+7. Go to the top level directory of the package ``cd pycalphad``
+8. Run ``pip install -e .``
+
+Troubleshooting
+---------------
+
+During installation
+~~~~~~~~~~~~~~~~~~~
+
+``IpStdCInterface.h: No such file or directory``
+++++++++++++++++++++++++++++++++++++++++++++++++
+
+During installation via pip, the error
+``src/cyipopt.c:239:29: fatal error: IpStdCInterface.h: No such file or directory``
+indicates that the headers for Ipopt library cannot be found when trying to install
+cyipopt.
+
+The library Ipopt is a new dependency in pycalphad 0.6 and requires installation
+of an external library not available on PyPI. This error message means Ipopt is
+either not installed or not in your PATH. Ipopt installation instructions are
+available at https://www.coin-or.org/Ipopt/documentation/node10.html.
+
+To continue installation via pip:
+
+1. Install Ipopt
+2. Download the cyipopt package source from https://github.com/matthias-k/cyipopt
+3. Install the downloaded cyipopt package. You may need to add the directories
+   containing Ipopt header files and libriaries as ``IPOPT_INCLUDE_DIRS`` and
+   ``IPOPT_LIB_DIRS`` in the ``setup.py`` file.
+
+However, users (especially users on Windows) are strongly encouraged to use the
+Anaconda installation instructions for pycalphad instead. ``conda install pycalphad``
+and ``conda update pycalphad`` will automatically install Ipopt on all platforms.
+
+After installation
+~~~~~~~~~~~~~~~~~~
+
+``TypeError: argument is not an mpz`` during a calculation
+++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
+
+This is an upstream bug in sympy, where floats are unable to be pickled.
+The fix has been copmleted, but not yet released. While the fix is not released,
+removing the gmpy2 package from their Python environment (e.g.
+``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
+environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.
 
 .. _Anaconda: http://continuum.io/downloads/
-.. _`Jupyter Notebook`: http://jupyter.readthedocs.org/en/latest/install.html
+.. _`Jupyter Notebook`: http://jupyter.readthedocs.io/en/latest/index.html
+.. _Ipopt: https://projects.coin-or.org/Ipopt
