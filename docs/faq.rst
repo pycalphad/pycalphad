@@ -33,3 +33,15 @@ The ``Client`` scheduler can be used as in an equilibrium calculation as follows
     eq = equilibrium(dbf, comps, phases, conditions, scheduler=scheduler)
 
 
+How long should equilibrium calculations take?
+----------------------------------------------
+
+Roughly speaking, single point equilibrium calculations should take on the order
+of 200ms.
+
+The ``binplot`` and ``ternplot`` functions construct phase diagrams by
+a dense grid of point calculations over the conditions passed. The phase diagrams
+are mapped by the tieline points of the two phase regions, so unless there are
+two phase regions in a very small composition range, only coarse composition
+grids are required for phase diagram calculations.
+
