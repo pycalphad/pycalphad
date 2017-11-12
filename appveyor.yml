@@ -40,7 +40,7 @@ install:
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
   - "conda install --yes -n condaenv --quiet tinydb cython"
-  - "pip install -e ."
+  - "build.cmd pip install -e ."
 
 build: false
 
