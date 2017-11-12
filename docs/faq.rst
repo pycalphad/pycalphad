@@ -45,3 +45,12 @@ are mapped by the tieline points of the two phase regions, so unless there are
 two phase regions in a very small composition range, only coarse composition
 grids are required for phase diagram calculations.
 
+
+``TypeError: argument is not an mpz`` during a calculation
+----------------------------------------------------------
+
+This is an upstream bug in sympy, where floats are unable to be pickled.
+The fix has been copmleted, but not yet released. While the fix is not released,
+removing the gmpy2 package from their Python environment (e.g.
+``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
+environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.
