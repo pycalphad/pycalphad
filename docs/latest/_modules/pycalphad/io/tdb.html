@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.5.2.post1+10.g699468c documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.5.2.post1+11.g7f6e952 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+10.g699468c documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+11.g7f6e952 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.2.post1+10.g699468c
+                0.5.2.post1+11.g7f6e952
               </div>
             
           
@@ -343,7 +343,8 @@
     <span class="n">int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="n">pos_neg_int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="s1">&#39;+-&#39;</span><span class="o">+</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="c1"># &#39;+3&#39; or &#39;-2&#39; are examples</span>
     <span class="c1"># matching float w/ regex is ugly but is recommended by pyparsing</span>
-    <span class="n">float_number</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?[0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?&#39;</span><span class="p">)</span> \
+    <span class="n">regex_after_decimal</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;</span>
+    <span class="n">float_number</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">regex_after_decimal</span><span class="p">))</span> \
         <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="c1"># symbol name, e.g., phase name, function name</span>
     <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -1073,7 +1074,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.2.post1+10.g699468c',
+            VERSION:'0.5.2.post1+11.g7f6e952',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
