@@ -9,10 +9,9 @@ environment:
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "32"
 
-    - PYTHON: "C:\\Python34-conda64"
-      PYTHON_VERSION: "3.4"
+    - PYTHON: "C:\\Python35-conda64"
+      PYTHON_VERSION: "3.5"
       PYTHON_ARCH: "64"
-      DISTUTILS_USE_SDK: "1"
 
     - PYTHON: "C:\\Python36-conda64"
       PYTHON_VERSION: "3.6"
@@ -40,7 +39,7 @@ install:
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
   - "conda install --yes -n condaenv --quiet tinydb cython"
-  - "./ci/with-compiler.cmd pip install -e ."
+  - "pip install -e ."
 
 build: false
 
