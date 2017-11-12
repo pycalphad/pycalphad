@@ -25,7 +25,7 @@ PyPI
 Release versions of pycalphad are available on PyPI. As of pycalphad 0.6,
 the `Ipopt`_ library is used for numerical optimization and must be installed
 separately in order to install pycalphad from PyPI. Instructions for downloading
-and installating Ipopt are found at https://www.coin-or.org/Ipopt/documentation/node10.html.
+and installing Ipopt are found at https://www.coin-or.org/Ipopt/documentation/node10.html.
 
 NumPy, SciPy and Cython are all *build* requirements of pycalphad and must be
 installed before you install pycalphad.
@@ -98,7 +98,7 @@ To continue installation via pip:
 1. Install Ipopt
 2. Download the cyipopt package source from https://github.com/matthias-k/cyipopt
 3. Install the downloaded cyipopt package. You may need to add the directories
-   containing Ipopt header files and libriaries as ``IPOPT_INCLUDE_DIRS`` and
+   containing Ipopt header files and libraries as ``IPOPT_INCLUDE_DIRS`` and
    ``IPOPT_LIB_DIRS`` in the ``setup.py`` file.
 
 However, users (especially users on Windows) are strongly encouraged to use the
@@ -112,7 +112,7 @@ After installation
 ++++++++++++++++++++++++++++++++++++++++++++++++++++++++++
 
 This is an upstream bug in sympy, where floats are unable to be pickled.
-The fix has been copmleted, but not yet released. While the fix is not released,
+The fix has been completed, but not yet released. While the fix is not released,
 removing the gmpy2 package from their Python environment (e.g.
 ``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
 environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.

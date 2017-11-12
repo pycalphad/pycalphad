@@ -50,7 +50,7 @@ grids are required for phase diagram calculations.
 ----------------------------------------------------------
 
 This is an upstream bug in sympy, where floats are unable to be pickled.
-The fix has been copmleted, but not yet released. While the fix is not released,
+The fix has been completed, but not yet released. While the fix is not released,
 removing the gmpy2 package from their Python environment (e.g.
 ``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
 environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.

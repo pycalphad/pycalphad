@@ -14,7 +14,7 @@ This notebook will walk through the structure of xarray Datasets in
 pycalphad and some basics of using them. For more in-depth tutorials and
 documentation on using xarray Datasets and DataArray's fully, see the
 `xarray
-documetntation <http://xarray.pydata.org/en/stable/index.html>`__.
+documentation <http://xarray.pydata.org/en/stable/index.html>`__.
 
 Dataset structure
 -----------------
@@ -93,7 +93,7 @@ There are also at least four Data variables:
 
 We can manipulate this by selecting data by value (of a coordinate)
 using ``sel`` or index (of a coordinate) using ``isel`` similar to a
-Pandas array. Below we get the site fraction of ZN (interal\_dof index
+Pandas array. Below we get the site fraction of ZN (internal\_dof index
 of 1 selected by index) at 1000K (selected by value) for the 50th point
 (selected by index).
 
@@ -141,14 +141,14 @@ equilibrium Datasets, there are six dimensions/coordinates:
 -  ``vertex``: The vertex is the index of the phase in equilibrium. The
    vertex has no inherent physical meaning. There will automatically be
    enough to describe the number of phases present in any equilibria
-   calculated, impliying that vertex can never be large enough to
+   calculated, implying that vertex can never be large enough to
    invalidate Gibbs phase rule.
 
 There are also at least six Data variables:
 
 -  ``Phase``: The string name of the phase in equilibrium at the
    conditions. There are as many as ``len(vertex)`` phases. Any time
-   there are fewer phases in equilibrium than the indicies described by
+   there are fewer phases in equilibrium than the indices described by
    ``vertex``, the values of phase are paded by ``''``, e.g. for a
    single phase region for FCC\_A1, the values of Phase will be
    ``['FCC_A1', '']``. When more than one phase is present, it is
@@ -205,7 +205,7 @@ A common operation might be to find the phase fractions of the HCP\_A3
 phase as a function of composition for T=800.
 
 However, the only way we can access the values of the phase fraction is
-by either the indicies or values of the coordinates, we would have to
+by either the indices or values of the coordinates, we would have to
 know which index the HCP\_A3 phase is in before hand to use the ``sel``
 or ``isel`` commands.
 
