@@ -6,7 +6,7 @@ from __future__ import print_function
 import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
-from pycalphad.core.utils import unpack_condition, unpack_phases
+from pycalphad.core.utils import unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
@@ -198,7 +198,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     from pycalphad import __version__ as pycalphad_version
-    active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
+    phases = unpack_phases(phases) or sorted(dbf.phases.keys())
+    # remove phases that cannot be active
+    possible_active_phases = filter_phases(dbf, comps)
+    active_phases = sorted(set(possible_active_phases).intersection(set(phases)))
+    if len(possible_active_phases) == 0:
+        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    if len(active_phases) == 0:
+        raise ConditionError('None of the passed phases ({0}) are active. List of active phases: {1}.'.format(phases, possible_active_phases))
     comps = sorted(comps)
     if len(set(comps) - set(dbf.elements)) > 0:
         raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
