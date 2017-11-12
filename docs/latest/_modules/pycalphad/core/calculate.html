@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.5.2.post1+9.gb1baf94 documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.5.2.post1+10.g699468c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+9.gb1baf94 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+10.g699468c documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.2.post1+9.gb1baf94
+                0.5.2.post1+10.g699468c
               </div>
             
           
@@ -585,13 +585,14 @@
 
     <span class="c1"># Convert keyword strings to proper state variable objects</span>
     <span class="c1"># If we don&#39;t do this, sympy will get confused during substitution</span>
-    <span class="n">statevar_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> \
-                                            <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+    <span class="n">statevar_dict</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">((</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">kwargs</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
     <span class="c1"># XXX: CompiledModel assumes P, T are the only state variables</span>
     <span class="k">if</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">statevar_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">]</span> <span class="o">=</span> <span class="mi">101325</span>
     <span class="k">if</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">statevar_dict</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">=</span> <span class="mi">300</span>
+    <span class="c1"># Sort after default state variable check to fix gh-116</span>
+    <span class="n">statevar_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">[</span><span class="mi">0</span><span class="p">])))</span>
     <span class="n">str_statevar_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">OrderedDict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> \
                                                 <span class="k">for</span> <span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">value</span><span class="p">)</span> <span class="ow">in</span> <span class="n">statevar_dict</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
     <span class="n">all_phase_data</span> <span class="o">=</span> <span class="p">[]</span>
@@ -719,7 +720,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.2.post1+9.gb1baf94',
+            VERSION:'0.5.2.post1+10.g699468c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
