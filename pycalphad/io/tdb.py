@@ -181,7 +181,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
     # matching float w/ regex is ugly but is recommended by pyparsing
     regex_after_decimal = r'([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
-    float_number = Regex(r'[-+]?([0-9]+\.(?!{0}))|{0}'.format(regex_after_decimal)) \
+    float_number = Regex(r'[-+]?([0-9]+\.(?!([0-9]|[eE])))|{0}'.format(regex_after_decimal)) \
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
