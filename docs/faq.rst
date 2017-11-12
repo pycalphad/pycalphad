@@ -54,3 +54,15 @@ The fix has been copmleted, but not yet released. While the fix is not released,
 removing the gmpy2 package from their Python environment (e.g.
 ``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
 environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.
+
+
+Text is sometimes cut off when saving figures
+---------------------------------------------
+
+Occasionally when saving images with the matplotlib function ``plt.savefig``, axis titles and legends are cut off.
+
+This can be fixed
+
+* Per function call by passing ``bbox_inches='tight'`` keyword argument to ``plt.savefig``
+* Locally by running ``import matplotlib as mpl; mpl.rcParams['savefig.bbox'] = 'tight'``
+* Permanently by adding ``savefig.bbox : tight`` to your `matplotlibrc file <https://matplotlib.org/users/customizing.html>`_.
