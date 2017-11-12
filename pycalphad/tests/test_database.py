@@ -406,3 +406,18 @@ def test_tdb_missing_terminator_element():
                FUNCTION EMBCCTI    298.15 -39.72; 6000 N !"""
     Database(tdb_str)
 
+
+def test_database_parsing_of_floats_with_no_values_after_decimal():
+    """Floats with no values after the decimal should be properly parsed (gh-143)"""
+    tdb_string = """$ The element has no values after the decimal in '5004.'
+        ELEMENT CU   FCC_A1           63.546           5004.             33.15      !"""
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert "CU" in dbf.elements
+
+
+def test_database_parsing_of_floats_with_multiple_leading_zeros():
+    """Floats with multiple leading zeros should be properly parsed (gh-143)"""
+    tdb_string = """$ The element has multiple leading zeros in '00.546'
+        ELEMENT CU   FCC_A1           00.546           5004.0             33.15      !"""
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert "CU" in dbf.elements
