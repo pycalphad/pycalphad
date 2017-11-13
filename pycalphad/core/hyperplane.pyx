@@ -124,14 +124,9 @@ cpdef double hyperplane(double[:,::1] compositions,
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] += min(fractions[i, :])
-        #print('trial_matrix.T', np.array(trial_matrix).T)
-        #print('fractions', np.array(fractions))
-        #print('smallest_fractions', np.array(smallest_fractions))
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
-        #print('saved_trial', saved_trial)
         if smallest_fractions[saved_trial] < -num_components:
-            print('hyperplane: No further progress is possible')
             break
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
@@ -139,12 +134,8 @@ cpdef double hyperplane(double[:,::1] compositions,
             idx = candidate_simplex[i]
             candidate_tieline[i, :] = compositions[idx]
             candidate_potentials[i] = energies[idx]
-        #print('candidate_tieline', np.array(candidate_tieline))
-        #print('energies', np.array(candidate_potentials))
         solve(candidate_tieline, candidate_potentials, int_tmp)
-        #print('candidate_potentials', np.array(candidate_potentials))
         if candidate_potentials[0] == -1e19:
-            print('hyperplane: No further progress is possible due to chemical potentials')
             break
         driving_forces[:] = energies
         prodsum(candidate_potentials, compositions, driving_forces)
@@ -157,13 +148,10 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
-        #print('Lowest driving force', lowest_df[0])
         for i in range(num_components):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
             break
-    #if lowest_df[0] < -1e-8:
-    #    raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
     out_energy = 0
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]
