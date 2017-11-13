@@ -199,8 +199,7 @@ def test_eq_ternary_inside_mass():
                       v.X('CO'): 0.22277777777777777, v.P: 101325}, verbose=True)
     assert_allclose(eq.GM.values, -105871.20, atol=0.1)
     assert_allclose(eq.MU.values.flatten(), [-104655.532294, -142591.644379,  -82905.085459], atol=0.1)
-    #assert_allclose(eq.GM.values, -105871.54, atol=1.0)
-    #assert_allclose(eq.MU.values.flatten(), [-104653.83, -142595.49, -82905.794], atol=0.1)
+
 
 def test_eq_ternary_edge_misc_gap():
     """
@@ -223,7 +222,7 @@ def test_eq_issue43_chempots_misc_gap():
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.1246, 1e-9, 1-(.1246+1e-9)]
-    print('Mass error', mass_error)
+    assert np.max(np.fabs(mass_error)) < 1e-9
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
 
