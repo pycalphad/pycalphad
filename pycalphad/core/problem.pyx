@@ -187,29 +187,3 @@ cdef class Problem:
                 var_offset += compset.phase_record.phase_dof
             constraint_offset += 1
         return np.array(constraint_jac)
-
-    #def hessian(self, x, lagrange, obj_factor):
-    #    #
-    #    # The callback for calculating the Hessian
-    #    #
-    #    H = obj_factor*np.array((
-    #            (2*x[3], 0, 0, 0),
-    #            (x[3],   0, 0, 0),
-    #            (x[3],   0, 0, 0),
-    #            (2*x[0]+x[1]+x[2], x[0], x[0], 0)))
-    #
-    #    H += lagrange[0]*np.array((
-    #            (0, 0, 0, 0),
-    #            (x[2]*x[3], 0, 0, 0),
-    #            (x[1]*x[3], x[0]*x[3], 0, 0),
-    #            (x[1]*x[2], x[0]*x[2], x[0]*x[1], 0)))
-    #
-    #    H += lagrange[1]*2*np.eye(4)
-    #
-    #    #
-    #    # Note:
-    #    #
-    #    #
-    #    # Needs to return lower triangular matrix
-    #    return H
-    #
