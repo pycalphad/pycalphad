@@ -2,6 +2,7 @@ import ipopt
 ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
+from pycalphad.core.constants import MAX_SOLVE_DRIVING_FORCE
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
@@ -24,7 +25,6 @@ class InteriorPointSolver(object):
         )
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
-        MAX_SOLVE_DRIVING_FORCE = 1e-4
         nlp.addOption(b'print_level', 0)
         nlp.addOption(b'tol', 1e-1)
         nlp.addOption(b'constr_viol_tol', 1e-12)

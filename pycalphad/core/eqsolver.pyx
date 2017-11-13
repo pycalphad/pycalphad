@@ -14,17 +14,9 @@ from pycalphad.core.solver import InteriorPointSolver
 from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
-from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
+from pycalphad.core.constants import *
 import pycalphad.variables as v
 
-# Maximum residual driving force (J/mol-atom) allowed for convergence
-MAX_SOLVE_DRIVING_FORCE = 1e-4
-# Maximum number of multi-phase solver iterations
-MAX_SOLVE_ITERATIONS = 300
-# Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-3
-# Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
-MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
 cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
                                    double comp_diff_tol, int allowed_zero_seen, bint verbose):
