@@ -2,13 +2,18 @@
 Thermodynamic Calculation of Cementite (:math:`Fe_3C`)
 ======================================================
 
-Bengt Hallstedt, Dejan Djurovic, Jorg von Appen, Richard Dronskowski, Alexey Dick, Fritz Karmann, Tilmann Hickel, Jorg Neugebauer, Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1, March 2010, Pages 129-133, ISSN 0364-5916, http://dx.doi.org/10.1016/j.calphad.2010.01.004. (http://www.sciencedirect.com/science/article/pii/S0364591610000052)
+Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
+Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,
+Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1,
+March 2010, Pages 129-133, ISSN 0364-5916,
+http://dx.doi.org/10.1016/j.calphad.2010.01.004.
+(http://www.sciencedirect.com/science/article/pii/S0364591610000052)
 
 The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad's TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.
 
-.. code:: python
+.. code:: ipython3
 
     TDB = """
      ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 ! 
@@ -30,15 +35,18 @@ are omitted. The numerical results should be the same.
 
 Do some initial setup, including reading the database.
 
-.. code:: python
+.. code:: ipython3
 
+    # Only needed in a Jupyter Notebook
+    %matplotlib inline
     # Optional plot styling
     import matplotlib
     matplotlib.style.use('fivethirtyeight')
 
-.. code:: python
+.. code:: ipython3
 
     import matplotlib.pyplot as plt
+    import numpy as np
     from pycalphad import Database, calculate
     
     db = Database(TDB)
@@ -51,17 +59,17 @@ because the cementite phase has zero internal degrees of freedom. Since
 there's nothing to minimize, we can do the computation faster with
 ``calculate``.
 
-.. code:: python
+.. code:: ipython3
 
     result = calculate(db, ['FE', 'C'], 'CEMENTITE_D011', T=(1, 2000, 0.5), output='heat_capacity')
 
-.. code:: python
+.. code:: ipython3
 
     # Note: 4 moles of atoms per formula unit (Fe3C1). That's why we multiply times 4
     fig = plt.figure(figsize=(9,6))
     fig.gca().set_xlabel('Temperature (K)')
     fig.gca().set_ylabel('Isobaric Heat Capacity (J/mol-formula-K)')
-    fig.gca().plot(result['T'], 4.0 * result['heat_capacity'])
+    fig.gca().plot(result['T'], np.squeeze(4.0 * result['heat_capacity']))
     plt.show()
 
 

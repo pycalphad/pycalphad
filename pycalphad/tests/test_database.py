@@ -283,9 +283,126 @@ def test_expand_keyword():
     assert all([full == expand_keyword(test_list, abbrev) for abbrev, full in test_input])
 
 
+def test_tdb_species_are_parsed_correctly():
+    """The TDB speciescommand should be properly parsed."""
+    tdb_species_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O1                          O!
+SPECIES O2                          O2!
+SPECIES O3                          O3!
+SPECIES AL1O1                       AL1O1!
+SPECIES AL1O2                       AL1O2!
+SPECIES AL2                         AL2!
+SPECIES AL2O                        AL2O1!
+SPECIES AL2O1                       AL2O1!
+SPECIES AL2O2                       AL2O2!
+SPECIES AL2O3                       AL2O3!
+SPECIES ALO                         AL1O1!
+SPECIES ALO2                        AL1O2!
+SPECIES ALO3/2                      AL1O1.5!
+    """
+    test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
+    assert len(test_dbf.species) == 19
+    species_dict = {sp.name: sp for sp in test_dbf.species}
+    assert species_dict['AL'].charge == 0
+    assert species_dict['O2'].constituents['O'] == 2
+    assert species_dict['O1'].constituents['O'] == 1
+    assert species_dict['AL1O2'].constituents['AL'] == 1
+    assert species_dict['AL1O2'].constituents['O'] == 2
+    assert species_dict['ALO3/2'].constituents['O'] == 1.5
+
+
+def test_tdb_species_with_charge_are_parsed_correctly():
+    """The TDB species that have a charge should be properly parsed."""
+    tdb_species_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES AL2                         AL2!
+    """
+    test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
+    assert len(test_dbf.species) == 8
+    species_dict = {sp.name: sp for sp in test_dbf.species}
+    assert species_dict['AL'].charge == 0
+    assert species_dict['AL+3'].charge == 3
+    assert species_dict['O-2'].charge == -2
+
+
+def test_writing_tdb_with_species_gives_same_result():
+    """Species defined in the tdb should be written back to the TDB correctly"""
+    tdb_species_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES AL2                         AL2!
+    """
+    test_dbf = Database.from_string(tdb_species_str, fmt='tdb')
+    written_tdb_str = test_dbf.to_string(fmt='tdb')
+    test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
+    assert len(test_dbf_reread.species) == 8
+    species_dict = {sp.name: sp for sp in test_dbf_reread.species}
+    assert species_dict['AL'].charge == 0
+    assert species_dict['AL+3'].charge == 3
+    assert species_dict['O-2'].charge == -2
+
+
+def test_species_are_parsed_in_tdb_phases_and_parameters():
+    """Species defined in the tdb phases and parameters should be parsed."""
+    tdb_str = """
+ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8321E+01!
+ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+
+SPECIES AL+3                        AL1/+3!
+SPECIES O-2                         O1/-2!
+SPECIES O2                          O2!
+SPECIES AL2                         AL2!
+
+
+ PHASE TEST_PH % 1 1 !
+ CONSTITUENT TEST_PH :AL,AL2,O-2: !
+ PARA G(TEST_PH,AL;0) 298.15          +10; 6000 N !
+ PARA G(TEST_PH,AL2;0) 298.15          +100; 6000 N !
+ PARA G(TEST_PH,O-2;0) 298.15          +1000; 6000 N !
+
+ PHASE T2SL % 2 1 1 !
+  CONSTITUENT T2SL :AL+3:O-2: !
+  PARA L(T2SL,AL+3:O-2;0) 298.15 +2; 6000 N !
+    """
+    from tinydb import where
+    test_dbf = Database.from_string(tdb_str, fmt='tdb')
+    written_tdb_str = test_dbf.to_string(fmt='tdb')
+    test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
+    assert set(test_dbf_reread.phases.keys()) == {'TEST_PH', 'T2SL'}
+    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {'AL', 'AL2', 'O-2'}
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL',),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL2',),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+
+    assert test_dbf_reread.phases['T2SL'].constituents == ({'AL+3'}, {'O-2'})
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL+3',),('O-2',)))) == 1
+
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():
     tdb_str = """$ Note missing '!' in next line
                ELEMENT ZR   BCT_A5
                FUNCTION EMBCCTI    298.15 -39.72; 6000 N !"""
     Database(tdb_str)
+
