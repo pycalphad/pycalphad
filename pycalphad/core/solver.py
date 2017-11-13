@@ -24,8 +24,6 @@ class InteriorPointSolver(object):
         )
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
-        # nlp.addOption(b'derivative_test', b'first-order')
-        # nlp.addOption(b'check_derivatives_for_naninf', b'yes')
         MAX_SOLVE_DRIVING_FORCE = 1e-4
         nlp.addOption(b'print_level', 0)
         nlp.addOption(b'tol', 1e-1)
