@@ -1,5 +1,4 @@
 from pycalphad.core.phase_rec cimport func_t, func_novec_t
-from pycalphad.core.cymem cimport Pool
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
@@ -36,7 +35,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef public double disordered_ihj_magnetic_structure_factor
     cdef public double disordered_afm_factor
     cdef public bint ordered
-    cdef public Pool mem
     cdef public bint _debug
     cdef func_t* _debugobj
     cdef func_novec_t* _debuggrad

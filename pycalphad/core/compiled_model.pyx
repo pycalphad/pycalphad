@@ -4,7 +4,6 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
 from libc.stdlib cimport calloc, malloc, free
 from libc.string cimport memset
@@ -53,7 +52,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
         cdef int subl_index, comp_index
-        self.mem = Pool()
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
@@ -1067,8 +1065,7 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     inst.disordered_excess_coef_matrix, inst.disordered_excess_coef_symbol_matrix,
     inst.disordered_bm_coef_matrix, inst.disordered_bm_coef_symbol_matrix,
     inst.disordered_tc_coef_matrix, inst.disordered_tc_coef_symbol_matrix,
-    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered,
-    inst.mem, inst._debug) = \
+    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered, inst._debug) = \
     (constituents, variables, components, sublattice_dof, phase_dof,
     composition_matrices, site_ratios, vacancy_index,
     pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
@@ -1079,5 +1076,5 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
     disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
     disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
-    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, Pool(), _debug)
+    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, _debug)
     return inst
