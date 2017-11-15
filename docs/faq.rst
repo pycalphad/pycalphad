@@ -61,7 +61,7 @@ Text is sometimes cut off when saving figures
 
 Occasionally when saving images with the matplotlib function ``plt.savefig``, axis titles and legends are cut off.
 
-This can be fixed
+This can be fixed:
 
 * Per function call by passing ``bbox_inches='tight'`` keyword argument to ``plt.savefig``
 * Locally by running ``import matplotlib as mpl; mpl.rcParams['savefig.bbox'] = 'tight'``

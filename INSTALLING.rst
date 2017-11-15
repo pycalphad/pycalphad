@@ -10,7 +10,7 @@ Anaconda (recommended)
 
 For all Windows, macOS and Linux platforms, it is recommended to use Anaconda_
 to install the latest release of pycalphad. Anaconda is a scientific Python
-distribution by Continuum Analytics. It provides good support for various
+distribution by Anaconda, Inc. It provides good support for various
 scientific packages and otherwise challenging to install packages.
 
 To install pycalphad from Anaconda
@@ -117,6 +117,6 @@ removing the gmpy2 package from their Python environment (e.g.
 ``conda remove --force gmpy2``) will fix the error. Alternatively, setting the
 environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.
 
-.. _Anaconda: http://continuum.io/downloads/
+.. _Anaconda: https://anaconda.com/download
 .. _`Jupyter Notebook`: http://jupyter.readthedocs.io/en/latest/index.html
 .. _Ipopt: https://projects.coin-or.org/Ipopt
