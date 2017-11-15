@@ -1,6 +1,6 @@
 
-Thermodynamic Calculation of Cementite (:math:`Fe_3C`)
-======================================================
+Heat Capacity of Cementite (:math:`Fe_3C`)
+==========================================
 
 Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
 Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,

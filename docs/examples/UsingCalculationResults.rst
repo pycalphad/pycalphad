@@ -1,6 +1,6 @@
 
-Using Calculation Results
-=========================
+Exploring ``calculate`` and ``equilibrium`` xarray Datasets
+===========================================================
 
 xarray Datasets
 ---------------
@@ -30,8 +30,8 @@ There are three key terms:
 -  ``Data variables``: these are the properties calculated by pycalphad,
    such as the Gibbs energy, mixing energy, composition, etc.
 
-Calculate results
------------------
+``calculate()`` results
+-----------------------
 
 Calculate is used to sample properties of a single phase. There are five
 dimensions/coordinates:
@@ -118,8 +118,8 @@ Datasets <http://xarray.pydata.org/en/stable/data-structures.html>`__).
         internal_dof  int64 1
 
 
-Equilibrium results
--------------------
+``equilibrium()`` results
+-------------------------
 
 The Datasets returned by equilibrium are very similar to calculate,
 however there are several key differences worth discussing. In
