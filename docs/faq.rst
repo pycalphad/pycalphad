@@ -3,6 +3,14 @@
 FAQ
 ===
 
+What units does pycalphad use?
+------------------------------
+
+* All units are SI units.
+* Molar quantities are used for state variables, e.g. energy has units ``J/mol``.
+* Composition and site occupancies are mole fractions.
+
+
 Is any parallelism supported in pycalphad?
 ------------------------------------------
 
