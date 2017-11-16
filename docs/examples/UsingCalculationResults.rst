@@ -77,18 +77,17 @@ There are also at least four Data variables:
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:       (P: 1, T: 2, component: 2, internal_dof: 2, points: 4001)
+    Dimensions:    (P: 1, T: 2, component: 2, internal_dof: 2, points: 4001)
     Coordinates:
-      * P             (P) float64 1.013e+05
-      * T             (T) float64 500.0 1e+03
-      * component     (component) <U2 'AL' 'ZN'
-      * points        (points) int64 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 ...
-      * internal_dof  (internal_dof) int64 0 1
+      * T          (T) float64 500.0 1e+03
+      * component  (component) <U2 'AL' 'ZN'
+      * P          (P) float64 1.013e+05
+    Dimensions without coordinates: internal_dof, points
     Data variables:
-        Y             (P, T, points, internal_dof) float64 1.0 1e-12 1e-12 1.0 ...
-        GM            (P, T, points) float64 -1.559e+04 -2.01e+04 -2.01e+04 ...
-        Phase         (P, T, points) <U6 'FCC_A1' 'FCC_A1' 'FCC_A1' 'FCC_A1' ...
-        X             (P, T, points, component) float64 1.0 1e-12 1e-12 1.0 ...
+        Y          (P, T, points, internal_dof) float64 1.0 1e-12 1e-12 1.0 ...
+        GM         (P, T, points) float64 -1.559e+04 -2.01e+04 -2.01e+04 ...
+        X          (P, T, points, component) float64 1.0 1e-12 1e-12 1.0 1e-12 ...
+        Phase      (P, T, points) <U6 'FCC_A1' 'FCC_A1' 'FCC_A1' 'FCC_A1' ...
 
 
 We can manipulate this by selecting data by value (of a coordinate)
@@ -110,12 +109,37 @@ Datasets <http://xarray.pydata.org/en/stable/data-structures.html>`__).
 .. parsed-literal::
 
     <xarray.DataArray 'Y' (P: 1)>
-    array([ 0.97648824])
+    array([ 0.976488])
     Coordinates:
-      * P             (P) float64 1.013e+05
-        T             float64 1e+03
-        points        int64 49
-        internal_dof  int64 1
+        T        float64 1e+03
+      * P        (P) float64 1.013e+05
+
+
+accessing the ``values`` attribute on any on any DataArray returns the
+multidimensional NumPy array
+
+.. code:: ipython3
+
+    print(calc_result.X.values)
+
+
+.. parsed-literal::
+
+    [[[[  1.00000000e+00   1.00000000e-12]
+       [  1.00000000e-12   1.00000000e+00]
+       [  1.00000000e-12   1.00000000e+00]
+       ..., 
+       [  1.56995650e-01   8.43004350e-01]
+       [  1.12072782e-01   8.87927218e-01]
+       [  7.43933641e-01   2.56066359e-01]]
+    
+      [[  1.00000000e+00   1.00000000e-12]
+       [  1.00000000e-12   1.00000000e+00]
+       [  1.00000000e-12   1.00000000e+00]
+       ..., 
+       [  1.56995650e-01   8.43004350e-01]
+       [  1.12072782e-01   8.87927218e-01]
+       [  7.43933641e-01   2.56066359e-01]]]]
 
 
 ``equilibrium()`` results
@@ -180,25 +204,25 @@ There are also at least six Data variables:
 .. parsed-literal::
 
     <xarray.Dataset>
-    Dimensions:       (P: 1, T: 5, X_ZN: 20, component: 2, internal_dof: 2, vertex: 2)
+    Dimensions:    (P: 1, T: 5, X_ZN: 20, component: 2, internal_dof: 2, vertex: 2)
     Coordinates:
-      * P             (P) float64 1.013e+05
-      * T             (T) float64 500.0 600.0 700.0 800.0 900.0
-      * X_ZN          (X_ZN) float64 1e-09 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 ...
-      * vertex        (vertex) int64 0 1
-      * component     (component) <U2 'AL' 'ZN'
-      * internal_dof  (internal_dof) int64 0 1
+      * P          (P) float64 1.013e+05
+      * T          (T) float64 500.0 600.0 700.0 800.0 900.0
+      * X_ZN       (X_ZN) float64 1e-09 0.05 0.1 0.15 0.2 0.25 0.3 0.35 0.4 0.45 ...
+      * vertex     (vertex) int64 0 1
+      * component  (component) <U2 'AL' 'ZN'
+    Dimensions without coordinates: internal_dof
     Data variables:
-        Y             (P, T, X_ZN, vertex, internal_dof) float64 1.0 1e-09 ...
-        GM            (P, T, X_ZN) float64 -1.559e+04 -1.615e+04 -1.649e+04 ...
-        NP            (P, T, X_ZN, vertex) float64 1.0 nan 1.0 nan 0.9761 ...
-        MU            (P, T, X_ZN, component) float64 -1.559e+04 -9.584e+04 ...
-        X             (P, T, X_ZN, vertex, component) float64 1.0 1e-09 nan nan ...
-        Phase         (P, T, X_ZN, vertex) <U6 'FCC_A1' '' 'FCC_A1' '' 'FCC_A1' ...
-        HM            (P, T, X_ZN) float64 5.194e+03 5.859e+03 6.188e+03 ...
+        X          (P, T, X_ZN, vertex, component) float64 1.0 1e-09 nan nan ...
+        GM         (P, T, X_ZN) float64 -1.559e+04 -1.615e+04 -1.649e+04 ...
+        Phase      (P, T, X_ZN, vertex) <U6 'FCC_A1' '' 'FCC_A1' '' 'FCC_A1' ...
+        NP         (P, T, X_ZN, vertex) float64 1.0 nan 1.0 nan 0.9761 0.02392 ...
+        Y          (P, T, X_ZN, vertex, internal_dof) float64 1.0 1e-09 0.9991 ...
+        MU         (P, T, X_ZN, component) float64 -1.559e+04 -9.584e+04 ...
+        HM         (P, T, X_ZN) float64 5.194e+03 5.859e+03 6.188e+03 6.152e+03 ...
     Attributes:
-        engine: pycalphad 0.5.2.post1+9.g26410324
-        created: 2017-11-12T02:45:17.289737
+        engine:   pycalphad 0.5.2.post1+22.gc2a1cf7f.dirty
+        created:  2017-11-16T07:56:07.904845
 
 
 A common operation might be to find the phase fractions of the HCP\_A3
@@ -221,26 +245,26 @@ to find the data values that match a condition (the Phase is FCC\_A1):
 .. parsed-literal::
 
     <xarray.DataArray (X_ZN: 20, vertex: 2)>
-    array([[ 1.        ,         nan],
-           [ 1.        ,         nan],
-           [ 1.        ,         nan],
-           [ 1.        ,         nan],
-           [ 0.89739922,         nan],
-           [ 0.71825009,         nan],
-           [ 0.53910096,         nan],
-           [ 0.35995184,         nan],
-           [ 0.18080271,         nan],
-           [ 0.00165358,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan],
-           [        nan,         nan]])
+    array([[ 1.      ,       nan],
+           [ 1.      ,       nan],
+           [ 1.      ,       nan],
+           [ 1.      ,       nan],
+           [ 0.897399,       nan],
+           [ 0.71825 ,       nan],
+           [ 0.539101,       nan],
+           [ 0.359952,       nan],
+           [ 0.180803,       nan],
+           [ 0.001654,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan],
+           [      nan,       nan]])
     Coordinates:
         P        float64 1.013e+05
         T        float64 800.0
