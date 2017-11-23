@@ -18,6 +18,10 @@ if pickle.__dict__.get('_Pickler', None):
 else:
     pickle.Pickler.dispatch[MethodDescriptorType] = MethodDescriptorWrapper
 
+import warnings
+warnings.filterwarnings('ignore', message='divide by zero encountered in log')
+warnings.filterwarnings('ignore', message='invalid value encountered in true_divide')
+
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database

@@ -146,7 +146,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                scheduler=dask.async.get_sync,
+                scheduler=dask.local.get_sync,
                 parameters=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified

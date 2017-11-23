@@ -1,6 +1,6 @@
 
-Calculating Ternary Phase Diagrams and Properties
-=================================================
+Plotting Ternary Phase Diagrams and Using Triangular Axes
+=========================================================
 
 Often in thermodynamics, it is useful to use a two dimensional plot to
 express equilibria in a three component system with fixed potentials.

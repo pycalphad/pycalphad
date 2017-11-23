@@ -8,3 +8,4 @@ Examples
    CementiteAnalysis
    EquilibriumWithOrdering
    TernaryExamples
+   UsingCalculationResults
