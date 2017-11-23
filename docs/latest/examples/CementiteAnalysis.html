@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Thermodynamic Calculation of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.5.2.post1+11.g7f6e952 documentation</title>
+  <title>Heat Capacity of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
   
 
   
@@ -35,10 +35,10 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+11.g7f6e952 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/>
-        <link rel="prev" title="Calculating Isobaric Binary Phase Diagrams" href="BinaryExamples.html"/> 
+        <link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html"/> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+11.g7f6e952
+                0.5.2.post1+12.g75982c1
               </div>
             
           
@@ -97,13 +97,15 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Calculating Isobaric Binary Phase Diagrams</a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Calculating Ternary Phase Diagrams and Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
 </ul>
@@ -152,7 +154,7 @@
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
-      <li>Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</li>
+      <li>Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -171,8 +173,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="thermodynamic-calculation-of-cementite">
-<h1>Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)<a class="headerlink" href="#thermodynamic-calculation-of-cementite" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="heat-capacity-of-cementite">
+<h1>Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)<a class="headerlink" href="#heat-capacity-of-cementite" title="Permalink to this headline">¶</a></h1>
 <p>Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
 Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,
 Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1,
@@ -249,7 +251,7 @@ there&#8217;s nothing to minimize, we can do the computation faster with
         <a href="EquilibriumWithOrdering.html" class="btn btn-neutral float-right" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="BinaryExamples.html" class="btn btn-neutral" title="Calculating Isobaric Binary Phase Diagrams" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="BinaryExamples.html" class="btn btn-neutral" title="Plotting Isobaric Binary Phase Diagrams with binplot" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -280,7 +282,7 @@ there&#8217;s nothing to minimize, we can do the computation faster with
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+11.g7f6e952',
+            VERSION:'0.5.2.post1+12.g75982c1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

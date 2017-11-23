@@ -11,11 +11,11 @@
 |logo| pycalphad: Computational Thermodynamics
 ==============================================
 
-.. figure:: examples/BinaryExamples_files/BinaryExamples_7_1.png
+.. figure:: examples/BinaryExamples_files/BinaryExamples_9_1.png
     :width: 500px
     :align: center
     :height: 250px
-    :alt: Al-Fe Phase Diagram (M.Seiersten et al., 1991)
+    :alt: Al-Ni Phase Diagram (Dupin et al., 2001)
     :figclass: align-center
 
 
@@ -32,6 +32,7 @@ The newest stable version can be found on `PyPI`_.
 
    INSTALLING
    examples/index
+   faq
    api/modules
    CHANGES
 

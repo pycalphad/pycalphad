@@ -1,27 +1,27 @@
-pycalphad.io package
-====================
+pycalphad\.io package
+=====================
 
 Submodules
 ----------
 
-pycalphad.io.database module
-----------------------------
+pycalphad\.io\.database module
+------------------------------
 
 .. automodule:: pycalphad.io.database
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad.io.tdb module
------------------------
+pycalphad\.io\.tdb module
+-------------------------
 
 .. automodule:: pycalphad.io.tdb
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad.io.tdb_keywords module
---------------------------------
+pycalphad\.io\.tdb\_keywords module
+-----------------------------------
 
 .. automodule:: pycalphad.io.tdb_keywords
     :members:

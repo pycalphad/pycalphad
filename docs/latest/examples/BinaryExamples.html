@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Calculating Isobaric Binary Phase Diagrams &mdash; pycalphad 0.5.2.post1+11.g7f6e952 documentation</title>
+  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
   
 
   
@@ -35,9 +35,9 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+11.g7f6e952 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
-        <link rel="next" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html"/>
+        <link rel="next" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html"/>
         <link rel="prev" title="Examples" href="index.html"/> 
 
   
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+11.g7f6e952
+                0.5.2.post1+12.g75982c1
               </div>
             
           
@@ -97,7 +97,7 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculating Isobaric Binary Phase Diagrams</a><ul>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#al-fe-m-seiersten-et-al-1991">Al-Fe (M.Seiersten et al., 1991)</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#al-ni-n-dupin-et-al-2001">Al-Ni (N. Dupin et al., 2001)</a></li>
@@ -105,11 +105,13 @@
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Thermodynamic Calculation of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Calculating Ternary Phase Diagrams and Properties</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
 </ul>
@@ -158,7 +160,7 @@
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
-      <li>Calculating Isobaric Binary Phase Diagrams</li>
+      <li>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -177,8 +179,8 @@
           <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
            <div itemprop="articleBody">
             
-  <div class="section" id="calculating-isobaric-binary-phase-diagrams">
-<h1>Calculating Isobaric Binary Phase Diagrams<a class="headerlink" href="#calculating-isobaric-binary-phase-diagrams" title="Permalink to this headline">¶</a></h1>
+  <div class="section" id="plotting-isobaric-binary-phase-diagrams-with-binplot">
+<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code><a class="headerlink" href="#plotting-isobaric-binary-phase-diagrams-with-binplot" title="Permalink to this headline">¶</a></h1>
 <p>These are a few examples of how to use Thermo-Calc TDB files to
 calculate isobaric binary phase diagrams.</p>
 <p>Note that, at the time of writing, invariant reactions (three-phase
@@ -292,7 +294,7 @@ equilibrium phase diagram.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="CementiteAnalysis.html" class="btn btn-neutral float-right" title="Thermodynamic Calculation of Cementite (\(Fe_3C\))" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="CementiteAnalysis.html" class="btn btn-neutral float-right" title="Heat Capacity of Cementite (\(Fe_3C\))" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="index.html" class="btn btn-neutral" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
@@ -326,7 +328,7 @@ equilibrium phase diagram.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+11.g7f6e952',
+            VERSION:'0.5.2.post1+12.g75982c1',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
