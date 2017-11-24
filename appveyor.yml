@@ -35,7 +35,9 @@ install:
   - "activate condaenv"
   # workaround for conda-forge/hdf5-feedstock#41
   - "conda install --yes -n condaenv hdf5"
-  - "conda config --add channels conda-forge msys2 pycalphad"
+  - "conda config --add channels conda-forge"
+  - "conda config --add channels msys2"
+  - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill"
   - "conda install --yes -n condaenv --quiet tinydb cython cyipopt"
