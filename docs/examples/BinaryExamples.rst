@@ -1,6 +1,6 @@
 
-Calculating Isobaric Binary Phase Diagrams
-==========================================
+Plotting Isobaric Binary Phase Diagrams with ``binplot``
+========================================================
 
 These are a few examples of how to use Thermo-Calc TDB files to
 calculate isobaric binary phase diagrams.
