@@ -18,7 +18,12 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
 import dask
 from dask import delayed
-import dask.multiprocessing, dask.async
+import dask.multiprocessing
+try:
+    import dask.local
+except ImportError:
+    import dask.async
+    dask.local = dask.async
 from xarray import Dataset
 import numpy as np
 from collections import namedtuple, OrderedDict
