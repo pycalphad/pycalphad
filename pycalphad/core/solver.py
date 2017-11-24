@@ -30,7 +30,7 @@ class InteriorPointSolver(object):
         nlp.addOption(b'constr_viol_tol', 1e-12)
         # This option improves convergence when using L-BFGS
         nlp.addOption(b'limited_memory_max_history', 100)
-        nlp.addOption(b'max_iter', 100)
+        nlp.addOption(b'max_iter', 200)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
         if dual_inf > MAX_SOLVE_DRIVING_FORCE:
