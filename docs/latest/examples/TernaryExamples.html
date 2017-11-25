@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
+  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.5.2.post1+16.g1f57aaf documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+16.g1f57aaf documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html"/>
         <link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+12.g75982c1
+                0.5.2.post1+16.g1f57aaf
               </div>
             
           
@@ -111,7 +111,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
 </ul>
 
             
@@ -194,18 +194,6 @@ Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calph
 (2011)</a>. Note that we
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-
-<span class="n">db_al_cu_y</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y.tdb&#39;</span><span class="p">)</span>
-<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
-<span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
-<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">830</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.015</span><span class="p">)}</span>
-
-<span class="n">ternplot</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">))</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x117fcd5f8</span><span class="o">&gt;</span>
 </pre></div>
 </div>
@@ -221,39 +209,6 @@ property models.</p>
 phase in our Al-Cu-Y system. Then we will the triangular projection to
 plot the calculated points as a colored scatterplot on the triangular
 axes.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="k">import</span> <span class="n">triangular</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
-
-<span class="c1"># some sample data, these could be from an equilibrium calculation or a property model.</span>
-<span class="c1"># here we are calculating the mixing enthlapy of the FCC_A1 phase at 830K.</span>
-<span class="n">c</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">830</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">pdens</span><span class="o">=</span><span class="mi">5000</span><span class="p">)</span>
-
-<span class="c1"># Here we are getting the values from our plot.</span>
-<span class="n">xs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">0</span><span class="p">]</span>  <span class="c1"># 1D array of Al compositions</span>
-<span class="n">ys</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="p">:,</span> <span class="mi">1</span><span class="p">]</span>  <span class="c1"># 1D array of Cu compositions</span>
-<span class="n">zs</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">HM_MIX</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="p">:]</span>  <span class="c1"># 1D array of mixing enthalpies at these compositions</span>
-
-<span class="c1"># when we imported the pycalphad.plot.triangular module, it made the &#39;triangular&#39; projection available for us to use.</span>
-<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">()</span>
-<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">(</span><span class="n">projection</span><span class="o">=</span><span class="s1">&#39;triangular&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">xs</span><span class="p">,</span> <span class="n">ys</span><span class="p">,</span> <span class="n">c</span><span class="o">=</span><span class="n">c</span><span class="o">.</span><span class="n">HM_MIX</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span><span class="mi">0</span><span class="p">,</span> <span class="p">:],</span>
-           <span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">,</span>
-           <span class="n">linewidth</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span>
-
-<span class="c1"># label the figure</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X (AL)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;X (CU)&#39;</span><span class="p">)</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">label</span><span class="o">.</span><span class="n">set_rotation</span><span class="p">(</span><span class="mi">60</span><span class="p">)</span>  <span class="c1"># rotate ylabel</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">yaxis</span><span class="o">.</span><span class="n">set_label_coords</span><span class="p">(</span><span class="n">x</span><span class="o">=</span><span class="mf">0.12</span><span class="p">,</span> <span class="n">y</span><span class="o">=</span><span class="mf">0.5</span><span class="p">)</span>  <span class="c1"># move the label to a pleasing position</span>
-<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;AL-CU-Y HM_MIX at 830K&#39;</span><span class="p">)</span>
-
-<span class="c1"># set up the colorbar</span>
-<span class="n">cm</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">cm</span><span class="o">.</span><span class="n">ScalarMappable</span><span class="p">(</span><span class="n">cmap</span><span class="o">=</span><span class="s1">&#39;coolwarm&#39;</span><span class="p">)</span>
-<span class="n">cm</span><span class="o">.</span><span class="n">set_array</span><span class="p">(</span><span class="n">zs</span><span class="p">)</span>
-<span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x117110588</span><span class="o">&gt;</span>
 </pre></div>
 </div>
@@ -305,7 +260,7 @@ axes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+12.g75982c1',
+            VERSION:'0.5.2.post1+16.g1f57aaf',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -315,7 +270,7 @@ axes.</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

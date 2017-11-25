@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>What’s New &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
+  <title>What’s New &mdash; pycalphad 0.5.2.post1+16.g1f57aaf documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+16.g1f57aaf documentation" href="index.html"/>
         <link rel="prev" title="pycalphad.plot package" href="api/pycalphad.plot.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.2.post1+12.g75982c1
+                0.5.2.post1+16.g1f57aaf
               </div>
             
           
@@ -97,7 +97,7 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
-<li class="toctree-l1 current"><a class="current reference internal" href="#">What&#8217;s New</a><ul>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">What’s New</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="#id1">0.5.2 (2017-08-10)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id2">0.5.1 (2017-05-12)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#id3">0.5 (2017-05-04)</a></li>
@@ -166,7 +166,7 @@
     
       <li><a href="index.html">Docs</a> &raquo;</li>
         
-      <li>What&#8217;s New</li>
+      <li>What’s New</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -186,7 +186,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="what-s-new">
-<h1>What&#8217;s New<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h1>
+<h1>What’s New<a class="headerlink" href="#what-s-new" title="Permalink to this headline">¶</a></h1>
 <div class="section" id="id1">
 <h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with a new feature, bug fixes and performance improvements.</p>
@@ -240,7 +240,7 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 <blockquote>
 <div>and Einstein model in the Model class. TDB support has been extended where necessary.</div></blockquote>
 <ul class="simple">
-<li>ENH/BRK: Model: Add &#8216;contributions&#8217; class attribute to make it easier for users to define custom energetic
+<li>ENH/BRK: Model: Add ‘contributions’ class attribute to make it easier for users to define custom energetic
 contributions. The API for custom contributions has changed; the old method will no longer work.</li>
 <li>FIX: equilibrium: Correctly use custom models during property calculation with <code class="docutils literal"><span class="pre">output</span></code> keyword argument.</li>
 </ul>
@@ -302,7 +302,7 @@ There is still some work to do for step and map calculations, planned for 0.4.</
 <li><code class="docutils literal"><span class="pre">Database</span></code>: Improvements to TDB writing, particularly for order-disorder models.</li>
 <li><code class="docutils literal"><span class="pre">Database</span></code>: Support for reading diffusion mobility databases.
 Kinetic simulations are not on the roadmap, but this makes it easier to manipulate diffusion data.
-Pull requests improving pycalphad&#8217;s support for kinetic calculations are welcome.</li>
+Pull requests improving pycalphad’s support for kinetic calculations are welcome.</li>
 </ul>
 </div>
 <div class="section" id="id11">
@@ -343,7 +343,7 @@ Loading a TDB will now raise <code class="docutils literal"><span class="pre">Va
 The TDB writer now generates output more conformant with Thermo-Calc.</li>
 <li><code class="docutils literal"><span class="pre">equilibrium</span></code>:
 Substantively rewritten for robustness and accuracy. Users will notice a difference, especially for dilute calculations.
-Unfortunately it&#8217;s still a bit slow; fixing that will be a focus of the 0.3.x cycle. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/37">issue 37</a>.
+Unfortunately it’s still a bit slow; fixing that will be a focus of the 0.3.x cycle. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/37">issue 37</a>.
 Learned a <code class="docutils literal"><span class="pre">output</span></code> keyword argument for specifying additional equilibrium properties to compute.</li>
 <li>The <code class="docutils literal"><span class="pre">tqdm</span></code> library is now a dependency. It adds progress bar support to <code class="docutils literal"><span class="pre">equilibrium</span></code>.</li>
 <li><code class="docutils literal"><span class="pre">Model</span></code>:
@@ -353,8 +353,8 @@ Added a <code class="docutils literal"><span class="pre">degree_of_ordering</spa
 Added a <code class="docutils literal"><span class="pre">curie_temperature</span></code> (abbreviation <code class="docutils literal"><span class="pre">TC</span></code>) property. Only nonzero for phases with magnetic ordering.</li>
 <li><code class="docutils literal"><span class="pre">calculate</span></code>:
 Learned a <code class="docutils literal"><span class="pre">broadcast</span></code> boolean keyword argument for turning broadcasting off. This is useful
-for computing many different system configurations in a pointwise fashion, when there&#8217;s no
-obvious way of expressing the calculation as a traditional &#8220;step&#8221; or &#8220;map&#8221;.</li>
+for computing many different system configurations in a pointwise fashion, when there’s no
+obvious way of expressing the calculation as a traditional “step” or “map”.</li>
 <li>The <code class="docutils literal"><span class="pre">xray</span></code> dependency was renamed to <code class="docutils literal"><span class="pre">xarray</span></code>. The change should be transparent to users when updating.</li>
 </ul>
 </div>
@@ -372,7 +372,7 @@ Loading databases with the default constructor, i.e., <code class="docutils lite
 <li>Equivalence comparison support for <code class="docutils literal"><span class="pre">Database</span></code> and <code class="docutils literal"><span class="pre">Model</span></code>.
 For example, if <code class="docutils literal"><span class="pre">dbf</span></code> is a <code class="docutils literal"><span class="pre">Database</span></code>, <code class="docutils literal"><span class="pre">dbf</span> <span class="pre">==</span> <span class="pre">Database.from_string(dbf.to_string(fmt='tdb'),</span> <span class="pre">fmt='tdb')</span></code>.
 Equivalent <code class="docutils literal"><span class="pre">Database</span></code> objects should always produce equivalent <code class="docutils literal"><span class="pre">Model</span></code> objects.
-We have tests for this, but if you find a case where this isn&#8217;t true, it&#8217;s a bug and can be reported on the issue tracker.</li>
+We have tests for this, but if you find a case where this isn’t true, it’s a bug and can be reported on the issue tracker.</li>
 <li>A new sampling algorithm for equilibrium calculation, based on the scrambled Halton sequence, has been implemented.
 It should improve performance for multi-component systems once some other improvements have been finalized.
 For now, users will probably not notice a difference.</li>
@@ -387,11 +387,11 @@ For now, users will probably not notice a difference.</li>
 <li>Optional, experimental support for <a class="reference external" href="http://numba.pydata.org/">numba</a> has been added to <code class="docutils literal"><span class="pre">calculate</span></code>.
 If numba&gt;=0.22 is installed and <code class="docutils literal"><span class="pre">calculate</span></code> is directly called without the <cite>mode</cite>
 keyword argument, a numba-optimized function will be generated for the calculation.
-You can force the old behavior with <cite>mode=&#8217;numpy&#8217;</cite>.
+You can force the old behavior with <cite>mode=’numpy’</cite>.
 <code class="docutils literal"><span class="pre">equilibrium</span></code> does not currently use this code path regardless.</li>
 <li>A performance improvement to how <code class="docutils literal"><span class="pre">lower_convex_hull</span></code> computes driving force
 gives a nice speedup when calling <code class="docutils literal"><span class="pre">equilibrium</span></code>.
-There&#8217;s still a lot of room for improvement, especially for step/map calculations.</li>
+There’s still a lot of room for improvement, especially for step/map calculations.</li>
 <li>Piecewise-defined functions are now lazily-evaluated, meaning only the values necessary
 for the given conditions will be computed. Before, all values were always computed.
 Users will notice the biggest difference when calculating phases with the magnetic model.</li>
@@ -423,7 +423,7 @@ infrastructure and is not collecting information from users.)</li>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
 <li>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
-If you&#8217;re still getting singular matrix errors occasionally, you can try adjusting
+If you’re still getting singular matrix errors occasionally, you can try adjusting
 the value of <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> as discussed in the issue above.
 Please report these numerical issues if you run into them because they are difficult to find through automated testing.</li>
 <li>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</li>
@@ -441,20 +441,20 @@ last in alphabetical order ( <a class="reference external" href="https://github.
 <h2>0.2 (2015-08-23)<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
 <p>This is a big release and is largely incompatible with 0.1.x.
 This was necessary for the move to the new equilibrium engine.
-0.2.x will be the last &#8220;alpha&#8221; version of pycalphad where APIs are broken without notice.
-0.3 will begin the &#8220;beta&#8221; cycle where API stability will be enforced.</p>
+0.2.x will be the last “alpha” version of pycalphad where APIs are broken without notice.
+0.3 will begin the “beta” cycle where API stability will be enforced.</p>
 <ul class="simple">
 <li>pycalphad now depends on numpy&gt;=1.9 and xray</li>
 <li>New unified equilibrium computation interface with <code class="docutils literal"><span class="pre">equilibrium</span></code> function.
 Features point, step and map calculation for multi-phase, multi-component problems.
-Time performance is a known issue. A typical calculation will take 3-5 minutes until it&#8217;s fixed.</li>
-<li><code class="docutils literal"><span class="pre">Ellipsis</span></code> or <code class="docutils literal"><span class="pre">...</span></code> can be used in the phases argument of <code class="docutils literal"><span class="pre">equilibrium</span></code> to mean &#8220;all phases in a Database&#8221;.</li>
+Time performance is a known issue. A typical calculation will take 3-5 minutes until it’s fixed.</li>
+<li><code class="docutils literal"><span class="pre">Ellipsis</span></code> or <code class="docutils literal"><span class="pre">...</span></code> can be used in the phases argument of <code class="docutils literal"><span class="pre">equilibrium</span></code> to mean “all phases in a Database”.</li>
 <li><code class="docutils literal"><span class="pre">pycalphad.eq</span></code> is renamed to <code class="docutils literal"><span class="pre">pycalphad.core</span></code></li>
 <li><code class="docutils literal"><span class="pre">energy_surf</span></code> is now deprecated in favor of the new xray-based <code class="docutils literal"><span class="pre">calculate</span></code>.
-It&#8217;s possible to convert xray Datasets to pandas DataFrames with the <code class="docutils literal"><span class="pre">.to_dataframe()</span></code> function.</li>
+It’s possible to convert xray Datasets to pandas DataFrames with the <code class="docutils literal"><span class="pre">.to_dataframe()</span></code> function.</li>
 <li>The <code class="docutils literal"><span class="pre">Equilibrium</span></code> class has been removed without deprecation. The old engine worked unreliably.
 Use the new <code class="docutils literal"><span class="pre">equilibrium</span></code> routine instead.</li>
-<li>The <code class="docutils literal"><span class="pre">Model</span></code> class has been streamlined. It&#8217;s now much easier to modify a <code class="docutils literal"><span class="pre">Model</span></code> by accessing the
+<li>The <code class="docutils literal"><span class="pre">Model</span></code> class has been streamlined. It’s now much easier to modify a <code class="docutils literal"><span class="pre">Model</span></code> by accessing the
 <code class="docutils literal"><span class="pre">Model.models</span></code> member dict. Changes to <code class="docutils literal"><span class="pre">models</span></code> will be reflected in <code class="docutils literal"><span class="pre">Model.ast</span></code>, <code class="docutils literal"><span class="pre">Model.energy</span></code>, etc.</li>
 <li>Adding a property attribute to a subclass of <code class="docutils literal"><span class="pre">Model</span></code> automatically makes it available to use in the <code class="docutils literal"><span class="pre">output</span></code>
 keyword argument of <code class="docutils literal"><span class="pre">calculate</span></code>. This is useful for computing properties not yet defined in <code class="docutils literal"><span class="pre">Model</span></code>.</li>
@@ -530,7 +530,7 @@ It requires the unlisted dependency <code class="docutils literal"><span class="
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.2.post1+12.g75982c1',
+            VERSION:'0.5.2.post1+16.g1f57aaf',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -540,7 +540,7 @@ It requires the unlisted dependency <code class="docutils literal"><span class="
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

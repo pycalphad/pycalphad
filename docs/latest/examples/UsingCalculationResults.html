@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
+  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.5.2.post1+16.g1f57aaf documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+16.g1f57aaf documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="FAQ" href="../faq.html"/>
         <link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+12.g75982c1
+                0.5.2.post1+16.g1f57aaf
               </div>
             
           
@@ -113,7 +113,7 @@
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What&#8217;s New</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
 </ul>
 
             
@@ -189,7 +189,7 @@ An xarray Dataset is a data structure that represents N-dimensional
 tabular data. It is an N-dimensional analog to the Pandas DataFrame.</p>
 <p>This notebook will walk through the structure of xarray Datasets in
 pycalphad and some basics of using them. For more in-depth tutorials and
-documentation on using xarray Datasets and DataArray&#8217;s fully, see the
+documentation on using xarray Datasets and DataArray’s fully, see the
 <a class="reference external" href="http://xarray.pydata.org/en/stable/index.html">xarray
 documentation</a>.</p>
 </div>
@@ -216,7 +216,7 @@ dimensions/coordinates:</p>
 <li><code class="docutils literal"><span class="pre">T</span></code>: temperatures (in K).</li>
 <li><code class="docutils literal"><span class="pre">component</span></code>: the string names of the components in the system</li>
 <li><code class="docutils literal"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is
-the index of the site in any phase&#8217;s site fraction array. Below the
+the index of the site in any phase’s site fraction array. Below the
 FCC_A1 phase has the sublattice model (AL, ZN) and thus the
 internal_dof are integers 0 and 1 referring to the AL site (index 0)
 and the ZN site (index 1).</li>
@@ -235,19 +235,10 @@ function of the temperature, pressure, and the index of the points
 (there is one composition for each point).</li>
 <li><code class="docutils literal"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for
 the given temperature, pressure and point.</li>
-<li><code class="docutils literal"><span class="pre">output</span></code>: &#8220;output&#8221; is always whatever property is calculated by the
+<li><code class="docutils literal"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the
 output keyword passed to <code class="docutils literal"><span class="pre">calculate</span></code>. The default is the molar
 Gibbs energy, GM.</li>
 </ul>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-
-<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
-<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
-<span class="n">calc_result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="p">)</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
 <span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="mi">4001</span><span class="p">)</span>
 <span class="n">Coordinates</span><span class="p">:</span>
@@ -271,9 +262,6 @@ of 1 selected by index) at 1000K (selected by value) for the 50th point
 which is useful for plotting or performing computations on (see
 <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">DataArrays vs
 Datasets</a>).</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="s1">&#39;Y&#39;</span> <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
 <span class="n">array</span><span class="p">([</span> <span class="mf">0.976488</span><span class="p">])</span>
 <span class="n">Coordinates</span><span class="p">:</span>
@@ -283,9 +271,6 @@ Datasets</a>).</p>
 </div>
 <p>accessing the <code class="docutils literal"><span class="pre">values</span></code> attribute on any on any DataArray returns the
 multidimensional NumPy array</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[[[</span>  <span class="mf">1.00000000e+00</span>   <span class="mf">1.00000000e-12</span><span class="p">]</span>
    <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
    <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
@@ -316,7 +301,7 @@ equilibrium Datasets, there are six dimensions/coordinates:</p>
 in the system.</li>
 <li><code class="docutils literal"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest
 possible internal_dof for all phases) The internal_dof (internal
-degrees of freedom) is the index of the site in any phase&#8217;s site
+degrees of freedom) is the index of the site in any phase’s site
 fraction array. Below the FCC_A1 phase has the sublattice model (AL,
 ZN) and thus the internal_dof are integers 0 and 1 referring to the
 AL site (index 0) and the ZN site (index 1).</li>
@@ -350,16 +335,11 @@ the calculated conditions.</li>
 the calculated conditions.</li>
 <li><code class="docutils literal"><span class="pre">GM</span></code>: Same as <code class="docutils literal"><span class="pre">output</span></code> for <code class="docutils literal"><span class="pre">calculate</span></code>. It is always reported
 no matter the value of <code class="docutils literal"><span class="pre">output</span></code>.</li>
-<li><code class="docutils literal"><span class="pre">output</span></code>: (optional) &#8220;output&#8221; is always whatever equilibrium
+<li><code class="docutils literal"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium
 property is calculated by the output keyword passed to
 <code class="docutils literal"><span class="pre">equilibrium</span></code>. Unlike <code class="docutils literal"><span class="pre">calculate</span></code>, this will be in addition to
 the <code class="docutils literal"><span class="pre">GM</span></code> because <code class="docutils literal"><span class="pre">GM</span></code> is always reported.</li>
 </ul>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
-<span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
-<span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="p">)</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
 <span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
 <span class="n">Coordinates</span><span class="p">:</span>
@@ -391,9 +371,6 @@ or <code class="docutils literal"><span class="pre">isel</span></code> commands.
 <p>Since we do not know this, we can do what is called
 <a class="reference external" href="http://xarray.pydata.org/en/stable/indexing.html#masking-with-where">masking</a>
 to find the data values that match a condition (the Phase is FCC_A1):</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
-</pre></div>
-</div>
 <div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="p">(</span><span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span><span class="o">&gt;</span>
 <span class="n">array</span><span class="p">([[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
        <span class="p">[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
@@ -469,7 +446,7 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+12.g75982c1',
+            VERSION:'0.5.2.post1+16.g1f57aaf',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -479,7 +456,7 @@ to find the data values that match a condition (the Phase is FCC_A1):</p>
       <script type="text/javascript" src="../_static/jquery.js"></script>
       <script type="text/javascript" src="../_static/underscore.js"></script>
       <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 

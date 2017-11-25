@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation Instructions &mdash; pycalphad 0.5.2.post1+12.g75982c1 documentation</title>
+  <title>Installation Instructions &mdash; pycalphad 0.5.2.post1+16.g1f57aaf documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+12.g75982c1 documentation" href="index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+16.g1f57aaf documentation" href="index.html"/>
         <link rel="next" title="Examples" href="examples/index.html"/>
         <link rel="prev" title="pycalphad: Computational Thermodynamics" href="index.html"/> 
 
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                0.5.2.post1+12.g75982c1
+                0.5.2.post1+16.g1f57aaf
               </div>
             
           
@@ -118,7 +118,7 @@
 <li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
 <li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
 <li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
-<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What&#8217;s New</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What’s New</a></li>
 </ul>
 
             
@@ -195,7 +195,7 @@ scientific packages and otherwise challenging to install packages.</p>
 <p>To install pycalphad from Anaconda</p>
 <ol class="arabic simple">
 <li>Download and install <a class="reference external" href="https://anaconda.com/download">Anaconda</a></li>
-<li>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge</span></code></li>
+<li>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">pycalphad</span></code></li>
 <li>Run the <code class="docutils literal"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> command to install pycalphad</li>
 </ol>
 </div>
@@ -209,7 +209,7 @@ and installing Ipopt are found at <a class="reference external" href="https://ww
 installed before you install pycalphad.</p>
 <p>To install pycalphad from PyPI using pip:</p>
 <ol class="arabic simple">
-<li>Download and install Ipopt</li>
+<li>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></li>
 <li>Run the <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code> command in a terminal emulator</li>
 <li>Run the <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> command to install pycalphad</li>
 <li>(Optional) run <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyter</span></code> to install the Jupyter Notebook application</li>
@@ -226,6 +226,7 @@ will walk you through installing pycalphad in a virtual environment called
 <h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
 <p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)</p>
 <ol class="arabic simple">
+<li>Add the conda channels <code class="docutils literal"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">pycalphad</span></code></li>
 <li>Create the virtual environment and install pycalphad into it <code class="docutils literal"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
 <li>Remove the installed pycalphad package so the development version can be installed <code class="docutils literal"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
 <li>Activate the environment <code class="docutils literal"><span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (Windows) or <code class="docutils literal"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (macOS or Linux)</li>
@@ -239,9 +240,6 @@ will walk you through installing pycalphad in a virtual environment called
 <p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)</p>
 <ol class="arabic simple">
 <li>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></li>
-<li>Follow the instructions to install <a class="reference external" href="https://virtualenvwrapper.readthedocs.io/en/latest/install.html">virtualenvwrapper</a></li>
-<li>Make the virtual environment <code class="docutils literal"><span class="pre">mkvirtualenv</span> <span class="pre">pycalphad-dev</span></code></li>
-<li>Activate the environment <code class="docutils literal"><span class="pre">workon</span> <span class="pre">pycalphad</span></code></li>
 <li>Install the build requirements <code class="docutils literal"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code></li>
 <li>Get the pycalphad source <code class="docutils literal"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code></li>
 <li>Go to the top level directory of the package <code class="docutils literal"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></li>
@@ -334,7 +332,7 @@ environment variable <code class="docutils literal"><span class="pre">MPMATH_NOG
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.5.2.post1+12.g75982c1',
+            VERSION:'0.5.2.post1+16.g1f57aaf',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
@@ -344,7 +342,7 @@ environment variable <code class="docutils literal"><span class="pre">MPMATH_NOG
       <script type="text/javascript" src="_static/jquery.js"></script>
       <script type="text/javascript" src="_static/underscore.js"></script>
       <script type="text/javascript" src="_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
 
   
 
