@@ -200,12 +200,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     from pycalphad import __version__ as pycalphad_version
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
-    possible_active_phases = filter_phases(dbf, comps)
-    active_phases = sorted(set(possible_active_phases).intersection(set(phases)))
-    if len(possible_active_phases) == 0:
+    list_of_possible_phases = filter_phases(dbf, comps)
+    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
+    if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
     if len(active_phases) == 0:
-        raise ConditionError('None of the passed phases ({0}) are active. List of active phases: {1}.'.format(phases, possible_active_phases))
+        raise ConditionError('None of the passed phases ({0}) are active. List of active phases: {1}.'.format(phases, list_of_possible_phases))
     comps = sorted(comps)
     if len(set(comps) - set(dbf.elements)) > 0:
         raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
