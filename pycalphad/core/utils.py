@@ -260,3 +260,36 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
 
     return new_dict
 
+
+def filter_phases(dbf, comps):
+    """Return phases that are valid for equilibrium calculations for the given database and components
+
+    Filters out phases that
+    * Have no active components in any sublattice of a phase
+    * Are disordered phases in an order-disorder model
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing the relevant parameters.
+    comps : list
+        Names of components to consider in the calculation.
+
+    Returns
+    -------
+    list
+        Sorted list of phases that are valid for the Database and components
+    """
+    # TODO: filter phases that can not charge balance
+
+    def all_sublattices_active(comps, phase):
+        active_sublattices = [len(set(comps).intersection(subl)) > 0 for
+                              subl in phase.constituents]
+        return all(active_sublattices)
+
+    candidate_phases = dbf.phases.keys()
+    disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
+    phases = [phase for phase in candidate_phases if
+                all_sublattices_active(comps, dbf.phases[phase]) and
+                phase not in disordered_phases]
+    return sorted(phases)
