@@ -32,8 +32,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._obj != NULL:
             self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
         else:
-            with gil:
-                self.cmpmdl.eval_energy(out, dof, self.parameters)
+            self.cmpmdl.eval_energy(&out[0], &dof[0,0], self.parameters, <size_t>out.shape[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -41,8 +40,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._grad != NULL:
             self._grad(&dof[0], &self.parameters[0], &out[0])
         else:
-            with gil:
-                self.cmpmdl.eval_energy_gradient(out, dof, self.parameters)
+            self.cmpmdl.eval_energy_gradient(&out[0], &dof[0], self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -50,8 +48,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
         else:
-            with gil:
-                self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
+            self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

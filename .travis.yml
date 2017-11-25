@@ -9,19 +9,14 @@ notifications:
 matrix:
     include:
         - python: 2.7
-          env: DOCKER_TAG=linux-python27
-        - python: 3.4
-          env: DOCKER_TAG=linux-python34
+          #env: DOCKER_TAG=linux-python27
         - python: 3.5
-          env: DOCKER_TAG=linux-python35
+          #env: DOCKER_TAG=linux-python35
         - python: 3.6
-          env: DOCKER_TAG=linux-python36 DEPLOY_ENC_LABEL=e64cfe3b4e81
+          env: DEPLOY_ENC_LABEL=e64cfe3b4e81
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
-        - language: generic
-          os: osx
-          env: TRAVIS_PYTHON_VERSION=3.4
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=3.5
@@ -46,7 +41,7 @@ install:
       if [ -z "$DOCKER_TAG" ]; then
         source $HOME/miniconda2/bin/activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-        conda install --yes xarray gcc cython
+        conda install --yes xarray gcc cython cyipopt
         # install (for py34) and remove gmpy2 for Mac builds
         conda install --yes gmpy2
         conda remove --force gmpy2 --yes
@@ -63,5 +58,5 @@ script:
         coveralls
       else
         env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME -u TRAVIS_COMMIT_MESSAGE > ./env.list
-        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; nosetests --with-coverage ; pip install sphinx sphinx_rtd_theme coveralls ; bash ci/deploy.sh ; coveralls"
+        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv && nosetests --with-coverage && pip install sphinx sphinx_rtd_theme coveralls && bash ci/deploy.sh && coveralls"
       fi

@@ -1,4 +1,7 @@
 from collections import defaultdict, OrderedDict
+import operator
+from copy import deepcopy
+from itertools import chain
 import numpy as np
 cimport numpy as np
 cimport cython
@@ -6,21 +9,17 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 import collections
+from pycalphad.core.problem cimport Problem
+from pycalphad.core.solver import InteriorPointSolver
+from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
-from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, COMP_DIFFERENCE_TOL, BIGNUM
+from pycalphad.core.constants import *
 import pycalphad.variables as v
 
-# Maximum residual driving force (J/mol-atom) allowed for convergence
-MAX_SOLVE_DRIVING_FORCE = 1e-4
-# Maximum number of multi-phase solver iterations
-MAX_SOLVE_ITERATIONS = 300
-# Minimum energy (J/mol-atom) difference between iterations before stopping solver
-MIN_SOLVE_ENERGY_PROGRESS = 1e-3
-# Maximum absolute value of a Lagrange multiplier before it's recomputed with an alternative method
-MAX_ABS_LAGRANGE_MULTIPLIER = 1e16
 
-cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets, bint allow_negative_fractions, bint verbose):
+cdef bint remove_degenerate_phases(object composition_sets, object removed_compsets,
+                                   double comp_diff_tol, int allowed_zero_seen, bint verbose):
     """
     For each phase pair with composition difference below tolerance,
     eliminate phase with largest index.
@@ -31,7 +30,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
     cdef double phfsum = 0
     cdef object redundant_phases, kept_phase, removed_phases, saved_indices
     cdef int num_phases = len(composition_sets)
-    cdef int phase_idx, sidx
+    cdef int phase_idx, sidx, idx
     cdef int[:] indices
     cdef CompositionSet compset
     # Group phases into multiple composition sets
@@ -52,7 +51,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
         # The reason we don't do this based on Y fractions is because
         # of sublattice symmetry. It's very easy to detect a "miscibility gap" which is actually
         # symmetry equivalent, i.e., D([A, B] - [B, A]) > tol, but they are the same configuration.
-        for idx in indices:
+        for idx in range(num_phases):
             compset = composition_sets[idx]
             comp_matrix[idx, :] = compset.X
         comp_distances = scipy.spatial.distance.squareform(scipy.spatial.distance.pdist(comp_matrix, metric='chebyshev'))
@@ -61,26 +60,33 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
                 comp_distances[idx,:] = np.inf
                 comp_distances[:,idx] = np.inf
         redundant_phases = set()
-        redundant_phases |= {indices[0]}
         for i in range(comp_distances.shape[0]):
             for j in range(i, comp_distances.shape[0]):
                 if i == j:
                     continue
-                if comp_distances[i, j] < COMP_DIFFERENCE_TOL:
+                if comp_distances[i, j] < comp_diff_tol:
                     redundant_phases |= {i, j}
         redundant_phases = sorted(redundant_phases)
-        kept_phase = redundant_phases[0]
-        removed_phases = redundant_phases[1:]
+        if len(redundant_phases) > 1:
+            kept_phase = redundant_phases[0]
+            removed_phases = redundant_phases[1:]
+        else:
+            removed_phases = []
         # Their NP values will be added to the kept phase
         # and they will be nulled out
         for redundant in removed_phases:
             composition_sets[kept_phase].NP += composition_sets[redundant].NP
+            if verbose:
+                print('Redundant phase:', composition_sets[redundant])
             composition_sets[redundant].NP = np.nan
     for phase_idx in range(num_phases):
-        if (composition_sets[phase_idx].NP <= MIN_PHASE_FRACTION) and (not allow_negative_fractions):
-            composition_sets[phase_idx].NP = np.nan
-        elif abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
+        if abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
             composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
+            composition_sets[phase_idx].zero_seen += 1
+            if composition_sets[phase_idx].zero_seen > allowed_zero_seen:
+                if verbose:
+                    print('Exceeded zero seen:', composition_sets[phase_idx])
+                composition_sets[phase_idx].NP = np.nan
 
     entries_to_delete = sorted([idx for idx, compset in enumerate(composition_sets) if np.isnan(compset.NP)],
                                reverse=True)
@@ -149,12 +155,9 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 if verbose:
                     print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
                 return False
-        # Set all phases to have equal amounts as new phase is added
-        for compset in composition_sets:
-            compset.NP = 1./(len(composition_sets)+1)
         compset = CompositionSet(phase_records[df_phase_name])
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
-                       current_grid.coords['P'], current_grid.coords['T'])
+                       current_grid.coords['P'], current_grid.coords['T'], False)
         composition_sets.append(compset)
         if verbose:
             print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
@@ -163,7 +166,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
-def _compute_constraints(object composition_sets, object comps, object cur_conds):
+cdef _compute_constraints(object composition_sets, object comps, object cur_conds):
     """
     Compute the constraint vector and constraint Jacobian matrix.
     """
@@ -231,46 +234,25 @@ def _compute_constraints(object composition_sets, object comps, object cur_conds
         constraint_offset += 1
     return np.array(l_constraints), np.array(constraint_jac), constraint_hess
 
-@cython.boundscheck(False)
-@cython.wraparound(False)
-cdef _build_multiphase_system(object composition_sets, np.ndarray[ndim=1, dtype=np.float64_t] l_constraints,
-                              np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac,
-                              np.ndarray[ndim=3, dtype=np.float64_t] constraint_hess,
-                              np.ndarray[ndim=1, dtype=np.float64_t] l_multipliers):
+cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
+    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
     cdef CompositionSet compset
-    cdef int num_phases = len(composition_sets)
-    cdef int num_vars = sum(compset.phase_record.phase_dof for compset in composition_sets) + num_phases
-    cdef double[:,::1] l_hessian = np.zeros((num_vars, num_vars))
-    cdef double[::1] gradient_term = np.zeros(num_vars)
-    cdef int var_offset = 0
-    cdef int phase_idx = 0
-    cdef int constraint_idx, dof_x_idx, dof_y_idx, hess_x, hess_y, hess_idx
-    cdef double total_obj = 0
+    prob = problem(composition_sets, comps, cur_conds)
+    result = iter_solver.solve(prob)
+    composition_sets = prob.composition_sets
+    if result.converged:
+        x = result.x
+        var_offset = 0
+        phase_idx = 0
+        for compset in composition_sets:
+            compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
+                           x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+            var_offset += compset.phase_record.phase_dof
+            phase_idx += 1
+    return result
 
-    for compset in composition_sets:
-        for dof_x_idx in range(compset.phase_record.phase_dof):
-            gradient_term[var_offset + dof_x_idx] = \
-                compset.NP * compset.grad[2+dof_x_idx]  # Remove P,T grad part
-        gradient_term[num_vars - num_phases + phase_idx] = compset.energy
-        total_obj += compset.NP * compset.energy
-
-        for dof_x_idx in range(compset.phase_record.phase_dof):
-            for dof_y_idx in range(dof_x_idx,compset.phase_record.phase_dof):
-                l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx] = \
-                  compset.NP * compset.hess[2+dof_x_idx,2+dof_y_idx]
-                l_hessian[var_offset+dof_y_idx, var_offset+dof_x_idx] = \
-                  l_hessian[var_offset+dof_x_idx, var_offset+dof_y_idx]
-            # Phase fraction / site fraction cross derivative
-            l_hessian[num_vars - num_phases + phase_idx, var_offset + dof_x_idx] = \
-                 compset.grad[2+dof_x_idx] # Remove P,T grad part
-            l_hessian[var_offset + dof_x_idx, num_vars - num_phases + phase_idx] = compset.grad[2+dof_x_idx]
-        var_offset += compset.phase_record.phase_dof
-        phase_idx += 1
-    l_hessian -= np.einsum('i,ijk->jk', l_multipliers, constraint_hess, order='F')
-    return np.asarray(total_obj), np.asarray(l_hessian), np.asarray(gradient_term)
-
-
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose):
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
+                            problem=Problem, solver=InteriorPointSolver):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -298,7 +280,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         Modified with equilibrium values.
     """
     cdef double indep_sum
-    cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, sfidx, pfidx, m, n
+    cdef int num_phases, num_vars, cur_iter, old_phase_length, new_phase_length, var_idx, dof_idx, comp_idx, phase_idx, sfidx, pfidx, m, n
     cdef bint converged, changed_phases
     cdef double vmax, minimum_df
     cdef PhaseRecord phase_record
@@ -356,169 +338,51 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         else:
             raise ValueError('Number of dependent components different from one')
         composition_sets = []
-        removed_compsets = collections.deque(maxlen=6)
+        removed_compsets = []
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
             if phase_name == '' or phase_name == '_FAKE_':
                 continue
             phase_record = phase_records[phase_name]
             sfx = prop_Y_values[it.multi_index + np.index_exp[phase_idx, :phase_record.phase_dof]]
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
+            phase_amt = max(phase_amt, MIN_PHASE_FRACTION)
             compset = CompositionSet(phase_record)
-            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'])
+            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'], False)
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
-        alpha = 1
-        allow_negative_fractions = False
-        for cur_iter in range(MAX_SOLVE_ITERATIONS):
-            if cur_iter > 0.8 * MAX_SOLVE_ITERATIONS:
-                allow_negative_fractions = False
-            if cur_iter > 0 and cur_iter % 5 == 0:
-                minimum_df = 0
-                changed_phases |= add_new_phases(composition_sets, removed_compsets, phase_records,
-                                                 current_grid, chemical_potentials, minimum_df, verbose)
-            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, allow_negative_fractions, verbose)
-            num_phases = len(composition_sets)
-            total_dof = sum([compset.phase_record.phase_dof for compset in composition_sets])
-            if num_phases == 0:
-                print('Zero phases are left in the system: {}'.format(cur_conds))
-                converged = False
-                break
-            phase_fracs = np.empty(num_phases)
-            for phase_idx in range(num_phases):
-                phase_fracs[phase_idx] = composition_sets[phase_idx].NP
-            dof_idx = 0
-            site_fracs = np.empty(total_dof)
-            for phase_idx in range(num_phases):
-                site_fracs[dof_idx:dof_idx+composition_sets[phase_idx].phase_record.phase_dof] = composition_sets[phase_idx].dof[2:]
-                dof_idx += composition_sets[phase_idx].phase_record.phase_dof
+        # Remove duplicate phases -- we will add them back later
+        remove_degenerate_phases(composition_sets, [], 0.5, 100, verbose)
+        iter_solver = solver(verbose=verbose)
+        iterations = 0
+        history = []
+        while iterations < 10:
+            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
-            if (num_phases == 1) and np.all(np.asarray(composition_sets[0].dof[2:]) == 1.):
-                # Single phase with zero internal degrees of freedom, can't do any refinement
-                # TODO: In the future we may be able to refine other degrees of freedom like temperature
-                chemical_potentials[:] = energy
-                converged = True
+            if result.converged:
+                chemical_potentials[:] = result.chemical_potentials
+            changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
+                                            current_grid, chemical_potentials,
+                                            1e-4, verbose)
+            changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, 1e-3, 0, verbose)
+            iterations += 1
+            if not changed_phases:
                 break
-
-            l_constraints, constraint_jac, constraint_hess = _compute_constraints(composition_sets, comps, cur_conds)
-            old_energy = energy
-            old_chem_pots = chemical_potentials.copy()
-            # Reset Lagrange multipliers if active set of phases change
-            if cur_iter == 0 or changed_phases or np.any(np.isnan(l_multipliers)):
-                l_multipliers = np.zeros(l_constraints.shape[0])
-                changed_phases = False
-            l_multipliers[l_multipliers.shape[0] - chemical_potentials.shape[0]:] = chemical_potentials
-            num_vars = len(site_fracs) + len(composition_sets)
-            energy, l_hessian, gradient_term = _build_multiphase_system(composition_sets, l_constraints,
-                                                                        constraint_jac, constraint_hess,
-                                                                        l_multipliers)
-            inv_hess = np.linalg.inv(l_hessian)
-            l_multipliers = np.linalg.solve(np.dot(np.dot(constraint_jac, inv_hess), constraint_jac.T), np.dot(np.dot(constraint_jac, inv_hess), gradient_term) - l_constraints)
-            step = np.linalg.solve(l_hessian,  -np.array(gradient_term) + np.dot(constraint_jac.T, l_multipliers))
-            np.clip(l_multipliers, -MAX_ABS_LAGRANGE_MULTIPLIER, MAX_ABS_LAGRANGE_MULTIPLIER, out=l_multipliers)
-            if np.any(np.isnan(l_multipliers)):
-                print('Invalid l_multipliers after recalculation', l_multipliers)
-                l_multipliers[:] = 0
-            if verbose:
-                print('NEW_L_MULTIPLIERS', l_multipliers)
-            chemical_potentials[:] = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
-                                                   sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals]
-            old_site_fracs = site_fracs.copy()
-            old_phase_fracs = phase_fracs.copy()
-            old_total_comp = np.zeros(prop_X_values.shape[-1])
-            old_vmax = np.max(np.abs(l_constraints))
-            dof_idx = 0
-            for phase_idx in range(num_phases):
-                compset = composition_sets[phase_idx]
-                for comp_idx in range(old_total_comp.shape[0]):
-                    old_total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
-                dof_idx += compset.phase_record.phase_dof
-
-            old_driving_force = energy - (l_multipliers * l_constraints).sum(axis=-1)
-            if verbose:
-                print('old_driving_force', old_driving_force)
-            for new_alpha in [0.5**n for n in range(12)] + [0]:
-                alpha = new_alpha
-                for sfidx in range(site_fracs.shape[0]):
-                    site_fracs[sfidx] = min(max(old_site_fracs[sfidx] + alpha * step[sfidx], MIN_SITE_FRACTION), 1)
-                for pfidx in range(phase_fracs.shape[0]):
-                    phase_fracs[pfidx] = min(max(old_phase_fracs[pfidx] + alpha * step[site_fracs.shape[0] + pfidx], MIN_PHASE_FRACTION), 1)
-                dof_idx = 0
-                candidate_energy = 0
-                for phase_idx in range(num_phases):
-                    compset = composition_sets[phase_idx]
-                    compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
-                                                       phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
-                    candidate_energy += compset.NP * compset.energy
-                    dof_idx += compset.phase_record.phase_dof
-                l_constraints, constraint_jac, constraint_hess = _compute_constraints(composition_sets, comps, cur_conds)
-                vmax = np.max(np.abs(l_constraints))
-                driving_force = candidate_energy - (l_multipliers * l_constraints).sum(axis=-1)
-                if verbose:
-                    print(alpha, driving_force, np.max(np.abs(l_constraints)))
-                energy = candidate_energy
-                if (driving_force - old_driving_force < 1 and (vmax < old_vmax or vmax < 1e-4)) or (vmax - old_vmax <= -MIN_SITE_FRACTION):
-                    break
-            if verbose:
-                print('alpha', alpha)
-                print('Phases', composition_sets)
-                print('step', step)
-                print('Site fractions', site_fracs)
-                print('Phase fractions', phase_fracs)
-            dof_idx = 0
-            total_comp = np.zeros(prop_X_values.shape[-1])
-            for phase_idx in range(num_phases):
-                compset = composition_sets[phase_idx]
-                compset.update(site_fracs[dof_idx:dof_idx+compset.phase_record.phase_dof],
-                                                   phase_fracs[phase_idx], cur_conds['P'], cur_conds['T'])
-                for comp_idx in range(total_comp.shape[0]):
-                    total_comp[comp_idx] += compset.NP * compset.X[comp_idx]
-                dof_idx += compset.phase_record.phase_dof
-            vmax = np.max(np.abs(l_constraints))
-            driving_force = energy - (chemical_potentials * total_comp).sum(axis=-1)
-            driving_force = np.squeeze(driving_force)
-            if verbose:
-                print('Chemical potentials', np.asarray(chemical_potentials))
-                print('Chem pot progress', chemical_potentials - old_chem_pots)
-                print('Energy progress', energy - old_energy)
-                print('Driving force', driving_force)
-            no_progress = np.abs(chemical_potentials - old_chem_pots).max() < 0.01
-            no_progress &= np.abs(energy - old_energy) < MIN_SOLVE_ENERGY_PROGRESS
-            no_progress &= np.abs(driving_force) < MAX_SOLVE_DRIVING_FORCE
-            no_progress &= num_phases <= prop_Phase_values.shape[-1]
-            if no_progress:
-                removed_compsets.clear()
-                changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
-                             current_grid, chemical_potentials, 50.0, verbose)
-                if changed_phases:
-                    no_progress = False
-                for pfidx in range(phase_fracs.shape[0]):
-                    if phase_fracs[pfidx] < 0:
-                        no_progress = False
-                        allow_negative_fractions = False
-            if no_progress and cur_iter == MAX_SOLVE_ITERATIONS-1:
-                print('Driving force failed to converge: {}'.format(cur_conds))
-                converged = False
-                break
-            elif no_progress:
-                if verbose:
-                    print('No progress')
-                num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-                chemical_potentials = l_multipliers[sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]):
-                                                sum([compset.phase_record.sublattice_dof.shape[0] for compset in composition_sets]) + num_mass_bals]
-                converged = True
-                break
-            elif (not no_progress) and cur_iter == MAX_SOLVE_ITERATIONS-1:
-                print('Failed to converge: {}'.format(cur_conds))
-                converged = False
-                break
-
+        if changed_phases:
+            result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+            chemical_potentials[:] = result.chemical_potentials
+        converged = result.converged
+        remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
         if converged:
+            if verbose:
+                print('Composition Sets', composition_sets)
             prop_MU_values[it.multi_index] = chemical_potentials
-            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = phase_fracs
+            prop_Phase_values[it.multi_index] = ''
+            prop_NP_values[it.multi_index + np.index_exp[:len(composition_sets)]] = [compset.NP for compset in composition_sets]
             prop_NP_values[it.multi_index + np.index_exp[len(composition_sets):]] = np.nan
+            prop_Y_values[it.multi_index] = np.nan
             prop_X_values[it.multi_index + np.index_exp[:]] = 0
-            prop_GM_values[it.multi_index] = energy
+            prop_GM_values[it.multi_index] = 0
             for phase_idx in range(len(composition_sets)):
                 prop_Phase_values[it.multi_index + np.index_exp[phase_idx]] = composition_sets[phase_idx].phase_record.phase_name
             for phase_idx in range(len(composition_sets), prop_Phase_values.shape[-1]):
@@ -526,11 +390,12 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = np.nan
             var_offset = 0
             total_comp = np.zeros(prop_X_values.shape[-1])
-            for phase_idx in range(num_phases):
+            for phase_idx in range(len(composition_sets)):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
-                    site_fracs[var_offset:var_offset + compset.phase_record.phase_dof]
+                    compset.dof[2:]
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
+                prop_GM_values[it.multi_index] += compset.NP * compset.energy
                 var_offset += compset.phase_record.phase_dof
         else:
             prop_MU_values[it.multi_index] = np.nan

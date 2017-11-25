@@ -1,5 +1,4 @@
 from pycalphad.core.phase_rec cimport func_t, func_novec_t
-from pycalphad.core.cymem cimport Pool
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     cdef public object constituents
@@ -36,7 +35,6 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
     cdef public double disordered_ihj_magnetic_structure_factor
     cdef public double disordered_afm_factor
     cdef public bint ordered
-    cdef public Pool mem
     cdef public bint _debug
     cdef func_t* _debugobj
     cdef func_novec_t* _debuggrad
@@ -46,13 +44,13 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                                 double *eval_row, double[:] parameters) nogil
     cdef void _eval_rk_matrix_gradient(self, double *out, double[:,:] coef_mat, double[:,:] symbol_mat,
                                            double *eval_row, double[:] parameters) nogil
-    cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil
-    cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil
-    cpdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign)
-    cdef _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign)
-    cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters)
-    cpdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign)
-    cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters)
+    cdef void _compute_disordered_dof(self, double *disordered_dof, double *dof, size_t num_pts) nogil
+    cdef void _compute_ordered_dof(self, double *ordered_dof, double *disordered_dof, size_t num_pts) nogil
+    cdef void _eval_energy(self, double *out, double *dof, double[:] parameters, double sign, size_t num_pts) nogil
+    cdef void _eval_disordered_energy(self, double *out, double *dof, double[:] parameters, double sign) nogil
+    cdef void eval_energy(self, double *out, double *dof, double[:] parameters, size_t num_pts) nogil
+    cdef void _eval_energy_gradient(self, double *out_grad, double *dof, double[:] parameters, double sign) nogil
+    cdef void eval_energy_gradient(self, double *out, double *dof, double[:] parameters) nogil
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters)
     cdef _debug_energy_gradient(self, double[::1] debugout, double[::1] dof, double[::1] parameters)
-    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters)
+    cdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters) nogil

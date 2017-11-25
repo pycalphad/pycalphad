@@ -28,6 +28,7 @@ RUN wget -O miniconda.sh \
   && \
     conda config --add channels conda-forge && \
     conda create -n condaenv --quiet -y python=$python \
+      cyipopt \
       cython \
       matplotlib \
       pyparsing \

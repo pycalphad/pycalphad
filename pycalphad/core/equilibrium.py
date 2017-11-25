@@ -18,7 +18,12 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
 import dask
 from dask import delayed
-import dask.multiprocessing, dask.async
+import dask.multiprocessing
+try:
+    import dask.local
+except ImportError:
+    import dask.async
+    dask.local = dask.async
 from xarray import Dataset
 import numpy as np
 from collections import namedtuple, OrderedDict
@@ -277,7 +282,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(components))
     grid_shape = np.meshgrid(*coord_dict.values(),

@@ -8,6 +8,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     cdef readonly double[:, ::1] mass_grad
     cdef readonly double[:, :, :] mass_hess
     cdef public double NP
+    cdef public int zero_seen
     cdef readonly double energy
     cdef double[::1] _energy_2d_view
     cdef readonly double[::1] grad
@@ -20,5 +21,5 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     cdef void reset(self)
     cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[:,::1] current_hess,
                               double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
-                              double* energy, double* prev_energy)
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature)
+                              double* energy, double* prev_energy) nogil
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives) nogil
