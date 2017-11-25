@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.5.2.post1+17.g32ad06e documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.5.2.post1+18.g3a432ec documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+17.g32ad06e documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+18.g3a432ec documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.5.2.post1+17.g32ad06e
+                0.5.2.post1+18.g3a432ec
               </div>
             
           
@@ -424,6 +424,39 @@
 
     <span class="k">return</span> <span class="n">new_dict</span></div>
 
+
+<div class="viewcode-block" id="filter_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.filter_phases">[docs]</a><span class="k">def</span> <span class="nf">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return phases that are valid for equilibrium calculations for the given database and components</span>
+
+<span class="sd">    Filters out phases that</span>
+<span class="sd">    * Have no active components in any sublattice of a phase</span>
+<span class="sd">    * Are disordered phases in an order-disorder model</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Thermodynamic database containing the relevant parameters.</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Sorted list of phases that are valid for the Database and components</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: filter phases that can not charge balance</span>
+
+    <span class="k">def</span> <span class="nf">all_sublattices_active</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="n">active_sublattices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span>
+                              <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">active_sublattices</span><span class="p">)</span>
+
+    <span class="n">candidate_phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="n">disordered_phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span><span class="p">]</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phase</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span> <span class="k">if</span>
+                <span class="n">all_sublattices_active</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="n">phase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">disordered_phases</span><span class="p">]</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -460,7 +493,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.5.2.post1+17.g32ad06e',
+            VERSION:'0.5.2.post1+18.g3a432ec',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
