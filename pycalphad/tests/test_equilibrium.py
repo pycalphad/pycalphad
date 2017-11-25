@@ -318,3 +318,17 @@ def test_equilibrium_result_dataset_can_serialize_to_netcdf():
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325})
     eq.to_netcdf(fname)
     os.remove(fname)  # cleanup
+
+
+@raises(ConditionError)
+def test_equilibrium_raises_with_no_active_phases_passed():
+    """Passing inactive phases to equilibrium raises a ConditionError."""
+    # the only phases passed are the disordered phases, which are inactive
+    equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['FCC_A1', 'BCC_A2'], {v.T: 300, v.P: 101325})
+
+
+@raises(ConditionError)
+def test_equilibrium_raises_when_no_phases_can_be_active():
+    """Equliibrium raises when the components passed cannot give any active phases"""
+    # all phases contain AL and/or FE in a sublattice, so no phases can be active
+    equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
