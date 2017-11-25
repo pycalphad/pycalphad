@@ -39,7 +39,7 @@ def test_eq_binary():
                  'AL2FE', 'AL13FE4', 'AL5FE4']
     comps = ['AL', 'FE', 'VA']
     conds = {v.T: 1400, v.P: 101325, v.X('AL'): 0.55}
-    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds)
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, verbose=True)
     assert_allclose(eqx.GM.values.flat[0], -9.608807e4)
 
 def test_eq_single_phase():
@@ -84,11 +84,13 @@ def test_dilute_condition():
     """
     'Zero' and dilute composition conditions are correctly handled.
     """
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0})
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 0}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -64415.84, atol=0.1)
-    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8})
-    assert_allclose(np.squeeze(eq.GM.values), -64415.84069827)
-    assert_allclose(eq.MU.values, [[[[-335723.04320981,  -64415.8379852]]]], atol=0.1)
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'FCC_A1', {v.T: 1300, v.P: 101325, v.X('AL'): 1e-8}, verbose=True)
+    # Checked in TC
+    assert_allclose(np.squeeze(eq.GM.values), -64415.841)
+    # We loosen the tolerance a bit here because our convergence tolerance is too low for the last digit
+    assert_allclose(eq.MU.values, [[[[-335723.28,  -64415.838]]]], atol=1.0)
 
 def test_eq_illcond_hessian():
     """
@@ -144,7 +146,7 @@ def test_eq_on_endmember():
     the convex hull is still correctly constructed (gh-28).
     """
     equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['LIQUID', 'B2_BCC'],
-                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325})
+                {v.X('AL'): [0.4, 0.5, 0.6], v.T: [300, 600], v.P: 101325}, verbose=True)
 
 def test_eq_four_sublattice():
     """
@@ -191,12 +193,13 @@ def test_eq_ternary_inside_mass():
     """
     Equilibrium in interior of composition space will still balance mass.
     """
+    # This test cannot be checked in TC due to a lack of significant figures in the composition
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.44455555555555554,
                       v.X('CO'): 0.22277777777777777, v.P: 101325}, verbose=True)
-    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
-                 [0.44455555555555554, 0.22277777777777777, 0.333]
-    assert np.all(np.abs(mass_error) < 0.01)
+    assert_allclose(eq.GM.values, -105871.20, atol=0.1)
+    assert_allclose(eq.MU.values.flatten(), [-104655.532294, -142591.644379,  -82905.085459], atol=0.1)
+
 
 def test_eq_ternary_edge_misc_gap():
     """
@@ -217,6 +220,9 @@ def test_eq_issue43_chempots_misc_gap():
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
     chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
+    mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
+                 [0.1246, 1e-9, 1-(.1246+1e-9)]
+    assert np.max(np.fabs(mass_error)) < 1e-9
     assert_allclose(eq.GM.values, -81933.259)
     assert_allclose(eq.MU.values, chempots, atol=1)
 

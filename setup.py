@@ -26,7 +26,8 @@ setup(
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
     ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
                            'pycalphad/core/phase_rec.pyx', 'pycalphad/core/compiled_model.pyx',
-                           'pycalphad/core/composition_set.pyx', 'pycalphad/core/cymem.pyx']),
+                           'pycalphad/core/composition_set.pyx',
+                           'pycalphad/core/problem.pyx']),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },
@@ -35,7 +36,7 @@ setup(
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
     install_requires=['matplotlib', 'pandas', 'xarray!=0.8', 'sympy', 'pyparsing', 'Cython>=0.24',
-                      'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.15', 'dill'],
+                      'tinydb', 'scipy', 'numpy>=1.9', 'dask[complete]>=0.15', 'dill', 'ipopt'],
     classifiers=[
         # How mature is this project? Common values are
         #   3 - Alpha

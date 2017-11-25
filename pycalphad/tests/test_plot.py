@@ -2,6 +2,8 @@
 The plot test module verifies that the eqplot produces plots without error.
 """
 
+import matplotlib.pyplot as plt
+plt.switch_backend('Agg')
 from pycalphad import Database, eqplot, equilibrium
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *

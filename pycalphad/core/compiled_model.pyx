@@ -1,8 +1,9 @@
 import numpy as np
 cimport numpy as np
 cimport cython
-from pycalphad.core.cymem cimport Pool
 from libc.math cimport log
+from libc.stdlib cimport calloc, malloc, free
+from libc.string cimport memset
 from sympy import Symbol
 from tinydb import where
 from collections import OrderedDict
@@ -47,7 +48,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
 cdef public class CompiledModel(object)[type CompiledModelType, object CompiledModelObject]:
     def __init__(self, dbe, comps, phase_name, parameters=None, _debug=False):
-        self.mem = Pool()
+        cdef int subl_index, comp_index
         possible_comps = set([x.upper() for x in comps])
         comps = sorted(comps, key=str)
         phase = dbe.phases[phase_name]
@@ -364,36 +365,36 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void _eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters, double sign):
-        cdef int num_pts = dof.shape[0]
+    cdef void _eval_energy(self, double *out, double *dof, double[:] parameters, double sign, size_t num_pts) nogil:
         cdef int eval_row_len = 4+self.phase_dof
         # This 2-D array will be C-ordered
-        cdef double *eval_row = <double*>self.mem.alloc(num_pts*eval_row_len, sizeof(double))
-        cdef double *mass_normalization_factor = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *curie_temp = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *tau = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *bmagn = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef double *res_tau = <double*>self.mem.alloc(num_pts, sizeof(double))
+        cdef double *eval_row = <double*>malloc(num_pts*eval_row_len * sizeof(double))
+        cdef double *mass_normalization_factor = <double*>malloc(num_pts * sizeof(double))
+        cdef double *curie_temp = <double*>malloc(num_pts * sizeof(double))
+        cdef double *tau = <double*>malloc(num_pts * sizeof(double))
+        cdef double *bmagn = <double*>malloc(num_pts * sizeof(double))
+        cdef double *res_tau = <double*>malloc(num_pts * sizeof(double))
         cdef double p = self.ihj_magnetic_structure_factor
         cdef double A = 518./1125 + (11692./15975)*(1./p - 1.)
-        cdef double *out_energy = <double*>self.mem.alloc(num_pts, sizeof(double))
-        cdef int *prev_idx = <int*>self.mem.alloc(num_pts, sizeof(int))
-        cdef int dof_idx, out_idx, eval_idx
-        for out_idx in range(out.shape[0]):
+        cdef double *out_energy = <double*>malloc(num_pts * sizeof(double))
+        cdef int *prev_idx = <int*>malloc(num_pts * sizeof(int))
+        cdef size_t dof_idx, out_idx, eval_idx
+        cdef size_t dof_len = 2 + self.phase_dof
+        for out_idx in range(num_pts):
             out_energy[out_idx] = 0
             mass_normalization_factor[out_idx] = 0
-            eval_row[eval_row_len*out_idx + 0] = dof[out_idx, 0]
-            eval_row[eval_row_len*out_idx + 1] = dof[out_idx, 1]
-            eval_row[eval_row_len*out_idx + 2] = log(dof[out_idx, 0])
-            eval_row[eval_row_len*out_idx + 3] = log(dof[out_idx, 1])
+            eval_row[eval_row_len*out_idx + 0] = dof[dof_len*out_idx + 0]
+            eval_row[eval_row_len*out_idx + 1] = dof[dof_len*out_idx + 1]
+            eval_row[eval_row_len*out_idx + 2] = log(dof[dof_len*out_idx + 0])
+            eval_row[eval_row_len*out_idx + 3] = log(dof[dof_len*out_idx + 1])
             for eval_idx in range(self.phase_dof):
-                eval_row[eval_row_len*out_idx + 4+eval_idx] = dof[out_idx, 2+eval_idx]
+                eval_row[eval_row_len*out_idx + 4+eval_idx] = dof[dof_len*out_idx + 2+eval_idx]
             # Ideal mixing
             prev_idx[out_idx] = 0
             for entry_idx in range(self.site_ratios.shape[0]):
                 for dof_idx in range(prev_idx[out_idx], prev_idx[out_idx]+self.sublattice_dof[entry_idx]):
-                    if dof[out_idx, 2+dof_idx] > 1e-16:
-                        out_energy[out_idx] += 8.3145 * dof[out_idx, 1] * self.site_ratios[entry_idx] * dof[out_idx, 2+dof_idx] * log(dof[out_idx, 2+dof_idx])
+                    if dof[dof_len*out_idx + 2+dof_idx] > 1e-16:
+                        out_energy[out_idx] += 8.3145 * dof[dof_len*out_idx + 1] * self.site_ratios[entry_idx] * dof[dof_len*out_idx + 2+dof_idx] * log(dof[dof_len*out_idx + 2+dof_idx])
                 prev_idx[out_idx] += self.sublattice_dof[entry_idx]
 
             # End-member contribution
@@ -413,7 +414,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 if curie_temp[out_idx] < 0:
                     curie_temp[out_idx] /= self.afm_factor
                 if curie_temp[out_idx] > 1e-6:
-                    tau[out_idx] = dof[out_idx, 1] / curie_temp[out_idx]
+                    tau[out_idx] = dof[dof_len*out_idx + 1] / curie_temp[out_idx]
                     # factor when tau < 1
                     if tau[out_idx] < 1:
                         res_tau[out_idx] = 1 - (1./A) * ((79./(140*p))*(tau[out_idx]**(-1)) + (474./497)*(1./p - 1) \
@@ -422,10 +423,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     else:
                         # factor when tau >= 1
                         res_tau[out_idx] = -(1/A) * ((tau[out_idx]**-5)/10 + (tau[out_idx]**-15)/315. + (tau[out_idx]**-25)/1500.)
-                    out_energy[out_idx] += 8.3145 * dof[out_idx, 1] * log(bmagn[out_idx]+1) * res_tau[out_idx]
+                    out_energy[out_idx] += 8.3145 * dof[dof_len*out_idx + 1] * log(bmagn[out_idx]+1) * res_tau[out_idx]
             for subl_idx in range(self.site_ratios.shape[0]):
                 if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                    mass_normalization_factor[out_idx] += self.site_ratios[subl_idx] * (1-dof[out_idx, 2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
+                    mass_normalization_factor[out_idx] += self.site_ratios[subl_idx] * (1-dof[dof_len*out_idx + 2+<size_t>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
                 else:
                     mass_normalization_factor[out_idx] += self.site_ratios[subl_idx]
             if mass_normalization_factor[out_idx] <= 1e-6:
@@ -433,10 +434,18 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             else:
                 out_energy[out_idx] /= mass_normalization_factor[out_idx]
             out[out_idx] = out[out_idx] + sign * out_energy[out_idx]
+        free(eval_row)
+        free(mass_normalization_factor)
+        free(curie_temp)
+        free(tau)
+        free(bmagn)
+        free(res_tau)
+        free(out_energy)
+        free(prev_idx)
 
     @cython.boundscheck(False)
-    cdef _eval_disordered_energy(self, double[::1] out, double[:] dof, double[:] parameters, double sign):
-        cdef double* eval_row = <double*>self.mem.alloc(4+self.disordered_phase_dof, sizeof(double))
+    cdef void _eval_disordered_energy(self, double *out, double *dof, double[:] parameters, double sign) nogil:
+        cdef double* eval_row = <double*>malloc((4+self.disordered_phase_dof) * sizeof(double))
         cdef double mass_normalization_factor = 0
         cdef double curie_temp = 0
         cdef double tau = 0
@@ -447,74 +456,76 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double out_energy = 0
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
-        with nogil:
-            eval_row[0] = dof[0]
-            eval_row[1] = dof[1]
-            eval_row[2] = log(dof[0])
-            eval_row[3] = log(dof[1])
-            for eval_idx in range(self.disordered_phase_dof):
-                eval_row[4+eval_idx] = dof[2+eval_idx]
-            # Ideal mixing
-            prev_idx = 0
-            for entry_idx in range(self.disordered_site_ratios.shape[0]):
-                for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
-                    if dof[2+dof_idx] > 1e-16:
-                        out_energy += 8.3145 * dof[1] * self.disordered_site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
-                prev_idx += self.disordered_sublattice_dof[entry_idx]
+        eval_row[0] = dof[0]
+        eval_row[1] = dof[1]
+        eval_row[2] = log(dof[0])
+        eval_row[3] = log(dof[1])
+        for eval_idx in range(self.disordered_phase_dof):
+            eval_row[4+eval_idx] = dof[2+eval_idx]
+        # Ideal mixing
+        prev_idx = 0
+        for entry_idx in range(self.disordered_site_ratios.shape[0]):
+            for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
+                if dof[2+dof_idx] > 1e-16:
+                    out_energy += 8.3145 * dof[1] * self.disordered_site_ratios[entry_idx] * dof[2+dof_idx] * log(dof[2+dof_idx])
+            prev_idx += self.disordered_sublattice_dof[entry_idx]
 
-            # End-member contribution
-            out_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix, self.disordered_pure_coef_symbol_matrix,
-                                               eval_row, parameters)
-            # Interaction contribution
-            out_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix, self.disordered_excess_coef_symbol_matrix,
-                                               eval_row, parameters)
-            # Magnetic contribution
-            curie_temp = self._eval_rk_matrix(self.disordered_tc_coef_matrix, self.disordered_tc_coef_symbol_matrix,
-                                              eval_row, parameters)
-            bmagn = self._eval_rk_matrix(self.disordered_bm_coef_matrix, self.disordered_bm_coef_symbol_matrix,
-                                         eval_row, parameters)
-            if (curie_temp != 0) and (bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
-                if bmagn < 0:
-                    bmagn /= self.disordered_afm_factor
-                if curie_temp < 0:
-                    curie_temp /= self.disordered_afm_factor
-                if curie_temp > 1e-6:
-                    tau = dof[1] / curie_temp
-                    # factor when tau < 1
-                    if tau < 1:
-                        res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
-                            * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
-                                          )
-                    else:
-                        # factor when tau >= 1
-                        res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
-                    out_energy += 8.3145 * dof[1] * log(bmagn+1) * res_tau
-            for subl_idx in range(self.disordered_site_ratios.shape[0]):
-                if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                    mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+        # End-member contribution
+        out_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix, self.disordered_pure_coef_symbol_matrix,
+                                           eval_row, parameters)
+        # Interaction contribution
+        out_energy += self._eval_rk_matrix(self.disordered_excess_coef_matrix, self.disordered_excess_coef_symbol_matrix,
+                                           eval_row, parameters)
+        # Magnetic contribution
+        curie_temp = self._eval_rk_matrix(self.disordered_tc_coef_matrix, self.disordered_tc_coef_symbol_matrix,
+                                          eval_row, parameters)
+        bmagn = self._eval_rk_matrix(self.disordered_bm_coef_matrix, self.disordered_bm_coef_symbol_matrix,
+                                     eval_row, parameters)
+        if (curie_temp != 0) and (bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
+            if bmagn < 0:
+                bmagn /= self.disordered_afm_factor
+            if curie_temp < 0:
+                curie_temp /= self.disordered_afm_factor
+            if curie_temp > 1e-6:
+                tau = dof[1] / curie_temp
+                # factor when tau < 1
+                if tau < 1:
+                    res_tau = 1 - (1./A) * ((79./(140*p))*(tau**(-1)) + (474./497)*(1./p - 1) \
+                        * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+                                      )
                 else:
-                    mass_normalization_factor += self.disordered_site_ratios[subl_idx]
-            if mass_normalization_factor <= 1e-6:
-                out_energy = MAX_ENERGY
+                    # factor when tau >= 1
+                    res_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
+                out_energy += 8.3145 * dof[1] * log(bmagn+1) * res_tau
+        for subl_idx in range(self.disordered_site_ratios.shape[0]):
+            if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
+                mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
             else:
-                out_energy /= mass_normalization_factor
-            out[0] = out[0] + sign * out_energy
+                mass_normalization_factor += self.disordered_site_ratios[subl_idx]
+        if mass_normalization_factor <= 1e-6:
+            out_energy = MAX_ENERGY
+        else:
+            out_energy /= mass_normalization_factor
+        out[0] = out[0] + sign * out_energy
+        free(eval_row)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void _compute_disordered_dof(self, double[:,:] disordered_dof, double[:,:] dof) nogil:
-        cdef int out_idx, dof_idx, comp_idx, subl_idx, disordered_dof_idx, copy_idx
+    cdef void _compute_disordered_dof(self, double *disordered_dof, double *dof, size_t num_pts) nogil:
+        cdef size_t out_idx, dof_idx, comp_idx, subl_idx, disordered_dof_idx, copy_idx
         cdef int num_comps
         cdef double site_sum
+        cdef size_t disordered_dof_len = 2 + self.disordered_phase_dof
+        cdef size_t dof_len = 2 + self.phase_dof
         dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
         disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
-        for out_idx in range(disordered_dof.shape[0]):
+        for out_idx in range(num_pts):
             site_sum = 0
             num_comps = 0
             # Disordered phase contribution
             # Assume: Same components in all sublattices, except maybe a pure VA sublattice at the end
-            disordered_dof[out_idx, 0] = dof[out_idx, 0]
-            disordered_dof[out_idx, 1] = dof[out_idx, 1]
+            disordered_dof[disordered_dof_len*out_idx + 0] = dof[dof_len*out_idx + 0]
+            disordered_dof[disordered_dof_len*out_idx + 1] = dof[dof_len*out_idx + 1]
             num_comps = self.sublattice_dof[0]
             # Last sublattice is different from first; probably an interstitial sublattice
             # It should be treated separately
@@ -522,81 +533,92 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 site_sum = _sum(self.site_ratios[:self.site_ratios.shape[0]-1])
                 for subl_idx in range(self.site_ratios.shape[0]-1):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        disordered_dof[out_idx, comp_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
+                        disordered_dof[disordered_dof_len*out_idx + comp_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[dof_len*out_idx + (subl_idx * num_comps + comp_idx + 2)]
 
                 # Copy interstitial values directly
                 for copy_idx in range(self.disordered_sublattice_dof[self.disordered_sublattice_dof.shape[0]-1]):
-                    disordered_dof[out_idx, disordered_dof_idx+2+copy_idx] = dof[out_idx, dof_idx+2+copy_idx]
+                    disordered_dof[disordered_dof_len*out_idx + disordered_dof_idx+2+copy_idx] = dof[dof_len*out_idx + dof_idx+2+copy_idx]
             else:
                 site_sum = _sum(self.site_ratios)
                 for subl_idx in range(self.site_ratios.shape[0]):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        disordered_dof[out_idx, subl_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[out_idx, subl_idx * num_comps + comp_idx + 2]
+                        disordered_dof[disordered_dof_len*out_idx + subl_idx+2] += (self.site_ratios[subl_idx] / site_sum) * dof[dof_len*out_idx + (subl_idx * num_comps + comp_idx + 2)]
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void _compute_ordered_dof(self, double[:,:] ordered_dof, double[:,:] disordered_dof) nogil:
-        cdef int dof_idx, out_idx, subl_idx, comp_idx, disordered_dof_idx, copy_idx
+    cdef void _compute_ordered_dof(self, double *ordered_dof, double *disordered_dof, size_t num_pts) nogil:
+        cdef size_t dof_idx, out_idx, subl_idx, comp_idx, disordered_dof_idx, copy_idx
         cdef int num_comps = self.sublattice_dof[0]
+        cdef size_t ordered_dof_len = 2 + self.phase_dof
+        cdef size_t disordered_dof_len = 2 + self.disordered_phase_dof
         dof_idx = _intsum(self.sublattice_dof[:self.sublattice_dof.shape[0]-1])
         disordered_dof_idx = _intsum(self.disordered_sublattice_dof[:self.disordered_sublattice_dof.shape[0]-1])
-        for out_idx in range(ordered_dof.shape[0]):
+        for out_idx in range(num_pts):
             # Subtract ordered energy at disordered configuration
-            ordered_dof[out_idx, 0] = disordered_dof[out_idx, 0]
-            ordered_dof[out_idx, 1] = disordered_dof[out_idx, 1]
+            ordered_dof[ordered_dof_len*out_idx + 0] = disordered_dof[disordered_dof_len*out_idx + 0]
+            ordered_dof[ordered_dof_len*out_idx + 1] = disordered_dof[disordered_dof_len*out_idx + 1]
             if self.sublattice_dof[0] != self.sublattice_dof[self.sublattice_dof.shape[0]-1]:
                 for subl_idx in range(self.site_ratios.shape[0]-1):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, comp_idx+2]
+                        ordered_dof[ordered_dof_len*out_idx + (subl_idx * num_comps + comp_idx + 2)] = disordered_dof[disordered_dof_len*out_idx + comp_idx+2]
 
                 # Copy interstitial values directly
                 for copy_idx in range(self.sublattice_dof[self.sublattice_dof.shape[0]-1]):
-                    ordered_dof[out_idx, dof_idx+2+copy_idx] = disordered_dof[out_idx, disordered_dof_idx+2+copy_idx]
+                    ordered_dof[ordered_dof_len*out_idx + dof_idx+2+copy_idx] = disordered_dof[disordered_dof_len*out_idx + disordered_dof_idx+2+copy_idx]
             else:
                 for subl_idx in range(self.site_ratios.shape[0]):
                     for comp_idx in range(self.sublattice_dof[subl_idx]):
-                        ordered_dof[out_idx, subl_idx * num_comps + comp_idx + 2] = disordered_dof[out_idx, subl_idx+2]
+                        ordered_dof[ordered_dof_len*out_idx + (subl_idx * num_comps + comp_idx + 2)] = disordered_dof[disordered_dof_len*out_idx + subl_idx+2]
 
-    cpdef eval_energy(self, double[::1] out, double[:,:] dof, double[:] parameters):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void eval_energy(self, double *out, double *dof, double[:] parameters, size_t num_pts) nogil:
+        # 1-D
         cdef double *disordered_eval_row = NULL
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof
+        # 2-D C-ordered
+        cdef double *disordered_dof = NULL
+        # 2-D C-ordered
+        cdef double *ordered_dof = NULL
         cdef double disordered_mass_normalization_factor = 0
         cdef double disordered_curie_temp = 0
         cdef double tau = 0
         cdef double disordered_bmagn = 0
         cdef double A, p, res_tau
         cdef double disordered_energy = 0
-        cdef int prev_idx = 0
-        cdef int dof_idx, out_idx, subl_idx, disordered_dof_idx
-        self._eval_energy(out, dof, parameters, 1)
+        cdef size_t prev_idx = 0
+        cdef size_t dof_idx, out_idx, subl_idx, disordered_dof_idx
+        cdef size_t disordered_dof_len = 0
+        cdef size_t ordered_dof_len = 0
+        self._eval_energy(out, dof, parameters, 1, num_pts)
         if self.ordered:
-            disordered_dof = np.zeros((dof.shape[0], _intsum(self.disordered_sublattice_dof)+2))
-            ordered_dof = np.zeros((dof.shape[0], dof.shape[1]))
-            self._compute_disordered_dof(disordered_dof, dof)
-            self._compute_ordered_dof(ordered_dof, disordered_dof)
+            disordered_dof_len = 2 + self.disordered_phase_dof
+            ordered_dof_len = 2 + self.phase_dof
+            disordered_dof = <double*>calloc(num_pts * disordered_dof_len, sizeof(double))
+            ordered_dof = <double*>calloc(num_pts * ordered_dof_len, sizeof(double))
+            self._compute_disordered_dof(disordered_dof, dof, num_pts)
+            self._compute_ordered_dof(ordered_dof, disordered_dof, num_pts)
             # Subtract ordered energy at disordered configuration
-            self._eval_energy(out, ordered_dof, parameters, -1)
-            disordered_eval_row = <double*>self.mem.alloc(self.disordered_phase_dof+4, sizeof(double))
-            for out_idx in range(out.shape[0]):
+            self._eval_energy(out, ordered_dof, parameters, -1, num_pts)
+            disordered_eval_row = <double*>malloc((self.disordered_phase_dof+4) * sizeof(double))
+            for out_idx in range(num_pts):
                 disordered_mass_normalization_factor = 0
                 disordered_curie_temp = 0
                 disordered_bmagn = 0
                 disordered_energy = 0
                 # Disordered phase contribution
                 # Assume: Same components in all sublattices, except maybe a pure VA sublattice at the end
-                disordered_eval_row[0] = disordered_dof[out_idx, 0]
-                disordered_eval_row[1] = disordered_dof[out_idx, 1]
-                disordered_eval_row[2] = log(disordered_dof[out_idx, 0])
-                disordered_eval_row[3] = log(disordered_dof[out_idx, 1])
+                disordered_eval_row[0] = disordered_dof[disordered_dof_len*out_idx + 0]
+                disordered_eval_row[1] = disordered_dof[disordered_dof_len*out_idx + 1]
+                disordered_eval_row[2] = log(disordered_dof[disordered_dof_len*out_idx + 0])
+                disordered_eval_row[3] = log(disordered_dof[disordered_dof_len*out_idx + 1])
                 for disordered_dof_idx in range(self.disordered_phase_dof):
-                    disordered_eval_row[4+disordered_dof_idx] = disordered_dof[out_idx, 2+disordered_dof_idx]
+                    disordered_eval_row[4+disordered_dof_idx] = disordered_dof[disordered_dof_len*out_idx + 2+disordered_dof_idx]
                 # Ideal mixing
                 prev_idx = 0
                 for entry_idx in range(self.disordered_site_ratios.shape[0]):
                     for dof_idx in range(prev_idx, prev_idx+self.disordered_sublattice_dof[entry_idx]):
-                        if disordered_dof[out_idx, 2+dof_idx] > 1e-16:
-                            disordered_energy += 8.3145 * disordered_dof[out_idx, 1] * self.disordered_site_ratios[entry_idx] * disordered_dof[out_idx, 2+dof_idx] * log(disordered_dof[out_idx, 2+dof_idx])
+                        if disordered_dof[disordered_dof_len*out_idx + 2+dof_idx] > 1e-16:
+                            disordered_energy += 8.3145 * disordered_dof[disordered_dof_len*out_idx + 1] * self.disordered_site_ratios[entry_idx] * disordered_dof[disordered_dof_len*out_idx + 2+dof_idx] * log(disordered_dof[disordered_dof_len*out_idx + 2+dof_idx])
                     prev_idx += self.disordered_sublattice_dof[entry_idx]
                 # End-member contribution
                 disordered_energy += self._eval_rk_matrix(self.disordered_pure_coef_matrix,
@@ -619,7 +641,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     if disordered_curie_temp < 0:
                         disordered_curie_temp /= self.disordered_afm_factor
                     if disordered_curie_temp > 1e-6:
-                        tau = dof[out_idx, 1] / disordered_curie_temp
+                        tau = dof[ordered_dof_len*out_idx + 1] / disordered_curie_temp
                         # define model parameters
                         p = self.disordered_ihj_magnetic_structure_factor
                         A = 518./1125 + (11692./15975)*(1./p - 1.)
@@ -631,10 +653,10 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         else:
                             # factor when tau >= 1
                             res_tau = -(1./A) * ((tau**-5)/10. + (tau**-15)/315. + (tau**-25)/1500.)
-                        disordered_energy += 8.3145 * disordered_dof[out_idx, 1] * log(disordered_bmagn+1) * res_tau
+                        disordered_energy += 8.3145 * disordered_dof[disordered_dof_len*out_idx + 1] * log(disordered_bmagn+1) * res_tau
                 for subl_idx in range(self.disordered_site_ratios.shape[0]):
                     if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                        disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[out_idx, 2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+                        disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[disordered_dof_len*out_idx + 2+<size_t>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                     else:
                         disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
                 if disordered_mass_normalization_factor <= 1e-6:
@@ -642,10 +664,14 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 else:
                     disordered_energy /= disordered_mass_normalization_factor
                 out[out_idx] += disordered_energy
+            free(disordered_eval_row)
+            free(disordered_dof)
+            free(ordered_dof)
         if self._debug:
-            debugout = np.zeros_like(out)
-            self._debug_energy(debugout, np.ascontiguousarray(dof), np.ascontiguousarray(parameters))
-            np.testing.assert_allclose(out,debugout)
+            with gil:
+                debugout = np.zeros(num_pts)
+                self._debug_energy(debugout, np.ascontiguousarray(<double[:num_pts,:2+self.phase_dof]>dof), np.ascontiguousarray(parameters))
+                np.testing.assert_allclose(<double[:num_pts]>out,debugout)
 
     cdef _debug_energy(self, double[::1] debugout, double[:,::1] dof, double[::1] parameters):
         if parameters.shape[0] == 0:
@@ -660,26 +686,27 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             self._debuggrad(&dof[0], &parameters[0], &debugout[0])
 
     @cython.boundscheck(False)
-    cpdef _eval_energy_gradient(self, double[::1] out_grad, double[:] dof, double[:] parameters, double sign):
+    cdef void _eval_energy_gradient(self, double *out_grad, double *dof, double[:] parameters, double sign) nogil:
         # This 2-D array will be C-ordered
-        cdef double *eval_row = <double*>self.mem.alloc(4+self.phase_dof, sizeof(double))
-        cdef double *out = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
-        cdef double[::1] energy = np.atleast_1d(np.zeros(1))
-        cdef double[::1,:] dof_2d_view = <double[:1:1, :dof.shape[0]]>&dof[0]
+        cdef size_t dof_len = 2 + self.phase_dof
+        cdef double *eval_row = <double*>calloc((4+self.phase_dof), sizeof(double))
+        cdef double *out = <double*>calloc(dof_len, sizeof(double))
+        cdef double energy = 0
         cdef double mass_normalization_factor = 0
-        cdef double *mass_normalization_vacancy_factor = <double*>self.mem.alloc(self.phase_dof, sizeof(double))
+        cdef double *mass_normalization_vacancy_factor = <double*>calloc(self.phase_dof, sizeof(double))
         cdef double curie_temp = 0
-        cdef double *curie_temp_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *curie_temp_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double tau = 0
-        cdef double *tau_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *tau_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double bmagn = 0
-        cdef double *bmagn_prime = <double*>self.mem.alloc(2+self.phase_dof, sizeof(double))
+        cdef double *bmagn_prime = <double*>calloc((2+self.phase_dof), sizeof(double))
         cdef double g_func = 0
         cdef double g_func_prime = 0
         cdef double p
         cdef double A
         cdef int prev_idx = 0
         cdef int dof_idx, eval_idx
+
         eval_row[0] = dof[0]
         eval_row[1] = dof[1]
         eval_row[2] = log(dof[0])
@@ -717,15 +744,15 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                               eval_row, parameters)
             if bmagn < 0:
                 bmagn /= self.afm_factor
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     bmagn_prime[dof_idx] /= self.afm_factor
             if curie_temp < 0:
                 curie_temp /= self.afm_factor
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     curie_temp_prime[dof_idx] /= self.afm_factor
             if curie_temp > 1e-6:
                 tau = dof[1] / curie_temp
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(2+self.phase_dof):
                     if dof_idx == 1:
                         # wrt T
                         tau_prime[1] = (curie_temp - dof[1]*curie_temp_prime[1])/(curie_temp**2)
@@ -742,7 +769,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     # factor when tau >= 1
                     g_func = -(1./A) * ((tau**-5)/10 + (tau**-15)/315. + (tau**-25)/1500.)
                     g_func_prime = (1./A) * (1./(60*tau**26) + 1./(21*tau**16) + 1./(2*tau**6))
-                for dof_idx in range(dof.shape[0]):
+                for dof_idx in range(dof_len):
                     if dof_idx != 1:
                         out[dof_idx] += 8.3145 * dof[1] * (bmagn_prime[dof_idx] * g_func / (bmagn+1) + \
                                                            log(bmagn+1) * tau_prime[dof_idx] * g_func_prime)
@@ -755,8 +782,8 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
                 mass_normalization_factor += self.site_ratios[subl_idx] * (1-dof[2+<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
                 mass_normalization_vacancy_factor[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]] = -self.site_ratios[subl_idx]
-                if energy[0] == 0:
-                    self.eval_energy(energy, dof_2d_view, parameters)
+                if energy == 0:
+                    self.eval_energy(&energy, &dof[0], parameters, 1)
             else:
                 mass_normalization_factor += self.site_ratios[subl_idx]
         if mass_normalization_factor <= 1e-6:
@@ -766,20 +793,30 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 if (dof_idx > 1) and out[dof_idx] != 0 and mass_normalization_vacancy_factor[dof_idx-2] != 0:
                     # Remember that energy is already equal to the energy divided by the mass normalization factor
                     # That is why one factor of it disappears in the formula
-                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy[0] * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
+                    out[dof_idx] = (out[dof_idx]/mass_normalization_factor) - (energy * mass_normalization_vacancy_factor[dof_idx-2]) / mass_normalization_factor
                 else:
                     out[dof_idx] /= mass_normalization_factor
         for dof_idx in range(2+self.phase_dof):
             out_grad[dof_idx] = out_grad[dof_idx] + sign * out[dof_idx]
+        free(eval_row)
+        free(out)
+        free(mass_normalization_vacancy_factor)
+        free(curie_temp_prime)
+        free(tau_prime)
+        free(bmagn_prime)
 
-    cpdef eval_energy_gradient(self, double[::1] out, double[:] dof, double[:] parameters):
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void eval_energy_gradient(self, double *out, double *dof, double[:] parameters) nogil:
+        # 1-D
         cdef double *disordered_eval_row = NULL
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] disordered_dof
+        # 2-D C-ordered
+        cdef double *disordered_dof = NULL
+        # 1-D
         cdef double *disordered_out = NULL
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] ordered_dof
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] disordered_dof_2d
-        cdef np.ndarray[ndim=2, dtype=np.float64_t] ordered_dof_2d
-        cdef double[:] disordered_mass_normalization_vacancy_factor
+        # 2-D C-ordered
+        cdef double *ordered_dof = NULL
+        cdef double *disordered_mass_normalization_vacancy_factor
         cdef double disordered_curie_temp = 0
         cdef double *disordered_curie_temp_prime
         cdef double disordered_tau = 0
@@ -791,27 +828,26 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
         cdef double disordered_p
         cdef double disordered_A
         cdef double disordered_mass_normalization_factor = 0
-        cdef double[::1] disordered_energy
+        cdef double disordered_energy = 0
         cdef int prev_idx = 0
-        cdef int dof_idx, out_idx, subl_idx
+        cdef int dof_idx, out_idx, subl_idx, eval_idx, disordered_dof_idx
+        cdef size_t disordered_dof_len = 0
         self._eval_energy_gradient(out, dof, parameters, 1)
         if self.ordered:
-            disordered_dof_2d = np.zeros((1,_intsum(self.disordered_sublattice_dof)+2))
-            disordered_out = <double*>self.mem.alloc(2+self.disordered_phase_dof, sizeof(double))
-            ordered_dof_2d = np.zeros((1, _intsum(self.sublattice_dof)+2))
-            self._compute_disordered_dof(disordered_dof_2d, np.array([dof]))
-            disordered_dof = np.ascontiguousarray(disordered_dof_2d[0, :])
-            self._compute_ordered_dof(ordered_dof_2d, np.array([disordered_dof]))
-            ordered_dof = np.ascontiguousarray(ordered_dof_2d[0, :])
+            disordered_dof_len = 2 + self.disordered_phase_dof
+            disordered_out = <double*>calloc(disordered_dof_len, sizeof(double))
+            disordered_dof = <double*>calloc(disordered_dof_len, sizeof(double))
+            ordered_dof = <double*>calloc(2+self.phase_dof, sizeof(double))
+            self._compute_disordered_dof(disordered_dof, &dof[0], 1)
+            self._compute_ordered_dof(ordered_dof, disordered_dof, 1)
             # Subtract ordered energy gradient at disordered configuration
             self._eval_energy_gradient(out, ordered_dof, parameters, -1)
             # Add disordered energy gradient
-            disordered_eval_row = <double*>self.mem.alloc(4+self.disordered_phase_dof, sizeof(double))
+            disordered_eval_row = <double*>malloc((4+self.disordered_phase_dof) * sizeof(double))
             disordered_mass_normalization_factor = 0
-            disordered_mass_normalization_vacancy_factor = np.zeros(_intsum(self.disordered_sublattice_dof)+2)
+            disordered_mass_normalization_vacancy_factor = <double*>calloc(_intsum(self.disordered_sublattice_dof)+2, sizeof(double))
             disordered_curie_temp = 0
             disordered_bmagn = 0
-            disordered_energy = np.atleast_1d(np.zeros(1))
             disordered_eval_row[0] = dof[0]
             disordered_eval_row[1] = dof[1]
             disordered_eval_row[2] = log(dof[0])
@@ -843,24 +879,24 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
             if (disordered_curie_temp != 0) and (disordered_bmagn != 0) and (self.disordered_ihj_magnetic_structure_factor > 0) and (self.disordered_afm_factor != 0):
                 disordered_p = self.disordered_ihj_magnetic_structure_factor
                 disordered_A = 518./1125 + (11692./15975)*(1./disordered_p - 1.)
-                disordered_curie_temp_prime = <double*>self.mem.alloc(2+self.disordered_phase_dof, sizeof(double))
-                disordered_bmagn_prime = <double*>self.mem.alloc(2+self.disordered_phase_dof, sizeof(double))
-                disordered_tau_prime = <double*>self.mem.alloc(2+self.disordered_phase_dof, sizeof(double))
+                disordered_curie_temp_prime = <double*>calloc(2+self.disordered_phase_dof, sizeof(double))
+                disordered_bmagn_prime = <double*>calloc(2+self.disordered_phase_dof, sizeof(double))
+                disordered_tau_prime = <double*>calloc(2+self.disordered_phase_dof, sizeof(double))
                 self._eval_rk_matrix_gradient(disordered_curie_temp_prime, self.disordered_tc_coef_matrix, self.disordered_tc_coef_symbol_matrix,
                                   disordered_eval_row, parameters)
                 self._eval_rk_matrix_gradient(disordered_bmagn_prime, self.disordered_bm_coef_matrix, self.disordered_bm_coef_symbol_matrix,
                                   disordered_eval_row, parameters)
                 if disordered_bmagn < 0:
                     disordered_bmagn /= self.disordered_afm_factor
-                    for dof_idx in range(disordered_dof.shape[0]):
+                    for dof_idx in range(disordered_dof_len):
                         disordered_bmagn_prime[dof_idx] /= self.disordered_afm_factor
                 if disordered_curie_temp < 0:
                     disordered_curie_temp /= self.disordered_afm_factor
-                    for dof_idx in range(disordered_dof.shape[0]):
+                    for dof_idx in range(disordered_dof_len):
                         disordered_curie_temp_prime[dof_idx] /= self.disordered_afm_factor
                 if disordered_curie_temp > 1e-6:
                     disordered_tau = disordered_dof[1] / disordered_curie_temp
-                    for dof_idx in range(disordered_dof.shape[0]):
+                    for dof_idx in range(disordered_dof_len):
                         if dof_idx == 1:
                             # wrt T
                             disordered_tau_prime[1] = (disordered_curie_temp - disordered_dof[1]*disordered_curie_temp_prime[1])/(disordered_curie_temp**2)
@@ -877,7 +913,7 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                         # factor when disordered_tau >= 1
                         disordered_g_func = -(1./disordered_A) * ((disordered_tau**-5)/10 + (disordered_tau**-15)/315. + (disordered_tau**-25)/1500.)
                         disordered_g_func_prime = (1./disordered_A) * (1./(60*disordered_tau**26) + 1./(21*disordered_tau**16) + 1./(2*disordered_tau**6))
-                    for dof_idx in range(disordered_dof.shape[0]):
+                    for dof_idx in range(disordered_dof_len):
                         if dof_idx != 1:
                             disordered_out[dof_idx] += 8.3145 * disordered_dof[1] * (disordered_bmagn_prime[dof_idx] * disordered_g_func / (disordered_bmagn+1) + \
                                                                log(disordered_bmagn+1) * disordered_tau_prime[dof_idx] * disordered_g_func_prime)
@@ -885,23 +921,26 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                             # wrt T
                             disordered_out[dof_idx] += 8.3145 * (((disordered_dof[1] * disordered_bmagn_prime[dof_idx]) / (disordered_bmagn+1) + log(disordered_bmagn+1)) * disordered_g_func + \
                                 disordered_dof[1] * log(disordered_bmagn+1) * disordered_tau_prime[dof_idx] * disordered_g_func_prime)
+                free(disordered_curie_temp_prime)
+                free(disordered_bmagn_prime)
+                free(disordered_tau_prime)
 
             for subl_idx in range(self.disordered_site_ratios.shape[0]):
                 if (self.vacancy_index > -1) and self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                    disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[2+<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
+                    disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx] * (1-disordered_dof[2+<size_t>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]])
                     disordered_mass_normalization_vacancy_factor[<int>self.disordered_composition_matrices[self.vacancy_index, subl_idx, 1]] = -self.disordered_site_ratios[subl_idx]
-                    if disordered_energy[0] == 0:
-                        self._eval_disordered_energy(disordered_energy, disordered_dof, parameters, 1)
+                    if disordered_energy == 0:
+                        self._eval_disordered_energy(&disordered_energy, disordered_dof, parameters, 1)
                 else:
                     disordered_mass_normalization_factor += self.disordered_site_ratios[subl_idx]
             if disordered_mass_normalization_factor <= 1e-6:
                 disordered_out[dof_idx] = MAX_ENERGY
             else:
-                for dof_idx in range(2+self.disordered_phase_dof):
+                for dof_idx in range(disordered_dof_len):
                     if (dof_idx > 1) and disordered_out[dof_idx] != 0 and disordered_mass_normalization_vacancy_factor[dof_idx-2] != 0:
                         # Remember that disordered_energy is already equal to the energy divided by the mass normalization factor
                         # That is why one factor of it disappears in the formula
-                        disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy[0] * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
+                        disordered_out[dof_idx] = (disordered_out[dof_idx]/disordered_mass_normalization_factor) - (disordered_energy * disordered_mass_normalization_vacancy_factor[dof_idx-2]) / disordered_mass_normalization_factor
                     else:
                         disordered_out[dof_idx] /= disordered_mass_normalization_factor
             # P,T derivatives can be directly added
@@ -924,34 +963,42 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                     for subl_idx in range(self.sublattice_dof.shape[0]):
                         dof_idx = subl_idx * self.sublattice_dof[0] + disordered_dof_idx
                         out[dof_idx] += (self.site_ratios[subl_idx] / _sum(self.site_ratios)) * disordered_out[disordered_dof_idx]
+            free(disordered_eval_row)
+            free(disordered_out)
+            free(disordered_mass_normalization_vacancy_factor)
+            free(disordered_dof)
+            free(ordered_dof)
         if self._debug:
-            debugout = np.zeros_like(out)
-            self._debug_energy_gradient(debugout, np.asfortranarray(dof), np.ascontiguousarray(parameters))
-            try:
-                np.testing.assert_allclose(out,debugout)
-            except AssertionError as e:
-                print('--')
-                print('Gradient mismatch')
-                print(e)
-                print(np.array(debugout)-np.array(out))
-                print('DOF:', np.array(dof))
-                print(self.constituents)
-                print('--')
+            with gil:
+                debugout = np.zeros(2+self.phase_dof)
+                self._debug_energy_gradient(debugout, np.asfortranarray(<double[:2+self.phase_dof]>dof), np.ascontiguousarray(parameters))
+                try:
+                    np.testing.assert_allclose(np.array(<double[:2+self.phase_dof]>out),debugout)
+                except AssertionError as e:
+                    print('--')
+                    print('Gradient mismatch')
+                    print(e)
+                    print(np.array(debugout)-np.array(<double[:2+self.phase_dof]>out))
+                    print('DOF:', np.array(<double[:2+self.phase_dof]>dof))
+                    print(self.constituents)
+                    print('--')
 
-    cpdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters):
-        cdef double[::1] x1,x2
-        cdef double[::1] grad1, grad2
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cdef void eval_energy_hessian(self, double[:, ::1] out, double[:] dof, double[:] parameters) nogil:
         cdef double[:,::1] debugout
         cdef double epsilon = 1e-12
-        cdef int grad_idx
-        cdef int col_idx
-        cdef int total_dof = 2 + self.phase_dof
-        if self.mem.size > 2**16:
-            self.mem = Pool()
-        grad1 = np.zeros(total_dof)
-        grad2 = np.zeros(total_dof)
-        x1 = np.array(dof)
-        x2 = np.array(dof)
+        cdef size_t grad_idx
+        cdef size_t col_idx
+        cdef size_t total_dof = 2 + self.phase_dof
+        cdef double *x1 = <double*>malloc(total_dof * sizeof(double))
+        cdef double *x2 = <double*>malloc(total_dof * sizeof(double))
+        cdef double *grad1 = <double*>calloc(total_dof, sizeof(double))
+        cdef double *grad2 = <double*>calloc(total_dof,  sizeof(double))
+
+        for grad_idx in range(total_dof):
+            x1[grad_idx] = dof[grad_idx]
+            x2[grad_idx] = dof[grad_idx]
 
         for grad_idx in range(total_dof):
             if grad_idx > 1:
@@ -966,27 +1013,32 @@ cdef public class CompiledModel(object)[type CompiledModelType, object CompiledM
                 out[col_idx,grad_idx] = (grad2[col_idx]-grad1[col_idx])/(x2[grad_idx] - x1[grad_idx])
             x1[grad_idx] = dof[grad_idx]
             x2[grad_idx] = dof[grad_idx]
-            grad1[:] = 0
-            grad2[:] = 0
+            memset(grad1, 0, total_dof * sizeof(double))
+            memset(grad2, 0, total_dof * sizeof(double))
         for grad_idx in range(total_dof):
             for col_idx in range(grad_idx, total_dof):
                 out[grad_idx,col_idx] = out[col_idx,grad_idx] = (out[grad_idx,col_idx]+out[col_idx,grad_idx])/2
+        free(x1)
+        free(x2)
+        free(grad1)
+        free(grad2)
         if self._debug:
-            debugout = np.ascontiguousarray(np.zeros_like(out))
-            if parameters.shape[0] == 0:
-                self._debughess(&dof[0], NULL, &debugout[0,0])
-            else:
-                self._debughess(&dof[0], &parameters[0], &debugout[0,0])
-            try:
-                np.testing.assert_allclose(out,debugout)
-            except AssertionError as e:
-                print('--')
-                print('Hessian mismatch')
-                print(e)
-                print(np.array(debugout)-np.array(out))
-                print('DOF:', np.array(dof))
-                print(self.constituents)
-                print('--')
+            with gil:
+                debugout = np.ascontiguousarray(np.zeros_like(out))
+                if parameters.shape[0] == 0:
+                    self._debughess(&dof[0], NULL, &debugout[0,0])
+                else:
+                    self._debughess(&dof[0], &parameters[0], &debugout[0,0])
+                try:
+                    np.testing.assert_allclose(out,debugout)
+                except AssertionError as e:
+                    print('--')
+                    print('Hessian mismatch')
+                    print(e)
+                    print(np.array(debugout)-np.array(out))
+                    print('DOF:', np.array(dof))
+                    print(self.constituents)
+                    print('--')
 
 def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, phase_dof,
                            composition_matrices, site_ratios, vacancy_index,
@@ -1010,8 +1062,7 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     inst.disordered_excess_coef_matrix, inst.disordered_excess_coef_symbol_matrix,
     inst.disordered_bm_coef_matrix, inst.disordered_bm_coef_symbol_matrix,
     inst.disordered_tc_coef_matrix, inst.disordered_tc_coef_symbol_matrix,
-    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered,
-    inst.mem, inst._debug) = \
+    inst.disordered_ihj_magnetic_structure_factor, inst.disordered_afm_factor, inst.ordered, inst._debug) = \
     (constituents, variables, components, sublattice_dof, phase_dof,
     composition_matrices, site_ratios, vacancy_index,
     pure_coef_matrix, pure_coef_symbol_matrix, excess_coef_matrix,
@@ -1022,5 +1073,5 @@ def _rebuild_compiledmodel(constituents, variables, components, sublattice_dof, 
     disordered_excess_coef_matrix, disordered_excess_coef_symbol_matrix,
     disordered_bm_coef_matrix, disordered_bm_coef_symbol_matrix,
     disordered_tc_coef_matrix, disordered_tc_coef_symbol_matrix,
-    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, Pool(), _debug)
+    disordered_ihj_magnetic_structure_factor, disordered_afm_factor, ordered, _debug)
     return inst

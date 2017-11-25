@@ -50,6 +50,7 @@ requirements:
     - numpy >=1.9
     - Cython >=0.24
     - dill
+    - cyipopt
 
 build:
   script: python setup.py build && python setup.py install

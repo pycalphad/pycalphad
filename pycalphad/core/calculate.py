@@ -19,11 +19,9 @@ import numpy as np
 import itertools
 import collections
 import warnings
-from xarray import Dataset, Variable
-from xarray.core.dataset import as_dataset
-from xarray.core.combine import _calc_concat_over, _calc_concat_dim_coord, concat_vars
+from xarray import Dataset, concat
 from collections import OrderedDict
-import pandas as pd
+
 
 class FallbackModel(object):
     "Compatibility layer while transitioning to CompiledModel."
@@ -33,80 +31,6 @@ class FallbackModel(object):
         except NotImplementedError:
             return Model(*args, **kwargs)
         return ret
-
-def _fast_concat(datasets, dim=None):
-    """
-    Fork of xarray.concat for Datasets.
-    This function assumes everything is already aligned, and skips error checking.
-
-    Parameters
-    ----------
-    datasets
-
-    Returns
-    -------
-
-    """
-    data_vars = 'all'
-    coords = 'different'
-    positions = None
-
-    dim, coord = _calc_concat_dim_coord(dim)
-    datasets = [as_dataset(ds) for ds in datasets]
-
-    concat_over = _calc_concat_over(datasets, dim, data_vars, coords)
-
-    def insert_result_variable(k, v):
-        assert isinstance(v, Variable)
-        if k in datasets[0].coords:
-            result_coord_names.add(k)
-        result_vars[k] = v
-
-    # create the new dataset and add constant variables
-    result_vars = OrderedDict()
-    result_coord_names = set(datasets[0].coords)
-    result_attrs = datasets[0].attrs
-
-    for k, v in datasets[0].variables.items():
-        if k not in concat_over:
-            insert_result_variable(k, v)
-
-    # we've already verified everything is consistent; now, calculate
-    # shared dimension sizes so we can expand the necessary variables
-    dim_lengths = [ds.dims.get(dim, 1) for ds in datasets]
-    non_concat_dims = {}
-    for ds in datasets:
-        non_concat_dims.update(ds.dims)
-    non_concat_dims.pop(dim, None)
-
-    def ensure_common_dims(vars):
-        # ensure each variable with the given name shares the same
-        # dimensions and the same shape for all of them except along the
-        # concat dimension
-        common_dims = tuple(pd.unique([d for v in vars for d in v.dims]))
-        if dim not in common_dims:
-            common_dims = (dim,) + common_dims
-        for var, dim_len in zip(vars, dim_lengths):
-            if var.dims != common_dims:
-                common_shape = tuple(non_concat_dims.get(d, dim_len)
-                                     for d in common_dims)
-                var = var.expand_dims(common_dims, common_shape)
-            yield var
-
-    # stack up each variable to fill-out the dataset
-    for k in concat_over:
-        vars = ensure_common_dims([ds.variables[k] for ds in datasets])
-        combined = concat_vars(vars, dim, positions)
-        insert_result_variable(k, combined)
-
-    result = Dataset(result_vars, attrs=result_attrs)
-    result = result.set_coords(result_coord_names)
-
-    if coord is not None:
-        # add concat dimension last to ensure that its in the final Dataset
-        result[coord.name] = coord
-
-    return result
 
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
@@ -515,7 +439,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
     # speedup for single-phase case (found by profiling)
     if len(all_phase_data) > 1:
-        final_ds = _fast_concat(all_phase_data, dim='points')
+        final_ds = concat(all_phase_data, dim='points')
         final_ds['points'].values = np.arange(len(final_ds['points']))
         final_ds.coords['points'].values = np.arange(len(final_ds['points']))
     else:

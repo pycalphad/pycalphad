@@ -11,9 +11,9 @@ cdef void solve(double[::1, :] A, double[::1] x, int[::1] ipiv) nogil:
     cdef int info = 0
     cdef int NRHS = 1
     cython_lapack.dgesv(&N, &NRHS, &A[0,0], &N, &ipiv[0], &x[0], &N, &info)
-    # Special for our case: singular matrix results get set to -1
+    # Special for our case: singular matrix results get set to a special value
     if info != 0:
-        x[:] = -1
+        x[:] = -1e19
 
 
 @cython.boundscheck(False)
@@ -33,12 +33,23 @@ cdef int argmin(double[::1] a, double[::1] lowest) nogil:
     return result
 
 
-def hyperplane(double[:,::1] compositions,
-               double[::1] energies,
-               double[::1] composition,
-               double[::1] chemical_potentials,
-               double[::1] result_fractions,
-               int[::1] result_simplex):
+@cython.boundscheck(False)
+cdef int argmax(double[::1] a) nogil:
+    cdef int result = 0
+    cdef double highest = -1e30
+    for i in range(a.shape[0]):
+        if a[i] > highest:
+            highest = a[i]
+            result = i
+    return result
+
+
+cpdef double hyperplane(double[:,::1] compositions,
+                        double[::1] energies,
+                        double[::1] composition,
+                        double[::1] chemical_potentials,
+                        double[::1] result_fractions,
+                        int[::1] result_simplex) except *:
     """
     Find chemical potentials which approximate the tangent hyperplane
     at the given composition.
@@ -87,7 +98,7 @@ def hyperplane(double[:,::1] compositions,
     cdef double[::1,:] candidate_tieline = np.empty((num_components, num_components), order='F')
     cdef double[::1] candidate_energies = np.empty(num_components)
     cdef double[::1] candidate_potentials = np.empty(num_components)
-    cdef bint[::1] bounding_indices = np.ones(num_components, dtype=np.int32)
+    cdef double[::1] smallest_fractions = np.empty(num_components)
     cdef double[::1] tmp = np.empty(num_components)
     cdef double[::1, :] f_contig_trial
     # Not sure how to create scalar memoryviews...
@@ -102,25 +113,21 @@ def hyperplane(double[:,::1] compositions,
     while iterations < max_iterations:
         iterations += 1
         for i in range(num_components):
+            smallest_fractions[i] = 0
             for j in range(num_components):
                 trial_matrix[:, j, i] = compositions[trial_simplices[i,j]]
-            f_contig_trial = trial_matrix[:, :, i]
+                if iterations > 1:
+                    if trial_simplices[i,j] < result_fractions.shape[0]:
+                        smallest_fractions[i] -= 1
+        for i in range(num_components):
+            f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             fractions[i, :] = composition
             solve(f_contig_trial, fractions[i, :], int_tmp)
-            for j in range(num_components):
-                bounding_indices[i] &= fractions[i,j]>=0.
-
-        # If more than one trial simplex satisfies the non-negativity criteria
-        # then just choose the first non-degenerate one. This addresses gh-28.
-        # There is also the possibility that *none* of the trials were successful.
-        # This is usually due to numerical problems at the limit of composition space.
-        # We will sidestep the issue here by forcing the last first non-degenerate simplex to match in that case.
-        for i in range(bounding_indices.shape[0]):
-            tmp3 = bounding_indices[i]
-            if tmp3:
-                saved_trial = i
-                break
-        bounding_indices[...] = True
+            smallest_fractions[i] += min(fractions[i, :])
+        # Choose simplex with the largest smallest-fraction
+        saved_trial = argmax(smallest_fractions)
+        if smallest_fractions[saved_trial] < -num_components:
+            break
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
@@ -128,6 +135,8 @@ def hyperplane(double[:,::1] compositions,
             candidate_tieline[i, :] = compositions[idx]
             candidate_potentials[i] = energies[idx]
         solve(candidate_tieline, candidate_potentials, int_tmp)
+        if candidate_potentials[0] == -1e19:
+            break
         driving_forces[:] = energies
         prodsum(candidate_potentials, compositions, driving_forces)
         best_guess_simplex[:] = candidate_simplex
@@ -143,8 +152,6 @@ def hyperplane(double[:,::1] compositions,
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
             break
-    if lowest_df[0] < -1e-8:
-        raise ValueError('Max hull iterations exceeded. Remaining driving force: ', lowest_df[0])
     out_energy = 0
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]
