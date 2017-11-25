@@ -205,7 +205,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
     if len(active_phases) == 0:
-        raise ConditionError('None of the passed phases ({0}) are active. List of active phases: {1}.'.format(phases, list_of_possible_phases))
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
     comps = sorted(comps)
     if len(set(comps) - set(dbf.elements)) > 0:
         raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
