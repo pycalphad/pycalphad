@@ -32,7 +32,7 @@ installed before you install pycalphad.
 
 To install pycalphad from PyPI using pip:
 
-1. Download and install Ipopt
+1. Download and install `Ipopt`_
 2. Run the ``pip install numpy scipy cython`` command in a terminal emulator
 3. Run the ``pip install pycalphad`` command to install pycalphad
 4. (Optional) run ``pip install jupyter`` to install the Jupyter Notebook application
@@ -67,13 +67,10 @@ PyPI
 From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
 
 1. Download and install `Ipopt`_
-2. Follow the instructions to install `virtualenvwrapper <https://virtualenvwrapper.readthedocs.io/en/latest/install.html>`_
-3. Make the virtual environment ``mkvirtualenv pycalphad-dev``
-4. Activate the environment ``workon pycalphad``
-5. Install the build requirements ``pip install numpy scipy cython``
-6. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
-7. Go to the top level directory of the package ``cd pycalphad``
-8. Run ``pip install -e .``
+2. Install the build requirements ``pip install numpy scipy cython``
+3. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
+4. Go to the top level directory of the package ``cd pycalphad``
+5. Run ``pip install -e .``
 
 Troubleshooting
 ---------------
