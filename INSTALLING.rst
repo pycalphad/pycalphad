@@ -44,14 +44,13 @@ Development Versions (Advanced Users)
 To install a development version of pycalphad, you can use either an Anaconda or
 vanilla Python distribution.
 
-In either case, it is suggested to use a virtual environment. These instructions
-will walk you through installing pycalphad in a virtual environment called
-``pycalphad-dev``.
 
 Anaconda
 ~~~~~~~~
 
-From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
+These instructions will walk you through installing pycalphad in a virtual
+environment called ``pycalphad-dev``. From the Anaconda Prompt (Windows) or a
+terminal emulator (macOS or Linux)
 
 1. Add the conda channels ``conda config --add channels conda-forge; conda config --add channels pycalphad``
 2. Create the virtual environment and install pycalphad into it ``conda create -n pycalphad-dev pycalphad``
