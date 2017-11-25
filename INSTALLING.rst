@@ -16,7 +16,7 @@ scientific packages and otherwise challenging to install packages.
 To install pycalphad from Anaconda
 
 1. Download and install Anaconda_
-2. From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run ``conda config --add channels conda-forge``
+2. From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run ``conda config --add channels conda-forge; conda config --add channels pycalphad``
 3. Run the ``conda install pycalphad`` command to install pycalphad
 
 PyPI
@@ -53,12 +53,13 @@ Anaconda
 
 From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
 
-1. Create the virtual environment and install pycalphad into it ``conda create -n pycalphad-dev pycalphad``
-2. Remove the installed pycalphad package so the development version can be installed ``conda remove --force -n pycalphad-dev pycalphad``
-3. Activate the environment ``activate pycalphad-dev`` (Windows) or ``source activate pycalphad-dev`` (macOS or Linux)
-4. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
-5. Go to the top level directory of the package ``cd pycalphad``
-6. Run ``pip install -e .``
+1. Add the conda channels ``conda config --add channels conda-forge; conda config --add channels pycalphad``
+2. Create the virtual environment and install pycalphad into it ``conda create -n pycalphad-dev pycalphad``
+3. Remove the installed pycalphad package so the development version can be installed ``conda remove --force -n pycalphad-dev pycalphad``
+4. Activate the environment ``activate pycalphad-dev`` (Windows) or ``source activate pycalphad-dev`` (macOS or Linux)
+5. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
+6. Go to the top level directory of the package ``cd pycalphad``
+7. Run ``pip install -e .``
 
 PyPI
 ~~~~
