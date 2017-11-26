@@ -1,0 +1,300 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.solver &mdash; pycalphad 0.6 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../../../genindex.html"/>
+        <link rel="search" title="Search" href="../../../search.html"/>
+    <link rel="top" title="pycalphad 0.6 documentation" href="../../../index.html"/>
+        <link rel="up" title="Module code" href="../../index.html"/> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.solver</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.solver</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">ipopt</span>
+<span class="n">ipopt</span><span class="o">.</span><span class="n">setLoggingLevel</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span>
+
+<span class="n">SolverResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;SolverResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;converged&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;chemical_potentials&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="InteriorPointSolver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver">[docs]</a><span class="k">class</span> <span class="nc">InteriorPointSolver</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+
+<div class="viewcode-block" id="InteriorPointSolver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+        <span class="n">cur_conds</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">conditions</span>
+        <span class="n">comps</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">components</span>
+        <span class="n">nlp</span> <span class="o">=</span> <span class="n">ipopt</span><span class="o">.</span><span class="n">problem</span><span class="p">(</span>
+            <span class="n">n</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">num_vars</span><span class="p">,</span>
+            <span class="n">m</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">num_constraints</span><span class="p">,</span>
+            <span class="n">problem_obj</span><span class="o">=</span><span class="n">prob</span><span class="p">,</span>
+            <span class="n">lb</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">xl</span><span class="p">,</span>
+            <span class="n">ub</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">xu</span><span class="p">,</span>
+            <span class="n">cl</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">,</span>
+            <span class="n">cu</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">cu</span>
+        <span class="p">)</span>
+        <span class="n">length_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">))</span>
+        <span class="n">length_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">length_scale</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;print_level&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;tol&#39;</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">)</span>
+        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
+        <span class="c1"># This option improves convergence when using L-BFGS</span>
+        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;limited_memory_max_history&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
+        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
+        <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span>
+        <span class="n">dual_inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_g&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]))</span>
+        <span class="k">if</span> <span class="n">dual_inf</span> <span class="o">&gt;</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trying to improve poor solution&#39;</span><span class="p">)</span>
+            <span class="c1"># Constraints are getting tiny; need to be strict about bounds</span>
+            <span class="k">if</span> <span class="n">length_scale</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;compl_inf_tol&#39;</span><span class="p">,</span> <span class="mf">1e-15</span><span class="p">)</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;bound_relax_factor&#39;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
+                <span class="c1"># This option ensures any bounds failures will fail &quot;loudly&quot;</span>
+                <span class="c1"># Otherwise we are liable to have subtle mass balance errors</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;honor_original_bounds&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;dual_inf_tol&#39;</span><span class="p">,</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span><span class="p">)</span>
+            <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">accurate_info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
+                <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span>
+        <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_g&#39;</span><span class="p">])[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}):]</span>
+        <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">10</span><span class="p">:</span>
+            <span class="c1"># Not enough degrees of freedom; nothing to do</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="n">chemical_potentials</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">composition_sets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">energy</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">elif</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+                <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Calculation Failed: &#39;</span><span class="p">,</span> <span class="n">cur_conds</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status_msg&#39;</span><span class="p">])</span>
+            <span class="n">converged</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">converged</span> <span class="o">=</span> <span class="kc">True</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Chemical Potentials&#39;</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_x_L&#39;</span><span class="p">])</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+            <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Status:&#39;</span><span class="p">,</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">],</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status_msg&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">SolverResult</span><span class="p">(</span><span class="n">converged</span><span class="o">=</span><span class="n">converged</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">x</span><span class="p">,</span> <span class="n">chemical_potentials</span><span class="o">=</span><span class="n">chemical_potentials</span><span class="p">)</span></div></div>
+</pre></div>
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../../../',
+            VERSION:'0.6',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../../../_static/jquery.js"></script>
+      <script type="text/javascript" src="../../../_static/underscore.js"></script>
+      <script type="text/javascript" src="../../../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
