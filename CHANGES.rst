@@ -1,6 +1,26 @@
 What's New
 ==========
 
+0.6 (2017-11-26)
+----------------
+
+This is a major release with new features, bug fixes and performance improvements.
+
+* Users updating from an earlier version should follow the updated installation instructions to ensure they have all the correct dependencies.
+* MAINT: Python 3.4 support has been dropped ( :issue:`145` ).
+* MAINT: Windows Python 2.7 32-bit support has been dropped. 64-bit is still supported.
+* ENH: A new solver based on the optimization package IPOPT has been implemented, leading to increased accuracy and lower memory consumption ( :issue:`124` ).
+* ENH: Windows users no longer have to install the Microsoft C compiler if they use Anaconda. The installer will now automatically download a MinGW-based compiler toolchain.
+* DOC: The documentation has been updated and expanded ( :issue:`146` ).
+* ENH: calculate: Automatically suspend inactive phases from calculation ( :issue:`141` ).
+* ENH: Tielines can now be toggled on and off in phase diagrams ( :issue:`136` ).
+* ENH: Species support in Database and TDB read/write ( :issue:`137` ).
+* FIX: Axis labeling bug in eqplot due to leaking list comprehension variable.
+* FIX: Maintain sorted state variable ordering when one or more state variables is left as default ( :issue:`116` ).
+* MAINT: Cleanup refdata, fitting, and core.eqresult modules ( :issue:`135` ).
+* FIX: tdb: Update float parsing regex ( :issue:`144` ).
+
+
 0.5.2 (2017-08-10)
 ------------------
 
