@@ -56,8 +56,8 @@ See LICENSE.txt for details.
 
 Required Dependencies:
 
-* Python 2.7+ or 3.4+
-* matplotlib, numpy, scipy, sympy, xarray, pyparsing, tinydb, dask
+* Python 2.7+ or 3.5+
+* matplotlib, numpy, scipy, sympy, xarray, pyparsing, tinydb, dask, cyipopt
 
 Installation
 ------------
@@ -65,7 +65,7 @@ See `Installation Instructions`_.
 
 Examples
 --------
-IPython notebooks with examples are available on `NBViewer`_ and `pycalphad.org`_.
+Jupyter notebooks with examples are available on `NBViewer`_ and `pycalphad.org`_.
 
 Documentation
 -------------
