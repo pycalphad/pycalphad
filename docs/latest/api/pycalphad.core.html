@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.5.2.post1+18.g3a432ec documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.5.2.post1+20.gb49d12c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.5.2.post1+18.g3a432ec documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.5.2.post1+20.gb49d12c documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.5.2.post1+18.g3a432ec
+                0.5.2.post1+20.gb49d12c
               </div>
             
           
@@ -904,9 +904,6 @@ automatically-assigned names.  Also has Matrix output.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="pycalphad-core-cymem-module">
-<h2>pycalphad.core.cymem module<a class="headerlink" href="#pycalphad-core-cymem-module" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -1177,6 +1174,100 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 </div>
+<div class="section" id="module-pycalphad.core.problem">
+<span id="pycalphad-core-problem-module"></span><h2>pycalphad.core.problem module<a class="headerlink" href="#module-pycalphad.core.problem" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.problem.Problem">
+<em class="property">class </em><code class="descclassname">pycalphad.core.problem.</code><code class="descname">Problem</code><a class="headerlink" href="#pycalphad.core.problem.Problem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.cl">
+<code class="descname">cl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.components">
+<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.problem.Problem.components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.composition_sets">
+<code class="descname">composition_sets</code><a class="headerlink" href="#pycalphad.core.problem.Problem.composition_sets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.conditions">
+<code class="descname">conditions</code><a class="headerlink" href="#pycalphad.core.problem.Problem.conditions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.constraints">
+<code class="descname">constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.cu">
+<code class="descname">cu</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.gradient">
+<code class="descname">gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.gradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.jacobian">
+<code class="descname">jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.jacobian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_constraints">
+<code class="descname">num_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_phases">
+<code class="descname">num_phases</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_phases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_vars">
+<code class="descname">num_vars</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.objective">
+<code class="descname">objective</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.objective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.pressure">
+<code class="descname">pressure</code><a class="headerlink" href="#pycalphad.core.problem.Problem.pressure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.temperature">
+<code class="descname">temperature</code><a class="headerlink" href="#pycalphad.core.problem.Problem.temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.x0">
+<code class="descname">x0</code><a class="headerlink" href="#pycalphad.core.problem.Problem.x0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.xl">
+<code class="descname">xl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.xl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.xu">
+<code class="descname">xu</code><a class="headerlink" href="#pycalphad.core.problem.Problem.xu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
 <div class="section" id="module-pycalphad.core.rksum">
 <span id="pycalphad-core-rksum-module"></span><h2>pycalphad.core.rksum module<a class="headerlink" href="#module-pycalphad.core.rksum" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
@@ -1213,6 +1304,44 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dt id="pycalphad.core.rksum.build_piecewise_matrix">
 <code class="descclassname">pycalphad.core.rksum.</code><code class="descname">build_piecewise_matrix</code><span class="sig-paren">(</span><em>sympy_obj</em>, <em>cur_exponents</em>, <em>low_temp</em>, <em>high_temp</em>, <em>output_matrix</em>, <em>symbol_matrix</em>, <em>param_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#build_piecewise_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.build_piecewise_matrix" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.solver">
+<span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.solver.InteriorPointSolver">
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">InteriorPointSolver</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pycalphad.core.solver.InteriorPointSolver.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.solver.SolverResult">
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">SolverResult</code><span class="sig-paren">(</span><em>converged</em>, <em>x</em>, <em>chemical_potentials</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.solver.SolverResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.chemical_potentials">
+<code class="descname">chemical_potentials</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.chemical_potentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.converged">
+<code class="descname">converged</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.x">
+<code class="descname">x</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
 
 </div>
 <div class="section" id="module-pycalphad.core.sympydiff_utils">
@@ -1526,7 +1655,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.5.2.post1+18.g3a432ec',
+            VERSION:'0.5.2.post1+20.gb49d12c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
