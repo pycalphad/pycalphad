@@ -421,3 +421,321 @@ def test_database_parsing_of_floats_with_multiple_leading_zeros():
         ELEMENT CU   FCC_A1           00.546           5004.0             33.15      !"""
     dbf = Database.from_string(tdb_string, fmt='tdb')
     assert "CU" in dbf.elements
+
+
+def test_comma_templims():
+    """Accept TEMPERATURE_LIMITS and default-limit commas."""
+    tdb_string = """
+     ELEMENT VA   VACUUM                      0.0          0.0      0.0    !
+     ELEMENT AL   FCC_A1                     26.98154   4540.      28.30   !
+     ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT CO   HCP_A3                     58.9332    4765.567   30.0400 !
+     ELEMENT CR   BCC_A2                     51.996     4050.0     23.5429 !
+     ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !
+     ELEMENT MN   CBCC_A12                   54.9380    4995.696   32.2206 !
+     ELEMENT NI   FCC_A1                     58.69      4787.0     29.7955 !
+    $ ------------------------------------------------------------------------------
+    $ Phase definitions
+    $
+     PHASE LIQUID:L % 1 1 !
+     CONST LIQUID:L : AL C CO CR FE MN NI : !
+    $
+    $ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+    $
+     PHASE FCC_A1 %A 2 1 1 !
+     CONST FCC_A1 : AL% CO% CR FE% MN% NI% : C VA% : !
+    $
+    $ Disordered part of FCC_4SL, identical to FCC_A1
+    $
+     PHASE A1_FCC %A 2 1 1 !
+     CONST A1_FCC : AL CO CR FE MN NI : C VA% : !
+    $
+    $ Prototype AuCu3 (cP4, Pm-3m, L1_2) and AuCu (tP4, P4/mmm, L1_0)
+    $
+     PHASE FCC_4SL:F %AY 5 0.25 0.25 0.25 0.25 1 !
+     CONST FCC_4SL:F : AL CO CR FE MN NI : AL CO CR FE MN NI
+                     : AL CO CR FE MN NI : AL CO CR FE MN NI : C VA% :  !
+    $
+    $ Bcc (cI2, Im-3m)
+    $
+     PHASE BCC_A2 %B 2 1 3 !
+     CONST BCC_A2 : AL CO CR% FE% MN% NI : C VA% : !
+    $
+    $ Disordered part of B2_BCC, identical to BCC_A2 (except Va)
+    $
+     PHASE A2_BCC %B 2 1 3 !
+     CONST A2_BCC : AL CO CR FE MN NI VA : C VA% : !
+    $
+    $ Prototype CsCl (cP2, Pm-3m)
+    $
+     PHASE B2_BCC %BO 3 0.5 0.5 3 !
+     CONST B2_BCC : AL CO CR FE MN% NI VA : AL CO CR FE MN NI% VA : C VA% : !
+    $
+    $ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+    $
+     PHASE HCP_A3 %A 2 1 0.5 !
+     CONST HCP_A3 : AL CO% CR FE MN NI : C VA% : !
+    $
+    $ Prototype C (cF8, Fd-3m)
+    $
+     PHASE DIAMOND_A4 % 1 1 !
+     CONST DIAMOND_A4 : C : !
+    $
+    $ Prototype C (hP4, P6_3/mmc)
+    $
+     PHASE GRAPHITE_A9 % 1 1 !
+     CONST GRAPHITE_A9 : C : !
+    $
+    $ Prototype alpha-Mn (cI58, I-43m)
+    $
+     PHASE CBCC_A12 %A 2 1 1 !
+     CONST CBCC_A12 : AL CO CR FE MN% NI : C VA% : !
+    $
+    $ Prototype beta-Mn (cP20, P4_132)
+    $
+     PHASE CUB_A13 % 2 1 1 !
+     CONST CUB_A13 : AL CO CR FE MN% NI : C VA% : !
+    $
+    $ Prototype Al4C3 (hR7, R-3m)
+    $
+     PHASE AL4C3_D71 % 2 4 3 !
+     CONST AL4C3_D71 : AL : C : !
+    $
+    $ Prototype Al5Co2 (hP28, P6_3/mmc), also Al10Fe3Ni
+    $
+     PHASE AL5CO2_D811 % 2 5 2 !
+     CONST AL5CO2_D811 : AL : CO FE NI : !
+    $
+    $ Unknown structure
+    $
+     PHASE AL3CO % 2 3 1 !
+     CONST AL3CO : AL : CO : !
+    $
+    $ Prototype Al19Co6 (mC100, C2/m)
+    $
+     PHASE AL13CO4 % 2 13 4 !
+     CONST AL13CO4 : AL : CO : !
+    $
+    $ Prototype Al9Co2 (mP22, P2_1/c), also Al9FeNi
+    $
+     PHASE AL9CO2 % 2 9 2 !
+     CONST AL9CO2 : AL : CO FE NI : !
+    $
+    $ Prototype Al45V7 (mC104, C2/m)
+    $
+     PHASE AL13CR2 % 2 13 2 !
+     CONST AL13CR2 : AL : CR : !
+    $
+    $ Prototype Al5Cr (mC732, C2/c)
+    $
+     PHASE AL11CR2 % 3 10 1 2 !
+     CONST AL11CR2 : AL : AL : CR :  !
+    $
+    $ Prototype Al4Mn-mu (hP574, P6_3/mmc)
+    $
+     PHASE AL4CR % 2 4 1 !
+     CONST AL4CR : AL : CR : !
+    $
+    $ Unknown structure
+    $
+     PHASE AL9CR4_H % 2 9 4 !
+     CONST AL9CR4_H : AL : CR : !
+    $
+    $ Prototype Al9Cr4 (cI52, I-43m ?)
+    $
+     PHASE AL9CR4_L % 2 9 4 !
+     CONST AL9CR4_L : AL : CR : !
+    $
+    $ Prototype Cu5Zn8 (cI52, I-43m)
+    $
+     PHASE AL8CR5_D82 % 2 8 5 !
+     CONST AL8CR5_D82 : AL : CR : !
+    $
+    $ Prototype Al8Cr5 (hR26, R3m)
+    $
+     PHASE AL8CR5_D810 % 2 8 5 !
+     CONST AL8CR5_D810 : AL : CR : !
+    $
+    $ Prototype MoSi2 (tI6, I4/mmm)
+    $
+     PHASE ALCR2_C11B % 2 1 2 !
+     CONST ALCR2_C11B : AL : CR : !
+    $
+    $ Prototype Al13Fe4 (mC102, C2/m)
+    $
+     PHASE AL13FE4 % 3 0.6275 0.235 0.1375 !
+     CONST AL13FE4 : AL : FE% MN NI : AL VA : !
+    $
+    $ Prototype Al5Fe2 (oC24, Cmcm)
+    $ Al5Fe2 does not have the Al5Co2 (D8_11) structure
+    $
+     PHASE AL5FE2 % 2 5 2 !
+     CONST AL5FE2 : AL : FE% NI : !
+    $
+    $ Prototype Al2Fe (aP18, P1)
+    $
+     PHASE AL2FE % 2 2 1 !
+     CONST AL2FE : AL : FE% NI : !
+    $
+    $ Prototype Cu8Zn5 (cI52, I-43m)
+    $
+     PHASE AL8FE5_D82 % 2 8 5 !
+     CONST AL8FE5_D82 : AL FE : AL FE : !
+    $
+    $ Decagonal (quasicrystal)
+    $
+     PHASE AL71FE5NI24 % 3 0.71 0.05 0.24 !
+     CONST AL71FE5NI24 : AL : FE : NI : !
+    $
+    $ Prototype Al12W (cI26, Im-3)
+    $
+     PHASE AL12MN % 2 12 1 !
+     CONST AL12MN : AL : MN : !
+    $
+    $ Prototype Al6Mn (oC28, Cmcm)
+    $
+     PHASE AL6MN_D2H % 2 6 1 !
+     CONST AL6MN_D2H : AL : FE MN% : !
+    $
+    $ Prototype lambda-Al4Mn (hP586, P6_3/m)
+    $
+     PHASE AL4MN_LAMBDA % 2 0.81162 0.18838 !
+     CONST AL4MN_LAMBDA : AL : MN : !
+    $
+    $ Prototype mu-Al4Mn (hP574, P6_3/mmc)
+    $
+     PHASE AL4MN_MU % 2 4 1 !
+     CONST AL4MN_MU : AL : FE MN% : !
+    $
+    $ Prototype Al11Mn4 (aP15, P-1)
+    $
+     PHASE AL11MN4_LT % 2 11 4 !
+     CONST AL11MN4_LT : AL : MN : !
+    $
+    $ Prototype Al3Mn (oP156, Pnma)
+    $
+     PHASE AL11MN4_HT % 3 9 2 2 !
+     CONST AL11MN4_HT : AL : AL MN : MN : !
+    $
+    $ Prototype Al8Cr5 (hR26, R3m)
+    $
+     PHASE AL8MN5_D810 % 3 12 5 9 !
+     CONST AL8MN5_D810 : AL : MN : AL FE MN : !
+    $
+    $ Prototype Fe3C (oP16, Pnma)
+    $
+     PHASE AL3NI_D011 % 2 0.75 0.25 !
+     CONST AL3NI_D011 : AL : FE NI% : !
+    $
+    $ Prototype Al3Ni2 (hP5, P-3m1)
+    $
+     PHASE AL3NI2_D513 % 3 3 2 1 !
+     CONST AL3NI2_D513 : AL : AL FE NI% : NI VA% : !
+    $
+    $ Prototype Ga4Ni3 (cI112, Ia-3d)
+    $
+     PHASE AL4NI3 % 2 4 3 !
+     CONST AL4NI3 : AL : NI : !
+    $
+    $ Prototype Ga3Pt5 (oC16, Cmmm)
+    $
+     PHASE AL3NI5 % 2 0.375 0.625 !
+     CONST AL3NI5 : AL : NI : !
+    $
+    $ Prototype Cr3C2 (oP20, Pnma)
+    $
+     PHASE CR3C2_D510 % 2 3 2 !
+     CONST CR3C2_D510 : CO CR% : C : !
+    $
+    $ Similar to alpha-Mn (cI58)
+    $
+     PHASE CR3MN5 % 2 3 5 !
+     CONST CR3MN5 : CR : MN : !
+    $
+    $ Prototype MoPt2 (oP6, Immm)
+    $
+     PHASE CRNI2 % 2 1 2 !
+     CONST CRNI2 : CR : NI : !
+    $
+    $ Prototype Cr23C6 (cF116, Fm-3m)
+    $
+     PHASE M23C6_D84 % 3 20 3 6 !
+     CONST M23C6_D84 : CO CR FE MN NI : CO CR FE MN NI : C : !
+    $
+    $ Prototype Fe3C (oP16, Pnma)
+    $
+     PHASE CEMENTITE_D011 % 2 3 1 !
+     CONST CEMENTITE_D011 : CO CR FE MN NI : C : !
+    $
+    $ Prototype Mn5C2 (mC28, C2/c), Haegg carbide, chi
+    $
+     PHASE M5C2 % 2 5 2 !
+     CONST M5C2 : FE MN : C : !
+    $
+    $ Prototype Cr7C3 (oP40, Pnma)
+    $
+     PHASE M7C3_D101 % 2 7 3 !
+     CONST M7C3_D101 : CO CR FE MN NI : C : !
+    $
+    $ Prototype CaTiO3 (cP5, Pm-3m)
+    $
+     PHASE KAPPA_E21 % 3 1 3 1 !
+     CONST KAPPA_E21 : AL : CO FE MN NI : C% VA : !
+    $
+    $ Prototype Cr2AlC (hP8, P6_3/mmc)
+    $
+     PHASE MAX_PHASE % 3 2 1 1 !
+     CONST MAX_PHASE : AL CR% : AL : C : !
+    $
+    $ Prototype CrFe (tP30, P4_2/mnm)
+    $
+     PHASE SIGMA_D8B % 3 10 4 16 !
+     CONST SIGMA_D8B : AL CO FE MN NI : CR : AL CO CR FE MN NI : !
+    $
+    $ Prototype CrFe (tP30, P4_2/mnm, D8b)
+    $
+     PHASE HIGH_SIGMA % 3 10 4 16 !
+     CONST HIGH_SIGMA : AL CO FE MN NI : CR : AL CO FE CR MN NI : !
+    $ ------------------------------------------------------------------------------
+    $ Defaults
+    $
+     DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+     DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+     DEFAULT-COM REJECT_PHASE FCC_A1 BCC_A2 !
+    $DEFAULT-COM REJECT_PHASE A1_FCC FCC_4SL A2_BCC B2_BCC !
+     TYPE-DEF % SEQ * !
+     TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+     TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+     TYPE-DEF O GES AMEND_PHASE_DESCRIPTION B2_BCC DIS_PART A2_BCC !
+     TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
+     FUNCTION ZERO      298.15  0;                                         6000 N !
+     FUNCTION UN_ASS    298.15  0;                                         6000 N !
+     FUNCTION R         298.15  +8.31451;                                  6000 N !
+    $ ------------------------------------------------------------------------------
+    $ Element data
+    $ ------------------------------------------------------------------------------
+    $ Al
+    $
+    $ BCT_A5 and DIAMOND_A4 added in unary 3.0
+    $
+     PAR  G(FCC_A1,AL:VA),,                 +GHSERAL;                2900 N 91Din !
+     PAR  G(A1_FCC,AL:VA),,                 +GHSERAL;                2900 N 91Din !
+     PAR  G(BCC_A2,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
+     PAR  G(A2_BCC,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
+     PAR  G(HCP_A3,AL:VA),,                 +GHSERAL+5481-1.8*T;     2900 N 91Din !
+     PAR  G(CBCC_A12,AL:VA),,               +GHSERAL
+                 +10083.4-4.813*T;                                   2900 N 91Din !
+     PAR  G(CUB_A13,AL:VA),,                +GHSERAL
+                 +10920.44-4.8116*T;                                 2900 N 91Din !
+     PAR  G(BCT_A5,AL),,                    +GHSERAL+10083-4.813*T;  2900 N SGCOST !
+     PAR  G(DIAMOND_A4,AL),,                +GHSERAL+30*T;           2900 N SGCOST !
+     FUNCTION GHSERAL   298.15  -7976.15+137.093038*T-24.3671976*T*LN(T)
+           -0.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);
+           700.00  Y  -11276.24+223.048446*T-38.5844296*T*LN(T)
+           +0.018531982*T**2 -5.764227E-06*T**3+74092*T**(-1);
+           933.47  Y  -11278.378+188.684153*T-31.748192*T*LN(T)
+           -1.230524E+28*T**(-9);
+          2900.00  N !
+        """
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert "AL" in dbf.elements
