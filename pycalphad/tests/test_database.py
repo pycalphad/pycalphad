@@ -488,8 +488,8 @@ def test_comma_templims():
     $
     $ BCT_A5 and DIAMOND_A4 added in unary 3.0
     $
-     PAR  G(FCC_A1,AL:VA),,                 +GHSERAL;                2900 N 91Din !
-     PAR  G(A1_FCC,AL:VA),,                 +GHSERAL;                2900 N 91Din !
+     PAR  G(FCC_A1,AL:VA),,                 +GHSERAL;                ,, N 91Din !
+     PAR  G(A1_FCC,AL:VA),,                 +GHSERAL;                , N 91Din !
      PAR  G(BCC_A2,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
      PAR  G(A2_BCC,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
      PAR  G(HCP_A3,AL:VA),,                 +GHSERAL+5481-1.8*T;     2900 N 91Din !
