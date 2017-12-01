@@ -185,7 +185,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
-    ref_phase_name = symbol_name = Word(alphanums+'_:()/', min=1)
+    ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
     # species name, e.g., CO2, AL, FE3+
     species_name = Word(alphanums+'+-*/_.', min=1) + Optional(Suppress('%'))
     # constituent arrays are colon-delimited
@@ -214,6 +214,14 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_defsysdef = TCCommand('DEFINE_SYSTEM_DEFAULT') + SkipTo(LineEnd())
     # DEFAULT_COMMAND
     cmd_defcmd = TCCommand('DEFAULT_COMMAND') + SkipTo(LineEnd())
+    # DATABASE_INFO
+    cmd_database_info = TCCommand('DATABASE_INFO') + SkipTo(LineEnd())
+    # VERSION_DATE
+    cmd_version_date = TCCommand('VERSION_DATE') + SkipTo(LineEnd())
+    # REFERENCE_FILE
+    cmd_reference_file = TCCommand('REFERENCE_FILE') + SkipTo(LineEnd())
+    # ADD_REFERENCES
+    cmd_add_ref = TCCommand('ADD_REFERENCES') + SkipTo(LineEnd())
     # LIST_OF_REFERENCES
     cmd_lor = TCCommand('LIST_OF_REFERENCES') + SkipTo(LineEnd())
     # TEMPERATURE_LIMITS
@@ -241,6 +249,10 @@ def _tdb_grammar(): #pylint: disable=R0914
                     cmd_ass_sys | \
                     cmd_defsysdef | \
                     cmd_defcmd | \
+                    cmd_database_info | \
+                    cmd_version_date | \
+                    cmd_reference_file | \
+                    cmd_add_ref | \
                     cmd_lor | \
                     cmd_templim | \
                     cmd_phase | \
@@ -347,6 +359,10 @@ _TDB_PROCESSOR = {
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'ASSESSED_SYSTEMS': _unimplemented,
     'DEFAULT_COMMAND': _unimplemented,
+    'DATABASE_INFO': _unimplemented,
+    'VERSION_DATE': _unimplemented,
+    'REFERENCE_FILE': _unimplemented,
+    'ADD_REFERENCES': _unimplemented,
     'LIST_OF_REFERENCES': _unimplemented,
     'TEMPERATURE_LIMITS': _unimplemented,
     'PHASE': _process_phase,
