@@ -421,3 +421,91 @@ def test_database_parsing_of_floats_with_multiple_leading_zeros():
         ELEMENT CU   FCC_A1           00.546           5004.0             33.15      !"""
     dbf = Database.from_string(tdb_string, fmt='tdb')
     assert "CU" in dbf.elements
+
+
+def test_comma_templims():
+    """Accept TEMPERATURE_LIMITS and default-limit commas."""
+    tdb_string = """
+     ELEMENT VA   VACUUM                      0.0          0.0      0.0    !
+     ELEMENT AL   FCC_A1                     26.98154   4540.      28.30   !
+     ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT CO   HCP_A3                     58.9332    4765.567   30.0400 !
+     ELEMENT CR   BCC_A2                     51.996     4050.0     23.5429 !
+     ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !
+     ELEMENT MN   CBCC_A12                   54.9380    4995.696   32.2206 !
+     ELEMENT NI   FCC_A1                     58.69      4787.0     29.7955 !
+     TEMP-LIM 298 6000 !
+    $ ------------------------------------------------------------------------------
+    $
+    $ Fcc (cF4, Fm-3m) and MeX (cF8, Fm-3m)
+    $
+     PHASE FCC_A1 %A 2 1 1 !
+     CONST FCC_A1 : AL% CO% CR FE% MN% NI% : C VA% : !
+    $
+    $ Disordered part of FCC_4SL, identical to FCC_A1
+    $
+     PHASE A1_FCC %A 2 1 1 !
+     CONST A1_FCC : AL CO CR FE MN NI : C VA% : !
+    $
+    $ Bcc (cI2, Im-3m)
+    $
+     PHASE BCC_A2 %B 2 1 3 !
+     CONST BCC_A2 : AL CO CR% FE% MN% NI : C VA% : !
+    $
+    $ Disordered part of B2_BCC, identical to BCC_A2 (except Va)
+    $
+     PHASE A2_BCC %B 2 1 3 !
+     CONST A2_BCC : AL CO CR FE MN NI VA : C VA% : !
+    $
+    $ Prototype CsCl (cP2, Pm-3m)
+    $
+     PHASE B2_BCC %BO 3 0.5 0.5 3 !
+     CONST B2_BCC : AL CO CR FE MN% NI VA : AL CO CR FE MN NI% VA : C VA% : !
+    $
+    $ Hcp (hP2, P6_3/mmc) and Me2X (NiAs-type, hP4, P6_3/mmc, B8_1)
+    $
+     PHASE HCP_A3 %A 2 1 0.5 !
+     CONST HCP_A3 : AL CO% CR FE MN NI : C VA% : !
+    $ ------------------------------------------------------------------------------
+    $ Defaults
+    $
+     DEFINE-SYSTEM-DEFAULT ELEMENT 2 !
+     DEFAULT-COM DEFINE_SYSTEM_ELEMENT VA !
+     DEFAULT-COM REJECT_PHASE FCC_A1 BCC_A2 !
+    $DEFAULT-COM REJECT_PHASE A1_FCC FCC_4SL A2_BCC B2_BCC !
+     TYPE-DEF % SEQ * !
+     TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
+     TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+     TYPE-DEF O GES AMEND_PHASE_DESCRIPTION B2_BCC DIS_PART A2_BCC !
+     TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
+     FUNCTION ZERO      298.15  0;                                         6000 N !
+     FUNCTION UN_ASS    298.15  0;                                         6000 N !
+     FUNCTION R         298.15  +8.31451;                                  6000 N !
+    $ ------------------------------------------------------------------------------
+    $ Element data
+    $ ------------------------------------------------------------------------------
+    $ Al
+    $
+    $ BCT_A5 and DIAMOND_A4 added in unary 3.0
+    $
+     PAR  G(FCC_A1,AL:VA),,                 +GHSERAL;                ,, N 91Din !
+     PAR  G(A1_FCC,AL:VA),,                 +GHSERAL;                , N 91Din !
+     PAR  G(BCC_A2,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
+     PAR  G(A2_BCC,AL:VA),,                 +GHSERAL+10083-4.813*T;  2900 N 91Din !
+     PAR  G(HCP_A3,AL:VA),,                 +GHSERAL+5481-1.8*T;     2900 N 91Din !
+     PAR  G(CBCC_A12,AL:VA),,               +GHSERAL
+                 +10083.4-4.813*T;                                   2900 N 91Din !
+     PAR  G(CUB_A13,AL:VA),,                +GHSERAL
+                 +10920.44-4.8116*T;                                 2900 N 91Din !
+     PAR  G(BCT_A5,AL),,                    +GHSERAL+10083-4.813*T;  2900 N SGCOST !
+     PAR  G(DIAMOND_A4,AL),,                +GHSERAL+30*T;           2900 N SGCOST !
+     FUNCTION GHSERAL   298.15  -7976.15+137.093038*T-24.3671976*T*LN(T)
+           -0.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);
+           700.00  Y  -11276.24+223.048446*T-38.5844296*T*LN(T)
+           +0.018531982*T**2 -5.764227E-06*T**3+74092*T**(-1);
+           933.47  Y  -11278.378+188.684153*T-31.748192*T*LN(T)
+           -1.230524E+28*T**(-9);
+          2900.00  N !
+        """
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+    assert "AL" in dbf.elements

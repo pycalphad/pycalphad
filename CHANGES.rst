@@ -1,6 +1,16 @@
 What's New
 ==========
 
+0.6.1 (2017-12-01)
+------------------
+
+This is a minor release with bug fixes and new features.
+
+* ENH: tdb: Add more command parsing: TEMPERATURE_LIMITS, DATABASE_INFO, VERSION_DATE, REFERENCE_FILE, ADD_REFERENCES
+* FIX: tdb: Allow '-' character in phase names.
+* ENH/FIX: tdb: Allow comma character to specify default low temperature limit (0.01 K)
+
+
 0.6 (2017-11-26)
 ----------------
 
