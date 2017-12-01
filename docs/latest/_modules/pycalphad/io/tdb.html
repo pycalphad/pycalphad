@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.6+1.g54ddb3d documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.6+7.gd04069d documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6+1.g54ddb3d documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6+7.gd04069d documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6+1.g54ddb3d
+                0.6+7.gd04069d
               </div>
             
           
@@ -349,7 +349,7 @@
         <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="c1"># symbol name, e.g., phase name, function name</span>
     <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
-    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:()/&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
+    <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_-:()/&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="c1"># species name, e.g., CO2, AL, FE3+</span>
     <span class="n">species_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;+-*/_.&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;%&#39;</span><span class="p">))</span>
     <span class="c1"># constituent arrays are colon-delimited</span>
@@ -358,7 +358,7 @@
     <span class="n">param_types</span> <span class="o">=</span> <span class="n">MatchFirst</span><span class="p">([</span><span class="n">TCCommand</span><span class="p">(</span><span class="n">param_type</span><span class="p">)</span> <span class="k">for</span> <span class="n">param_type</span> <span class="ow">in</span> <span class="n">TDB_PARAM_TYPES</span><span class="p">])</span>
     <span class="c1"># Let sympy do heavy arithmetic / algebra parsing for us</span>
     <span class="c1"># a convenience function will handle the piecewise details</span>
-    <span class="n">func_expr</span> <span class="o">=</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">SkipTo</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> \
+    <span class="n">func_expr</span> <span class="o">=</span> <span class="p">(</span><span class="n">float_number</span> <span class="o">|</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="mf">0.01</span><span class="p">))</span> <span class="o">+</span> <span class="n">OneOrMore</span><span class="p">(</span><span class="n">SkipTo</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> \
         <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;;&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">ZeroOrMore</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="s1">&#39;YNyn&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">|</span> <span class="n">White</span><span class="p">()))</span>
     <span class="c1"># ELEMENT</span>
@@ -378,8 +378,18 @@
     <span class="n">cmd_defsysdef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># DEFAULT_COMMAND</span>
     <span class="n">cmd_defcmd</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;DEFAULT_COMMAND&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># DATABASE_INFO</span>
+    <span class="n">cmd_database_info</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;DATABASE_INFO&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># VERSION_DATE</span>
+    <span class="n">cmd_version_date</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;VERSION_DATE&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># REFERENCE_FILE</span>
+    <span class="n">cmd_reference_file</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;REFERENCE_FILE&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># ADD_REFERENCES</span>
+    <span class="n">cmd_add_ref</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ADD_REFERENCES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># LIST_OF_REFERENCES</span>
     <span class="n">cmd_lor</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;LIST_OF_REFERENCES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
+    <span class="c1"># TEMPERATURE_LIMITS</span>
+    <span class="n">cmd_templim</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;TEMPERATURE_LIMITS&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
     <span class="c1"># PHASE</span>
     <span class="n">cmd_phase</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;PHASE&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> \
@@ -403,7 +413,12 @@
                     <span class="n">cmd_ass_sys</span> <span class="o">|</span> \
                     <span class="n">cmd_defsysdef</span> <span class="o">|</span> \
                     <span class="n">cmd_defcmd</span> <span class="o">|</span> \
+                    <span class="n">cmd_database_info</span> <span class="o">|</span> \
+                    <span class="n">cmd_version_date</span> <span class="o">|</span> \
+                    <span class="n">cmd_reference_file</span> <span class="o">|</span> \
+                    <span class="n">cmd_add_ref</span> <span class="o">|</span> \
                     <span class="n">cmd_lor</span> <span class="o">|</span> \
+                    <span class="n">cmd_templim</span> <span class="o">|</span> \
                     <span class="n">cmd_phase</span> <span class="o">|</span> \
                     <span class="n">cmd_constituent</span> <span class="o">|</span> \
                     <span class="n">cmd_parameter</span>
@@ -508,7 +523,12 @@
     <span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
     <span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
     <span class="s1">&#39;DEFAULT_COMMAND&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;DATABASE_INFO&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;VERSION_DATE&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;REFERENCE_FILE&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;ADD_REFERENCES&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
     <span class="s1">&#39;LIST_OF_REFERENCES&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
+    <span class="s1">&#39;TEMPERATURE_LIMITS&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
     <span class="s1">&#39;PHASE&#39;</span><span class="p">:</span> <span class="n">_process_phase</span><span class="p">,</span>
     <span class="s1">&#39;CONSTITUENT&#39;</span><span class="p">:</span> \
         <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">c</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">add_phase_constituents</span><span class="p">(</span>
@@ -1075,7 +1095,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6+1.g54ddb3d',
+            VERSION:'0.6+7.gd04069d',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
