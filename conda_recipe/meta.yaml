@@ -19,6 +19,7 @@ source:
 requirements:
   build:
     - python
+    - libpython # [win]
     - setuptools
     - matplotlib
     - pandas
@@ -33,10 +34,13 @@ requirements:
     - distributed
     - numpy >=1.9
     - dill
-    - Cython >=0.24
+    - cython >=0.24
+    - cyipopt
+    - m2w64-toolchain # [win]
 
   run:
     - python
+    - libpython # [win]
     - gcc # [osx or linux]
     - matplotlib
     - pandas
@@ -48,12 +52,13 @@ requirements:
     - dask >=0.15
     - distributed
     - numpy >=1.9
-    - Cython >=0.24
+    - cython >=0.24
     - dill
     - cyipopt
+    - m2w64-toolchain # [win]
 
 build:
-  script: python setup.py build && python setup.py install
+  script: python setup.py build_ext --compiler=mingw32 && python setup.py install --single-version-externally-managed --record=record.txt
 
 test:
   # Python imports
