@@ -1,0 +1,501 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.6.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="pycalphad 0.6.1 documentation" href="../index.html"/>
+        <link rel="up" title="Examples" href="index.html"/>
+        <link rel="next" title="FAQ" href="../faq.html"/>
+        <link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#xarray-datasets">xarray Datasets</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#dataset-structure">Dataset structure</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#calculate-results"><code class="docutils literal"><span class="pre">calculate()</span></code> results</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#equilibrium-results"><code class="docutils literal"><span class="pre">equilibrium()</span></code> results</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/UsingCalculationResults.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="exploring-calculate-and-equilibrium-xarray-datasets">
+<h1>Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets<a class="headerlink" href="#exploring-calculate-and-equilibrium-xarray-datasets" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="xarray-datasets">
+<h2>xarray Datasets<a class="headerlink" href="#xarray-datasets" title="Permalink to this headline">¶</a></h2>
+<p>Results returned from calling <code class="docutils literal"><span class="pre">calculate</span></code> or <code class="docutils literal"><span class="pre">equilibrium</span></code> in
+pycalphad are <a class="reference external" href="http://xarray.pydata.org/en/stable/">xarray</a> Datasets.
+An xarray Dataset is a data structure that represents N-dimensional
+tabular data. It is an N-dimensional analog to the Pandas DataFrame.</p>
+<p>This notebook will walk through the structure of xarray Datasets in
+pycalphad and some basics of using them. For more in-depth tutorials and
+documentation on using xarray Datasets and DataArray’s fully, see the
+<a class="reference external" href="http://xarray.pydata.org/en/stable/index.html">xarray
+documentation</a>.</p>
+</div>
+<div class="section" id="dataset-structure">
+<h2>Dataset structure<a class="headerlink" href="#dataset-structure" title="Permalink to this headline">¶</a></h2>
+<p>Each Dataset stores the conditions that properties are calculated at and
+the values of the properties as a function of the different conditions.
+There are three key terms:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Dimensions</span></code>: these are the conditions that are calculated over,
+e.g. pressure (P) and temperature (T). They are essentially labels.</li>
+<li><code class="docutils literal"><span class="pre">Coordinates</span></code>: these are the actual <em>values</em> that are taken on by
+the dimensions.</li>
+<li><code class="docutils literal"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
+such as the Gibbs energy, mixing energy, composition, etc.</li>
+</ul>
+</div>
+<div class="section" id="calculate-results">
+<h2><code class="docutils literal"><span class="pre">calculate()</span></code> results<a class="headerlink" href="#calculate-results" title="Permalink to this headline">¶</a></h2>
+<p>Calculate is used to sample properties of a single phase. There are five
+dimensions/coordinates:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">P</span></code>: pressures (in Pa).</li>
+<li><code class="docutils literal"><span class="pre">T</span></code>: temperatures (in K).</li>
+<li><code class="docutils literal"><span class="pre">component</span></code>: the string names of the components in the system</li>
+<li><code class="docutils literal"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is
+the index of the site in any phase’s site fraction array. Below the
+FCC_A1 phase has the sublattice model (AL, ZN) and thus the
+internal_dof are integers 0 and 1 referring to the AL site (index 0)
+and the ZN site (index 1).</li>
+<li><code class="docutils literal"><span class="pre">points</span></code>: By default, the calculate function samples points over
+all of the internal degrees of freedom. Each coordinate point simply
+represents the index is a list of all configurations of the
+internal_dof sampled. There is no underlying physical meaning or
+order.</li>
+</ul>
+<p>There are also at least four Data variables:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Phase</span></code>: The string name of the phase. For <code class="docutils literal"><span class="pre">calculate</span></code>, this will
+always be the phase name passed.</li>
+<li><code class="docutils literal"><span class="pre">X</span></code>: The composition of each component in mole fraction as a
+function of the temperature, pressure, and the index of the points
+(there is one composition for each point).</li>
+<li><code class="docutils literal"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for
+the given temperature, pressure and point.</li>
+<li><code class="docutils literal"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the
+output keyword passed to <code class="docutils literal"><span class="pre">calculate</span></code>. The default is the molar
+Gibbs energy, GM.</li>
+</ul>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">calc_result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">[</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">])</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
+<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">points</span><span class="p">:</span> <span class="mi">4001</span><span class="p">)</span>
+<span class="n">Coordinates</span><span class="p">:</span>
+  <span class="o">*</span> <span class="n">T</span>          <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">500.0</span> <span class="mf">1e+03</span>
+  <span class="o">*</span> <span class="n">component</span>  <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">&#39;AL&#39;</span> <span class="s1">&#39;ZN&#39;</span>
+  <span class="o">*</span> <span class="n">P</span>          <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
+<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span><span class="p">,</span> <span class="n">points</span>
+<span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
+    <span class="n">Y</span>          <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-12</span> <span class="mf">1e-12</span> <span class="mf">1.0</span> <span class="o">...</span>
+    <span class="n">GM</span>         <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">-</span><span class="mf">2.01e+04</span> <span class="o">-</span><span class="mf">2.01e+04</span> <span class="o">...</span>
+    <span class="n">X</span>          <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-12</span> <span class="mf">1e-12</span> <span class="mf">1.0</span> <span class="mf">1e-12</span> <span class="o">...</span>
+    <span class="n">Phase</span>      <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">points</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="o">...</span>
+</pre></div>
+</div>
+<p>We can manipulate this by selecting data by value (of a coordinate)
+using <code class="docutils literal"><span class="pre">sel</span></code> or index (of a coordinate) using <code class="docutils literal"><span class="pre">isel</span></code> similar to a
+Pandas array. Below we get the site fraction of ZN (internal_dof index
+of 1 selected by index) at 1000K (selected by value) for the 50th point
+(selected by index).</p>
+<p>The results of selecting over Data variables gives an xarray DataArray
+which is useful for plotting or performing computations on (see
+<a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">DataArrays vs
+Datasets</a>).</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="s1">&#39;Y&#39;</span> <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">array</span><span class="p">([</span> <span class="mf">0.976488</span><span class="p">])</span>
+<span class="n">Coordinates</span><span class="p">:</span>
+    <span class="n">T</span>        <span class="n">float64</span> <span class="mf">1e+03</span>
+  <span class="o">*</span> <span class="n">P</span>        <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
+</pre></div>
+</div>
+<p>accessing the <code class="docutils literal"><span class="pre">values</span></code> attribute on any on any DataArray returns the
+multidimensional NumPy array</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="p">[[[[</span>  <span class="mf">1.00000000e+00</span>   <span class="mf">1.00000000e-12</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
+   <span class="o">...</span><span class="p">,</span>
+   <span class="p">[</span>  <span class="mf">1.56995650e-01</span>   <span class="mf">8.43004350e-01</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.12072782e-01</span>   <span class="mf">8.87927218e-01</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">7.43933641e-01</span>   <span class="mf">2.56066359e-01</span><span class="p">]]</span>
+
+  <span class="p">[[</span>  <span class="mf">1.00000000e+00</span>   <span class="mf">1.00000000e-12</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.00000000e-12</span>   <span class="mf">1.00000000e+00</span><span class="p">]</span>
+   <span class="o">...</span><span class="p">,</span>
+   <span class="p">[</span>  <span class="mf">1.56995650e-01</span>   <span class="mf">8.43004350e-01</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">1.12072782e-01</span>   <span class="mf">8.87927218e-01</span><span class="p">]</span>
+   <span class="p">[</span>  <span class="mf">7.43933641e-01</span>   <span class="mf">2.56066359e-01</span><span class="p">]]]]</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="equilibrium-results">
+<h2><code class="docutils literal"><span class="pre">equilibrium()</span></code> results<a class="headerlink" href="#equilibrium-results" title="Permalink to this headline">¶</a></h2>
+<p>The Datasets returned by equilibrium are very similar to calculate,
+however there are several key differences worth discussing. In
+equilibrium Datasets, there are six dimensions/coordinates:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">P</span></code>: pressures (in Pa).</li>
+<li><code class="docutils literal"><span class="pre">T</span></code>: temperatures (in K).</li>
+<li><code class="docutils literal"><span class="pre">component</span></code>: (Same as calculate) The string names of the components
+in the system.</li>
+<li><code class="docutils literal"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest
+possible internal_dof for all phases) The internal_dof (internal
+degrees of freedom) is the index of the site in any phase’s site
+fraction array. Below the FCC_A1 phase has the sublattice model (AL,
+ZN) and thus the internal_dof are integers 0 and 1 referring to the
+AL site (index 0) and the ZN site (index 1).</li>
+<li><code class="docutils literal"><span class="pre">X_ZN</span></code>: This is the composition of the species that was passed into
+the conditions array. Since we passed <code class="docutils literal"><span class="pre">v.X('ZN')</span></code> to the conditions
+dictionary, this is <code class="docutils literal"><span class="pre">X_ZN</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">vertex</span></code>: The vertex is the index of the phase in equilibrium. The
+vertex has no inherent physical meaning. There will automatically be
+enough to describe the number of phases present in any equilibria
+calculated, implying that vertex can never be large enough to
+invalidate Gibbs phase rule.</li>
+</ul>
+<p>There are also at least six Data variables:</p>
+<ul class="simple">
+<li><code class="docutils literal"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the
+conditions. There are as many as <code class="docutils literal"><span class="pre">len(vertex)</span></code> phases. Any time
+there are fewer phases in equilibrium than the indices described by
+<code class="docutils literal"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal"><span class="pre">''</span></code>, e.g. for a
+single phase region for FCC_A1, the values of Phase will be
+<code class="docutils literal"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is
+important to note that they are not necessarily sorted.</li>
+<li><code class="docutils literal"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no
+other equilibrium phase (e.g. single phase <code class="docutils literal"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then
+the value of <code class="docutils literal"><span class="pre">NP</span></code> will be <code class="docutils literal"><span class="pre">nan</span></code> for the absence of a phase,
+rather than 0.</li>
+<li><code class="docutils literal"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions
+calculated.</li>
+<li><code class="docutils literal"><span class="pre">X</span></code>: The equilibrium composition of each element in each phase for
+the calculated conditions.</li>
+<li><code class="docutils literal"><span class="pre">Y</span></code>: The equilibrium site fraction of each site in each phase for
+the calculated conditions.</li>
+<li><code class="docutils literal"><span class="pre">GM</span></code>: Same as <code class="docutils literal"><span class="pre">output</span></code> for <code class="docutils literal"><span class="pre">calculate</span></code>. It is always reported
+no matter the value of <code class="docutils literal"><span class="pre">output</span></code>.</li>
+<li><code class="docutils literal"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium
+property is calculated by the output keyword passed to
+<code class="docutils literal"><span class="pre">equilibrium</span></code>. Unlike <code class="docutils literal"><span class="pre">calculate</span></code>, this will be in addition to
+the <code class="docutils literal"><span class="pre">GM</span></code> because <code class="docutils literal"><span class="pre">GM</span></code> is always reported.</li>
+</ul>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
+<span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="p">)</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">Dataset</span><span class="o">&gt;</span>
+<span class="n">Dimensions</span><span class="p">:</span>    <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">T</span><span class="p">:</span> <span class="mi">5</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">component</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">:</span> <span class="mi">2</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span>
+<span class="n">Coordinates</span><span class="p">:</span>
+  <span class="o">*</span> <span class="n">P</span>          <span class="p">(</span><span class="n">P</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.013e+05</span>
+  <span class="o">*</span> <span class="n">T</span>          <span class="p">(</span><span class="n">T</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">500.0</span> <span class="mf">600.0</span> <span class="mf">700.0</span> <span class="mf">800.0</span> <span class="mf">900.0</span>
+  <span class="o">*</span> <span class="n">X_ZN</span>       <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-09</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="mf">0.25</span> <span class="mf">0.3</span> <span class="mf">0.35</span> <span class="mf">0.4</span> <span class="mf">0.45</span> <span class="o">...</span>
+  <span class="o">*</span> <span class="n">vertex</span>     <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span>
+  <span class="o">*</span> <span class="n">component</span>  <span class="p">(</span><span class="n">component</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U2</span> <span class="s1">&#39;AL&#39;</span> <span class="s1">&#39;ZN&#39;</span>
+<span class="n">Dimensions</span> <span class="n">without</span> <span class="n">coordinates</span><span class="p">:</span> <span class="n">internal_dof</span>
+<span class="n">Data</span> <span class="n">variables</span><span class="p">:</span>
+    <span class="n">X</span>          <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-09</span> <span class="n">nan</span> <span class="n">nan</span> <span class="o">...</span>
+    <span class="n">GM</span>         <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">-</span><span class="mf">1.615e+04</span> <span class="o">-</span><span class="mf">1.649e+04</span> <span class="o">...</span>
+    <span class="n">Phase</span>      <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="o">&lt;</span><span class="n">U6</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="s1">&#39;&#39;</span> <span class="s1">&#39;FCC_A1&#39;</span> <span class="o">...</span>
+    <span class="n">NP</span>         <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="mf">1.0</span> <span class="n">nan</span> <span class="mf">0.9761</span> <span class="mf">0.02392</span> <span class="o">...</span>
+    <span class="n">Y</span>          <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">vertex</span><span class="p">,</span> <span class="n">internal_dof</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1.0</span> <span class="mf">1e-09</span> <span class="mf">0.9991</span> <span class="o">...</span>
+    <span class="n">MU</span>         <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">,</span> <span class="n">component</span><span class="p">)</span> <span class="n">float64</span> <span class="o">-</span><span class="mf">1.559e+04</span> <span class="o">-</span><span class="mf">9.584e+04</span> <span class="o">...</span>
+    <span class="n">HM</span>         <span class="p">(</span><span class="n">P</span><span class="p">,</span> <span class="n">T</span><span class="p">,</span> <span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">5.194e+03</span> <span class="mf">5.859e+03</span> <span class="mf">6.188e+03</span> <span class="mf">6.152e+03</span> <span class="o">...</span>
+<span class="n">Attributes</span><span class="p">:</span>
+    <span class="n">engine</span><span class="p">:</span>   <span class="n">pycalphad</span> <span class="mf">0.5</span><span class="o">.</span><span class="mf">2.</span><span class="n">post1</span><span class="o">+</span><span class="mf">22.</span><span class="n">gc2a1cf7f</span><span class="o">.</span><span class="n">dirty</span>
+    <span class="n">created</span><span class="p">:</span>  <span class="mi">2017</span><span class="o">-</span><span class="mi">11</span><span class="o">-</span><span class="mi">16</span><span class="n">T07</span><span class="p">:</span><span class="mi">56</span><span class="p">:</span><span class="mf">07.904845</span>
+</pre></div>
+</div>
+<p>A common operation might be to find the phase fractions of the HCP_A3
+phase as a function of composition for T=800.</p>
+<p>However, the only way we can access the values of the phase fraction is
+by either the indices or values of the coordinates, we would have to
+know which index the HCP_A3 phase is in before hand to use the <code class="docutils literal"><span class="pre">sel</span></code>
+or <code class="docutils literal"><span class="pre">isel</span></code> commands.</p>
+<p>Since we do not know this, we can do what is called
+<a class="reference external" href="http://xarray.pydata.org/en/stable/indexing.html#masking-with-where">masking</a>
+to find the data values that match a condition (the Phase is FCC_A1):</p>
+<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="p">(</span><span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span><span class="o">&gt;</span>
+<span class="n">array</span><span class="p">([[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">1.</span>      <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.897399</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.71825</span> <span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.539101</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.359952</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.180803</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span> <span class="mf">0.001654</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">],</span>
+       <span class="p">[</span>      <span class="n">nan</span><span class="p">,</span>       <span class="n">nan</span><span class="p">]])</span>
+<span class="n">Coordinates</span><span class="p">:</span>
+    <span class="n">P</span>        <span class="n">float64</span> <span class="mf">1.013e+05</span>
+    <span class="n">T</span>        <span class="n">float64</span> <span class="mf">800.0</span>
+  <span class="o">*</span> <span class="n">X_ZN</span>     <span class="p">(</span><span class="n">X_ZN</span><span class="p">)</span> <span class="n">float64</span> <span class="mf">1e-09</span> <span class="mf">0.05</span> <span class="mf">0.1</span> <span class="mf">0.15</span> <span class="mf">0.2</span> <span class="mf">0.25</span> <span class="mf">0.3</span> <span class="mf">0.35</span> <span class="mf">0.4</span> <span class="mf">0.45</span> <span class="o">...</span>
+  <span class="o">*</span> <span class="n">vertex</span>   <span class="p">(</span><span class="n">vertex</span><span class="p">)</span> <span class="n">int64</span> <span class="mi">0</span> <span class="mi">1</span>
+</pre></div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="../faq.html" class="btn btn-neutral float-right" title="FAQ" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="TernaryExamples.html" class="btn btn-neutral" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>

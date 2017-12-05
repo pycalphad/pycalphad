@@ -1,0 +1,1687 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core package &mdash; pycalphad 0.6.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  
+  
+    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  
+
+  
+
+  
+        <link rel="index" title="Index"
+              href="../genindex.html"/>
+        <link rel="search" title="Search" href="../search.html"/>
+    <link rel="top" title="pycalphad 0.6.1 documentation" href="../index.html"/>
+        <link rel="up" title="pycalphad package" href="pycalphad.html"/>
+        <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
+        <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav" role="document">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/logo.png" class="logo" />
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.6.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" role="navigation" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      
+      <div class="wy-nav-content">
+        <div class="rst-content">
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API Documentation</a> &raquo;</li>
+        
+          <li><a href="pycalphad.html">pycalphad package</a> &raquo;</li>
+        
+      <li>pycalphad.core package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/pycalphad.core.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycalphad-core-package">
+<h1>pycalphad.core package<a class="headerlink" href="#pycalphad-core-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.core.cache">
+<span id="pycalphad-core-cache-module"></span><h2>pycalphad.core.cache module<a class="headerlink" href="#module-pycalphad.core.cache" title="Permalink to this headline">¶</a></h2>
+<p>The cache module handles caching of expensive function calls.</p>
+<p>Based on Raymond Hettinger’s backport of lru_cache
+The difference is _HashedSeq has been modified to use a custom hash function.
+<a class="reference external" href="http://code.activestate.com/recipes/578078-py26-and-py30-backport-of-python-33s-lru-cache/">http://code.activestate.com/recipes/578078-py26-and-py30-backport-of-python-33s-lru-cache/</a></p>
+<dl class="function">
+<dt id="pycalphad.core.cache.cacheit">
+<code class="descclassname">pycalphad.core.cache.</code><code class="descname">cacheit</code><span class="sig-paren">(</span><em>user_function</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.cache.cacheit" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.cache.fhash">
+<code class="descclassname">pycalphad.core.cache.</code><code class="descname">fhash</code><span class="sig-paren">(</span><em>thing</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/cache.html#fhash"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.cache.fhash" title="Permalink to this definition">¶</a></dt>
+<dd><p>Compute a hash of an object. Works on dicts and lists.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.cache.lru_cache">
+<code class="descclassname">pycalphad.core.cache.</code><code class="descname">lru_cache</code><span class="sig-paren">(</span><em>maxsize=100</em>, <em>typed=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/cache.html#lru_cache"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.cache.lru_cache" title="Permalink to this definition">¶</a></dt>
+<dd><p>Least-recently-used cache decorator.</p>
+<p>If <em>maxsize</em> is set to None, the LRU features are disabled and the cache
+can grow without bound.</p>
+<p>If <em>typed</em> is True, arguments of different types will be cached separately.
+For example, f(3.0) and f(3) will be treated as distinct calls with
+distinct results.</p>
+<p>Arguments to the cached function must be hashable.</p>
+<p>View the cache statistics named tuple (hits, misses, maxsize, currsize) with
+f.cache_info().  Clear the cache and statistics with f.cache_clear().
+Access the underlying function with f.__wrapped__.</p>
+<p>See:  <a class="reference external" href="http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used">http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.calculate">
+<span id="pycalphad-core-calculate-module"></span><h2>pycalphad.core.calculate module<a class="headerlink" href="#module-pycalphad.core.calculate" title="Permalink to this headline">¶</a></h2>
+<p>The calculate module contains a routine for calculating the
+property surface of a system.</p>
+<dl class="class">
+<dt id="pycalphad.core.calculate.FallbackModel">
+<em class="property">class </em><code class="descclassname">pycalphad.core.calculate.</code><code class="descname">FallbackModel</code><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#FallbackModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.FallbackModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>Compatibility layer while transitioning to CompiledModel.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.calculate.calculate">
+<code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample the property surface of ‘output’ containing the specified
+components and phases. Model parameters are taken from ‘dbf’ and any
+state variables (T, P, etc.) can be specified as keyword arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
+<li><strong>comps</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of components to consider in the calculation.</li>
+<li><strong>phases</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of phases to consider in the calculation.</li>
+<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – See ‘make_callable’ docstring for details.</li>
+<li><strong>output</strong> (<em>string</em><em>, </em><em>optional</em>) – Model attribute to sample.</li>
+<li><strong>fake_points</strong> (<em>bool</em><em>, </em><em>optional</em><em> (</em><em>Default: False</em><em>)</em>) – If True, the first few points of the output surface will be fictitious
+points used to define an equilibrium hyperplane guaranteed to be above
+all the other points. This is used for convex hull computations.</li>
+<li><strong>broadcast</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, broadcast given state variable lists against each other to create a grid.
+If False, assume state variables are given as equal-length lists.</li>
+<li><strong>points</strong> (<em>ndarray</em><em> or </em><em>a dict of phase names to ndarray</em><em>, </em><em>optional</em>) – Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
+If this is not specified, points will be generated automatically.</li>
+<li><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Number of points to sample per degree of freedom.
+Default: 2000; Default when called from equilibrium(): 500</li>
+<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</li>
+<li><strong>sampler</strong> (<em>callable</em><em>, </em><em>a dict of phase names to callable</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Function to sample phase constitution space.
+Must have same signature as ‘pycalphad.core.utils.point_sample’</li>
+<li><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em>) – Whether to add evenly spaced points between end-members.
+The density of points is determined by ‘pdens’</li>
+<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Dataset of the sampled attribute as a function of state variables</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.cartesian">
+<span id="pycalphad-core-cartesian-module"></span><h2>pycalphad.core.cartesian module<a class="headerlink" href="#module-pycalphad.core.cartesian" title="Permalink to this headline">¶</a></h2>
+<p>The cartesian module contains a routine for computing the Cartesian product
+of N arrays.</p>
+<dl class="function">
+<dt id="pycalphad.core.cartesian.cartesian">
+<code class="descclassname">pycalphad.core.cartesian.</code><code class="descname">cartesian</code><span class="sig-paren">(</span><em>arrays</em>, <em>out=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/cartesian.html#cartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.cartesian.cartesian" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a cartesian product of input arrays.
+Source: <a class="reference external" href="http://stackoverflow.com/questions/1208118/using-numpy-to-build-an-array-of-all-combinations-of-two-arrays">http://stackoverflow.com/questions/1208118/using-numpy-to-build-an-array-of-all-combinations-of-two-arrays</a></p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>arrays</strong> (<em>list of array-like</em>) – 1-D arrays to form the cartesian product of.</li>
+<li><strong>out</strong> (<em>ndarray</em>) – Array to place the cartesian product in.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out</strong> – 2-D array of shape (M, len(arrays)) containing cartesian products
+formed of input arrays.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cartesian</span><span class="p">(([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span>
+<span class="go">array([[1, 4, 6],</span>
+<span class="go">       [1, 4, 7],</span>
+<span class="go">       [1, 5, 6],</span>
+<span class="go">       [1, 5, 7],</span>
+<span class="go">       [2, 4, 6],</span>
+<span class="go">       [2, 4, 7],</span>
+<span class="go">       [2, 5, 6],</span>
+<span class="go">       [2, 5, 7],</span>
+<span class="go">       [3, 4, 6],</span>
+<span class="go">       [3, 4, 7],</span>
+<span class="go">       [3, 5, 6],</span>
+<span class="go">       [3, 5, 7]])</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.compiled_model">
+<span id="pycalphad-core-compiled-model-module"></span><h2>pycalphad.core.compiled_model module<a class="headerlink" href="#module-pycalphad.core.compiled_model" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.compiled_model.CompiledModel">
+<em class="property">class </em><code class="descclassname">pycalphad.core.compiled_model.</code><code class="descname">CompiledModel</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.afm_factor">
+<code class="descname">afm_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.afm_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.bm_coef_matrix">
+<code class="descname">bm_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.bm_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.bm_coef_symbol_matrix">
+<code class="descname">bm_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.bm_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.components">
+<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.composition_matrices">
+<code class="descname">composition_matrices</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.composition_matrices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.constituents">
+<code class="descname">constituents</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.constituents" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_afm_factor">
+<code class="descname">disordered_afm_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_afm_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_matrix">
+<code class="descname">disordered_bm_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_symbol_matrix">
+<code class="descname">disordered_bm_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_composition_matrices">
+<code class="descname">disordered_composition_matrices</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_composition_matrices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_matrix">
+<code class="descname">disordered_excess_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_symbol_matrix">
+<code class="descname">disordered_excess_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_ihj_magnetic_structure_factor">
+<code class="descname">disordered_ihj_magnetic_structure_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_ihj_magnetic_structure_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_phase_dof">
+<code class="descname">disordered_phase_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_phase_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_matrix">
+<code class="descname">disordered_pure_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_symbol_matrix">
+<code class="descname">disordered_pure_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_site_ratios">
+<code class="descname">disordered_site_ratios</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_site_ratios" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_sublattice_dof">
+<code class="descname">disordered_sublattice_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_sublattice_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_matrix">
+<code class="descname">disordered_tc_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_symbol_matrix">
+<code class="descname">disordered_tc_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix">
+<code class="descname">excess_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.excess_coef_symbol_matrix">
+<code class="descname">excess_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.excess_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.ihj_magnetic_structure_factor">
+<code class="descname">ihj_magnetic_structure_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.ihj_magnetic_structure_factor" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.ordered">
+<code class="descname">ordered</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.ordered" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.phase_dof">
+<code class="descname">phase_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.phase_name">
+<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.pure_coef_matrix">
+<code class="descname">pure_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.pure_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.pure_coef_symbol_matrix">
+<code class="descname">pure_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.pure_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.site_ratios">
+<code class="descname">site_ratios</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.site_ratios" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.sublattice_dof">
+<code class="descname">sublattice_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.sublattice_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.tc_coef_matrix">
+<code class="descname">tc_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.tc_coef_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.tc_coef_symbol_matrix">
+<code class="descname">tc_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.tc_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.vacancy_index">
+<code class="descname">vacancy_index</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.vacancy_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.compiled_model.CompiledModel.variables">
+<code class="descname">variables</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.variables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.composition_set">
+<span id="pycalphad-core-composition-set-module"></span><h2>pycalphad.core.composition_set module<a class="headerlink" href="#module-pycalphad.core.composition_set" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.composition_set.CompositionSet">
+<em class="property">class </em><code class="descclassname">pycalphad.core.composition_set.</code><code class="descname">CompositionSet</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This is the primary object the solver interacts with. It keeps the state of a phase (P, T, y…) at a
+particular solver iteration and can be updated using the update() member function. Every CompositionSet
+has a reference to a particular PhaseRecord which describes the prototype of the phase. These objects
+can be created and destroyed by the solver as needed to describe the stable set of phases. Multiple
+CompositionSets can point to the same PhaseRecord for the case of miscibility gaps. CompositionSets are
+not pickleable. They are used in miscibility gap deteciton.</p>
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.NP">
+<code class="descname">NP</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.NP" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.X">
+<code class="descname">X</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.X" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.dof">
+<code class="descname">dof</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.energy">
+<code class="descname">energy</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.energy" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.grad">
+<code class="descname">grad</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.hess">
+<code class="descname">hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.mass_grad">
+<code class="descname">mass_grad</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.mass_hess">
+<code class="descname">mass_hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.phase_record">
+<code class="descname">phase_record</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.phase_record" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.composition_set.CompositionSet.zero_seen">
+<code class="descname">zero_seen</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.zero_seen" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.constants">
+<span id="pycalphad-core-constants-module"></span><h2>pycalphad.core.constants module<a class="headerlink" href="#module-pycalphad.core.constants" title="Permalink to this headline">¶</a></h2>
+<p>The constants module contains some numerical constants for use
+in the module.
+Note that modifying these may yield unpredictable results.</p>
+</div>
+<div class="section" id="module-pycalphad.core.custom_autowrap">
+<span id="pycalphad-core-custom-autowrap-module"></span><h2>pycalphad.core.custom_autowrap module<a class="headerlink" href="#module-pycalphad.core.custom_autowrap" title="Permalink to this headline">¶</a></h2>
+<p>Module for compiling codegen output, and wrap the binary for use in
+python.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To use the autowrap module it must first be imported</p>
+<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
+</pre></div>
+</div>
+</div>
+<p>This module provides a common interface for different external backends, such
+as f2py, fwrap, Cython, SWIG(?) etc. (Currently only f2py and Cython are
+implemented) The goal is to provide access to compiled binaries of acceptable
+performance with a one-button user interface, i.e.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">-1.0</span>
+</pre></div>
+</div>
+<p>The callable returned from autowrap() is a binary python function, not a
+SymPy object.  If it is desired to use the compiled function in symbolic
+expressions, it is better to use binary_function() which returns a SymPy
+Function object.  The binary callable is attached as the _imp_ attribute and
+invoked when a numerical evaluation is requested with evalf(), or with
+lambdify().</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span>
+<span class="go">y + 2*f(x, y)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">evalf</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">subs</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span><span class="mi">2</span><span class="p">})</span>
+<span class="go">0.e-110</span>
+</pre></div>
+</div>
+<p>The idea is that a SymPy user will primarily be interested in working with
+mathematical expressions, and should not have to learn details about wrapping
+tools in order to evaluate expressions numerically, even if they are
+computationally expensive.</p>
+<p>When is this useful?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>For computations on large arrays, Python iterations may be too slow,
+and depending on the mathematical expression, it may be difficult to
+exploit the advanced index operations provided by NumPy.</li>
+<li>For <em>really</em> long expressions that will be called repeatedly, the
+compiled binary should be significantly faster than SymPy’s .evalf()</li>
+<li>If you are generating code with the codegen utility in order to use
+it in another project, the automatic python wrappers let you test the
+binaries immediately from within SymPy.</li>
+<li>To create customized ufuncs for use with numpy arrays.
+See <em>ufuncify</em>.</li>
+</ol>
+</div></blockquote>
+<p>When is this module NOT the best approach?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>If you are really concerned about speed or memory optimizations,
+you will probably get better results by working directly with the
+wrapper tools and the low level code.  However, the files generated
+by this utility may provide a useful starting point and reference
+code. Temporary files will be left intact if you supply the keyword
+tempdir=”path/to/files/”.</li>
+<li>If the array computation can be handled easily by numpy, and you
+don’t need the binaries for another project.</li>
+</ol>
+</div></blockquote>
+<dl class="class">
+<dt id="pycalphad.core.custom_autowrap.C89CodePrinter">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">C89CodePrinter</code><span class="sig-paren">(</span><em>settings={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#C89CodePrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.C89CodePrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.ccode.C89CodePrinter</span></code></p>
+<p>C89-compatible code printing allows for Windows compatibility.
+(MSVC 14 and newer support C99, but we are going for broad compatibility.)</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.core.custom_autowrap.CodeWrapError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CodeWrapError</code><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CodeWrapError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CodeWrapError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CustomCCodeGen</code><span class="sig-paren">(</span><em>project='project'</em>, <em>printer=None</em>, <em>preprocessor_statements=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.codegen.CCodeGen</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns">
+<code class="descname">dump_fns</code><em class="property"> = [&lt;function CCodeGen.dump_c&gt;, &lt;function CustomCCodeGen.dump_h&gt;]</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.dump_h">
+<code class="descname">dump_h</code><span class="sig-paren">(</span><em>routines</em>, <em>f</em>, <em>prefix</em>, <em>header=True</em>, <em>empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen.dump_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the C header file.</p>
+<p>This file contains all the function declarations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>routines</strong> (<em>list</em>) – A list of Routine instances.</li>
+<li><strong>f</strong> (<em>file-like</em>) – Where to write the file.</li>
+<li><strong>prefix</strong> (<em>string</em>) – The filename prefix, used to construct the include guards.
+Only the basename of the prefix is used.</li>
+<li><strong>header</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a header comment is included on top of each source
+file.  [default : True]</li>
+<li><strong>empty</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, empty lines are included to structure the source
+files.  [default : True]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype">
+<code class="descname">get_prototype</code><span class="sig-paren">(</span><em>routine</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen.get_prototype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string for the function prototype of the routine.</p>
+<p>If the routine has multiple result objects, an CodeGenError is
+raised.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Function_prototype">http://en.wikipedia.org/wiki/Function_prototype</a></p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">
+<em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">ThreadSafeCythonCodeWrapper</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeCythonCodeWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.autowrap.CythonCodeWrapper</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command">
+<code class="descname">command</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.filename">
+<code class="descname">filename</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name">
+<code class="descname">module_name</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func">
+<code class="descname">pyx_func</code><em class="property"> = 'def {name}_c({arg_string}):\n\n{declarations}{body}\ndef get_pointer_c():\n    return PyCapsule_New(&lt;void*&gt;{name}, NULL, NULL)\n'</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header">
+<code class="descname">pyx_header</code><em class="property"> = &quot;cdef extern from '{header_file}.h':\n    {prototype}\n\n&quot;</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports">
+<code class="descname">pyx_imports</code><em class="property"> = 'import numpy as np\ncimport numpy as np\nfrom cpython cimport PyCapsule_New\n\n'</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template">
+<code class="descname">setup_template</code><em class="property"> = &quot;from distutils.core import setup\nfrom distutils.extension import Extension\nfrom Cython.Distutils import build_ext\n{np_import}\nsetup(\n    cmdclass = {{'build_ext': build_ext}},\n    ext_modules = [Extension({ext_args},\n                             extra_compile_args=['-std=c99'])],\n{np_includes}        )&quot;</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code">
+<code class="descname">wrap_code</code><span class="sig-paren">(</span><em>routine</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeCythonCodeWrapper.wrap_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.custom_autowrap.autowrap">
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">autowrap</code><span class="sig-paren">(</span><em>expr</em>, <em>language=None</em>, <em>backend='Cython'</em>, <em>tempdir=None</em>, <em>args=None</em>, <em>flags=None</em>, <em>verbose=False</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#autowrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.autowrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates python callable binaries based on the math expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expr</strong> – The SymPy expression that should be wrapped as a binary routine.</li>
+<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – If supplied, (options: ‘C’ or ‘F95’), specifies the language of the
+generated code. If <code class="docutils literal"><span class="pre">None</span></code> [default], the language is inferred based
+upon the specified backend.</li>
+<li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) – Backend used to wrap the generated code. Either ‘f2py’,
+or ‘cython’ [default].</li>
+<li><strong>tempdir</strong> (<em>string</em><em>, </em><em>optional</em>) – Path to directory for temporary files. If this argument is supplied,
+the generated code and the wrapper input files are left intact in the
+specified path.</li>
+<li><strong>args</strong> (<em>iterable</em><em>, </em><em>optional</em>) – An ordered iterable of symbols. Specifies the argument sequence for the
+function.</li>
+<li><strong>flags</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Additional option flags that will be passed to the backend.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, autowrap will not mute the command line backends. This can be
+helpful for debugging.</li>
+<li><strong>helpers</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Used to define auxillary expressions needed for the main expr. If the
+main expression needs to call a specialized function it should be put
+in the <code class="docutils literal"><span class="pre">helpers</span></code> iterable. Autowrap will then make sure that the
+compiled main expression can link to the helper routine. Items should
+be tuples with (&lt;funtion_name&gt;, &lt;sympy_expression&gt;, &lt;arguments&gt;). It
+is mandatory to supply an argument sequence to helper routines.</li>
+<li><strong>from sympy.abc import x</strong><strong>, </strong><strong>y</strong><strong>, </strong><strong>z</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>from sympy.utilities.autowrap import autowrap</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>expr =</strong><strong> (</strong><strong>(</strong><strong>x - y + z</strong><strong>)</strong><strong>**</strong><strong>(</strong><strong>13</strong><strong>)</strong><strong>)</strong><strong>expand</strong><strong>(</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>binary_func = autowrap</strong><strong>(</strong><strong>expr</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>binary_func</strong><strong>(</strong><strong>1</strong><strong>, </strong><strong>4</strong><strong>, </strong><strong>2</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>-1.0</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.custom_autowrap.binary_function">
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">binary_function</code><span class="sig-paren">(</span><em>symfunc</em>, <em>expr</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#binary_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.binary_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a sympy function with expr as binary implementation</p>
+<p>This is a convenience function that automates the steps needed to
+autowrap the SymPy expression and attaching it to a Function object
+with implemented_function().</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">&lt;class &#39;sympy.core.function.UndefinedFunction&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="go">2*f(x, y)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">evalf</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">subs</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+<span class="go">-1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.custom_autowrap.get_code_generator">
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">get_code_generator</code><span class="sig-paren">(</span><em>language</em>, <em>project</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#get_code_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.get_code_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.custom_autowrap.import_extension">
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">import_extension</code><span class="sig-paren">(</span><em>path</em>, <em>modname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#import_extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.import_extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.custom_autowrap.make_routine">
+<code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">make_routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence=None</em>, <em>global_vars=None</em>, <em>language='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#make_routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.make_routine" title="Permalink to this definition">¶</a></dt>
+<dd><p>A factory that makes an appropriate Routine from an expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – The name of this routine in the generated code.</li>
+<li><strong>expr</strong> (<em>expression</em><em> or </em><em>list/tuple of expressions</em>) – A SymPy expression that the Routine instance will represent.  If
+given a list or tuple of expressions, the routine will be
+considered to have multiple return values and/or output arguments.</li>
+<li><strong>argument_sequence</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – List arguments for the routine in a preferred order.  If omitted,
+the results are language dependent, for example, alphabetical order
+or in the same order as the given expressions.</li>
+<li><strong>global_vars</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Sequence of global variables used by the routine.  Variables
+listed here will not show up as function arguments.</li>
+<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – Specify a target language.  The Routine itself should be
+language-agnostic but the precise way one is created, error
+checking, etc depend on the language.  [default: “F95”].</li>
+<li><strong>decision about whether to use output arguments</strong><strong> or </strong><strong>return values is made</strong> (<em>A</em>) – </li>
+<li><strong>on both the language and the particular mathematical expressions.</strong> (<em>depending</em>) – </li>
+<li><strong>an expression of type Equality</strong><strong>, </strong><strong>the left hand side is typically made</strong> (<em>For</em>) – </li>
+<li><strong>an OutputArgument</strong><strong> (or </strong><strong>perhaps an InOutArgument if appropriate</strong><strong>)</strong><strong></strong> (<em>into</em>) – </li>
+<li><strong>typically</strong><strong>, </strong><strong>the calculated expression is made a return values of</strong> (<em>Otherwise</em><em>,</em>) – </li>
+<li><strong>routine.</strong> (<em>the</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">make_routine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Eq</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">result_var</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>
+<span class="go">[x, y, f, g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">result_variables</span><span class="p">]</span>
+<span class="go">[f, g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">local_vars</span>
+<span class="go">set()</span>
+</pre></div>
+</div>
+<p>Another more complicated example with a mixture of specified and
+automatically-assigned names.  Also has Matrix output.</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;fcn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">g</span><span class="p">),</span> <span class="n">Matrix</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">result_var</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>  
+<span class="go">[result_5397460570204848505]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="go">[x*y]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>  
+<span class="go">[x, y, f, g, out_8598435338387848786]</span>
+</pre></div>
+</div>
+<p>We can examine the various arguments more closely:</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">InputArgument</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span>
+<span class="gp">... </span>                                     <span class="n">InOutArgument</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InputArgument</span><span class="p">)]</span>
+<span class="go">[x, y]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>  
+<span class="go">[f, out_8598435338387848786]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>
+<span class="go">[1, Matrix([[x, 2]])]</span>
+</pre></div>
+</div>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
+<span class="go">[g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
+<span class="go">[g + x]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.eqsolver">
+<span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.core.equilibrium">
+<span id="pycalphad-core-equilibrium-module"></span><h2>pycalphad.core.equilibrium module<a class="headerlink" href="#module-pycalphad.core.equilibrium" title="Permalink to this headline">¶</a></h2>
+<p>The equilibrium module defines routines for interacting with
+calculated phase equilibria.</p>
+<dl class="exception">
+<dt id="pycalphad.core.equilibrium.ConditionError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">ConditionError</code><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#ConditionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.ConditionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.equilibrium.EquilibriumError" title="pycalphad.core.equilibrium.EquilibriumError"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.core.equilibrium.EquilibriumError</span></code></a></p>
+<p>Exception related to equilibrium conditions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.core.equilibrium.EquilibriumError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">EquilibriumError</code><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#EquilibriumError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.EquilibriumError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<p>Exception related to calculation of equilibrium.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.equilibrium.equilibrium">
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<dd><p>Calculate the equilibrium state of a system containing the specified
+components and phases, under the specified conditions.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
+<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
+<li><strong>phases</strong> (<em>list</em><em> or </em><em>dict</em>) – Names of phases to consider in the calculation.</li>
+<li><strong>conditions</strong> (<em>dict</em><em> or </em><em>(</em><em>list of dict</em><em>)</em>) – StateVariables and their corresponding value.</li>
+<li><strong>output</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em>) – Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
+These must be defined as attributes in the Model class of each phase.</li>
+<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print details of calculations. Useful for debugging.</li>
+<li><strong>broadcast</strong> (<em>bool</em>) – If True, broadcast conditions against each other. This will compute all combinations.
+If False, each condition should be an equal-length list (or single-valued).
+Disabling broadcasting is useful for calculating equilibrium at selected conditions,
+when those conditions don’t comprise a grid.</li>
+<li><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
+<li><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
+If None, return a Dask graph of the computation instead of actually doing it.</li>
+<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Structured equilibrium calculation, or Dask graph if scheduler=None.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.halton">
+<span id="pycalphad-core-halton-module"></span><h2>pycalphad.core.halton module<a class="headerlink" href="#module-pycalphad.core.halton" title="Permalink to this headline">¶</a></h2>
+<p>The halton module allows the construction of multi-dimensional
+scrambled Halton sequences.</p>
+<dl class="function">
+<dt id="pycalphad.core.halton.halton">
+<code class="descclassname">pycalphad.core.halton.</code><code class="descname">halton</code><span class="sig-paren">(</span><em>dim</em>, <em>nbpts</em>, <em>primes=None</em>, <em>scramble=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/halton.html#halton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.halton.halton" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generate a multi-dimensional Halton sequence.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dim</strong> (<em>int</em>) – Number of dimensions in the sequence.</li>
+<li><strong>nbpts</strong> (<em>int</em>) – Number of points along each dimension.</li>
+<li><strong>primes</strong> (<em>sequence</em><em>, </em><em>optional</em>) – A sequence of at least ‘dim’ prime numbers.</li>
+<li><strong>scramble</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray of shape (nbpts, dim)</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.hyperplane">
+<span id="pycalphad-core-hyperplane-module"></span><h2>pycalphad.core.hyperplane module<a class="headerlink" href="#module-pycalphad.core.hyperplane" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pycalphad.core.hyperplane.hyperplane">
+<code class="descclassname">pycalphad.core.hyperplane.</code><code class="descname">hyperplane</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.hyperplane.hyperplane" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find chemical potentials which approximate the tangent hyperplane
+at the given composition.
+:param compositions: A sample of the energy surface of the system.</p>
+<blockquote>
+<div>Aligns with ‘energies’.
+Shape of (M, N)</div></blockquote>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>energies</strong> (<em>ndarray</em>) – A sample of the energy surface of the system.
+Aligns with ‘compositions’.
+Shape of (M,)</li>
+<li><strong>composition</strong> (<em>ndarray</em>) – Target composition for the hyperplane.
+Shape of (N,)</li>
+<li><strong>chemical_potentials</strong> (<em>ndarray</em>) – Shape of (N,)
+Will be overwritten</li>
+<li><strong>result_fractions</strong> (<em>ndarray</em>) – Shape of (N,)
+Will be overwritten</li>
+<li><strong>best_guess_simplex</strong> (<em>ndarray</em>) – Shape of (N,)
+Will be overwritten</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out_energy</strong> – Energy of the output configuration.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.lower_convex_hull">
+<span id="pycalphad-core-lower-convex-hull-module"></span><h2>pycalphad.core.lower_convex_hull module<a class="headerlink" href="#module-pycalphad.core.lower_convex_hull" title="Permalink to this headline">¶</a></h2>
+<p>The lower_convex_hull module handles geometric calculations associated with
+equilibrium calculation.</p>
+<dl class="function">
+<dt id="pycalphad.core.lower_convex_hull.lower_convex_hull">
+<code class="descclassname">pycalphad.core.lower_convex_hull.</code><code class="descname">lower_convex_hull</code><span class="sig-paren">(</span><em>global_grid</em>, <em>result_array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/lower_convex_hull.html#lower_convex_hull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.lower_convex_hull.lower_convex_hull" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find the simplices on the lower convex hull satisfying the specified
+conditions in the result array.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>global_grid</strong> (<em>Dataset</em>) – A sample of the energy surface of the system.</li>
+<li><strong>result_array</strong> (<em>Dataset</em>) – This object will be modified!
+Coordinates correspond to conditions axes.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None. Results are written to result_array.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>This routine will not check if any simplex is degenerate.
+Degenerate simplices will manifest with duplicate or NaN indices.</p>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.phase_rec">
+<span id="pycalphad-core-phase-rec-module"></span><h2>pycalphad.core.phase_rec module<a class="headerlink" href="#module-pycalphad.core.phase_rec" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.phase_rec.PhaseRecord">
+<em class="property">class </em><code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>This object exposes a common API to the solver so it doesn’t need to know about the differences
+between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
+these objects are pickleable. PhaseRecords are immutable after initialization.</p>
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.composition_matrices">
+<code class="descname">composition_matrices</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.composition_matrices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.grad">
+<code class="descname">grad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.hess">
+<code class="descname">hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.mass_grad">
+<code class="descname">mass_grad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.mass_hess">
+<code class="descname">mass_hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.mass_obj">
+<code class="descname">mass_obj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.num_sites">
+<code class="descname">num_sites</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_sites" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.obj">
+<code class="descname">obj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.parameters">
+<code class="descname">parameters</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.parameters" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.phase_dof">
+<code class="descname">phase_dof</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.phase_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.phase_name">
+<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.phase_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.sublattice_dof">
+<code class="descname">sublattice_dof</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.sublattice_dof" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.vacancy_index">
+<code class="descname">vacancy_index</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.vacancy_index" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.variables">
+<code class="descname">variables</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.variables" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.phase_rec.PhaseRecord_from_compiledmodel">
+<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_compiledmodel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_compiledmodel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython">
+<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle">
+<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython_pickle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.problem">
+<span id="pycalphad-core-problem-module"></span><h2>pycalphad.core.problem module<a class="headerlink" href="#module-pycalphad.core.problem" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.problem.Problem">
+<em class="property">class </em><code class="descclassname">pycalphad.core.problem.</code><code class="descname">Problem</code><a class="headerlink" href="#pycalphad.core.problem.Problem" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.cl">
+<code class="descname">cl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.components">
+<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.problem.Problem.components" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.composition_sets">
+<code class="descname">composition_sets</code><a class="headerlink" href="#pycalphad.core.problem.Problem.composition_sets" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.conditions">
+<code class="descname">conditions</code><a class="headerlink" href="#pycalphad.core.problem.Problem.conditions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.constraints">
+<code class="descname">constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.cu">
+<code class="descname">cu</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.gradient">
+<code class="descname">gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.gradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.jacobian">
+<code class="descname">jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.jacobian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_constraints">
+<code class="descname">num_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_phases">
+<code class="descname">num_phases</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_phases" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_vars">
+<code class="descname">num_vars</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.objective">
+<code class="descname">objective</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.objective" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.pressure">
+<code class="descname">pressure</code><a class="headerlink" href="#pycalphad.core.problem.Problem.pressure" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.temperature">
+<code class="descname">temperature</code><a class="headerlink" href="#pycalphad.core.problem.Problem.temperature" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.x0">
+<code class="descname">x0</code><a class="headerlink" href="#pycalphad.core.problem.Problem.x0" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.xl">
+<code class="descname">xl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.xl" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.xu">
+<code class="descname">xu</code><a class="headerlink" href="#pycalphad.core.problem.Problem.xu" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.rksum">
+<span id="pycalphad-core-rksum-module"></span><h2>pycalphad.core.rksum module<a class="headerlink" href="#module-pycalphad.core.rksum" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.rksum.RedlichKisterSum">
+<em class="property">class </em><code class="descclassname">pycalphad.core.rksum.</code><code class="descname">RedlichKisterSum</code><span class="sig-paren">(</span><em>comps</em>, <em>phase</em>, <em>param_search</em>, <em>param_query</em>, <em>param_symbols</em>, <em>all_symbols</em>, <em>variable_rename_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="staticmethod">
+<dt id="pycalphad.core.rksum.RedlichKisterSum.symbol_replace">
+<em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>obj</em>, <em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum.symbol_replace" title="Permalink to this definition">¶</a></dt>
+<dd><p>Substitute values of symbols into ‘obj’.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>obj</strong> (<em>SymPy object</em>) – </li>
+<li><strong>symbols</strong> (<em>dict mapping sympy.Symbol to SymPy object</em>) – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">SymPy object</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.rksum.build_piecewise_matrix">
+<code class="descclassname">pycalphad.core.rksum.</code><code class="descname">build_piecewise_matrix</code><span class="sig-paren">(</span><em>sympy_obj</em>, <em>cur_exponents</em>, <em>low_temp</em>, <em>high_temp</em>, <em>output_matrix</em>, <em>symbol_matrix</em>, <em>param_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#build_piecewise_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.build_piecewise_matrix" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.solver">
+<span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.solver.InteriorPointSolver">
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">InteriorPointSolver</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pycalphad.core.solver.InteriorPointSolver.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.solver.SolverResult">
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">SolverResult</code><span class="sig-paren">(</span><em>converged</em>, <em>x</em>, <em>chemical_potentials</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.solver.SolverResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.chemical_potentials">
+<code class="descname">chemical_potentials</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.chemical_potentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.converged">
+<code class="descname">converged</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.converged" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.SolverResult.x">
+<code class="descname">x</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.x" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.sympydiff_utils">
+<span id="pycalphad-core-sympydiff-utils-module"></span><h2>pycalphad.core.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.core.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
+<p>This module constructs gradient functions for Models.</p>
+<dl class="class">
+<dt id="pycalphad.core.sympydiff_utils.AutowrapFunction">
+<em class="property">class </em><code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">AutowrapFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#AutowrapFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.AutowrapFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.sympydiff_utils.PickleableFunction" title="pycalphad.core.sympydiff_utils.PickleableFunction"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.core.sympydiff_utils.PickleableFunction</span></code></a></p>
+<dl class="method">
+<dt id="pycalphad.core.sympydiff_utils.AutowrapFunction.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#AutowrapFunction.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.AutowrapFunction.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.sympydiff_utils.PickleableFunction">
+<em class="property">class </em><code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">PickleableFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#PickleableFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.PickleableFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<p>A compiled function that is recompiled when unpickled.
+This works around several issues with sending JIT’d functions over the wire.
+This approach means only the underlying SymPy object must be pickleable.
+This also means multiprocessing using fork() will NOT force a recompile.</p>
+<dl class="method">
+<dt id="pycalphad.core.sympydiff_utils.PickleableFunction.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#PickleableFunction.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.PickleableFunction.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.sympydiff_utils.PickleableFunction.kernel">
+<code class="descname">kernel</code><a class="headerlink" href="#pycalphad.core.sympydiff_utils.PickleableFunction.kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.sympydiff_utils.build_functions">
+<code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=True</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sympy_graph</strong> – </li>
+<li><strong>variables</strong> (<em>tuple of Symbols</em>) – Input arguments.</li>
+<li><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</li>
+<li><strong>include_obj</strong> – </li>
+<li><strong>include_grad</strong> – </li>
+<li><strong>include_hess</strong> – </li>
+<li><strong>parameters</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">One or more functions.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.sympydiff_utils.chunks">
+<code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">chunks</code><span class="sig-paren">(</span><em>l</em>, <em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#chunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.chunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield successive n-sized chunks from l.
+Source: <a class="reference external" href="http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python">http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.utils">
+<span id="pycalphad-core-utils-module"></span><h2>pycalphad.core.utils module<a class="headerlink" href="#module-pycalphad.core.utils" title="Permalink to this headline">¶</a></h2>
+<p>The utils module handles helper routines for equilibrium calculation.</p>
+<dl class="function">
+<dt id="pycalphad.core.utils.endmember_matrix">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">endmember_matrix</code><span class="sig-paren">(</span><em>dof</em>, <em>vacancy_indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#endmember_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.endmember_matrix" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accept the number of components in each sublattice.
+Return a matrix corresponding to the compositions of all endmembers.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</li>
+<li><strong>list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
+in each sublattice to ensure the “pure vacancy” endmember is excluded.</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>Sublattice configuration like: <cite>(AL, NI, VA):(AL, NI, VA):(VA)</cite>
+&gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.filter_phases">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">filter_phases</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#filter_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.filter_phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return phases that are valid for equilibrium calculations for the given database and components</p>
+<p>Filters out phases that
+* Have no active components in any sublattice of a phase
+* Are disordered phases in an order-disorder model</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
+<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Sorted list of phases that are valid for the Database and components</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.generate_dof">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">generate_dof</code><span class="sig-paren">(</span><em>phase</em>, <em>active_comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#generate_dof"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.generate_dof" title="Permalink to this definition">¶</a></dt>
+<dd><p>Accept a Phase object and a set() of the active components.
+Return a tuple of variable names and the sublattice degrees of freedom.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.make_callable">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">make_callable</code><span class="sig-paren">(</span><em>model</em>, <em>variables</em>, <em>mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#make_callable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.make_callable" title="Permalink to this definition">¶</a></dt>
+<dd><p>Take a SymPy object and create a callable function.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>SymPy object</strong> (<a class="reference internal" href="pycalphad.html#module-pycalphad.model" title="pycalphad.model"><em>model</em></a><em>,</em>) – Abstract representation of function</li>
+<li><strong>list</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model.variables" title="pycalphad.model.Model.variables"><em>variables</em></a><em>,</em>) – Input variables, ordered in the way the return function will expect</li>
+<li><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em>) – Method to use when ‘compiling’ the function. SymPy mode is
+slow and should only be used for debugging. If Numba is installed,
+it can offer speed-ups when calling the energy function many
+times on multi-core CPUs.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
+<li><em>Function that takes arguments in the same order as ‘variables’</em></li>
+<li><em>and returns the energy according to ‘model’.</em></li>
+</ul>
+</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<p>None yet.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.point_sample">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">point_sample</code><span class="sig-paren">(</span><em>comp_count</em>, <em>pdof=10</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#point_sample"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.point_sample" title="Permalink to this definition">¶</a></dt>
+<dd><p>Sample ‘pdof * (sum(comp_count) - len(comp_count))’ points in
+composition space for the sublattice configuration specified
+by ‘comp_count’. Points are sampled quasi-randomly from a Halton sequence.
+A Halton sequence is like a uniform random distribution, but the
+result will always be the same for a given ‘comp_count’ and ‘pdof’.
+Note: For systems with only one component, only one point will be
+returned, regardless of ‘pdof’. This is because the degrees of freedom
+are zero for that case.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>comp_count</strong> (<em>list</em>) – Number of components in each sublattice.</li>
+<li><strong>pdof</strong> (<em>int</em>) – Number of points to sample per degree of freedom.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray of generated points satisfying the mass balance.</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 8 components in sublattice 1; only 1 in sublattice 2</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">point_sample</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 7 d.o.f, returns a 140x7 ndarray</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.sizeof_fmt">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">sizeof_fmt</code><span class="sig-paren">(</span><em>num</em>, <em>suffix='B'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#sizeof_fmt"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.sizeof_fmt" title="Permalink to this definition">¶</a></dt>
+<dd><p>Human-readable string for a number of bytes.
+<a class="reference external" href="http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size">http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size</a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.unpack_condition">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_condition</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_condition" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a condition to a list of values.</p>
+<p class="rubric">Notes</p>
+<p>Rules for keys of conditions dicts:
+(1) If it’s numeric, treat as a point value
+(2) If it’s a tuple with one element, treat as a point value
+(3) If it’s a tuple with two elements, treat as lower/upper limits and guess a step size.
+(4) If it’s a tuple with three elements, treat as lower/upper/step
+(5) If it’s a list, ndarray or other non-tuple ordered iterable, use those values directly.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.unpack_kwarg">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_kwarg</code><span class="sig-paren">(</span><em>kwarg_obj</em>, <em>default_arg=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_kwarg"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_kwarg" title="Permalink to this definition">¶</a></dt>
+<dd><p>Keyword arguments in pycalphad can be passed as a constant value, a
+dict of phase names and values, or a list containing both of these. If
+the latter, then the dict is checked first; if the phase of interest is not
+there, then the constant value is used.</p>
+<p>This function is a way to construct defaultdicts out of keyword arguments.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>kwarg_obj</strong> (<em>dict</em><em>, </em><em>iterable</em><em>, or </em><em>None</em>) – Argument to unpack into a defaultdict</li>
+<li><strong>default_arg</strong> (<em>object</em>) – Default value to use if iterable isn’t specified</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">defaultdict for the keyword argument of interest</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">unpack_kwarg</span><span class="p">(</span><span class="s1">&#39;opt&#39;</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;BCC_B2&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">},</span> <span class="mi">200</span><span class="p">])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func2</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">unpack_kwarg</span><span class="p">(</span><span class="s1">&#39;opt&#39;</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">test_func2</span><span class="p">()</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.unpack_phases">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_phases</code><span class="sig-paren">(</span><em>phases</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Convert a phases list/dict into a sorted list.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.core" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           <div class="articleComments">
+            
+           </div>
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pycalphad.io.html" class="btn btn-neutral float-right" title="pycalphad.io package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pycalphad.html" class="btn btn-neutral" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team.
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/snide/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    <script type="text/javascript">
+        var DOCUMENTATION_OPTIONS = {
+            URL_ROOT:'../',
+            VERSION:'0.6.1',
+            COLLAPSE_INDEX:false,
+            FILE_SUFFIX:'.html',
+            HAS_SOURCE:  true,
+            SOURCELINK_SUFFIX: '.txt'
+        };
+    </script>
+      <script type="text/javascript" src="../_static/jquery.js"></script>
+      <script type="text/javascript" src="../_static/underscore.js"></script>
+      <script type="text/javascript" src="../_static/doctools.js"></script>
+      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+
+  
+
+  
+  
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+  
+
+  
+  
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.StickyNav.enable();
+      });
+  </script>
+   
+
+</body>
+</html>
