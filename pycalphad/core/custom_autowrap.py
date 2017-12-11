@@ -70,9 +70,14 @@ try:
     from sympy.utilities.codegen import CCodePrinter
 except ImportError:
     from sympy.printing.ccode import C89CodePrinter as CCodePrinter
-from sympy.utilities.codegen import (AssignmentError, OutputArgument, ResultBase,
-                                     Result, CodeGenArgumentListError,
-                                     CCodeGen, Variable)
+from sympy.utilities.codegen import (AssignmentError, InOutArgument, InputArgument, OutputArgument,
+                                     ResultBase, Result, CodeGenArgumentListError,
+                                     CCodeGen, CodeGenError, Routine, Variable)
+from sympy.core import Symbol, S, Tuple, Equality
+from sympy.core.compatibility import is_sequence
+from sympy.tensor import Idx, Indexed, IndexedBase
+from sympy.matrices import (MatrixSymbol, ImmutableMatrix, MatrixBase,
+                            MatrixExpr, MatrixSlice)
 from sympy.utilities.lambdify import implemented_function
 from sympy.utilities.autowrap import CythonCodeWrapper, DummyWrapper
 from subprocess import STDOUT, CalledProcessError, check_output
@@ -275,6 +280,137 @@ class CustomCCodeGen(CCodeGen):
     dump_h.extension = CCodeGen.interface_extension
 
     dump_fns = [CCodeGen.dump_c, dump_h]
+
+    def routine(self, name, expr, argument_sequence, global_vars):
+        """Creates an Routine object that is appropriate for this language.
+
+        This implementation is appropriate for at least C/Fortran.  Subclasses
+        can override this if necessary.
+
+        Here, we assume at most one return value (the l-value) which must be
+        scalar.  Additional outputs are OutputArguments (e.g., pointers on
+        right-hand-side or pass-by-reference).  Matrices are always returned
+        via OutputArguments.  If ``argument_sequence`` is None, arguments will
+        be ordered alphabetically, but with all InputArguments first, and then
+        OutputArgument and InOutArguments.
+
+        """
+
+        if is_sequence(expr) and not isinstance(expr, (MatrixBase, MatrixExpr)):
+            if not expr:
+                raise ValueError("No expression given")
+            expressions = Tuple(*expr)
+        else:
+            expressions = Tuple(expr)
+
+        expr_free_symbols = expressions.free_symbols
+
+        # local variables
+        local_vars = {i.label for i in expr_free_symbols if isinstance(i, Idx)}
+
+        # global variables
+        global_vars = set() if global_vars is None else set(global_vars)
+
+        # symbols that should be arguments
+        symbols = expr_free_symbols - local_vars - global_vars
+        new_symbols = set([])
+        new_symbols.update(symbols)
+
+        for symbol in symbols:
+            if isinstance(symbol, Idx):
+                new_symbols.remove(symbol)
+                new_symbols.update(symbol.args[1].free_symbols)
+        symbols = new_symbols
+
+        # Decide whether to use output argument or return value
+        return_val = []
+        output_args = []
+        for expr in expressions:
+            if isinstance(expr, Equality):
+                out_arg = expr.lhs
+                expr = expr.rhs
+                if isinstance(out_arg, Indexed):
+                    dims = tuple([ (S.Zero, dim - 1) for dim in out_arg.shape])
+                    symbol = out_arg.base.label
+                elif isinstance(out_arg, Symbol):
+                    dims = []
+                    symbol = out_arg
+                elif isinstance(out_arg, MatrixSymbol):
+                    dims = tuple([ (S.Zero, dim - 1) for dim in out_arg.shape])
+                    symbol = out_arg
+                else:
+                    raise CodeGenError("Only Indexed, Symbol, or MatrixSymbol "
+                                       "can define output arguments.")
+
+                if expr.has(symbol):
+                    output_args.append(
+                        InOutArgument(symbol, out_arg, expr, dimensions=dims))
+                else:
+                    output_args.append(
+                        OutputArgument(symbol, out_arg, expr, dimensions=dims))
+
+                # avoid duplicate arguments
+                symbols.remove(symbol)
+            elif isinstance(expr, (ImmutableMatrix, MatrixSlice)):
+                # Create a "dummy" MatrixSymbol to use as the Output arg
+                out_arg = MatrixSymbol('out_%s' % abs(hash(expr)), *expr.shape)
+                dims = tuple([(S.Zero, dim - 1) for dim in out_arg.shape])
+                output_args.append(
+                    OutputArgument(out_arg, out_arg, expr, dimensions=dims))
+            else:
+                return_val.append(Result(expr))
+
+        arg_list = []
+
+        # setup input argument list
+        array_symbols = {}
+        for array in [i for i in expr_free_symbols if isinstance(i, Indexed)]:
+            array_symbols[array.base.label] = array
+        for array in [i for i in expr_free_symbols if isinstance(i, MatrixSymbol)]:
+            array_symbols[array] = array
+
+        for symbol in sorted(symbols, key=str):
+            if symbol in array_symbols:
+                dims = []
+                array = array_symbols[symbol]
+                for dim in array.shape:
+                    dims.append((S.Zero, dim - 1))
+                metadata = {'dimensions': dims}
+            else:
+                metadata = {}
+
+            arg_list.append(InputArgument(symbol, **metadata))
+
+        output_args.sort(key=lambda x: str(x.name))
+        arg_list.extend(output_args)
+
+        if argument_sequence is not None:
+            # if the user has supplied IndexedBase instances, we'll accept that
+            new_sequence = []
+            for arg in argument_sequence:
+                if isinstance(arg, IndexedBase):
+                    new_sequence.append(arg.label)
+                else:
+                    new_sequence.append(arg)
+            argument_sequence = new_sequence
+
+            missing = [x for x in arg_list if x.name not in argument_sequence]
+            if missing:
+                msg = "Argument list didn't specify: {0} "
+                msg = msg.format(", ".join([str(m.name) for m in missing]))
+                raise CodeGenArgumentListError(msg, missing)
+
+            # create redundant arguments to produce the requested sequence
+            name_arg_dict = {x.name: x for x in arg_list}
+            new_args = []
+            for symbol in argument_sequence:
+                try:
+                    new_args.append(name_arg_dict[symbol])
+                except KeyError:
+                    new_args.append(InputArgument(symbol))
+            arg_list = new_args
+
+        return Routine(name, arg_list, return_val, local_vars, global_vars)
 
 
 class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
