@@ -73,6 +73,8 @@ except ImportError:
 from sympy.utilities.codegen import (AssignmentError, InOutArgument, InputArgument, OutputArgument,
                                      ResultBase, Result, CodeGenArgumentListError,
                                      CCodeGen, CodeGenError, Routine, Variable)
+from sympy.codegen.ast import Assignment
+from sympy.printing.precedence import precedence
 from sympy.core import Symbol, S, Tuple, Equality
 from sympy.core.compatibility import is_sequence
 from sympy.tensor import Idx, Indexed, IndexedBase
@@ -142,6 +144,8 @@ class C89CodePrinter(CCodePrinter):
     C89-compatible code printing allows for Windows compatibility.
     (MSVC 14 and newer support C99, but we are going for broad compatibility.)
     """
+    order = 'none'
+
     def _get_loop_opening_ending(self, indices):
         # The purpose is to enable C89-compliant loops (indices are pre-declared)
         open_lines = []
@@ -155,6 +159,7 @@ class C89CodePrinter(CCodePrinter):
                 'end': self._print(i.upper + 1)})
             close_lines.append("}")
         return open_lines, close_lines
+
 
 class CustomCCodeGen(CCodeGen):
     def get_prototype(self, routine):
