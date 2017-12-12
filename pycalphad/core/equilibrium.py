@@ -267,7 +267,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
                 for undef in undefs:
                     out = out.xreplace({undef: float(0)})
-                cf, gf, hf = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols)
+                cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
+                                         parameters=param_symbols, include_hess=False)
+                hf = None
                 if callable_dict.get(name, None) is None:
                     callable_dict[name] = cf
                 if grad_callable_dict.get(name, None) is None:
