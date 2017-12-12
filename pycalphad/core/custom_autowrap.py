@@ -160,6 +160,8 @@ class C89CodePrinter(CCodePrinter):
             close_lines.append("}")
         return open_lines, close_lines
 
+    _print_ComplexInfinity = CCodePrinter._print_Infinity
+
 
 class CustomCCodeGen(CCodeGen):
     def get_prototype(self, routine):
