@@ -48,7 +48,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
         else:
-            self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
+            if self.cmpmdl is not None:
+                self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
