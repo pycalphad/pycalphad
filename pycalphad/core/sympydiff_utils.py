@@ -143,18 +143,17 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
     if include_grad or include_hess:
         diffargs = (inp_nobroadcast, params)
-        # Replacing zoo's is necessary because sympy's CCodePrinter doesn't handle them
+        nobroadcast = dict(zip(variables+parameters, args_nobroadcast))
+        sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast)
         with CompileLock:
-            grad_diffs = list(sympy_graph.diff(i).xreplace({zoo: oo}).xreplace(dict(zip(variables+parameters,
-                                                                                        args_nobroadcast))) for i in wrt)
+            grad_diffs = list(sympy_graph_nobroadcast.diff(nobroadcast[i]) for i in wrt)
         hess_diffs = []
-        # Chunking is necessary to work around NPY_MAXARGS limit in ufuncs, see numpy/numpy#4398
         if include_hess:
             with CompileLock:
                 for i in range(len(wrt)):
                     gdiff = sympy_graph.diff(wrt[i])
-                    hess_diffs.append([gdiff.diff(wrt[j]).xreplace({zoo: oo}).xreplace(dict(zip(variables+parameters,
-                                                                                                args_nobroadcast)))
+                    hess_diffs.append([gdiff.diff(wrt[j]).xreplace(dict(zip(variables+parameters,
+                                                                            args_nobroadcast)))
                                        for j in range(len(wrt))])
             hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
         if include_grad:
