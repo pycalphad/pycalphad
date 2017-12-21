@@ -302,6 +302,10 @@ class CustomCCodeGen(CCodeGen):
         be ordered alphabetically, but with all InputArguments first, and then
         OutputArgument and InOutArguments.
 
+        This implementation is almost the same as the CodeGen class, but
+        expensive calls to Basic.atoms() have been replaced with
+        cheaper equivalents.
+
         """
 
         if is_sequence(expr) and not isinstance(expr, (MatrixBase, MatrixExpr)):
