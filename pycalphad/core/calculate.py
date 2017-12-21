@@ -412,7 +412,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                     out = out.xreplace({undef: float(0)})
                     warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
                 comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                        include_obj=True, include_grad=False, include_hess=False,
+                                                        include_obj=True, include_grad=False,
                                                         parameters=param_symbols)
             else:
                 comp_sets[phase_name] = callable_dict[phase_name]

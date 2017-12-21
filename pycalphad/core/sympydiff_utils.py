@@ -82,7 +82,7 @@ class AutowrapFunction(PickleableFunction):
 
 
 @cacheit
-def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=True,
+def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True,
                     parameters=None):
     """
 
@@ -95,7 +95,6 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         Variables to differentiate with respect to. (Default: equal to variables)
     include_obj
     include_grad
-    include_hess
     parameters
 
     Returns
@@ -141,28 +140,17 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     args = [y, inp, params, m]
     if include_obj:
         restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
-    if include_grad or include_hess:
+    if include_grad:
         diffargs = (inp_nobroadcast, params)
         nobroadcast = dict(zip(variables+parameters, args_nobroadcast))
         sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast)
         with CompileLock:
             grad_diffs = list(sympy_graph_nobroadcast.diff(nobroadcast[i]) for i in wrt)
-        hess_diffs = []
-        if include_hess:
-            with CompileLock:
-                for i in range(len(wrt)):
-                    gdiff = sympy_graph.diff(wrt[i])
-                    hess_diffs.append([gdiff.diff(wrt[j]).xreplace(dict(zip(variables+parameters,
-                                                                            args_nobroadcast)))
-                                       for j in range(len(wrt))])
-            hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
         if include_grad:
             grad = AutowrapFunction(diffargs, ImmutableMatrix(grad_diffs))
 
         if include_grad:
             restup.append(grad)
-        if include_hess:
-            restup.append(hess)
     if len(restup) == 1:
         return restup[0]
     else:
