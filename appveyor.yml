@@ -2,8 +2,6 @@
 # This file was based on Olivier Grisel's python-appveyor-demo
 
 environment:
-  global:
-    WITH_COMPILER: "cmd /E:ON /V:ON /C ci\\with-compiler.cmd"
   matrix:
     - PYTHON: "C:\\Python27-conda32"
       PYTHON_VERSION: "2.7"
@@ -46,4 +44,4 @@ install:
 build: false
 
 test_script:
-  - "%WITH_COMPILER% python -c \"import nose ; nose.main()\" -s -v pycalphad"
+  - "python -c \"import nose ; nose.main()\" -s -v pycalphad"
