@@ -161,6 +161,7 @@ class C89CodePrinter(CCodePrinter):
         return open_lines, close_lines
 
     _print_ComplexInfinity = CCodePrinter._print_Infinity
+    _print_NegativeComplexInfinity = CCodePrinter._print_NegativeInfinity
 
 
 class CustomCCodeGen(CCodeGen):
