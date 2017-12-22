@@ -27,7 +27,7 @@ install:
   # Check that we have the expected version and architecture for Python
   - "python --version"
   - "python -c \"import struct; print(struct.calcsize('P') * 8)\""
-  - "conda install --yes --quiet conda"
+  - "conda install --yes --quiet conda=4.3"
   - "conda config --system --add pinned_packages defaults::conda"
   - "conda -V"
   - "conda create --yes -n condaenv python=%PYTHON_VERSION%"
