@@ -26,6 +26,9 @@ class InteriorPointSolver(object):
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
         nlp.addOption(b'print_level', 0)
+        if not self.verbose:
+            # suppress the "This program contains Ipopt" banner
+            nlp.addOption(b'sb', b'yes')
         nlp.addOption(b'tol', 1e-1)
         nlp.addOption(b'constr_viol_tol', 1e-12)
         # This option improves convergence when using L-BFGS
