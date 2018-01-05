@@ -7,6 +7,7 @@ from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
 import os
+from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
 try:
     # Python 2
@@ -452,7 +453,7 @@ class Database(object): #pylint: disable=R0902
         try:
             # Need to convert constituents from ParseResults
             # Otherwise equality testing will be broken
-            self.phases[phase_name].constituents = tuple(map(frozenset, constituents))
+            self.phases[phase_name].constituents = tuple([frozenset([Species(s.upper()) for s in xs]) for xs in constituents])
         except KeyError:
             print("Undefined phase "+phase_name)
             raise

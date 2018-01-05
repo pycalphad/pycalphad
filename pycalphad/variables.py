@@ -41,8 +41,8 @@ class Species(object):
         else:
             parse_list = arg
         new_self.name = name
-        new_self.charge = parse_list[-1]
-        parse_list = parse_list[:-1]
+        new_self.charge = parse_list[1]
+        parse_list = parse_list[0]
         new_self.constituents = {parse_list[i]: parse_list[i+1] for i in range(0, len(parse_list), 2)}
         return new_self
 
