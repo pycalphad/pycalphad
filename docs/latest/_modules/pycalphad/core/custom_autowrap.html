@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.6.1+1.g31b56b2 documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.6.1+13.ge50b618 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+1.g31b56b2 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+13.ge50b618 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+1.g31b56b2
+                0.6.1+13.ge50b618
               </div>
             
           
@@ -234,9 +234,16 @@
     <span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">CCodePrinter</span>
 <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
     <span class="kn">from</span> <span class="nn">sympy.printing.ccode</span> <span class="k">import</span> <span class="n">C89CodePrinter</span> <span class="k">as</span> <span class="n">CCodePrinter</span>
-<span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">AssignmentError</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span> <span class="n">ResultBase</span><span class="p">,</span>
-                                     <span class="n">Result</span><span class="p">,</span> <span class="n">CodeGenArgumentListError</span><span class="p">,</span>
-                                     <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">AssignmentError</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">,</span> <span class="n">InputArgument</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span>
+                                     <span class="n">ResultBase</span><span class="p">,</span> <span class="n">Result</span><span class="p">,</span> <span class="n">CodeGenArgumentListError</span><span class="p">,</span>
+                                     <span class="n">CCodeGen</span><span class="p">,</span> <span class="n">CodeGenError</span><span class="p">,</span> <span class="n">Routine</span><span class="p">,</span> <span class="n">Variable</span><span class="p">)</span>
+<span class="kn">from</span> <span class="nn">sympy.codegen.ast</span> <span class="k">import</span> <span class="n">Assignment</span>
+<span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
+<span class="kn">from</span> <span class="nn">sympy.core</span> <span class="k">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">Tuple</span><span class="p">,</span> <span class="n">Equality</span>
+<span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="n">is_sequence</span>
+<span class="kn">from</span> <span class="nn">sympy.tensor</span> <span class="k">import</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">Indexed</span><span class="p">,</span> <span class="n">IndexedBase</span>
+<span class="kn">from</span> <span class="nn">sympy.matrices</span> <span class="k">import</span> <span class="p">(</span><span class="n">MatrixSymbol</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">MatrixBase</span><span class="p">,</span>
+                            <span class="n">MatrixExpr</span><span class="p">,</span> <span class="n">MatrixSlice</span><span class="p">)</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">implemented_function</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">CythonCodeWrapper</span><span class="p">,</span> <span class="n">DummyWrapper</span>
 <span class="kn">from</span> <span class="nn">subprocess</span> <span class="k">import</span> <span class="n">STDOUT</span><span class="p">,</span> <span class="n">CalledProcessError</span><span class="p">,</span> <span class="n">check_output</span>
@@ -301,6 +308,8 @@
 <span class="sd">    C89-compatible code printing allows for Windows compatibility.</span>
 <span class="sd">    (MSVC 14 and newer support C99, but we are going for broad compatibility.)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">order</span> <span class="o">=</span> <span class="s1">&#39;none&#39;</span>
+
     <span class="k">def</span> <span class="nf">_get_loop_opening_ending</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">indices</span><span class="p">):</span>
         <span class="c1"># The purpose is to enable C89-compliant loops (indices are pre-declared)</span>
         <span class="n">open_lines</span> <span class="o">=</span> <span class="p">[]</span>
@@ -313,7 +322,11 @@
                 <span class="s1">&#39;start&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">lower</span><span class="p">),</span>
                 <span class="s1">&#39;end&#39;</span><span class="p">:</span> <span class="bp">self</span><span class="o">.</span><span class="n">_print</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)})</span>
             <span class="n">close_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">open_lines</span><span class="p">,</span> <span class="n">close_lines</span></div>
+        <span class="k">return</span> <span class="n">open_lines</span><span class="p">,</span> <span class="n">close_lines</span>
+
+    <span class="n">_print_ComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_Infinity</span>
+    <span class="n">_print_NegativeComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_NegativeInfinity</span></div>
+
 
 <div class="viewcode-block" id="CustomCCodeGen"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen">[docs]</a><span class="k">class</span> <span class="nc">CustomCCodeGen</span><span class="p">(</span><span class="n">CCodeGen</span><span class="p">):</span>
 <div class="viewcode-block" id="CustomCCodeGen.get_prototype"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen.get_prototype">[docs]</a>    <span class="k">def</span> <span class="nf">get_prototype</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
@@ -438,7 +451,142 @@
             <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span></div>
     <span class="n">dump_h</span><span class="o">.</span><span class="n">extension</span> <span class="o">=</span> <span class="n">CCodeGen</span><span class="o">.</span><span class="n">interface_extension</span>
 
-    <span class="n">dump_fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">CCodeGen</span><span class="o">.</span><span class="n">dump_c</span><span class="p">,</span> <span class="n">dump_h</span><span class="p">]</span></div>
+    <span class="n">dump_fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">CCodeGen</span><span class="o">.</span><span class="n">dump_c</span><span class="p">,</span> <span class="n">dump_h</span><span class="p">]</span>
+
+<div class="viewcode-block" id="CustomCCodeGen.routine"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen.routine">[docs]</a>    <span class="k">def</span> <span class="nf">routine</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">argument_sequence</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;Creates an Routine object that is appropriate for this language.</span>
+
+<span class="sd">        This implementation is appropriate for at least C/Fortran.  Subclasses</span>
+<span class="sd">        can override this if necessary.</span>
+
+<span class="sd">        Here, we assume at most one return value (the l-value) which must be</span>
+<span class="sd">        scalar.  Additional outputs are OutputArguments (e.g., pointers on</span>
+<span class="sd">        right-hand-side or pass-by-reference).  Matrices are always returned</span>
+<span class="sd">        via OutputArguments.  If ``argument_sequence`` is None, arguments will</span>
+<span class="sd">        be ordered alphabetically, but with all InputArguments first, and then</span>
+<span class="sd">        OutputArgument and InOutArguments.</span>
+
+<span class="sd">        This implementation is almost the same as the CodeGen class, but</span>
+<span class="sd">        expensive calls to Basic.atoms() have been replaced with</span>
+<span class="sd">        cheaper equivalents.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+
+        <span class="k">if</span> <span class="n">is_sequence</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="p">(</span><span class="n">MatrixBase</span><span class="p">,</span> <span class="n">MatrixExpr</span><span class="p">)):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">expr</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;No expression given&quot;</span><span class="p">)</span>
+            <span class="n">expressions</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span><span class="o">*</span><span class="n">expr</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">expressions</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+
+        <span class="n">expr_free_symbols</span> <span class="o">=</span> <span class="n">expressions</span><span class="o">.</span><span class="n">free_symbols</span>
+
+        <span class="c1"># local variables</span>
+        <span class="n">local_vars</span> <span class="o">=</span> <span class="p">{</span><span class="n">i</span><span class="o">.</span><span class="n">label</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr_free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Idx</span><span class="p">)}</span>
+
+        <span class="c1"># global variables</span>
+        <span class="n">global_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span> <span class="k">if</span> <span class="n">global_vars</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">set</span><span class="p">(</span><span class="n">global_vars</span><span class="p">)</span>
+
+        <span class="c1"># symbols that should be arguments</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">expr_free_symbols</span> <span class="o">-</span> <span class="n">local_vars</span> <span class="o">-</span> <span class="n">global_vars</span>
+        <span class="n">new_symbols</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([])</span>
+        <span class="n">new_symbols</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">symbols</span><span class="p">)</span>
+
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">symbols</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">):</span>
+                <span class="n">new_symbols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+                <span class="n">new_symbols</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span>
+        <span class="n">symbols</span> <span class="o">=</span> <span class="n">new_symbols</span>
+
+        <span class="c1"># Decide whether to use output argument or return value</span>
+        <span class="n">return_val</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">output_args</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">expressions</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">Equality</span><span class="p">):</span>
+                <span class="n">out_arg</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">lhs</span>
+                <span class="n">expr</span> <span class="o">=</span> <span class="n">expr</span><span class="o">.</span><span class="n">rhs</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out_arg</span><span class="p">,</span> <span class="n">Indexed</span><span class="p">):</span>
+                    <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">out_arg</span><span class="o">.</span><span class="n">shape</span><span class="p">])</span>
+                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">out_arg</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">label</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out_arg</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
+                    <span class="n">dims</span> <span class="o">=</span> <span class="p">[]</span>
+                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">out_arg</span>
+                <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">out_arg</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">):</span>
+                    <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">out_arg</span><span class="o">.</span><span class="n">shape</span><span class="p">])</span>
+                    <span class="n">symbol</span> <span class="o">=</span> <span class="n">out_arg</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">raise</span> <span class="n">CodeGenError</span><span class="p">(</span><span class="s2">&quot;Only Indexed, Symbol, or MatrixSymbol &quot;</span>
+                                       <span class="s2">&quot;can define output arguments.&quot;</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="n">expr</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">symbol</span><span class="p">):</span>
+                    <span class="n">output_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">InOutArgument</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">out_arg</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">))</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">output_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                        <span class="n">OutputArgument</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">out_arg</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">))</span>
+
+                <span class="c1"># avoid duplicate arguments</span>
+                <span class="n">symbols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
+            <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="p">(</span><span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">MatrixSlice</span><span class="p">)):</span>
+                <span class="c1"># Create a &quot;dummy&quot; MatrixSymbol to use as the Output arg</span>
+                <span class="n">out_arg</span> <span class="o">=</span> <span class="n">MatrixSymbol</span><span class="p">(</span><span class="s1">&#39;out_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="nb">abs</span><span class="p">(</span><span class="nb">hash</span><span class="p">(</span><span class="n">expr</span><span class="p">)),</span> <span class="o">*</span><span class="n">expr</span><span class="o">.</span><span class="n">shape</span><span class="p">)</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">out_arg</span><span class="o">.</span><span class="n">shape</span><span class="p">])</span>
+                <span class="n">output_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span>
+                    <span class="n">OutputArgument</span><span class="p">(</span><span class="n">out_arg</span><span class="p">,</span> <span class="n">out_arg</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">dimensions</span><span class="o">=</span><span class="n">dims</span><span class="p">))</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">return_val</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Result</span><span class="p">(</span><span class="n">expr</span><span class="p">))</span>
+
+        <span class="n">arg_list</span> <span class="o">=</span> <span class="p">[]</span>
+
+        <span class="c1"># setup input argument list</span>
+        <span class="n">array_symbols</span> <span class="o">=</span> <span class="p">{}</span>
+        <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr_free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Indexed</span><span class="p">)]:</span>
+            <span class="n">array_symbols</span><span class="p">[</span><span class="n">array</span><span class="o">.</span><span class="n">base</span><span class="o">.</span><span class="n">label</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span>
+        <span class="k">for</span> <span class="n">array</span> <span class="ow">in</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">expr_free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">)]:</span>
+            <span class="n">array_symbols</span><span class="p">[</span><span class="n">array</span><span class="p">]</span> <span class="o">=</span> <span class="n">array</span>
+
+        <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">symbols</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">array_symbols</span><span class="p">:</span>
+                <span class="n">dims</span> <span class="o">=</span> <span class="p">[]</span>
+                <span class="n">array</span> <span class="o">=</span> <span class="n">array_symbols</span><span class="p">[</span><span class="n">symbol</span><span class="p">]</span>
+                <span class="k">for</span> <span class="n">dim</span> <span class="ow">in</span> <span class="n">array</span><span class="o">.</span><span class="n">shape</span><span class="p">:</span>
+                    <span class="n">dims</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">,</span> <span class="n">dim</span> <span class="o">-</span> <span class="mi">1</span><span class="p">))</span>
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;dimensions&#39;</span><span class="p">:</span> <span class="n">dims</span><span class="p">}</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">metadata</span> <span class="o">=</span> <span class="p">{}</span>
+
+            <span class="n">arg_list</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InputArgument</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="o">**</span><span class="n">metadata</span><span class="p">))</span>
+
+        <span class="n">output_args</span><span class="o">.</span><span class="n">sort</span><span class="p">(</span><span class="n">key</span><span class="o">=</span><span class="k">lambda</span> <span class="n">x</span><span class="p">:</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">))</span>
+        <span class="n">arg_list</span><span class="o">.</span><span class="n">extend</span><span class="p">(</span><span class="n">output_args</span><span class="p">)</span>
+
+        <span class="k">if</span> <span class="n">argument_sequence</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="c1"># if the user has supplied IndexedBase instances, we&#39;ll accept that</span>
+            <span class="n">new_sequence</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">argument_sequence</span><span class="p">:</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">IndexedBase</span><span class="p">):</span>
+                    <span class="n">new_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">label</span><span class="p">)</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_sequence</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">arg</span><span class="p">)</span>
+            <span class="n">argument_sequence</span> <span class="o">=</span> <span class="n">new_sequence</span>
+
+            <span class="n">missing</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arg_list</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">name</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">argument_sequence</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">missing</span><span class="p">:</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="s2">&quot;Argument list didn&#39;t specify: </span><span class="si">{0}</span><span class="s2"> &quot;</span>
+                <span class="n">msg</span> <span class="o">=</span> <span class="n">msg</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">m</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">missing</span><span class="p">]))</span>
+                <span class="k">raise</span> <span class="n">CodeGenArgumentListError</span><span class="p">(</span><span class="n">msg</span><span class="p">,</span> <span class="n">missing</span><span class="p">)</span>
+
+            <span class="c1"># create redundant arguments to produce the requested sequence</span>
+            <span class="n">name_arg_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">arg_list</span><span class="p">}</span>
+            <span class="n">new_args</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">symbol</span> <span class="ow">in</span> <span class="n">argument_sequence</span><span class="p">:</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">name_arg_dict</span><span class="p">[</span><span class="n">symbol</span><span class="p">])</span>
+                <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
+                    <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InputArgument</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
+            <span class="n">arg_list</span> <span class="o">=</span> <span class="n">new_args</span>
+
+        <span class="k">return</span> <span class="n">Routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">return_val</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ThreadSafeCythonCodeWrapper"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">[docs]</a><span class="k">class</span> <span class="nc">ThreadSafeCythonCodeWrapper</span><span class="p">(</span><span class="n">CythonCodeWrapper</span><span class="p">):</span>
@@ -813,7 +961,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+1.g31b56b2',
+            VERSION:'0.6.1+13.ge50b618',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

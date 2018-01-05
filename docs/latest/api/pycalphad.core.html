@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.6.1+1.g31b56b2 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.6.1+13.ge50b618 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+1.g31b56b2 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+13.ge50b618 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+1.g31b56b2
+                0.6.1+13.ge50b618
               </div>
             
           
@@ -651,6 +651,11 @@ don’t need the binaries for another project.</li>
 <dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.ccode.C89CodePrinter</span></code></p>
 <p>C89-compatible code printing allows for Windows compatibility.
 (MSVC 14 and newer support C99, but we are going for broad compatibility.)</p>
+<dl class="attribute">
+<dt id="pycalphad.core.custom_autowrap.C89CodePrinter.order">
+<code class="descname">order</code><em class="property"> = 'none'</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.C89CodePrinter.order" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="exception">
@@ -700,6 +705,23 @@ files.  [default : True]</li>
 <p>If the routine has multiple result objects, an CodeGenError is
 raised.</p>
 <p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Function_prototype">http://en.wikipedia.org/wiki/Function_prototype</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.routine">
+<code class="descname">routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence</em>, <em>global_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen.routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.routine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an Routine object that is appropriate for this language.</p>
+<p>This implementation is appropriate for at least C/Fortran.  Subclasses
+can override this if necessary.</p>
+<p>Here, we assume at most one return value (the l-value) which must be
+scalar.  Additional outputs are OutputArguments (e.g., pointers on
+right-hand-side or pass-by-reference).  Matrices are always returned
+via OutputArguments.  If <code class="docutils literal"><span class="pre">argument_sequence</span></code> is None, arguments will
+be ordered alphabetically, but with all InputArguments first, and then
+OutputArgument and InOutArguments.</p>
+<p>This implementation is almost the same as the CodeGen class, but
+expensive calls to Basic.atoms() have been replaced with
+cheaper equivalents.</p>
 </dd></dl>
 
 </dd></dl>
@@ -1380,7 +1402,7 @@ This also means multiprocessing using fork() will NOT force a recompile.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.sympydiff_utils.build_functions">
-<code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=True</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -1391,7 +1413,6 @@ This also means multiprocessing using fork() will NOT force a recompile.</p>
 <li><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</li>
 <li><strong>include_obj</strong> – </li>
 <li><strong>include_grad</strong> – </li>
-<li><strong>include_hess</strong> – </li>
 <li><strong>parameters</strong> – </li>
 </ul>
 </td>
@@ -1655,7 +1676,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+1.g31b56b2',
+            VERSION:'0.6.1+13.ge50b618',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

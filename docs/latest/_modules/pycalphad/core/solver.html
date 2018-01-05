@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.solver &mdash; pycalphad 0.6.1+1.g31b56b2 documentation</title>
+  <title>pycalphad.core.solver &mdash; pycalphad 0.6.1+13.ge50b618 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+1.g31b56b2 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+13.ge50b618 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+1.g31b56b2
+                0.6.1+13.ge50b618
               </div>
             
           
@@ -190,6 +190,9 @@
         <span class="n">length_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">))</span>
         <span class="n">length_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">length_scale</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
         <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;print_level&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="c1"># suppress the &quot;This program contains Ipopt&quot; banner</span>
+            <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;sb&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
         <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;tol&#39;</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">)</span>
         <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
         <span class="c1"># This option improves convergence when using L-BFGS</span>
@@ -268,7 +271,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+1.g31b56b2',
+            VERSION:'0.6.1+13.ge50b618',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

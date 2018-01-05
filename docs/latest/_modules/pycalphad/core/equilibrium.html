@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.6.1+1.g31b56b2 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.6.1+13.ge50b618 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+1.g31b56b2 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+13.ge50b618 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+1.g31b56b2
+                0.6.1+13.ge50b618
               </div>
             
           
@@ -431,7 +431,9 @@
                 <span class="n">undefs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">out</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Symbol</span><span class="p">)</span> <span class="o">-</span> <span class="n">out</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">param_symbols</span><span class="p">))</span>
                 <span class="k">for</span> <span class="n">undef</span> <span class="ow">in</span> <span class="n">undefs</span><span class="p">:</span>
                     <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">undef</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="mi">0</span><span class="p">)})</span>
-                <span class="n">cf</span><span class="p">,</span> <span class="n">gf</span><span class="p">,</span> <span class="n">hf</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">),</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+                <span class="n">cf</span><span class="p">,</span> <span class="n">gf</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">),</span>
+                                         <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+                <span class="n">hf</span> <span class="o">=</span> <span class="kc">None</span>
                 <span class="k">if</span> <span class="n">callable_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                     <span class="n">callable_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
                 <span class="k">if</span> <span class="n">grad_callable_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -571,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+1.g31b56b2',
+            VERSION:'0.6.1+13.ge50b618',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
