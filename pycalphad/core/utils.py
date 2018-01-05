@@ -261,6 +261,24 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     return new_dict
 
 
+def unpack_components(dbf, comps):
+    """
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing elements and species.
+    comps : list
+        Names of components to consider in the calculation.
+
+    Returns
+    -------
+    list
+        Sorted list of Species objects
+    """
+    return sorted(Species(c) for c in comps)
+
+
 def filter_phases(dbf, comps):
     """Return phases that are valid for equilibrium calculations for the given database and components
 

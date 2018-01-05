@@ -3,7 +3,65 @@
 Classes and constants for representing thermodynamic variables.
 """
 
+import itertools
 from sympy import Float, Symbol
+from pycalphad.io.grammar import chemical_formula
+
+
+class Species(object):
+    """
+    A chemical species.
+
+    Attributes
+    ----------
+    name : string
+        Name of the specie
+    constituents : dict
+        Dictionary of {element: quantity} where the element is a string and the quantity a float.
+    charge : int
+        Integer charge. Can be positive or negative.
+    """
+    def __new__(cls, name, constituents=None, charge=0):
+        if constituents is not None:
+            new_self = object.__new__(cls)
+            new_self.name = name
+            new_self.constituents = constituents
+            new_self.charge = charge
+            return new_self
+        else:
+            arg = name
+        # if a Species is passed in, return it
+        if arg.__class__ == cls:
+            return arg
+
+        new_self = object.__new__(cls)
+
+        if isinstance(arg, str):
+            parse_list = chemical_formula.parseString(arg)
+        else:
+            parse_list = arg
+        new_self.name = name
+        new_self.charge = parse_list[-1]
+        parse_list = parse_list[:-1]
+        new_self.constituents = {parse_list[i]: parse_list[i+1] for i in range(0, len(parse_list), 2)}
+        return new_self
+
+    def __getnewargs__(self):
+        return self.name, self.constituents, self.charge
+
+    def __eq__(self, other):
+        """Two species are the same if their names and constituents are the same."""
+        if isinstance(other, self.__class__):
+            return (self.name == other.name) and (self.constituents == other.constituents)
+        else:
+            return False
+
+    def __str__(self):
+        return self.name
+
+    def __hash__(self):
+        return hash(self.name)
+
 
 class StateVariable(Symbol):
     """

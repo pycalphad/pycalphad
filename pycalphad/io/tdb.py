@@ -15,7 +15,9 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError, Species
+from pycalphad.io.database import DatabaseExportError
+from pycalphad.io.grammar import float_number, chemical_formula
+from pycalphad.variables import Species
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -178,11 +180,6 @@ def _tdb_grammar(): #pylint: disable=R0914
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
-    pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
-    # matching float w/ regex is ugly but is recommended by pyparsing
-    regex_after_decimal = r'([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
-    float_number = Regex(r'[-+]?([0-9]+\.(?!([0-9]|[eE])))|{0}'.format(regex_after_decimal)) \
-        .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
     ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
@@ -201,7 +198,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
     # SPECIES
-    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + Optional(float_number, default=1.0))) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
+    cmd_species = TCCommand('SPECIES') + species_name + chemical_formula + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
