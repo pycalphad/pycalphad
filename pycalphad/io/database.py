@@ -400,9 +400,10 @@ class Database(object): #pylint: disable=R0902
         --------
         None yet.
         """
+        species_dict = {s.name: s for s in self.species}
         new_parameter = {
             'phase_name': phase_name,
-            'constituent_array': _to_tuple(constituent_array),  # must be hashable type
+            'constituent_array': tuple(tuple(species_dict[s.upper()] for s in xs) for xs in constituent_array),  # must be hashable type
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
@@ -450,10 +451,11 @@ class Database(object): #pylint: disable=R0902
         --------
         None yet.
         """
+        species_dict = {s.name: s for s in self.species}
         try:
             # Need to convert constituents from ParseResults
             # Otherwise equality testing will be broken
-            self.phases[phase_name].constituents = tuple([frozenset([Species(s.upper()) for s in xs]) for xs in constituents])
+            self.phases[phase_name].constituents = tuple([frozenset([species_dict[s.upper()] for s in xs]) for xs in constituents])
         except KeyError:
             print("Undefined phase "+phase_name)
             raise

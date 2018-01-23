@@ -59,20 +59,19 @@ class Model(object):
         # Assume for the moment that comps contains a list of pure element strings
         # We want to add all the species which can be created by a combination of
         # the user-specified pure elements
-        possible_comps = {Species(x.upper()) for x in comps}
+        possible_comps = {v.Species(x.upper()) for x in comps}
         desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_comps]
         # Flatten nested list
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         eligible_species_from_database = {x for x in dbe.species if len(set(x.constituents.keys()).intersection(desired_active_pure_elements)) > 0}
-        possible_comps |= eligible_species_from_database
-        self.components = set()
+        self.components = eligible_species_from_database
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = phase.sublattices
         for sublattice in phase.constituents:
             temp = [list(x.constituents.keys()) for x in set(sublattice).intersection(possible_comps)]
-            temp = set(el.upper() for constituents in temp for el in constituents)
+            temp = set(v.Species(el.upper()) for constituents in temp for el in constituents)
             self.components |= temp
         # Verify that this phase is still possible to build
         for sublattice in phase.constituents:

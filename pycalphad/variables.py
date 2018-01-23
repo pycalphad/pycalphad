@@ -59,6 +59,20 @@ class Species(object):
     def __str__(self):
         return self.name
 
+    @property
+    def escaped_name(self):
+        "Name safe to embed in the variable name of complex arithmetic expressions."
+        return str(self).replace('-', '_NEG').replace('+', '_POS').replace('/', '~')
+
+    def __repr__(self):
+        species_constituents = ''.join(
+            ['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
+        if self.charge == 0:
+            repr_str = "(\'{0}\', \'{1}\')"
+        else:
+            repr_str = "(\'{0}\', \'{1}\', charge={2})"
+        return str(self.__class__.__name__)+repr_str.format(self.name.upper(), species_constituents, self.charge)
+
     def __hash__(self):
         return hash(self.name)
 
@@ -76,6 +90,10 @@ class SiteFraction(StateVariable):
     and nonnegative. The constructor handles formatting of the name.
     """
     def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
+        try:
+            species = species.escaped_name
+        except AttributeError:
+            pass
         varname = phase_name + str(subl_index) + species
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname, nonnegative=True)
