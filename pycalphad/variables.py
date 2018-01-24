@@ -33,11 +33,13 @@ class Species(object):
         # if a Species is passed in, return it
         if arg.__class__ == cls:
             return arg
+        if arg == '*':
+            return '*'
 
         new_self = object.__new__(cls)
 
         if isinstance(arg, str):
-            parse_list = chemical_formula.parseString(arg)
+            parse_list = chemical_formula.parseString(arg.upper())
         else:
             parse_list = arg
         new_self.name = name
@@ -56,13 +58,16 @@ class Species(object):
         else:
             return False
 
+    def __lt__(self, other):
+        return self.name < other.name
+
     def __str__(self):
         return self.name
 
     @property
     def escaped_name(self):
         "Name safe to embed in the variable name of complex arithmetic expressions."
-        return str(self).replace('-', '_NEG').replace('+', '_POS').replace('/', '~')
+        return str(self).replace('-', '_NEG').replace('+', '_POS').replace('/', 'Z')
 
     def __repr__(self):
         species_constituents = ''.join(
@@ -90,16 +95,12 @@ class SiteFraction(StateVariable):
     and nonnegative. The constructor handles formatting of the name.
     """
     def __new__(cls, phase_name, subl_index, species): #pylint: disable=W0221
-        try:
-            species = species.escaped_name
-        except AttributeError:
-            pass
-        varname = phase_name + str(subl_index) + species
+        varname = phase_name + str(subl_index) + Species(species).escaped_name
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name.upper()
         new_self.sublattice_index = subl_index
-        new_self.species = species.upper()
+        new_self.species = species
         return new_self
 
     def __getnewargs__(self):
@@ -109,13 +110,13 @@ class SiteFraction(StateVariable):
         "LaTeX representation."
         #pylint: disable=E1101
         return 'y^{'+self.phase_name.replace('_', '-') + \
-            '}_{'+str(self.subl_index)+'},_{'+self.species+'}'
+            '}_{'+str(self.subl_index)+'},_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."
         #pylint: disable=E1101
         return 'Y(%s,%d,%s)' % \
-            (self.phase_name, self.sublattice_index, self.species)
+            (self.phase_name, self.sublattice_index, self.species.escaped_name)
 
 class PhaseFraction(StateVariable):
     """

@@ -9,7 +9,7 @@ from pycalphad.model import DofError
 from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
+from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
@@ -26,6 +26,7 @@ from collections import OrderedDict
 class FallbackModel(object):
     "Compatibility layer while transitioning to CompiledModel."
     def __new__(cls, *args, **kwargs):
+        return Model(*args, **kwargs)
         try:
             ret = CompiledModel(*args, **kwargs)
         except NotImplementedError:
@@ -340,9 +341,10 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         phases = [phases]
     if isinstance(comps, str):
         comps = [comps]
+    comps = sorted(unpack_components(dbf, comps))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    components = [x.escaped_name for x in sorted(comps) if not x.escaped_name.startswith('VA')]
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution

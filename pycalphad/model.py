@@ -8,6 +8,7 @@ from sympy import exp, log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol, zoo, 
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.utils import unpack_components
 import numpy as np
 from collections import OrderedDict
 
@@ -55,22 +56,13 @@ class Model(object):
                      ('ord', 'atomic_ordering_energy')]
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
-        # Constrain possible components to those within phase's d.o.f
-        # Assume for the moment that comps contains a list of pure element strings
-        # We want to add all the species which can be created by a combination of
-        # the user-specified pure elements
-        possible_comps = {v.Species(x.upper()) for x in comps}
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_comps]
-        # Flatten nested list
-        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-        eligible_species_from_database = {x for x in dbe.species if len(set(x.constituents.keys()).intersection(desired_active_pure_elements)) > 0}
-        self.components = eligible_species_from_database
+        self.components = unpack_components(dbe, comps)
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = phase.sublattices
         for sublattice in phase.constituents:
-            temp = [list(x.constituents.keys()) for x in set(sublattice).intersection(possible_comps)]
+            temp = [list(x.constituents.keys()) for x in set(sublattice).intersection(self.components)]
             temp = set(v.Species(el.upper()) for constituents in temp for el in constituents)
             self.components |= temp
         # Verify that this phase is still possible to build
@@ -84,6 +76,7 @@ class Model(object):
                             phase.constituents,
                             self.components))
             self.constituents.append(set(sublattice).intersection(self.components))
+        self.components = sorted(self.components)
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict

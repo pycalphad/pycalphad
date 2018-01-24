@@ -273,10 +273,20 @@ def unpack_components(dbf, comps):
 
     Returns
     -------
-    list
-        Sorted list of Species objects
+    set
+        Set of Species objects
     """
-    return sorted(Species(c) for c in comps)
+    # Constrain possible components to those within phase's d.o.f
+    # Assume for the moment that comps contains a list of pure element strings
+    # We want to add all the species which can be created by a combination of
+    # the user-specified pure elements
+    possible_comps = {v.Species(x) for x in comps}
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_comps]
+    # Flatten nested list
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    eligible_species_from_database = {x for x in dbf.species if
+                                      set(x.constituents.keys()).issubset(desired_active_pure_elements)}
+    return eligible_species_from_database
 
 
 def filter_phases(dbf, comps):
