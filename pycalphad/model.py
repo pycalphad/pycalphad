@@ -237,6 +237,8 @@ class Model(object):
         Check if constituent array only has one species in its array
         This species must also be an active species
         """
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
@@ -249,6 +251,8 @@ class Model(object):
         """
         Check that the current array contains only active species.
         """
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             valid = set(sublattice).issubset(self.components) \
                 or sublattice[0] == '*'
@@ -262,6 +266,8 @@ class Model(object):
         its array for at least one sublattice.
         """
         result = False
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             # check if all elements involved are also active
             valid = set(sublattice).issubset(self.components) \
