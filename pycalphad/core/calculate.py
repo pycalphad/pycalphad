@@ -342,7 +342,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     if isinstance(phases, str):
         phases = [phases]
-    if isinstance(comps, str):
+    if isinstance(comps, (str, v.Species)):
         comps = [comps]
     comps = sorted(unpack_components(dbf, comps))
     if points_dict is None and broadcast is False:
