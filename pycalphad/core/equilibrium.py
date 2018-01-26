@@ -9,7 +9,7 @@ from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
+from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
 from pycalphad.core.compiled_model import CompiledModel
 from pycalphad.core.calculate import FallbackModel
@@ -233,13 +233,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
-    build_functions = compiled_build_functions
-    backend_mode = 'compiled'
-    if kwargs.get('_backend', None):
-        backend_mode = kwargs['_backend']
-    if verbose:
-        backend_dict = {'compiled': 'Compiled (autowrap)', 'interpreted': 'Interpreted (autograd)'}
-        print('Calculation Backend: {}'.format(backend_dict.get(backend_mode, 'Custom')))
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps) if not x.startswith('VA')]
