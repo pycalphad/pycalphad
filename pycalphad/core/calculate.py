@@ -99,8 +99,9 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     vacancy_indices = list()
     for idx, sublattice in enumerate(phase_constituents):
         active_in_subl = sorted(set(phase_constituents[idx]).intersection(comps))
-        if 'VA' in active_in_subl and 'VA' in sorted(comps):
-            vacancy_indices.append(active_in_subl.index('VA'))
+        is_vacancy = [spec.number_of_atoms == 0 for spec in active_in_subl]
+        subl_va_indices = list(idx for idx, x in enumerate(is_vacancy) if x == True)
+        vacancy_indices.append(subl_va_indices)
     if len(vacancy_indices) != len(phase_constituents):
         vacancy_indices = None
     # Add all endmembers to guarantee their presence
@@ -231,8 +232,10 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     site_ratio_normalization = np.zeros(points.shape[:-1])
     for idx, sublattice in enumerate(phase_obj.constituents):
         vacancy_column = np.ones(points.shape[:-1])
-        if 'VA' in set(sublattice):
-            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, 'VA'))
+        for spec in sublattice:
+            if spec.number_of_atoms > 0:
+                continue
+            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, spec))
             vacancy_column -= points[..., :, var_idx]
         site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
 
@@ -245,7 +248,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     if fake_points:
         phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (len(components), len(components))), phase_compositions), axis=-2)
 
-    coordinate_dict = {'component': components}
+    coordinate_dict = {'component': [c.name for c in components]}
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
@@ -344,7 +347,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     comps = sorted(unpack_components(dbf, comps))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
-    components = [x.escaped_name for x in sorted(comps) if not x.escaped_name.startswith('VA')]
+    nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
@@ -433,7 +436,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
+        phase_ds = _compute_phase_values(phase_obj, nonvacant_components, variables, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)
