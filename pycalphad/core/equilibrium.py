@@ -6,7 +6,7 @@ from __future__ import print_function
 import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
-from pycalphad.core.utils import unpack_condition, unpack_phases, filter_phases
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
@@ -206,9 +206,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
-    comps = sorted(comps)
-    if len(set(comps) - set(dbf.elements)) > 0:
-        raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
+    if isinstance(comps, (str, v.Species)):
+        comps = [comps]
+    comps = sorted(unpack_components(dbf, comps))
+    if len(set(comps) - set(dbf.species)) > 0:
+        raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.species))))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else FallbackModel

@@ -162,13 +162,13 @@ class Composition(StateVariable):
         species = None
         if len(args) == 1:
             # this is an overall composition variable
-            species = args[0].upper()
-            varname = 'X_' + species
+            species = Species(args[0])
+            varname = 'X_' + species.escaped_name.upper()
         elif len(args) == 2:
             # this is a phase-specific composition variable
             phase_name = args[0].upper()
-            species = args[1].upper()
-            varname = 'X_' + phase_name + '_' + species
+            species = Species(args[1])
+            varname = 'X_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
             raise ValueError('Composition not defined for args: '+args)
@@ -190,16 +190,17 @@ class Composition(StateVariable):
         #pylint: disable=E1101
         if self.phase_name:
             return 'x^{'+self.phase_name.replace('_', '-') + \
-                '}_{'+self.species+'}'
+                '}_{'+self.species.escaped_name+'}'
         else:
-            return 'x_{'+self.species+'}'
+            return 'x_{'+self.species.escaped_name+'}'
 
 class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
     """
     def __new__(cls, species, **assumptions):
-        varname = 'MU_' + species.upper()
+        species = Species(species)
+        varname = 'MU_' + species.escaped_name.upper()
         new_self = StateVariable.__new__(cls, varname, **assumptions)
         new_self.species = species
         return new_self
@@ -209,11 +210,11 @@ class ChemicalPotential(StateVariable):
 
     def _latex(self):
         "LaTeX representation."
-        return '\mu_{'+self.species+'}'
+        return '\mu_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."
-        return 'MU(%s)' % self.species
+        return 'MU(%s)' % self.species.name
 
 temperature = T = StateVariable('T')
 entropy = S = StateVariable('S')
