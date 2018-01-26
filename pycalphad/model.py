@@ -56,15 +56,13 @@ class Model(object):
                      ('ord', 'atomic_ordering_energy')]
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
-        self.components = unpack_components(dbe, comps)
+        self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = phase.sublattices
         for sublattice in phase.constituents:
-            temp = [list(x.constituents.keys()) for x in set(sublattice).intersection(self.components)]
-            temp = set(v.Species(el.upper()) for constituents in temp for el in constituents)
-            self.components |= temp
+            self.components |= set(sublattice).intersection(unpack_components(dbe, comps))
         # Verify that this phase is still possible to build
         for sublattice in phase.constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
@@ -146,18 +144,19 @@ class Model(object):
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(self.components)
-            if 'VA' in active:
-                site_ratio_normalization += self.site_ratios[idx] * \
-                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
-            else:
-                site_ratio_normalization += self.site_ratios[idx]
+            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+            site_ratio_normalization += self.site_ratios[idx] * subl_content
+
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
         # Sum up site fraction contributions from each component sublattice
         for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(set(self.components))
-            if species in active:
-                result += site_ratios[idx] * \
-                    v.SiteFraction(self.phase_name, idx, species)
+            for spec in active:
+                # if the species differ only in charge (or not at all)
+                # This could have unpredictable results if more distinguishing attributes are added to Species
+                if sorted(spec.constituents.items()) == sorted(species.constituents.items()):
+                    result += site_ratios[idx] * \
+                        int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
         return result
 
     @property
@@ -177,20 +176,18 @@ class Model(object):
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(self.components)
-            if 'VA' in active:
-                site_ratio_normalization += self.site_ratios[idx] * \
-                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
-            else:
-                site_ratio_normalization += self.site_ratios[idx]
+            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+            site_ratio_normalization += self.site_ratios[idx] * subl_content
+
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        for comp in sorted([c for c in self.components if c != 'VA']):
+        for comp in self.components:
             comp_result = S.Zero
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection(set(self.components))
                 if comp in active:
                     comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.standard_mole_fraction(comp)) / self.standard_mole_fraction(comp)
             result += comp_result
-        return result / len([c for c in self.components if c != 'VA'])
+        return result / sum(int(spec.number_of_atoms > 0) for spec in self.components)
     DOO = degree_of_ordering
 
     # Can be defined as a list of pre-computed first derivatives
@@ -285,14 +282,11 @@ class Model(object):
         in each sublattice.
         """
         site_ratio_normalization = S.Zero
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
+        # Calculate normalization factor
         for idx, sublattice in enumerate(phase.constituents):
-            if ('VA' in set(sublattice)) and ('VA' in self.components):
-                site_ratio_normalization += phase.sublattices[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += phase.sublattices[idx]
+            active = set(sublattice).intersection(self.components)
+            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(phase.name, idx, spec) for spec in active)
+            site_ratio_normalization += phase.sublattices[idx] * subl_content
         return site_ratio_normalization
 
     @staticmethod
@@ -675,14 +669,14 @@ class Model(object):
         numerator = S.Zero
         for idx, sublattice in enumerate(constituent_array):
             # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
+            if sum(spec.number_of_atoms for spec in list(sublattice)) == 0:
                 continue
             if species_name in list(sublattice):
                 site_ratio_normalization += site_ratios[idx]
                 numerator += site_ratios[idx] * \
                     v.SiteFraction(phase_name, idx, species_name)
 
-        if site_ratio_normalization == 0 and species_name == 'VA':
+        if site_ratio_normalization == 0 and species_name.name == 'VA':
             return 1
 
         if site_ratio_normalization == 0:
@@ -715,7 +709,7 @@ class Model(object):
             all_species_in_sublattice = \
                 dbe.phases[disordered_phase_name].constituents[
                     atom.sublattice_index]
-            if atom.species == 'VA' and len(all_species_in_sublattice) == 1:
+            if atom.species.name == 'VA' and len(all_species_in_sublattice) == 1:
                 # Assume: Pure vacancy sublattices are always last
                 vacancy_subl_index = \
                     len(dbe.phases[ordered_phase_name].constituents)-1
@@ -750,7 +744,7 @@ class Model(object):
             all_species_in_sublattice = \
                 dbe.phases[ordered_phase_name].constituents[
                     sitefrac.sublattice_index]
-            if sitefrac.species == 'VA' and len(all_species_in_sublattice) == 1:
+            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
                 # pure-vacancy sublattices should not be replaced
                 # this handles cases like AL,NI,VA:AL,NI,VA:VA and
                 # ensures the VA's don't get mixed up
@@ -792,7 +786,7 @@ class TestModel(Model):
     None yet.
     """
     def __init__(self, dbf, comps, phase, solution=None, kmax=None):
-        self.components = {x.upper() for x in comps}
+        self.components = set(comps)
         if 'VA' in self.components:
             raise ValueError('Vacancies are unsupported in TestModel')
         self.models = dict()

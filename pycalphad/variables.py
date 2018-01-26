@@ -69,6 +69,16 @@ class Species(object):
         "Name safe to embed in the variable name of complex arithmetic expressions."
         return str(self).replace('-', '_NEG').replace('+', '_POS').replace('/', 'Z')
 
+    @property
+    def number_of_atoms(self):
+        "Number of atoms per formula unit. Vacancies do not count as atoms."
+        return sum(value for key, value in self.constituents.items() if key != 'VA')
+
+    @property
+    def weight(self):
+        "Number of grams per formula unit."
+        return NotImplementedError
+
     def __repr__(self):
         species_constituents = ''.join(
             ['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
