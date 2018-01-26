@@ -755,7 +755,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
-        constituents = ':'.join([','.join(sorted(subl)) for subl in phase_obj.constituents])
+        constituents = ':'.join([','.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
         output += "CONSTITUENT {0} :{1}: !\n".format(name.upper(), constituents)
         output += "\n"
 
@@ -772,6 +772,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                 components |= {param['diffusing_species']}
             # Wildcard operator is not a component
             components -= {'*'}
+            desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+            components = set([el.upper() for constituents in desired_active_pure_elements for el in constituents])
             # Remove vacancy if it's not the only component (pure vacancy endmember)
             if len(components) > 1:
                 components -= {'VA'}
@@ -789,7 +791,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                                                  param['reference']))
 
     def write_parameter(param_to_write):
-        constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
+        constituents = ':'.join([','.join(sorted([i.name.upper() for i in subl]))
                          for subl in param_to_write.constituent_array])
         # TODO: Handle references
         paramx = param_to_write.parameter
@@ -801,7 +803,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         if ';' not in exprx:
             exprx += '; N'
         if param_to_write.diffusing_species is not None:
-            ds = "&" + param_to_write.diffusing_species
+            ds = "&" + param_to_write.diffusing_species.name
         else:
             ds = ""
         return "PARAMETER {}({}{},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),

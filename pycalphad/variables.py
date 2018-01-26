@@ -110,7 +110,7 @@ class SiteFraction(StateVariable):
         new_self = StateVariable.__new__(cls, varname, nonnegative=True)
         new_self.phase_name = phase_name.upper()
         new_self.sublattice_index = subl_index
-        new_self.species = species
+        new_self.species = Species(species)
         return new_self
 
     def __getnewargs__(self):
