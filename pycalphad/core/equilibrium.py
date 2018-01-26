@@ -210,7 +210,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         comps = [comps]
     comps = sorted(unpack_components(dbf, comps))
     if len(set(comps) - set(dbf.species)) > 0:
-        raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.species))))
+        raise EquilibriumError('Components not found in database: {}'
+                               .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else FallbackModel
