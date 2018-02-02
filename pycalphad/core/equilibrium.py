@@ -128,7 +128,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
-        dof = sum([len(x) for x in dbf.phases[phase].constituents])
+        dof = sum([len([c for c in x if str(c) in comps]) for x in dbf.phases[phase].constituents])
         current_phase_indices = (data.Phase.values == phase)
         if ~np.any(current_phase_indices):
             continue
