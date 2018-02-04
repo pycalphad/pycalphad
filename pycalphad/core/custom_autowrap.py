@@ -439,6 +439,11 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         "{np_includes}"
         "        )")
 
+    setup_cfg = (
+        "[build_ext]\n"
+        "compiler = mingw32\n"
+    )
+
     pyx_imports = (
         "import numpy as np\n"
         "cimport numpy as np\n"
@@ -495,6 +500,8 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
             f.write(self.setup_template.format(ext_args=", ".join(ext_args),
                                                np_import=np_import,
                                                np_includes=np_includes))
+        with open(os.path.join(self.filepath, 'setup.cfg'), 'w') as f:
+            f.write(self.setup_cfg)
 
     def _process_files(self, routine):
         command = self.command
