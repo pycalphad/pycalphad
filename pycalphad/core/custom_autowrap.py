@@ -440,8 +440,10 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
         "        )")
 
     setup_cfg = (
+        "[build]\n"
+        "compiler = mingw64\n"
         "[build_ext]\n"
-        "compiler = mingw32\n"
+        "compiler = mingw64\n"
     )
 
     pyx_imports = (
