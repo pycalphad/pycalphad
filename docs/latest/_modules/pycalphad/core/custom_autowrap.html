@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.6.1+15.g1bded42 documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.6.1+16.gc545290 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+15.g1bded42 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+16.gc545290 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+15.g1bded42
+                0.6.1+16.gc545290
               </div>
             
           
@@ -603,13 +603,6 @@
         <span class="s2">&quot;</span><span class="si">{np_includes}</span><span class="s2">&quot;</span>
         <span class="s2">&quot;        )&quot;</span><span class="p">)</span>
 
-    <span class="n">setup_cfg</span> <span class="o">=</span> <span class="p">(</span>
-        <span class="s2">&quot;[build]</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;compiler = mingw64</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;[build_ext]</span><span class="se">\n</span><span class="s2">&quot;</span>
-        <span class="s2">&quot;compiler = mingw64</span><span class="se">\n</span><span class="s2">&quot;</span>
-    <span class="p">)</span>
-
     <span class="n">pyx_imports</span> <span class="o">=</span> <span class="p">(</span>
         <span class="s2">&quot;import numpy as np</span><span class="se">\n</span><span class="s2">&quot;</span>
         <span class="s2">&quot;cimport numpy as np</span><span class="se">\n</span><span class="s2">&quot;</span>
@@ -666,8 +659,6 @@
             <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup_template</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">ext_args</span><span class="o">=</span><span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">ext_args</span><span class="p">),</span>
                                                <span class="n">np_import</span><span class="o">=</span><span class="n">np_import</span><span class="p">,</span>
                                                <span class="n">np_includes</span><span class="o">=</span><span class="n">np_includes</span><span class="p">))</span>
-        <span class="k">with</span> <span class="nb">open</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">filepath</span><span class="p">,</span> <span class="s1">&#39;setup.cfg&#39;</span><span class="p">),</span> <span class="s1">&#39;w&#39;</span><span class="p">)</span> <span class="k">as</span> <span class="n">f</span><span class="p">:</span>
-            <span class="n">f</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">setup_cfg</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_process_files</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
         <span class="n">command</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">command</span>
@@ -970,7 +961,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+15.g1bded42',
+            VERSION:'0.6.1+16.gc545290',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
