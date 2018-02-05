@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.6.1+16.gc545290 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+16.gc545290 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+16.gc545290
+                0.6.1+17.g697f6e4
               </div>
             
           
@@ -292,7 +292,7 @@
     <span class="c1"># For each phase select all conditions where that phase exists</span>
     <span class="c1"># Perform the appropriate calculation and then write the result back</span>
     <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">:</span>
-        <span class="n">dof</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
+        <span class="n">dof</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="nb">len</span><span class="p">([</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">x</span> <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">])</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
         <span class="n">current_phase_indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span> <span class="o">==</span> <span class="n">phase</span><span class="p">)</span>
         <span class="k">if</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">current_phase_indices</span><span class="p">):</span>
             <span class="k">continue</span>
@@ -573,7 +573,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+16.gc545290',
+            VERSION:'0.6.1+17.g697f6e4',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
