@@ -215,13 +215,16 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
     phase_record.obj(phase_output, dof)
+    pure_elements = [list(x.constituents.keys()) for x in components]
+    pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
+    max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
     phase_output = np.asarray(phase_output, dtype=np.float)
     phase_output.shape = points.shape[:-1]
     if fake_points:
-        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (len(components),)), phase_output), axis=-1)
-        phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (len(components),)),
+        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (max_tieline_vertices,)), phase_output), axis=-1)
+        phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
                                       np.full(points.shape[:-1], phase_obj.name, dtype='U' + str(len(phase_obj.name)))), axis=-1)
     else:
         phase_names = np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))
@@ -238,23 +241,29 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
             var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, spec))
             vacancy_column -= points[..., :, var_idx]
         site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
+    # TODO: Add toggle to disable computation of species mole fractions (useful for lower_convex_hull)
+    phase_compositions = np.zeros(points.shape[:-1] + (len(components), len(pure_elements)))
+    # 'variables' should be aligned with dof of 'points'
+    for points_index, vxx in enumerate(variables):
+        if vxx.species.number_of_atoms == 0:
+            continue
+        num_sites = phase_obj.sublattices[vxx.sublattice_index]
+        spec_index = components.index(vxx.species)
+        for el_index, el in enumerate(pure_elements):
+            phase_compositions[..., spec_index, el_index] += num_sites * vxx.species.constituents.get(el, 0) * points[..., points_index]
 
-    phase_compositions = np.empty(points.shape[:-1] + (len(components),))
-    for col, comp in enumerate(components):
-        avector = [float(vxx.species == comp) * \
-            phase_obj.sublattices[vxx.sublattice_index] for vxx in variables]
-        phase_compositions[..., :, col] = np.divide(np.dot(points[..., :, :], avector),
-                                               site_ratio_normalization)
+    phase_compositions = phase_compositions / site_ratio_normalization[..., np.newaxis, np.newaxis]
+
     if fake_points:
-        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (len(components), len(components))), phase_compositions), axis=-2)
+        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (max_tieline_vertices, len(components), len(pure_elements))), phase_compositions), axis=-2)
 
-    coordinate_dict = {'component': [c.name for c in components]}
+    coordinate_dict = {'component': [c.name for c in components], 'element': pure_elements}
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
     if fake_points:
-        expanded_points = np.full(points.shape[:-2] + (len(components)+points.shape[-2], maximum_internal_dof), np.nan)
+        expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
         expanded_points[..., len(components):, :points.shape[-1]] = points
     else:
         expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
@@ -264,7 +273,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
-    data_arrays = {'X': (output_columns + ['component'], phase_compositions),
+    data_arrays = {'X': (output_columns + ['component', 'element'], phase_compositions),
                    'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
