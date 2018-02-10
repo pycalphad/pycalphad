@@ -60,9 +60,15 @@ class Model(object):
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
-        self.site_ratios = phase.sublattices
-        for sublattice in phase.constituents:
-            self.components |= set(sublattice).intersection(unpack_components(dbe, comps))
+        self.site_ratios = list(phase.sublattices)
+        for idx, sublattice in enumerate(phase.constituents):
+            subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+            # Support for variable site ratios in ionic liquid model
+            if any(c.charge != 0 for c in subl_comps):
+                self.site_ratios[idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+            self.components |= subl_comps
+        self.site_ratios = tuple(self.site_ratios)
+
         # Verify that this phase is still possible to build
         for sublattice in phase.constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
@@ -425,8 +431,9 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         # Normalize site ratios
         site_ratio_normalization = self._site_ratio_normalization(phase)
-        site_ratios = phase.sublattices
+        site_ratios = self.site_ratios
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
+        print(site_ratios)
         ideal_mixing_term = S.Zero
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
