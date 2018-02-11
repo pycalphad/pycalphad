@@ -291,17 +291,31 @@ def _process_typedef(targetdb, typechar, line):
                 targetdb.tdbtypedefs[typechar]
             )
 
+
+phase_options = {'ionic_liquid_2SL': 'Y',
+                 'symmetry_FCC_4SL': 'F',
+                 'symmetry_BCC_4SL': 'B',
+                 'liquid': 'L',
+                 'gas': 'G',
+                 'aqueous': 'A',
+                 'charged_phase': 'I'}
+inv_phase_options = dict([reversed(i) for i in phase_options.items()])
+
+
 def _process_phase(targetdb, name, typedefs, subls):
     """
     Process the PHASE command.
     """
     splitname = name.split(':')
     phase_name = splitname[0].upper()
-    options = None
+    options = ''
     if len(splitname) > 1:
         options = splitname[1]
     targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
+    for option in inv_phase_options.keys():
+        if option in options:
+            model_hints[inv_phase_options[option]] = True
     for typedef in list(typedefs):
         if typedef in targetdb.tdbtypedefs.keys():
             if 'ihj_magnetic' in targetdb.tdbtypedefs[typedef].keys():
@@ -726,6 +740,10 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     typedefs = defaultdict(lambda: ["%"])
     for name, phase_obj in sorted(dbf.phases.items()):
         model_hints = phase_obj.model_hints.copy()
+        possible_options = set(phase_options.keys()).intersection(model_hints)
+        # Phase options are handled later
+        for option in possible_options:
+            del model_hints[option]
         if ('ordered_phase' in model_hints.keys()) and (model_hints['ordered_phase'] == name):
             new_char = typedef_chars.pop()
             typedefs[name].append(new_char)
@@ -752,11 +770,19 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
     # Perform a second loop now that all typedefs / model hints are consistent
     for name, phase_obj in sorted(dbf.phases.items()):
-        output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs[name]),
+        # model_hints may also contain "phase options", e.g., ionic liquid
+        model_hints = phase_obj.model_hints.copy()
+        name_with_options = str(name.upper())
+        possible_options = set(phase_options.keys()).intersection(model_hints.keys())
+        if len(possible_options) > 0:
+            name_with_options += ':'
+        for option in possible_options:
+            name_with_options += phase_options[option]
+        output += "PHASE {0} {1}  {2} {3} !\n".format(name_with_options, ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
         constituents = ':'.join([','.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
-        output += "CONSTITUENT {0} :{1}: !\n".format(name.upper(), constituents)
+        output += "CONSTITUENT {0} :{1}: !\n".format(name_with_options, constituents)
         output += "\n"
 
     # PARAMETERs by subsystem
