@@ -64,7 +64,7 @@ class Model(object):
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
             # Support for variable site ratios in ionic liquid model
-            if any(c.charge != 0 for c in subl_comps):
+            if phase.model_hints.get('ionic_liquid_2SL', False):
                 self.site_ratios[idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
             self.components |= subl_comps
         self.site_ratios = tuple(self.site_ratios)
@@ -143,27 +143,35 @@ class Model(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def standard_mole_fraction(self, species):
-        "Mole fraction which correctly normalizes for vacancies."
+    def moles(self, species):
+        "Number of moles of species or elements."
+        species = v.Species(species)
+        is_pure_element = (len(species.constituents.keys()) == 1 and
+                           list(species.constituents.keys())[0] == species.name)
         result = S.Zero
-        site_ratio_normalization = S.Zero
-        # Calculate normalization factor
-        for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
-            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
-            site_ratio_normalization += self.site_ratios[idx] * subl_content
-
-        site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        # Sum up site fraction contributions from each component sublattice
-        for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(set(self.components))
-            for spec in active:
-                # if the species differ only in charge (or not at all)
-                # This could have unpredictable results if more distinguishing attributes are added to Species
-                if sorted(spec.constituents.items()) == sorted(species.constituents.items()):
-                    result += site_ratios[idx] * \
-                        int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
-        return result
+        normalization = S.Zero
+        if is_pure_element:
+            element = list(species.constituents.keys())[0]
+            for idx, sublattice in enumerate(self.constituents):
+                active = set(sublattice).intersection(self.components)
+                vacancies = sum(v.SiteFraction(self.phase_name, idx, x) for x in active if x.number_of_atoms == 0)
+                subl_normalization = self.site_ratios[idx] * (1 - vacancies)
+                subl_content = sum(
+                    int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
+                    for spec in active)
+                result += self.site_ratios[idx] * subl_content
+                normalization += subl_normalization
+        else:
+            for idx, sublattice in enumerate(self.constituents):
+                active = set(sublattice).intersection({species})
+                if len(active) == 0:
+                    continue
+                vacancies = sum(v.SiteFraction(self.phase_name, idx, x) for x in active if x.number_of_atoms == 0)
+                subl_normalization = self.site_ratios[idx] * (1 - vacancies)
+                subl_content = sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+                result += self.site_ratios[idx] * subl_content
+                normalization += subl_normalization
+        return result / normalization
 
     @property
     def ast(self):
@@ -191,7 +199,7 @@ class Model(object):
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection(set(self.components))
                 if comp in active:
-                    comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.standard_mole_fraction(comp)) / self.standard_mole_fraction(comp)
+                    comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.moles(comp)) / self.moles(comp)
             result += comp_result
         return result / sum(int(spec.number_of_atoms > 0) for spec in self.components)
     DOO = degree_of_ordering
