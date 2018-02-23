@@ -309,17 +309,18 @@ class Model(object):
                 break
         return result
 
-    def _site_ratio_normalization(self, phase):
+    @property
+    def _site_ratio_normalization(self):
         """
         Calculates the normalization factor based on the number of sites
         in each sublattice.
         """
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
-        for idx, sublattice in enumerate(phase.constituents):
+        for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(self.components)
-            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(phase.name, idx, spec) for spec in active)
-            site_ratio_normalization += phase.sublattices[idx] * subl_content
+            subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+            site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
 
     @staticmethod
@@ -448,7 +449,7 @@ class Model(object):
         param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
-        return pure_energy_term / self._site_ratio_normalization(phase)
+        return pure_energy_term / self._site_ratio_normalization
 
     def ideal_mixing_energy(self, dbe):
         #pylint: disable=W0613
@@ -457,7 +458,7 @@ class Model(object):
         """
         phase = dbe.phases[self.phase_name]
         # Normalize site ratios
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         site_ratios = self.site_ratios
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
@@ -491,7 +492,7 @@ class Model(object):
                 (where('constituent_array').test(self._interaction_test))
             )
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
-        return excess_term / self._site_ratio_normalization(phase)
+        return excess_term / self._site_ratio_normalization
 
     def magnetic_energy(self, dbe):
         #pylint: disable=C0103, R0914
@@ -508,7 +509,7 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -576,7 +577,7 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -648,7 +649,7 @@ class Model(object):
         """
         phase = dbe.phases[self.phase_name]
         param_search = dbe.search
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         gd_param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_type') == 'GD') & \
@@ -679,7 +680,7 @@ class Model(object):
             result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
         else:
             result = 0
-        return result / self._site_ratio_normalization(phase)
+        return result / self._site_ratio_normalization
 
     @staticmethod
     def mole_fraction(species_name, phase_name, constituent_array,
