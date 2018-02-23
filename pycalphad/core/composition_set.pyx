@@ -133,7 +133,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             if comp_idx == self.phase_record.vacancy_index:
                 past_va = 1
                 continue
-            self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], site_fracs, comp_idx)
+            self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], self._dof_2d_view, comp_idx)
             self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
             self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
         if not skip_derivatives:
