@@ -112,6 +112,7 @@ cdef class Problem:
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl
         cdef int vacancy_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
+        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
 
         # First: Site fraction balance constraints
@@ -134,7 +135,7 @@ cdef class Problem:
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
-                compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
+                compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
                 l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
                 var_offset += compset.phase_record.phase_dof
                 tmp_mass[0] = 0
@@ -144,6 +145,7 @@ cdef class Problem:
     def jacobian(self, x_in):
         cdef CompositionSet compset
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
+        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
         cdef double[::1] tmp_mass_grad = np.zeros(self.num_vars)
         cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
@@ -180,7 +182,7 @@ cdef class Problem:
                 for grad_idx in range(var_offset, var_offset + compset.phase_record.phase_dof):
                     constraint_jac[constraint_offset, grad_idx] = \
                         x[2+spidx] * tmp_mass_grad[grad_idx - var_offset]
-                compset.phase_record.mass_obj(tmp_mass, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
+                compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
                 constraint_jac[constraint_offset, spidx] += tmp_mass[0]
                 tmp_mass[0] = 0
                 tmp_mass_grad[:] = 0

@@ -1,4 +1,5 @@
 cimport cython
+from libc.stdlib cimport malloc
 import numpy as np
 cimport numpy as np
 from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
@@ -53,21 +54,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double mass_normalization_factor = 0
-        out[0] = 0
-        for entry_idx in range(self.num_sites.shape[0]):
-            if self.composition_matrices[comp_idx, entry_idx, 1] > -1:
-                out[0] += self.composition_matrices[comp_idx, entry_idx, 0] * dof[<int>self.composition_matrices[comp_idx, entry_idx, 1]]
-        for subl_idx in range(self.num_sites.shape[0]):
-            if (self.vacancy_index > -1) and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                mass_normalization_factor += self.num_sites[subl_idx] * (1-dof[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
-            else:
-                mass_normalization_factor += self.num_sites[subl_idx]
-        if mass_normalization_factor != 0:
-            out[0] /= mass_normalization_factor
-        else:
-            out[0] = 0
+    cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
+        if self._masses != NULL:
+            self._masses[comp_idx](&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -153,10 +142,15 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     return inst
 
 cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
-              object ofunc, object gfunc, object hfunc):
+              object ofunc, object gfunc, object hfunc, object massfuncs):
     cdef:
-        int var_idx, subl_index
+        int var_idx, subl_index, el_idx
         PhaseRecord inst
+    pure_elements = [spec for spec in comps
+                     if (len(spec.constituents.keys()) == 1 and
+                         list(spec.constituents.keys())[0] == spec.name and
+                         spec.number_of_atoms > 0)
+                     ]
     inst = PhaseRecord()
     # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
@@ -198,6 +192,12 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
         inst._hfunc = hfunc
         hfunc.kernel
         inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
+    if massfuncs is not None:
+        inst._massfuncs = massfuncs
+        inst._masses = <func_t**>malloc(len(pure_elements) * sizeof(func_t*))
+        for el_idx in range(len(pure_elements)):
+            massfuncs[el_idx].kernel
+            inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
     return inst
 
 def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,

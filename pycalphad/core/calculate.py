@@ -149,7 +149,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     return points
 
 
-def _compute_phase_values(phase_obj, components, variables, statevar_dict,
+def _compute_phase_values(components, statevar_dict,
                           points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
                           largest_energy=None):
     """
@@ -157,12 +157,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     Parameters
     ----------
-    phase_obj : Phase
-        Phase object from a thermodynamic database.
     components : list
         Names of components to consider in the calculation.
-    variables : list
-        Names of variables in the phase's internal degrees of freedom.
     statevar_dict : OrderedDict {str -> float or sequence}
         Mapping of state variables to desired values. This will broadcast if necessary.
     points : ndarray
@@ -208,56 +204,39 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                                  'broadcast=False.')
             statevars_.append(statevar)
         statevars = statevars_
+    pure_elements = [list(x.constituents.keys()) for x in components]
+    pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
+    phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
     phase_record.obj(phase_output, dof)
-    pure_elements = [list(x.constituents.keys()) for x in components]
-    pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
+    for el_idx in range(len(pure_elements)):
+        phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
+
     max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
+    if isinstance(phase_compositions, (float, int)):
+        phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
     phase_output = np.asarray(phase_output, dtype=np.float)
     phase_output.shape = points.shape[:-1]
+    phase_compositions = np.asarray(phase_compositions, dtype=np.float)
+    phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     if fake_points:
         phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (max_tieline_vertices,)), phase_output), axis=-1)
         phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
-                                      np.full(points.shape[:-1], phase_obj.name, dtype='U' + str(len(phase_obj.name)))), axis=-1)
+                                      np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
-        phase_names = np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))
-
-    # Map the internal degrees of freedom to global coordinates
-    # Normalize site ratios by the sum of site ratios times a factor
-    # related to the site fraction of vacancies
-    site_ratio_normalization = np.zeros(points.shape[:-1])
-    for idx, sublattice in enumerate(phase_obj.constituents):
-        vacancy_column = np.ones(points.shape[:-1])
-        for spec in sublattice:
-            if spec.number_of_atoms > 0:
-                continue
-            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, spec))
-            vacancy_column -= points[..., :, var_idx]
-        site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
-    # TODO: Add toggle to disable computation of species mole fractions (useful for lower_convex_hull)
-    phase_compositions = np.zeros(points.shape[:-1] + (len(components), len(pure_elements)))
-    # 'variables' should be aligned with dof of 'points'
-    for points_index, vxx in enumerate(variables):
-        if vxx.species.number_of_atoms == 0:
-            continue
-        num_sites = phase_obj.sublattices[vxx.sublattice_index]
-        spec_index = components.index(vxx.species)
-        for el_index, el in enumerate(pure_elements):
-            phase_compositions[..., spec_index, el_index] += num_sites * vxx.species.constituents.get(el, 0) * points[..., points_index]
-
-    phase_compositions = phase_compositions / site_ratio_normalization[..., np.newaxis, np.newaxis]
+        phase_names = np.full(points.shape[:-1], phase_record.phase_name, dtype='U'+str(len(phase_record.phase_name)))
 
     if fake_points:
-        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (max_tieline_vertices, len(components), len(pure_elements))), phase_compositions), axis=-2)
+        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
 
-    coordinate_dict = {'component': [c.name for c in components], 'element': pure_elements}
+    coordinate_dict = {'component': pure_elements}
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
@@ -273,7 +252,7 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
-    data_arrays = {'X': (output_columns + ['component', 'element'], phase_compositions),
+    data_arrays = {'X': (output_columns + ['component'], phase_compositions),
                    'Phase': (output_columns, phase_names),
                    'Y': (output_columns + ['internal_dof'], expanded_points),
                    output: (['dim_'+str(i) for i in range(len(phase_output.shape) - len(output_columns))] + output_columns, phase_output)
@@ -342,6 +321,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
     model_dict = unpack_kwarg(kwargs.pop('model', FallbackModel), default_arg=FallbackModel)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
+    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     parameters = parameters or dict()
@@ -430,9 +410,19 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                                         parameters=param_symbols)
             else:
                 comp_sets[phase_name] = callable_dict[phase_name]
+            if mass_dict[phase_name] is None:
+                pure_elements = [spec for spec in nonvacant_components
+                                 if (len(spec.constituents.keys()) == 1 and
+                                     list(spec.constituents.keys())[0] == spec.name)
+                                 ]
+                # TODO: In principle, we should also check for undefs in mod.moles()
+                mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
+                                                         include_obj=True, include_grad=False,
+                                                         parameters=param_symbols)
+                                         for el in pure_elements]
             phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
                                         np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                        param_values, comp_sets[phase_name], None, None)
+                                        param_values, comp_sets[phase_name], None, None, mass_dict[phase_name])
         else:
             variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
             sublattice_dof = mod.sublattice_dof
@@ -445,7 +435,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        phase_ds = _compute_phase_values(phase_obj, nonvacant_components, variables, str_statevar_dict,
+        phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)
