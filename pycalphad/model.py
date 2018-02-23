@@ -431,6 +431,26 @@ class Model(object):
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True)
+            if phase.model_hints.get('ionic_liquid_2SL', False):
+                # Special normalization rules for parameters apply under this model
+                # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
+                # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
+                if not any([m.species.charge < 0 for m in mixing_term.free_symbols]):
+                    pair_rule = {}
+                    # Cation site fractions must always appear with vacancy site fractions
+                    va_subls = [(v.Species('VA') in phase.constituents[idx]) for idx in range(len(phase.constituents))]
+                    va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
+                    va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
+                    if va_present and (max(len(c) for c in param['constituent_array']) == 1):
+                        # No need to apply pair rule for VA-containing endmember
+                        pass
+                    elif va_subl_idx > -1:
+                        for sym in mixing_term.free_symbols:
+                            if sym.species.charge > 0:
+                                pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
+                    mixing_term = mixing_term.xreplace(pair_rule)
+                    # This parameter is normalized differently due to the variable charge valence of vacancies
+                    mixing_term *= self.site_ratios[va_subl_idx]
             rk_terms.append(mixing_term * param['parameter'])
         return Add(*rk_terms)
 
