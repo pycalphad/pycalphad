@@ -20,6 +20,7 @@ ALNIFCC4SL_DBF = Database(ALNIFCC4SL_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 ISSUE43_DBF = Database(ISSUE43_TDB)
 TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
+CUO_DBF = Database(CUO_TDB)
 
 # ROSE DIAGRAM TEST
 def test_rose_nine():
@@ -308,6 +309,15 @@ def test_eq_unary_issue78():
     eq = equilibrium(ALFE_DBF, ['AL', 'VA'], 'FCC_A1', {v.T: 1200, v.P: 101325}, output='SM', parameters={'GHSERAL': 1000})
     np.testing.assert_allclose(eq.GM, 1000)
     np.testing.assert_allclose(eq.SM, 0)
+
+def test_eq_gas_phase():
+    # XXX: Do not merge without checking values from TC
+    eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
+    eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
+
+def test_eq_ionic_liquid():
+    # XXX: Do not merge without checking values from TC
+    eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
 
 
 def test_equilibrium_result_dataset_can_serialize_to_netcdf():
