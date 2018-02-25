@@ -11,8 +11,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
-from pycalphad.core.compiled_model import CompiledModel
+from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython
 import pycalphad.variables as v
 from sympy import Symbol
 import numpy as np
@@ -21,17 +20,6 @@ import collections
 import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
-
-
-class FallbackModel(object):
-    "Compatibility layer while transitioning to CompiledModel."
-    def __new__(cls, *args, **kwargs):
-        return Model(*args, **kwargs)
-        try:
-            ret = CompiledModel(*args, **kwargs)
-        except NotImplementedError:
-            return Model(*args, **kwargs)
-        return ret
 
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
@@ -319,7 +307,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
-    model_dict = unpack_kwarg(kwargs.pop('model', FallbackModel), default_arg=FallbackModel)
+    model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
     mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
@@ -386,47 +374,40 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         # this is a phase model we couldn't construct for whatever reason; skip it
         if isinstance(mod, type):
             continue
-        if (not isinstance(mod, CompiledModel)) or (output != 'GM'):
-            if isinstance(mod, CompiledModel):
-                mod = Model(dbf, comps, phase_name, parameters=parameters)
-            # Construct an ordered list of the variables
-            variables, sublattice_dof = generate_dof(phase_obj, mod.components)
-            # Build the "fast" representation of that model
-            if callable_dict[phase_name] is None:
-                try:
-                    out = getattr(mod, output)
-                except AttributeError:
-                    raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                         .format(output, mod.__class__))
-                # As a last resort, treat undefined symbols as zero
-                # But warn the user when we do this
-                # This is consistent with TC's behavior
-                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-                for undef in undefs:
-                    out = out.xreplace({undef: float(0)})
-                    warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
-                comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                        include_obj=True, include_grad=False,
-                                                        parameters=param_symbols)
-            else:
-                comp_sets[phase_name] = callable_dict[phase_name]
-            if mass_dict[phase_name] is None:
-                pure_elements = [spec for spec in nonvacant_components
-                                 if (len(spec.constituents.keys()) == 1 and
-                                     list(spec.constituents.keys())[0] == spec.name)
-                                 ]
-                # TODO: In principle, we should also check for undefs in mod.moles()
-                mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
-                                                         include_obj=True, include_grad=False,
-                                                         parameters=param_symbols)
-                                         for el in pure_elements]
-            phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
-                                        np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                        param_values, comp_sets[phase_name], None, None, mass_dict[phase_name], None)
+        # Construct an ordered list of the variables
+        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
+        # Build the "fast" representation of that model
+        if callable_dict[phase_name] is None:
+            try:
+                out = getattr(mod, output)
+            except AttributeError:
+                raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                     .format(output, mod.__class__))
+            # As a last resort, treat undefined symbols as zero
+            # But warn the user when we do this
+            # This is consistent with TC's behavior
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+                warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
+            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
+                                                    include_obj=True, include_grad=False,
+                                                    parameters=param_symbols)
         else:
-            variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
-            sublattice_dof = mod.sublattice_dof
-            phase_record = PhaseRecord_from_compiledmodel(mod, param_values)
+            comp_sets[phase_name] = callable_dict[phase_name]
+        if mass_dict[phase_name] is None:
+            pure_elements = [spec for spec in nonvacant_components
+                             if (len(spec.constituents.keys()) == 1 and
+                                 list(spec.constituents.keys())[0] == spec.name)
+                             ]
+            # TODO: In principle, we should also check for undefs in mod.moles()
+            mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
+                                                     include_obj=True, include_grad=False,
+                                                     parameters=param_symbols)
+                                     for el in pure_elements]
+        phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
+                                    np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
+                                    param_values, comp_sets[phase_name], None, None, mass_dict[phase_name], None)
         points = points_dict[phase_name]
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,

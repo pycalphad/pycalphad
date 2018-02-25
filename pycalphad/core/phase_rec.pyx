@@ -3,7 +3,6 @@ from cpython.mem cimport PyMem_Malloc, PyMem_Free
 import numpy as np
 cimport numpy as np
 from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
-from pycalphad.core.compiled_model cimport CompiledModel
 import pycalphad.variables as v
 
 # From https://gist.github.com/pv/5437087
@@ -20,9 +19,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     these objects are pickleable. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-        if self.cmpmdl is not None:
-            return PhaseRecord_from_compiledmodel, (self.cmpmdl, np.asarray(self.parameters))
-        else:
             return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
                                                   self.parameters, self.num_sites, self.composition_matrices,
                                                   self.vacancy_index, self._ofunc, self._gfunc, self._hfunc)
@@ -36,25 +32,18 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil:
         if self._obj != NULL:
             self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
-        else:
-            self.cmpmdl.eval_energy(&out[0], &dof[0,0], self.parameters, <size_t>out.shape[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
         if self._grad != NULL:
             self._grad(&dof[0], &self.parameters[0], &out[0])
-        else:
-            self.cmpmdl.eval_energy_gradient(&out[0], &dof[0], self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil:
         if self._hess != NULL:
             self._hess(&dof[0], &self.parameters[0], &out[0,0])
-        else:
-            if self.cmpmdl is not None:
-                self.cmpmdl.eval_energy_hessian(out, dof, self.parameters)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -99,24 +88,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
                     if hess_y_comp_idx > -1:
                         out[hess_x_idx, hess_y_comp_idx] = out[hess_y_comp_idx, hess_x_idx] = (self.num_sites[subl_x_idx] * self.num_sites[subl_y_idx]) / mass_normalization_factor**2
 
-# cdef classmethods are not yet supported, otherwise we would use that
-# it's not a big deal since we declare PhaseRecord final to allow cpdef nogil functions
-cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::1] parameters):
-    cdef PhaseRecord inst
-    inst = PhaseRecord()
-    inst.cmpmdl = cmpmdl
-    inst.variables = cmpmdl.variables
-    inst.phase_name = cmpmdl.phase_name
-    inst.sublattice_dof = cmpmdl.sublattice_dof
-    inst.phase_dof = sum(cmpmdl.sublattice_dof)
-    inst.parameters = parameters
-    inst.num_sites = cmpmdl.site_ratios
-    inst.composition_matrices = cmpmdl.composition_matrices
-    inst.vacancy_index = cmpmdl.vacancy_index
-    inst._obj = NULL
-    inst._grad = NULL
-    inst._hess = NULL
-    return inst
 
 cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
               object ofunc, object gfunc, object hfunc, object massfuncs, object massgradfuncs):

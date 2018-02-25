@@ -10,9 +10,7 @@ from pycalphad.core.utils import unpack_components, unpack_condition, unpack_pha
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions
-from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
-from pycalphad.core.compiled_model import CompiledModel
-from pycalphad.core.calculate import FallbackModel
+from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
@@ -214,7 +212,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
-    model = model if model is not None else FallbackModel
+    model = model if model is not None else Model
     phase_records = dict()
     diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
@@ -243,7 +241,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(model, default_arg=FallbackModel)
+    models = unpack_kwarg(model, default_arg=Model)
     if verbose:
         print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
@@ -254,46 +252,42 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name, parameters=parameters)
-        if isinstance(mod, CompiledModel):
-            phase_records[name.upper()] = PhaseRecord_from_compiledmodel(mod, param_values)
-            maximum_internal_dof = max(maximum_internal_dof, sum(mod.sublattice_dof))
-        else:
-            site_fracs = mod.site_fractions
-            variables = sorted(site_fracs, key=str)
-            maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
-            out = models[name].energy
-            if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
-                    or (not hess_callable_dict.get(name, False)):
-                # Only force undefineds to zero if we're not overriding them
-                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
-                for undef in undefs:
-                    out = out.xreplace({undef: float(0)})
-                cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
-                                         parameters=param_symbols)
-                hf = None
-                if callable_dict.get(name, None) is None:
-                    callable_dict[name] = cf
-                if grad_callable_dict.get(name, None) is None:
-                    grad_callable_dict[name] = gf
-                if hess_callable_dict.get(name, None) is None:
-                    hess_callable_dict[name] = hf
+        site_fracs = mod.site_fractions
+        variables = sorted(site_fracs, key=str)
+        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
+        out = models[name].energy
+        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
+                or (not hess_callable_dict.get(name, False)):
+            # Only force undefineds to zero if we're not overriding them
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+            cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
+                                     parameters=param_symbols)
+            hf = None
+            if callable_dict.get(name, None) is None:
+                callable_dict[name] = cf
+            if grad_callable_dict.get(name, None) is None:
+                grad_callable_dict[name] = gf
+            if hess_callable_dict.get(name, None) is None:
+                hess_callable_dict[name] = hf
 
-            if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
-                # TODO: In principle, we should also check for undefs in mod.moles()
-                tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
-                                                   include_obj=True, include_grad=True,
-                                                   parameters=param_symbols)
-                                   for el in pure_elements])
-                if mass_dict[name] is None:
-                    mass_dict[name] = tup1
-                if mass_grad_dict[name] is None:
-                    mass_grad_dict[name] = tup2
+        if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
+            # TODO: In principle, we should also check for undefs in mod.moles()
+            tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+                                               include_obj=True, include_grad=True,
+                                               parameters=param_symbols)
+                               for el in pure_elements])
+            if mass_dict[name] is None:
+                mass_dict[name] = tup1
+            if mass_grad_dict[name] is None:
+                mass_grad_dict[name] = tup2
 
-            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                                  np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                                  param_values, callable_dict[name],
-                                                                  grad_callable_dict[name], hess_callable_dict[name],
-                                                                  mass_dict[name], mass_grad_dict[name])
+        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
+                                                              np.array(dbf.phases[name].sublattices, dtype=np.float),
+                                                              param_values, callable_dict[name],
+                                                              grad_callable_dict[name], hess_callable_dict[name],
+                                                              mass_dict[name], mass_grad_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:
@@ -374,9 +368,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        for phase_name, mod in models.items():
-            if isinstance(mod, CompiledModel) or isinstance(mod, FallbackModel):
-                models[phase_name] = Model(dbf, comps, phase_name, parameters=parameters)
         eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
                                                   data=properties, per_phase=per_phase, model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
