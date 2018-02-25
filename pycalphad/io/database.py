@@ -5,7 +5,7 @@ associated with structured thermodynamic/kinetic data.
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 from datetime import datetime
-from collections import namedtuple
+from collections import namedtuple, defaultdict
 import os
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
@@ -403,7 +403,7 @@ class Database(object): #pylint: disable=R0902
         species_dict = {s.name: s for s in self.species}
         new_parameter = {
             'phase_name': phase_name,
-            'constituent_array': tuple(tuple(species_dict[s.upper()] for s in xs) for xs in constituent_array),  # must be hashable type
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
