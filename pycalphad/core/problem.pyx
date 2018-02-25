@@ -19,8 +19,7 @@ cdef class Problem:
             raise ValueError('Number of phases is zero')
         self.composition_sets = comp_sets
         self.conditions = conditions
-        self.components = sorted([v.Species(c) for c in comps])
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
         dependent_comp = set(self.pure_elements) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
