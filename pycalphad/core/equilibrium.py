@@ -198,6 +198,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     from pycalphad import __version__ as pycalphad_version
+    comps = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
     list_of_possible_phases = filter_phases(dbf, comps)
@@ -208,7 +209,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
     if isinstance(comps, (str, v.Species)):
         comps = [comps]
-    comps = sorted(unpack_components(dbf, comps))
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
@@ -218,6 +218,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     phase_records = dict()
     diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
+    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
+    mass_grad_dict = unpack_kwarg(kwargs.pop('massgradfuncs', None), default_arg=None)
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
     parameters = parameters if parameters is not None else dict()
@@ -236,11 +238,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     num_calcs = np.prod([len(i) for i in str_conds.values()])
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    components = [x for x in sorted(comps)]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=FallbackModel)
     if verbose:
-        print('Components:', ' '.join(comps))
+        print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
     max_phase_name_len = max(len(name) for name in active_phases)
     # Need to allow for '_FAKE_' psuedo-phase
@@ -273,10 +278,22 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 if hess_callable_dict.get(name, None) is None:
                     hess_callable_dict[name] = hf
 
+            if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
+                # TODO: In principle, we should also check for undefs in mod.moles()
+                tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+                                                   include_obj=True, include_grad=True,
+                                                   parameters=param_symbols)
+                                   for el in pure_elements])
+                if mass_dict[name] is None:
+                    mass_dict[name] = tup1
+                if mass_grad_dict[name] is None:
+                    mass_grad_dict[name] = tup2
+
             phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                                np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                                param_values, callable_dict[name],
-                                                                grad_callable_dict[name], hess_callable_dict[name])
+                                                                  np.array(dbf.phases[name].sublattices, dtype=np.float),
+                                                                  param_values, callable_dict[name],
+                                                                  grad_callable_dict[name], hess_callable_dict[name],
+                                                                  mass_dict[name], mass_grad_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:
@@ -288,14 +305,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(components))
+    coord_dict['vertex'] = np.arange(len(pure_elements))
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
-    coord_dict['component'] = components
+    coord_dict['component'] = pure_elements
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, callables=callable_dict, fake_points=True,
-                                          parameters=parameters, **grid_opts)
+                                          model=models, callables=callable_dict, massfuncs=mass_dict,
+                                          fake_points=True, parameters=parameters, **grid_opts)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
                                                       np.empty(grid_shape)),

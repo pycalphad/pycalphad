@@ -295,7 +295,16 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
             phase_records[key] = PhaseRecord_from_cython(comps, value.variables, np.array(value.num_sites, dtype=np.float),
-                                                       value.parameters, value.obj, value.grad, value.hess, None)
+                                                         value.parameters, value.obj, value.grad, value.hess,
+                                                         value.mass, value.mass_grad)
+
+    pure_elements = set(v.Species(list(spec.constituents.keys())[0])
+                                  for spec in comps
+                                    if (len(spec.constituents.keys()) == 1 and
+                                    list(spec.constituents.keys())[0] == spec.name)
+                       )
+    pure_elements = sorted(pure_elements)
+
     # Factored out via profiling
     prop_MU_values = properties['MU'].values
     prop_NP_values = properties['NP'].values
@@ -332,7 +341,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             prop_GM_values[it.multi_index] = np.nan
             it.iternext()
             continue
-        dependent_comp = set(comps) - set([i[2:] for i in cur_conds.keys() if i.startswith('X_')]) - {'VA'}
+        dependent_comp = set(pure_elements) - set([v.Species(i[2:]) for i in cur_conds.keys() if i.startswith('X_')]) - {v.Species('VA')}
         if len(dependent_comp) == 1:
             dependent_comp = list(dependent_comp)[0]
         else:

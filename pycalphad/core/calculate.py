@@ -234,7 +234,7 @@ def _compute_phase_values(components, statevar_dict,
         phase_names = np.full(points.shape[:-1], phase_record.phase_name, dtype='U'+str(len(phase_record.phase_name)))
 
     if fake_points:
-        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
+        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(pure_elements)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
 
     coordinate_dict = {'component': pure_elements}
     # Resize 'points' so it has the same number of columns as the maximum
@@ -243,7 +243,7 @@ def _compute_phase_values(components, statevar_dict,
     # Waste of memory? Yes, but the alternatives are unclear.
     if fake_points:
         expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
-        expanded_points[..., len(components):, :points.shape[-1]] = points
+        expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
         expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
         expanded_points[..., :points.shape[-1]] = points
@@ -422,7 +422,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                          for el in pure_elements]
             phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
                                         np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                        param_values, comp_sets[phase_name], None, None, mass_dict[phase_name])
+                                        param_values, comp_sets[phase_name], None, None, mass_dict[phase_name], None)
         else:
             variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
             sublattice_dof = mod.sublattice_dof

@@ -13,7 +13,7 @@ class InteriorPointSolver(object):
 
     def solve(self, prob):
         cur_conds = prob.conditions
-        comps = prob.components
+        comps = prob.pure_elements
         nlp = ipopt.problem(
             n=prob.num_vars,
             m=prob.num_constraints,

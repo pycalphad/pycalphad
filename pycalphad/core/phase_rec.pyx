@@ -1,5 +1,5 @@
 cimport cython
-from libc.stdlib cimport malloc
+from cpython.mem cimport PyMem_Malloc, PyMem_Free
 import numpy as np
 cimport numpy as np
 from cpython cimport PyCapsule_CheckExact, PyCapsule_GetPointer
@@ -26,6 +26,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
                                                   self.parameters, self.num_sites, self.composition_matrices,
                                                   self.vacancy_index, self._ofunc, self._gfunc, self._hfunc)
+
+    def __dealloc__(self):
+        PyMem_Free(self._masses)
+        PyMem_Free(self._massgrads)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -61,35 +65,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double mass_normalization_factor = 0
-        cdef double mass = 0
-        cdef double site_count
-        cdef int grad_idx
-        for subl_idx in range(self.num_sites.shape[0]):
-            if self.composition_matrices[comp_idx, subl_idx, 1] > -1:
-                mass += self.num_sites[subl_idx] * dof[<int>self.composition_matrices[comp_idx, subl_idx, 1]]
-            if self.vacancy_index > -1 and self.composition_matrices[self.vacancy_index, subl_idx, 1] > -1:
-                mass_normalization_factor += self.num_sites[subl_idx] * (1-dof[<int>self.composition_matrices[self.vacancy_index, subl_idx, 1]])
-            else:
-                mass_normalization_factor += self.num_sites[subl_idx]
-        if mass == 0 or mass_normalization_factor == 0:
-            return
-        if comp_idx != self.vacancy_index:
-            for subl_idx in range(self.composition_matrices.shape[1]):
-                grad_idx = <int>self.composition_matrices[comp_idx, subl_idx, 1]
-                if grad_idx > -1:
-                    out[grad_idx] = self.composition_matrices[comp_idx, subl_idx, 0] / mass_normalization_factor
-            if self.vacancy_index > -1:
-                for subl_idx in range(self.composition_matrices.shape[1]):
-                    grad_idx = <int>self.composition_matrices[self.vacancy_index, subl_idx, 1]
-                    if grad_idx > -1:
-                        out[grad_idx] = (mass * self.composition_matrices[self.vacancy_index, subl_idx, 0]) / (mass_normalization_factor **  2)
-        else:
-            for subl_idx in range(self.composition_matrices.shape[1]):
-                grad_idx = <int>self.composition_matrices[comp_idx, subl_idx, 1]
-                site_count = self.composition_matrices[comp_idx, subl_idx, 0]
-                if grad_idx > -1:
-                    out[grad_idx] = (site_count * mass_normalization_factor + (site_count ** 2) * dof[grad_idx]) / (mass_normalization_factor ** 2)
+        if self._massgrads != NULL:
+            self._massgrads[comp_idx](&dof[0], &self.parameters[0], &out[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -142,15 +119,14 @@ cpdef PhaseRecord PhaseRecord_from_compiledmodel(CompiledModel cmpmdl, double[::
     return inst
 
 cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
-              object ofunc, object gfunc, object hfunc, object massfuncs):
+              object ofunc, object gfunc, object hfunc, object massfuncs, object massgradfuncs):
     cdef:
         int var_idx, subl_index, el_idx
         PhaseRecord inst
-    pure_elements = [spec for spec in comps
-                     if (len(spec.constituents.keys()) == 1 and
-                         list(spec.constituents.keys())[0] == spec.name and
-                         spec.number_of_atoms > 0)
-                     ]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set(desired_active_pure_elements))
+    nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
     inst = PhaseRecord()
     # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
@@ -159,11 +135,9 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     inst.sublattice_dof = np.zeros(num_sites.shape[0], dtype=np.int32)
     inst.parameters = parameters
     inst.num_sites = num_sites
-    # In the future, this should be bigger than num_sites.shape[0] to allow for multiple species
-    # of the same type in the same sublattice for, e.g., same species with different charges
-    inst.composition_matrices = np.full((len(comps), num_sites.shape[0], 2), -1.)
-    if 'VA' in comps:
-        inst.vacancy_index = comps.index('VA')
+    inst.composition_matrices = np.full((len(pure_elements), num_sites.shape[0], 2), -1.)
+    if 'VA' in pure_elements:
+        inst.vacancy_index = pure_elements.index('VA')
     else:
         inst.vacancy_index = -1
     var_idx = 0
@@ -172,10 +146,6 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
             continue
         inst.phase_name = <unicode>variable.phase_name
         subl_index = variable.sublattice_index
-        species = variable.species
-        comp_index = comps.index(species)
-        inst.composition_matrices[comp_index, subl_index, 0] = num_sites[subl_index]
-        inst.composition_matrices[comp_index, subl_index, 1] = var_idx
         inst.sublattice_dof[subl_index] += 1
         var_idx += 1
         inst.phase_dof += 1
@@ -194,10 +164,16 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
         inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
     if massfuncs is not None:
         inst._massfuncs = massfuncs
-        inst._masses = <func_t**>malloc(len(pure_elements) * sizeof(func_t*))
-        for el_idx in range(len(pure_elements)):
+        inst._masses = <func_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_t*))
+        for el_idx in range(len(nonvacant_elements)):
             massfuncs[el_idx].kernel
             inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
+    if massgradfuncs is not None:
+        inst._massgradfuncs = massgradfuncs
+        inst._massgrads = <func_novec_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_novec_t*))
+        for el_idx in range(len(nonvacant_elements)):
+            massgradfuncs[el_idx].kernel
+            inst._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
     return inst
 
 def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,

@@ -125,7 +125,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         memset(&self.hess[0,0], 0, self.hess.shape[0] * self.hess.shape[1] * sizeof(double))
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
         memset(&self.mass_grad[0,0], 0, self.mass_grad.shape[0] * self.mass_grad.shape[1] * sizeof(double))
-        memset(&self.mass_hess[0,0,0], 0, self.mass_hess.shape[0] * self.mass_hess.shape[1] * self.mass_hess.shape[2] * sizeof(double))
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
         if not skip_derivatives:
             self.phase_record.grad(self.grad, self.dof)
@@ -135,7 +134,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
                 continue
             self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], self._dof_2d_view, comp_idx)
             self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
-            self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
         if not skip_derivatives:
             if self._first_iteration == True:
                 self.phase_record.hess(self.hess, self.dof)

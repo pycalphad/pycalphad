@@ -5,6 +5,7 @@ equilibrium calculation.
 from __future__ import print_function
 from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
+import pycalphad.variables as v
 from .hyperplane import hyperplane
 import numpy as np
 

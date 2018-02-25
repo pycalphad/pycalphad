@@ -2,6 +2,7 @@ from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
 import numpy as np
 from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
+import pycalphad.variables as v
 
 cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
@@ -13,13 +14,17 @@ cdef class Problem:
         cdef int var_idx = 0
         cdef int phase_idx = 0
         cdef double indep_sum = sum([float(val) for i, val in conditions.items() if i.startswith('X_')])
-        cdef object dependent_comp = set(comps) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
+        cdef object dependent_comp
         if len(comp_sets) == 0:
             raise ValueError('Number of phases is zero')
-        dependent_comp = list(dependent_comp)[0]
         self.composition_sets = comp_sets
         self.conditions = conditions
-        self.components = sorted(comps)
+        self.components = sorted([v.Species(c) for c in comps])
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+        self.pure_elements = sorted(set(desired_active_pure_elements))
+        dependent_comp = set(self.pure_elements) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
+        dependent_comp = list(dependent_comp)[0]
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases
         self.num_constraints = num_constraints
@@ -42,14 +47,14 @@ cdef class Problem:
         self.cl[:num_sitefrac_bals] = 1
         self.cu[:num_sitefrac_bals] = 1
         # Mass balance constraints
-        for constraint_idx, comp in enumerate(sorted(set(self.components) - {'VA'})):
+        for constraint_idx, comp in enumerate(sorted(set(self.pure_elements) - {'VA'})):
             if comp == dependent_comp:
                 # TODO: Only handles N=1
                 self.cl[num_sitefrac_bals+constraint_idx] = 1-indep_sum
                 self.cu[num_sitefrac_bals+constraint_idx] = 1-indep_sum
             else:
-                self.cl[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + comp]
-                self.cu[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + comp]
+                self.cl[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + str(comp)]
+                self.cu[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + str(comp)]
 
     def objective(self, x_in):
         cdef CompositionSet compset
@@ -127,7 +132,7 @@ cdef class Problem:
                 var_idx += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
         # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.components):
+        for comp_idx, comp in enumerate(self.pure_elements):
             if comp == 'VA':
                 vacancy_offset = 1
                 continue
@@ -169,7 +174,7 @@ cdef class Problem:
                 phase_offset += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
         # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.components):
+        for comp_idx, comp in enumerate(self.pure_elements):
             if comp == 'VA':
                 vacancy_offset = 1
                 continue
