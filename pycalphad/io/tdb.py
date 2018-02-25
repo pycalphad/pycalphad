@@ -794,7 +794,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             components = set()
             for subl in param['constituent_array']:
                 components |= set(subl)
-            if param['diffusing_species'] is not None:
+            if param['diffusing_species'] != Species(None):
                 components |= {param['diffusing_species']}
             # Wildcard operator is not a component
             components -= {'*'}
@@ -828,7 +828,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         exprx = TCPrinter().doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
-        if param_to_write.diffusing_species is not None:
+        if param_to_write.diffusing_species != Species(None):
             ds = "&" + param_to_write.diffusing_species.name
         else:
             ds = ""

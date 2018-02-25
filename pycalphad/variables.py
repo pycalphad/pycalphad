@@ -33,10 +33,19 @@ class Species(object):
         # if a Species is passed in, return it
         if arg.__class__ == cls:
             return arg
-        if arg == '*':
-            return '*'
-
         new_self = object.__new__(cls)
+        if arg == '*':
+            new_self = object.__new__(cls)
+            new_self.name = '*'
+            new_self.constituents = dict()
+            new_self.charge = 0
+            return new_self
+        if arg is None:
+            new_self = object.__new__(cls)
+            new_self.name = ''
+            new_self.constituents = dict()
+            new_self.charge = 0
+            return new_self
 
         if isinstance(arg, str):
             parse_list = chemical_formula.parseString(arg.upper())
@@ -80,6 +89,10 @@ class Species(object):
         return NotImplementedError
 
     def __repr__(self):
+        if self.name == '*':
+            return '*'
+        if self.name == '':
+            return 'None'
         species_constituents = ''.join(
             ['{}{}'.format(el, val) for el, val in sorted(self.constituents.items(), key=lambda t: t[0])])
         if self.charge == 0:

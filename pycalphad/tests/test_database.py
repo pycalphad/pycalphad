@@ -9,6 +9,7 @@ from copy import deepcopy
 from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
+from pycalphad.variables import Species
 from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
@@ -391,13 +392,13 @@ SPECIES AL2                         AL2!
     written_tdb_str = test_dbf.to_string(fmt='tdb')
     test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
     assert set(test_dbf_reread.phases.keys()) == {'TEST_PH', 'T2SL'}
-    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {'AL', 'AL2', 'O-2'}
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL',),))) == 1
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL2',),))) == 1
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {Species('AL'), Species('AL2'), Species('O-2')}
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL'),),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL2'),),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('O-2'),),))) == 1
 
-    assert test_dbf_reread.phases['T2SL'].constituents == ({'AL+3'}, {'O-2'})
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL+3',),('O-2',)))) == 1
+    assert test_dbf_reread.phases['T2SL'].constituents == ({Species('AL+3')}, {Species('O-2')})
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL+3'),),(Species('O-2'),)))) == 1
 
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():

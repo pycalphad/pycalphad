@@ -273,7 +273,7 @@ class Model(object):
             if len(sublattice) != 1:
                 return False
             if (sublattice[0] not in self.components) and \
-                (sublattice[0] != '*'):
+                (sublattice[0] != v.Species('*')):
                 return False
         return True
 
@@ -285,7 +285,7 @@ class Model(object):
             return False
         for sublattice in constituent_array:
             valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == '*'
+                or sublattice[0] == v.Species('*')
             if not valid:
                 return False
         return True
@@ -301,7 +301,7 @@ class Model(object):
         for sublattice in constituent_array:
             # check if all elements involved are also active
             valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == '*'
+                or sublattice[0] == v.Species('*')
             if len(sublattice) > 1 and valid:
                 result = True
             if not valid:
@@ -366,7 +366,7 @@ class Model(object):
             for subl_index, comps in enumerate(param['constituent_array']):
                 comp_symbols = None
                 # convert strings to symbols
-                if comps[0] == '*':
+                if comps[0] == v.Species('*'):
                     # Handle wildcards in constituent array
                     comp_symbols = \
                         [

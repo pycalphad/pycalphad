@@ -407,7 +407,7 @@ class Database(object): #pylint: disable=R0902
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
-            'diffusing_species': diffusing_species,
+            'diffusing_species': Species(diffusing_species),
             'reference': ref
         }
         param_id = self._parameters.insert(new_parameter)
