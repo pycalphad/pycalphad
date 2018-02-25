@@ -115,8 +115,11 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
     coord_dict = str_conds.copy()
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
-    coord_dict['vertex'] = np.arange(len(components))
+    components = [x for x in sorted(comps)]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
+    coord_dict['vertex'] = np.arange(len(pure_elements))
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     prop_shape = grid_shape
