@@ -22,6 +22,7 @@ cdef class Problem:
         desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
+        self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
         dependent_comp = set(self.pure_elements) - set([i[2:] for i in conditions.keys() if i.startswith('X_')]) - {'VA'}
         dependent_comp = list(dependent_comp)[0]
         self.num_phases = len(self.composition_sets)
@@ -46,7 +47,7 @@ cdef class Problem:
         self.cl[:num_sitefrac_bals] = 1
         self.cu[:num_sitefrac_bals] = 1
         # Mass balance constraints
-        for constraint_idx, comp in enumerate(sorted(set(self.pure_elements) - {'VA'})):
+        for constraint_idx, comp in enumerate(self.nonvacant_elements):
             if comp == dependent_comp:
                 # TODO: Only handles N=1
                 self.cl[num_sitefrac_bals+constraint_idx] = 1-indep_sum
@@ -114,8 +115,8 @@ cdef class Problem:
         cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(self.num_constraints)
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl
-        cdef int vacancy_offset = 0
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
+        cdef double[::1] x_tmp
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
 
@@ -131,14 +132,14 @@ cdef class Problem:
                 var_idx += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
         # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.pure_elements):
-            if comp == 'VA':
-                vacancy_offset = 1
-                continue
+        for comp_idx, comp in enumerate(self.nonvacant_elements):
             var_offset = 0
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
+                # TODO: This is a hack until the constraint system is rewritten
+                x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof]]
+                dof_2d_view = <double[:1,:x_tmp.shape[0]]>&x_tmp[0]
                 compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
                 l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
                 var_offset += compset.phase_record.phase_dof
@@ -149,13 +150,13 @@ cdef class Problem:
     def jacobian(self, x_in):
         cdef CompositionSet compset
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
+        cdef double[::1] x_tmp
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
-        cdef double[::1] tmp_mass_grad = np.zeros(self.num_vars)
+        cdef double[::1] tmp_mass_grad = np.zeros(2+self.num_vars)
         cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
-        cdef int vacancy_offset = 0
 
         # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
         # Ordering of constraints by column: site fractions of each phase, then phase fractions
@@ -173,19 +174,19 @@ cdef class Problem:
                 phase_offset += active_in_subl
             constraint_offset += compset.phase_record.sublattice_dof.shape[0]
         # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.pure_elements):
-            if comp == 'VA':
-                vacancy_offset = 1
-                continue
+        for comp_idx, comp in enumerate(self.nonvacant_elements):
             var_offset = 0
             for phase_idx in range(self.num_phases):
                 compset = self.composition_sets[phase_idx]
                 spidx = self.num_vars - self.num_phases + phase_idx
-                compset.phase_record.mass_grad(tmp_mass_grad, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], comp_idx)
+                # TODO: This is a hack until the constraint system is rewritten
+                x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof]]
+                dof_2d_view = <double[:1,:x_tmp.shape[0]]>&x_tmp[0]
+                compset.phase_record.mass_grad(tmp_mass_grad, x_tmp, comp_idx)
                 # current phase frac times the comp_grad
                 for grad_idx in range(var_offset, var_offset + compset.phase_record.phase_dof):
                     constraint_jac[constraint_offset, grad_idx] = \
-                        x[2+spidx] * tmp_mass_grad[grad_idx - var_offset]
+                        x[2+spidx] * tmp_mass_grad[2 + grad_idx - var_offset]
                 compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
                 constraint_jac[constraint_offset, spidx] += tmp_mass[0]
                 tmp_mass[0] = 0
