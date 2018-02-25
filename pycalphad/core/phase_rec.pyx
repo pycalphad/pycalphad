@@ -170,7 +170,7 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
             inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
     if massgradfuncs is not None:
         inst._massgradfuncs = massgradfuncs
-        inst._massgrads = <func_novec_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_novec_t*))
+        inst._massgrads = <func_novec_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_novec_t*))
         for el_idx in range(len(nonvacant_elements)):
             massgradfuncs[el_idx].kernel
             inst._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
