@@ -3970,7 +3970,7 @@ $ Copyright (C) NIMS 2008
 $ -----------------------------------------------------------------------------
 $
 $ The parameter set is taken from 
-$ 　　Thermodynamic Reassessment of the Cu-O Phase Diagram
+$ Thermodynamic Reassessment of the Cu-O Phase Diagram
 $     L.Schramm, G.Behr, W.Loser, and K.Wetzig, J. Phase Equilibria and Diffusion, 26 (2005), 605-612.
 $
 $ -----------------------------------------------------------------------------
