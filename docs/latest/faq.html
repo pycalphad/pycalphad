@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>FAQ &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>FAQ &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="index.html"/>
         <link rel="next" title="API Documentation" href="api/modules.html"/>
         <link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="examples/UsingCalculationResults.html"/> 
 
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -100,7 +100,7 @@
 <li class="toctree-l2"><a class="reference internal" href="#what-units-does-pycalphad-use">What units does pycalphad use?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#is-any-parallelism-supported-in-pycalphad">Is any parallelism supported in pycalphad?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#how-long-should-equilibrium-calculations-take">How long should equilibrium calculations take?</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#typeerror-argument-is-not-an-mpz-during-a-calculation"><code class="docutils literal"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typeerror-argument-is-not-an-mpz-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#text-is-sometimes-cut-off-when-saving-figures">Text is sometimes cut off when saving figures</a></li>
 </ul>
 </li>
@@ -175,7 +175,7 @@
 <h2>What units does pycalphad use?<a class="headerlink" href="#what-units-does-pycalphad-use" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
 <li>All units are SI units.</li>
-<li>Molar quantities are used for state variables, e.g. energy has units <code class="docutils literal"><span class="pre">J/mol</span></code>.</li>
+<li>Molar quantities are used for state variables, e.g. energy has units <code class="docutils literal notranslate"><span class="pre">J/mol</span></code>.</li>
 <li>Composition and site occupancies are mole fractions.</li>
 </ul>
 </div>
@@ -184,9 +184,9 @@
 <p>Equilibrium calculations in pycalphad can be parallelized using <a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a> out of the box.
 Several schedules are supported in <a class="reference external" href="http://dask.pydata.org/en/latest/scheduler-overview.html">dask</a>
 and some have been <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/101">benchmarked in pycalphad</a>,
-where the <code class="docutils literal"><span class="pre">Client</span></code> scheduler was found to be give a mild performance boost.</p>
-<p>The <code class="docutils literal"><span class="pre">Client</span></code> scheduler can be used as in an equilibrium calculation as follows</p>
-<div class="highlight-python"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distributed</span> <span class="kn">import</span> <span class="n">LocalCluster</span><span class="p">,</span> <span class="n">Client</span>
+where the <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler was found to be give a mild performance boost.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler can be used as in an equilibrium calculation as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distributed</span> <span class="kn">import</span> <span class="n">LocalCluster</span><span class="p">,</span> <span class="n">Client</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="c1"># Will parallelize calculations over all available cores by default</span>
@@ -209,28 +209,28 @@ where the <code class="docutils literal"><span class="pre">Client</span></code> 
 <h2>How long should equilibrium calculations take?<a class="headerlink" href="#how-long-should-equilibrium-calculations-take" title="Permalink to this headline">¶</a></h2>
 <p>Roughly speaking, single point equilibrium calculations should take on the order
 of 200ms.</p>
-<p>The <code class="docutils literal"><span class="pre">binplot</span></code> and <code class="docutils literal"><span class="pre">ternplot</span></code> functions construct phase diagrams by
+<p>The <code class="docutils literal notranslate"><span class="pre">binplot</span></code> and <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> functions construct phase diagrams by
 a dense grid of point calculations over the conditions passed. The phase diagrams
 are mapped by the tieline points of the two phase regions, so unless there are
 two phase regions in a very small composition range, only coarse composition
 grids are required for phase diagram calculations.</p>
 </div>
 <div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
-<h2><code class="docutils literal"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
+<h2><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
 <p>This is an upstream bug in sympy, where floats are unable to be pickled.
 The fix has been completed, but not yet released. While the fix is not released,
 removing the gmpy2 package from their Python environment (e.g.
-<code class="docutils literal"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">gmpy2</span></code>) will fix the error. Alternatively, setting the
-environment variable <code class="docutils literal"><span class="pre">MPMATH_NOGMPY</span></code> to a non-zero value will fix the error.</p>
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">gmpy2</span></code>) will fix the error. Alternatively, setting the
+environment variable <code class="docutils literal notranslate"><span class="pre">MPMATH_NOGMPY</span></code> to a non-zero value will fix the error.</p>
 </div>
 <div class="section" id="text-is-sometimes-cut-off-when-saving-figures">
 <h2>Text is sometimes cut off when saving figures<a class="headerlink" href="#text-is-sometimes-cut-off-when-saving-figures" title="Permalink to this headline">¶</a></h2>
-<p>Occasionally when saving images with the matplotlib function <code class="docutils literal"><span class="pre">plt.savefig</span></code>, axis titles and legends are cut off.</p>
+<p>Occasionally when saving images with the matplotlib function <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code>, axis titles and legends are cut off.</p>
 <p>This can be fixed:</p>
 <ul class="simple">
-<li>Per function call by passing <code class="docutils literal"><span class="pre">bbox_inches='tight'</span></code> keyword argument to <code class="docutils literal"><span class="pre">plt.savefig</span></code></li>
-<li>Locally by running <code class="docutils literal"><span class="pre">import</span> <span class="pre">matplotlib</span> <span class="pre">as</span> <span class="pre">mpl;</span> <span class="pre">mpl.rcParams['savefig.bbox']</span> <span class="pre">=</span> <span class="pre">'tight'</span></code></li>
-<li>Permanently by adding <code class="docutils literal"><span class="pre">savefig.bbox</span> <span class="pre">:</span> <span class="pre">tight</span></code> to your <a class="reference external" href="https://matplotlib.org/users/customizing.html">matplotlibrc file</a>.</li>
+<li>Per function call by passing <code class="docutils literal notranslate"><span class="pre">bbox_inches='tight'</span></code> keyword argument to <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code></li>
+<li>Locally by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">matplotlib</span> <span class="pre">as</span> <span class="pre">mpl;</span> <span class="pre">mpl.rcParams['savefig.bbox']</span> <span class="pre">=</span> <span class="pre">'tight'</span></code></li>
+<li>Permanently by adding <code class="docutils literal notranslate"><span class="pre">savefig.bbox</span> <span class="pre">:</span> <span class="pre">tight</span></code> to your <a class="reference external" href="https://matplotlib.org/users/customizing.html">matplotlibrc file</a>.</li>
 </ul>
 </div>
 </div>
@@ -279,7 +279,7 @@ environment variable <code class="docutils literal"><span class="pre">MPMATH_NOG
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

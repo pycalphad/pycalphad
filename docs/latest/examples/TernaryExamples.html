@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Exploring calculate and equilibrium xarray Datasets" href="UsingCalculationResults.html"/>
         <link rel="prev" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -97,16 +97,16 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting Ternary Phase Diagrams and Using Triangular Axes</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#ternplot">ternplot</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#triangular-projection">triangular projection</a></li>
 </ul>
 </li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -181,10 +181,10 @@
 <h1>Plotting Ternary Phase Diagrams and Using Triangular Axes<a class="headerlink" href="#plotting-ternary-phase-diagrams-and-using-triangular-axes" title="Permalink to this headline">¶</a></h1>
 <p>Often in thermodynamics, it is useful to use a two dimensional plot to
 express equilibria in a three component system with fixed potentials.
-The <code class="docutils literal"><span class="pre">ternplot</span></code> API provides a straightforward way to calculate
+The <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> API provides a straightforward way to calculate
 equilibria and generate ternary phase diagrams. Alternatively, if you
 already have an equilibrium calculation, you can directly import and use
-<code class="docutils literal"><span class="pre">eqplot</span></code>.</p>
+<code class="docutils literal notranslate"><span class="pre">eqplot</span></code>.</p>
 <div class="section" id="ternplot">
 <h2>ternplot<a class="headerlink" href="#ternplot" title="Permalink to this headline">¶</a></h2>
 <p>Here we well use the ternplot API to plot an isothermal section of the
@@ -194,7 +194,7 @@ Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calph
 (2011)</a>. Note that we
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
@@ -206,22 +206,22 @@ species. Species are not currently supported in pycalphad.</p>
 <span class="n">ternplot</span><span class="p">(</span><span class="n">db_al_cu_y</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">x</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">),</span> <span class="n">y</span><span class="o">=</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;Y&#39;</span><span class="p">))</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x117fcd5f8</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">axes</span><span class="o">.</span><span class="n">_subplots</span><span class="o">.</span><span class="n">TriangularAxesSubplot</span> <span class="n">at</span> <span class="mh">0x117fcd5f8</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_2_1.png" src="../_images/TernaryExamples_2_1.png" />
 </div>
 <div class="section" id="triangular-projection">
 <h2>triangular projection<a class="headerlink" href="#triangular-projection" title="Permalink to this headline">¶</a></h2>
-<p>Importing the <code class="docutils literal"><span class="pre">pycalphad.plot.triangular</span></code> module automatically
-registers a <code class="docutils literal"><span class="pre">'triangular'</span></code> projection in matplotlib for you to use in
+<p>Importing the <code class="docutils literal notranslate"><span class="pre">pycalphad.plot.triangular</span></code> module automatically
+registers a <code class="docutils literal notranslate"><span class="pre">'triangular'</span></code> projection in matplotlib for you to use in
 custom plots, such as liquidus projections or contour plots of custom
 property models.</p>
 <p>Here we will use pycalphad to calculate the mixing enthalpy of the FCC
 phase in our Al-Cu-Y system. Then we will the triangular projection to
 plot the calculated points as a colored scatterplot on the triangular
 axes.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="k">import</span> <span class="n">triangular</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
 
@@ -254,7 +254,7 @@ axes.</p>
 <span class="n">fig</span><span class="o">.</span><span class="n">colorbar</span><span class="p">(</span><span class="n">cm</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x117110588</span><span class="o">&gt;</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">matplotlib</span><span class="o">.</span><span class="n">colorbar</span><span class="o">.</span><span class="n">Colorbar</span> <span class="n">at</span> <span class="mh">0x117110588</span><span class="o">&gt;</span>
 </pre></div>
 </div>
 <img alt="../_images/TernaryExamples_4_1.png" src="../_images/TernaryExamples_4_1.png" />
@@ -305,7 +305,7 @@ axes.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

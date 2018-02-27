@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -229,7 +229,7 @@ property surface of a system.</p>
 <dl class="class">
 <dt id="pycalphad.core.calculate.FallbackModel">
 <em class="property">class </em><code class="descclassname">pycalphad.core.calculate.</code><code class="descname">FallbackModel</code><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#FallbackModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.FallbackModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Compatibility layer while transitioning to CompiledModel.</p>
 </dd></dl>
 
@@ -309,7 +309,7 @@ formed of input arrays.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cartesian</span><span class="p">(([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cartesian</span><span class="p">(([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span>
 <span class="go">array([[1, 4, 6],</span>
 <span class="go">       [1, 4, 7],</span>
 <span class="go">       [1, 5, 6],</span>
@@ -332,7 +332,7 @@ formed of input arrays.</p>
 <dl class="class">
 <dt id="pycalphad.core.compiled_model.CompiledModel">
 <em class="property">class </em><code class="descclassname">pycalphad.core.compiled_model.</code><code class="descname">CompiledModel</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.core.compiled_model.CompiledModel.afm_factor">
 <code class="descname">afm_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.afm_factor" title="Permalink to this definition">¶</a></dt>
@@ -511,7 +511,7 @@ formed of input arrays.</p>
 <dl class="class">
 <dt id="pycalphad.core.composition_set.CompositionSet">
 <em class="property">class </em><code class="descclassname">pycalphad.core.composition_set.</code><code class="descname">CompositionSet</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This is the primary object the solver interacts with. It keeps the state of a phase (P, T, y…) at a
 particular solver iteration and can be updated using the update() member function. Every CompositionSet
 has a reference to a particular PhaseRecord which describes the prototype of the phase. These objects
@@ -584,7 +584,7 @@ python.</p>
 <div class="admonition note">
 <p class="first admonition-title">Note</p>
 <p>To use the autowrap module it must first be imported</p>
-<div class="last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
 </pre></div>
 </div>
 </div>
@@ -592,7 +592,7 @@ python.</p>
 as f2py, fwrap, Cython, SWIG(?) etc. (Currently only f2py and Cython are
 implemented) The goal is to provide access to compiled binaries of acceptable
 performance with a one-button user interface, i.e.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
@@ -605,7 +605,7 @@ expressions, it is better to use binary_function() which returns a SymPy
 Function object.  The binary callable is attached as the _imp_ attribute and
 invoked when a numerical evaluation is requested with evalf(), or with
 lambdify().</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span>
 <span class="go">y + 2*f(x, y)</span>
@@ -648,7 +648,7 @@ don’t need the binaries for another project.</li>
 <dl class="class">
 <dt id="pycalphad.core.custom_autowrap.C89CodePrinter">
 <em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">C89CodePrinter</code><span class="sig-paren">(</span><em>settings={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#C89CodePrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.C89CodePrinter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.ccode.C89CodePrinter</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.printing.ccode.C89CodePrinter</span></code></p>
 <p>C89-compatible code printing allows for Windows compatibility.
 (MSVC 14 and newer support C99, but we are going for broad compatibility.)</p>
 <dl class="attribute">
@@ -661,13 +661,13 @@ don’t need the binaries for another project.</li>
 <dl class="exception">
 <dt id="pycalphad.core.custom_autowrap.CodeWrapError">
 <em class="property">exception </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CodeWrapError</code><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CodeWrapError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CodeWrapError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pycalphad.core.custom_autowrap.CustomCCodeGen">
 <em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">CustomCCodeGen</code><span class="sig-paren">(</span><em>project='project'</em>, <em>printer=None</em>, <em>preprocessor_statements=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#CustomCCodeGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.codegen.CCodeGen</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.utilities.codegen.CCodeGen</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns">
 <code class="descname">dump_fns</code><em class="property"> = [&lt;function CCodeGen.dump_c&gt;, &lt;function CustomCCodeGen.dump_h&gt;]</em><a class="headerlink" href="#pycalphad.core.custom_autowrap.CustomCCodeGen.dump_fns" title="Permalink to this definition">¶</a></dt>
@@ -716,7 +716,7 @@ can override this if necessary.</p>
 <p>Here, we assume at most one return value (the l-value) which must be
 scalar.  Additional outputs are OutputArguments (e.g., pointers on
 right-hand-side or pass-by-reference).  Matrices are always returned
-via OutputArguments.  If <code class="docutils literal"><span class="pre">argument_sequence</span></code> is None, arguments will
+via OutputArguments.  If <code class="docutils literal notranslate"><span class="pre">argument_sequence</span></code> is None, arguments will
 be ordered alphabetically, but with all InputArguments first, and then
 OutputArgument and InOutArguments.</p>
 <p>This implementation is almost the same as the CodeGen class, but
@@ -729,7 +729,7 @@ cheaper equivalents.</p>
 <dl class="class">
 <dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">
 <em class="property">class </em><code class="descclassname">pycalphad.core.custom_autowrap.</code><code class="descname">ThreadSafeCythonCodeWrapper</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/custom_autowrap.html#ThreadSafeCythonCodeWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.utilities.autowrap.CythonCodeWrapper</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.utilities.autowrap.CythonCodeWrapper</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command">
 <code class="descname">command</code><a class="headerlink" href="#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper.command" title="Permalink to this definition">¶</a></dt>
@@ -783,7 +783,7 @@ cheaper equivalents.</p>
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>expr</strong> – The SymPy expression that should be wrapped as a binary routine.</li>
 <li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – If supplied, (options: ‘C’ or ‘F95’), specifies the language of the
-generated code. If <code class="docutils literal"><span class="pre">None</span></code> [default], the language is inferred based
+generated code. If <code class="docutils literal notranslate"><span class="pre">None</span></code> [default], the language is inferred based
 upon the specified backend.</li>
 <li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) – Backend used to wrap the generated code. Either ‘f2py’,
 or ‘cython’ [default].</li>
@@ -797,7 +797,7 @@ function.</li>
 helpful for debugging.</li>
 <li><strong>helpers</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Used to define auxillary expressions needed for the main expr. If the
 main expression needs to call a specialized function it should be put
-in the <code class="docutils literal"><span class="pre">helpers</span></code> iterable. Autowrap will then make sure that the
+in the <code class="docutils literal notranslate"><span class="pre">helpers</span></code> iterable. Autowrap will then make sure that the
 compiled main expression can link to the helper routine. Items should
 be tuples with (&lt;funtion_name&gt;, &lt;sympy_expression&gt;, &lt;arguments&gt;). It
 is mandatory to supply an argument sequence to helper routines.</li>
@@ -821,7 +821,7 @@ is mandatory to supply an argument sequence to helper routines.</li>
 <p>This is a convenience function that automates the steps needed to
 autowrap the SymPy expression and attaching it to a Function object
 with implemented_function().</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
@@ -878,7 +878,7 @@ checking, etc depend on the language.  [default: “F95”].</li>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">make_routine</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">make_routine</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Eq</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)])</span>
@@ -894,7 +894,7 @@ checking, etc depend on the language.  [default: “F95”].</li>
 </div>
 <p>Another more complicated example with a mixture of specified and
 automatically-assigned names.  Also has Matrix output.</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Matrix</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Matrix</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;fcn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">g</span><span class="p">),</span> <span class="n">Matrix</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])])</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">result_var</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>  
 <span class="go">[result_5397460570204848505]</span>
@@ -905,19 +905,19 @@ automatically-assigned names.  Also has Matrix output.</p>
 </pre></div>
 </div>
 <p>We can examine the various arguments more closely:</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">InputArgument</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">InputArgument</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span>
 <span class="gp">... </span>                                     <span class="n">InOutArgument</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InputArgument</span><span class="p">)]</span>
 <span class="go">[x, y]</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>  
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>  
 <span class="go">[f, out_8598435338387848786]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>
 <span class="go">[1, Matrix([[x, 2]])]</span>
 </pre></div>
 </div>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
 <span class="go">[g]</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
 <span class="go">[g + x]</span>
@@ -936,14 +936,14 @@ calculated phase equilibria.</p>
 <dl class="exception">
 <dt id="pycalphad.core.equilibrium.ConditionError">
 <em class="property">exception </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">ConditionError</code><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#ConditionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.ConditionError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.equilibrium.EquilibriumError" title="pycalphad.core.equilibrium.EquilibriumError"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.core.equilibrium.EquilibriumError</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.equilibrium.EquilibriumError" title="pycalphad.core.equilibrium.EquilibriumError"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.equilibrium.EquilibriumError</span></code></a></p>
 <p>Exception related to equilibrium conditions.</p>
 </dd></dl>
 
 <dl class="exception">
 <dt id="pycalphad.core.equilibrium.EquilibriumError">
 <em class="property">exception </em><code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">EquilibriumError</code><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#EquilibriumError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.EquilibriumError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Exception related to calculation of equilibrium.</p>
 </dd></dl>
 
@@ -1104,7 +1104,7 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <dl class="class">
 <dt id="pycalphad.core.phase_rec.PhaseRecord">
 <em class="property">class </em><code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This object exposes a common API to the solver so it doesn’t need to know about the differences
 between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
 these objects are pickleable. PhaseRecords are immutable after initialization.</p>
@@ -1201,7 +1201,7 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.problem.Problem">
 <em class="property">class </em><code class="descclassname">pycalphad.core.problem.</code><code class="descname">Problem</code><a class="headerlink" href="#pycalphad.core.problem.Problem" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.cl">
 <code class="descname">cl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
@@ -1295,10 +1295,10 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.rksum.RedlichKisterSum">
 <em class="property">class </em><code class="descclassname">pycalphad.core.rksum.</code><code class="descname">RedlichKisterSum</code><span class="sig-paren">(</span><em>comps</em>, <em>phase</em>, <em>param_search</em>, <em>param_query</em>, <em>param_symbols</em>, <em>all_symbols</em>, <em>variable_rename_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="staticmethod">
 <dt id="pycalphad.core.rksum.RedlichKisterSum.symbol_replace">
-<em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>obj</em>, <em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum.symbol_replace" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum.symbol_replace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Substitute values of symbols into ‘obj’.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -1333,7 +1333,7 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.solver.InteriorPointSolver">
 <em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">InteriorPointSolver</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <dl class="method">
 <dt id="pycalphad.core.solver.InteriorPointSolver.solve">
 <code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
@@ -1344,7 +1344,7 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.solver.SolverResult">
 <em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">SolverResult</code><span class="sig-paren">(</span><em>converged</em>, <em>x</em>, <em>chemical_potentials</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.solver.SolverResult" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.core.solver.SolverResult.chemical_potentials">
 <code class="descname">chemical_potentials</code><a class="headerlink" href="#pycalphad.core.solver.SolverResult.chemical_potentials" title="Permalink to this definition">¶</a></dt>
@@ -1372,7 +1372,7 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.sympydiff_utils.AutowrapFunction">
 <em class="property">class </em><code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">AutowrapFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#AutowrapFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.AutowrapFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.sympydiff_utils.PickleableFunction" title="pycalphad.core.sympydiff_utils.PickleableFunction"><code class="xref py py-class docutils literal"><span class="pre">pycalphad.core.sympydiff_utils.PickleableFunction</span></code></a></p>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.sympydiff_utils.PickleableFunction" title="pycalphad.core.sympydiff_utils.PickleableFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.sympydiff_utils.PickleableFunction</span></code></a></p>
 <dl class="method">
 <dt id="pycalphad.core.sympydiff_utils.AutowrapFunction.compile">
 <code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#AutowrapFunction.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.AutowrapFunction.compile" title="Permalink to this definition">¶</a></dt>
@@ -1383,7 +1383,7 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="class">
 <dt id="pycalphad.core.sympydiff_utils.PickleableFunction">
 <em class="property">class </em><code class="descclassname">pycalphad.core.sympydiff_utils.</code><code class="descname">PickleableFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/sympydiff_utils.html#PickleableFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.sympydiff_utils.PickleableFunction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A compiled function that is recompiled when unpickled.
 This works around several issues with sending JIT’d functions over the wire.
 This approach means only the underlying SymPy object must be pickleable.
@@ -1504,8 +1504,8 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 <col class="field-body" />
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>SymPy object</strong> (<a class="reference internal" href="pycalphad.html#module-pycalphad.model" title="pycalphad.model"><em>model</em></a><em>,</em>) – Abstract representation of function</li>
-<li><strong>list</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model.variables" title="pycalphad.model.Model.variables"><em>variables</em></a><em>,</em>) – Input variables, ordered in the way the return function will expect</li>
+<li><strong>SymPy object</strong> (<em>model</em><em>,</em>) – Abstract representation of function</li>
+<li><strong>list</strong> (<em>variables</em><em>,</em>) – Input variables, ordered in the way the return function will expect</li>
 <li><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em>) – Method to use when ‘compiling’ the function. SymPy mode is
 slow and should only be used for debugging. If Numba is installed,
 it can offer speed-ups when calling the energy function many
@@ -1556,7 +1556,7 @@ are zero for that case.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 8 components in sublattice 1; only 1 in sublattice 2</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 8 components in sublattice 1; only 1 in sublattice 2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">point_sample</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 7 d.o.f, returns a 140x7 ndarray</span>
 </pre></div>
 </div>
@@ -1609,7 +1609,7 @@ there, then the constant value is used.</p>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">unpack_kwarg</span><span class="p">(</span><span class="s1">&#39;opt&#39;</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">unpack_kwarg</span><span class="p">(</span><span class="s1">&#39;opt&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">:</span> <span class="mi">50</span><span class="p">,</span> <span class="s1">&#39;BCC_B2&#39;</span><span class="p">:</span> <span class="mi">10</span><span class="p">})</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="p">[{</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">:</span> <span class="mi">30</span><span class="p">},</span> <span class="mi">200</span><span class="p">])</span>
@@ -1676,7 +1676,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

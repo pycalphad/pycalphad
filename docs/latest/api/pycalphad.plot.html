@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="What’s New" href="../CHANGES.html"/>
         <link rel="prev" title="pycalphad.io package" href="pycalphad.io.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -304,7 +304,7 @@ Must correspond to an independent condition.</li>
 <dl class="class">
 <dt id="pycalphad.plot.triangular.TriangularAxes">
 <em class="property">class </em><code class="descclassname">pycalphad.plot.triangular.</code><code class="descname">TriangularAxes</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">matplotlib.axes._axes.Axes</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">matplotlib.axes._axes.Axes</span></code></p>
 <p>A custom class for triangular projections.</p>
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.can_zoom">
@@ -321,42 +321,149 @@ Must correspond to an independent condition.</li>
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.drag_pan">
 <code class="descname">drag_pan</code><span class="sig-paren">(</span><em>button</em>, <em>key</em>, <em>x</em>, <em>y</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.drag_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.drag_pan" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called when the mouse moves during a pan operation.</p>
+<p><em>button</em> is the mouse button number:</p>
+<ul class="simple">
+<li>1: LEFT</li>
+<li>2: MIDDLE</li>
+<li>3: RIGHT</li>
+</ul>
+<p><em>key</em> is a “shift” key</p>
+<p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended to be overridden by new projection types.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.end_pan">
 <code class="descname">end_pan</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.end_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.end_pan" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called when a pan operation completes (when the mouse button
+is up.)</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended to be overridden by new projection types.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">
 <code class="descname">get_xaxis_text1_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text1_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing x-axis labels, which
+will add the given amount of padding (in points) between the
+axes and the label.  The x-direction is in data coordinates
+and the y-direction is in axis coordinates.  Returns a
+3-tuple of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
+text.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">
 <code class="descname">get_xaxis_text2_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text2_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing the secondary x-axis
+labels, which will add the given amount of padding (in points)
+between the axes and the label.  The x-direction is in data
+coordinates and the y-direction is in axis coordinates.
+Returns a 3-tuple of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
+text.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform">
 <code class="descname">get_xaxis_transform</code><span class="sig-paren">(</span><em>which='grid'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing x-axis labels, ticks
+and gridlines.  The x-direction is in data coordinates and the
+y-direction is in axis coordinates.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">
 <code class="descname">get_yaxis_text1_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text1_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing y-axis labels, which
+will add the given amount of padding (in points) between the
+axes and the label.  The x-direction is in axis coordinates
+and the y-direction is in data coordinates.  Returns a 3-tuple
+of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
+text.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">
 <code class="descname">get_yaxis_text2_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text2_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing the secondary y-axis
+labels, which will add the given amount of padding (in points)
+between the axes and the label.  The x-direction is in axis
+coordinates and the y-direction is in data coordinates.
+Returns a 3-tuple of the form:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
+</pre></div>
+</div>
+<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
+text.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform">
 <code class="descname">get_yaxis_transform</code><span class="sig-paren">(</span><em>which='grid'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_transform" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Get the transformation used for drawing y-axis labels, ticks
+and gridlines.  The x-direction is in axis coordinates and the
+y-direction is in data coordinates.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">This transformation is primarily used by the
+<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+overridden by new kinds of projections that may need to
+place axis elements in different locations.</p>
+</div>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.plot.triangular.TriangularAxes.name">
@@ -366,7 +473,19 @@ Must correspond to an independent condition.</li>
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.start_pan">
 <code class="descname">start_pan</code><span class="sig-paren">(</span><em>x</em>, <em>y</em>, <em>button</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.start_pan"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.start_pan" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<dd><p>Called when a pan operation has started.</p>
+<p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.
+button is the mouse button number:</p>
+<ul class="simple">
+<li>1: LEFT</li>
+<li>2: MIDDLE</li>
+<li>3: RIGHT</li>
+</ul>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p class="last">Intended to be overridden by new projection types.</p>
+</div>
+</dd></dl>
 
 </dd></dl>
 
@@ -394,7 +513,7 @@ Must correspond to an independent condition.</li>
 </tbody>
 </table>
 <p class="rubric">Examples</p>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">([</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_A2&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">])</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">([</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_A2&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">])</span>
 </pre></div>
 </div>
 </dd></dl>
@@ -449,7 +568,7 @@ Must correspond to an independent condition.</li>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

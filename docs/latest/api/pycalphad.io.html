@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.plot package" href="pycalphad.plot.html"/>
         <link rel="prev" title="pycalphad.core package" href="pycalphad.core.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -195,7 +195,7 @@ associated with structured thermodynamic/kinetic data.</p>
 <dl class="class">
 <dt id="pycalphad.io.database.Database">
 <em class="property">class </em><code class="descclassname">pycalphad.io.database.</code><code class="descname">Database</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <blockquote>
 <div><p>Structured thermodynamic and/or kinetic data.</p>
 <dl class="docutils">
@@ -210,7 +210,7 @@ associated with structured thermodynamic/kinetic data.</p>
 <dt>references <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
 <dd>Reference objects indexed by their system-local identifier.</dd>
 </dl>
-<div class="highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;$a complete TDB file as a string</span>
 </pre></div>
@@ -218,7 +218,7 @@ associated with structured thermodynamic/kinetic data.</p>
 </div></blockquote>
 <dl class="docutils">
 <dt>‘)</dt>
-<dd><div class="first last highlight-default"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -314,7 +314,7 @@ similar phases known by different colloquial names.</p>
 
 <dl class="staticmethod">
 <dt id="pycalphad.io.database.Database.from_file">
-<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>fmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Database from a file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -365,7 +365,7 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 
 <dl class="staticmethod">
 <dt id="pycalphad.io.database.Database.register_format">
-<em class="property">static </em><code class="descname">register_format</code><span class="sig-paren">(</span><em>fmt</em>, <em>read=None</em>, <em>write=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">register_format</code><span class="sig-paren">(</span><em>read=None</em>, <em>write=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add support for reading and/or writing the specified format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -453,14 +453,14 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 <dl class="exception">
 <dt id="pycalphad.io.database.DatabaseExportError">
 <em class="property">exception </em><code class="descclassname">pycalphad.io.database.</code><code class="descname">DatabaseExportError</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#DatabaseExportError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.DatabaseExportError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">Exception</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
 <p>Raised when a database cannot be written.</p>
 </dd></dl>
 
 <dl class="class">
 <dt id="pycalphad.io.database.DatabaseFormat">
 <em class="property">class </em><code class="descclassname">pycalphad.io.database.</code><code class="descname">DatabaseFormat</code><span class="sig-paren">(</span><em>read</em>, <em>write</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">tuple</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="attribute">
 <dt id="pycalphad.io.database.DatabaseFormat.read">
 <code class="descname">read</code><a class="headerlink" href="#pycalphad.io.database.DatabaseFormat.read" title="Permalink to this definition">¶</a></dt>
@@ -478,7 +478,7 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 <dl class="class">
 <dt id="pycalphad.io.database.Phase">
 <em class="property">class </em><code class="descclassname">pycalphad.io.database.</code><code class="descname">Phase</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#Phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Phase" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Phase in the database.</p>
 <dl class="attribute">
 <dt id="pycalphad.io.database.Phase.name">
@@ -510,7 +510,7 @@ Hints for major constituents and typedefs (Thermo-Calc) go here.</p>
 <dl class="class">
 <dt id="pycalphad.io.database.Species">
 <em class="property">class </em><code class="descclassname">pycalphad.io.database.</code><code class="descname">Species</code><span class="sig-paren">(</span><em>name</em>, <em>constituents</em>, <em>charge</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Species" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">object</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>A species in the database.</p>
 <dl class="attribute">
 <dt id="pycalphad.io.database.Species.name">
@@ -540,7 +540,7 @@ Thermo-Calc TDB format.</p>
 <dl class="class">
 <dt id="pycalphad.io.tdb.TCCommand">
 <em class="property">class </em><code class="descclassname">pycalphad.io.tdb.</code><code class="descname">TCCommand</code><span class="sig-paren">(</span><em>matchString</em>, <em>identChars=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCCommand"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCCommand" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">pyparsing.CaselessKeyword</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">pyparsing.CaselessKeyword</span></code></p>
 <p>Parser element for dealing with Thermo-Calc command abbreviations.</p>
 <dl class="method">
 <dt id="pycalphad.io.tdb.TCCommand.parseImpl">
@@ -552,7 +552,7 @@ Thermo-Calc TDB format.</p>
 <dl class="class">
 <dt id="pycalphad.io.tdb.TCPrinter">
 <em class="property">class </em><code class="descclassname">pycalphad.io.tdb.</code><code class="descname">TCPrinter</code><span class="sig-paren">(</span><em>settings=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#TCPrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.TCPrinter" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal"><span class="pre">sympy.printing.str.StrPrinter</span></code></p>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.printing.str.StrPrinter</span></code></p>
 <p>Prints Thermo-Calc style function expressions.</p>
 <dl class="method">
 <dt id="pycalphad.io.tdb.TCPrinter.blacklisted">
@@ -726,7 +726,7 @@ Note that not all of these keywords are fully supported yet.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

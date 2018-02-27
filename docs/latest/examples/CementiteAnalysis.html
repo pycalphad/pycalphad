@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Heat Capacity of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>Heat Capacity of Cementite (\(Fe_3C\)) &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../index.html"/>
         <link rel="up" title="Examples" href="index.html"/>
         <link rel="next" title="Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)" href="EquilibriumWithOrdering.html"/>
         <link rel="prev" title="Plotting Isobaric Binary Phase Diagrams with binplot" href="BinaryExamples.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -97,12 +97,12 @@
               <ul class="current">
 <li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
 <li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
-<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
 <li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
-<li class="toctree-l2 current"><a class="current reference internal" href="#">Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Heat Capacity of Cementite (<span class="math notranslate">\(Fe_3C\)</span>)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
-<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal"><span class="pre">calculate</span></code> and <code class="docutils literal"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
@@ -154,7 +154,7 @@
         
           <li><a href="index.html">Examples</a> &raquo;</li>
         
-      <li>Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)</li>
+      <li>Heat Capacity of Cementite (<span class="math notranslate">\(Fe_3C\)</span>)</li>
     
     
       <li class="wy-breadcrumbs-aside">
@@ -174,7 +174,7 @@
            <div itemprop="articleBody">
             
   <div class="section" id="heat-capacity-of-cementite">
-<h1>Heat Capacity of Cementite (<span class="math">\(Fe_3C\)</span>)<a class="headerlink" href="#heat-capacity-of-cementite" title="Permalink to this headline">¶</a></h1>
+<h1>Heat Capacity of Cementite (<span class="math notranslate">\(Fe_3C\)</span>)<a class="headerlink" href="#heat-capacity-of-cementite" title="Permalink to this headline">¶</a></h1>
 <p>Bengt Hallstedt, Dejan Djurovic, Jörg von Appen, Richard Dronskowski,
 Alexey Dick, Fritz Körmann, Tilmann Hickel, Jörg Neugebauer,
 Thermodynamic properties of cementite, Calphad, Volume 34, Issue 1,
@@ -184,7 +184,7 @@ March 2010, Pages 129-133, ISSN 0364-5916,
 <p>The TDB file used here differs slightly from the published TDB to ensure
 compatibility with pycalphad’s TDB parser. All phases except cementite
 are omitted. The numerical results should be the same.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">TDB</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">TDB</span> <span class="o">=</span> <span class="s2">&quot;&quot;&quot;</span>
 <span class="s2"> ELEMENT C    GRAPHITE                   12.011     1054.0      5.7423 !</span>
 <span class="s2"> ELEMENT FE   BCC_A2                     55.847     4489.0     27.2797 !</span>
 <span class="s2"> TYPE_DEFINITION % SEQ * !</span>
@@ -204,14 +204,14 @@ are omitted. The numerical results should be the same.</p>
 </pre></div>
 </div>
 <p>Do some initial setup, including reading the database.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Only needed in a Jupyter Notebook</span>
 <span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
 <span class="c1"># Optional plot styling</span>
 <span class="kn">import</span> <span class="nn">matplotlib</span>
 <span class="n">matplotlib</span><span class="o">.</span><span class="n">style</span><span class="o">.</span><span class="n">use</span><span class="p">(</span><span class="s1">&#39;fivethirtyeight&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
 
@@ -220,14 +220,14 @@ are omitted. The numerical results should be the same.</p>
 </div>
 <p>Compute the molar heat capacity at all temperatures from 1K to 2000K
 with a step size of 0.5K.</p>
-<p>We do this with the <code class="docutils literal"><span class="pre">calculate</span></code> routine instead of <code class="docutils literal"><span class="pre">equilibrium</span></code>
+<p>We do this with the <code class="docutils literal notranslate"><span class="pre">calculate</span></code> routine instead of <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>
 because the cementite phase has zero internal degrees of freedom. Since
 there’s nothing to minimize, we can do the computation faster with
-<code class="docutils literal"><span class="pre">calculate</span></code>.</p>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="s1">&#39;CEMENTITE_D011&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;heat_capacity&#39;</span><span class="p">)</span>
+<code class="docutils literal notranslate"><span class="pre">calculate</span></code>.</p>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;C&#39;</span><span class="p">],</span> <span class="s1">&#39;CEMENTITE_D011&#39;</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mf">0.5</span><span class="p">),</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;heat_capacity&#39;</span><span class="p">)</span>
 </pre></div>
 </div>
-<div class="code ipython3 highlight-default"><div class="highlight"><pre><span></span><span class="c1"># Note: 4 moles of atoms per formula unit (Fe3C1). That&#39;s why we multiply times 4</span>
+<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="c1"># Note: 4 moles of atoms per formula unit (Fe3C1). That&#39;s why we multiply times 4</span>
 <span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;Temperature (K)&#39;</span><span class="p">)</span>
 <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;Isobaric Heat Capacity (J/mol-formula-K)&#39;</span><span class="p">)</span>
@@ -282,7 +282,7 @@ there’s nothing to minimize, we can do the computation faster with
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

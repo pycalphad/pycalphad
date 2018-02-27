@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.variables &mdash; pycalphad 0.6.1+17.g697f6e4 documentation</title>
+  <title>pycalphad.variables &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+17.g697f6e4 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+17.g697f6e4
+                0.6.1+18.g7cc4b39
               </div>
             
           
@@ -173,8 +173,8 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    State variables are symbols with built-in assumptions of being real.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Symbol</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">)</span></div>
+    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span></div>
+        <span class="k">return</span> <span class="n">Symbol</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">)</span>
 
 <div class="viewcode-block" id="SiteFraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.SiteFraction">[docs]</a><span class="k">class</span> <span class="nc">SiteFraction</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -202,8 +202,8 @@
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;String representation.&quot;</span>
         <span class="c1">#pylint: disable=E1101</span>
-        <span class="k">return</span> <span class="s1">&#39;Y(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> \
-            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="s1">&#39;Y(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> \</div>
+            <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">)</span>
 
 <div class="viewcode-block" id="PhaseFraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.PhaseFraction">[docs]</a><span class="k">class</span> <span class="nc">PhaseFraction</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -224,8 +224,8 @@
     <span class="k">def</span> <span class="nf">_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;LaTeX representation.&quot;</span>
         <span class="c1">#pylint: disable=E1101</span>
-        <span class="k">return</span> <span class="s1">&#39;f^{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \
-            <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;}&#39;</span></div>
+        <span class="k">return</span> <span class="s1">&#39;f^{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \</div>
+            <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
 
 <div class="viewcode-block" id="Composition"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.Composition">[docs]</a><span class="k">class</span> <span class="nc">Composition</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -268,8 +268,8 @@
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;x^{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \
                 <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="s1">&#39;x_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">+</span><span class="s1">&#39;}&#39;</span></div>
+        <span class="k">else</span><span class="p">:</span></div>
+            <span class="k">return</span> <span class="s1">&#39;x_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
 
 <div class="viewcode-block" id="ChemicalPotential"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.ChemicalPotential">[docs]</a><span class="k">class</span> <span class="nc">ChemicalPotential</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -289,8 +289,8 @@
         <span class="k">return</span> <span class="s1">&#39;\mu_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
 
     <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
-        <span class="s2">&quot;String representation.&quot;</span>
-        <span class="k">return</span> <span class="s1">&#39;MU(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span></div>
+        <span class="s2">&quot;String representation.&quot;</span></div>
+        <span class="k">return</span> <span class="s1">&#39;MU(</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span>
 
 <span class="n">temperature</span> <span class="o">=</span> <span class="n">T</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">)</span>
 <span class="n">entropy</span> <span class="o">=</span> <span class="n">S</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="p">(</span><span class="s1">&#39;S&#39;</span><span class="p">)</span>
@@ -337,7 +337,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.6.1+17.g697f6e4',
+            VERSION:'0.6.1+18.g7cc4b39',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
