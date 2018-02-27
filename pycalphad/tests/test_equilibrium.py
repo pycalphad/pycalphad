@@ -311,13 +311,14 @@ def test_eq_unary_issue78():
     np.testing.assert_allclose(eq.SM, 0)
 
 def test_eq_gas_phase():
-    # XXX: Do not merge without checking values from TC
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, verbose=True)
+    np.testing.assert_allclose(eq.GM, -110380.61071, atol=0.1)
     eq = equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e9}, verbose=True)
+    np.testing.assert_allclose(eq.GM, -7.20909E+04, atol=0.1)
 
 def test_eq_ionic_liquid():
-    # XXX: Do not merge without checking values from TC
     eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
+    np.testing.assert_allclose(eq.GM, -9.25057E+04, atol=0.1)
 
 
 def test_equilibrium_result_dataset_can_serialize_to_netcdf():
