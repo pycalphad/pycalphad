@@ -173,23 +173,21 @@ class Model(object):
             element = list(species.constituents.keys())[0]
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection(self.components)
-                vacancies = sum(v.SiteFraction(self.phase_name, idx, x) for x in active if x.number_of_atoms == 0)
-                subl_normalization = self.site_ratios[idx] * (1 - vacancies)
-                subl_content = sum(
-                    int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
-                    for spec in active)
-                result += self.site_ratios[idx] * subl_content
-                normalization += subl_normalization
+                result += self.site_ratios[idx] * \
+                    sum(int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
+                normalization += self.site_ratios[idx] * \
+                    sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
         else:
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection({species})
                 if len(active) == 0:
                     continue
-                vacancies = sum(v.SiteFraction(self.phase_name, idx, x) for x in active if x.number_of_atoms == 0)
-                subl_normalization = self.site_ratios[idx] * (1 - vacancies)
-                subl_content = sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
-                result += self.site_ratios[idx] * subl_content
-                normalization += subl_normalization
+                result += self.site_ratios[idx] * sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+                normalization += self.site_ratios[idx] * \
+                    sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
         return result / normalization
 
     @property
