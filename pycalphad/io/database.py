@@ -5,7 +5,7 @@ associated with structured thermodynamic/kinetic data.
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 from datetime import datetime
-from collections import namedtuple, defaultdict
+from collections import namedtuple
 import os
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
