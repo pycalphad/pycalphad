@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation Instructions &mdash; pycalphad 0.6.1+18.g7cc4b39 documentation</title>
+  <title>Installation Instructions &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="genindex.html"/>
         <link rel="search" title="Search" href="search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+18.g7cc4b39 documentation" href="index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="index.html"/>
         <link rel="next" title="Examples" href="examples/index.html"/>
         <link rel="prev" title="pycalphad: Computational Thermodynamics" href="index.html"/> 
 
@@ -69,7 +69,7 @@
             
             
               <div class="version">
-                0.6.1+18.g7cc4b39
+                0.6.1+19.gdcea4e3
               </div>
             
           
@@ -195,8 +195,7 @@ scientific packages and otherwise challenging to install packages.</p>
 <p>To install pycalphad from Anaconda</p>
 <ol class="arabic simple">
 <li>Download and install <a class="reference external" href="https://anaconda.com/download">Anaconda</a></li>
-<li>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">pycalphad;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">msys2</span></code></li>
-<li>Run the <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> command to install pycalphad</li>
+<li>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">pycalphad</span></code></li>
 </ol>
 </div>
 <div class="section" id="pypi">
@@ -225,8 +224,7 @@ vanilla Python distribution.</p>
 environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-dev</span></code>. From the Anaconda Prompt (Windows) or a
 terminal emulator (macOS or Linux)</p>
 <ol class="arabic simple">
-<li>Add the conda channels <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">conda-forge;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">pycalphad;</span> <span class="pre">conda</span> <span class="pre">config</span> <span class="pre">--add</span> <span class="pre">channels</span> <span class="pre">msys2</span></code></li>
-<li>Create the virtual environment and install pycalphad into it <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
+<li>Create the virtual environment and install pycalphad into it <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
 <li>Remove the installed pycalphad package so the development version can be installed <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
 <li>Activate the environment <code class="docutils literal notranslate"><span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (Windows) or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (macOS or Linux)</li>
 <li>Get the pycalphad source <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code> (or download from <a class="reference external" href="https://github.com/pycalphad/pycalphad">https://github.com/pycalphad/pycalphad</a>)</li>
@@ -331,7 +329,7 @@ environment variable <code class="docutils literal notranslate"><span class="pre
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'./',
-            VERSION:'0.6.1+18.g7cc4b39',
+            VERSION:'0.6.1+19.gdcea4e3',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
