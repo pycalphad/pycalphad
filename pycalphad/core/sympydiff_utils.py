@@ -45,7 +45,8 @@ class PickleableFunction(object):
                     while mod is None:
                         try:
                             mod = import_extension(self._workdir, self._module_name)
-                            self._kernel = getattr(mod, self._routine_name)
+                            self._kernel = getattr(mod, self._routine_name + '_c')
+                            self._cpointer = getattr(mod, 'get_pointer_c')()
                         except ImportError:
                             if start + 60 > time.time():
                                 raise

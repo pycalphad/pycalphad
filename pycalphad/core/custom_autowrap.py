@@ -533,19 +533,18 @@ class ThreadSafeCythonCodeWrapper(CythonCodeWrapper):
             return str(arg.name)
 
     def wrap_code(self, routine, helpers=None):
+        self._module_id = str(uuid.uuid4()).replace('-', '_')
         helpers = helpers if helpers is not None else []
         workdir = self.filepath
         if not os.access(workdir, os.F_OK):
             os.mkdir(workdir)
-        try:
-            self.generator.write(
-                [routine]+helpers, str(os.path.join(workdir, self.filename)).replace(os.sep, '/'), True, self.include_header,
-                self.include_empty)
-            self._prepare_files(routine)
-            self._process_files(routine)
-            mod = import_extension(workdir, self.module_name)
-        finally:
-            self._module_id = str(uuid.uuid4()).replace('-', '_')
+        self.generator.write(
+            [routine]+helpers, str(os.path.join(workdir, self.filename)).replace(os.sep, '/'), True, self.include_header,
+            self.include_empty)
+        self._prepare_files(routine)
+        self._process_files(routine)
+        mod = import_extension(workdir, self.module_name)
+
         return self._get_wrapped_function(mod, routine.name), self._get_wrapped_function(mod, 'get_pointer')(), str(self.module_name), str(routine.name)
 
 
