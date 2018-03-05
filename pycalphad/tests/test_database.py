@@ -510,3 +510,62 @@ def test_comma_templims():
         """
     dbf = Database.from_string(tdb_string, fmt='tdb')
     assert "AL" in dbf.elements
+
+
+def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
+    """Species names used in parameters do not have to be stoichiometric formulas"""
+
+    # names are taken from the Thermo-Calc documentation set, Database Manager Guide, SPECIES
+
+    tdb_string = """
+     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT O    1/2_MOLE_O2(G)            0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT SI   HCP_A3                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT NA   HCP_A3                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT SB   RHOMBOHEDRAL_A7           0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT H    1/2_MOLE_H2(G)            0.0000E+00  0.0000E+00  0.0000E+00!
+
+     SPECIES SILICA                      SI1O2 !  $ tests for arbitrary names
+     SPECIES NASB_6OH                    NA1SB1O6H6 !  $ tests for underscores
+     SPECIES SB-3                        SB/-3 !  $ tests for charge
+     SPECIES ALCL2OH.3WATER                        AL1O1H1CL2H6O3 !  $ tests for charge
+
+
+     PHASE LIQUID:L %  1  1.0  !
+
+     CONSTITUENT LIQUID:L : O, SI, NA, SB, H, SILICA, NASB_6OH, SB-3, ALCL2OH.3WATER  :  !
+     PARAMETER G(LIQUID,SILICA;0)      298.15  10;      3000 N !
+     PARAMETER G(LIQUID,NASB_6OH;0)    298.15  100;      3000 N !
+     PARAMETER G(LIQUID,ALCL2OH.3WATER;0)    298.15  1000;      3000 N !
+     PARAMETER G(LIQUID,SB-3;0)        298.15  10000;      3000 N !
+
+     """
+
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+
+    species_dict = {sp.name: sp for sp in dbf.species}
+    species_names = list(species_dict.keys())
+
+    # check that the species are found
+    assert 'SILICA' in species_names
+    assert 'NASB_6OH' in species_names
+    assert 'ALCL2OH.3WATER' in species_names
+    assert 'SB-3' in species_names
+
+    import tinydb
+    silica = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SILICA'],),))
+    assert len(silica) == 1
+    assert silica[0]['parameter'].args[0][0] == 10
+
+    nasb_6oh = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['NASB_6OH'],),))
+    assert len(nasb_6oh) == 1
+    assert nasb_6oh[0]['parameter'].args[0][0] == 100
+
+    alcl2oh_3water = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['ALCL2OH.3WATER'],),))
+    assert len(alcl2oh_3water) == 1
+    assert alcl2oh_3water[0]['parameter'].args[0][0] == 1000
+
+    sbminus3 = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SB-3'],),))
+    assert len(sbminus3) == 1
+    assert sbminus3[0]['parameter'].args[0][0] == 10000
