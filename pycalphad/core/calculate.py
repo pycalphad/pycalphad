@@ -111,24 +111,6 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
                                  sampler(sublattice_dof,
                                          pdof=pdens)
                                  ))
-
-    # If there are nontrivial sublattices with vacancies in them,
-    # generate a set of points where their fraction is zero and renormalize
-    for idx, sublattice in enumerate(phase_constituents):
-        if 'VA' in set(sublattice) and len(sublattice) > 1:
-            var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-            addtl_pts = np.copy(points)
-            # set vacancy fraction to log-spaced between 1e-10 and 1e-6
-            addtl_pts[:, var_idx] = np.power(10.0, -10.0 * (1.0 - addtl_pts[:, var_idx]))
-            # renormalize site fractions
-            cur_idx = 0
-            for ctx in sublattice_dof:
-                end_idx = cur_idx + ctx
-                addtl_pts[:, cur_idx:end_idx] /= \
-                    addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
-                cur_idx = end_idx
-            # add to points matrix
-            points = np.concatenate((points, addtl_pts), axis=0)
     # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
     # Issues with this appear to be platform-dependent
     points = points[~np.isnan(points).any(axis=-1)]
