@@ -5,6 +5,7 @@ Classes and constants for representing thermodynamic variables.
 
 import itertools
 from sympy import Float, Symbol
+from pyparsing import ParseException
 from pycalphad.io.grammar import chemical_formula
 
 
@@ -48,7 +49,10 @@ class Species(object):
             return new_self
 
         if isinstance(arg, str):
-            parse_list = chemical_formula.parseString(arg.upper())
+            try:
+                parse_list = chemical_formula.parseString(arg.upper())
+            except ParseException:
+                return None
         else:
             parse_list = arg
         new_self.name = name
