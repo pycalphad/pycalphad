@@ -259,8 +259,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         variables = sorted(site_fracs, key=str)
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
         out = models[name].energy
-        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
-                or (not hess_callable_dict.get(name, False)):
+        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)):
             # Only force undefineds to zero if we're not overriding them
             undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
             for undef in undefs:
