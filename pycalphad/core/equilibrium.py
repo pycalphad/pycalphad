@@ -261,7 +261,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         out = models[name].energy
         if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)):
             # Only force undefineds to zero if we're not overriding them
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
+            undefs = [x for x in out.free_symbols if (not isinstance(x, v.StateVariable)) and not (x in param_symbols)]
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
             cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
