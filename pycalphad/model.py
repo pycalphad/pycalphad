@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import exp, log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol, zoo, oo
+from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -480,6 +480,7 @@ class Model(object):
         site_ratios = self.site_ratios
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
+        sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
             ratio = site_ratios[subl_index]
@@ -488,7 +489,9 @@ class Model(object):
                     v.SiteFraction(phase.name, subl_index, comp)
                 # We lose some precision here, but this makes the limit behave nicely
                 # We're okay until fractions of about 1e-12 (platform-dependent)
-                mixing_term = Piecewise((sitefrac*log(sitefrac), sitefrac > MIN_SITE_FRACTION/10.), (0, True))
+                mixing_term = Piecewise((sitefrac*log(sitefrac),
+                                         StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
+                                        evaluate=False)
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
@@ -550,14 +553,16 @@ class Model(object):
             self.redlich_kister_sum(phase, param_search, bm_param_query)
         beta = mean_magnetic_moment / Piecewise(
             (afm_factor, mean_magnetic_moment <= 0),
-            (1., True)
+            (1., True),
+            evaluate=False
             )
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
         tc = curie_temp / Piecewise(
             (afm_factor, curie_temp <= 0),
-            (1., True)
+            (1., True),
+            evaluate=False
             )
         self.TC = self.curie_temperature = tc
         #print(tc)
@@ -577,7 +582,7 @@ class Model(object):
         expr_cond_pairs = [(sub_tau, tau < 1),
                            (super_tau, True)
                            ]
-        g_term = Piecewise(*expr_cond_pairs)
+        g_term = Piecewise(*expr_cond_pairs, evaluate=False)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
@@ -656,7 +661,7 @@ class Model(object):
                                 (super_tau_neel, tau_neel > 1),
                                 (sub_tau_neel, True)
                                ]
-        g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
+        g_term = Piecewise(*expr_cond_pairs_curie, evaluate=False) + Piecewise(*expr_cond_pairs_neel, evaluate=False)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
