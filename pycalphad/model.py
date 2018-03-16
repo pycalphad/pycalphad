@@ -808,8 +808,8 @@ class Model(object):
                                    ordered_phase_name, constituents,
                                    dbe.phases[ordered_phase_name].sublattices)
 
-        return ordered_energy - ordered_energy.subs(molefraction_dict,
-                                                    simultaneous=True)
+        return ordered_energy - ordered_energy.xreplace(molefraction_dict)
+
 
 class TestModel(Model):
     """
