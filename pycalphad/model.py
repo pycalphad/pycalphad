@@ -116,7 +116,7 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        self.site_fractions = sorted(self.ast.atoms(v.SiteFraction), key=str)
+        self.site_fractions = sorted([x for x in self.ast.free_symbols if isinstance(x, v.SiteFraction)], key=str)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -140,7 +140,7 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
-                undefs = obj.atoms(Symbol) - obj.atoms(v.StateVariable)
+                undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break
         except AttributeError:
@@ -198,7 +198,7 @@ class Model(object):
     @property
     def variables(self):
         "Return state variables in the model."
-        return sorted(self.ast.atoms(v.StateVariable), key=str)
+        return sorted([x for x in self.ast.free_symbols if isinstance(x, v.StateVariable)], key=str)
 
     @property
     def degree_of_ordering(self):
@@ -754,7 +754,8 @@ class Model(object):
 
         # Fix variable names
         variable_rename_dict = {}
-        for atom in disordered_model.energy.atoms(v.SiteFraction):
+        disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for atom in disordered_sitefracs:
             # Replace disordered phase site fractions with mole fractions of
             # ordered phase site fractions.
             # Special case: Pure vacancy sublattices
@@ -792,7 +793,8 @@ class Model(object):
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction in the disordered state
-        for sitefrac in ordered_energy.atoms(v.SiteFraction):
+        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for sitefrac in ordered_sitefracs:
             all_species_in_sublattice = \
                 dbe.phases[ordered_phase_name].constituents[
                     sitefrac.sublattice_index]
