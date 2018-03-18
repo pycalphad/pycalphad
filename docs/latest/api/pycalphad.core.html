@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.6.1+20.g259184c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+20.g259184c documentation" href="../index.html"/>
         <link rel="up" title="pycalphad package" href="pycalphad.html"/>
         <link rel="next" title="pycalphad.io package" href="pycalphad.io.html"/>
         <link rel="prev" title="pycalphad package" href="pycalphad.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+19.gdcea4e3
+                0.6.1+20.g259184c
               </div>
             
           
@@ -226,13 +226,6 @@ Access the underlying function with f.__wrapped__.</p>
 <span id="pycalphad-core-calculate-module"></span><h2>pycalphad.core.calculate module<a class="headerlink" href="#module-pycalphad.core.calculate" title="Permalink to this headline">¶</a></h2>
 <p>The calculate module contains a routine for calculating the
 property surface of a system.</p>
-<dl class="class">
-<dt id="pycalphad.core.calculate.FallbackModel">
-<em class="property">class </em><code class="descclassname">pycalphad.core.calculate.</code><code class="descname">FallbackModel</code><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#FallbackModel"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.FallbackModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<p>Compatibility layer while transitioning to CompiledModel.</p>
-</dd></dl>
-
 <dl class="function">
 <dt id="pycalphad.core.calculate.calculate">
 <code class="descclassname">pycalphad.core.calculate.</code><code class="descname">calculate</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>mode=None</em>, <em>output='GM'</em>, <em>fake_points=False</em>, <em>broadcast=True</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
@@ -327,184 +320,8 @@ formed of input arrays.</p>
 </dd></dl>
 
 </div>
-<div class="section" id="module-pycalphad.core.compiled_model">
-<span id="pycalphad-core-compiled-model-module"></span><h2>pycalphad.core.compiled_model module<a class="headerlink" href="#module-pycalphad.core.compiled_model" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="pycalphad.core.compiled_model.CompiledModel">
-<em class="property">class </em><code class="descclassname">pycalphad.core.compiled_model.</code><code class="descname">CompiledModel</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.afm_factor">
-<code class="descname">afm_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.afm_factor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.bm_coef_matrix">
-<code class="descname">bm_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.bm_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.bm_coef_symbol_matrix">
-<code class="descname">bm_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.bm_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.components">
-<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.components" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.composition_matrices">
-<code class="descname">composition_matrices</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.composition_matrices" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.constituents">
-<code class="descname">constituents</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.constituents" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_afm_factor">
-<code class="descname">disordered_afm_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_afm_factor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_matrix">
-<code class="descname">disordered_bm_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_symbol_matrix">
-<code class="descname">disordered_bm_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_bm_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_composition_matrices">
-<code class="descname">disordered_composition_matrices</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_composition_matrices" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_matrix">
-<code class="descname">disordered_excess_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_symbol_matrix">
-<code class="descname">disordered_excess_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_excess_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_ihj_magnetic_structure_factor">
-<code class="descname">disordered_ihj_magnetic_structure_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_ihj_magnetic_structure_factor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_phase_dof">
-<code class="descname">disordered_phase_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_phase_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_matrix">
-<code class="descname">disordered_pure_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_symbol_matrix">
-<code class="descname">disordered_pure_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_pure_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_site_ratios">
-<code class="descname">disordered_site_ratios</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_site_ratios" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_sublattice_dof">
-<code class="descname">disordered_sublattice_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_sublattice_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_matrix">
-<code class="descname">disordered_tc_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_symbol_matrix">
-<code class="descname">disordered_tc_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.disordered_tc_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix">
-<code class="descname">excess_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.excess_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.excess_coef_symbol_matrix">
-<code class="descname">excess_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.excess_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.ihj_magnetic_structure_factor">
-<code class="descname">ihj_magnetic_structure_factor</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.ihj_magnetic_structure_factor" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.ordered">
-<code class="descname">ordered</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.ordered" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.phase_dof">
-<code class="descname">phase_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.phase_name">
-<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.phase_name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.pure_coef_matrix">
-<code class="descname">pure_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.pure_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.pure_coef_symbol_matrix">
-<code class="descname">pure_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.pure_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.site_ratios">
-<code class="descname">site_ratios</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.site_ratios" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.sublattice_dof">
-<code class="descname">sublattice_dof</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.sublattice_dof" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.tc_coef_matrix">
-<code class="descname">tc_coef_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.tc_coef_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.tc_coef_symbol_matrix">
-<code class="descname">tc_coef_symbol_matrix</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.tc_coef_symbol_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.vacancy_index">
-<code class="descname">vacancy_index</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.vacancy_index" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.compiled_model.CompiledModel.variables">
-<code class="descname">variables</code><a class="headerlink" href="#pycalphad.core.compiled_model.CompiledModel.variables" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
+<div class="section" id="pycalphad-core-compiled-model-module">
+<h2>pycalphad.core.compiled_model module<a class="headerlink" href="#pycalphad-core-compiled-model-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.core.composition_set">
 <span id="pycalphad-core-composition-set-module"></span><h2>pycalphad.core.composition_set module<a class="headerlink" href="#module-pycalphad.core.composition_set" title="Permalink to this headline">¶</a></h2>
@@ -546,16 +363,6 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 <dl class="attribute">
 <dt id="pycalphad.core.composition_set.CompositionSet.hess">
 <code class="descname">hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.hess" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.composition_set.CompositionSet.mass_grad">
-<code class="descname">mass_grad</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_grad" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.composition_set.CompositionSet.mass_hess">
-<code class="descname">mass_hess</code><a class="headerlink" href="#pycalphad.core.composition_set.CompositionSet.mass_hess" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1181,11 +988,6 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 </dd></dl>
 
 <dl class="function">
-<dt id="pycalphad.core.phase_rec.PhaseRecord_from_compiledmodel">
-<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_compiledmodel</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_compiledmodel" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
 <dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython">
 <code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1205,11 +1007,6 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.cl">
 <code class="descname">cl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.problem.Problem.components">
-<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.problem.Problem.components" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1243,6 +1040,11 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.nonvacant_elements">
+<code class="descname">nonvacant_elements</code><a class="headerlink" href="#pycalphad.core.problem.Problem.nonvacant_elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.num_constraints">
 <code class="descname">num_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1268,6 +1070,11 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.pure_elements">
+<code class="descname">pure_elements</code><a class="headerlink" href="#pycalphad.core.problem.Problem.pure_elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.temperature">
 <code class="descname">temperature</code><a class="headerlink" href="#pycalphad.core.problem.Problem.temperature" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1290,43 +1097,8 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 </dd></dl>
 
 </div>
-<div class="section" id="module-pycalphad.core.rksum">
-<span id="pycalphad-core-rksum-module"></span><h2>pycalphad.core.rksum module<a class="headerlink" href="#module-pycalphad.core.rksum" title="Permalink to this headline">¶</a></h2>
-<dl class="class">
-<dt id="pycalphad.core.rksum.RedlichKisterSum">
-<em class="property">class </em><code class="descclassname">pycalphad.core.rksum.</code><code class="descname">RedlichKisterSum</code><span class="sig-paren">(</span><em>comps</em>, <em>phase</em>, <em>param_search</em>, <em>param_query</em>, <em>param_symbols</em>, <em>all_symbols</em>, <em>variable_rename_dict=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<dl class="staticmethod">
-<dt id="pycalphad.core.rksum.RedlichKisterSum.symbol_replace">
-<em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#RedlichKisterSum.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.RedlichKisterSum.symbol_replace" title="Permalink to this definition">¶</a></dt>
-<dd><p>Substitute values of symbols into ‘obj’.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>obj</strong> (<em>SymPy object</em>) – </li>
-<li><strong>symbols</strong> (<em>dict mapping sympy.Symbol to SymPy object</em>) – </li>
-</ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">SymPy object</p>
-</td>
-</tr>
-</tbody>
-</table>
-</dd></dl>
-
-</dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.core.rksum.build_piecewise_matrix">
-<code class="descclassname">pycalphad.core.rksum.</code><code class="descname">build_piecewise_matrix</code><span class="sig-paren">(</span><em>sympy_obj</em>, <em>cur_exponents</em>, <em>low_temp</em>, <em>high_temp</em>, <em>output_matrix</em>, <em>symbol_matrix</em>, <em>param_symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/rksum.html#build_piecewise_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.rksum.build_piecewise_matrix" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
+<div class="section" id="pycalphad-core-rksum-module">
+<h2>pycalphad.core.rksum module<a class="headerlink" href="#pycalphad-core-rksum-module" title="Permalink to this headline">¶</a></h2>
 </div>
 <div class="section" id="module-pycalphad.core.solver">
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
@@ -1449,8 +1221,8 @@ Return a matrix corresponding to the compositions of all endmembers.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
 <li><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</li>
-<li><strong>list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
-in each sublattice to ensure the “pure vacancy” endmember is excluded.</li>
+<li><strong>list of list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
+in each sublattice to ensure the “pure vacancy” endmembers are excluded.</li>
 </ul>
 </td>
 </tr>
@@ -1458,7 +1230,7 @@ in each sublattice to ensure the “pure vacancy” endmember is excluded.</li>
 </table>
 <p class="rubric">Examples</p>
 <p>Sublattice configuration like: <cite>(AL, NI, VA):(AL, NI, VA):(VA)</cite>
-&gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])</p>
+&gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])</p>
 </dd></dl>
 
 <dl class="function">
@@ -1570,6 +1342,29 @@ are zero for that case.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pycalphad.core.utils.unpack_components">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_components</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_components" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing elements and species.</li>
+<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Set of Species objects</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">set</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
 <dt id="pycalphad.core.utils.unpack_condition">
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_condition</code><span class="sig-paren">(</span><em>tup</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_condition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_condition" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a condition to a list of values.</p>
@@ -1676,7 +1471,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+19.gdcea4e3',
+            VERSION:'0.6.1+20.g259184c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

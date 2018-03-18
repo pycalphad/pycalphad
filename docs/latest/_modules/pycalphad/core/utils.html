@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.6.1+20.g259184c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+20.g259184c documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+19.gdcea4e3
+                0.6.1+20.g259184c
               </div>
             
           
@@ -341,14 +341,14 @@
 <span class="sd">    ----------</span>
 <span class="sd">    dof : list of int</span>
 <span class="sd">        Number of components in each sublattice.</span>
-<span class="sd">    vacancy_indices, list of int, optional</span>
+<span class="sd">    vacancy_indices, list of list of int, optional</span>
 <span class="sd">        If vacancies are present in every sublattice, specify their indices</span>
-<span class="sd">        in each sublattice to ensure the &quot;pure vacancy&quot; endmember is excluded.</span>
+<span class="sd">        in each sublattice to ensure the &quot;pure vacancy&quot; endmembers are excluded.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    Sublattice configuration like: `(AL, NI, VA):(AL, NI, VA):(VA)`</span>
-<span class="sd">    &gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])</span>
+<span class="sd">    &gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">total_endmembers</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">dof</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
     <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_endmembers</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
@@ -359,10 +359,11 @@
         <span class="n">row_idx</span> <span class="o">+=</span> <span class="mi">1</span>
     <span class="k">if</span> <span class="n">vacancy_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">):</span>
         <span class="n">dof_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">))])</span>
-        <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">+</span> <span class="n">dof_adj</span>
-        <span class="n">row_idx_to_delete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
-                                            <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
-        <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">row_idx_to_delete</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="k">for</span> <span class="n">vacancy_em</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">vacancy_indices</span><span class="p">):</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vacancy_em</span><span class="p">)</span> <span class="o">+</span> <span class="n">dof_adj</span>
+            <span class="n">row_idx_to_delete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">row_idx_to_delete</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
     <span class="c1"># Adjust site fractions to the numerical limit</span>
     <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">res_matrix</span><span class="p">[</span><span class="n">res_matrix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MIN_SITE_FRACTION</span>
@@ -423,6 +424,35 @@
         <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">kwarg_obj</span><span class="p">)</span>
 </div>
     <span class="k">return</span> <span class="n">new_dict</span>
+
+
+<div class="viewcode-block" id="unpack_components"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_components">[docs]</a><span class="k">def</span> <span class="nf">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Thermodynamic database containing elements and species.</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    set</span>
+<span class="sd">        Set of Species objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Constrain possible components to those within phase&#39;s d.o.f</span>
+    <span class="c1"># Assume for the moment that comps contains a list of pure element strings</span>
+    <span class="c1"># We want to add all the species which can be created by a combination of</span>
+    <span class="c1"># the user-specified pure elements</span>
+    <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">}</span>
+    <span class="n">possible_comps</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">}</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">possible_comps</span><span class="p">]</span>
+    <span class="c1"># Flatten nested list</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">]</span>
+    <span class="n">eligible_species_from_database</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">species</span> <span class="k">if</span>
+                                      <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">desired_active_pure_elements</span><span class="p">)}</span></div>
+    <span class="k">return</span> <span class="n">eligible_species_from_database</span>
 
 
 <div class="viewcode-block" id="filter_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.filter_phases">[docs]</a><span class="k">def</span> <span class="nf">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
@@ -493,7 +523,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+19.gdcea4e3',
+            VERSION:'0.6.1+20.g259184c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

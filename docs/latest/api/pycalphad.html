@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.6.1+20.g259184c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../genindex.html"/>
         <link rel="search" title="Search" href="../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+20.g259184c documentation" href="../index.html"/>
         <link rel="up" title="API Documentation" href="modules.html"/>
         <link rel="next" title="pycalphad.core package" href="pycalphad.core.html"/>
         <link rel="prev" title="API Documentation" href="modules.html"/> 
@@ -70,7 +70,7 @@
             
             
               <div class="version">
-                0.6.1+19.gdcea4e3
+                0.6.1+20.g259184c
               </div>
             
           
@@ -192,7 +192,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cache">pycalphad.core.cache module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.calculate">pycalphad.core.calculate module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cartesian">pycalphad.core.cartesian module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.compiled_model">pycalphad.core.compiled_model module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-compiled-model-module">pycalphad.core.compiled_model module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.composition_set">pycalphad.core.composition_set module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.constants">pycalphad.core.constants module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.custom_autowrap">pycalphad.core.custom_autowrap module</a></li>
@@ -203,7 +203,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.lower_convex_hull">pycalphad.core.lower_convex_hull module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.problem">pycalphad.core.problem module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.rksum">pycalphad.core.rksum module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-rksum-module">pycalphad.core.rksum module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.solver">pycalphad.core.solver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.sympydiff_utils">pycalphad.core.sympydiff_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.utils">pycalphad.core.utils module</a></li>
@@ -462,6 +462,12 @@ the ordered site fractions, so we need _all_ site fractions, including
 VA, to sum to unity.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pycalphad.model.Model.moles">
+<code class="descname">moles</code><span class="sig-paren">(</span><em>species</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.moles"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.moles" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of moles of species or elements.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pycalphad.model.Model.neel_temperature">
 <code class="descname">neel_temperature</code><em class="property"> = 0</em><a class="headerlink" href="#pycalphad.model.Model.neel_temperature" title="Permalink to this definition">¶</a></dt>
@@ -479,12 +485,6 @@ the Muggianu ternary parameter extension.</p>
 <code class="descname">reference_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the weighted average of the endmember energies
 in symbolic form.</p>
-</dd></dl>
-
-<dl class="method">
-<dt id="pycalphad.model.Model.standard_mole_fraction">
-<code class="descname">standard_mole_fraction</code><span class="sig-paren">(</span><em>species</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.standard_mole_fraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.standard_mole_fraction" title="Permalink to this definition">¶</a></dt>
-<dd><p>Mole fraction which correctly normalizes for vacancies.</p>
 </dd></dl>
 
 <dl class="staticmethod">
@@ -629,6 +629,49 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pycalphad.variables.Species">
+<em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">Species</code><a class="reference internal" href="../_modules/pycalphad/variables.html#Species"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.Species" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A chemical species.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.name">
+<code class="descname">name</code><a class="headerlink" href="#pycalphad.variables.Species.name" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>string</em> – Name of the specie</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.constituents">
+<code class="descname">constituents</code><a class="headerlink" href="#pycalphad.variables.Species.constituents" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – Dictionary of {element: quantity} where the element is a string and the quantity a float.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.charge">
+<code class="descname">charge</code><a class="headerlink" href="#pycalphad.variables.Species.charge" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>int</em> – Integer charge. Can be positive or negative.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.escaped_name">
+<code class="descname">escaped_name</code><a class="headerlink" href="#pycalphad.variables.Species.escaped_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name safe to embed in the variable name of complex arithmetic expressions.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.number_of_atoms">
+<code class="descname">number_of_atoms</code><a class="headerlink" href="#pycalphad.variables.Species.number_of_atoms" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of atoms per formula unit. Vacancies do not count as atoms.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.Species.weight">
+<code class="descname">weight</code><a class="headerlink" href="#pycalphad.variables.Species.weight" title="Permalink to this definition">¶</a></dt>
+<dd><p>Number of grams per formula unit.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pycalphad.variables.StateVariable">
 <em class="property">class </em><code class="descclassname">pycalphad.variables.</code><code class="descname">StateVariable</code><a class="reference internal" href="../_modules/pycalphad/variables.html#StateVariable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.StateVariable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.core.symbol.Symbol</span></code></p>
@@ -708,7 +751,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.6.1+19.gdcea4e3',
+            VERSION:'0.6.1+20.g259184c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

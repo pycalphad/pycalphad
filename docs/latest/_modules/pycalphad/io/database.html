@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.database &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
+  <title>pycalphad.io.database &mdash; pycalphad 0.6.1+20.g259184c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+20.g259184c documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+19.gdcea4e3
+                0.6.1+20.g259184c
               </div>
             
           
@@ -171,6 +171,7 @@
 <span class="kn">from</span> <span class="nn">datetime</span> <span class="k">import</span> <span class="n">datetime</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 <span class="kn">import</span> <span class="nn">os</span>
+<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">fhash</span>
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Python 2</span>
@@ -196,34 +197,6 @@
     <span class="s2">&quot;Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow&quot;</span>
     <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">_to_tuple</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="nb">list</span><span class="p">)</span> <span class="k">else</span> <span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">lst</span><span class="p">)</span>
 
-
-<div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    A species in the database.</span>
-
-<span class="sd">    Attributes</span>
-<span class="sd">    ----------</span>
-<span class="sd">    name : string</span>
-<span class="sd">        Name of the specie</span>
-<span class="sd">    constituents : dict</span>
-<span class="sd">        Dictionary of {element: quantity} where the element is a string and the quantity a float.</span>
-<span class="sd">    charge : int</span>
-<span class="sd">        Integer charge. Can be positive or negative.</span>
-<span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">,</span> <span class="n">charge</span><span class="p">):</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="n">constituents</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="n">charge</span>
-
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="sd">&quot;&quot;&quot;Two species are the same if their names and constituents are the same.&quot;&quot;&quot;</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
-            <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>
-
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span></div>
-        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Phase"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Phase">[docs]</a><span class="k">class</span> <span class="nc">Phase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -591,13 +564,14 @@
 <span class="sd">        --------</span>
 <span class="sd">        None yet.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">}</span>
         <span class="n">new_parameter</span> <span class="o">=</span> <span class="p">{</span>
             <span class="s1">&#39;phase_name&#39;</span><span class="p">:</span> <span class="n">phase_name</span><span class="p">,</span>
-            <span class="s1">&#39;constituent_array&#39;</span><span class="p">:</span> <span class="n">_to_tuple</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">),</span>  <span class="c1"># must be hashable type</span>
+            <span class="s1">&#39;constituent_array&#39;</span><span class="p">:</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">Species</span><span class="p">(</span><span class="n">s</span><span class="p">))</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">)</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">),</span>  <span class="c1"># must be hashable type</span>
             <span class="s1">&#39;parameter_type&#39;</span><span class="p">:</span> <span class="n">param_type</span><span class="p">,</span>
             <span class="s1">&#39;parameter_order&#39;</span><span class="p">:</span> <span class="n">param_order</span><span class="p">,</span>
             <span class="s1">&#39;parameter&#39;</span><span class="p">:</span> <span class="n">param</span><span class="p">,</span>
-            <span class="s1">&#39;diffusing_species&#39;</span><span class="p">:</span> <span class="n">diffusing_species</span><span class="p">,</span>
+            <span class="s1">&#39;diffusing_species&#39;</span><span class="p">:</span> <span class="n">Species</span><span class="p">(</span><span class="n">diffusing_species</span><span class="p">),</span>
             <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">ref</span>
         <span class="p">}</span>
         <span class="n">param_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">new_parameter</span><span class="p">)</span></div>
@@ -641,10 +615,11 @@
 <span class="sd">        --------</span>
 <span class="sd">        None yet.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">}</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="c1"># Need to convert constituents from ParseResults</span>
             <span class="c1"># Otherwise equality testing will be broken</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">map</span><span class="p">(</span><span class="nb">frozenset</span><span class="p">,</span> <span class="n">constituents</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="nb">frozenset</span><span class="p">([</span><span class="n">species_dict</span><span class="p">[</span><span class="n">s</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">xs</span><span class="p">])</span> <span class="k">for</span> <span class="n">xs</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">])</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Undefined phase &quot;</span><span class="o">+</span><span class="n">phase_name</span><span class="p">)</span></div>
             <span class="k">raise</span>
@@ -701,7 +676,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+19.gdcea4e3',
+            VERSION:'0.6.1+20.g259184c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

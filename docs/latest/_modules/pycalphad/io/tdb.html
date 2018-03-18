@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.6.1+19.gdcea4e3 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.6.1+20.g259184c documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.6.1+19.gdcea4e3 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.6.1+20.g259184c documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.6.1+19.gdcea4e3
+                0.6.1+20.g259184c
               </div>
             
           
@@ -179,7 +179,9 @@
 <span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="k">import</span> <span class="n">_keep_coeff</span>
 <span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span><span class="p">,</span> <span class="n">Species</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.database</span> <span class="k">import</span> <span class="n">DatabaseExportError</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="k">import</span> <span class="n">float_number</span><span class="p">,</span> <span class="n">chemical_formula</span>
+<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="k">import</span> <span class="n">Species</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 <span class="kn">from</span> <span class="nn">pycalphad.io.tdb_keywords</span> <span class="k">import</span> <span class="n">expand_keyword</span><span class="p">,</span> <span class="n">TDB_PARAM_TYPES</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span><span class="p">,</span> <span class="n">namedtuple</span>
@@ -302,7 +304,7 @@
             <span class="p">)</span>
         <span class="n">cur_tok</span> <span class="o">=</span> <span class="n">cur_tok</span> <span class="o">+</span> <span class="mi">2</span>
     <span class="n">expr_cond_pairs</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TCCommand"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCCommand">[docs]</a><span class="k">class</span> <span class="nc">TCCommand</span><span class="p">(</span><span class="n">CaselessKeyword</span><span class="p">):</span> <span class="c1">#pylint: disable=R0903</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -342,11 +344,6 @@
 <span class="sd">    Convenience function for getting the pyparsing grammar of a TDB file.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
-    <span class="n">pos_neg_int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="s1">&#39;+-&#39;</span><span class="o">+</span><span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span> <span class="c1"># &#39;+3&#39; or &#39;-2&#39; are examples</span>
-    <span class="c1"># matching float w/ regex is ugly but is recommended by pyparsing</span>
-    <span class="n">regex_after_decimal</span> <span class="o">=</span> <span class="sa">r</span><span class="s1">&#39;([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)&#39;</span>
-    <span class="n">float_number</span> <span class="o">=</span> <span class="n">Regex</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;[-+]?([0-9]+\.(?!([0-9]|[eE])))|</span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">regex_after_decimal</span><span class="p">))</span> \
-        <span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>
     <span class="c1"># symbol name, e.g., phase name, function name</span>
     <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_:&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
     <span class="n">ref_phase_name</span> <span class="o">=</span> <span class="n">symbol_name</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphanums</span><span class="o">+</span><span class="s1">&#39;_-:()/&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
@@ -365,7 +362,7 @@
     <span class="n">cmd_element</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;ELEMENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="o">+</span><span class="s1">&#39;/-&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">ref_phase_name</span><span class="p">))</span> <span class="o">+</span> \
         <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">)))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># SPECIES</span>
-    <span class="n">cmd_species</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;SPECIES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">species_name</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">Word</span><span class="p">(</span><span class="n">alphas</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="nb">max</span><span class="o">=</span><span class="mi">2</span><span class="p">)</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">float_number</span><span class="p">,</span> <span class="n">default</span><span class="o">=</span><span class="mf">1.0</span><span class="p">)))</span> <span class="o">+</span> <span class="n">Optional</span><span class="p">(</span><span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">pos_neg_int_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+    <span class="n">cmd_species</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;SPECIES&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">species_name</span> <span class="o">+</span> <span class="n">chemical_formula</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
     <span class="c1"># TYPE_DEFINITION</span>
     <span class="n">cmd_typedef</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">)</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="n">exact</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">())</span>
@@ -458,17 +455,31 @@
                 <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
             <span class="p">)</span>
 
+
+<span class="n">phase_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;symmetry_FCC_4SL&#39;</span><span class="p">:</span> <span class="s1">&#39;F&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;symmetry_BCC_4SL&#39;</span><span class="p">:</span> <span class="s1">&#39;B&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;liquid&#39;</span><span class="p">:</span> <span class="s1">&#39;L&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;gas&#39;</span><span class="p">:</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;aqueous&#39;</span><span class="p">:</span> <span class="s1">&#39;A&#39;</span><span class="p">,</span>
+                 <span class="s1">&#39;charged_phase&#39;</span><span class="p">:</span> <span class="s1">&#39;I&#39;</span><span class="p">}</span>
+<span class="n">inv_phase_options</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">([</span><span class="nb">reversed</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">phase_options</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+
 <span class="k">def</span> <span class="nf">_process_phase</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">typedefs</span><span class="p">,</span> <span class="n">subls</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Process the PHASE command.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">splitname</span> <span class="o">=</span> <span class="n">name</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span>
     <span class="n">phase_name</span> <span class="o">=</span> <span class="n">splitname</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
-    <span class="n">options</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="n">options</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">splitname</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="n">options</span> <span class="o">=</span> <span class="n">splitname</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
     <span class="n">targetdb</span><span class="o">.</span><span class="n">add_structure_entry</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
     <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">inv_phase_options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
+            <span class="n">model_hints</span><span class="p">[</span><span class="n">inv_phase_options</span><span class="p">[</span><span class="n">option</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="k">for</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">typedefs</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
             <span class="k">if</span> <span class="s1">&#39;ihj_magnetic&#39;</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
@@ -893,6 +904,10 @@
     <span class="n">typedefs</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="p">[</span><span class="s2">&quot;%&quot;</span><span class="p">])</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
         <span class="n">model_hints</span> <span class="o">=</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">possible_options</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">phase_options</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">model_hints</span><span class="p">)</span>
+        <span class="c1"># Phase options are handled later</span>
+        <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">possible_options</span><span class="p">:</span>
+            <span class="k">del</span> <span class="n">model_hints</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
         <span class="k">if</span> <span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span> <span class="ow">in</span> <span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="ow">and</span> <span class="p">(</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="n">name</span><span class="p">):</span>
             <span class="n">new_char</span> <span class="o">=</span> <span class="n">typedef_chars</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
             <span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_char</span><span class="p">)</span>
@@ -919,11 +934,19 @@
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Not all model hints are supported: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">model_hints</span><span class="p">))</span>
     <span class="c1"># Perform a second loop now that all typedefs / model hints are consistent</span>
     <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">phase_obj</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()):</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;PHASE </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2">  </span><span class="si">{2}</span><span class="s2"> </span><span class="si">{3}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span>
+        <span class="c1"># model_hints may also contain &quot;phase options&quot;, e.g., ionic liquid</span>
+        <span class="n">model_hints</span> <span class="o">=</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+        <span class="n">name_with_options</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
+        <span class="n">possible_options</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">phase_options</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">model_hints</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">possible_options</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">name_with_options</span> <span class="o">+=</span> <span class="s1">&#39;:&#39;</span>
+        <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">possible_options</span><span class="p">:</span>
+            <span class="n">name_with_options</span> <span class="o">+=</span> <span class="n">phase_options</span><span class="p">[</span><span class="n">option</span><span class="p">]</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;PHASE </span><span class="si">{0}</span><span class="s2"> </span><span class="si">{1}</span><span class="s2">  </span><span class="si">{2}</span><span class="s2"> </span><span class="si">{3}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name_with_options</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">typedefs</span><span class="p">[</span><span class="n">name</span><span class="p">]),</span>
                                                       <span class="nb">len</span><span class="p">(</span><span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">),</span>
                                                       <span class="s1">&#39; &#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="nb">str</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">sublattices</span><span class="p">]))</span>
-        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
-        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;CONSTITUENT </span><span class="si">{0}</span><span class="s2"> :</span><span class="si">{1}</span><span class="s2">: !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">constituents</span><span class="p">)</span>
+        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">spec</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">subl</span><span class="p">)])</span> <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase_obj</span><span class="o">.</span><span class="n">constituents</span><span class="p">])</span>
+        <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;CONSTITUENT </span><span class="si">{0}</span><span class="s2"> :</span><span class="si">{1}</span><span class="s2">: !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">name_with_options</span><span class="p">,</span> <span class="n">constituents</span><span class="p">)</span>
         <span class="n">output</span> <span class="o">+=</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span>
 
     <span class="c1"># PARAMETERs by subsystem</span>
@@ -935,10 +958,12 @@
             <span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
             <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">]:</span>
                 <span class="n">components</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">subl</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]</span> <span class="o">!=</span> <span class="n">Species</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
                 <span class="n">components</span> <span class="o">|=</span> <span class="p">{</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;diffusing_species&#39;</span><span class="p">]}</span>
             <span class="c1"># Wildcard operator is not a component</span>
             <span class="n">components</span> <span class="o">-=</span> <span class="p">{</span><span class="s1">&#39;*&#39;</span><span class="p">}</span>
+            <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]</span>
+            <span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">([</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">])</span>
             <span class="c1"># Remove vacancy if it&#39;s not the only component (pure vacancy endmember)</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">components</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">components</span> <span class="o">-=</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}</span>
@@ -956,7 +981,7 @@
                                                  <span class="n">param</span><span class="p">[</span><span class="s1">&#39;reference&#39;</span><span class="p">]))</span>
 
     <span class="k">def</span> <span class="nf">write_parameter</span><span class="p">(</span><span class="n">param_to_write</span><span class="p">):</span>
-        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">]))</span>
+        <span class="n">constituents</span> <span class="o">=</span> <span class="s1">&#39;:&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="nb">sorted</span><span class="p">([</span><span class="n">i</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">subl</span><span class="p">]))</span>
                          <span class="k">for</span> <span class="n">subl</span> <span class="ow">in</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">constituent_array</span><span class="p">])</span>
         <span class="c1"># TODO: Handle references</span>
         <span class="n">paramx</span> <span class="o">=</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter</span>
@@ -967,8 +992,8 @@
         <span class="n">exprx</span> <span class="o">=</span> <span class="n">TCPrinter</span><span class="p">()</span><span class="o">.</span><span class="n">doprint</span><span class="p">(</span><span class="n">paramx</span><span class="p">)</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="k">if</span> <span class="s1">&#39;;&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">exprx</span><span class="p">:</span>
             <span class="n">exprx</span> <span class="o">+=</span> <span class="s1">&#39;; N&#39;</span>
-        <span class="k">if</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">ds</span> <span class="o">=</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span>
+        <span class="k">if</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span> <span class="o">!=</span> <span class="n">Species</span><span class="p">(</span><span class="kc">None</span><span class="p">):</span>
+            <span class="n">ds</span> <span class="o">=</span> <span class="s2">&quot;&amp;&quot;</span> <span class="o">+</span> <span class="n">param_to_write</span><span class="o">.</span><span class="n">diffusing_species</span><span class="o">.</span><span class="n">name</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">ds</span> <span class="o">=</span> <span class="s2">&quot;&quot;</span>
         <span class="k">return</span> <span class="s2">&quot;PARAMETER </span><span class="si">{}</span><span class="s2">(</span><span class="si">{}{}</span><span class="s2">,</span><span class="si">{}</span><span class="s2">;</span><span class="si">{}</span><span class="s2">) </span><span class="si">{}</span><span class="s2"> !</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">param_to_write</span><span class="o">.</span><span class="n">parameter_type</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
@@ -1095,7 +1120,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.6.1+19.gdcea4e3',
+            VERSION:'0.6.1+20.g259184c',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
