@@ -3,11 +3,30 @@ Calculate and Plot Activity
 ===========================
 
 Given an existing database for Al-Zn, we would like to calculate the
-activity of the liquid. In order to make sure we are correct, we'll
-compare the values with experimental results.
+activity of the liquid.
+
+Experimental activity results
+-----------------------------
+
+In order to make sure we are correct, we'll compare the values with
+experimental results. Experimental activities are digtized from Fig 18
+in A. Yazawa, Y.K. Lee, Thermodynamic Studies of the Liquid Aluminum
+Alloy Systems, Trans. Japan Inst. Met. 11 (1970) 411–418.
+https://doi.org/10.2320/matertrans1960.11.411.
+
+The measurements at at 1073 K and they used a reference state of the
+pure Zn at that temperature.
+
+.. code:: ipython3
+
+    exp_x_zn =   [0.0482, 0.1990, 0.3550, 0.5045, 0.6549, 0.8070, 0.9569]
+    exp_acr_zn = [0.1154, 0.3765, 0.5411, 0.6433, 0.7352, 0.8384, 0.9531]
 
 Set up the database
 ~~~~~~~~~~~~~~~~~~~
+
+Al-Zn database is taken from S. Mey, Reevaluation of the Al-Zn system,
+Zeitschrift F{ü}r Met. 84 (1993) 451–455.
 
 .. code:: ipython3
 
@@ -22,9 +41,9 @@ Set up the database
 Calculate the reference state
 -----------------------------
 
-You could also include this in the equilibrium calculation in the next
-step and select out the point you want, but it might be clear to be more
-explicit.
+Because all chemical activities must be specified with a reference
+state, we're going to choose a reference state as the pure element at
+the same temperature, consistent with the experimental data.
 
 .. code:: ipython3
 
@@ -33,7 +52,7 @@ explicit.
 Calculate the equilibria
 ------------------------
 
-Do the calculation over the compoisition range
+Do the calculation over the composition range
 
 .. code:: ipython3
 
@@ -52,24 +71,6 @@ calculate the activity.
     
     acr_zn = np.exp((chempot - chempot_ref)/(8.315*1023))
 
-Experimental activity results
------------------------------
-
-For comparision, we'll add experimental results.
-
-Activties are digtized from Fig 18 in Yazawa, A., & Lee, Y. K. (1970).
-Thermodynamic Studies of the Liquid Aluminum Alloy Systems. Transactions
-of the Japan Institute of Metals, 11(6), 411–418.
-http://doi.org/10.2320/matertrans1960.11.411
-
-The measurements at at 1073 K (the same temperature our calculations
-were at) and the reference is the pure components at that temperature.
-
-.. code:: ipython3
-
-    exp_x_zn =   [0.0482, 0.1990, 0.3550, 0.5045, 0.6549, 0.8070, 0.9569]
-    exp_acr_zn = [0.1154, 0.3765, 0.5411, 0.6433, 0.7352, 0.8384, 0.9531]
-
 Plot the result
 ---------------
 
@@ -82,8 +83,10 @@ Plot the result
     # add experimental data
     plt.scatter(exp_x_zn, exp_acr_zn, label='Yazawa 1970')
     
+    plt.xlim((0, 1))
+    plt.ylim((0, 1))
     plt.xlabel('X(ZN)')
-    plt.ylabel('a(ZN)')
+    plt.ylabel('ACR(ZN)')
     plt.title('Activity of Zn at 1073K')
     plt.legend(loc=0)
 
@@ -92,7 +95,7 @@ Plot the result
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x11bcc7898>
+    <matplotlib.legend.Legend at 0x1133e5278>
 
 
 
