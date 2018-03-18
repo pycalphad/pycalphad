@@ -23,7 +23,7 @@ pure Zn at that temperature.
     exp_acr_zn = [0.1154, 0.3765, 0.5411, 0.6433, 0.7352, 0.8384, 0.9531]
 
 Set up the database
-~~~~~~~~~~~~~~~~~~~
+-------------------
 
 Al-Zn database is taken from S. Mey, Reevaluation of the Al-Zn system,
 Zeitschrift F{ü}r Met. 84 (1993) 451–455.
@@ -85,6 +85,7 @@ Plot the result
     
     plt.xlim((0, 1))
     plt.ylim((0, 1))
+    plt.gca().set_aspect(1)
     plt.xlabel('X(ZN)')
     plt.ylabel('ACR(ZN)')
     plt.title('Activity of Zn at 1073K')
@@ -95,7 +96,7 @@ Plot the result
 
 .. parsed-literal::
 
-    <matplotlib.legend.Legend at 0x1133e5278>
+    <matplotlib.legend.Legend at 0x11352f5c0>
 
 
 
