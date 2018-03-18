@@ -25,7 +25,7 @@ setup(
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
     ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
-                           'pycalphad/core/phase_rec.pyx', 'pycalphad/core/compiled_model.pyx',
+                           'pycalphad/core/phase_rec.pyx',
                            'pycalphad/core/composition_set.pyx',
                            'pycalphad/core/problem.pyx']),
     package_data={

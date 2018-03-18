@@ -16,7 +16,7 @@ _plot_labels = {v.T: 'Temperature (K)', v.P: 'Pressure (Pa)'}
 
 def _axis_label(ax_var):
     if isinstance(ax_var, v.Composition):
-        return 'X({})'.format(ax_var.species)
+        return 'X({})'.format(ax_var.species.name)
     elif isinstance(ax_var, v.StateVariable):
         return _plot_labels[ax_var]
     else:
@@ -126,10 +126,10 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     if two_phase_idx[0].size > 0:
         found_two_phase = eq.Phase.values[two_phase_idx][..., :2]
         # get tieline endpoint compositions
-        two_phase_x = eq.X.sel(component=x.species).values[two_phase_idx][..., :2]
+        two_phase_x = eq.X.sel(component=x.species.name).values[two_phase_idx][..., :2]
         # handle special case for potential
         if isinstance(y, v.Composition):
-            two_phase_y = eq.X.sel(component=y.species).values[two_phase_idx][..., :2]
+            two_phase_y = eq.X.sel(component=y.species.name).values[two_phase_idx][..., :2]
         else:
             # it's a StateVariable. This must be True
             two_phase_y = np.take(eq[str(y)].values, two_phase_idx[list(str(i) for i in conds.keys()).index(str(y))])
@@ -153,8 +153,8 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     if three_phase_idx[0].size > 0:
         found_three_phase = eq.Phase.values[three_phase_idx][..., :3]
         # get tieline endpoints
-        three_phase_x = eq.X.sel(component=x.species).values[three_phase_idx][..., :3]
-        three_phase_y = eq.X.sel(component=y.species).values[three_phase_idx][..., :3]
+        three_phase_x = eq.X.sel(component=x.species.name).values[three_phase_idx][..., :3]
+        three_phase_y = eq.X.sel(component=y.species.name).values[three_phase_idx][..., :3]
         # three phase tielines, these are tie triangles and we always plot them
         three_phase_tielines = np.array([np.concatenate((three_phase_x[..., 0][..., np.newaxis], three_phase_y[..., 0][..., np.newaxis]), axis=-1),
                                      np.concatenate((three_phase_x[..., 1][..., np.newaxis], three_phase_y[..., 1][..., np.newaxis]), axis=-1),

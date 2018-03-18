@@ -9,10 +9,9 @@ from pycalphad.model import DofError
 from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases
+from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
-from pycalphad.core.compiled_model import CompiledModel
+from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython
 import pycalphad.variables as v
 from sympy import Symbol
 import numpy as np
@@ -21,16 +20,6 @@ import collections
 import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
-
-
-class FallbackModel(object):
-    "Compatibility layer while transitioning to CompiledModel."
-    def __new__(cls, *args, **kwargs):
-        try:
-            ret = CompiledModel(*args, **kwargs)
-        except NotImplementedError:
-            return Model(*args, **kwargs)
-        return ret
 
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
@@ -98,8 +87,9 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     vacancy_indices = list()
     for idx, sublattice in enumerate(phase_constituents):
         active_in_subl = sorted(set(phase_constituents[idx]).intersection(comps))
-        if 'VA' in active_in_subl and 'VA' in sorted(comps):
-            vacancy_indices.append(active_in_subl.index('VA'))
+        is_vacancy = [spec.number_of_atoms == 0 for spec in active_in_subl]
+        subl_va_indices = list(idx for idx, x in enumerate(is_vacancy) if x == True)
+        vacancy_indices.append(subl_va_indices)
     if len(vacancy_indices) != len(phase_constituents):
         vacancy_indices = None
     # Add all endmembers to guarantee their presence
@@ -121,24 +111,6 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
                                  sampler(sublattice_dof,
                                          pdof=pdens)
                                  ))
-
-    # If there are nontrivial sublattices with vacancies in them,
-    # generate a set of points where their fraction is zero and renormalize
-    for idx, sublattice in enumerate(phase_constituents):
-        if 'VA' in set(sublattice) and len(sublattice) > 1:
-            var_idx = variables.index(v.SiteFraction(phase_name, idx, 'VA'))
-            addtl_pts = np.copy(points)
-            # set vacancy fraction to log-spaced between 1e-10 and 1e-6
-            addtl_pts[:, var_idx] = np.power(10.0, -10.0 * (1.0 - addtl_pts[:, var_idx]))
-            # renormalize site fractions
-            cur_idx = 0
-            for ctx in sublattice_dof:
-                end_idx = cur_idx + ctx
-                addtl_pts[:, cur_idx:end_idx] /= \
-                    addtl_pts[:, cur_idx:end_idx].sum(axis=1)[:, None]
-                cur_idx = end_idx
-            # add to points matrix
-            points = np.concatenate((points, addtl_pts), axis=0)
     # Filter out nan's that may have slipped in if we sampled too high a vacancy concentration
     # Issues with this appear to be platform-dependent
     points = points[~np.isnan(points).any(axis=-1)]
@@ -147,7 +119,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     return points
 
 
-def _compute_phase_values(phase_obj, components, variables, statevar_dict,
+def _compute_phase_values(components, statevar_dict,
                           points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
                           largest_energy=None):
     """
@@ -155,12 +127,8 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
 
     Parameters
     ----------
-    phase_obj : Phase
-        Phase object from a thermodynamic database.
     components : list
         Names of components to consider in the calculation.
-    variables : list
-        Names of variables in the phase's internal degrees of freedom.
     statevar_dict : OrderedDict {str -> float or sequence}
         Mapping of state variables to desired values. This will broadcast if necessary.
     points : ndarray
@@ -206,52 +174,46 @@ def _compute_phase_values(phase_obj, components, variables, statevar_dict,
                                  'broadcast=False.')
             statevars_.append(statevar)
         statevars = statevars_
+    pure_elements = [list(x.constituents.keys()) for x in components]
+    pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
+    phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
     phase_record.obj(phase_output, dof)
+    for el_idx in range(len(pure_elements)):
+        phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
+
+    max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):
         phase_output = broadcast_to(phase_output, points.shape[:-1])
+    if isinstance(phase_compositions, (float, int)):
+        phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
     phase_output = np.asarray(phase_output, dtype=np.float)
     phase_output.shape = points.shape[:-1]
+    phase_compositions = np.asarray(phase_compositions, dtype=np.float)
+    phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     if fake_points:
-        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (len(components),)), phase_output), axis=-1)
-        phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (len(components),)),
-                                      np.full(points.shape[:-1], phase_obj.name, dtype='U' + str(len(phase_obj.name)))), axis=-1)
+        phase_output = np.concatenate((broadcast_to(largest_energy, points.shape[:-2] + (max_tieline_vertices,)), phase_output), axis=-1)
+        phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
+                                      np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
-        phase_names = np.full(points.shape[:-1], phase_obj.name, dtype='U'+str(len(phase_obj.name)))
+        phase_names = np.full(points.shape[:-1], phase_record.phase_name, dtype='U'+str(len(phase_record.phase_name)))
 
-    # Map the internal degrees of freedom to global coordinates
-    # Normalize site ratios by the sum of site ratios times a factor
-    # related to the site fraction of vacancies
-    site_ratio_normalization = np.zeros(points.shape[:-1])
-    for idx, sublattice in enumerate(phase_obj.constituents):
-        vacancy_column = np.ones(points.shape[:-1])
-        if 'VA' in set(sublattice):
-            var_idx = variables.index(v.SiteFraction(phase_obj.name, idx, 'VA'))
-            vacancy_column -= points[..., :, var_idx]
-        site_ratio_normalization += phase_obj.sublattices[idx] * vacancy_column
-
-    phase_compositions = np.empty(points.shape[:-1] + (len(components),))
-    for col, comp in enumerate(components):
-        avector = [float(vxx.species == comp) * \
-            phase_obj.sublattices[vxx.sublattice_index] for vxx in variables]
-        phase_compositions[..., :, col] = np.divide(np.dot(points[..., :, :], avector),
-                                               site_ratio_normalization)
     if fake_points:
-        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(components)), points.shape[:-2] + (len(components), len(components))), phase_compositions), axis=-2)
+        phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(pure_elements)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
 
-    coordinate_dict = {'component': components}
+    coordinate_dict = {'component': pure_elements}
     # Resize 'points' so it has the same number of columns as the maximum
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
     if fake_points:
-        expanded_points = np.full(points.shape[:-2] + (len(components)+points.shape[-2], maximum_internal_dof), np.nan)
-        expanded_points[..., len(components):, :points.shape[-1]] = points
+        expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
+        expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
         expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
         expanded_points[..., :points.shape[-1]] = points
@@ -327,8 +289,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
-    model_dict = unpack_kwarg(kwargs.pop('model', FallbackModel), default_arg=FallbackModel)
+    model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
     callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
+    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     parameters = parameters or dict()
@@ -338,11 +301,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     if isinstance(phases, str):
         phases = [phases]
-    if isinstance(comps, str):
+    if isinstance(comps, (str, v.Species)):
         comps = [comps]
+    comps = sorted(unpack_components(dbf, comps))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
@@ -392,37 +356,40 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         # this is a phase model we couldn't construct for whatever reason; skip it
         if isinstance(mod, type):
             continue
-        if (not isinstance(mod, CompiledModel)) or (output != 'GM'):
-            if isinstance(mod, CompiledModel):
-                mod = Model(dbf, comps, phase_name, parameters=parameters)
-            # Construct an ordered list of the variables
-            variables, sublattice_dof = generate_dof(phase_obj, mod.components)
-            # Build the "fast" representation of that model
-            if callable_dict[phase_name] is None:
-                try:
-                    out = getattr(mod, output)
-                except AttributeError:
-                    raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                         .format(output, mod.__class__))
-                # As a last resort, treat undefined symbols as zero
-                # But warn the user when we do this
-                # This is consistent with TC's behavior
-                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-                for undef in undefs:
-                    out = out.xreplace({undef: float(0)})
-                    warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
-                comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                        include_obj=True, include_grad=False,
-                                                        parameters=param_symbols)
-            else:
-                comp_sets[phase_name] = callable_dict[phase_name]
-            phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
-                                        np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                        param_values, comp_sets[phase_name], None, None)
+        # Construct an ordered list of the variables
+        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
+        # Build the "fast" representation of that model
+        if callable_dict[phase_name] is None:
+            try:
+                out = getattr(mod, output)
+            except AttributeError:
+                raise AttributeError('Missing Model attribute {0} specified for {1}'
+                                     .format(output, mod.__class__))
+            # As a last resort, treat undefined symbols as zero
+            # But warn the user when we do this
+            # This is consistent with TC's behavior
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+                warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
+            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
+                                                    include_obj=True, include_grad=False,
+                                                    parameters=param_symbols)
         else:
-            variables = sorted(set(mod.variables) - {v.T, v.P}, key=str)
-            sublattice_dof = mod.sublattice_dof
-            phase_record = PhaseRecord_from_compiledmodel(mod, param_values)
+            comp_sets[phase_name] = callable_dict[phase_name]
+        if mass_dict[phase_name] is None:
+            pure_elements = [spec for spec in nonvacant_components
+                             if (len(spec.constituents.keys()) == 1 and
+                                 list(spec.constituents.keys())[0] == spec.name)
+                             ]
+            # TODO: In principle, we should also check for undefs in mod.moles()
+            mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
+                                                     include_obj=True, include_grad=False,
+                                                     parameters=param_symbols)
+                                     for el in pure_elements]
+        phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
+                                    np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
+                                    param_values, comp_sets[phase_name], None, None, mass_dict[phase_name], None)
         points = points_dict[phase_name]
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
@@ -431,7 +398,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        phase_ds = _compute_phase_values(phase_obj, components, variables, str_statevar_dict,
+        phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)

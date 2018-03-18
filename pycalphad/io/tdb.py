@@ -15,7 +15,9 @@ from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
 from pycalphad import Database
-from pycalphad.io.database import DatabaseExportError, Species
+from pycalphad.io.database import DatabaseExportError
+from pycalphad.io.grammar import float_number, chemical_formula
+from pycalphad.variables import Species
 import pycalphad.variables as v
 from pycalphad.io.tdb_keywords import expand_keyword, TDB_PARAM_TYPES
 from collections import defaultdict, namedtuple
@@ -138,7 +140,7 @@ def _make_piecewise_ast(toks):
             )
         cur_tok = cur_tok + 2
     expr_cond_pairs.append((0, True))
-    return Piecewise(*expr_cond_pairs)
+    return Piecewise(*expr_cond_pairs, evaluate=False)
 
 class TCCommand(CaselessKeyword): #pylint: disable=R0903
     """
@@ -178,11 +180,6 @@ def _tdb_grammar(): #pylint: disable=R0914
     Convenience function for getting the pyparsing grammar of a TDB file.
     """
     int_number = Word(nums).setParseAction(lambda t: [int(t[0])])
-    pos_neg_int_number = Word('+-'+nums).setParseAction(lambda t: [int(t[0])]) # '+3' or '-2' are examples
-    # matching float w/ regex is ugly but is recommended by pyparsing
-    regex_after_decimal = r'([0-9]*\.?[0-9]+([eE][-+]?[0-9]+)?)'
-    float_number = Regex(r'[-+]?([0-9]+\.(?!([0-9]|[eE])))|{0}'.format(regex_after_decimal)) \
-        .setParseAction(lambda t: [float(t[0])])
     # symbol name, e.g., phase name, function name
     symbol_name = Word(alphanums+'_:', min=1)
     ref_phase_name = symbol_name = Word(alphanums+'_-:()/', min=1)
@@ -201,7 +198,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
         Optional(Suppress(OneOrMore(float_number))) + LineEnd()
     # SPECIES
-    cmd_species = TCCommand('SPECIES') + species_name + Group(OneOrMore(Word(alphas, min=1, max=2) + Optional(float_number, default=1.0))) + Optional(Suppress('/') + pos_neg_int_number) + LineEnd()
+    cmd_species = TCCommand('SPECIES') + species_name + chemical_formula + LineEnd()
     # TYPE_DEFINITION
     cmd_typedef = TCCommand('TYPE_DEFINITION') + \
         Suppress(White()) + CharsNotIn(' !', exact=1) + SkipTo(LineEnd())
@@ -294,17 +291,31 @@ def _process_typedef(targetdb, typechar, line):
                 targetdb.tdbtypedefs[typechar]
             )
 
+
+phase_options = {'ionic_liquid_2SL': 'Y',
+                 'symmetry_FCC_4SL': 'F',
+                 'symmetry_BCC_4SL': 'B',
+                 'liquid': 'L',
+                 'gas': 'G',
+                 'aqueous': 'A',
+                 'charged_phase': 'I'}
+inv_phase_options = dict([reversed(i) for i in phase_options.items()])
+
+
 def _process_phase(targetdb, name, typedefs, subls):
     """
     Process the PHASE command.
     """
     splitname = name.split(':')
     phase_name = splitname[0].upper()
-    options = None
+    options = ''
     if len(splitname) > 1:
         options = splitname[1]
     targetdb.add_structure_entry(phase_name, phase_name)
     model_hints = {}
+    for option in inv_phase_options.keys():
+        if option in options:
+            model_hints[inv_phase_options[option]] = True
     for typedef in list(typedefs):
         if typedef in targetdb.tdbtypedefs.keys():
             if 'ihj_magnetic' in targetdb.tdbtypedefs[typedef].keys():
@@ -729,6 +740,10 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
     typedefs = defaultdict(lambda: ["%"])
     for name, phase_obj in sorted(dbf.phases.items()):
         model_hints = phase_obj.model_hints.copy()
+        possible_options = set(phase_options.keys()).intersection(model_hints)
+        # Phase options are handled later
+        for option in possible_options:
+            del model_hints[option]
         if ('ordered_phase' in model_hints.keys()) and (model_hints['ordered_phase'] == name):
             new_char = typedef_chars.pop()
             typedefs[name].append(new_char)
@@ -755,11 +770,19 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
     # Perform a second loop now that all typedefs / model hints are consistent
     for name, phase_obj in sorted(dbf.phases.items()):
-        output += "PHASE {0} {1}  {2} {3} !\n".format(name.upper(), ''.join(typedefs[name]),
+        # model_hints may also contain "phase options", e.g., ionic liquid
+        model_hints = phase_obj.model_hints.copy()
+        name_with_options = str(name.upper())
+        possible_options = set(phase_options.keys()).intersection(model_hints.keys())
+        if len(possible_options) > 0:
+            name_with_options += ':'
+        for option in possible_options:
+            name_with_options += phase_options[option]
+        output += "PHASE {0} {1}  {2} {3} !\n".format(name_with_options, ''.join(typedefs[name]),
                                                       len(phase_obj.sublattices),
                                                       ' '.join([str(i) for i in phase_obj.sublattices]))
-        constituents = ':'.join([','.join(sorted(subl)) for subl in phase_obj.constituents])
-        output += "CONSTITUENT {0} :{1}: !\n".format(name.upper(), constituents)
+        constituents = ':'.join([','.join([spec.name for spec in sorted(subl)]) for subl in phase_obj.constituents])
+        output += "CONSTITUENT {0} :{1}: !\n".format(name_with_options, constituents)
         output += "\n"
 
     # PARAMETERs by subsystem
@@ -771,10 +794,12 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             components = set()
             for subl in param['constituent_array']:
                 components |= set(subl)
-            if param['diffusing_species'] is not None:
+            if param['diffusing_species'] != Species(None):
                 components |= {param['diffusing_species']}
             # Wildcard operator is not a component
             components -= {'*'}
+            desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+            components = set([el.upper() for constituents in desired_active_pure_elements for el in constituents])
             # Remove vacancy if it's not the only component (pure vacancy endmember)
             if len(components) > 1:
                 components -= {'VA'}
@@ -792,7 +817,7 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                                                  param['reference']))
 
     def write_parameter(param_to_write):
-        constituents = ':'.join([','.join(sorted([i.upper() for i in subl]))
+        constituents = ':'.join([','.join(sorted([i.name.upper() for i in subl]))
                          for subl in param_to_write.constituent_array])
         # TODO: Handle references
         paramx = param_to_write.parameter
@@ -803,8 +828,8 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
         exprx = TCPrinter().doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
-        if param_to_write.diffusing_species is not None:
-            ds = "&" + param_to_write.diffusing_species
+        if param_to_write.diffusing_species != Species(None):
+            ds = "&" + param_to_write.diffusing_species.name
         else:
             ds = ""
         return "PARAMETER {}({}{},{};{}) {} !\n".format(param_to_write.parameter_type.upper(),

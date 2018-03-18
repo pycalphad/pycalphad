@@ -7,6 +7,7 @@ from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
 import os
+from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
 try:
     # Python 2
@@ -32,34 +33,6 @@ def _to_tuple(lst):
     "Convert nested list to nested tuple. Source: Martijn Pieters on StackOverflow"
     return tuple(_to_tuple(i) if isinstance(i, list) else i for i in lst)
 
-
-class Species(object):
-    """
-    A species in the database.
-
-    Attributes
-    ----------
-    name : string
-        Name of the specie
-    constituents : dict
-        Dictionary of {element: quantity} where the element is a string and the quantity a float.
-    charge : int
-        Integer charge. Can be positive or negative.
-    """
-    def __init__(self, name, constituents, charge):
-        self.name = name
-        self.constituents = constituents
-        self.charge = charge
-
-    def __eq__(self, other):
-        """Two species are the same if their names and constituents are the same."""
-        if isinstance(other, self.__class__):
-            return (self.name == other.name) and (self.constituents == other.constituents)
-        else:
-            return False
-
-    def __hash__(self):
-        return hash(self.name)
 
 class Phase(object): #pylint: disable=R0903
     """
@@ -427,13 +400,14 @@ class Database(object): #pylint: disable=R0902
         --------
         None yet.
         """
+        species_dict = {s.name: s for s in self.species}
         new_parameter = {
             'phase_name': phase_name,
-            'constituent_array': _to_tuple(constituent_array),  # must be hashable type
+            'constituent_array': tuple(tuple(species_dict.get(s.upper(), Species(s)) for s in xs) for xs in constituent_array),  # must be hashable type
             'parameter_type': param_type,
             'parameter_order': param_order,
             'parameter': param,
-            'diffusing_species': diffusing_species,
+            'diffusing_species': Species(diffusing_species),
             'reference': ref
         }
         param_id = self._parameters.insert(new_parameter)
@@ -477,10 +451,11 @@ class Database(object): #pylint: disable=R0902
         --------
         None yet.
         """
+        species_dict = {s.name: s for s in self.species}
         try:
             # Need to convert constituents from ParseResults
             # Otherwise equality testing will be broken
-            self.phases[phase_name].constituents = tuple(map(frozenset, constituents))
+            self.phases[phase_name].constituents = tuple([frozenset([species_dict[s.upper()] for s in xs]) for xs in constituents])
         except KeyError:
             print("Undefined phase "+phase_name)
             raise

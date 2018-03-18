@@ -9,6 +9,7 @@ from copy import deepcopy
 from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
+from pycalphad.variables import Species
 from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
@@ -391,13 +392,13 @@ SPECIES AL2                         AL2!
     written_tdb_str = test_dbf.to_string(fmt='tdb')
     test_dbf_reread = Database.from_string(written_tdb_str, fmt='tdb')
     assert set(test_dbf_reread.phases.keys()) == {'TEST_PH', 'T2SL'}
-    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {'AL', 'AL2', 'O-2'}
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL',),))) == 1
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL2',),))) == 1
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('O-2',),))) == 1
+    assert test_dbf_reread.phases['TEST_PH'].constituents[0] == {Species('AL'), Species('AL2'), Species('O-2')}
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL'),),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL2'),),))) == 1
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('O-2'),),))) == 1
 
-    assert test_dbf_reread.phases['T2SL'].constituents == ({'AL+3'}, {'O-2'})
-    assert len(test_dbf_reread._parameters.search(where('constituent_array') == (('AL+3',),('O-2',)))) == 1
+    assert test_dbf_reread.phases['T2SL'].constituents == ({Species('AL+3')}, {Species('O-2')})
+    assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL+3'),),(Species('O-2'),)))) == 1
 
 @nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():
@@ -509,3 +510,62 @@ def test_comma_templims():
         """
     dbf = Database.from_string(tdb_string, fmt='tdb')
     assert "AL" in dbf.elements
+
+
+def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
+    """Species names used in parameters do not have to be stoichiometric formulas"""
+
+    # names are taken from the Thermo-Calc documentation set, Database Manager Guide, SPECIES
+
+    tdb_string = """
+     ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT O    1/2_MOLE_O2(G)            0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT SI   HCP_A3                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT NA   HCP_A3                    0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT SB   RHOMBOHEDRAL_A7           0.0000E+00  0.0000E+00  0.0000E+00!
+     ELEMENT H    1/2_MOLE_H2(G)            0.0000E+00  0.0000E+00  0.0000E+00!
+
+     SPECIES SILICA                      SI1O2 !  $ tests for arbitrary names
+     SPECIES NASB_6OH                    NA1SB1O6H6 !  $ tests for underscores
+     SPECIES SB-3                        SB/-3 !  $ tests for charge
+     SPECIES ALCL2OH.3WATER                        AL1O1H1CL2H6O3 !  $ tests for charge
+
+
+     PHASE LIQUID:L %  1  1.0  !
+
+     CONSTITUENT LIQUID:L : O, SI, NA, SB, H, SILICA, NASB_6OH, SB-3, ALCL2OH.3WATER  :  !
+     PARAMETER G(LIQUID,SILICA;0)      298.15  10;      3000 N !
+     PARAMETER G(LIQUID,NASB_6OH;0)    298.15  100;      3000 N !
+     PARAMETER G(LIQUID,ALCL2OH.3WATER;0)    298.15  1000;      3000 N !
+     PARAMETER G(LIQUID,SB-3;0)        298.15  10000;      3000 N !
+
+     """
+
+    dbf = Database.from_string(tdb_string, fmt='tdb')
+
+    species_dict = {sp.name: sp for sp in dbf.species}
+    species_names = list(species_dict.keys())
+
+    # check that the species are found
+    assert 'SILICA' in species_names
+    assert 'NASB_6OH' in species_names
+    assert 'ALCL2OH.3WATER' in species_names
+    assert 'SB-3' in species_names
+
+    import tinydb
+    silica = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SILICA'],),))
+    assert len(silica) == 1
+    assert silica[0]['parameter'].args[0][0] == 10
+
+    nasb_6oh = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['NASB_6OH'],),))
+    assert len(nasb_6oh) == 1
+    assert nasb_6oh[0]['parameter'].args[0][0] == 100
+
+    alcl2oh_3water = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['ALCL2OH.3WATER'],),))
+    assert len(alcl2oh_3water) == 1
+    assert alcl2oh_3water[0]['parameter'].args[0][0] == 1000
+
+    sbminus3 = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SB-3'],),))
+    assert len(sbminus3) == 1
+    assert sbminus3[0]['parameter'].args[0][0] == 10000

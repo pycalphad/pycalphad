@@ -2158,18 +2158,18 @@ $****************************************************************************
  ELEMENT CR   BCC_A2                    5.1996E+01  4.0500E+03  2.3560E+01!
  ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
 
-$ SPECIES AL1CO1                      AL1CO1!
-$ SPECIES AL1NI1                      AL1NI1!
-$ SPECIES AL1NI3                      AL1NI3!
-$ SPECIES AL2                         AL2!
-$ SPECIES AL3CO1                      AL3CO1!
-$ SPECIES AL3NI1                      AL3NI1!
-$ SPECIES AL3NI2                      AL3NI2!
-$ SPECIES AL5CO2                      AL5CO2!
-$ SPECIES AL9CO2                      AL9CO2!
-$ SPECIES CO2                         CO2!
-$ SPECIES CR2                         CR2!
-$ SPECIES NI2                         NI2!
+ SPECIES AL1CO1                      AL1CO1!
+ SPECIES AL1NI1                      AL1NI1!
+ SPECIES AL1NI3                      AL1NI3!
+ SPECIES AL2                         AL2!
+ SPECIES AL3CO1                      AL3CO1!
+ SPECIES AL3NI1                      AL3NI1!
+ SPECIES AL3NI2                      AL3NI2!
+ SPECIES AL5CO2                      AL5CO2!
+ SPECIES AL9CO2                      AL9CO2!
+ SPECIES CO2                         CO2!
+ SPECIES CR2                         CR2!
+ SPECIES NI2                         NI2!
 
 
  FUNCTION UNASS      298.15  0;,,N !
@@ -2181,8 +2181,8 @@ $ SPECIES NI2                         NI2!
 
  DEFAULT_COMMAND REJECT_PHASE GAS !
 
-$ PHASE GAS:G %  1  1.0  !
-$ CONST GAS:G :AL,AL2,CR,CR2,NI,NI2 :  !
+ PHASE GAS:G %  1  1.0  !
+ CONST GAS:G :AL,AL2,CR,CR2,NI,NI2 :  !
 
  PHASE LIQUID:L %  1  1.0  !
  CONST LIQUID:L :AL,CO,CR,NI :  !
@@ -3952,4 +3952,119 @@ PARAMETER L(FCC_L12,AL,NI:AL,NI:AL,NI:AL,NI:VA;0) 1 VV0025#; 10000 N !
 PARAMETER L(LIQUID,AL,NI;0) 1 VV0002#; 10000 N !
 PARAMETER L(LIQUID,AL,NI;1) 1 VV0001#; 10000 N !
 PARAMETER L(LIQUID,AL,NI;2) 1 VV0000#; 10000 N !
+"""
+
+CUO_TDB = """
+$CuO
+$ -----------------------------------------------------------------------------
+$ 2008.12.5
+$ 
+$ TDB file created by K.Hashimoto and T.Abe,
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ 
+$ e-mail: abe.taichi@nims.go.jp
+$
+$ Copyright (C) NIMS 2008
+$ -----------------------------------------------------------------------------
+$
+$ The parameter set is taken from 
+$ Thermodynamic Reassessment of the Cu-O Phase Diagram
+$     L.Schramm, G.Behr, W.Loser, and K.Wetzig, J. Phase Equilibria and Diffusion, 26 (2005), 605-612.
+$
+$ -----------------------------------------------------------------------------
+$ For pure elements, A.Dinsdale, Calphad 15 (1991) 317-425.              
+$
+ ELEMENT /-   ELECTRON_GAS              0.0         0.0         0.0!
+ ELEMENT VA   VACUUM                    0.0         0.0         0.0!
+ ELEMENT CU   FCC_A1                    63.546      5004.064    33.1498! 
+ ELEMENT O    1/2_MOLE_O2(G)            15.999      4341.0      102.52!
+$--------1---------2---------3---------4---------5---------6---------7---------8 
+$ Associates in the liquid, gas-O2, and ionic species 
+  SPECIES O2        O2!
+  SPECIES O-2       O1/-2!
+  SPECIES CU+1      CU1/+1!
+  SPECIES CU+2      CU1/+2!
+  SPECIES CU+3      CU1/+3!
+$ -----------------------------------------------------------------------------
+ FUNCTION GHSERCU    298.15  -7770.458+130.485235*T-24.112392*T*LN(T)
+     -.00265684*T**2+1.29223E-07*T**3+52478*T**(-1);                  1358 Y
+     -13542.026+183.803828*T-31.38*T*LN(T)+3.64167E+29*T**(-9);       3200 N ! $
+
+ FUNCTION GCUBCC     298.15  +4017.00-1.255*T+GHSERCU;                6000 N !
+ FUNCTION GCULIQ     298.15  +12964.735-9.511904*T
+                             -5.849E-21*T**7 +GHSERCU;                1358 Y
+       +13495.481-9.922344*T-3.64167E+29*T**(-9)+GHSERCU;             3200 N ! $
+
+ FUNCTION GHSEROO    298.15 -3480.87-25.503038*T-11.136*T*LN(T)
+      -.005098888*T**2+6.61846E-07*T**3-38365*T**(-1);               1000 Y
+      -6568.763+12.65988*T-16.8138*T*LN(T)-5.95798E-04*T**2
+      +6.781E-09*T**3+262905*T**(-1);                                3300 Y
+      -13986.728+31.259625*T-18.9536*T*LN(T)-4.25243E-04*T**2
+      +1.0721E-08*T**3+4383200*T**(-1);                              6000 N ! $
+
+ FUNCTION GBCCOO     298.15 +26519.13-25.503038*T-11.1355*T*LN(T)
+     -.005098875*T**2+6.61846E-07*T**3-38365*T**(-1);              1000 Y
+     +23431.237+12.659879*T-16.8138*T*LN(T)-5.95797E-04*T**2+6.781E-09*T**3
+     +262905*T**(-1);                                              3300 Y
+     +16013.272+31.259624*T-18.9536*T*LN(T)-4.25243E-04*T**2+1.0721E-08*T**3
+     +4383200*T**(-1);                                             6000 N !  $unary
+
+ FUNCTION GCUCUO     298.15  -114945+307.98*T-67.71*T*LN(T);           6000 N ! $ 05Sch
+ FUNCTION GCUCUO2    298.15  +1.333333*GCUCUO +16236 -20*T;            6000 N ! $ 05Sch
+ FUNCTION GCUCUO3    298.15  +1.666667*GCUCUO -33972.668 +25.917348*T; 6000 N ! $ 05Sch
+
+ FUNCTION UN_ASS 298.15 +0;                                         300. N !
+ FUNCTION ZERO   298.15 +0;                                         300. N !
+
+ TYPE_DEFINITION % SEQ *!
+
+$ -----------------------------------------------------------------------------
+ PHASE GAS:G %  1  1.0  !
+   CONSTITUENT GAS:G :O2 :  !
+   PARAMETER G(GAS,O2;0) 298.15 +2*GHSEROO+R*T*LN(1E-05*P); 6000 N !
+
+
+ PHASE IONIC_LIQ:Y %  2 1   1 !
+   CONSTITUENT IONIC_LIQ:Y : CU+1,CU+2,CU+3 : O-2,VA :  !                          $ 05Sch
+
+   PARAMETER G(IONIC_LIQ,CU+1:VA;0)   298.15  +GCULIQ;                    3200 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+2:VA;0)   298.15  +3*GCULIQ+GCUCUO2-2*GCUCUO; 6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+3:VA;0)   298.15  +6*GCULIQ+0.5*GCUCUO2
+                                              +GCUCUO3-4*GCUCUO;          6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+1:O-2;0)  298.15  +GCUCUO;                    6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+2:O-2;0)  298.15  +GCUCUO2;                   6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+3:O-2;0)  298.15  +GCUCUO3;                   6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+1:O-2,VA;0)   298.15  +13287+11.82*T;         6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+1:O-2,VA;1)   298.15  -17125+11.52*T;         6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+1:O-2,VA;2)   298.15  +21762-10.15*T;         6000 N ! $ 05Sch
+   PARAMETER G(IONIC_LIQ,CU+1,CU+2:O-2;0) 298.15  -106048+70*T;           6000 N ! $ 05Sch
+
+
+$ TYPE_DEFINITION ' GES A_P_D FCC_A1 MAGNETIC  -3.0 0.28 !
+ PHASE FCC_A1  %'  1  1    !
+   CONSTITUENT FCC_A1  : CU,O :  !
+   PARAMETER G(FCC_A1,CU;0)      298.15 +GHSERCU;                   3200 N ! $ 05Sch
+   PARAMETER G(FCC_A1,O;0)       298.15 +1000000 +GHSEROO;          6000 N ! $ 05Sch
+   PARAMETER G(FCC_A1,CU,O;0)    298.15 -1017730 +29.6*T;           6000 N ! $ 05Sch
+
+$ Non-stoichiometric compounds ----------------------------------------------
+
+
+$ Line compounds ----------------------------------------------------------
+
+ PHASE CU2O %  2 2 1 !
+   CONSTITUENT CU2O  : CU : O :  !
+   PARAMETER G(CU2O,CU:O;0) 298.15 -193230+360.057*T-66.26*T*LN(T)
+                                   -0.00796*T**2 +374000*T**(-1);    6000 N ! $ 05Sch
+$ 
+ PHASE CUO  %  2 1 1 !
+   CONSTITUENT CUO  : CU : O :  !
+   PARAMETER G(CUO,CU:O;0) 298.15 -178002.39+275.159239*T-44.965711*T*LN(T)
+                               -0.010809208*T**2 +1369987.3*T**(-1); 6000 N ! $ 05Sch
+$ 
+$
+$CuO-NIMS
+
 """

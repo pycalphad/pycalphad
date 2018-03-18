@@ -21,8 +21,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.zero_seen = 0
         self.dof = np.zeros(len(self.phase_record.variables)+2)
         self.X = np.zeros(self.phase_record.composition_matrices.shape[0]-has_va)
-        self.mass_grad = np.zeros((self.X.shape[0]+has_va, self.phase_record.phase_dof))
-        self.mass_hess = np.zeros((self.X.shape[0]+has_va, self.phase_record.phase_dof, self.phase_record.phase_dof))
         self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
         self.energy = 0
@@ -124,18 +122,11 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         memset(&self.grad[0], 0, self.grad.shape[0] * sizeof(double))
         memset(&self.hess[0,0], 0, self.hess.shape[0] * self.hess.shape[1] * sizeof(double))
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
-        memset(&self.mass_grad[0,0], 0, self.mass_grad.shape[0] * self.mass_grad.shape[1] * sizeof(double))
-        memset(&self.mass_hess[0,0,0], 0, self.mass_hess.shape[0] * self.mass_hess.shape[1] * self.mass_hess.shape[2] * sizeof(double))
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
         if not skip_derivatives:
             self.phase_record.grad(self.grad, self.dof)
-        for comp_idx in range(self.mass_grad.shape[0]):
-            if comp_idx == self.phase_record.vacancy_index:
-                past_va = 1
-                continue
-            self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], site_fracs, comp_idx)
-            self.phase_record.mass_grad(self.mass_grad[comp_idx], site_fracs, comp_idx)
-            self.phase_record.mass_hess(self.mass_hess[comp_idx], site_fracs, comp_idx)
+        for comp_idx in range(self.X.shape[0]):
+            self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], self._dof_2d_view, comp_idx)
         if not skip_derivatives:
             if self._first_iteration == True:
                 self.phase_record.hess(self.hess, self.dof)

@@ -202,18 +202,3 @@ def test_zero_site_fraction():
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
              v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
         5.52773e3, mode='sympy')
-
-def test_invalid_arguments_energy_zero():
-    "Undefined symbols in CompiledModel are set to zero (gh-54)."
-    TEST_TDB = """PHASE M7C3_D101 %  2 7 3 !
-                  CONSTITUENT M7C3_D101 :MN:C: !
-                  PARAMETER G(M7C3_D101,MN:C;0)  1 VV22+VV23*T**2+VV24*T**3
-                  +VV25*T**4+VV26*T**5; 6000 N !"""
-    dbf = Database(TEST_TDB)
-    from sympy import Symbol
-    with warnings.catch_warnings(record=True) as w:
-        res = calculate(dbf, ['MN', 'C'], 'M7C3_D101', T=300, P=101325, parameters={Symbol('VV22'): 100})
-        assert res.GM.values[0, 0, 0] == 10.  # 100 / 10 moles per formula-unit
-        categories = [warning.__dict__['_category_name'] for warning in w]
-        assert 'UserWarning' in categories
-        assert len(w) == 4

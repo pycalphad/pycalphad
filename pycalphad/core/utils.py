@@ -177,14 +177,14 @@ def endmember_matrix(dof, vacancy_indices=None):
     ----------
     dof : list of int
         Number of components in each sublattice.
-    vacancy_indices, list of int, optional
+    vacancy_indices, list of list of int, optional
         If vacancies are present in every sublattice, specify their indices
-        in each sublattice to ensure the "pure vacancy" endmember is excluded.
+        in each sublattice to ensure the "pure vacancy" endmembers are excluded.
 
     Examples
     --------
     Sublattice configuration like: `(AL, NI, VA):(AL, NI, VA):(VA)`
-    >>> endmember_matrix([3,3,1], vacancy_indices=[2, 2, 0])
+    >>> endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])
     """
     total_endmembers = functools.reduce(operator.mul, dof, 1)
     res_matrix = np.empty((total_endmembers, sum(dof)), dtype=np.float)
@@ -195,10 +195,11 @@ def endmember_matrix(dof, vacancy_indices=None):
         row_idx += 1
     if vacancy_indices is not None and len(vacancy_indices) == len(dof):
         dof_adj = np.array([sum(dof[0:i]) for i in range(len(dof))])
-        indices = np.array(vacancy_indices) + dof_adj
-        row_idx_to_delete = np.where(np.all(res_matrix[:, indices] == 1,
-                                            axis=1))
-        res_matrix = np.delete(res_matrix, (row_idx_to_delete), axis=0)
+        for vacancy_em in itertools.product(*vacancy_indices):
+            indices = np.array(vacancy_em) + dof_adj
+            row_idx_to_delete = np.where(np.all(res_matrix[:, indices] == 1,
+                                                axis=1))
+            res_matrix = np.delete(res_matrix, (row_idx_to_delete), axis=0)
     # Adjust site fractions to the numerical limit
     cur_idx = 0
     res_matrix[res_matrix == 0] = MIN_SITE_FRACTION
@@ -259,6 +260,35 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
         new_dict = collections.defaultdict(lambda: kwarg_obj)
 
     return new_dict
+
+
+def unpack_components(dbf, comps):
+    """
+
+    Parameters
+    ----------
+    dbf : Database
+        Thermodynamic database containing elements and species.
+    comps : list
+        Names of components to consider in the calculation.
+
+    Returns
+    -------
+    set
+        Set of Species objects
+    """
+    # Constrain possible components to those within phase's d.o.f
+    # Assume for the moment that comps contains a list of pure element strings
+    # We want to add all the species which can be created by a combination of
+    # the user-specified pure elements
+    species_dict = {s.name: s for s in dbf.species}
+    possible_comps = {v.Species(species_dict.get(x, x)) for x in comps}
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_comps]
+    # Flatten nested list
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    eligible_species_from_database = {x for x in dbf.species if
+                                      set(x.constituents.keys()).issubset(desired_active_pure_elements)}
+    return eligible_species_from_database
 
 
 def filter_phases(dbf, comps):

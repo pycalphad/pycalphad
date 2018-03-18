@@ -4,10 +4,11 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import exp, log, Abs, Add, Mul, Piecewise, Pow, S, sin, Symbol, zoo, oo
+from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.utils import unpack_components
 import numpy as np
 from collections import OrderedDict
 
@@ -55,16 +56,38 @@ class Model(object):
                      ('ord', 'atomic_ordering_energy')]
 
     def __init__(self, dbe, comps, phase_name, parameters=None):
-        # Constrain possible components to those within phase's d.o.f
-        possible_comps = {x.upper() for x in comps}
-        comps = sorted(comps, key=str)
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
-        self.site_ratios = phase.sublattices
-        for sublattice in phase.constituents:
-            self.components |= set(sublattice).intersection(possible_comps)
+        self.site_ratios = list(phase.sublattices)
+        for idx, sublattice in enumerate(phase.constituents):
+            subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+            self.components |= subl_comps
+            # Support for variable site ratios in ionic liquid model
+            if phase.model_hints.get('ionic_liquid_2SL', False):
+                if idx == 0:
+                    subl_idx = 1
+                elif idx == 1:
+                    subl_idx = 0
+                else:
+                    raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
+                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+        if phase.model_hints.get('ionic_liquid_2SL', False):
+            # Special treatment of "neutral" vacancies in 2SL ionic liquid
+            # These are treated as having variable valence
+            for idx, sublattice in enumerate(phase.constituents):
+                subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+                if v.Species('VA') in subl_comps:
+                    if idx == 0:
+                        subl_idx = 1
+                    elif idx == 1:
+                        subl_idx = 0
+                    else:
+                        raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
+                    self.site_ratios[subl_idx] += self.site_ratios[idx] * v.SiteFraction(self.phase_name, idx, v.Species('VA'))
+        self.site_ratios = tuple(self.site_ratios)
+
         # Verify that this phase is still possible to build
         for sublattice in phase.constituents:
             if len(set(sublattice).intersection(self.components)) == 0:
@@ -76,6 +99,7 @@ class Model(object):
                             phase.constituents,
                             self.components))
             self.constituents.append(set(sublattice).intersection(self.components))
+        self.components = sorted(self.components)
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -92,7 +116,7 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        self.site_fractions = sorted(self.ast.atoms(v.SiteFraction), key=str)
+        self.site_fractions = sorted([x for x in self.ast.free_symbols if isinstance(x, v.SiteFraction)], key=str)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -116,7 +140,7 @@ class Model(object):
             # of other symbols
             for iteration in range(_MAX_PARAM_NESTING):
                 obj = obj.xreplace(symbols)
-                undefs = obj.atoms(Symbol) - obj.atoms(v.StateVariable)
+                undefs = [x for x in obj.free_symbols if not isinstance(x, v.StateVariable)]
                 if len(undefs) == 0:
                     break
         except AttributeError:
@@ -138,26 +162,33 @@ class Model(object):
     def __hash__(self):
         return hash(repr(self))
 
-    def standard_mole_fraction(self, species):
-        "Mole fraction which correctly normalizes for vacancies."
+    def moles(self, species):
+        "Number of moles of species or elements."
+        species = v.Species(species)
+        is_pure_element = (len(species.constituents.keys()) == 1 and
+                           list(species.constituents.keys())[0] == species.name)
         result = S.Zero
-        site_ratio_normalization = S.Zero
-        # Calculate normalization factor
-        for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
-            if 'VA' in active:
-                site_ratio_normalization += self.site_ratios[idx] * \
-                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
-            else:
-                site_ratio_normalization += self.site_ratios[idx]
-        site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        # Sum up site fraction contributions from each component sublattice
-        for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(set(self.components))
-            if species in active:
-                result += site_ratios[idx] * \
-                    v.SiteFraction(self.phase_name, idx, species)
-        return result
+        normalization = S.Zero
+        if is_pure_element:
+            element = list(species.constituents.keys())[0]
+            for idx, sublattice in enumerate(self.constituents):
+                active = set(sublattice).intersection(self.components)
+                result += self.site_ratios[idx] * \
+                    sum(int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
+                normalization += self.site_ratios[idx] * \
+                    sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
+        else:
+            for idx, sublattice in enumerate(self.constituents):
+                active = set(sublattice).intersection({species})
+                if len(active) == 0:
+                    continue
+                result += self.site_ratios[idx] * sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+                normalization += self.site_ratios[idx] * \
+                    sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
+                        for spec in active)
+        return result / normalization
 
     @property
     def ast(self):
@@ -167,7 +198,7 @@ class Model(object):
     @property
     def variables(self):
         "Return state variables in the model."
-        return sorted(self.ast.atoms(v.StateVariable), key=str)
+        return sorted([x for x in self.ast.free_symbols if isinstance(x, v.StateVariable)], key=str)
 
     @property
     def degree_of_ordering(self):
@@ -176,20 +207,18 @@ class Model(object):
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
             active = set(sublattice).intersection(self.components)
-            if 'VA' in active:
-                site_ratio_normalization += self.site_ratios[idx] * \
-                    (1.0 - v.SiteFraction(self.phase_name, idx, 'VA'))
-            else:
-                site_ratio_normalization += self.site_ratios[idx]
+            subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+            site_ratio_normalization += self.site_ratios[idx] * subl_content
+
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        for comp in sorted([c for c in self.components if c != 'VA']):
+        for comp in self.components:
             comp_result = S.Zero
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection(set(self.components))
                 if comp in active:
-                    comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.standard_mole_fraction(comp)) / self.standard_mole_fraction(comp)
+                    comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.moles(comp)) / self.moles(comp)
             result += comp_result
-        return result / len([c for c in self.components if c != 'VA'])
+        return result / sum(int(spec.number_of_atoms > 0) for spec in self.components)
     DOO = degree_of_ordering
 
     # Can be defined as a list of pre-computed first derivatives
@@ -236,11 +265,13 @@ class Model(object):
         Check if constituent array only has one species in its array
         This species must also be an active species
         """
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
             if (sublattice[0] not in self.components) and \
-                (sublattice[0] != '*'):
+                (sublattice[0] != v.Species('*')):
                 return False
         return True
 
@@ -248,9 +279,11 @@ class Model(object):
         """
         Check that the current array contains only active species.
         """
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == '*'
+                or sublattice[0] == v.Species('*')
             if not valid:
                 return False
         return True
@@ -261,10 +294,12 @@ class Model(object):
         its array for at least one sublattice.
         """
         result = False
+        if len(constituent_array) != len(self.constituents):
+            return False
         for sublattice in constituent_array:
             # check if all elements involved are also active
             valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == '*'
+                or sublattice[0] == v.Species('*')
             if len(sublattice) > 1 and valid:
                 result = True
             if not valid:
@@ -272,20 +307,18 @@ class Model(object):
                 break
         return result
 
-    def _site_ratio_normalization(self, phase):
+    @property
+    def _site_ratio_normalization(self):
         """
         Calculates the normalization factor based on the number of sites
         in each sublattice.
         """
         site_ratio_normalization = S.Zero
-        # Normalize by the sum of site ratios times a factor
-        # related to the site fraction of vacancies
-        for idx, sublattice in enumerate(phase.constituents):
-            if ('VA' in set(sublattice)) and ('VA' in self.components):
-                site_ratio_normalization += phase.sublattices[idx] * \
-                    (1 - v.SiteFraction(phase.name, idx, 'VA'))
-            else:
-                site_ratio_normalization += phase.sublattices[idx]
+        # Calculate normalization factor
+        for idx, sublattice in enumerate(self.constituents):
+            active = set(sublattice).intersection(self.components)
+            subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+            site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
 
     @staticmethod
@@ -331,7 +364,7 @@ class Model(object):
             for subl_index, comps in enumerate(param['constituent_array']):
                 comp_symbols = None
                 # convert strings to symbols
-                if comps[0] == '*':
+                if comps[0] == v.Species('*'):
                     # Handle wildcards in constituent array
                     comp_symbols = \
                         [
@@ -396,6 +429,26 @@ class Model(object):
                     mixing_term *= comp_symbols[param['parameter_order']].subs(
                         self._Muggianu_correction_dict(comp_symbols),
                         simultaneous=True)
+            if phase.model_hints.get('ionic_liquid_2SL', False):
+                # Special normalization rules for parameters apply under this model
+                # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
+                # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
+                if not any([m.species.charge < 0 for m in mixing_term.free_symbols]):
+                    pair_rule = {}
+                    # Cation site fractions must always appear with vacancy site fractions
+                    va_subls = [(v.Species('VA') in phase.constituents[idx]) for idx in range(len(phase.constituents))]
+                    va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
+                    va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
+                    if va_present and (max(len(c) for c in param['constituent_array']) == 1):
+                        # No need to apply pair rule for VA-containing endmember
+                        pass
+                    elif va_subl_idx > -1:
+                        for sym in mixing_term.free_symbols:
+                            if sym.species.charge > 0:
+                                pair_rule[sym] = sym * v.SiteFraction(sym.phase_name, va_subl_idx, v.Species('VA'))
+                    mixing_term = mixing_term.xreplace(pair_rule)
+                    # This parameter is normalized differently due to the variable charge valence of vacancies
+                    mixing_term *= self.site_ratios[va_subl_idx]
             rk_terms.append(mixing_term * param['parameter'])
         return Add(*rk_terms)
 
@@ -414,7 +467,7 @@ class Model(object):
         param_search = dbe.search
         pure_energy_term = self.redlich_kister_sum(phase, param_search,
                                                    pure_param_query)
-        return pure_energy_term / self._site_ratio_normalization(phase)
+        return pure_energy_term / self._site_ratio_normalization
 
     def ideal_mixing_energy(self, dbe):
         #pylint: disable=W0613
@@ -423,10 +476,11 @@ class Model(object):
         """
         phase = dbe.phases[self.phase_name]
         # Normalize site ratios
-        site_ratio_normalization = self._site_ratio_normalization(phase)
-        site_ratios = phase.sublattices
+        site_ratio_normalization = self._site_ratio_normalization
+        site_ratios = self.site_ratios
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
+        sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
             ratio = site_ratios[subl_index]
@@ -435,7 +489,9 @@ class Model(object):
                     v.SiteFraction(phase.name, subl_index, comp)
                 # We lose some precision here, but this makes the limit behave nicely
                 # We're okay until fractions of about 1e-12 (platform-dependent)
-                mixing_term = Piecewise((sitefrac*log(sitefrac), sitefrac > MIN_SITE_FRACTION/10.), (0, True))
+                mixing_term = Piecewise((sitefrac*log(sitefrac),
+                                         StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
+                                        evaluate=False)
                 ideal_mixing_term += (mixing_term*ratio)
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
@@ -457,7 +513,7 @@ class Model(object):
                 (where('constituent_array').test(self._interaction_test))
             )
         excess_term = self.redlich_kister_sum(phase, param_search, param_query)
-        return excess_term / self._site_ratio_normalization(phase)
+        return excess_term / self._site_ratio_normalization
 
     def magnetic_energy(self, dbe):
         #pylint: disable=C0103, R0914
@@ -474,7 +530,7 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -497,14 +553,16 @@ class Model(object):
             self.redlich_kister_sum(phase, param_search, bm_param_query)
         beta = mean_magnetic_moment / Piecewise(
             (afm_factor, mean_magnetic_moment <= 0),
-            (1., True)
+            (1., True),
+            evaluate=False
             )
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)
         tc = curie_temp / Piecewise(
             (afm_factor, curie_temp <= 0),
-            (1., True)
+            (1., True),
+            evaluate=False
             )
         self.TC = self.curie_temperature = tc
         #print(tc)
@@ -524,7 +582,7 @@ class Model(object):
         expr_cond_pairs = [(sub_tau, tau < 1),
                            (super_tau, True)
                            ]
-        g_term = Piecewise(*expr_cond_pairs)
+        g_term = Piecewise(*expr_cond_pairs, evaluate=False)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
@@ -542,7 +600,7 @@ class Model(object):
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
             return S.Zero
 
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         # define basic variables
         afm_factor = phase.model_hints['ihj_magnetic_afm_factor']
 
@@ -603,7 +661,7 @@ class Model(object):
                                 (super_tau_neel, tau_neel > 1),
                                 (sub_tau_neel, True)
                                ]
-        g_term = Piecewise(*expr_cond_pairs_curie) + Piecewise(*expr_cond_pairs_neel)
+        g_term = Piecewise(*expr_cond_pairs_curie, evaluate=False) + Piecewise(*expr_cond_pairs_neel, evaluate=False)
 
         return v.R * v.T * log(beta+1) * \
             g_term / site_ratio_normalization
@@ -614,7 +672,7 @@ class Model(object):
         """
         phase = dbe.phases[self.phase_name]
         param_search = dbe.search
-        site_ratio_normalization = self._site_ratio_normalization(phase)
+        site_ratio_normalization = self._site_ratio_normalization
         gd_param_query = (
             (where('phase_name') == phase.name) & \
             (where('parameter_type') == 'GD') & \
@@ -645,7 +703,7 @@ class Model(object):
             result = 1.5*v.R*theta + 3*v.R*v.T*log(1-exp(-theta/v.T))
         else:
             result = 0
-        return result / self._site_ratio_normalization(phase)
+        return result / self._site_ratio_normalization
 
     @staticmethod
     def mole_fraction(species_name, phase_name, constituent_array,
@@ -668,14 +726,14 @@ class Model(object):
         numerator = S.Zero
         for idx, sublattice in enumerate(constituent_array):
             # sublattices with only vacancies don't count
-            if len(sublattice) == 1 and sublattice[0] == 'VA':
+            if sum(spec.number_of_atoms for spec in list(sublattice)) == 0:
                 continue
             if species_name in list(sublattice):
                 site_ratio_normalization += site_ratios[idx]
                 numerator += site_ratios[idx] * \
                     v.SiteFraction(phase_name, idx, species_name)
 
-        if site_ratio_normalization == 0 and species_name == 'VA':
+        if site_ratio_normalization == 0 and species_name.name == 'VA':
             return 1
 
         if site_ratio_normalization == 0:
@@ -701,14 +759,15 @@ class Model(object):
 
         # Fix variable names
         variable_rename_dict = {}
-        for atom in disordered_model.energy.atoms(v.SiteFraction):
+        disordered_sitefracs = [x for x in disordered_model.energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for atom in disordered_sitefracs:
             # Replace disordered phase site fractions with mole fractions of
             # ordered phase site fractions.
             # Special case: Pure vacancy sublattices
             all_species_in_sublattice = \
                 dbe.phases[disordered_phase_name].constituents[
                     atom.sublattice_index]
-            if atom.species == 'VA' and len(all_species_in_sublattice) == 1:
+            if atom.species.name == 'VA' and len(all_species_in_sublattice) == 1:
                 # Assume: Pure vacancy sublattices are always last
                 vacancy_subl_index = \
                     len(dbe.phases[ordered_phase_name].constituents)-1
@@ -739,11 +798,12 @@ class Model(object):
 
         # Construct a dictionary that replaces every site fraction with its
         # corresponding mole fraction in the disordered state
-        for sitefrac in ordered_energy.atoms(v.SiteFraction):
+        ordered_sitefracs = [x for x in ordered_energy.free_symbols if isinstance(x, v.SiteFraction)]
+        for sitefrac in ordered_sitefracs:
             all_species_in_sublattice = \
                 dbe.phases[ordered_phase_name].constituents[
                     sitefrac.sublattice_index]
-            if sitefrac.species == 'VA' and len(all_species_in_sublattice) == 1:
+            if sitefrac.species.name == 'VA' and len(all_species_in_sublattice) == 1:
                 # pure-vacancy sublattices should not be replaced
                 # this handles cases like AL,NI,VA:AL,NI,VA:VA and
                 # ensures the VA's don't get mixed up
@@ -753,8 +813,8 @@ class Model(object):
                                    ordered_phase_name, constituents,
                                    dbe.phases[ordered_phase_name].sublattices)
 
-        return ordered_energy - ordered_energy.subs(molefraction_dict,
-                                                    simultaneous=True)
+        return ordered_energy - ordered_energy.xreplace(molefraction_dict)
+
 
 class TestModel(Model):
     """
@@ -785,7 +845,7 @@ class TestModel(Model):
     None yet.
     """
     def __init__(self, dbf, comps, phase, solution=None, kmax=None):
-        self.components = {x.upper() for x in comps}
+        self.components = set(comps)
         if 'VA' in self.components:
             raise ValueError('Vacancies are unsupported in TestModel')
         self.models = dict()

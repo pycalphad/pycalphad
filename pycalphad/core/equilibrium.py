@@ -6,13 +6,11 @@ from __future__ import print_function
 import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
-from pycalphad.core.utils import unpack_condition, unpack_phases, filter_phases
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.sympydiff_utils import build_functions as compiled_build_functions
-from pycalphad.core.phase_rec import PhaseRecord_from_cython, PhaseRecord_from_compiledmodel
-from pycalphad.core.compiled_model import CompiledModel
-from pycalphad.core.calculate import FallbackModel
+from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
@@ -117,8 +115,11 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
     coord_dict = str_conds.copy()
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
-    coord_dict['vertex'] = np.arange(len(components))
+    components = [x for x in sorted(comps)]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
+    coord_dict['vertex'] = np.arange(len(pure_elements))
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     prop_shape = grid_shape
@@ -128,7 +129,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
-        dof = sum([len([c for c in x if str(c) in comps]) for x in dbf.phases[phase].constituents])
+        dof = sum([len(x) for x in dbf.phases[phase].constituents])
         current_phase_indices = (data.Phase.values == phase)
         if ~np.any(current_phase_indices):
             continue
@@ -198,6 +199,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     from pycalphad import __version__ as pycalphad_version
+    comps = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
     list_of_possible_phases = filter_phases(dbf, comps)
@@ -206,15 +208,19 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
-    comps = sorted(comps)
-    if len(set(comps) - set(dbf.elements)) > 0:
-        raise EquilibriumError('Components not found in database: {}'.format(','.join(set(comps) - set(dbf.elements))))
+    if isinstance(comps, (str, v.Species)):
+        comps = [comps]
+    if len(set(comps) - set(dbf.species)) > 0:
+        raise EquilibriumError('Components not found in database: {}'
+                               .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
     indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
-    model = model if model is not None else FallbackModel
+    model = model if model is not None else Model
     phase_records = dict()
     diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
+    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
+    mass_grad_dict = unpack_kwarg(kwargs.pop('massgradfuncs', None), default_arg=None)
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
     parameters = parameters if parameters is not None else dict()
@@ -231,20 +237,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
-    build_functions = compiled_build_functions
-    backend_mode = 'compiled'
-    if kwargs.get('_backend', None):
-        backend_mode = kwargs['_backend']
-    if verbose:
-        backend_dict = {'compiled': 'Compiled (autowrap)', 'interpreted': 'Interpreted (autograd)'}
-        print('Calculation Backend: {}'.format(backend_dict.get(backend_mode, 'Custom')))
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
                       for key, val in str_conds.items() if key in indep_vars)
-    components = [x for x in sorted(comps) if not x.startswith('VA')]
+    components = [x for x in sorted(comps)]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(model, default_arg=FallbackModel)
+    models = unpack_kwarg(model, default_arg=Model)
     if verbose:
-        print('Components:', ' '.join(comps))
+        print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
     max_phase_name_len = max(len(name) for name in active_phases)
     # Need to allow for '_FAKE_' psuedo-phase
@@ -253,34 +255,41 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name, parameters=parameters)
-        if isinstance(mod, CompiledModel):
-            phase_records[name.upper()] = PhaseRecord_from_compiledmodel(mod, param_values)
-            maximum_internal_dof = max(maximum_internal_dof, sum(mod.sublattice_dof))
-        else:
-            site_fracs = mod.site_fractions
-            variables = sorted(site_fracs, key=str)
-            maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
-            out = models[name].energy
-            if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)) \
-                    or (not hess_callable_dict.get(name, False)):
-                # Only force undefineds to zero if we're not overriding them
-                undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
-                for undef in undefs:
-                    out = out.xreplace({undef: float(0)})
-                cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
-                                         parameters=param_symbols)
-                hf = None
-                if callable_dict.get(name, None) is None:
-                    callable_dict[name] = cf
-                if grad_callable_dict.get(name, None) is None:
-                    grad_callable_dict[name] = gf
-                if hess_callable_dict.get(name, None) is None:
-                    hess_callable_dict[name] = hf
+        site_fracs = mod.site_fractions
+        variables = sorted(site_fracs, key=str)
+        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
+        out = models[name].energy
+        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)):
+            # Only force undefineds to zero if we're not overriding them
+            undefs = [x for x in out.free_symbols if (not isinstance(x, v.StateVariable)) and not (x in param_symbols)]
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+            cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
+                                     parameters=param_symbols)
+            hf = None
+            if callable_dict.get(name, None) is None:
+                callable_dict[name] = cf
+            if grad_callable_dict.get(name, None) is None:
+                grad_callable_dict[name] = gf
+            if hess_callable_dict.get(name, None) is None:
+                hess_callable_dict[name] = hf
 
-            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                                np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                                param_values, callable_dict[name],
-                                                                grad_callable_dict[name], hess_callable_dict[name])
+        if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
+            # TODO: In principle, we should also check for undefs in mod.moles()
+            tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+                                               include_obj=True, include_grad=True,
+                                               parameters=param_symbols)
+                               for el in pure_elements])
+            if mass_dict[name] is None:
+                mass_dict[name] = tup1
+            if mass_grad_dict[name] is None:
+                mass_grad_dict[name] = tup2
+
+        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
+                                                              np.array(dbf.phases[name].sublattices, dtype=np.float),
+                                                              param_values, callable_dict[name],
+                                                              grad_callable_dict[name], hess_callable_dict[name],
+                                                              mass_dict[name], mass_grad_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:
@@ -292,14 +301,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(components))
+    coord_dict['vertex'] = np.arange(len(pure_elements))
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
-    coord_dict['component'] = components
+    coord_dict['component'] = pure_elements
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, callables=callable_dict, fake_points=True,
-                                          parameters=parameters, **grid_opts)
+                                          model=models, callables=callable_dict, massfuncs=mass_dict,
+                                          fake_points=True, parameters=parameters, **grid_opts)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
                                                       np.empty(grid_shape)),
@@ -361,9 +370,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        for phase_name, mod in models.items():
-            if isinstance(mod, CompiledModel) or isinstance(mod, FallbackModel):
-                models[phase_name] = Model(dbf, comps, phase_name, parameters=parameters)
         eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
                                                   data=properties, per_phase=per_phase, model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
