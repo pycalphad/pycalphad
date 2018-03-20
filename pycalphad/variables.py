@@ -3,6 +3,13 @@
 Classes and constants for representing thermodynamic variables.
 """
 
+import sys
+# Python 2 vs 3 string types in isinstance
+if sys.version_info[0] >= 3:
+    string_type = str
+else:
+    string_type = basestring
+
 import itertools
 from sympy import Float, Symbol
 from pyparsing import ParseException
@@ -48,7 +55,7 @@ class Species(object):
             new_self.charge = 0
             return new_self
 
-        if isinstance(arg, str):
+        if isinstance(arg, string_type):
             try:
                 parse_list = chemical_formula.parseString(arg.upper())
             except ParseException:
