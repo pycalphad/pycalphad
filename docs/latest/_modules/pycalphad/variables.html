@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.variables &mdash; pycalphad 0.7 documentation</title>
+  <title>pycalphad.variables &mdash; pycalphad 0.7+1.g636a817 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="pycalphad 0.7 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.7+1.g636a817 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.7
+                0.7+1.g636a817
               </div>
             
           
@@ -167,6 +167,13 @@
 <span class="sd">Classes and constants for representing thermodynamic variables.</span>
 <span class="sd">&quot;&quot;&quot;</span>
 
+<span class="kn">import</span> <span class="nn">sys</span>
+<span class="c1"># Python 2 vs 3 string types in isinstance</span>
+<span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">3</span><span class="p">:</span>
+    <span class="n">string_type</span> <span class="o">=</span> <span class="nb">str</span>
+<span class="k">else</span><span class="p">:</span>
+    <span class="n">string_type</span> <span class="o">=</span> <span class="n">basestring</span>
+
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span>
 <span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">ParseException</span>
@@ -212,7 +219,7 @@
             <span class="n">new_self</span><span class="o">.</span><span class="n">charge</span> <span class="o">=</span> <span class="mi">0</span>
             <span class="k">return</span> <span class="n">new_self</span>
 
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">arg</span><span class="p">,</span> <span class="n">string_type</span><span class="p">):</span>
             <span class="k">try</span><span class="p">:</span>
                 <span class="n">parse_list</span> <span class="o">=</span> <span class="n">chemical_formula</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">arg</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
             <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
@@ -445,7 +452,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.7',
+            VERSION:'0.7+1.g636a817',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,
