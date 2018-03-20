@@ -28,14 +28,6 @@ pycalphad\.core\.cartesian module
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.compiled\_model module
----------------------------------------
-
-.. automodule:: pycalphad.core.compiled_model
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad\.core\.composition\_set module
 ----------------------------------------
 
@@ -112,14 +104,6 @@ pycalphad\.core\.problem module
 -------------------------------
 
 .. automodule:: pycalphad.core.problem
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycalphad\.core\.rksum module
------------------------------
-
-.. automodule:: pycalphad.core.rksum
     :members:
     :undoc-members:
     :show-inheritance:
