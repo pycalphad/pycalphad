@@ -1,6 +1,17 @@
 What's New
 ==========
 
+0.7 (2018-03-19)
+----------------
+
+This is a major release with new features and performance improvements.
+
+* ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( :issue:`161` ).
+* The compiled backed of common models has been removed. Users should expect that the first set of calculations with new phases in a Python script or session be slower as the models for each phase are compiled in real time.
+* ENH: Performance of JIT compilation of phases has been improved.
+* ENH: equilibrium: Performance optimizations to reduce the overhead of calling equilibrium, particularly in tight loops.
+
+
 0.6.1 (2017-12-01)
 ------------------
 
