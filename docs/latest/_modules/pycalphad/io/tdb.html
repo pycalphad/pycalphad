@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.7+1.g636a817 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.7+2.gf632a77 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.7+1.g636a817 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.7+2.gf632a77 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.7+1.g636a817
+                0.7+2.gf632a77
               </div>
             
           
@@ -336,8 +336,8 @@
             <span class="c1"># in principle, res[0] == self.match</span>
             <span class="k">return</span> <span class="n">loc</span><span class="p">,</span> <span class="n">res</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-            <span class="k">pass</span></div></div>
-        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">errmsg</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span>
+            <span class="k">pass</span>
+        <span class="k">raise</span> <span class="n">ParseException</span><span class="p">(</span><span class="n">instring</span><span class="p">,</span> <span class="n">loc</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">errmsg</span><span class="p">,</span> <span class="bp">self</span><span class="p">)</span></div></div>
 
 <span class="k">def</span> <span class="nf">_tdb_grammar</span><span class="p">():</span> <span class="c1">#pylint: disable=R0914</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -584,8 +584,8 @@
             <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">rhs</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
-    <span class="k">else</span><span class="p">:</span></div>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported Relational: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unsupported Relational: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">relational</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">))</span></div>
 
 <div class="viewcode-block" id="TCPrinter"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter">[docs]</a><span class="k">class</span> <span class="nc">TCPrinter</span><span class="p">(</span><span class="n">StrPrinter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -704,8 +704,8 @@
                              <span class="n">expr</span><span class="o">.</span><span class="n">func</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
 
 <div class="viewcode-block" id="TCPrinter.blacklisted"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter.blacklisted">[docs]</a>    <span class="k">def</span> <span class="nf">blacklisted</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
-        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unable to represent expression: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span></div>
-                        <span class="n">expr</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Unable to represent expression: </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span>
+                        <span class="n">expr</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span></div>
 
 
     <span class="c1"># blacklist all Matrix printing</span>
@@ -734,8 +734,8 @@
     <span class="n">_print_tuple</span> <span class="o">=</span> \
     <span class="n">_print_Tuple</span> <span class="o">=</span> \
     <span class="n">_print_dict</span> <span class="o">=</span> \
-    <span class="n">_print_Dict</span> <span class="o">=</span> \</div>
-    <span class="n">blacklisted</span>
+    <span class="n">_print_Dict</span> <span class="o">=</span> \
+    <span class="n">blacklisted</span></div>
 
 
 <div class="viewcode-block" id="reflow_text"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.reflow_text">[docs]</a><span class="k">def</span> <span class="nf">reflow_text</span><span class="p">(</span><span class="n">text</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="mi">80</span><span class="p">):</span>
@@ -771,8 +771,8 @@
                     <span class="c1"># Always put some leading spaces at the start of a new line</span>
                     <span class="c1"># Otherwise TC may misunderstand the expression</span>
                     <span class="n">line</span> <span class="o">=</span> <span class="s2">&quot;  &quot;</span> <span class="o">+</span> <span class="n">line</span><span class="p">[</span><span class="n">linebreak_idx</span><span class="p">:]</span>
-            <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_lines</span><span class="p">)</span>
+            <span class="n">output_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">line</span><span class="p">)</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="se">\n</span><span class="s2">&quot;</span><span class="o">.</span><span class="n">join</span><span class="p">(</span><span class="n">output_lines</span><span class="p">)</span></div>
 
 
 <span class="k">def</span> <span class="nf">_apply_new_symbol_names</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">symbol_name_map</span><span class="p">):</span>
@@ -1035,8 +1035,8 @@
                     <span class="n">output</span> <span class="o">+=</span> <span class="n">write_parameter</span><span class="p">(</span><span class="n">parameter</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown groupby attribute </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">groupby</span><span class="p">))</span>
-    <span class="c1"># Reflow text to respect character limit per line</span></div>
-    <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">reflow_text</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">maxlen</span><span class="p">))</span>
+    <span class="c1"># Reflow text to respect character limit per line</span>
+    <span class="n">fd</span><span class="o">.</span><span class="n">write</span><span class="p">(</span><span class="n">reflow_text</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">linewidth</span><span class="o">=</span><span class="n">maxlen</span><span class="p">))</span></div>
 
 
 <div class="viewcode-block" id="read_tdb"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.read_tdb">[docs]</a><span class="k">def</span> <span class="nf">read_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">):</span>
@@ -1079,8 +1079,8 @@
         <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
-            <span class="k">raise</span></div>
-    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span>
+            <span class="k">raise</span>
+    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span></div>
 
 
 <span class="n">Database</span><span class="o">.</span><span class="n">register_format</span><span class="p">(</span><span class="s2">&quot;tdb&quot;</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">read_tdb</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="n">write_tdb</span><span class="p">)</span>
@@ -1120,7 +1120,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+1.g636a817',
+            VERSION:'0.7+2.gf632a77',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

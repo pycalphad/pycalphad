@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.7+1.g636a817 documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.7+2.gf632a77 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.7+1.g636a817 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.7+2.gf632a77 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.7+1.g636a817
+                0.7+2.gf632a77
               </div>
             
           
@@ -297,11 +297,11 @@
         <span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
             <span class="c1"># Python 2.7</span>
             <span class="kn">import</span> <span class="nn">imp</span>
-            <span class="n">foo</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">npath</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">foo</span>
+            <span class="n">foo</span> <span class="o">=</span> <span class="n">imp</span><span class="o">.</span><span class="n">load_dynamic</span><span class="p">(</span><span class="n">modname</span><span class="p">,</span> <span class="n">npath</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">foo</span></div>
 
-<div class="viewcode-block" id="CodeWrapError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CodeWrapError">[docs]</a><span class="k">class</span> <span class="nc">CodeWrapError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span></div>
-    <span class="k">pass</span>
+<div class="viewcode-block" id="CodeWrapError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CodeWrapError">[docs]</a><span class="k">class</span> <span class="nc">CodeWrapError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="C89CodePrinter"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.C89CodePrinter">[docs]</a><span class="k">class</span> <span class="nc">C89CodePrinter</span><span class="p">(</span><span class="n">CCodePrinter</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -324,8 +324,8 @@
             <span class="n">close_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">open_lines</span><span class="p">,</span> <span class="n">close_lines</span>
 
-    <span class="n">_print_ComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_Infinity</span></div>
-    <span class="n">_print_NegativeComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_NegativeInfinity</span>
+    <span class="n">_print_ComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_Infinity</span>
+    <span class="n">_print_NegativeComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_NegativeInfinity</span></div>
 
 
 <div class="viewcode-block" id="CustomCCodeGen"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.CustomCCodeGen">[docs]</a><span class="k">class</span> <span class="nc">CustomCCodeGen</span><span class="p">(</span><span class="n">CCodeGen</span><span class="p">):</span>
@@ -351,8 +351,8 @@
                 <span class="n">type_args</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="s2">&quot;*</span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">name</span><span class="p">))</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="n">type_args</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">arg</span><span class="o">.</span><span class="n">get_datatype</span><span class="p">(</span><span class="s1">&#39;C&#39;</span><span class="p">),</span> <span class="n">name</span><span class="p">))</span>
-        <span class="n">arguments</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_args</span><span class="p">])</span></div>
-        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ctype</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span>
+        <span class="n">arguments</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="n">t</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">type_args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%s</span><span class="s2"> </span><span class="si">%s</span><span class="s2">(</span><span class="si">%s</span><span class="s2">)&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">ctype</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">arguments</span><span class="p">)</span></div>
 
     <span class="k">def</span> <span class="nf">_declare_locals</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">routine</span><span class="p">):</span>
         <span class="c1"># loop variables are declared at the top to enable C89 support</span>
@@ -447,8 +447,8 @@
         <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
         <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;#endif&quot;</span><span class="p">,</span> <span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span></div>
-            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">empty</span><span class="p">:</span>
+            <span class="nb">print</span><span class="p">(</span><span class="n">file</span><span class="o">=</span><span class="n">f</span><span class="p">)</span></div>
     <span class="n">dump_h</span><span class="o">.</span><span class="n">extension</span> <span class="o">=</span> <span class="n">CCodeGen</span><span class="o">.</span><span class="n">interface_extension</span>
 
     <span class="n">dump_fns</span> <span class="o">=</span> <span class="p">[</span><span class="n">CCodeGen</span><span class="o">.</span><span class="n">dump_c</span><span class="p">,</span> <span class="n">dump_h</span><span class="p">]</span>
@@ -585,8 +585,8 @@
                 <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
                     <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">InputArgument</span><span class="p">(</span><span class="n">symbol</span><span class="p">))</span>
             <span class="n">arg_list</span> <span class="o">=</span> <span class="n">new_args</span>
-</div></div>
-        <span class="k">return</span> <span class="n">Routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">return_val</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">Routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">arg_list</span><span class="p">,</span> <span class="n">return_val</span><span class="p">,</span> <span class="n">local_vars</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="ThreadSafeCythonCodeWrapper"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.ThreadSafeCythonCodeWrapper">[docs]</a><span class="k">class</span> <span class="nc">ThreadSafeCythonCodeWrapper</span><span class="p">(</span><span class="n">CythonCodeWrapper</span><span class="p">):</span>
@@ -708,8 +708,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_prepare_files</span><span class="p">(</span><span class="n">routine</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">_process_files</span><span class="p">(</span><span class="n">routine</span><span class="p">)</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">import_extension</span><span class="p">(</span><span class="n">workdir</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">)</span>
-</div></div>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;get_pointer&#39;</span><span class="p">)(),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">),</span> <span class="bp">self</span><span class="o">.</span><span class="n">_get_wrapped_function</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="s1">&#39;get_pointer&#39;</span><span class="p">)(),</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">module_name</span><span class="p">),</span> <span class="nb">str</span><span class="p">(</span><span class="n">routine</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div></div>
 
 
 <span class="k">def</span> <span class="nf">_get_code_wrapper_class</span><span class="p">(</span><span class="n">backend</span><span class="p">):</span>
@@ -731,8 +731,8 @@
 <div class="viewcode-block" id="get_code_generator"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.get_code_generator">[docs]</a><span class="k">def</span> <span class="nf">get_code_generator</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="n">project</span><span class="p">):</span>
     <span class="n">CodeGenClass</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;C&quot;</span><span class="p">:</span> <span class="n">CustomCCodeGen</span><span class="p">}</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">language</span><span class="o">.</span><span class="n">upper</span><span class="p">())</span>
     <span class="k">if</span> <span class="n">CodeGenClass</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Language &#39;</span><span class="si">%s</span><span class="s2">&#39; is not supported.&quot;</span> <span class="o">%</span> <span class="n">language</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">CodeGenClass</span><span class="p">(</span><span class="n">project</span><span class="p">)</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Language &#39;</span><span class="si">%s</span><span class="s2">&#39; is not supported.&quot;</span> <span class="o">%</span> <span class="n">language</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">CodeGenClass</span><span class="p">(</span><span class="n">project</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="make_routine"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.make_routine">[docs]</a><span class="k">def</span> <span class="nf">make_routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">argument_sequence</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
@@ -820,8 +820,8 @@
 
     <span class="c1"># initialize a new code generator</span>
     <span class="n">code_gen</span> <span class="o">=</span> <span class="n">get_code_generator</span><span class="p">(</span><span class="n">language</span><span class="p">,</span> <span class="s2">&quot;nothingElseMatters&quot;</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">code_gen</span><span class="o">.</span><span class="n">routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">argument_sequence</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">code_gen</span><span class="o">.</span><span class="n">routine</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">argument_sequence</span><span class="p">,</span> <span class="n">global_vars</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="autowrap"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.autowrap">[docs]</a><span class="k">def</span> <span class="nf">autowrap</span><span class="p">(</span>
@@ -900,8 +900,8 @@
                 <span class="k">raise</span>
             <span class="n">new_args</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">missing</span><span class="o">.</span><span class="n">name</span><span class="p">)</span>
         <span class="n">routine</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;autofunc&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">args</span> <span class="o">+</span> <span class="n">new_args</span><span class="p">)</span>
-</div>
-    <span class="k">return</span> <span class="n">code_wrapper</span><span class="o">.</span><span class="n">wrap_code</span><span class="p">(</span><span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="n">helps</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">code_wrapper</span><span class="o">.</span><span class="n">wrap_code</span><span class="p">(</span><span class="n">routine</span><span class="p">,</span> <span class="n">helpers</span><span class="o">=</span><span class="n">helps</span><span class="p">)</span></div>
 
 
 <div class="viewcode-block" id="binary_function"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.custom_autowrap.binary_function">[docs]</a><span class="k">def</span> <span class="nf">binary_function</span><span class="p">(</span><span class="n">symfunc</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
@@ -922,8 +922,8 @@
 <span class="sd">    &gt;&gt;&gt; f(x, y).evalf(2, subs={x: 1, y: 2})</span>
 <span class="sd">    -1.0</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">binary</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span></div>
-    <span class="k">return</span> <span class="n">implemented_function</span><span class="p">(</span><span class="n">symfunc</span><span class="p">,</span> <span class="n">binary</span><span class="p">)</span>
+    <span class="n">binary</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">implemented_function</span><span class="p">(</span><span class="n">symfunc</span><span class="p">,</span> <span class="n">binary</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -960,7 +960,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+1.g636a817',
+            VERSION:'0.7+2.gf632a77',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

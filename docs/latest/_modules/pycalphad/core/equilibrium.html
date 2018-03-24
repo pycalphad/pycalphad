@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.7+1.g636a817 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.7+2.gf632a77 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../../genindex.html"/>
         <link rel="search" title="Search" href="../../../search.html"/>
-    <link rel="top" title="pycalphad 0.7+1.g636a817 documentation" href="../../../index.html"/>
+    <link rel="top" title="pycalphad 0.7+2.gf632a77 documentation" href="../../../index.html"/>
         <link rel="up" title="Module code" href="../../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.7+1.g636a817
+                0.7+2.gf632a77
               </div>
             
           
@@ -193,13 +193,13 @@
 
 
 <div class="viewcode-block" id="EquilibriumError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.EquilibriumError">[docs]</a><span class="k">class</span> <span class="nc">EquilibriumError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="s2">&quot;Exception related to calculation of equilibrium.&quot;</span></div>
-    <span class="k">pass</span>
+    <span class="s2">&quot;Exception related to calculation of equilibrium.&quot;</span>
+    <span class="k">pass</span></div>
 
 
 <div class="viewcode-block" id="ConditionError"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.equilibrium.ConditionError">[docs]</a><span class="k">class</span> <span class="nc">ConditionError</span><span class="p">(</span><span class="n">EquilibriumError</span><span class="p">):</span>
-    <span class="s2">&quot;Exception related to equilibrium conditions.&quot;</span></div>
-    <span class="k">pass</span>
+    <span class="s2">&quot;Exception related to equilibrium conditions.&quot;</span>
+    <span class="k">pass</span></div>
 
 
 <span class="k">def</span> <span class="nf">_adjust_conditions</span><span class="p">(</span><span class="n">conds</span><span class="p">):</span>
@@ -541,8 +541,8 @@
         <span class="n">properties</span> <span class="o">=</span> <span class="n">dask</span><span class="o">.</span><span class="n">compute</span><span class="p">(</span><span class="n">properties</span><span class="p">,</span> <span class="n">get</span><span class="o">=</span><span class="n">scheduler</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span>
     <span class="n">properties</span><span class="o">.</span><span class="n">attrs</span><span class="p">[</span><span class="s1">&#39;created&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">datetime</span><span class="o">.</span><span class="n">utcnow</span><span class="p">()</span><span class="o">.</span><span class="n">isoformat</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">kwargs</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span></div>
-    <span class="k">return</span> <span class="n">properties</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s1">&#39;The following equilibrium keyword arguments were passed, but unused:</span><span class="se">\n</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">kwargs</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">properties</span></div>
 </pre></div>
 
            </div>
@@ -579,7 +579,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+1.g636a817',
+            VERSION:'0.7+2.gf632a77',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.7+1.g636a817 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.7+2.gf632a77 documentation</title>
   
 
   
@@ -35,7 +35,7 @@
         <link rel="index" title="Index"
               href="../../genindex.html"/>
         <link rel="search" title="Search" href="../../search.html"/>
-    <link rel="top" title="pycalphad 0.7+1.g636a817 documentation" href="../../index.html"/>
+    <link rel="top" title="pycalphad 0.7+2.gf632a77 documentation" href="../../index.html"/>
         <link rel="up" title="Module code" href="../index.html"/> 
 
   
@@ -68,7 +68,7 @@
             
             
               <div class="version">
-                0.7+1.g636a817
+                0.7+2.gf632a77
               </div>
             
           
@@ -181,8 +181,8 @@
 <span class="n">_MAX_PARAM_NESTING</span> <span class="o">=</span> <span class="mi">32</span>
 
 <div class="viewcode-block" id="DofError"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.DofError">[docs]</a><span class="k">class</span> <span class="nc">DofError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="s2">&quot;Error due to missing degrees of freedom.&quot;</span></div>
-    <span class="k">pass</span>
+    <span class="s2">&quot;Error due to missing degrees of freedom.&quot;</span>
+    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -309,8 +309,8 @@
                     <span class="k">break</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
             <span class="c1"># Can&#39;t use xreplace on a float</span>
-            <span class="k">pass</span></div>
-        <span class="k">return</span> <span class="n">obj</span>
+            <span class="k">pass</span>
+        <span class="k">return</span> <span class="n">obj</span></div>
 
     <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
@@ -351,8 +351,8 @@
                 <span class="n">result</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="nb">sum</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">active</span><span class="p">)</span>
                 <span class="n">normalization</span> <span class="o">+=</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> \
                     <span class="nb">sum</span><span class="p">(</span><span class="nb">int</span><span class="p">(</span><span class="n">spec</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span>
-                        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">active</span><span class="p">)</span></div>
-        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="n">normalization</span>
+                        <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">active</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="n">normalization</span></div>
 
     <span class="nd">@property</span>
     <span class="k">def</span> <span class="nf">ast</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -421,8 +421,8 @@
                 <span class="c1"># Users that need to override this behavior should override build_phase</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;</span><span class="se">\&#39;</span><span class="s1">atomic_ordering_energy</span><span class="se">\&#39;</span><span class="s1"> must be the final contribution&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
-        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">contributions</span><span class="p">:</span></div>
-            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)(</span><span class="n">dbe</span><span class="p">))</span>
+        <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">contributions</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">value</span><span class="p">)(</span><span class="n">dbe</span><span class="p">))</span></div>
 
     <span class="k">def</span> <span class="nf">_purity_test</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -613,8 +613,8 @@
                     <span class="n">mixing_term</span> <span class="o">=</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">pair_rule</span><span class="p">)</span>
                     <span class="c1"># This parameter is normalized differently due to the variable charge valence of vacancies</span>
                     <span class="n">mixing_term</span> <span class="o">*=</span> <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span><span class="p">[</span><span class="n">va_subl_idx</span><span class="p">]</span>
-            <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span></div>
-        <span class="k">return</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">rk_terms</span><span class="p">)</span>
+            <span class="n">rk_terms</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mixing_term</span> <span class="o">*</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">rk_terms</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="Model.reference_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.reference_energy">[docs]</a>    <span class="k">def</span> <span class="nf">reference_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -630,8 +630,8 @@
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="n">param_search</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">search</span>
         <span class="n">pure_energy_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span>
-                                                   <span class="n">pure_param_query</span><span class="p">)</span></div>
-        <span class="k">return</span> <span class="n">pure_energy_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
+                                                   <span class="n">pure_param_query</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">pure_energy_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.ideal_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.ideal_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">ideal_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="c1">#pylint: disable=W0613</span>
@@ -657,8 +657,8 @@
                                          <span class="n">StrictGreaterThan</span><span class="p">(</span><span class="n">sitefrac</span><span class="p">,</span> <span class="n">sitefrac_limit</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)),</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="kc">True</span><span class="p">),</span>
                                         <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
                 <span class="n">ideal_mixing_term</span> <span class="o">+=</span> <span class="p">(</span><span class="n">mixing_term</span><span class="o">*</span><span class="n">ratio</span><span class="p">)</span>
-        <span class="n">ideal_mixing_term</span> <span class="o">*=</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span></div>
-        <span class="k">return</span> <span class="n">ideal_mixing_term</span>
+        <span class="n">ideal_mixing_term</span> <span class="o">*=</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">ideal_mixing_term</span></div>
 
 <div class="viewcode-block" id="Model.excess_mixing_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.excess_mixing_energy">[docs]</a>    <span class="k">def</span> <span class="nf">excess_mixing_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -676,8 +676,8 @@
                  <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;parameter_type&#39;</span><span class="p">)</span> <span class="o">==</span> <span class="s1">&#39;L&#39;</span><span class="p">))</span> <span class="o">&amp;</span> \
                 <span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_interaction_test</span><span class="p">))</span>
             <span class="p">)</span>
-        <span class="n">excess_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">)</span></div>
-        <span class="k">return</span> <span class="n">excess_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
+        <span class="n">excess_term</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">param_query</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">excess_term</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="c1">#pylint: disable=C0103, R0914</span>
@@ -748,8 +748,8 @@
                            <span class="p">]</span>
         <span class="n">g_term</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \</div>
-            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
+            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.xiong_magnetic_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.xiong_magnetic_energy">[docs]</a>    <span class="k">def</span> <span class="nf">xiong_magnetic_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -827,8 +827,8 @@
                                <span class="p">]</span>
         <span class="n">g_term</span> <span class="o">=</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_curie</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span> <span class="o">+</span> <span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="n">expr_cond_pairs_neel</span><span class="p">,</span> <span class="n">evaluate</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
-        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \</div>
-            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
+        <span class="k">return</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="n">beta</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span> <span class="o">*</span> \
+            <span class="n">g_term</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.twostate_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.twostate_energy">[docs]</a>    <span class="k">def</span> <span class="nf">twostate_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -844,8 +844,8 @@
         <span class="p">)</span>
         <span class="n">gd</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">redlich_kister_sum</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">param_search</span><span class="p">,</span> <span class="n">gd_param_query</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">gd</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span></div>
-        <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span>
+        <span class="k">return</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span> <span class="o">*</span> <span class="n">log</span><span class="p">(</span><span class="mi">1</span> <span class="o">+</span> <span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">gd</span> <span class="o">/</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">R</span> <span class="o">*</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">)))</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.einstein_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.einstein_energy">[docs]</a>    <span class="k">def</span> <span class="nf">einstein_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -866,8 +866,8 @@
         <span class="k">if</span> <span class="n">lntheta</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="mf">1.5</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">theta</span> <span class="o">+</span> <span class="mi">3</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">R</span><span class="o">*</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="n">log</span><span class="p">(</span><span class="mi">1</span><span class="o">-</span><span class="n">exp</span><span class="p">(</span><span class="o">-</span><span class="n">theta</span><span class="o">/</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span></div>
-        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span>
+            <span class="n">result</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">return</span> <span class="n">result</span> <span class="o">/</span> <span class="bp">self</span><span class="o">.</span><span class="n">_site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.mole_fraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.mole_fraction">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">mole_fraction</span><span class="p">(</span><span class="n">species_name</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">constituent_array</span><span class="p">,</span>
@@ -903,8 +903,8 @@
         <span class="k">if</span> <span class="n">site_ratio_normalization</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Couldn</span><span class="se">\&#39;</span><span class="s1">t find &#39;</span> <span class="o">+</span> <span class="n">species_name</span> <span class="o">+</span> <span class="s1">&#39; in &#39;</span> <span class="o">+</span> \
                 <span class="nb">str</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">))</span>
-</div>
-        <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span>
+
+        <span class="k">return</span> <span class="n">numerator</span> <span class="o">/</span> <span class="n">site_ratio_normalization</span></div>
 
 <div class="viewcode-block" id="Model.atomic_ordering_energy"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.atomic_ordering_energy">[docs]</a>    <span class="k">def</span> <span class="nf">atomic_ordering_energy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -976,8 +976,8 @@
                 <span class="bp">self</span><span class="o">.</span><span class="n">mole_fraction</span><span class="p">(</span><span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
                                    <span class="n">ordered_phase_name</span><span class="p">,</span> <span class="n">constituents</span><span class="p">,</span>
                                    <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
-</div></div>
-        <span class="k">return</span> <span class="n">ordered_energy</span> <span class="o">-</span> <span class="n">ordered_energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">molefraction_dict</span><span class="p">)</span>
+
+        <span class="k">return</span> <span class="n">ordered_energy</span> <span class="o">-</span> <span class="n">ordered_energy</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">molefraction_dict</span><span class="p">)</span></div></div>
 
 
 <div class="viewcode-block" id="TestModel"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.TestModel">[docs]</a><span class="k">class</span> <span class="nc">TestModel</span><span class="p">(</span><span class="n">Model</span><span class="p">):</span>
@@ -1024,8 +1024,8 @@
         <span class="n">polys</span> <span class="o">=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">ampl_scale</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">sin</span><span class="p">(</span><span class="n">freq_scale</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">*</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">varname</span> <span class="o">-</span> <span class="n">sol</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="n">j</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span>
                                                                       <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">sol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
                                                                 <span class="k">for</span> <span class="n">j</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kmax</span><span class="p">)]))</span><span class="o">**</span><span class="mi">2</span>
-                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kmax</span><span class="p">)])</span></div>
-        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale_factor</span> <span class="o">*</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">varname</span> <span class="o">-</span> <span class="n">sol</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">sol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span> <span class="o">+</span> <span class="n">polys</span>
+                      <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">kmax</span><span class="p">)])</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;test&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">scale_factor</span> <span class="o">*</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">varname</span> <span class="o">-</span> <span class="n">sol</span><span class="p">)</span><span class="o">**</span><span class="mi">2</span> <span class="k">for</span> <span class="n">varname</span><span class="p">,</span> <span class="n">sol</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">solution</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span> <span class="o">+</span> <span class="n">polys</span></div>
 
 </pre></div>
 
@@ -1063,7 +1063,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../',
-            VERSION:'0.7+1.g636a817',
+            VERSION:'0.7+2.gf632a77',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
             HAS_SOURCE:  true,

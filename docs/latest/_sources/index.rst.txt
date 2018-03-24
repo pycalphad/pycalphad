@@ -19,7 +19,7 @@
     :figclass: align-center
 
 
-pycalphad is a Python library for computational thermodynamics using the CALPHAD method. Because pycalphad is still in the alpha phase of development, documentation is a work in progress.
+pycalphad is a Python library for computational thermodynamics using the CALPHAD method.
 
 The latest development version of the source code can be found on `GitHub`_.
 The newest stable version can be found on `PyPI`_.
