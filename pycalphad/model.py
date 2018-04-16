@@ -242,6 +242,18 @@ class Model(object):
     mixing_heat_capacity = CPM_MIX = \
         property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
+    def get_internal_constraints(self):
+        constraints = []
+        for idx, sublattice in enumerate(self.constituents):
+            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+        return constraints
+
+    def get_multiphase_constraint_contribution(self, statevar):
+        if isinstance(statevar, v.Composition):
+            return self.moles(statevar.species)
+        else:
+            return NotImplementedError
+
     def build_phase(self, dbe):
         """
         Generate the symbolic form of all the contributions to this phase.
