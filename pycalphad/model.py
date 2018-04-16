@@ -212,6 +212,8 @@ class Model(object):
 
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
         for comp in self.components:
+            if comp.number_of_atoms == 0:
+                continue
             comp_result = S.Zero
             for idx, sublattice in enumerate(self.constituents):
                 active = set(sublattice).intersection(set(self.components))
