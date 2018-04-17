@@ -7,9 +7,9 @@ import pycalphad.variables as v
 cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
         cdef CompositionSet compset
-        cdef int num_sitefrac_bals = sum(compset.phase_record.num_internal_cons for compset in comp_sets)
+        cdef int num_internal_cons = sum(compset.phase_record.num_internal_cons for compset in comp_sets)
         cdef int num_mass_bals = len([i for i in conditions.keys() if i.startswith('X_')]) + 1
-        cdef int num_constraints = num_sitefrac_bals + num_mass_bals
+        cdef int num_constraints = num_internal_cons + num_mass_bals
         cdef int constraint_idx = 0
         cdef int var_idx = 0
         cdef int phase_idx = 0
@@ -43,18 +43,17 @@ cdef class Problem:
             phase_idx += 1
         self.cl = np.zeros(num_constraints)
         self.cu = np.zeros(num_constraints)
-        # Site fraction balance constraints
-        self.cl[:num_sitefrac_bals] = 1
-        self.cu[:num_sitefrac_bals] = 1
+        self.cl[:num_internal_cons] = 0
+        self.cu[:num_internal_cons] = 0
         # Mass balance constraints
         for constraint_idx, comp in enumerate(self.nonvacant_elements):
             if comp == dependent_comp:
                 # TODO: Only handles N=1
-                self.cl[num_sitefrac_bals+constraint_idx] = 1-indep_sum
-                self.cu[num_sitefrac_bals+constraint_idx] = 1-indep_sum
+                self.cl[num_internal_cons+constraint_idx] = 1-indep_sum
+                self.cu[num_internal_cons+constraint_idx] = 1-indep_sum
             else:
-                self.cl[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + str(comp)]
-                self.cu[num_sitefrac_bals+constraint_idx] = self.conditions['X_' + str(comp)]
+                self.cl[num_internal_cons+constraint_idx] = self.conditions['X_' + str(comp)]
+                self.cu[num_internal_cons+constraint_idx] = self.conditions['X_' + str(comp)]
 
     def objective(self, x_in):
         cdef CompositionSet compset
@@ -125,12 +124,13 @@ cdef class Problem:
         constraint_offset = 0
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
-            for idx in range(compset.phase_record.sublattice_dof.shape[0]):
-                active_in_subl = compset.phase_record.sublattice_dof[idx]
-                for sum_idx in range(active_in_subl):
-                    l_constraints[constraint_offset + idx] += x[2+sum_idx+var_idx]
-                var_idx += active_in_subl
-            constraint_offset += compset.phase_record.sublattice_dof.shape[0]
+            x_tmp = np.r_[self.pressure, self.temperature, x[2+var_idx:2+var_idx+compset.phase_record.phase_dof]]
+            compset.phase_record.internal_constraints(
+                l_constraints[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons],
+                x_tmp
+            )
+            var_idx += compset.phase_record.phase_dof
+            constraint_offset += compset.phase_record.num_internal_cons
         # Second: Mass balance of each component
         for comp_idx, comp in enumerate(self.nonvacant_elements):
             var_offset = 0

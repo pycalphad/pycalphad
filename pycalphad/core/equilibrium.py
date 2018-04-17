@@ -287,7 +287,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if mass_grad_dict[name] is None:
                 mass_grad_dict[name] = tup2
 
-        cfuncs = build_constraints(mod, variables, conds, parameters=param_symbols)
+        cfuncs = build_constraints(mod, [v.P, v.T] + site_fracs, conds, parameters=param_symbols)
 
         phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
                                                               np.array(dbf.phases[name].sublattices, dtype=np.float),
