@@ -293,7 +293,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                                          value.parameters, value.obj, value.grad, value.hess,
                                                          value.mass, value.mass_grad,
                                                          value.internal_cons, value.internal_jac,
-                                                         value.multiphase_cons, value.multiphase_jac)
+                                                         value.multiphase_cons, value.multiphase_jac,
+                                                         value.num_internal_cons, value.num_multiphase_cons)
 
     pure_elements = set(v.Species(list(spec.constituents.keys())[0])
                                   for spec in comps

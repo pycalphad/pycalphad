@@ -20,6 +20,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object _intjacfunc
     cdef public object _mpconsfunc
     cdef public object _mpjacfunc
+    cdef public size_t num_internal_cons
+    cdef public size_t num_multiphase_cons
     cdef public object _massfuncs
     cdef public object _massgradfuncs
     cdef public object variables
@@ -44,4 +46,5 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
                                           object ofunc, object gfunc, object hfunc,
                                           object massfuncs, object massgradfuncs,
                                           object internal_cons, object internal_jac,
-                                          object multiphase_cons, object multiphase_jac)
+                                          object multiphase_cons, object multiphase_jac,
+                                          size_t num_internal_cons, size_t num_multiphase_cons)

@@ -7,7 +7,7 @@ import pycalphad.variables as v
 cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
         cdef CompositionSet compset
-        cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in comp_sets])
+        cdef int num_sitefrac_bals = sum(compset.phase_record.num_internal_cons for compset in comp_sets)
         cdef int num_mass_bals = len([i for i in conditions.keys() if i.startswith('X_')]) + 1
         cdef int num_constraints = num_sitefrac_bals + num_mass_bals
         cdef int constraint_idx = 0

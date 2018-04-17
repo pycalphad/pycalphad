@@ -390,7 +390,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
                                                np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
                                                param_values, comp_sets[phase_name], None, None, mass_dict[phase_name],
-                                               None, None, None, None, None)
+                                               None, None, None, None, None, 0, 0)
         points = points_dict[phase_name]
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,

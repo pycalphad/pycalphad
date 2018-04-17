@@ -44,8 +44,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
-        if self._internal_cons != NULL:
-            self._internal_cons(&dof[0], &self.parameters[0], &out[0])
+        if self._internal_cons == NULL:
+            with gil:
+                self._intconsfunc.kernel
+                self._internal_cons = <func_novec_t*> cython_pointer(self._intconsfunc._cpointer)
+        self._internal_cons(&dof[0], &self.parameters[0], &out[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -81,7 +84,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
                                           object ofunc, object gfunc, object hfunc, object massfuncs,
                                           object massgradfuncs, object internal_cons_func, object internal_jac_func,
-                                          object multiphase_cons_func, object multiphase_jac_func):
+                                          object multiphase_cons_func, object multiphase_jac_func,
+                                          size_t num_internal_cons, size_t num_multiphase_cons):
     cdef:
         int var_idx, subl_index, el_idx
         PhaseRecord inst
@@ -97,6 +101,8 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     inst.sublattice_dof = np.zeros(num_sites.shape[0], dtype=np.int32)
     inst.parameters = parameters
     inst.num_sites = num_sites
+    inst.num_internal_cons = num_internal_cons
+    inst.num_multiphase_cons = num_multiphase_cons
     inst.composition_matrices = np.full((len(pure_elements), num_sites.shape[0], 2), -1.)
     if 'VA' in pure_elements:
         inst.vacancy_index = pure_elements.index('VA')
@@ -126,8 +132,6 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
         inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
     if internal_cons_func is not None:
         inst._intconsfunc = internal_cons_func
-        internal_cons_func.kernel
-        inst._internal_cons = <func_novec_t*> cython_pointer(internal_cons_func._cpointer)
     if internal_jac_func is not None:
         inst._intjacfunc = internal_jac_func
         internal_jac_func.kernel
