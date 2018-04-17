@@ -32,8 +32,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
-        if self._grad != NULL:
-            self._grad(&dof[0], &self.parameters[0], &out[0])
+        if self._grad == NULL:
+            with gil:
+                self._gfunc.kernel
+                self._grad = <func_novec_t*> cython_pointer(self._gfunc._cpointer)
+        self._grad(&dof[0], &self.parameters[0], &out[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -53,20 +56,29 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        if self._internal_jac != NULL:
-            self._internal_jac(&dof[0], &self.parameters[0], &out[0,0])
+        if self._internal_jac == NULL:
+            with gil:
+                self._intjacfunc.kernel
+                self._internal_jac = <func_novec_t*> cython_pointer(self._intjacfunc._cpointer)
+        self._internal_jac(&dof[0], &self.parameters[0], &out[0,0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
-        if self._multiphase_cons != NULL:
-            self._multiphase_cons(&dof[0], &self.parameters[0], &out[0])
+        if self._multiphase_cons == NULL:
+            with gil:
+                self._mpconsfunc.kernel
+                self._multiphase_cons = <func_novec_t*> cython_pointer(self._mpconsfunc._cpointer)
+        self._multiphase_cons(&dof[0], &self.parameters[0], &out[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        if self._multiphase_jac != NULL:
-            self._multiphase_jac(&dof[0], &self.parameters[0], &out[0,0])
+        if self._multiphase_jac == NULL:
+            with gil:
+                self._mpjacfunc.kernel
+                self._multiphase_jac = <func_novec_t*> cython_pointer(self._mpjacfunc._cpointer)
+        self._multiphase_jac(&dof[0], &self.parameters[0], &out[0,0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -124,26 +136,23 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
         inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
     if gfunc is not None:
         inst._gfunc = gfunc
-        gfunc.kernel
-        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
+    inst._grad = NULL
     if hfunc is not None:
         inst._hfunc = hfunc
         hfunc.kernel
         inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
     if internal_cons_func is not None:
         inst._intconsfunc = internal_cons_func
+    inst._internal_cons = NULL
     if internal_jac_func is not None:
         inst._intjacfunc = internal_jac_func
-        internal_jac_func.kernel
-        inst._internal_jac = <func_novec_t*> cython_pointer(internal_jac_func._cpointer)
+    inst._internal_jac = NULL
     if multiphase_cons_func is not None:
         inst._mpconsfunc = multiphase_cons_func
-        multiphase_cons_func.kernel
-        inst._multiphase_cons = <func_novec_t*> cython_pointer(multiphase_cons_func._cpointer)
+    inst._multiphase_cons = NULL
     if multiphase_jac_func is not None:
         inst._mpjacfunc = multiphase_jac_func
-        multiphase_jac_func.kernel
-        inst._multiphase_jac = <func_novec_t*> cython_pointer(multiphase_jac_func._cpointer)
+    inst._multiphase_jac = NULL
     if massfuncs is not None:
         inst._massfuncs = massfuncs
         inst._masses = <func_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_t*))
