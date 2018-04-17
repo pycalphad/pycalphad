@@ -14,7 +14,6 @@ from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.constraints import build_constraints
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from sympy import Add, Symbol
 import dask
 from dask import delayed
 import dask.multiprocessing
@@ -25,7 +24,7 @@ except ImportError:
     dask.local = dask.async
 from xarray import Dataset
 import numpy as np
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from datetime import datetime
 
 

@@ -1,17 +1,12 @@
 from collections import defaultdict, OrderedDict
-import operator
-from copy import deepcopy
-from itertools import chain
 import numpy as np
 cimport numpy as np
 cimport cython
 cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
-import collections
 from pycalphad.core.problem cimport Problem
 from pycalphad.core.solver import InteriorPointSolver
-from pycalphad.core.hyperplane cimport hyperplane
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
 from pycalphad.core.constants import *
