@@ -254,7 +254,7 @@ class Model(object):
         elif statevar in [v.T, v.P]:
             return S.Zero
         else:
-            return NotImplementedError
+            raise NotImplementedError
 
     def build_phase(self, dbe):
         """
