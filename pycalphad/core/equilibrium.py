@@ -12,6 +12,7 @@ from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad.core.constraints import build_constraints
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from sympy import Add, Symbol
 import dask
@@ -42,6 +43,8 @@ def _adjust_conditions(conds):
     "Adjust conditions values to be within the numerical limit of the solver."
     new_conds = OrderedDict()
     for key, value in sorted(conds.items(), key=str):
+        if key == str(key):
+            key = getattr(v, key, key)
         if isinstance(key, v.Composition):
             new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
         else:
@@ -221,6 +224,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     callable_dict = kwargs.pop('callables', dict())
     mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
     mass_grad_dict = unpack_kwarg(kwargs.pop('massgradfuncs', None), default_arg=None)
+    internal_cons_dict = unpack_kwarg(kwargs.pop('internal_cons_funcs', None), default_arg=None)
+    internal_jac_dict = unpack_kwarg(kwargs.pop('internal_jac_funcs', None), default_arg=None)
+    multiphase_cons_dict = unpack_kwarg(kwargs.pop('multiphase_cons_funcs', None), default_arg=None)
+    multiphase_jac_dict = unpack_kwarg(kwargs.pop('multiphase_jac_funcs', None), default_arg=None)
     grad_callable_dict = kwargs.pop('grad_callables', dict())
     hess_callable_dict = kwargs.pop('hess_callables', dict())
     parameters = parameters if parameters is not None else dict()
@@ -284,12 +291,25 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 mass_dict[name] = tup1
             if mass_grad_dict[name] is None:
                 mass_grad_dict[name] = tup2
+        if internal_cons_dict[name] is None or internal_jac_dict[name] is None or \
+                multiphase_cons_dict[name] is None or multiphase_jac_dict[name] is None:
+            tup1, tup2, tup3, tup4 = build_constraints(mod, variables, conds, parameters=param_symbols)
+            if internal_cons_dict[name] is None:
+                internal_cons_dict[name] = tup1
+            if internal_jac_dict[name] is None:
+                internal_jac_dict[name] = tup2
+            if multiphase_cons_dict[name] is None:
+                multiphase_cons_dict[name] = tup3
+            if multiphase_jac_dict[name] is None:
+                multiphase_jac_dict[name] = tup4
 
         phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
                                                               np.array(dbf.phases[name].sublattices, dtype=np.float),
                                                               param_values, callable_dict[name],
                                                               grad_callable_dict[name], hess_callable_dict[name],
-                                                              mass_dict[name], mass_grad_dict[name])
+                                                              mass_dict[name], mass_grad_dict[name],
+                                                              internal_cons_dict[name], internal_jac_dict[name],
+                                                              multiphase_cons_dict[name], multiphase_jac_dict[name])
         if verbose:
             print(name, end=' ')
     if verbose:

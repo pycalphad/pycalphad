@@ -40,11 +40,11 @@ def _build_constraint_functions(variables, constraints, parameters=None):
 ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'multiphase_cons', 'multiphase_jac'])
 
 
-def build_constraints(mod, conds, parameters=None):
+def build_constraints(mod, variables, conds, parameters=None):
     internal_constraints = mod.get_internal_constraints()
     multiphase_constraints = [Symbol('NP') * mod.get_multiphase_constraint_contribution(cond) for cond in conds.keys()]
-    internal_cons, internal_jac = _build_constraint_functions(mod.variables, internal_constraints,
+    internal_cons, internal_jac = _build_constraint_functions(variables, internal_constraints,
                                                               parameters=parameters)
-    multiphase_cons, multiphase_jac = _build_constraint_functions(mod.variables + [Symbol('NP')],
+    multiphase_cons, multiphase_jac = _build_constraint_functions(variables + [Symbol('NP')],
                                                                   multiphase_constraints, parameters=parameters)
     return ConstraintTuple(internal_cons, internal_jac, multiphase_cons, multiphase_jac)

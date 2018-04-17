@@ -43,6 +43,30 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
+    cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
+        if self._internal_cons != NULL:
+            self._internal_cons(&dof[0], &self.parameters[0], &out[0])
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
+        if self._internal_jac != NULL:
+            self._internal_jac(&dof[0], &self.parameters[0], &out[0,0])
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
+        if self._multiphase_cons != NULL:
+            self._multiphase_cons(&dof[0], &self.parameters[0], &out[0])
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
+        if self._multiphase_jac != NULL:
+            self._multiphase_jac(&dof[0], &self.parameters[0], &out[0,0])
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
         if self._masses != NULL:
             self._masses[comp_idx](&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
@@ -55,7 +79,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
 
 cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
-              object ofunc, object gfunc, object hfunc, object massfuncs, object massgradfuncs):
+                                          object ofunc, object gfunc, object hfunc, object massfuncs,
+                                          object massgradfuncs, object internal_cons_func, object internal_jac_func,
+                                          object multiphase_cons_func, object multiphase_jac_func):
     cdef:
         int var_idx, subl_index, el_idx
         PhaseRecord inst
@@ -98,6 +124,22 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
         inst._hfunc = hfunc
         hfunc.kernel
         inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
+    if internal_cons_func is not None:
+        inst._intconsfunc = internal_cons_func
+        internal_cons_func.kernel
+        inst._internal_cons = <func_novec_t*> cython_pointer(internal_cons_func._cpointer)
+    if internal_jac_func is not None:
+        inst._intjacfunc = internal_jac_func
+        internal_jac_func.kernel
+        inst._internal_jac = <func_novec_t*> cython_pointer(internal_jac_func._cpointer)
+    if multiphase_cons_func is not None:
+        inst._mpconsfunc = multiphase_cons_func
+        multiphase_cons_func.kernel
+        inst._multiphase_cons = <func_novec_t*> cython_pointer(multiphase_cons_func._cpointer)
+    if multiphase_jac_func is not None:
+        inst._mpjacfunc = multiphase_jac_func
+        multiphase_jac_func.kernel
+        inst._multiphase_jac = <func_novec_t*> cython_pointer(multiphase_jac_func._cpointer)
     if massfuncs is not None:
         inst._massfuncs = massfuncs
         inst._masses = <func_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_t*))
