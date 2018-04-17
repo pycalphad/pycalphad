@@ -18,10 +18,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
     these objects are pickleable. PhaseRecords are immutable after initialization.
     """
-    def __reduce__(self):
-            return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
-                                                  self.parameters, self.num_sites, self.composition_matrices,
-                                                  self.vacancy_index, self._ofunc, self._gfunc, self._hfunc)
 
     def __dealloc__(self):
         PyMem_Free(self._masses)
@@ -116,32 +112,3 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
             inst._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
     return inst
 
-def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
-                                 vacancy_index, ofunc, gfunc, hfunc):
-    inst = PhaseRecord()
-    # XXX: Missing inst.phase_name
-    # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
-    inst.variables = variables
-    for variable in variables:
-        if not isinstance(variable, v.SiteFraction):
-            continue
-        inst.phase_name = <unicode>variable.phase_name
-        break
-    inst.phase_dof = 0
-    inst.sublattice_dof = sublattice_dof
-    inst.parameters = parameters
-    inst.num_sites = num_sites
-    inst.composition_matrices = composition_matrices
-    inst.vacancy_index = vacancy_index
-    inst.phase_dof = phase_dof
-    # Trigger lazy computation
-    if ofunc is not None:
-        ofunc.kernel
-        inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
-    if gfunc is not None:
-        gfunc.kernel
-        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
-    if hfunc is not None:
-        hfunc.kernel
-        inst._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
-    return inst
