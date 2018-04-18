@@ -2,12 +2,13 @@
 The test_model module contains unit tests for the Model object.
 """
 from __future__ import print_function
-from pycalphad import Database, Model
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB
+from pycalphad import Database, Model, variables as v, equilibrium
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB
 import numpy as np
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
 ALNIPT_DBF = Database(ALNIPT_TDB)
+ALFE_DBF = Database(ALFE_TDB)
 
 def test_model_eq():
     "Model equality comparison."
@@ -50,3 +51,13 @@ def test_custom_model_contributions():
         def test3(self, dbe):
             return 0
     CustomModel(ALCRNI_DBF, ['AL', 'CR'], 'L12_FCC')
+
+
+def test_degree_of_ordering():
+    "Degree of ordering should be calculated properly."
+    my_phases = ['B2_BCC']
+    comps = ['AL', 'FE', 'VA']
+    conds = {v.T: 300, v.P: 101325, v.X('AL'): 0.25}
+    eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
+    print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
+    assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.66663873]))
