@@ -38,7 +38,7 @@ def lower_convex_hull(global_grid, result_array):
     --------
     None yet.
     """
-    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P']])
+    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P', 'N']])
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
 

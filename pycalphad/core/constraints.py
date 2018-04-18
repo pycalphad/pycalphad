@@ -1,5 +1,6 @@
 from sympy import ImmutableMatrix, MatrixSymbol, Symbol
 from pycalphad.core.sympydiff_utils import AutowrapFunction, CompileLock
+from pycalphad import variables as v
 from collections import namedtuple
 
 
@@ -43,10 +44,16 @@ ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac'
 
 def build_constraints(mod, variables, conds, parameters=None):
     internal_constraints = mod.get_internal_constraints()
-    multiphase_constraints = [Symbol('NP') * mod.get_multiphase_constraint_contribution(cond) for cond in conds.keys()]
+    multiphase_constraints = [Symbol('NP') * mod.get_multiphase_constraint_contribution(cond)
+                              for cond in sorted(conds.keys(), key=str)
+                              if cond not in [v.P, v.T]]
     internal_cons, internal_jac = _build_constraint_functions(variables, internal_constraints,
                                                               parameters=parameters)
     multiphase_cons, multiphase_jac = _build_constraint_functions(variables + [Symbol('NP')],
                                                                   multiphase_constraints, parameters=parameters)
     return ConstraintTuple(internal_cons, internal_jac, multiphase_cons, multiphase_jac,
                            len(internal_constraints), len(multiphase_constraints))
+
+
+def get_multiphase_constraint_rhs(conds):
+    return [float(value) for cond, value in conds.items() if cond not in ['P', 'T']]

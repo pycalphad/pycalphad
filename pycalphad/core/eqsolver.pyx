@@ -324,7 +324,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
         num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-        current_grid = grid.sel(P=cur_conds['P'], T=cur_conds['T'])
+        current_grid = grid.sel(P=cur_conds['P'], T=cur_conds['T'], N=cur_conds['N'])
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:

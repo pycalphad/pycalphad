@@ -2,18 +2,19 @@ from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
 import numpy as np
 from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
+from pycalphad.core.constraints import get_multiphase_constraint_rhs
 import pycalphad.variables as v
 
 cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
         cdef CompositionSet compset
         cdef int num_internal_cons = sum(compset.phase_record.num_internal_cons for compset in comp_sets)
-        cdef int num_mass_bals = len([i for i in conditions.keys() if i.startswith('X_')]) + 1
-        cdef int num_constraints = num_internal_cons + num_mass_bals
+        cdef int num_constraints = num_internal_cons + len(get_multiphase_constraint_rhs(conditions))
         cdef int constraint_idx = 0
         cdef int var_idx = 0
         cdef int phase_idx = 0
         cdef double indep_sum = sum([float(val) for i, val in conditions.items() if i.startswith('X_')])
+        cdef object multiphase_rhs = get_multiphase_constraint_rhs(conditions)
         cdef object dependent_comp
         if len(comp_sets) == 0:
             raise ValueError('Number of phases is zero')
@@ -45,15 +46,9 @@ cdef class Problem:
         self.cu = np.zeros(num_constraints)
         self.cl[:num_internal_cons] = 0
         self.cu[:num_internal_cons] = 0
-        # Mass balance constraints
-        for constraint_idx, comp in enumerate(self.nonvacant_elements):
-            if comp == dependent_comp:
-                # TODO: Only handles N=1
-                self.cl[num_internal_cons+constraint_idx] = 1-indep_sum
-                self.cu[num_internal_cons+constraint_idx] = 1-indep_sum
-            else:
-                self.cl[num_internal_cons+constraint_idx] = self.conditions['X_' + str(comp)]
-                self.cu[num_internal_cons+constraint_idx] = self.conditions['X_' + str(comp)]
+        for var_idx in range(num_internal_cons, num_constraints):
+            self.cl[var_idx] = multiphase_rhs[var_idx-num_internal_cons]
+            self.cu[var_idx] = multiphase_rhs[var_idx-num_internal_cons]
 
     def objective(self, x_in):
         cdef CompositionSet compset
@@ -108,18 +103,13 @@ cdef class Problem:
 
     def constraints(self, x_in):
         cdef CompositionSet compset
-        cdef int num_sitefrac_bals = sum([compset.phase_record.sublattice_dof.shape[0] for compset in self.composition_sets])
-        cdef int num_mass_bals = len([i for i in self.conditions.keys() if i.startswith('X_')]) + 1
-        cdef double indep_sum = sum([float(val) for i, val in self.conditions.items() if i.startswith('X_')])
-        cdef np.ndarray[ndim=1, dtype=np.float64_t] l_constraints = np.zeros(self.num_constraints)
-        cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
-            hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl
+        cdef double[::1] l_constraints = np.zeros(self.num_constraints)
+        cdef double[::1] l_constraints_tmp = np.zeros(self.composition_sets[0].phase_record.num_multiphase_cons)
+        cdef int phase_idx, var_offset, constraint_offset, var_idx, idx, spidx
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] x_tmp
-        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
-        cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
 
-        # First: Site fraction balance constraints
+        # First: Phase internal constraints
         var_idx = 0
         constraint_offset = 0
         for phase_idx in range(self.num_phases):
@@ -131,66 +121,63 @@ cdef class Problem:
             )
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
-        # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.nonvacant_elements):
-            var_offset = 0
-            for phase_idx in range(self.num_phases):
-                compset = self.composition_sets[phase_idx]
-                spidx = self.num_vars - self.num_phases + phase_idx
-                # TODO: This is a hack until the constraint system is rewritten
-                x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof]]
-                dof_2d_view = <double[:1,:x_tmp.shape[0]]>&x_tmp[0]
-                compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
-                l_constraints[constraint_offset] += x[2+spidx] * tmp_mass[0]
-                var_offset += compset.phase_record.phase_dof
-                tmp_mass[0] = 0
-            constraint_offset += 1
-        return l_constraints
+
+        # Second: Multiphase constraints
+        var_offset = 0
+        for phase_idx in range(self.num_phases):
+            compset = self.composition_sets[phase_idx]
+            spidx = self.num_vars - self.num_phases + phase_idx
+            x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], x[2+spidx]]
+            compset.phase_record.multiphase_constraints(l_constraints_tmp, x_tmp)
+            for c_idx in range(compset.phase_record.num_multiphase_cons):
+                l_constraints[constraint_offset + c_idx] += l_constraints_tmp[c_idx]
+            l_constraints_tmp[:] = 0
+            var_offset += compset.phase_record.phase_dof
+        return np.array(l_constraints)
 
     def jacobian(self, x_in):
         cdef CompositionSet compset
         cdef double[::1] x = np.r_[self.pressure, self.temperature, np.array(x_in)]
         cdef double[::1] x_tmp
-        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
-        cdef double[::1] tmp_mass = np.atleast_1d(np.zeros(1))
-        cdef double[::1] tmp_mass_grad = np.zeros(2+self.num_vars)
         cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
+        cdef double[:,::1] constraint_jac_tmp = np.zeros((self.num_constraints, self.num_vars + 2))
+        cdef double[:,::1] constraint_jac_tmp_view
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
 
-        # Ordering of constraints by row: sitefrac bal of each phase, then component mass balance
-        # Ordering of constraints by column: site fractions of each phase, then phase fractions
-        # First: Site fraction balance constraints
+        # First: Phase internal constraints
         var_idx = 0
         constraint_offset = 0
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
-            phase_offset = 0
-            for idx in range(compset.phase_record.sublattice_dof.shape[0]):
-                active_in_subl = compset.phase_record.sublattice_dof[idx]
-                constraint_jac[constraint_offset + idx,
-                var_idx:var_idx + active_in_subl] = 1
-                var_idx += active_in_subl
-                phase_offset += active_in_subl
-            constraint_offset += compset.phase_record.sublattice_dof.shape[0]
-        # Second: Mass balance of each component
-        for comp_idx, comp in enumerate(self.nonvacant_elements):
-            var_offset = 0
-            for phase_idx in range(self.num_phases):
-                compset = self.composition_sets[phase_idx]
-                spidx = self.num_vars - self.num_phases + phase_idx
-                # TODO: This is a hack until the constraint system is rewritten
-                x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof]]
-                dof_2d_view = <double[:1,:x_tmp.shape[0]]>&x_tmp[0]
-                compset.phase_record.mass_grad(tmp_mass_grad, x_tmp, comp_idx)
-                # current phase frac times the comp_grad
-                for grad_idx in range(var_offset, var_offset + compset.phase_record.phase_dof):
-                    constraint_jac[constraint_offset, grad_idx] = \
-                        x[2+spidx] * tmp_mass_grad[2 + grad_idx - var_offset]
-                compset.phase_record.mass_obj(tmp_mass, dof_2d_view, comp_idx)
-                constraint_jac[constraint_offset, spidx] += tmp_mass[0]
-                tmp_mass[0] = 0
-                tmp_mass_grad[:] = 0
-                var_offset += compset.phase_record.phase_dof
-            constraint_offset += 1
+            x_tmp = np.r_[self.pressure, self.temperature, x[2+var_idx:2+var_idx+compset.phase_record.phase_dof]]
+            constraint_jac_tmp_view = <double[:compset.phase_record.num_internal_cons,
+                                              :2+compset.phase_record.phase_dof]>&constraint_jac_tmp[0,0]
+            compset.phase_record.internal_jacobian(constraint_jac_tmp_view, x_tmp)
+            constraint_jac[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
+                               var_idx:var_idx+compset.phase_record.phase_dof] = \
+                constraint_jac_tmp_view[:compset.phase_record.num_internal_cons, 2:2+compset.phase_record.phase_dof]
+            #for idx in range(constraint_offset, constraint_offset + compset.phase_record.num_internal_cons):
+            #    for iter_idx in range(2):
+            #        constraint_jac[idx, iter_idx] += constraint_jac_tmp_view[idx-constraint_offset, iter_idx]
+            constraint_jac_tmp[:,:] = 0
+            var_idx += compset.phase_record.phase_dof
+            constraint_offset += compset.phase_record.num_internal_cons
+        var_offset = 0
+        # Second: Multiphase constraints
+        for phase_idx in range(self.num_phases):
+            compset = self.composition_sets[phase_idx]
+            spidx = self.num_vars - self.num_phases + phase_idx
+            x_tmp = np.r_[self.pressure, self.temperature, x[2+var_offset:2+var_offset+compset.phase_record.phase_dof], x[2+spidx]]
+            constraint_jac_tmp_view = <double[:compset.phase_record.num_multiphase_cons,
+                                              :3+compset.phase_record.phase_dof]>&constraint_jac_tmp[0,0]
+            compset.phase_record.multiphase_jacobian(constraint_jac_tmp_view, x_tmp)
+            for idx in range(constraint_offset, constraint_offset + compset.phase_record.num_multiphase_cons):
+                for iter_idx in range(var_offset, var_offset+compset.phase_record.phase_dof):
+                    constraint_jac[idx, iter_idx] += constraint_jac_tmp_view[idx-constraint_offset, 2+iter_idx-var_offset]
+                #for iter_idx in range(2):
+                #    constraint_jac[idx, iter_idx] += constraint_jac_tmp_view[idx-constraint_offset, iter_idx-var_offset]
+                constraint_jac[idx, spidx] += constraint_jac_tmp_view[idx-constraint_offset, -1]
+            constraint_jac_tmp[:,:] = 0
+            var_offset += compset.phase_record.phase_dof
         return np.array(constraint_jac)

@@ -215,7 +215,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-    indep_vars = ['T', 'P']
+    indep_vars = ['T', 'P', 'N']
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     phase_records = dict()
@@ -231,6 +231,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     param_symbols = tuple(parameters.keys())
     param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     maximum_internal_dof = 0
+    # Temporary solution until constraint system improves
+    if not conditions.get(v.N, False):
+        conditions[v.N] = 1
+    if conditions[v.N] != 1:
+        raise ConditionError('N!=1 is not yet supported')
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)

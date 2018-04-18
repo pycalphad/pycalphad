@@ -251,6 +251,8 @@ class Model(object):
     def get_multiphase_constraint_contribution(self, statevar):
         if isinstance(statevar, v.Composition):
             return self.moles(statevar.species)
+        elif statevar == v.N:
+            return sum(spec.number_of_atoms * self.moles(spec) for spec in self.components)
         elif statevar in [v.T, v.P]:
             return S.Zero
         else:
