@@ -120,7 +120,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    coord_dict['vertex'] = np.arange(len(pure_elements))
+    coord_dict['vertex'] = np.arange(len(pure_elements) + 2)  # Gibbs phase rule
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     prop_shape = grid_shape
@@ -306,7 +306,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(pure_elements))
+    coord_dict['vertex'] = np.arange(len(pure_elements) + 2)  # Gibbs phase rule
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     coord_dict['component'] = pure_elements
@@ -320,9 +320,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                'GM': (list(str_conds.keys()),
                                                       np.empty(grid_shape[:-1])),
                                                'MU': (list(str_conds.keys()) + ['component'],
-                                                      np.empty(grid_shape)),
+                                                      np.empty(grid_shape[:-1] + (len(pure_elements),))),
                                                'X': (list(str_conds.keys()) + ['vertex', 'component'],
-                                                     np.empty(grid_shape + (grid_shape[-1],))),
+                                                     np.empty(grid_shape + (len(pure_elements),))),
                                                'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
                                                      np.empty(grid_shape + (maximum_internal_dof,))),
                                                'Phase': (list(str_conds.keys()) + ['vertex'],
