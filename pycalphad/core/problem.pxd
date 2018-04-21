@@ -1,5 +1,6 @@
 cdef class Problem:
     cdef public int num_constraints
+    cdef public int num_internal_constraints
     cdef public object composition_sets
     cdef public object conditions
     cdef public object pure_elements

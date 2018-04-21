@@ -100,6 +100,11 @@ class Model(object):
                             self.components))
             self.constituents.append(set(sublattice).intersection(self.components))
         self.components = sorted(self.components)
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
+                                        for el in constituents]
+        self.pure_elements = sorted(set(desired_active_pure_elements))
+        self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -252,7 +257,7 @@ class Model(object):
         if isinstance(statevar, v.Composition):
             return self.moles(statevar.species)
         elif statevar == v.N:
-            return sum(spec.number_of_atoms * self.moles(spec) for spec in self.components)
+            return sum(self.moles(spec) for spec in self.nonvacant_elements)
         elif statevar in [v.T, v.P]:
             return S.Zero
         else:

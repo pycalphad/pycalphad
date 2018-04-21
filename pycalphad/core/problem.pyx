@@ -28,6 +28,7 @@ cdef class Problem:
         dependent_comp = list(dependent_comp)[0]
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases
+        self.num_internal_constraints = num_internal_cons
         self.num_constraints = num_constraints
         # TODO: No more special-casing T and P conditions
         self.temperature = self.conditions['T']
@@ -100,6 +101,32 @@ cdef class Problem:
 
         gradient_term[np.isnan(gradient_term)] = 0
         return gradient_term
+
+    def mass_gradient(self, x_in):
+        cdef CompositionSet compset
+        cdef double[:, :,::1] mass_gradient_matrix = np.zeros((self.num_phases, len(self.nonvacant_elements), self.num_vars))
+        cdef int phase_idx, comp_idx, dof_idx, spidx
+        cdef double[::1] x = np.array(x_in)
+        cdef double[::1] x_tmp, out_phase_mass
+        cdef double[:,::1] x_tmp_2d_view
+        cdef double[::1] out_tmp = np.zeros(self.num_vars + 2)
+        var_idx = 0
+        for phase_idx in range(mass_gradient_matrix.shape[0]):
+            compset = self.composition_sets[phase_idx]
+            spidx = self.num_vars - self.num_phases + phase_idx
+            x_tmp = np.r_[self.pressure, self.temperature, x[var_idx:var_idx+compset.phase_record.phase_dof]]
+            x_tmp_2d_view = <double[:1,:2+compset.phase_record.phase_dof]>&x_tmp[0]
+            for comp_idx in range(mass_gradient_matrix.shape[1]):
+                compset.phase_record.mass_grad(out_tmp, x_tmp, comp_idx)
+                mass_gradient_matrix[phase_idx, comp_idx, var_idx:var_idx+compset.phase_record.phase_dof] = out_tmp[2:2+compset.phase_record.phase_dof]
+                out_phase_mass = <double[:1]>&mass_gradient_matrix[phase_idx, comp_idx, spidx]
+                compset.phase_record.mass_obj(out_phase_mass, x_tmp_2d_view, comp_idx)
+                mass_gradient_matrix[phase_idx, comp_idx, spidx] = out_phase_mass[0]
+                out_tmp[:] = 0
+                for dof_idx in range(compset.phase_record.phase_dof):
+                    mass_gradient_matrix[phase_idx, comp_idx, var_idx + dof_idx] *= x[spidx]
+            var_idx += compset.phase_record.phase_dof
+        return np.array(mass_gradient_matrix).sum(axis=0).T
 
     def constraints(self, x_in):
         cdef CompositionSet compset

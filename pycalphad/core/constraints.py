@@ -1,9 +1,11 @@
 from sympy import ImmutableMatrix, MatrixSymbol, Symbol
 from pycalphad.core.sympydiff_utils import AutowrapFunction, CompileLock
+from pycalphad.core.cache import cacheit
 from pycalphad import variables as v
 from collections import namedtuple
 
 
+@cacheit
 def _build_constraint_functions(variables, constraints, parameters=None):
     if parameters is None:
         parameters = []

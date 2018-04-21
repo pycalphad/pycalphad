@@ -51,7 +51,7 @@ def test_eq_single_phase():
     eq = equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID',
                      {v.T: [1400, 2500], v.P: 101325,
                       v.X('AL'): [0.1, 0.2, 0.3, 0.7, 0.8]}, verbose=True)
-    assert_allclose(eq.GM, res.GM, atol=0.1)
+    assert_allclose(np.squeeze(eq.GM), np.squeeze(res.GM), atol=0.1)
 
 
 def test_eq_b2_without_all_comps():
@@ -91,7 +91,7 @@ def test_dilute_condition():
     # Checked in TC
     assert_allclose(np.squeeze(eq.GM.values), -64415.841)
     # We loosen the tolerance a bit here because our convergence tolerance is too low for the last digit
-    assert_allclose(eq.MU.values, [[[[-335723.28,  -64415.838]]]], atol=1.0)
+    assert_allclose(np.squeeze(eq.MU.values), [-335723.28,  -64415.838], atol=1.0)
 
 def test_eq_illcond_hessian():
     """
@@ -101,11 +101,11 @@ def test_eq_illcond_hessian():
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], 'LIQUID',
                      {v.X('FE'): 0.73999999999999999, v.T: 401.5625, v.P: 1e5})
-    assert_allclose(eq.GM.values, [[[-16507.22325998]]])
+    assert_allclose(np.squeeze(eq.GM.values), -16507.22325998)
     # chemical potentials were checked in TC and accurate to 1 J/mol
     # pycalphad values used for more significant figures
     # once again, py33 converges to a slightly different value versus every other python
-    assert_allclose(eq.MU.values, [[[[-55611.954141,  -2767.72322]]]], atol=0.1)
+    assert_allclose(np.squeeze(eq.MU.values), [-55611.954141,  -2767.72322], atol=0.1)
 
 def test_eq_illcond_magnetic_hessian():
     """
@@ -115,8 +115,8 @@ def test_eq_illcond_magnetic_hessian():
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
                      {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, verbose=True)
-    assert_allclose(eq.GM.values, [[[-31414.46677]]])
-    assert_allclose(eq.MU.values, [[[[-8490.140, -123111.773]]]], atol=0.1)
+    assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], atol=0.1)
 
 
 def test_eq_composition_cond_sorting():
@@ -130,8 +130,8 @@ def test_eq_composition_cond_sorting():
     tc_energy = -143913.3
     tc_mu_fe = -184306.01
     tc_mu_al = -133815.12
-    assert_allclose(eq.GM.values, tc_energy)
-    assert_allclose(eq.MU.values, [[[[tc_mu_al, tc_mu_fe]]]], rtol=1e-6)
+    assert_allclose(np.squeeze(eq.GM.values), tc_energy)
+    assert_allclose(np.squeeze(eq.MU.values), [tc_mu_al, tc_mu_fe], rtol=1e-6)
 
 def test_eq_output_property():
     """
@@ -220,12 +220,12 @@ def test_eq_issue43_chempots_misc_gap():
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], 'GAMMA_PRIME',
                      {v.X('AL'): .1246, v.X('CR'): 1e-9, v.T: 1273, v.P: 101325},
                      verbose=True)
-    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([[[[[-19.47631644, -25.71249032,  -6.0706158]]]]])
+    chempots = 8.31451 * np.squeeze(eq['T'].values) * np.array([-19.47631644, -25.71249032,  -6.0706158])
     mass_error = np.nansum(np.squeeze(eq.NP * eq.X), axis=-2) - \
                  [0.1246, 1e-9, 1-(.1246+1e-9)]
     assert np.max(np.fabs(mass_error)) < 1e-9
-    assert_allclose(eq.GM.values, -81933.259)
-    assert_allclose(eq.MU.values, chempots, atol=1)
+    assert_allclose(np.squeeze(eq.GM.values), -81933.259)
+    assert_allclose(np.squeeze(eq.MU.values), chempots, atol=1)
 
 def test_eq_issue43_chempots_tricky_potentials():
     """
