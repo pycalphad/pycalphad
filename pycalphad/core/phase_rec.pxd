@@ -25,13 +25,13 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object _massfuncs
     cdef public object _massgradfuncs
     cdef public object variables
+    cdef public object pure_elements
+    cdef public object nonvacant_elements
     cdef public double[::1] parameters
     cdef public double[::1] num_sites
     cdef public int[::1] sublattice_dof
     cdef public int phase_dof
     cdef public unicode phase_name
-    cdef public double[:,:,::1] composition_matrices
-    cdef public int vacancy_index
     cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil

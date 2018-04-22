@@ -109,17 +109,15 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     # XXX: Missing inst.phase_name
     # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
     inst.variables = variables
+    inst.pure_elements = pure_elements
+    inst.nonvacant_elements = nonvacant_elements
     inst.phase_dof = 0
     inst.sublattice_dof = np.zeros(num_sites.shape[0], dtype=np.int32)
     inst.parameters = parameters
     inst.num_sites = num_sites
     inst.num_internal_cons = num_internal_cons
     inst.num_multiphase_cons = num_multiphase_cons
-    inst.composition_matrices = np.full((len(pure_elements), num_sites.shape[0], 2), -1.)
-    if 'VA' in pure_elements:
-        inst.vacancy_index = pure_elements.index('VA')
-    else:
-        inst.vacancy_index = -1
+
     var_idx = 0
     for variable in variables:
         if not isinstance(variable, v.SiteFraction):
@@ -155,7 +153,7 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     inst._multiphase_jac = NULL
     if massfuncs is not None:
         inst._massfuncs = massfuncs
-        inst._masses = <func_t**>PyMem_Malloc(len(pure_elements) * sizeof(func_t*))
+        inst._masses = <func_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_t*))
         for el_idx in range(len(nonvacant_elements)):
             massfuncs[el_idx].kernel
             inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
