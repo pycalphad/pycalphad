@@ -93,11 +93,12 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self._massgrads[comp_idx](&dof[0], &self.parameters[0], &out[0])
 
 
-cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
-                                          object ofunc, object gfunc, object hfunc, object massfuncs,
-                                          object massgradfuncs, object internal_cons_func, object internal_jac_func,
-                                          object multiphase_cons_func, object multiphase_jac_func,
-                                          size_t num_internal_cons, size_t num_multiphase_cons):
+cpdef PhaseRecord PhaseRecord_from_cython(unicode phase_name, object comps, object state_variables, object variables,
+                                          double[::1] parameters, object ofunc, object gfunc, object hfunc,
+                                          object massfuncs, object massgradfuncs, object internal_cons_func,
+                                          object internal_jac_func, object multiphase_cons_func,
+                                          object multiphase_jac_func, size_t num_internal_cons,
+                                          size_t num_multiphase_cons):
     cdef:
         int var_idx, subl_index, el_idx
         PhaseRecord inst
@@ -106,26 +107,19 @@ cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double
     pure_elements = sorted(set(desired_active_pure_elements))
     nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
     inst = PhaseRecord()
-    # XXX: Missing inst.phase_name
-    # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
+    inst.phase_name = phase_name
     inst.variables = variables
+    inst.state_variables = state_variables
     inst.pure_elements = pure_elements
     inst.nonvacant_elements = nonvacant_elements
     inst.phase_dof = 0
-    inst.sublattice_dof = np.zeros(num_sites.shape[0], dtype=np.int32)
     inst.parameters = parameters
-    inst.num_sites = num_sites
     inst.num_internal_cons = num_internal_cons
     inst.num_multiphase_cons = num_multiphase_cons
 
-    var_idx = 0
     for variable in variables:
         if not isinstance(variable, v.SiteFraction):
             continue
-        inst.phase_name = <unicode>variable.phase_name
-        subl_index = variable.sublattice_index
-        inst.sublattice_dof[subl_index] += 1
-        var_idx += 1
         inst.phase_dof += 1
     # Trigger lazy computation
     if ofunc is not None:

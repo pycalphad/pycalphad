@@ -121,10 +121,12 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        self.site_fractions = sorted([x for x in self.ast.free_symbols if isinstance(x, v.SiteFraction)], key=str)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
+
+        self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
+        self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
     @staticmethod
     def symbol_replace(obj, symbols):

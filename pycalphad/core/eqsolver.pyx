@@ -220,7 +220,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord_from_cython(comps, value.variables, np.array(value.num_sites, dtype=np.float),
+            phase_records[key] = PhaseRecord_from_cython(key, comps, value.state_variables, value.variables,
                                                          value.parameters, value.obj, value.grad, value.hess,
                                                          value.mass, value.mass_grad,
                                                          value.internal_cons, value.internal_jac,

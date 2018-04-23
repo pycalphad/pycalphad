@@ -215,7 +215,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-    indep_vars = ['T', 'P']
+
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     phase_records = dict()
@@ -250,6 +250,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=Model)
+    state_variables = set()
+    for name in active_phases:
+        mod = models[name]
+        if isinstance(mod, type):
+            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
+        state_variables |= set(mod.state_variables)
+    state_variables = sorted(state_variables, key=str)
     if verbose:
         print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
@@ -258,8 +265,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     max_phase_name_len = max(max_phase_name_len, 6)
     for name in active_phases:
         mod = models[name]
-        if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
         site_fracs = mod.site_fractions
         variables = sorted(site_fracs, key=str)
         maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
@@ -269,7 +274,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             undefs = [x for x in out.free_symbols if (not isinstance(x, v.StateVariable)) and not (x in param_symbols)]
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
-            cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
+            cf, gf = build_functions(out, tuple(state_variables + site_fracs),
                                      parameters=param_symbols)
             hf = None
             if callable_dict.get(name, None) is None:
@@ -281,7 +286,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
 
         if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
             # TODO: In principle, we should also check for undefs in mod.moles()
-            tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+            tup1, tup2 = zip(*[build_functions(mod.moles(el), state_variables + variables,
                                                include_obj=True, include_grad=True,
                                                parameters=param_symbols)
                                for el in pure_elements])
@@ -290,10 +295,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             if mass_grad_dict[name] is None:
                 mass_grad_dict[name] = tup2
 
-        cfuncs = build_constraints(mod, [v.P, v.T] + site_fracs, conds, parameters=param_symbols)
+        cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
 
-        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                              np.array(dbf.phases[name].sublattices, dtype=np.float),
+        phase_records[name.upper()] = PhaseRecord_from_cython(name.upper(), comps, state_variables, variables,
                                                               param_values, callable_dict[name],
                                                               grad_callable_dict[name], hess_callable_dict[name],
                                                               mass_dict[name], mass_grad_dict[name],
@@ -307,7 +311,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
 
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts = calc_opts.copy()
-    grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
+    grid_opts.update({key: value for key, value in str_conds.items() if key in [str(x) for x in state_variables]})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     coord_dict = str_conds.copy()

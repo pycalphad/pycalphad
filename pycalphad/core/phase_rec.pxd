@@ -25,11 +25,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object _massfuncs
     cdef public object _massgradfuncs
     cdef public object variables
+    cdef public object state_variables
     cdef public object pure_elements
     cdef public object nonvacant_elements
     cdef public double[::1] parameters
-    cdef public double[::1] num_sites
-    cdef public int[::1] sublattice_dof
     cdef public int phase_dof
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil
@@ -42,7 +41,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
 
-cpdef PhaseRecord PhaseRecord_from_cython(object comps, object variables, double[::1] num_sites, double[::1] parameters,
+cpdef PhaseRecord PhaseRecord_from_cython(unicode phase_name, object comps, object state_variables,
+                                          object variables, double[::1] parameters,
                                           object ofunc, object gfunc, object hfunc,
                                           object massfuncs, object massgradfuncs,
                                           object internal_cons, object internal_jac,

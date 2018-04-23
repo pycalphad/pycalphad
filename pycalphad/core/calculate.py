@@ -309,18 +309,6 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
 
-    # Convert keyword strings to proper state variable objects
-    # If we don't do this, sympy will get confused during substitution
-    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items())
-    # XXX: CompiledModel assumes P, T are the only state variables
-    if statevar_dict.get(v.P, None) is None:
-        statevar_dict[v.P] = 101325
-    if statevar_dict.get(v.T, None) is None:
-        statevar_dict[v.T] = 300
-    # Sort after default state variable check to fix gh-116
-    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
-    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
-                                                for (key, value) in statevar_dict.items())
     all_phase_data = []
     comp_sets = {}
     largest_energy = 1e30
@@ -330,6 +318,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in unpack_phases(phases))
 
+    state_variables = set()
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
@@ -344,10 +333,23 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 warnings.warn("""Suspending specified phase {} due to
                 some sublattices containing only unspecified components""".format(phase_name))
                 continue
+        state_variables |= set(mod.state_variables)
         if points_dict[phase_name] is None:
             maximum_internal_dof = max(maximum_internal_dof, sum(len(x) for x in mod.constituents))
         else:
             maximum_internal_dof = max(maximum_internal_dof, np.asarray(points_dict[phase_name]).shape[-1])
+
+    state_variables = sorted(state_variables, key=str)
+
+    # Convert keyword strings to proper state variable objects
+    # If we don't do this, sympy will get confused during substitution
+    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items()
+                         if str(key) in [str(x) for x in state_variables])
+
+    # Sort after default state variable check to fix gh-116
+    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
+    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
+                                                for (key, value) in statevar_dict.items())
 
     for phase_name, phase_obj in sorted(active_phases.items()):
         try:
@@ -373,7 +375,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             for undef in undefs:
                 out = out.xreplace({undef: float(0)})
                 warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
-            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
+            comp_sets[phase_name] = build_functions(out, state_variables + variables,
                                                     include_obj=True, include_grad=False,
                                                     parameters=param_symbols)
         else:
@@ -384,12 +386,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                  list(spec.constituents.keys())[0] == spec.name)
                              ]
             # TODO: In principle, we should also check for undefs in mod.moles()
-            mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
+            mass_dict[phase_name] = [build_functions(mod.moles(el), state_variables + variables,
                                                      include_obj=True, include_grad=False,
                                                      parameters=param_symbols)
                                      for el in pure_elements]
-        phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
-                                               np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
+        phase_record = PhaseRecord_from_cython(phase_name, comps, state_variables, variables,
                                                param_values, comp_sets[phase_name], None, None, mass_dict[phase_name],
                                                None, None, None, None, None, 0, 0)
         points = points_dict[phase_name]
