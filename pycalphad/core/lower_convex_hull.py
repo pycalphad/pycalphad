@@ -38,7 +38,7 @@ def lower_convex_hull(global_grid, result_array):
     --------
     None yet.
     """
-    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P', 'N']])
+    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P']])
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
 
@@ -91,10 +91,12 @@ def lower_convex_hull(global_grid, result_array):
     it = np.nditer(result_array_GM_values, flags=['multi_index'])
     comp_coord_shape = tuple(len(result_array.coords[cond]) for cond in comp_conds)
     while not it.finished:
-        indep_idx = it.multi_index[:len(indep_conds)]
+        # XXX: Temporary fix. Do not merge into develop
+        indep_idx = it.multi_index[1:3]
         if len(comp_conds) > 0:
-            comp_idx = np.ravel_multi_index(it.multi_index[len(indep_conds):], comp_coord_shape)
-            idx_comp_values = comp_values[comp_idx]
+            # XXX: Temporary fix. Do not merge into develop
+            comp_idx = np.ravel_multi_index(it.multi_index[3:], comp_coord_shape)
+            idx_comp_values = comp_values[comp_idx, :]
         else:
             idx_comp_values = np.atleast_1d(1.)
         idx_global_grid_X_values = global_grid_X_values[indep_idx]

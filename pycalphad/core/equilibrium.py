@@ -215,7 +215,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-    indep_vars = ['T', 'P', 'N']
+    indep_vars = ['T', 'P']
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     phase_records = dict()
@@ -244,8 +244,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
-    indep_vals = list([float(x) for x in np.atleast_1d(val)]
-                      for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
