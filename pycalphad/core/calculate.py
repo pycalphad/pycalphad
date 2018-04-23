@@ -176,6 +176,7 @@ def _compute_phase_values(components, statevar_dict,
         statevars = statevars_
     pure_elements = [list(x.constituents.keys()) for x in components]
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
+    pure_elements = [x for x in pure_elements if x != 'VA']
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
