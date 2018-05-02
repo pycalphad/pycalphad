@@ -12,7 +12,7 @@ import numpy as np
 DRIVING_FORCE_TOLERANCE = 1e-8
 
 
-def lower_convex_hull(global_grid, result_array):
+def lower_convex_hull(global_grid, state_variables, result_array):
     """
     Find the simplices on the lower convex hull satisfying the specified
     conditions in the result array.
@@ -21,6 +21,8 @@ def lower_convex_hull(global_grid, result_array):
     ----------
     global_grid : Dataset
         A sample of the energy surface of the system.
+    state_variables : list
+        A list of the state variables (e.g., P, T) used in this calculation.
     result_array : Dataset
         This object will be modified!
         Coordinates correspond to conditions axes.
@@ -38,7 +40,7 @@ def lower_convex_hull(global_grid, result_array):
     --------
     None yet.
     """
-    indep_conds = sorted([x for x in sorted(result_array.coords.keys()) if x in ['T', 'P']])
+    indep_conds = sorted([x for x in sorted(global_grid.coords.keys()) if x in [str(k) for k in state_variables]])
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
 
@@ -69,7 +71,7 @@ def lower_convex_hull(global_grid, result_array):
         comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
         # TODO: Assumes N=1
         comp_values /= comp_values.sum(axis=-1, keepdims=True)
-        #print(comp_values)
+        print(comp_values)
 
     # SECOND CASE: Only chemical potential conditions specified
     # TODO: Implementation of chemical potential
@@ -91,11 +93,9 @@ def lower_convex_hull(global_grid, result_array):
     it = np.nditer(result_array_GM_values, flags=['multi_index'])
     comp_coord_shape = tuple(len(result_array.coords[cond]) for cond in comp_conds)
     while not it.finished:
-        # XXX: Temporary fix. Do not merge into develop
-        indep_idx = it.multi_index[1:3]
+        indep_idx = tuple(idx for idx, key in zip(it.multi_index, result_array.coords.keys()) if key in indep_conds)
         if len(comp_conds) > 0:
-            # XXX: Temporary fix. Do not merge into develop
-            comp_idx = np.ravel_multi_index(it.multi_index[3:], comp_coord_shape)
+            comp_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array.coords.keys()) if key in comp_conds), comp_coord_shape)
             idx_comp_values = comp_values[comp_idx, :]
         else:
             idx_comp_values = np.atleast_1d(1.)

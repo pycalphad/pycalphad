@@ -98,7 +98,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
 
 cdef bint add_new_phases(object composition_sets, object removed_compsets, object phase_records,
                          object current_grid, np.ndarray[ndim=1, dtype=np.float64_t] chemical_potentials,
-                         double minimum_df, bint verbose):
+                         double[::1] state_variables, double minimum_df, bint verbose) except *:
     """
     Attempt to add a new phase with the largest driving force (based on chemical potentials). Candidate phases
     are taken from current_grid and modify the composition_sets object. The function returns a boolean indicating
@@ -152,7 +152,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                 return False
         compset = CompositionSet(phase_records[df_phase_name])
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
-                       current_grid.coords['P'], current_grid.coords['T'], False)
+                       state_variables, False)
         composition_sets.append(compset)
         if verbose:
             print('Adding ' + repr(compset) + ' Driving force: ' + str(largest_df))
@@ -172,12 +172,12 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
         phase_idx = 0
         for compset in composition_sets:
             compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                           x[prob.num_vars - prob.num_phases + phase_idx], cur_conds['P'], cur_conds['T'], True)
+                           x[prob.num_vars - prob.num_phases + phase_idx], np.array([cur_conds.get('P', 101325.), cur_conds.get('T', 300.)]), True)
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
     return result
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
                             problem=Problem, solver=InteriorPointSolver):
     """
     Compute equilibrium for the given conditions.
@@ -243,6 +243,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     prop_GM_values = properties['GM'].values
     phase_dof_dict = {name: len(set(phase_records[name].variables) - {v.T, v.P})
                       for name in phase_records.keys()}
+    str_state_variables = [str(k) for k in state_variables if str(k) in grid.coords.keys()]
     it = np.nditer(prop_GM_values, flags=['multi_index'])
 
     while not it.finished:
@@ -254,8 +255,9 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
                                      for a, b in zip(it.multi_index, conds_keys)]))
         if len(cur_conds) == 0:
             cur_conds = properties['GM'].coords
-        num_mass_bals = len([i for i in cur_conds.keys() if i.startswith('X_')]) + 1
-        current_grid = grid.sel(P=cur_conds['P'], T=cur_conds['T'])
+        current_grid = grid.sel(**{key: value for key, value in cur_conds.items() if key in str_state_variables})
+        state_variable_values = np.array([value for key, value in sorted(cur_conds.items(), key=lambda x: str(x[0]))
+                                          if key in str_state_variables])
         # sum of independently specified components
         indep_sum = np.sum([float(val) for i, val in cur_conds.items() if i.startswith('X_')])
         if indep_sum > 1:
@@ -285,7 +287,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             phase_amt = prop_NP_values[it.multi_index + np.index_exp[phase_idx]]
             phase_amt = max(phase_amt, MIN_PHASE_FRACTION)
             compset = CompositionSet(phase_record)
-            compset.update(sfx, phase_amt, cur_conds['P'], cur_conds['T'], False)
+            compset.update(sfx, phase_amt, state_variable_values, False)
             composition_sets.append(compset)
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
@@ -300,7 +302,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             if result.converged:
                 chemical_potentials[:] = result.chemical_potentials
             changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
-                                            current_grid, chemical_potentials,
+                                            current_grid, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
             changed_phases |= remove_degenerate_phases(composition_sets, removed_compsets, 1e-3, 0, verbose)
             iterations += 1

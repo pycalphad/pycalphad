@@ -8,7 +8,7 @@ import pycalphad.variables as v
 from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
-from pycalphad.core.lower_convex_hull import lower_convex_hull
+from pycalphad.core.starting_point import starting_point
 from pycalphad.core.sympydiff_utils import build_functions
 from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -200,7 +200,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
-    from pycalphad import __version__ as pycalphad_version
     comps = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
@@ -219,7 +218,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     phase_records = dict()
-    diagnostic = kwargs.pop('_diagnostic', False)
     callable_dict = kwargs.pop('callables', dict())
     mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
     mass_grad_dict = unpack_kwarg(kwargs.pop('massgradfuncs', None), default_arg=None)
@@ -250,7 +248,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=Model)
-    state_variables = set()
+    # P and T are always included, for backwards compatibility purposes
+    state_variables = {v.P, v.T}
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
@@ -314,36 +313,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts.update({key: value for key, value in str_conds.items() if key in [str(x) for x in state_variables]})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-    coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(pure_elements))
-    grid_shape = np.meshgrid(*coord_dict.values(),
-                             indexing='ij', sparse=False)[0].shape
-    coord_dict['component'] = pure_elements
-
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
                                           model=models, callables=callable_dict, massfuncs=mass_dict,
                                           fake_points=True, parameters=parameters, **grid_opts)
-
-    properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
-                                                      np.empty(grid_shape)),
-                                               'GM': (list(str_conds.keys()),
-                                                      np.empty(grid_shape[:-1])),
-                                               'MU': (list(str_conds.keys()) + ['component'],
-                                                      np.empty(grid_shape)),
-                                               'X': (list(str_conds.keys()) + ['vertex', 'component'],
-                                                     np.empty(grid_shape + (grid_shape[-1],))),
-                                               'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
-                                                     np.empty(grid_shape + (maximum_internal_dof,))),
-                                               'Phase': (list(str_conds.keys()) + ['vertex'],
-                                                         np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
-                                               'points': (list(str_conds.keys()) + ['vertex'],
-                                                          np.empty(grid_shape, dtype=np.int32))
-                                               },
-                                              coords=coord_dict,
-                                              attrs={'engine': 'pycalphad %s' % pycalphad_version},
-                                              )
-    # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, properties)
+    properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
+    nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
+    grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements),)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
@@ -363,13 +338,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                              list(str_conds.keys()), verbose)
+                                                               list(str_conds.keys()), state_variables, verbose)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                 list(str_conds.keys()), verbose)
+                                                                  list(str_conds.keys()), state_variables, verbose)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]

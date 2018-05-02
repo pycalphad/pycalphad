@@ -18,7 +18,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     def __cinit__(self, PhaseRecord prx):
         self.phase_record = prx
         self.zero_seen = 0
-        self.dof = np.zeros(len(self.phase_record.variables)+2)
+        self.dof = np.zeros(len(self.phase_record.variables)+len(self.phase_record.state_variables))
         self.X = np.zeros(len(self.phase_record.nonvacant_elements))
         self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
@@ -109,10 +109,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives) nogil:
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives) nogil:
         cdef int comp_idx
-        self.dof[0] = pressure
-        self.dof[1] = temperature
+        self.dof[0] = state_variables[0]
+        self.dof[1] = state_variables[1]
         self.dof[2:] = site_fracs
         self.NP = phase_amt
         self.energy = 0

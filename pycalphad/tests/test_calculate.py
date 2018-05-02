@@ -44,3 +44,7 @@ def test_issue116():
     result_one = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
     result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
     np.testing.assert_array_equal(result_one.GM.values, result_two.GM.values)
+
+if __name__ == '__main__':
+    import nose
+    nose.run()
