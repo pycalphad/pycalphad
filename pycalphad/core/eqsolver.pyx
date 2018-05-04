@@ -151,6 +151,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
                 return False
         compset = CompositionSet(phase_records[df_phase_name])
+        print('state variables', np.array(state_variables))
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
                        state_variables, False)
         composition_sets.append(compset)

@@ -229,19 +229,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     param_symbols = tuple(parameters.keys())
     param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     maximum_internal_dof = 0
-    # Temporary solution until constraint system improves
-    if not conditions.get(v.N, False):
-        conditions[v.N] = 1
-    if conditions[v.N] != 1:
-        raise ConditionError('N!=1 is not yet supported')
-    # Modify conditions values to be within numerical limits, e.g., X(AL)=0
-    # Also wrap single-valued conditions with lists
-    conds = _adjust_conditions(conditions)
-    for cond in conds.keys():
-        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
-            raise ConditionError('{} refers to non-existent component'.format(cond))
-    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    num_calcs = np.prod([len(i) for i in str_conds.values()])
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -256,6 +243,25 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             models[name] = mod = mod(dbf, comps, name, parameters=parameters)
         state_variables |= set(mod.state_variables)
     state_variables = sorted(state_variables, key=str)
+    # Temporary solution until constraint system improves
+    if not conditions.get(v.N, False):
+        conditions[v.N] = 1
+    if conditions[v.N] != 1:
+        raise ConditionError('N!=1 is not yet supported')
+    # Modify conditions values to be within numerical limits, e.g., X(AL)=0
+    # Also wrap single-valued conditions with lists
+    conds = _adjust_conditions(conditions)
+    if (v.P not in state_variables) and (v.P in conds.keys()):
+        conds.pop(v.P)
+        warnings.warn('The following state variable was passed, but unused: Pressure (P)')
+    if (v.T not in state_variables) and (v.T in conds.keys()):
+        conds.pop(v.T)
+        warnings.warn('The following state variable was passed, but unused: Temperature (T)')
+    for cond in conds.keys():
+        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
+            raise ConditionError('{} refers to non-existent component'.format(cond))
+    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
+    num_calcs = np.prod([len(i) for i in str_conds.values()])
     if verbose:
         print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
