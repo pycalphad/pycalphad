@@ -178,9 +178,9 @@ def _compute_phase_values(components, statevar_dict,
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
-    bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
+    bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     pts = points.reshape(-1, points.shape[-1]).T
-    dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
+    dof = np.concatenate((bc_statevars.T, pts.T), axis=1)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
     phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
     phase_record.obj(phase_output, dof)
@@ -202,7 +202,6 @@ def _compute_phase_values(components, statevar_dict,
                                       np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
         phase_names = np.full(points.shape[:-1], phase_record.phase_name, dtype='U'+str(len(phase_record.phase_name)))
-
     if fake_points:
         phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(pure_elements)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
 
