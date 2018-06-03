@@ -214,16 +214,31 @@ def _compute_phase_values(components, statevar_dict,
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
+    # In each case, first check if we need to do this...
+    # It can be expensive for many points (~14s for 500M points)
     if fake_points:
-        expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
-        expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
+        desired_shape = points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof)
+        if points.shape == desired_shape:
+            expanded_points = points
+        else:
+            expanded_points = np.full(desired_shape, np.nan)
+            expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
-        t = time.time()
-        expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
-        print('expand points creation of full time', time.time() - t)
-        t = time.time()
-        expanded_points[..., :points.shape[-1]] = points
-        print('expand points assignment time', time.time() - t)
+        q = time.time()
+        desired_shape = points.shape[:-1] + (maximum_internal_dof,)
+        if points.shape == desired_shape:
+            expanded_points = points
+        else:
+            t = time.time()
+            expanded_points = np.full(desired_shape, np.nan)
+            print('expand points creation of full time', time.time() - t)
+            t = time.time()
+            expanded_points[..., :points.shape[-1]] = points
+            print('expand points assignment time', time.time() - t)
+            print(points.shape)
+            print(expanded_points.shape)
+            print(maximum_internal_dof)
+        print('total reshape time', time.time() - q)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
