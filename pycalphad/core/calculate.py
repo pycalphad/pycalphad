@@ -20,7 +20,6 @@ import collections
 import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
-import time
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
     """
@@ -178,16 +177,12 @@ def _compute_phase_values(components, statevar_dict,
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
-    t = time.time()
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     pts = points.reshape(-1, points.shape[-1])
     dof = np.concatenate((bc_statevars.T, pts), axis=1)
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    print('obj setup time', time.time() - t)
-    t = time.time()
     phase_record.obj(phase_output, dof)
-    print('obj time', time.time() - t)
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
 
@@ -224,21 +219,15 @@ def _compute_phase_values(components, statevar_dict,
             expanded_points = np.full(desired_shape, np.nan)
             expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
-        q = time.time()
         desired_shape = points.shape[:-1] + (maximum_internal_dof,)
         if points.shape == desired_shape:
             expanded_points = points
         else:
-            t = time.time()
-            expanded_points = np.full(desired_shape, np.nan)
-            print('expand points creation of full time', time.time() - t)
-            t = time.time()
-            expanded_points[..., :points.shape[-1]] = points
-            print('expand points assignment time', time.time() - t)
-            print(points.shape)
-            print(expanded_points.shape)
-            print(maximum_internal_dof)
-        print('total reshape time', time.time() - q)
+            # TODO: most optimal solution would be to take pre-extended arrays as an argument and remove this
+            # This still copies the array, but is more efficient than filling
+            # an array with np.nan, then copying the existing points
+            append_nans = np.full(desired_shape[:-1] + (desired_shape[-1] - points.shape[-1],), np.nan)
+            expanded_points = np.append(points, append_nans, axis=-1)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
