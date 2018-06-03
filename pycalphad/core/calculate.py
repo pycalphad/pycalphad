@@ -180,7 +180,7 @@ def _compute_phase_values(components, statevar_dict,
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     pts = points.reshape(-1, points.shape[-1])
-    dof = np.concatenate((bc_statevars.T, pts), axis=1)
+    dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
     phase_record.obj(phase_output, dof)
