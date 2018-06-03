@@ -21,6 +21,7 @@ import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
 
+
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
     """
     Generate points for a fictitious hyperplane used as a starting point for energy minimization.
