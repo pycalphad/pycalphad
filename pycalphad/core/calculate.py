@@ -20,7 +20,7 @@ import collections
 import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
-
+import time
 
 def _generate_fake_points(components, statevar_dict, energy_limit, output, maximum_internal_dof, broadcast):
     """
@@ -178,12 +178,16 @@ def _compute_phase_values(components, statevar_dict,
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
+    t = time.time()
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
     pts = points.reshape(-1, points.shape[-1]).T
     dof = np.concatenate((bc_statevars.T, pts.T), axis=1)
     phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
     phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
+    print('obj setup time', time.time() - t)
+    t = time.time()
     phase_record.obj(phase_output, dof)
+    print('obj time', time.time() - t)
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
 
@@ -214,8 +218,10 @@ def _compute_phase_values(components, statevar_dict,
         expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
         expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
+        t = time.time()
         expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
         expanded_points[..., :points.shape[-1]] = points
+        print('expand points time', time.time() - t)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
