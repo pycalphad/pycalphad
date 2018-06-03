@@ -180,10 +180,10 @@ def _compute_phase_values(components, statevar_dict,
     # we need to force broadcasting and flatten the result before calling
     t = time.time()
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
-    pts = points.reshape(-1, points.shape[-1]).T
-    dof = np.concatenate((bc_statevars.T, pts.T), axis=1)
-    phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
-    phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
+    pts = points.reshape(-1, points.shape[-1])
+    dof = np.concatenate((bc_statevars.T, pts), axis=1)
+    phase_output = np.zeros(dof.shape[0], order='C')
+    phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
     print('obj setup time', time.time() - t)
     t = time.time()
     phase_record.obj(phase_output, dof)
@@ -220,8 +220,10 @@ def _compute_phase_values(components, statevar_dict,
     else:
         t = time.time()
         expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
+        print('expand points creation of full time', time.time() - t)
+        t = time.time()
         expanded_points[..., :points.shape[-1]] = points
-        print('expand points time', time.time() - t)
+        print('expand points assignment time', time.time() - t)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
