@@ -41,13 +41,17 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void obj_parallel(self, double[::1] out, double[:,::1] dof) nogil:
-        """Wrapper around PhaseRecord.obj to compute the phase values in parallel"""
+        """
+        Wrapper around PhaseRecord.obj to compute the phase values in parallel.
+
+        Set the maximum number of threads using the environment variable OMP_NUM_THREADS.
+        """
         # we define the total number of chunks to be one greater than what we will parallelize
         # this ensures that we can do a final pass and get any remaining rows left by integer division
         # the whole reason we are doing this, rather than letting prange sort it out,
         # is because prx.obj specifically expects that the inputs are vectorized
         # e.g. out must be 1d and dof must be 2d.
-        cdef int nprocs = openmp.omp_get_num_procs()
+        cdef int nprocs = openmp.omp_get_max_threads()
         cdef int chunks = nprocs + 1
         cdef int chunksize = out.shape[0] // chunks
         cdef int final_chunk_idx = (chunks - 1)*chunksize
