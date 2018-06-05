@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.7+6.g1069428 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.7+7.g7239366 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7+6.g1069428
+                0.7+7.g7239366
               </div>
             
           
@@ -306,7 +306,7 @@ similar phases known by different colloquial names.</p>
 
 <dl class="staticmethod">
 <dt id="pycalphad.io.database.Database.from_file">
-<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>fmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Database from a file.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -357,7 +357,7 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 
 <dl class="staticmethod">
 <dt id="pycalphad.io.database.Database.register_format">
-<em class="property">static </em><code class="descname">register_format</code><span class="sig-paren">(</span><em>read=None</em>, <em>write=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
+<em class="property">static </em><code class="descname">register_format</code><span class="sig-paren">(</span><em>fmt</em>, <em>read=None</em>, <em>write=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add support for reading and/or writing the specified format.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -691,7 +691,7 @@ Note that not all of these keywords are fully supported yet.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.7+6.g1069428',
+            VERSION:'0.7+7.g7239366',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -713,9 +713,7 @@ Note that not all of these keywords are fully supported yet.</p>
 
   <script type="text/javascript">
       jQuery(function () {
-          
-          SphinxRtdTheme.Navigation.enableSticky();
-          
+          SphinxRtdTheme.Navigation.enable(true);
       });
   </script> 
 
