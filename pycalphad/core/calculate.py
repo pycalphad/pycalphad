@@ -214,11 +214,8 @@ def _compute_phase_values(components, statevar_dict,
     # It can be expensive for many points (~14s for 500M points)
     if fake_points:
         desired_shape = points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof)
-        if points.shape == desired_shape:
-            expanded_points = points
-        else:
-            expanded_points = np.full(desired_shape, np.nan)
-            expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
+        expanded_points = np.full(desired_shape, np.nan)
+        expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
         desired_shape = points.shape[:-1] + (maximum_internal_dof,)
         if points.shape == desired_shape:
