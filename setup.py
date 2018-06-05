@@ -28,7 +28,6 @@ setup(
                            'pycalphad/core/phase_rec.pyx',
                            'pycalphad/core/composition_set.pyx',
                            'pycalphad/core/problem.pyx',
-                           'pycalphad/core/compute_phase_values.pyx',
                            ]),
     package_data={
         'pycalphad/core': ['*.pxd'],

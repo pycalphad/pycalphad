@@ -12,7 +12,6 @@ from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython
-from pycalphad.core.compute_phase_values import parallel_obj
 import pycalphad.variables as v
 from sympy import Symbol
 import numpy as np
@@ -184,7 +183,7 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    parallel_obj(phase_record, phase_output, dof)
+    phase_record.obj_parallel(phase_output, dof)
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
 
