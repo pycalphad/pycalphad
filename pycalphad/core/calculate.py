@@ -120,8 +120,9 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
 
 
 def _compute_phase_values(components, statevar_dict,
-                          points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
-                          largest_energy=None):
+                          points, phase_record, output, maximum_internal_dof,
+                          broadcast=True, fake_points=False,
+                          largest_energy=None, parallel=True,):
     """
     Calculate output values for a particular phase.
 
@@ -147,6 +148,8 @@ def _compute_phase_values(components, statevar_dict,
         If True, the first few points of the output surface will be fictitious
         points used to define an equilibrium hyperplane guaranteed to be above
         all the other points. This is used for convex hull computations.
+    parallel : bool, optional
+        If True, will calculate the objective function values in parallel. Defaults to True.
 
     Returns
     -------
@@ -183,7 +186,10 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    phase_record.obj(phase_output, dof)
+    if parallel:
+        phase_record.obj_parallel(phase_output, dof)
+    else:
+        phase_record.obj(phase_output, dof)
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
 
@@ -244,7 +250,8 @@ def _compute_phase_values(components, statevar_dict,
     return Dataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False,
+              broadcast=True, parameters=None, parallel=True, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -285,6 +292,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         The density of points is determined by 'pdens'
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    parallel : bool, optional
+        If True, will calculate phase values in parallel. Defaults to True.
 
     Returns
     -------
@@ -410,7 +419,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
-                                         largest_energy=float(largest_energy), fake_points=fp)
+                                         largest_energy=float(largest_energy),
+                                         fake_points=fp, parallel=parallel)
         all_phase_data.append(phase_ds)
 
     # speedup for single-phase case (found by profiling)

@@ -27,7 +27,8 @@ setup(
     ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
                            'pycalphad/core/phase_rec.pyx',
                            'pycalphad/core/composition_set.pyx',
-                           'pycalphad/core/problem.pyx']),
+                           'pycalphad/core/problem.pyx',
+                           ]),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },

@@ -23,6 +23,12 @@ def test_surface():
     calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC',
                 T=1273., mode='numpy')
 
+def test_parallel_serial_calculate():
+    "Serial and parallel objective functions should produce the same result."
+    serial = calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC', T=1273., parallel=False)
+    parallel = calculate(DBF, ['AL', 'CR', 'NI'], 'L12_FCC', T=1273., parallel=True)
+    np.testing.assert_array_equal(serial.GM.values, parallel.GM.values)
+
 @nose.tools.raises(AttributeError)
 def test_unknown_model_attribute():
     "Sampling an unknown model attribute raises exception."
