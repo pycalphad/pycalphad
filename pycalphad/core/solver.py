@@ -2,14 +2,53 @@ import ipopt
 ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
-from pycalphad.core.constants import MAX_SOLVE_DRIVING_FORCE
+from pycalphad.core.constants import MAX_SOLVE_DRIVING_FORCE, MAX_SOLVE_ITERATIONS
+from pycalphad.variables import string_type
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
 
 class InteriorPointSolver(object):
-    def __init__(self, verbose=False):
+    def __init__(self, verbose=False, max_driving_force=None, **ipopt_options):
         self.verbose = verbose
+        self.max_driving_force = max_driving_force or MAX_SOLVE_DRIVING_FORCE
+
+        # set default options
+        self.ipopt_options = {
+            'max_iter': MAX_SOLVE_ITERATIONS,
+            'print_level': 0,
+            # This option improves convergence when using L-BFGS
+            'limited_memory_max_history': 100,
+            'tol': 1e-1,
+            'constr_viol_tol': 1e-12
+        }
+        if not self.verbose:
+            # suppress the "This program contains Ipopt" banner
+            self.ipopt_options['sb'] = ipopt_options.pop('sb', 'yes')
+
+        # update the default options with the passed options
+        self.ipopt_options.update(ipopt_options)
+
+
+    def apply_options(self, problem):
+        """
+        Apply global options to the solver
+
+        Parameters
+        ----------
+        problem : ipopt.problem
+            A problem object that will be solved
+
+        Notes
+        -----
+        Strings are encoded to byte strings.
+        """
+        for option, value in self.ipopt_options.items():
+            if isinstance(value, string_type):
+                problem.addOption(option.encode(), value.encode())
+            else:
+                problem.addOption(option.encode(), value)
+
 
     def solve(self, prob):
         cur_conds = prob.conditions
@@ -23,20 +62,12 @@ class InteriorPointSolver(object):
             cl=prob.cl,
             cu=prob.cu
         )
+        self.apply_options(nlp)
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
-        nlp.addOption(b'print_level', 0)
-        if not self.verbose:
-            # suppress the "This program contains Ipopt" banner
-            nlp.addOption(b'sb', b'yes')
-        nlp.addOption(b'tol', 1e-1)
-        nlp.addOption(b'constr_viol_tol', 1e-12)
-        # This option improves convergence when using L-BFGS
-        nlp.addOption(b'limited_memory_max_history', 100)
-        nlp.addOption(b'max_iter', 200)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
-        if dual_inf > MAX_SOLVE_DRIVING_FORCE:
+        if dual_inf > self.max_driving_force:
             if self.verbose:
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds
@@ -47,7 +78,7 @@ class InteriorPointSolver(object):
                 # Otherwise we are liable to have subtle mass balance errors
                 nlp.addOption(b'honor_original_bounds', b'no')
             else:
-                nlp.addOption(b'dual_inf_tol', MAX_SOLVE_DRIVING_FORCE)
+                nlp.addOption(b'dual_inf_tol', self.max_driving_force)
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
