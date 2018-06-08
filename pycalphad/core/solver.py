@@ -9,9 +9,41 @@ SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potential
 
 
 class InteriorPointSolver(object):
-    def __init__(self, verbose=False, max_driving_force=None, **ipopt_options):
+    """
+    Standard solver class that uses IPOPT.
+    Should implement a ``solve`` method.
+
+    Attributes
+    ----------
+    verbose : bool
+        If True, will print solver diagonstics. Defaults to False.
+    max_driving_force : float
+        Maximum driving force allowed. Defaults to pycalphad.core.constants.MAX_SOLVE_DRIVING_FORCE.
+        Used to tighten constraints, if necessary.
+
+    Methods
+    -------
+    solve
+        Solve a pycalphad.core.problem.Problem
+
+    """
+
+    def __init__(self, verbose=False, max_driving_force=MAX_SOLVE_DRIVING_FORCE, **ipopt_options):
+        """
+        Standard solver class that uses IPOPT.
+
+        Parameters
+        ----------
+        verbose : bool
+            If True, will print solver diagonstics. Defaults to False.
+        max_driving_force : float
+            Maximum driving force allowed
+        ipopt_options : dict
+            See https://www.coin-or.org/Ipopt/documentation/node40.html for all options
+
+        """
         self.verbose = verbose
-        self.max_driving_force = max_driving_force or MAX_SOLVE_DRIVING_FORCE
+        self.max_driving_force = max_driving_force
 
         # set default options
         self.ipopt_options = {
@@ -51,6 +83,18 @@ class InteriorPointSolver(object):
 
 
     def solve(self, prob):
+        """
+        Solve a non-linear problem
+
+        Parameters
+        ----------
+        prob : pycalphad.core.problem.Problem
+
+        Returns
+        -------
+        SolverResult
+
+        """
         cur_conds = prob.conditions
         comps = prob.pure_elements
         nlp = ipopt.problem(
