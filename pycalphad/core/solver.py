@@ -2,7 +2,6 @@ import ipopt
 ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
-from pycalphad.core.constants import MAX_SOLVE_DRIVING_FORCE, MAX_SOLVE_ITERATIONS
 from pycalphad.variables import string_type
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
@@ -33,9 +32,9 @@ class InteriorPointSolver(SolverBase):
     ----------
     verbose : bool
         If True, will print solver diagonstics. Defaults to False.
-    max_driving_force : float
-        Maximum driving force allowed. Defaults to pycalphad.core.constants.MAX_SOLVE_DRIVING_FORCE.
-        Used to tighten constraints, if necessary.
+    infeasibility_threshold : float
+        Dual infeasibility threshold used to tighten constraints and
+        attempt a second solve, if necessary. Defaults to 1e-4.
     ipopt_options : dict
         Dictionary of options to pass to IPOPT.
 
@@ -48,7 +47,7 @@ class InteriorPointSolver(SolverBase):
 
     """
 
-    def __init__(self, verbose=False, max_driving_force=MAX_SOLVE_DRIVING_FORCE, **ipopt_options):
+    def __init__(self, verbose=False, infeasibility_threshold=1e-4, **ipopt_options):
         """
         Standard solver class that uses IPOPT.
 
@@ -56,18 +55,19 @@ class InteriorPointSolver(SolverBase):
         ----------
         verbose : bool
             If True, will print solver diagonstics. Defaults to False.
-        max_driving_force : float
-            Maximum driving force allowed
+        infeasibility_threshold : float
+            Dual infeasibility threshold used to tighten constraints and
+            attempt a second solve, if necessary. Defaults to 1e-4.
         ipopt_options : dict
             See https://www.coin-or.org/Ipopt/documentation/node40.html for all options
 
         """
         self.verbose = verbose
-        self.max_driving_force = max_driving_force
+        self.infeasibility_threshold = infeasibility_threshold
 
         # set default options
         self.ipopt_options = {
-            'max_iter': MAX_SOLVE_ITERATIONS,
+            'max_iter': 200,
             'print_level': 0,
             # This option improves convergence when using L-BFGS
             'limited_memory_max_history': 100,
@@ -131,7 +131,7 @@ class InteriorPointSolver(SolverBase):
         length_scale = max(length_scale, 1e-9)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
-        if dual_inf > self.max_driving_force:
+        if dual_inf > self.infeasibility_threshold:
             if self.verbose:
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds
@@ -142,7 +142,7 @@ class InteriorPointSolver(SolverBase):
                 # Otherwise we are liable to have subtle mass balance errors
                 nlp.addOption(b'honor_original_bounds', b'no')
             else:
-                nlp.addOption(b'dual_inf_tol', self.max_driving_force)
+                nlp.addOption(b'dual_inf_tol', self.infeasibility_threshold)
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
