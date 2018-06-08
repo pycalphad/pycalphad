@@ -7,11 +7,27 @@ from pycalphad.variables import string_type
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
+class SolverBase(object):
+    """"Base class for solvers."""
+    def solve(self, prob):
+        """
+        *Implement this method.*
+        Solve a non-linear problem
 
-class InteriorPointSolver(object):
+        Parameters
+        ----------
+        prob : pycalphad.core.problem.Problem
+
+        Returns
+        -------
+        pycalphad.core.solver.SolverResult
+        """
+        raise NotImplementedError("A subclass of Solver must be implemented.")
+
+
+class InteriorPointSolver(SolverBase):
     """
     Standard solver class that uses IPOPT.
-    Should implement a ``solve`` method.
 
     Attributes
     ----------
