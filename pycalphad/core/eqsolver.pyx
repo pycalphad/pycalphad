@@ -296,7 +296,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
-    iter_solver = solver or InteriorPointSolver(verbose=verbose)
+    iter_solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):

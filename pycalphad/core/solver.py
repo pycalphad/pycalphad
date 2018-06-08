@@ -36,11 +36,15 @@ class InteriorPointSolver(SolverBase):
     max_driving_force : float
         Maximum driving force allowed. Defaults to pycalphad.core.constants.MAX_SOLVE_DRIVING_FORCE.
         Used to tighten constraints, if necessary.
+    ipopt_options : dict
+        Dictionary of options to pass to IPOPT.
 
     Methods
     -------
     solve
         Solve a pycalphad.core.problem.Problem
+    apply_options
+        Encodes ipopt_options and applies them to problem
 
     """
 
