@@ -9,6 +9,7 @@ from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
+from pycalphad.core.solver import SolverBase
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -343,3 +344,11 @@ def test_equilibrium_raises_when_no_phases_can_be_active():
     """Equliibrium raises when the components passed cannot give any active phases"""
     # all phases contain AL and/or FE in a sublattice, so no phases can be active
     equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
+
+
+@raises(NotImplementedError)
+def test_equilibrium_raises_with_invalid_solver():
+    """
+    SolverBase instances passed to equilibrium should raise an error.
+    """
+    equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())

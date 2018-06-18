@@ -252,7 +252,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     return result
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, verbose,
-                            problem=Problem, solver=InteriorPointSolver):
+                            problem=Problem, solver=None):
     """
     Compute equilibrium for the given conditions.
     This private function is meant to be called from a worker subprocess.
@@ -273,6 +273,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         List of conditions axes in dimension order.
     verbose : bool
         Print details.
+    problem : pycalphad.core.problem.Problem
+        Problem instance
+    solver : pycalphad.core.solver.SolverBase
+        Instance of a SolverBase subclass. If None is supplied, defaults to a
+        pycalphad.core.solver.InteriorPointSolver
 
     Returns
     -------
@@ -291,6 +296,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
+    iter_solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
@@ -362,7 +368,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         energy = prop_GM_values[it.multi_index]
         # Remove duplicate phases -- we will add them back later
         remove_degenerate_phases(composition_sets, [], 0.5, 100, verbose)
-        iter_solver = solver(verbose=verbose)
         iterations = 0
         history = []
         while iterations < 10:
