@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.solver &mdash; pycalphad 0.7+7.g7239366 documentation</title>
+  <title>pycalphad.core.solver &mdash; pycalphad 0.7+8.gc5c8df6 documentation</title>
   
 
   
@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
@@ -60,7 +59,7 @@
             
             
               <div class="version">
-                0.7+7.g7239366
+                0.7+8.gc5c8df6
               </div>
             
           
@@ -157,16 +156,119 @@
 <span class="n">ipopt</span><span class="o">.</span><span class="n">setLoggingLevel</span><span class="p">(</span><span class="mi">50</span><span class="p">)</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span>
+<span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="k">import</span> <span class="n">string_type</span>
 
 <span class="n">SolverResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;SolverResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;converged&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;chemical_potentials&#39;</span><span class="p">])</span>
 
+<div class="viewcode-block" id="SolverBase"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase">[docs]</a><span class="k">class</span> <span class="nc">SolverBase</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;&quot;Base class for solvers.&quot;&quot;&quot;</span>
+<div class="viewcode-block" id="SolverBase.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.SolverBase.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        *Implement this method.*</span>
+<span class="sd">        Solve a non-linear problem</span>
 
-<div class="viewcode-block" id="InteriorPointSolver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver">[docs]</a><span class="k">class</span> <span class="nc">InteriorPointSolver</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prob : pycalphad.core.problem.Problem</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        pycalphad.core.solver.SolverResult</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s2">&quot;A subclass of Solver must be implemented.&quot;</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="InteriorPointSolver"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver">[docs]</a><span class="k">class</span> <span class="nc">InteriorPointSolver</span><span class="p">(</span><span class="n">SolverBase</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Standard solver class that uses IPOPT.</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    verbose : bool</span>
+<span class="sd">        If True, will print solver diagonstics. Defaults to False.</span>
+<span class="sd">    infeasibility_threshold : float</span>
+<span class="sd">        Dual infeasibility threshold used to tighten constraints and</span>
+<span class="sd">        attempt a second solve, if necessary. Defaults to 1e-4.</span>
+<span class="sd">    ipopt_options : dict</span>
+<span class="sd">        Dictionary of options to pass to IPOPT.</span>
+
+<span class="sd">    Methods</span>
+<span class="sd">    -------</span>
+<span class="sd">    solve</span>
+<span class="sd">        Solve a pycalphad.core.problem.Problem</span>
+<span class="sd">    apply_options</span>
+<span class="sd">        Encodes ipopt_options and applies them to problem</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">infeasibility_threshold</span><span class="o">=</span><span class="mf">1e-4</span><span class="p">,</span> <span class="o">**</span><span class="n">ipopt_options</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Standard solver class that uses IPOPT.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        verbose : bool</span>
+<span class="sd">            If True, will print solver diagonstics. Defaults to False.</span>
+<span class="sd">        infeasibility_threshold : float</span>
+<span class="sd">            Dual infeasibility threshold used to tighten constraints and</span>
+<span class="sd">            attempt a second solve, if necessary. Defaults to 1e-4.</span>
+<span class="sd">        ipopt_options : dict</span>
+<span class="sd">            See https://www.coin-or.org/Ipopt/documentation/node40.html for all options</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span> <span class="o">=</span> <span class="n">verbose</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">infeasibility_threshold</span> <span class="o">=</span> <span class="n">infeasibility_threshold</span>
+
+        <span class="c1"># set default options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ipopt_options</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;max_iter&#39;</span><span class="p">:</span> <span class="mi">200</span><span class="p">,</span>
+            <span class="s1">&#39;print_level&#39;</span><span class="p">:</span> <span class="mi">0</span><span class="p">,</span>
+            <span class="c1"># This option improves convergence when using L-BFGS</span>
+            <span class="s1">&#39;limited_memory_max_history&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
+            <span class="s1">&#39;tol&#39;</span><span class="p">:</span> <span class="mf">1e-1</span><span class="p">,</span>
+            <span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">:</span> <span class="mf">1e-12</span>
+        <span class="p">}</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
+            <span class="c1"># suppress the &quot;This program contains Ipopt&quot; banner</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">ipopt_options</span><span class="p">[</span><span class="s1">&#39;sb&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">ipopt_options</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;sb&#39;</span><span class="p">,</span> <span class="s1">&#39;yes&#39;</span><span class="p">)</span>
+
+        <span class="c1"># update the default options with the passed options</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">ipopt_options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">ipopt_options</span><span class="p">)</span>
+
+
+<div class="viewcode-block" id="InteriorPointSolver.apply_options"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver.apply_options">[docs]</a>    <span class="k">def</span> <span class="nf">apply_options</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">problem</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Apply global options to the solver</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        problem : ipopt.problem</span>
+<span class="sd">            A problem object that will be solved</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        Strings are encoded to byte strings.</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">for</span> <span class="n">option</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ipopt_options</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">string_type</span><span class="p">):</span>
+                <span class="n">problem</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">value</span><span class="o">.</span><span class="n">encode</span><span class="p">())</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="n">problem</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="n">option</span><span class="o">.</span><span class="n">encode</span><span class="p">(),</span> <span class="n">value</span><span class="p">)</span></div>
+
 
 <div class="viewcode-block" id="InteriorPointSolver.solve"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.solver.InteriorPointSolver.solve">[docs]</a>    <span class="k">def</span> <span class="nf">solve</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prob</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Solve a non-linear problem</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        prob : pycalphad.core.problem.Problem</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        SolverResult</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">cur_conds</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">conditions</span>
         <span class="n">comps</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">pure_elements</span>
         <span class="n">nlp</span> <span class="o">=</span> <span class="n">ipopt</span><span class="o">.</span><span class="n">problem</span><span class="p">(</span>
@@ -178,20 +280,12 @@
             <span class="n">cl</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">,</span>
             <span class="n">cu</span><span class="o">=</span><span class="n">prob</span><span class="o">.</span><span class="n">cu</span>
         <span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">apply_options</span><span class="p">(</span><span class="n">nlp</span><span class="p">)</span>
         <span class="n">length_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">))</span>
         <span class="n">length_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">length_scale</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
-        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;print_level&#39;</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
-            <span class="c1"># suppress the &quot;This program contains Ipopt&quot; banner</span>
-            <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;sb&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;yes&#39;</span><span class="p">)</span>
-        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;tol&#39;</span><span class="p">,</span> <span class="mf">1e-1</span><span class="p">)</span>
-        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
-        <span class="c1"># This option improves convergence when using L-BFGS</span>
-        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;limited_memory_max_history&#39;</span><span class="p">,</span> <span class="mi">100</span><span class="p">)</span>
-        <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;max_iter&#39;</span><span class="p">,</span> <span class="mi">200</span><span class="p">)</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span>
         <span class="n">dual_inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_g&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]))</span>
-        <span class="k">if</span> <span class="n">dual_inf</span> <span class="o">&gt;</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">dual_inf</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">infeasibility_threshold</span><span class="p">:</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
                 <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;Trying to improve poor solution&#39;</span><span class="p">)</span>
             <span class="c1"># Constraints are getting tiny; need to be strict about bounds</span>
@@ -202,7 +296,7 @@
                 <span class="c1"># Otherwise we are liable to have subtle mass balance errors</span>
                 <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;honor_original_bounds&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
-                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;dual_inf_tol&#39;</span><span class="p">,</span> <span class="n">MAX_SOLVE_DRIVING_FORCE</span><span class="p">)</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;dual_inf_tol&#39;</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">infeasibility_threshold</span><span class="p">)</span>
             <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">accurate_info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span>
@@ -260,7 +354,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+7.g7239366',
+            VERSION:'0.7+8.gc5c8df6',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -275,10 +369,7 @@
 
   
 
-  
-  
-    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {

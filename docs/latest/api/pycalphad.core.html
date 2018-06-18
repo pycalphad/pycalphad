@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7+7.g7239366 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7+8.gc5c8df6 documentation</title>
   
 
   
@@ -24,8 +24,7 @@
 
   
 
-  
-    <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
@@ -62,7 +61,7 @@
             
             
               <div class="version">
-                0.7+7.g7239366
+                0.7+8.gc5c8df6
               </div>
             
           
@@ -745,7 +744,7 @@ calculated phase equilibria.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler=&lt;function get_sync&gt;</em>, <em>parameters=None</em>, <em>solver=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -769,6 +768,8 @@ when those conditions don’t comprise a grid.</li>
 <li><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</li>
 <li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
+<li><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – Instance of a solver that is used to calculate local equilibria.
+Defaults to a pycalphad.core.solver.InteriorPointSolver.</li>
 </ul>
 </td>
 </tr>
@@ -1090,12 +1091,99 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <span id="pycalphad-core-solver-module"></span><h2>pycalphad.core.solver module<a class="headerlink" href="#module-pycalphad.core.solver" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
 <dt id="pycalphad.core.solver.InteriorPointSolver">
-<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">InteriorPointSolver</code><span class="sig-paren">(</span><em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">InteriorPointSolver</code><span class="sig-paren">(</span><em>verbose=False</em>, <em>infeasibility_threshold=0.0001</em>, <em>**ipopt_options</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.solver.SolverBase</span></code></a></p>
+<p>Standard solver class that uses IPOPT.</p>
+<dl class="attribute">
+<dt id="pycalphad.core.solver.InteriorPointSolver.verbose">
+<code class="descname">verbose</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.verbose" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>bool</em> – If True, will print solver diagonstics. Defaults to False.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.InteriorPointSolver.infeasibility_threshold">
+<code class="descname">infeasibility_threshold</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.infeasibility_threshold" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>float</em> – Dual infeasibility threshold used to tighten constraints and
+attempt a second solve, if necessary. Defaults to 1e-4.</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.solver.InteriorPointSolver.ipopt_options">
+<code class="descname">ipopt_options</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.ipopt_options" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>dict</em> – Dictionary of options to pass to IPOPT.</p>
+</dd></dl>
+
 <dl class="method">
 <dt id="pycalphad.core.solver.InteriorPointSolver.solve">
-<code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
+<code class="descname">solve</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solve a pycalphad.core.problem.Problem</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.solver.InteriorPointSolver.apply_options">
+<code class="descname">apply_options</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.apply_options"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.apply_options" title="Permalink to this definition">¶</a></dt>
+<dd><p>Encodes ipopt_options and applies them to problem</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">apply_options</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.apply_options"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Apply global options to the solver</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>problem</strong> (<em>ipopt.problem</em>) – A problem object that will be solved</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Notes</p>
+<p>Strings are encoded to byte strings.</p>
+</dd></dl>
+
+<dl class="method">
+<dt>
+<code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a></dt>
+<dd><p>Solve a non-linear problem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.solver.SolverBase">
+<em class="property">class </em><code class="descclassname">pycalphad.core.solver.</code><code class="descname">SolverBase</code><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SolverBase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.SolverBase" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>“Base class for solvers.</p>
+<dl class="method">
+<dt id="pycalphad.core.solver.SolverBase.solve">
+<code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SolverBase.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.SolverBase.solve" title="Permalink to this definition">¶</a></dt>
+<dd><p><em>Implement this method.</em>
+Solve a non-linear problem</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">pycalphad.core.solver.SolverResult</a></td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
 
 </dd></dl>
 
@@ -1455,7 +1543,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.7+7.g7239366',
+            VERSION:'0.7+8.gc5c8df6',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
@@ -1470,10 +1558,7 @@ there, then the constant value is used.</p>
 
   
 
-  
-  
-    <script type="text/javascript" src="../_static/js/theme.js"></script>
-  
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
 
   <script type="text/javascript">
       jQuery(function () {
