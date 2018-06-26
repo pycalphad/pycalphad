@@ -316,9 +316,12 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         if changed_phases:
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
-        converged = result.converged
-        remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
-        if converged or iter_solver.ignore_convergence:
+        if not iter_solver.ignore_convergence:
+            converged = result.converged
+            remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+        else:
+            converged = True
+        if converged:
             if verbose:
                 print('Composition Sets', composition_sets)
             prop_MU_values[it.multi_index] = chemical_potentials
