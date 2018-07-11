@@ -111,7 +111,8 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
     cdef double[:,::1] current_grid_Y = current_grid.Y.values
     cdef np.ndarray current_grid_Phase = current_grid.Phase.values
     cdef unicode df_phase_name
-    cdef CompositionSet compset
+    cdef CompositionSet compset = composition_sets[0]
+    cdef int num_statevars = len(compset.phase_record.state_variables)
     cdef bint distinct = False
     driving_forces = (chemical_potentials * current_grid.X.values).sum(axis=-1) - current_grid.GM.values
     for i in range(driving_forces.shape[0]):
@@ -124,7 +125,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     continue
                 distinct = False
                 for comp_idx in range(compset.phase_record.phase_dof):
-                    if abs(df_comp[comp_idx] - compset.dof[2+comp_idx]) > 10*COMP_DIFFERENCE_TOL:
+                    if abs(df_comp[comp_idx] - compset.dof[num_statevars+comp_idx]) > 10*COMP_DIFFERENCE_TOL:
                         distinct = True
                         break
                 if not distinct:
@@ -151,7 +152,6 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
                     print('Candidate composition set ' + df_phase_name + ' at ' + str(np.array(df_comp)) + ' is not distinct')
                 return False
         compset = CompositionSet(phase_records[df_phase_name])
-        print('state variables', np.array(state_variables))
         compset.update(current_grid_Y[df_idx, :compset.phase_record.phase_dof], 1./(len(composition_sets)+1),
                        state_variables, False)
         composition_sets.append(compset)
@@ -169,11 +169,12 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
     composition_sets = prob.composition_sets
     if result.converged:
         x = result.x
-        var_offset = 0
+        compset = composition_sets[0]
+        var_offset = len(compset.phase_record.state_variables)
         phase_idx = 0
         for compset in composition_sets:
             compset.update(x[var_offset:var_offset + compset.phase_record.phase_dof],
-                           x[prob.num_vars - prob.num_phases + phase_idx], np.array([cur_conds.get('P', 101325.), cur_conds.get('T', 300.)]), True)
+                           x[prob.num_vars - prob.num_phases + phase_idx], x[:len(compset.phase_record.state_variables)], True)
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
     return result
@@ -242,8 +243,6 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     prop_X_values = properties['X'].values
     prop_Y_values = properties['Y'].values
     prop_GM_values = properties['GM'].values
-    phase_dof_dict = {name: len(set(phase_records[name].variables) - {v.T, v.P})
-                      for name in phase_records.keys()}
     str_state_variables = [str(k) for k in state_variables if str(k) in grid.coords.keys()]
     it = np.nditer(prop_GM_values, flags=['multi_index'])
 

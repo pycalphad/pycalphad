@@ -24,7 +24,7 @@ def starting_point(conditions, state_variables, phase_records, grid):
     from pycalphad import __version__ as pycalphad_version
     active_phases = sorted(phase_records.keys())
     # Ensure that '_FAKE_' will fit in the phase name array
-    max_phase_name_len = min(max([len(x) for x in active_phases]), 6)
+    max_phase_name_len = max(max([len(x) for x in active_phases]), 6)
     maximum_internal_dof = max(prx.phase_dof for prx in phase_records.values())
     nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
     coord_dict = OrderedDict([(str(key), value) for key, value in conditions.items()])

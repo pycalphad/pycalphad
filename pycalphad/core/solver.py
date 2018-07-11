@@ -25,6 +25,8 @@ class InteriorPointSolver(object):
         )
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
+        # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
+        # It will not give valid results for the finite difference approximation
         nlp.addOption(b'print_level', 0)
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
@@ -51,7 +53,10 @@ class InteriorPointSolver(object):
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
-        mu_jacobian = np.r_[prob.jacobian(x)[:prob.num_internal_constraints, :], prob.mass_gradient(x).T]
+        mu_jacobian = np.r_[prob.jacobian(x)[prob.num_fixed_dof_constraints:
+                                             prob.num_fixed_dof_constraints+prob.num_internal_constraints,
+                                             :],
+                            prob.mass_gradient(x).T]
         chemical_potentials = np.linalg.lstsq(mu_jacobian.T,
                                               prob.gradient(x) - info['mult_x_L'] - info['mult_x_U'])
         chemical_potentials = chemical_potentials[0][prob.num_internal_constraints:]

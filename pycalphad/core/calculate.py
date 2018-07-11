@@ -318,7 +318,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in unpack_phases(phases))
 
-    state_variables = set()
+    state_variables = {v.P, v.T}  # Enforced defaults
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
