@@ -333,7 +333,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             for phase_idx in range(len(composition_sets)):
                 compset = composition_sets[phase_idx]
                 prop_Y_values[it.multi_index + np.index_exp[phase_idx, :compset.phase_record.phase_dof]] = \
-                    compset.dof[2:]
+                    compset.dof[len(compset.phase_record.state_variables):]
                 prop_X_values[it.multi_index + np.index_exp[phase_idx, :]] = compset.X
                 prop_GM_values[it.multi_index] += compset.NP * compset.energy
                 var_offset += compset.phase_record.phase_dof
