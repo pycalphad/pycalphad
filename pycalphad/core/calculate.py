@@ -318,7 +318,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
         for name in unpack_phases(phases))
 
-    state_variables = {v.P, v.T}  # Enforced defaults
+    state_variables = set()
     for phase_name, phase_obj in sorted(active_phases.items()):
         # Build the symbolic representation of the energy
         mod = model_dict[phase_name]
@@ -338,6 +338,14 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
             maximum_internal_dof = max(maximum_internal_dof, sum(len(x) for x in mod.constituents))
         else:
             maximum_internal_dof = max(maximum_internal_dof, np.asarray(points_dict[phase_name]).shape[-1])
+
+    unspecified_statevars = set(str(x) for x in state_variables) - set(kwargs.keys())
+    if len(unspecified_statevars) > 0:
+        raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
+
+    unused_statevars = set(x for x in kwargs.keys() if getattr(v, str(x), None) is not None) - set(str(x) for x in state_variables)
+    if len(unused_statevars) > 0:
+        state_variables |= {v.StateVariable(x) for x in unused_statevars}
 
     state_variables = sorted(state_variables, key=str)
 

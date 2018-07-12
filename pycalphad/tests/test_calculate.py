@@ -42,8 +42,15 @@ def test_points_kwarg_multi_phase():
 def test_issue116():
     "Calculate gives correct result when a state variable is left as default (gh-116)."
     result_one = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
+    result_one_values = result_one.GM.values
     result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
-    np.testing.assert_array_equal(result_one.GM.values, result_two.GM.values)
+    result_two_values = result_two.GM.values
+    np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_two_values))
+    assert len(result_one_values.shape) == 2
+    assert result_one_values.shape[0] == 1
+    assert len(result_two_values.shape) == 3
+    assert result_two_values.shape[:2] == (1, 1)
+
 
 if __name__ == '__main__':
     import nose
