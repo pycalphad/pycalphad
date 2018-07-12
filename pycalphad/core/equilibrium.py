@@ -235,14 +235,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     # Construct models for each phase; prioritize user models
     models = unpack_kwarg(model, default_arg=Model)
-    # P and T are always included, for backwards compatibility purposes
-    state_variables = {v.P, v.T}
+    state_variables = set()
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name, parameters=parameters)
         state_variables |= set(mod.state_variables)
-    state_variables = sorted(state_variables, key=str)
     # Temporary solution until constraint system improves
     if not conditions.get(v.N, False):
         conditions[v.N] = 1
@@ -251,12 +249,19 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
-    if (v.P not in state_variables) and (v.P in conds.keys()):
-        conds.pop(v.P)
-        warnings.warn('The following state variable was passed, but unused: Pressure (P)')
-    if (v.T not in state_variables) and (v.T in conds.keys()):
-        conds.pop(v.T)
-        warnings.warn('The following state variable was passed, but unused: Temperature (T)')
+
+    unspecified_statevars = state_variables - set(conds.keys())
+    if len(unspecified_statevars) > 0:
+        #raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
+        # TODO: T,P as free variables
+        pass
+
+    unused_statevars = set(x for x in conds.keys() if getattr(v, str(x), None) is not None) - state_variables
+    if len(unused_statevars) > 0:
+        state_variables |= unused_statevars
+
+    state_variables = sorted(state_variables, key=str)
+
     for cond in conds.keys():
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
