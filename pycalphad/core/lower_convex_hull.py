@@ -7,6 +7,7 @@ from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from .hyperplane import hyperplane
 import numpy as np
+import itertools
 
 # The energetic difference, in J/mol-atom, below which is considered 'zero'
 DRIVING_FORCE_TOLERANCE = 1e-8
@@ -79,6 +80,15 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     # THIRD CASE: Mixture of composition and chemical potential conditions
     # TODO: Implementation of mixed conditions
 
+    def force_indep_align(da):
+        return da.transpose(*itertools.chain(indep_conds + [x for x in da.dims if x not in indep_conds]))
+    result_array['GM'] = force_indep_align(result_array.GM)
+    result_array['points'] = force_indep_align(result_array.points)
+    result_array['MU'] = force_indep_align(result_array.MU)
+    result_array['NP'] = force_indep_align(result_array.NP)
+    result_array['X'] = force_indep_align(result_array.X)
+    result_array['Y'] = force_indep_align(result_array.Y)
+    result_array['Phase'] = force_indep_align(result_array.Phase)
     # factored out via profiling
     result_array_GM_values = result_array.GM.values
     result_array_points_values = result_array.points.values
@@ -87,23 +97,22 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     result_array_X_values = result_array.X.values
     result_array_Y_values = result_array.Y.values
     result_array_Phase_values = result_array.Phase.values
-    global_grid_GM_values = global_grid.GM.values
-    global_grid_X_values = global_grid.X.values
 
     it = np.nditer(result_array_GM_values, flags=['multi_index'])
     comp_coord_shape = tuple(len(result_array.coords[cond]) for cond in comp_conds)
     while not it.finished:
-        indep_idx = tuple(idx for idx, key in zip(it.multi_index, result_array.coords.keys()) if key in indep_conds)
+        indep_idx = tuple(idx for idx, key in zip(it.multi_index, result_array.GM.dims) if key in indep_conds)
+        grid = global_grid.isel(**dict(zip(indep_conds, indep_idx)))
         if len(comp_conds) > 0:
-            comp_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array.coords.keys()) if key in comp_conds), comp_coord_shape)
+            comp_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array.GM.dims) if key in comp_conds), comp_coord_shape)
             idx_comp_values = comp_values[comp_idx, :]
         else:
             idx_comp_values = np.atleast_1d(1.)
-        idx_global_grid_X_values = global_grid_X_values[indep_idx]
-        idx_global_grid_GM_values = global_grid_GM_values[indep_idx]
+
+        idx_global_grid_X_values = grid.X.values
+        idx_global_grid_GM_values = grid.GM.values
         idx_result_array_MU_values = result_array_MU_values[it.multi_index]
         idx_result_array_NP_values = result_array_NP_values[it.multi_index]
-        idx_result_array_GM_values = result_array_GM_values[it.multi_index]
         idx_result_array_points_values = result_array_points_values[it.multi_index]
         result_array_GM_values[it.multi_index] = \
             hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
@@ -111,9 +120,9 @@ def lower_convex_hull(global_grid, state_variables, result_array):
                        idx_result_array_NP_values, idx_result_array_points_values)
         # Copy phase values out
         points = result_array_points_values[it.multi_index]
-        result_array_Phase_values[it.multi_index] = global_grid.Phase.values[indep_idx].take(points, axis=0)
-        result_array_X_values[it.multi_index] = global_grid.X.values[indep_idx].take(points, axis=0)
-        result_array_Y_values[it.multi_index] = global_grid.Y.values[indep_idx].take(points, axis=0)
+        result_array_Phase_values[it.multi_index] = grid.Phase.values.take(points, axis=0)
+        result_array_X_values[it.multi_index] = grid.X.values.take(points, axis=0)
+        result_array_Y_values[it.multi_index] = grid.Y.values.take(points, axis=0)
         # Special case: Sometimes fictitious points slip into the result
         # This can happen when we calculate stoichimetric phases by themselves
         if '_FAKE_' in result_array_Phase_values[it.multi_index]:
@@ -129,7 +138,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
                     result_array_Y_values[midx] = np.nan
                     idx_result_array_NP_values[idx] = np.nan
                 else:
-                    new_energy += idx_result_array_NP_values[idx] * global_grid.GM.values[np.index_exp[indep_idx + (points[idx],)]]
+                    new_energy += idx_result_array_NP_values[idx] * grid.GM.values[np.index_exp[(points[idx],)]]
                     molesum += idx_result_array_NP_values[idx]
             result_array_GM_values[it.multi_index] = new_energy / molesum
         it.iternext()
