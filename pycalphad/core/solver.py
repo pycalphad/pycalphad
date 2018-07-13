@@ -28,6 +28,8 @@ class InteriorPointSolver(object):
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
         # It will not give valid results for the finite difference approximation
         nlp.addOption(b'print_level', 0)
+        #nlp.addOption(b'derivative_test', b'first-order')
+        #nlp.addOption(b'point_perturbation_radius', 0.0)
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
             nlp.addOption(b'sb', b'yes')
@@ -35,6 +37,7 @@ class InteriorPointSolver(object):
         nlp.addOption(b'constr_viol_tol', 1e-12)
         # This option improves convergence when using L-BFGS
         nlp.addOption(b'limited_memory_max_history', 100)
+        nlp.addOption(b'nlp_scaling_method', b'none')
         nlp.addOption(b'max_iter', 200)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
