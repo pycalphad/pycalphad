@@ -44,8 +44,10 @@ class InteriorPointSolver(object):
         if dual_inf > MAX_SOLVE_DRIVING_FORCE:
             if self.verbose:
                 print('Trying to improve poor solution')
+            nlp.addOption(b'nlp_scaling_method', b'gradient-based')
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
+                nlp.addOption(b'dual_inf_tol', MAX_SOLVE_DRIVING_FORCE/100)
                 nlp.addOption(b'compl_inf_tol', 1e-15)
                 nlp.addOption(b'bound_relax_factor', 1e-12)
                 # This option ensures any bounds failures will fail "loudly"
