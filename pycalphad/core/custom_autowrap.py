@@ -160,6 +160,12 @@ class C89CodePrinter(CCodePrinter):
             close_lines.append("}")
         return open_lines, close_lines
 
+    def _print_BooleanTrue(self, expr):
+        return '1'
+
+    def _print_BooleanFalse(self, expr):
+        return '0'
+
     _print_ComplexInfinity = CCodePrinter._print_Infinity
     _print_NegativeComplexInfinity = CCodePrinter._print_NegativeInfinity
 
@@ -332,6 +338,8 @@ class CustomCCodeGen(CCodeGen):
             if isinstance(symbol, Idx):
                 new_symbols.remove(symbol)
                 new_symbols.update(symbol.args[1].free_symbols)
+            if isinstance(symbol, Indexed):
+                new_symbols.remove(symbol)
         symbols = new_symbols
 
         # Decide whether to use output argument or return value
