@@ -43,7 +43,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     """
     indep_conds = sorted([x for x in sorted(global_grid.coords.keys()) if x in [str(k) for k in state_variables]])
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
-    pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
+    pot_conds = []#sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
 
     # Determine starting combinations of chemical potentials and compositions
     # TODO: Check Gibbs phase rule compliance

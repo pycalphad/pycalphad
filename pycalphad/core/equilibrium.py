@@ -256,12 +256,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         # TODO: T,P as free variables
         pass
 
-    unused_statevars = set(x for x in conds.keys() if getattr(v, str(x), None) is not None) - state_variables
+    unused_statevars = set()
+    for x in conds.keys():
+        if (getattr(v, str(x), None) is not None) and not isinstance(x, v.ChemicalPotential):
+            unused_statevars |= {x}
+    unused_statevars -= state_variables
     if len(unused_statevars) > 0:
         state_variables |= unused_statevars
 
     state_variables = sorted(state_variables, key=str)
-
     for cond in conds.keys():
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))

@@ -22,6 +22,7 @@ cdef class Problem:
             raise ValueError('Number of phases is zero')
         state_variables = comp_sets[0].phase_record.state_variables
         fixed_statevars = [(key, value) for key, value in conditions.items() if key in [str(k) for k in state_variables]]
+        print('fixed_statevars', fixed_statevars)
         num_fixed_dof_cons = len(state_variables)
         num_constraints = num_fixed_dof_cons + num_internal_cons + len(get_multiphase_constraint_rhs(conditions))
         self.composition_sets = comp_sets
@@ -30,6 +31,9 @@ cdef class Problem:
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
+        self.fixed_chempot_indices = np.array([self.nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
+        self.fixed_chempot_values = np.array([float(value) for key, value in conditions.items() if key.startswith('MU_')])
+        print(np.array(self.fixed_chempot_indices), np.array(self.fixed_chempot_values))
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases + len(state_variables)
         self.num_internal_constraints = num_internal_cons
@@ -56,6 +60,7 @@ cdef class Problem:
             self.x0[self.num_vars-self.num_phases+phase_idx] = compset.NP
             var_idx += compset.phase_record.phase_dof
             phase_idx += 1
+        print('prob.x0', np.array(self.x0))
         self.cl = np.zeros(num_constraints)
         self.cu = np.zeros(num_constraints)
         compset = comp_sets[0]
@@ -75,8 +80,11 @@ cdef class Problem:
         cdef int phase_idx = 0
         cdef double total_obj = 0
         cdef int var_offset = 0
+        cdef int chempot_idx
+        cdef int idx = 0
         cdef double[::1] x = np.array(x_in)
         cdef double tmp = 0
+        cdef double mass_tmp = 0
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
         compset = self.composition_sets[0]
@@ -86,11 +94,18 @@ cdef class Problem:
             x = np.r_[x_in[:len(compset.phase_record.state_variables)], x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
             dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
             compset.phase_record.obj(energy_2d_view, dof_2d_view)
+            idx = 0
+            for chempot_idx in self.fixed_chempot_indices:
+                compset.phase_record.mass_obj(<double[:1]>&mass_tmp, dof_2d_view, chempot_idx)
+                tmp -= self.fixed_chempot_values[idx] * mass_tmp
+                mass_tmp = 0
+                idx += 1
             total_obj += x_in[self.num_vars-self.num_phases+phase_idx] * tmp
             phase_idx += 1
             var_offset += compset.phase_record.phase_dof
             tmp = 0
-
+        print('x_in', x_in)
+        print('total_obj', total_obj)
         return total_obj
 
     def gradient(self, x_in):
@@ -99,12 +114,15 @@ cdef class Problem:
         cdef int num_statevars = len(compset.phase_record.state_variables)
         cdef int var_offset = num_statevars
         cdef int dof_x_idx
+        cdef int idx = 0
         cdef double total_obj = 0
         cdef double[::1] x = np.array(x_in)
         cdef double tmp = 0
+        cdef double mass_obj_tmp = 0
         cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
         cdef double[::1] grad_tmp = np.zeros(x.shape[0])
+        cdef double[::1] out_mass_tmp = np.zeros(self.num_vars)
         cdef np.ndarray[ndim=1, dtype=np.float64_t] gradient_term = np.zeros(self.num_vars)
 
         for compset in self.composition_sets:
@@ -117,9 +135,23 @@ cdef class Problem:
             for dof_x_idx in range(compset.phase_record.phase_dof):
                 gradient_term[var_offset + dof_x_idx] = \
                     x_in[self.num_vars-self.num_phases+phase_idx] * grad_tmp[num_statevars+dof_x_idx]
-            gradient_term[self.num_vars - self.num_phases + phase_idx] = tmp
+            idx = 0
+            for chempot_idx in self.fixed_chempot_indices:
+                compset.phase_record.mass_obj(<double[:1]>&mass_obj_tmp, dof_2d_view, chempot_idx)
+                compset.phase_record.mass_grad(out_mass_tmp, x, chempot_idx)
+                for dof_x_idx in range(num_statevars):
+                    gradient_term[dof_x_idx] -= x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[dof_x_idx]
+                for dof_x_idx in range(compset.phase_record.phase_dof):
+                    gradient_term[var_offset + dof_x_idx] -= \
+                        x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[num_statevars+dof_x_idx]
+                out_mass_tmp[:] = 0
+                gradient_term[self.num_vars - self.num_phases + phase_idx] -= self.fixed_chempot_values[idx] * mass_obj_tmp
+                mass_obj_tmp = 0
+                idx += 1
+            gradient_term[self.num_vars - self.num_phases + phase_idx] += tmp
             grad_tmp[:] = 0
             tmp = 0
+            energy_2d_view = <double[:1]>&tmp
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
 

@@ -43,12 +43,18 @@ def _build_constraint_functions(variables, constraints, parameters=None):
 ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'multiphase_cons', 'multiphase_jac',
                                                  'num_internal_cons', 'num_multiphase_cons'])
 
+def is_multiphase_constraint(cond):
+    cond = str(cond)
+    if cond == 'N' or cond.startswith('X_'):
+        return True
+    else:
+        return False
 
 def build_constraints(mod, variables, conds, parameters=None):
     internal_constraints = mod.get_internal_constraints()
     multiphase_constraints = [Symbol('NP') * mod.get_multiphase_constraint_contribution(cond)
                               for cond in sorted(conds.keys(), key=str)
-                              if cond not in [v.P, v.T]]
+                              if is_multiphase_constraint(cond)]
     internal_cons, internal_jac = _build_constraint_functions(variables, internal_constraints,
                                                               parameters=parameters)
     multiphase_cons, multiphase_jac = _build_constraint_functions(variables + [Symbol('NP')],
@@ -58,4 +64,4 @@ def build_constraints(mod, variables, conds, parameters=None):
 
 
 def get_multiphase_constraint_rhs(conds):
-    return [float(value) for cond, value in conds.items() if cond not in ['P', 'T']]
+    return [float(value) for cond, value in conds.items() if is_multiphase_constraint(cond)]

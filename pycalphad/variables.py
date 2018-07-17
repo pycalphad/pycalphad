@@ -241,7 +241,7 @@ class ChemicalPotential(StateVariable):
 
     def __str__(self):
         "String representation."
-        return 'MU(%s)' % self.species.name
+        return 'MU_%s' % self.species.name
 
 temperature = T = StateVariable('T')
 entropy = S = StateVariable('S')

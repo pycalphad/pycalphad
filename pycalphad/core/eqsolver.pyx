@@ -164,6 +164,7 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
 cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
     cdef CompositionSet compset
+    print('cur_conds', cur_conds)
     prob = problem(composition_sets, comps, cur_conds)
     result = iter_solver.solve(prob)
     composition_sets = prob.composition_sets
@@ -272,11 +273,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             prop_GM_values[it.multi_index] = np.nan
             it.iternext()
             continue
-        dependent_comp = set(pure_elements) - set([v.Species(i[2:]) for i in cur_conds.keys() if i.startswith('X_')]) - {v.Species('VA')}
-        if len(dependent_comp) == 1:
-            dependent_comp = list(dependent_comp)[0]
-        else:
-            raise ValueError('Number of dependent components different from one')
+
         composition_sets = []
         removed_compsets = []
         for phase_idx, phase_name in enumerate(prop_Phase_values[it.multi_index]):
