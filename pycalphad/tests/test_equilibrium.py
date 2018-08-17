@@ -352,7 +352,10 @@ def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
     comps = ['PB', 'SN', 'VA']
     phases = list(PBSN_DBF.phases.keys())
     eq_res = equilibrium(PBSN_DBF, comps, phases, {v.P: 101325, v.T: 454.562, v.X('SN'): 0.738})
-    assert eq_res.vertex.size == 3
+    assert eq_res.vertex.size == 4  # C+2
+    assert np.sum(~np.isnan(eq_res.NP.values)) == 3
+    assert np.sum(eq_res.Phase.values != '') == 3
+
 
 
 @raises(NotImplementedError)

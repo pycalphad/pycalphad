@@ -70,11 +70,11 @@ cpdef double hyperplane(double[:,::1] compositions,
         Shape of (N,)
         Will be overwritten
     result_fractions : ndarray
-        Shape of (N,)
-        Will be overwritten
+        Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
+        Will be overwritten. Output sums to 1.
     best_guess_simplex : ndarray
-        Shape of (N,)
-        Will be overwritten
+        Energies of the points making up the hyperplane simplex. Shape of (P,).
+        Will be overwritten. Output*result_fractions sums to out_energy (return value).
 
     Returns
     -------
@@ -84,6 +84,12 @@ cpdef double hyperplane(double[:,::1] compositions,
     Examples
     --------
     None yet.
+
+    Notes
+    -----
+    M: number of energy points that have been sampled
+    N: number of components
+    P: N+2, max phases by gibbs phase rule
     """
     cdef int num_components = compositions.shape[1]
     cdef int[::1] best_guess_simplex = np.arange(num_components, dtype=np.int32)
@@ -156,7 +162,10 @@ cpdef double hyperplane(double[:,::1] compositions,
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]
         out_energy += fractions[saved_trial, i] * energies[idx]
-    result_fractions[:] = fractions[saved_trial, :]
+    result_fractions[:num_components] = fractions[saved_trial, :]
     chemical_potentials[:] = candidate_potentials
-    result_simplex[:] = best_guess_simplex
+    result_simplex[:num_components] = best_guess_simplex
+    # Hack to enforce Gibbs phase rule, shape of result is comp+2, shape of hyperplane is comp
+    result_fractions[num_components:] = 0.0
+    result_simplex[num_components:] = 0
     return out_energy
