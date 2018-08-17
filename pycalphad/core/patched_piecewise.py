@@ -1,3 +1,26 @@
+"""
+Copied from Piecewise SymPy. The only modification is in `piecewise_eval` where
+
+```
+    for e, c in _args:
+        if not c.is_Atom and not isinstance(c, Relational):
+            free = c.free_symbols
+```
+
+is changed to
+
+```
+    for e, c in _args:
+        if not c.is_Atom and not isinstance(c, Relational):
+            free = c.expr_free_symbols
+```
+
+See the following links:
+https://github.com/sympy/sympy/issues/14933
+https://github.com/pycalphad/pycalphad/pull/180
+
+"""
+
 import sympy.functions.elementary.piecewise
 from sympy.core import S, Function, Dummy
 from sympy.core.relational import Relational, _canonical
