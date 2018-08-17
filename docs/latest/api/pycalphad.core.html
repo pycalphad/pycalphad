@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7+9.ge34a832 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7+10.g916ad73 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7+9.ge34a832
+                0.7+10.g916ad73
               </div>
             
           
@@ -840,10 +840,10 @@ Shape of (M,)</li>
 Shape of (N,)</li>
 <li><strong>chemical_potentials</strong> (<em>ndarray</em>) – Shape of (N,)
 Will be overwritten</li>
-<li><strong>result_fractions</strong> (<em>ndarray</em>) – Shape of (N,)
-Will be overwritten</li>
-<li><strong>best_guess_simplex</strong> (<em>ndarray</em>) – Shape of (N,)
-Will be overwritten</li>
+<li><strong>result_fractions</strong> (<em>ndarray</em>) – Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
+Will be overwritten. Output sums to 1.</li>
+<li><strong>best_guess_simplex</strong> (<em>ndarray</em>) – Energies of the points making up the hyperplane simplex. Shape of (P,).
+Will be overwritten. Output*result_fractions sums to out_energy (return value).</li>
 </ul>
 </td>
 </tr>
@@ -857,6 +857,10 @@ Will be overwritten</li>
 </table>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
+<p class="rubric">Notes</p>
+<p>M: number of energy points that have been sampled
+N: number of components
+P: N+1, max phases by gibbs phase rule that we can find in a point calculations</p>
 </dd></dl>
 
 </div>
@@ -1543,7 +1547,7 @@ there, then the constant value is used.</p>
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../',
-            VERSION:'0.7+9.ge34a832',
+            VERSION:'0.7+10.g916ad73',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
