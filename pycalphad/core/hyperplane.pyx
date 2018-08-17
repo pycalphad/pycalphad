@@ -89,7 +89,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     -----
     M: number of energy points that have been sampled
     N: number of components
-    P: N+2, max phases by gibbs phase rule
+    P: N+1, max phases by gibbs phase rule that we can find in a point calculations
     """
     cdef int num_components = compositions.shape[1]
     cdef int[::1] best_guess_simplex = np.arange(num_components, dtype=np.int32)
@@ -165,7 +165,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     result_fractions[:num_components] = fractions[saved_trial, :]
     chemical_potentials[:] = candidate_potentials
     result_simplex[:num_components] = best_guess_simplex
-    # Hack to enforce Gibbs phase rule, shape of result is comp+2, shape of hyperplane is comp
+    # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
     result_fractions[num_components:] = 0.0
     result_simplex[num_components:] = 0
     return out_energy
