@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.7+8.gc5c8df6 documentation</title>
+  <title>pycalphad.core.custom_autowrap &mdash; pycalphad 0.7+9.ge34a832 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+8.gc5c8df6
+                0.7+9.ge34a832
               </div>
             
           
@@ -314,6 +314,12 @@
             <span class="n">close_lines</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="s2">&quot;}&quot;</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">open_lines</span><span class="p">,</span> <span class="n">close_lines</span>
 
+    <span class="k">def</span> <span class="nf">_print_BooleanTrue</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;1&#39;</span>
+
+    <span class="k">def</span> <span class="nf">_print_BooleanFalse</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">expr</span><span class="p">):</span>
+        <span class="k">return</span> <span class="s1">&#39;0&#39;</span>
+
     <span class="n">_print_ComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_Infinity</span>
     <span class="n">_print_NegativeComplexInfinity</span> <span class="o">=</span> <span class="n">CCodePrinter</span><span class="o">.</span><span class="n">_print_NegativeInfinity</span></div>
 
@@ -486,6 +492,8 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">):</span>
                 <span class="n">new_symbols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
                 <span class="n">new_symbols</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">symbol</span><span class="o">.</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">symbol</span><span class="p">,</span> <span class="n">Indexed</span><span class="p">):</span>
+                <span class="n">new_symbols</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">symbol</span><span class="p">)</span>
         <span class="n">symbols</span> <span class="o">=</span> <span class="n">new_symbols</span>
 
         <span class="c1"># Decide whether to use output argument or return value</span>
@@ -948,7 +956,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+8.gc5c8df6',
+            VERSION:'0.7+9.ge34a832',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>sympy.core.numbers &mdash; pycalphad 0.7+8.gc5c8df6 documentation</title>
+  <title>sympy.core.numbers &mdash; pycalphad 0.7+9.ge34a832 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+8.gc5c8df6
+                0.7+9.ge34a832
               </div>
             
           
@@ -162,7 +162,7 @@
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
 
 <span class="kn">from</span> <span class="nn">.containers</span> <span class="k">import</span> <span class="n">Tuple</span>
-<span class="kn">from</span> <span class="nn">.sympify</span> <span class="k">import</span> <span class="n">converter</span><span class="p">,</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">_sympify</span><span class="p">,</span> <span class="n">SympifyError</span>
+<span class="kn">from</span> <span class="nn">.sympify</span> <span class="k">import</span> <span class="n">converter</span><span class="p">,</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">_sympify</span><span class="p">,</span> <span class="n">SympifyError</span><span class="p">,</span> <span class="n">_convert_numpy_types</span>
 <span class="kn">from</span> <span class="nn">.singleton</span> <span class="k">import</span> <span class="n">S</span><span class="p">,</span> <span class="n">Singleton</span>
 <span class="kn">from</span> <span class="nn">.expr</span> <span class="k">import</span> <span class="n">Expr</span><span class="p">,</span> <span class="n">AtomicExpr</span>
 <span class="kn">from</span> <span class="nn">.decorators</span> <span class="k">import</span> <span class="n">_sympifyit</span>
@@ -171,8 +171,10 @@
 <span class="kn">from</span> <span class="nn">sympy.core.compatibility</span> <span class="k">import</span> <span class="p">(</span>
     <span class="n">as_int</span><span class="p">,</span> <span class="n">integer_types</span><span class="p">,</span> <span class="n">long</span><span class="p">,</span> <span class="n">string_types</span><span class="p">,</span> <span class="n">with_metaclass</span><span class="p">,</span> <span class="n">HAS_GMPY</span><span class="p">,</span>
     <span class="n">SYMPY_INTS</span><span class="p">,</span> <span class="n">int_info</span><span class="p">)</span>
+
 <span class="kn">import</span> <span class="nn">mpmath</span>
 <span class="kn">import</span> <span class="nn">mpmath.libmp</span> <span class="k">as</span> <span class="nn">mlib</span>
+<span class="kn">from</span> <span class="nn">mpmath.libmp.backend</span> <span class="k">import</span> <span class="n">MPZ</span>
 <span class="kn">from</span> <span class="nn">mpmath.libmp</span> <span class="k">import</span> <span class="n">mpf_pow</span><span class="p">,</span> <span class="n">mpf_pi</span><span class="p">,</span> <span class="n">mpf_e</span><span class="p">,</span> <span class="n">phi_fixed</span>
 <span class="kn">from</span> <span class="nn">mpmath.ctx_mp</span> <span class="k">import</span> <span class="n">mpnumeric</span>
 <span class="kn">from</span> <span class="nn">mpmath.libmp.libmpf</span> <span class="k">import</span> <span class="p">(</span>
@@ -439,7 +441,7 @@
 
         <span class="c1"># Elements of the Euclidean gcd sequence are linear</span>
         <span class="c1"># combinations of a and b with integer coefficients.</span>
-        <span class="c1"># Compute the coefficients of consequtive pairs</span>
+        <span class="c1"># Compute the coefficients of consecutive pairs</span>
         <span class="c1">#     a&#39; = A*a + B*b, b&#39; = C*a + D*b</span>
         <span class="c1"># using small integer arithmetic as far as possible.</span>
         <span class="n">A</span><span class="p">,</span> <span class="n">B</span><span class="p">,</span> <span class="n">C</span><span class="p">,</span> <span class="n">D</span> <span class="o">=</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>  <span class="c1"># initial values</span>
@@ -544,7 +546,7 @@
         <span class="k">return</span> <span class="mi">0</span>
     <span class="n">a</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">for</span> <span class="n">b</span> <span class="ow">in</span> <span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">:]:</span>
-        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span><span class="o">*</span><span class="n">b</span> <span class="o">//</span> <span class="n">igcd</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">a</span> <span class="o">//</span> <span class="n">igcd</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">b</span><span class="p">)</span> <span class="o">*</span> <span class="n">b</span> <span class="c1"># since gcd(a,b) | a</span>
     <span class="k">return</span> <span class="n">a</span>
 
 
@@ -593,9 +595,9 @@
 
 <span class="k">def</span> <span class="nf">mod_inverse</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">m</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Return the number c such that, ( a * c ) % m == 1 where</span>
-<span class="sd">    c has the same sign as a. If no such value exists, a</span>
-<span class="sd">    ValueError is raised.</span>
+<span class="sd">    Return the number c such that, (a * c) = 1 (mod m)</span>
+<span class="sd">    where c has the same sign as m. If no such value exists,</span>
+<span class="sd">    a ValueError is raised.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    ========</span>
@@ -606,13 +608,13 @@
 <span class="sd">    Suppose we wish to find multiplicative inverse x of</span>
 <span class="sd">    3 modulo 11. This is the same as finding x such</span>
 <span class="sd">    that 3 * x = 1 (mod 11). One value of x that satisfies</span>
-<span class="sd">    this congruence is 4. Because 3 * 4 = 12 and 12 = 1 mod(11).</span>
+<span class="sd">    this congruence is 4. Because 3 * 4 = 12 and 12 = 1 (mod 11).</span>
 <span class="sd">    This is the value return by mod_inverse:</span>
 
 <span class="sd">    &gt;&gt;&gt; mod_inverse(3, 11)</span>
 <span class="sd">    4</span>
 <span class="sd">    &gt;&gt;&gt; mod_inverse(-3, 11)</span>
-<span class="sd">    -4</span>
+<span class="sd">    7</span>
 
 <span class="sd">    When there is a common factor between the numerators of</span>
 <span class="sd">    ``a`` and ``m`` the inverse does not exist:</span>
@@ -633,12 +635,10 @@
     <span class="n">c</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="k">try</span><span class="p">:</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">as_int</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">as_int</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">m</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">m</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">m</span> <span class="o">!=</span> <span class="o">-</span><span class="mi">1</span><span class="p">:</span>
             <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">g</span> <span class="o">=</span> <span class="n">igcdex</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">m</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">g</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="n">c</span> <span class="o">=</span> <span class="n">x</span> <span class="o">%</span> <span class="n">m</span>
-            <span class="k">if</span> <span class="n">a</span> <span class="o">&lt;</span> <span class="mi">0</span><span class="p">:</span>
-                <span class="n">c</span> <span class="o">-=</span> <span class="n">m</span>
     <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
         <span class="n">a</span><span class="p">,</span> <span class="n">m</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">a</span><span class="p">),</span> <span class="n">sympify</span><span class="p">(</span><span class="n">m</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="p">(</span><span class="n">a</span><span class="o">.</span><span class="n">is_number</span> <span class="ow">and</span> <span class="n">m</span><span class="o">.</span><span class="n">is_number</span><span class="p">):</span>
@@ -659,16 +659,29 @@
 
 
 <span class="k">class</span> <span class="nc">Number</span><span class="p">(</span><span class="n">AtomicExpr</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Represents any kind of number in sympy.</span>
+    <span class="sd">&quot;&quot;&quot;Represents atomic numbers in SymPy.</span>
 
 <span class="sd">    Floating point numbers are represented by the Float class.</span>
-<span class="sd">    Integer numbers (of any size), together with rational numbers (again,</span>
-<span class="sd">    there is no limit on their size) are represented by the Rational class.</span>
+<span class="sd">    Rational numbers (of any size) are represented by the Rational class.</span>
+<span class="sd">    Integer numbers (of any size) are represented by the Integer class.</span>
+<span class="sd">    Float and Rational are subclasses of Number; Integer is a subclass</span>
+<span class="sd">    of Rational.</span>
 
-<span class="sd">    If you want to represent, for example, ``1+sqrt(2)``, then you need to do::</span>
+<span class="sd">    For example, ``2/3`` is represented as ``Rational(2, 3)`` which is</span>
+<span class="sd">    a different object from the floating point number obtained with</span>
+<span class="sd">    Python division ``2/3``. Even for numbers that are exactly</span>
+<span class="sd">    represented in binary, there is a difference between how two forms,</span>
+<span class="sd">    such as ``Rational(1, 2)`` and ``Float(0.5)``, are used in SymPy.</span>
+<span class="sd">    The rational form is to be preferred in symbolic computations.</span>
 
-<span class="sd">      Rational(1) + sqrt(Rational(2))</span>
+<span class="sd">    Other kinds of numbers, such as algebraic numbers ``sqrt(2)`` or</span>
+<span class="sd">    complex numbers ``3 + 4*I``, are not instances of Number class as</span>
+<span class="sd">    they are not atomic.</span>
+
+<span class="sd">    See Also</span>
+<span class="sd">    ========</span>
+
+<span class="sd">    Float, Integer, Rational</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">is_commutative</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">is_number</span> <span class="o">=</span> <span class="kc">True</span>
@@ -1101,6 +1114,7 @@
                             <span class="n">issue</span><span class="o">=</span><span class="mi">12820</span><span class="p">,</span>
                             <span class="n">deprecated_since_version</span><span class="o">=</span><span class="s2">&quot;1.1&quot;</span><span class="p">)</span><span class="o">.</span><span class="n">warn</span><span class="p">()</span>
             <span class="n">dps</span> <span class="o">=</span> <span class="n">prec</span>
+        <span class="k">del</span> <span class="n">prec</span>  <span class="c1"># avoid using this deprecated kwarg</span>
 
         <span class="k">if</span> <span class="n">dps</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">precision</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Both decimal and binary precision supplied. &#39;</span>
@@ -1120,6 +1134,8 @@
             <span class="n">num</span> <span class="o">=</span> <span class="s1">&#39;+inf&#39;</span>
         <span class="k">elif</span> <span class="n">num</span> <span class="ow">is</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">:</span>
             <span class="n">num</span> <span class="o">=</span> <span class="s1">&#39;-inf&#39;</span>
+        <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">num</span><span class="p">)</span><span class="o">.</span><span class="vm">__module__</span> <span class="o">==</span> <span class="s1">&#39;numpy&#39;</span><span class="p">:</span> <span class="c1"># support for numpy datatypes</span>
+            <span class="n">num</span> <span class="o">=</span> <span class="n">_convert_numpy_types</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">mpf</span><span class="p">):</span>
             <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
                 <span class="k">if</span> <span class="n">dps</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -1170,6 +1186,8 @@
         <span class="k">if</span> <span class="n">precision</span> <span class="ow">is</span> <span class="kc">None</span> <span class="ow">or</span> <span class="n">precision</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
             <span class="n">precision</span> <span class="o">=</span> <span class="n">mlib</span><span class="o">.</span><span class="n">libmpf</span><span class="o">.</span><span class="n">dps_to_prec</span><span class="p">(</span><span class="n">dps</span><span class="p">)</span>
 
+        <span class="n">precision</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span>
+
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">float</span><span class="p">):</span>
             <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">mlib</span><span class="o">.</span><span class="n">from_float</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
@@ -1186,14 +1204,17 @@
                     <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">_mpf_ninf</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;unexpected decimal value </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="nb">str</span><span class="p">(</span><span class="n">num</span><span class="p">))</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
-            <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">mlib</span><span class="o">.</span><span class="n">from_rational</span><span class="p">(</span><span class="n">num</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">num</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">precision</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
         <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="ow">in</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">4</span><span class="p">):</span>
             <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
                 <span class="c1"># it&#39;s a hexadecimal (coming from a pickled object)</span>
                 <span class="c1"># assume that it is in standard form</span>
                 <span class="n">num</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
-                <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">long</span><span class="p">(</span><span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
+                <span class="c1"># If we&#39;re loading an object pickled in Python 2 into</span>
+                <span class="c1"># Python 3, we may need to strip a tailing &#39;L&#39; because</span>
+                <span class="c1"># of a shim for int on Python 3, see issue #13470.</span>
+                <span class="k">if</span> <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">endswith</span><span class="p">(</span><span class="s1">&#39;L&#39;</span><span class="p">):</span>
+                    <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">][:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+                <span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">MPZ</span><span class="p">(</span><span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="mi">16</span><span class="p">)</span>
                 <span class="n">_mpf_</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">num</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">==</span> <span class="mi">4</span><span class="p">:</span>
@@ -1201,12 +1222,11 @@
                     <span class="k">return</span> <span class="n">Float</span><span class="o">.</span><span class="n">_new</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="o">**</span><span class="n">num</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">*</span><span class="n">num</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">*</span><span class="n">S</span><span class="p">(</span><span class="mi">2</span><span class="p">)</span><span class="o">**</span><span class="n">num</span><span class="p">[</span><span class="mi">2</span><span class="p">])</span><span class="o">.</span><span class="n">evalf</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
-            <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">_mpf_</span>
-            <span class="k">if</span> <span class="n">precision</span> <span class="o">&lt;</span> <span class="n">num</span><span class="o">.</span><span class="n">_prec</span><span class="p">:</span>
-                <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">mpf_norm</span><span class="p">(</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">precision</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">mpf</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">prec</span><span class="o">=</span><span class="n">prec</span><span class="p">)</span><span class="o">.</span><span class="n">_mpf_</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">num</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">precision</span><span class="p">)</span>
+            <span class="k">except</span> <span class="p">(</span><span class="ne">NotImplementedError</span><span class="p">,</span> <span class="ne">AttributeError</span><span class="p">):</span>
+                <span class="n">_mpf_</span> <span class="o">=</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">mpf</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">prec</span><span class="o">=</span><span class="n">precision</span><span class="p">)</span><span class="o">.</span><span class="n">_mpf_</span>
 
         <span class="c1"># special cases</span>
         <span class="k">if</span> <span class="n">_mpf_</span> <span class="o">==</span> <span class="n">_mpf_zero</span><span class="p">:</span>
@@ -1337,13 +1357,11 @@
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span> <span class="o">!=</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">global_evaluate</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="c1"># calculate mod with Rationals, *then* round the result</span>
             <span class="k">return</span> <span class="n">Float</span><span class="p">(</span><span class="n">Rational</span><span class="o">.</span><span class="fm">__mod__</span><span class="p">(</span><span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="p">),</span> <span class="n">other</span><span class="p">),</span>
-                <span class="n">prec_to_dps</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">))</span>
+                         <span class="n">precision</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">)</span> <span class="ow">and</span> <span class="n">global_evaluate</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="n">r</span> <span class="o">=</span> <span class="bp">self</span><span class="o">/</span><span class="n">other</span>
             <span class="k">if</span> <span class="n">r</span> <span class="o">==</span> <span class="nb">int</span><span class="p">(</span><span class="n">r</span><span class="p">):</span>
-                <span class="n">prec</span> <span class="o">=</span> <span class="nb">max</span><span class="p">([</span><span class="n">prec_to_dps</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
-                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">)])</span>
-                <span class="k">return</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">prec</span><span class="p">)</span>
+                <span class="k">return</span> <span class="n">Float</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="n">precision</span><span class="o">=</span><span class="nb">max</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">))</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">global_evaluate</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span>
             <span class="n">rhs</span><span class="p">,</span> <span class="n">prec</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">_as_mpf_op</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Float</span><span class="o">.</span><span class="n">_new</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_mod</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">rhs</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">rnd</span><span class="p">),</span> <span class="n">prec</span><span class="p">)</span>
@@ -1412,14 +1430,14 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># sympy != other  --&gt;  not ==</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_irrational</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
             <span class="k">return</span> <span class="nb">bool</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
             <span class="c1"># numbers should compare at the same precision;</span>
             <span class="c1"># all _as_mpf_val routines should be sure to abide</span>
             <span class="c1"># by the request to change the prec if necessary; if</span>
@@ -1430,18 +1448,21 @@
         <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># Float != non-Number</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
     <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">*=</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span>
                 <span class="n">mlib</span><span class="o">.</span><span class="n">mpf_gt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
@@ -1451,11 +1472,14 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">*=</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span>
                 <span class="n">mlib</span><span class="o">.</span><span class="n">mpf_ge</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
@@ -1465,11 +1489,14 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">*=</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span>
                 <span class="n">mlib</span><span class="o">.</span><span class="n">mpf_lt</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
@@ -1479,11 +1506,14 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span> <span class="ow">and</span> <span class="ow">not</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
+            <span class="bp">self</span> <span class="o">*=</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span>
+            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_comparable</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span> <span class="ow">and</span> <span class="n">other</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">S</span><span class="o">.</span><span class="n">NaN</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span>
                 <span class="n">mlib</span><span class="o">.</span><span class="n">mpf_le</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_prec</span><span class="p">))))</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
@@ -1510,14 +1540,12 @@
 
 
 <span class="k">class</span> <span class="nc">Rational</span><span class="p">(</span><span class="n">Number</span><span class="p">):</span>
-    <span class="sd">&quot;&quot;&quot;Represents integers and rational numbers (p/q) of any size.</span>
+    <span class="sd">&quot;&quot;&quot;Represents rational numbers (p/q) of any size.</span>
 
 <span class="sd">    Examples</span>
 <span class="sd">    ========</span>
 
 <span class="sd">    &gt;&gt;&gt; from sympy import Rational, nsimplify, S, pi</span>
-<span class="sd">    &gt;&gt;&gt; Rational(3)</span>
-<span class="sd">    3</span>
 <span class="sd">    &gt;&gt;&gt; Rational(1, 2)</span>
 <span class="sd">    1/2</span>
 
@@ -1609,35 +1637,38 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
                 <span class="k">return</span> <span class="n">p</span>
 
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
-                <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;invalid input: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">)</span>
-                <span class="n">pq</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
-                    <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">pq</span>
-                    <span class="n">fp</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-                    <span class="n">fq</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
-                    <span class="n">f</span> <span class="o">=</span> <span class="n">fp</span><span class="o">/</span><span class="n">fq</span>
-                    <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">denominator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="n">p</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
-                    <span class="k">pass</span>  <span class="c1"># error will raise below</span>
-
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
-                <span class="k">try</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">):</span>
-                        <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">denominator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
-                <span class="k">except</span> <span class="ne">NameError</span><span class="p">:</span>
-                    <span class="k">pass</span>  <span class="c1"># error will raise below</span>
-
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">SYMPY_INTS</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
                 <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="p">(</span><span class="nb">float</span><span class="p">,</span> <span class="n">Float</span><span class="p">)):</span>
                     <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="o">*</span><span class="n">_as_integer_ratio</span><span class="p">(</span><span class="n">p</span><span class="p">))</span>
 
-            <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">SYMPY_INTS</span> <span class="o">+</span> <span class="p">(</span><span class="n">Rational</span><span class="p">,)):</span>
-                <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;invalid input: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">)</span>
-            <span class="n">q</span> <span class="o">=</span> <span class="n">q</span> <span class="ow">or</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">string_types</span><span class="p">):</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="p">(</span><span class="n">SympifyError</span><span class="p">,</span> <span class="ne">SyntaxError</span><span class="p">):</span>
+                        <span class="k">pass</span>  <span class="c1"># error will raise below</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">p</span><span class="o">.</span><span class="n">count</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+                        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;invalid input: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">)</span>
+                    <span class="n">p</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39; &#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span>
+                    <span class="n">pq</span> <span class="o">=</span> <span class="n">p</span><span class="o">.</span><span class="n">rsplit</span><span class="p">(</span><span class="s1">&#39;/&#39;</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pq</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                        <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">pq</span>
+                        <span class="n">fp</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                        <span class="n">fq</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">q</span><span class="p">)</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">fp</span><span class="o">/</span><span class="n">fq</span>
+                    <span class="k">try</span><span class="p">:</span>
+                        <span class="n">p</span> <span class="o">=</span> <span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
+                    <span class="k">except</span> <span class="ne">ValueError</span><span class="p">:</span>
+                        <span class="k">pass</span>  <span class="c1"># error will raise below</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">p</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">p</span><span class="o">.</span><span class="n">denominator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+                <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+                    <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s1">&#39;invalid input: </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">p</span><span class="p">)</span>
+
+            <span class="n">q</span> <span class="o">=</span> <span class="mi">1</span>
             <span class="n">gcd</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">p</span> <span class="o">=</span> <span class="n">Rational</span><span class="p">(</span><span class="n">p</span><span class="p">)</span>
@@ -1794,7 +1825,7 @@
             <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
                 <span class="c1"># calculate mod with Rationals, *then* round the answer</span>
                 <span class="k">return</span> <span class="n">Float</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="fm">__mod__</span><span class="p">(</span><span class="n">Rational</span><span class="p">(</span><span class="n">other</span><span class="p">)),</span>
-                    <span class="n">prec_to_dps</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">))</span>
+                             <span class="n">precision</span><span class="o">=</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">)</span>
             <span class="k">return</span> <span class="n">Number</span><span class="o">.</span><span class="fm">__mod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Number</span><span class="o">.</span><span class="fm">__mod__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -1814,11 +1845,7 @@
                 <span class="k">if</span> <span class="p">(</span><span class="n">ne</span> <span class="ow">is</span> <span class="n">S</span><span class="o">.</span><span class="n">One</span><span class="p">):</span>
                     <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
                 <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
-                    <span class="k">if</span> <span class="n">expt</span><span class="o">.</span><span class="n">q</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="p">)</span><span class="o">**</span><span class="p">((</span><span class="n">expt</span><span class="o">.</span><span class="n">p</span> <span class="o">%</span> <span class="n">expt</span><span class="o">.</span><span class="n">q</span><span class="p">)</span> <span class="o">/</span>
-                               <span class="n">S</span><span class="p">(</span><span class="n">expt</span><span class="o">.</span><span class="n">q</span><span class="p">))</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
-                    <span class="k">else</span><span class="p">:</span>
-                        <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="o">**</span><span class="n">ne</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
+                    <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="o">**</span><span class="n">expt</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
                 <span class="k">else</span><span class="p">:</span>
                     <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
             <span class="k">if</span> <span class="n">expt</span> <span class="ow">is</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">:</span>  <span class="c1"># -oo already caught by test for negative</span>
@@ -1873,35 +1900,35 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># sympy != other  --&gt;  not ==</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
             <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_irrational</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
             <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span><span class="p">:</span>
                 <span class="c1"># a Rational is always in reduced form so will never be 2/4</span>
                 <span class="c1"># so we can just check equivalence of args</span>
                 <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">mlib</span><span class="o">.</span><span class="n">mpf_eq</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">)</span>
         <span class="k">return</span> <span class="kc">False</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
     <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">q</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_gt</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span><span class="p">:</span>
@@ -1913,13 +1940,13 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span><span class="p">:</span>
                  <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">q</span> <span class="o">&gt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_ge</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span><span class="p">:</span>
@@ -1931,13 +1958,13 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">q</span> <span class="o">&lt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_lt</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span><span class="p">:</span>
@@ -1950,12 +1977,12 @@
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
         <span class="n">expr</span> <span class="o">=</span> <span class="bp">self</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">NumberSymbol</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
-        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_NumberSymbol</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">other</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Rational</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">q</span> <span class="o">&lt;=</span> <span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">))</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Float</span><span class="p">):</span>
+            <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Float</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="nb">bool</span><span class="p">(</span><span class="n">mlib</span><span class="o">.</span><span class="n">mpf_le</span><span class="p">(</span>
                     <span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="n">_prec</span><span class="p">),</span> <span class="n">other</span><span class="o">.</span><span class="n">_mpf_</span><span class="p">)))</span>
         <span class="k">elif</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span><span class="p">:</span>
@@ -1991,7 +2018,7 @@
     <span class="k">def</span> <span class="nf">lcm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Rational</span><span class="p">):</span>
             <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span>
-                <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="o">*</span><span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="o">//</span><span class="n">igcd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">),</span>
+                <span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">//</span> <span class="n">igcd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span> <span class="o">*</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">,</span>
                 <span class="n">igcd</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">q</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">q</span><span class="p">))</span>
         <span class="k">return</span> <span class="n">Number</span><span class="o">.</span><span class="n">lcm</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -2091,7 +2118,32 @@
 
 
 <span class="k">class</span> <span class="nc">Integer</span><span class="p">(</span><span class="n">Rational</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Represents integer numbers of any size.</span>
 
+<span class="sd">    Examples</span>
+<span class="sd">    ========</span>
+
+<span class="sd">    &gt;&gt;&gt; from sympy import Integer</span>
+<span class="sd">    &gt;&gt;&gt; Integer(3)</span>
+<span class="sd">    3</span>
+
+<span class="sd">    If a float or a rational is passed to Integer, the fractional part</span>
+<span class="sd">    will be discarded; the effect is of rounding toward zero.</span>
+
+<span class="sd">    &gt;&gt;&gt; Integer(3.8)</span>
+<span class="sd">    3</span>
+<span class="sd">    &gt;&gt;&gt; Integer(-3.8)</span>
+<span class="sd">    -3</span>
+
+<span class="sd">    A string is acceptable input if it can be parsed as an integer:</span>
+
+<span class="sd">    &gt;&gt;&gt; Integer(&quot;9&quot; * 20)</span>
+<span class="sd">    99999999999999999999</span>
+
+<span class="sd">    It is rarely needed to explicitly instantiate an Integer, because</span>
+<span class="sd">    Python integers are automatically converted to Integer when they</span>
+<span class="sd">    are used in SymPy expressions.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">q</span> <span class="o">=</span> <span class="mi">1</span>
     <span class="n">is_integer</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">is_number</span> <span class="o">=</span> <span class="kc">True</span>
@@ -2101,7 +2153,7 @@
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;p&#39;</span><span class="p">]</span>
 
     <span class="k">def</span> <span class="nf">_as_mpf_val</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prec</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">mlib</span><span class="o">.</span><span class="n">from_int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">prec</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">mlib</span><span class="o">.</span><span class="n">from_int</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">rnd</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">_mpmath_</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">prec</span><span class="p">,</span> <span class="n">rnd</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">mpmath</span><span class="o">.</span><span class="n">make_mpf</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_as_mpf_val</span><span class="p">(</span><span class="n">prec</span><span class="p">))</span>
@@ -2121,7 +2173,7 @@
             <span class="n">ival</span> <span class="o">=</span> <span class="nb">int</span><span class="p">(</span><span class="n">i</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span>
-                <span class="s1">&#39;Integer can only work with integer expressions.&#39;</span><span class="p">)</span>
+                <span class="s2">&quot;Argument of Integer should be of numeric type, got </span><span class="si">%s</span><span class="s2">.&quot;</span> <span class="o">%</span> <span class="n">i</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_intcache</span><span class="p">[</span><span class="n">ival</span><span class="p">]</span>
         <span class="k">except</span> <span class="ne">KeyError</span><span class="p">:</span>
@@ -2266,14 +2318,14 @@
         <span class="k">return</span> <span class="n">Rational</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
     <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Integer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Rational</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -2282,7 +2334,7 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Integer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Rational</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -2291,7 +2343,7 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Integer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&gt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Rational</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -2300,7 +2352,7 @@
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Integer</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Integer</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">p</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="o">.</span><span class="n">p</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Rational</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
@@ -2359,11 +2411,7 @@
             <span class="c1"># invert base and change sign on exponent</span>
             <span class="n">ne</span> <span class="o">=</span> <span class="o">-</span><span class="n">expt</span>
             <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
-                <span class="k">if</span> <span class="n">expt</span><span class="o">.</span><span class="n">q</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="o">-</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="p">)</span><span class="o">**</span><span class="p">((</span><span class="n">expt</span><span class="o">.</span><span class="n">p</span> <span class="o">%</span> <span class="n">expt</span><span class="o">.</span><span class="n">q</span><span class="p">)</span> <span class="o">/</span>
-                            <span class="n">S</span><span class="p">(</span><span class="n">expt</span><span class="o">.</span><span class="n">q</span><span class="p">))</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
-                <span class="k">else</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
+                    <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="o">**</span><span class="n">expt</span><span class="o">*</span><span class="n">Rational</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="o">-</span><span class="bp">self</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">p</span><span class="p">)</span><span class="o">**</span><span class="n">ne</span>
         <span class="c1"># see if base is a perfect root, sqrt(4) --&gt; 2</span>
@@ -2384,11 +2432,9 @@
         <span class="k">if</span> <span class="n">p</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">False</span><span class="p">:</span>
             <span class="nb">dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">p</span><span class="p">[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">p</span><span class="p">[</span><span class="mi">1</span><span class="p">]}</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="nb">dict</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="bp">self</span><span class="p">)</span><span class="o">.</span><span class="n">factors</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="mi">15</span><span class="p">)</span>
+            <span class="nb">dict</span> <span class="o">=</span> <span class="n">Integer</span><span class="p">(</span><span class="n">b_pos</span><span class="p">)</span><span class="o">.</span><span class="n">factors</span><span class="p">(</span><span class="n">limit</span><span class="o">=</span><span class="mi">2</span><span class="o">**</span><span class="mi">15</span><span class="p">)</span>
 
         <span class="c1"># now process the dict of factors</span>
-        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
-            <span class="nb">dict</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
         <span class="n">out_int</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># integer part</span>
         <span class="n">out_rad</span> <span class="o">=</span> <span class="mi">1</span>  <span class="c1"># extracted radicals</span>
         <span class="n">sqr_int</span> <span class="o">=</span> <span class="mi">1</span>
@@ -2418,10 +2464,12 @@
                     <span class="k">break</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sqr_dict</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="n">sqr_int</span> <span class="o">*=</span> <span class="n">k</span><span class="o">**</span><span class="p">(</span><span class="n">v</span><span class="o">//</span><span class="n">sqr_gcd</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">sqr_int</span> <span class="o">==</span> <span class="bp">self</span> <span class="ow">and</span> <span class="n">out_int</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">out_rad</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">sqr_int</span> <span class="o">==</span> <span class="n">b_pos</span> <span class="ow">and</span> <span class="n">out_int</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">out_rad</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="n">result</span> <span class="o">=</span> <span class="n">out_int</span><span class="o">*</span><span class="n">out_rad</span><span class="o">*</span><span class="n">Pow</span><span class="p">(</span><span class="n">sqr_int</span><span class="p">,</span> <span class="n">Rational</span><span class="p">(</span><span class="n">sqr_gcd</span><span class="p">,</span> <span class="n">expt</span><span class="o">.</span><span class="n">q</span><span class="p">))</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
+                <span class="n">result</span> <span class="o">*=</span> <span class="n">Pow</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeOne</span><span class="p">,</span> <span class="n">expt</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">result</span>
 
     <span class="k">def</span> <span class="nf">_eval_is_prime</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
@@ -2494,10 +2542,6 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">rep</span> <span class="o">=</span> <span class="n">DMP</span><span class="o">.</span><span class="n">from_list</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">],</span> <span class="mi">0</span><span class="p">,</span> <span class="n">dom</span><span class="p">)</span>
             <span class="n">scoeffs</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
-
-            <span class="k">if</span> <span class="n">root</span><span class="o">.</span><span class="n">is_negative</span><span class="p">:</span>
-                <span class="n">rep</span> <span class="o">=</span> <span class="o">-</span><span class="n">rep</span>
-                <span class="n">scoeffs</span> <span class="o">=</span> <span class="n">Tuple</span><span class="p">(</span><span class="o">-</span><span class="mi">1</span><span class="p">,</span> <span class="mi">0</span><span class="p">)</span>
 
         <span class="n">sargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">root</span><span class="p">,</span> <span class="n">scoeffs</span><span class="p">)</span>
 
@@ -3423,6 +3467,8 @@
     <span class="n">is_infinite</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">is_number</span> <span class="o">=</span> <span class="kc">True</span>
     <span class="n">is_prime</span> <span class="o">=</span> <span class="kc">False</span>
+    <span class="n">is_complex</span> <span class="o">=</span> <span class="kc">True</span>
+    <span class="n">is_real</span> <span class="o">=</span> <span class="kc">False</span>
 
     <span class="vm">__slots__</span> <span class="o">=</span> <span class="p">[]</span>
 
@@ -3493,72 +3539,26 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
         <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># sympy != other  --&gt;  not ==</span>
+            <span class="k">return</span> <span class="bp">NotImplemented</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">True</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">)</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_irrational</span><span class="p">:</span>
+        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_Number</span> <span class="ow">and</span> <span class="bp">self</span><span class="o">.</span><span class="n">is_irrational</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
         <span class="k">return</span> <span class="kc">False</span>    <span class="c1"># NumberSymbol != non-(Number|self)</span>
 
     <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-
-    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">false</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="n">approx</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">approximation_interval</span><span class="p">(</span><span class="n">other</span><span class="o">.</span><span class="vm">__class__</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">approx</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-                <span class="n">l</span><span class="p">,</span> <span class="n">u</span> <span class="o">=</span> <span class="n">approx</span>
-                <span class="k">if</span> <span class="n">other</span> <span class="o">&lt;</span> <span class="n">l</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">false</span>
-                <span class="k">if</span> <span class="n">other</span> <span class="o">&gt;</span> <span class="n">u</span><span class="p">:</span>
-                    <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span>
-            <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">other</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-            <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="o">&lt;</span> <span class="n">other</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span> <span class="o">==</span> <span class="n">other</span>
 
     <span class="k">def</span> <span class="nf">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &lt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
         <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
             <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span>
-        <span class="k">if</span> <span class="n">other</span><span class="o">.</span><span class="n">is_real</span> <span class="ow">and</span> <span class="n">other</span><span class="o">.</span><span class="n">is_number</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">other</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
-        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="n">Number</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">_sympify</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span> <span class="o">&lt;=</span> <span class="n">other</span><span class="p">)</span>
         <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__le__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt; </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">((</span><span class="o">-</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;</span> <span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">false</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">r</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__gt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
-
     <span class="k">def</span> <span class="nf">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
-        <span class="k">try</span><span class="p">:</span>
-            <span class="n">other</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
-        <span class="k">except</span> <span class="n">SympifyError</span><span class="p">:</span>
-            <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="s2">&quot;Invalid comparison </span><span class="si">%s</span><span class="s2"> &gt;= </span><span class="si">%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">))</span>
-        <span class="n">r</span> <span class="o">=</span> <span class="n">_sympify</span><span class="p">((</span><span class="o">-</span><span class="bp">self</span><span class="p">)</span> <span class="o">&lt;=</span> <span class="p">(</span><span class="o">-</span><span class="n">other</span><span class="p">))</span>
-        <span class="k">if</span> <span class="n">r</span> <span class="ow">in</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">false</span><span class="p">):</span>
-            <span class="k">return</span> <span class="n">r</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
+        <span class="k">if</span> <span class="bp">self</span> <span class="ow">is</span> <span class="n">other</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span>
+        <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="fm">__ge__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">)</span>
 
     <span class="k">def</span> <span class="nf">__int__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="c1"># subclass with appropriate return value</span>
@@ -3975,10 +3975,9 @@
 
 
 <span class="k">def</span> <span class="nf">sympify_fractions</span><span class="p">(</span><span class="n">f</span><span class="p">):</span>
-    <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">denominator</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">f</span><span class="o">.</span><span class="n">numerator</span><span class="p">,</span> <span class="n">f</span><span class="o">.</span><span class="n">denominator</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
 
 <span class="n">converter</span><span class="p">[</span><span class="n">fractions</span><span class="o">.</span><span class="n">Fraction</span><span class="p">]</span> <span class="o">=</span> <span class="n">sympify_fractions</span>
-
 
 <span class="k">try</span><span class="p">:</span>
     <span class="k">if</span> <span class="n">HAS_GMPY</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
@@ -4004,6 +4003,13 @@
     <span class="k">return</span> <span class="n">Expr</span><span class="o">.</span><span class="n">_from_mpmath</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="o">.</span><span class="n">context</span><span class="o">.</span><span class="n">prec</span><span class="p">)</span>
 
 <span class="n">converter</span><span class="p">[</span><span class="n">mpnumeric</span><span class="p">]</span> <span class="o">=</span> <span class="n">sympify_mpmath</span>
+
+
+<span class="k">def</span> <span class="nf">sympify_mpq</span><span class="p">(</span><span class="n">x</span><span class="p">):</span>
+    <span class="n">p</span><span class="p">,</span> <span class="n">q</span> <span class="o">=</span> <span class="n">x</span><span class="o">.</span><span class="n">_mpq_</span>
+    <span class="k">return</span> <span class="n">Rational</span><span class="p">(</span><span class="n">p</span><span class="p">,</span> <span class="n">q</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+
+<span class="n">converter</span><span class="p">[</span><span class="nb">type</span><span class="p">(</span><span class="n">mpmath</span><span class="o">.</span><span class="n">rational</span><span class="o">.</span><span class="n">mpq</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">))]</span> <span class="o">=</span> <span class="n">sympify_mpq</span>
 
 
 <span class="k">def</span> <span class="nf">sympify_complex</span><span class="p">(</span><span class="n">a</span><span class="p">):</span>
@@ -4055,7 +4061,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+8.gc5c8df6',
+            VERSION:'0.7+9.ge34a832',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
