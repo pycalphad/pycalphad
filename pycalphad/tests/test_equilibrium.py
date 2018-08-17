@@ -357,7 +357,6 @@ def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
     assert np.sum(eq_res.Phase.values != '') == 3
 
 
-
 @raises(NotImplementedError)
 def test_equilibrium_raises_with_invalid_solver():
     """
