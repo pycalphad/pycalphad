@@ -182,11 +182,13 @@ def test_to_file_raises_with_bad_if_exists_argument():
 
 @nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
 def test_to_file_overwrites_with_if_exists_argument():
+    import time
     "Database.to_file should overwrite if 'overwrite' is passed to if_exists"
     fname = 'testwritedb.tdb'
     test_dbf = Database(ALNIPT_TDB)
     test_dbf.to_file(fname)  # establish the initial file
     inital_modification_time = os.path.getmtime(fname)
+    time.sleep(1)  # this test can fail intermittently without waiting.
     test_dbf.to_file(fname, if_exists='overwrite')  # test if_exists behavior
     overwrite_modification_time = os.path.getmtime(fname)
     assert overwrite_modification_time > inital_modification_time

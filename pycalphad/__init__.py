@@ -22,6 +22,10 @@ import warnings
 warnings.filterwarnings('ignore', message='divide by zero encountered in log')
 warnings.filterwarnings('ignore', message='invalid value encountered in true_divide')
 
+import sympy.functions.elementary.piecewise
+import pycalphad.core.patched_piecewise
+sympy.functions.elementary.piecewise.Piecewise.eval = classmethod(pycalphad.core.patched_piecewise.piecewise_eval)
+
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database

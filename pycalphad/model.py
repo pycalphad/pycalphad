@@ -550,6 +550,7 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         param_search = dbe.search
         self.TC = self.curie_temperature = S.Zero
+        self.BMAG = self.beta = S.Zero
         if 'ihj_magnetic_structure_factor' not in phase.model_hints:
             return S.Zero
         if 'ihj_magnetic_afm_factor' not in phase.model_hints:
@@ -581,6 +582,7 @@ class Model(object):
             (1., True),
             evaluate=False
             )
+        self.BMAG = self.beta = beta
 
         curie_temp = \
             self.redlich_kister_sum(phase, param_search, tc_param_query)

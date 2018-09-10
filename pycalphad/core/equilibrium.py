@@ -14,6 +14,8 @@ from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.constraints import build_constraints
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
+from pycalphad.core.solver import InteriorPointSolver
+from sympy import Add, Symbol
 import dask
 from dask import delayed
 import dask.multiprocessing
@@ -121,7 +123,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    coord_dict['vertex'] = np.arange(len(pure_elements))
+    coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     grid_shape = np.meshgrid(*coord_dict.values(),
                              indexing='ij', sparse=False)[0].shape
     prop_shape = grid_shape
@@ -155,7 +157,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
                 scheduler=dask.local.get_sync,
-                parameters=None, **kwargs):
+                parameters=None, solver=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -189,6 +191,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         If None, return a Dask graph of the computation instead of actually doing it.
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    solver : pycalphad.core.solver.SolverBase
+        Instance of a solver that is used to calculate local equilibria.
+        Defaults to a pycalphad.core.solver.InteriorPointSolver.
 
     Returns
     -------
@@ -217,6 +222,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
 
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
+    solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
     phase_records = dict()
     callable_dict = kwargs.pop('callables', dict())
     mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
@@ -332,7 +338,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                           fake_points=True, parameters=parameters, **grid_opts)
     properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
     nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
-    grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements),)
+    grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements)+1,)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
@@ -352,13 +358,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                               list(str_conds.keys()), state_variables, verbose)
+                                                               list(str_conds.keys()), state_variables, verbose, solver=solver)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                  list(str_conds.keys()), state_variables, verbose)
+                                                                  list(str_conds.keys()), state_variables, verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
     output = output if isinstance(output, (list, tuple, set)) else [output]

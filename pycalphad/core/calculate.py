@@ -179,11 +179,11 @@ def _compute_phase_values(components, statevar_dict,
     pure_elements = [x for x in pure_elements if x != 'VA']
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
-    bc_statevars = [np.ascontiguousarray(broadcast_to(x, points.shape[:-1]).reshape(-1)) for x in statevars]
-    pts = points.reshape(-1, points.shape[-1]).T
-    dof = np.ascontiguousarray(np.concatenate((bc_statevars, pts), axis=0).T)
-    phase_output = np.ascontiguousarray(np.zeros(dof.shape[0]))
-    phase_compositions = np.asfortranarray(np.zeros((dof.shape[0], len(pure_elements))))
+    bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
+    pts = points.reshape(-1, points.shape[-1])
+    dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
+    phase_output = np.zeros(dof.shape[0], order='C')
+    phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
     phase_record.obj(phase_output, dof)
     for el_idx in range(len(pure_elements)):
         phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
@@ -203,7 +203,6 @@ def _compute_phase_values(components, statevar_dict,
                                       np.full(points.shape[:-1], phase_record.phase_name, dtype='U' + str(len(phase_record.phase_name)))), axis=-1)
     else:
         phase_names = np.full(points.shape[:-1], phase_record.phase_name, dtype='U'+str(len(phase_record.phase_name)))
-
     if fake_points:
         phase_compositions = np.concatenate((np.broadcast_to(np.eye(len(pure_elements)), points.shape[:-2] + (max_tieline_vertices, len(pure_elements))), phase_compositions), axis=-2)
 
@@ -212,12 +211,22 @@ def _compute_phase_values(components, statevar_dict,
     # number of internal degrees of freedom of any phase in the calculation.
     # We do this so that everything is aligned for concat.
     # Waste of memory? Yes, but the alternatives are unclear.
+    # In each case, first check if we need to do this...
+    # It can be expensive for many points (~14s for 500M points)
     if fake_points:
-        expanded_points = np.full(points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof), np.nan)
+        desired_shape = points.shape[:-2] + (max_tieline_vertices + points.shape[-2], maximum_internal_dof)
+        expanded_points = np.full(desired_shape, np.nan)
         expanded_points[..., len(pure_elements):, :points.shape[-1]] = points
     else:
-        expanded_points = np.full(points.shape[:-1] + (maximum_internal_dof,), np.nan)
-        expanded_points[..., :points.shape[-1]] = points
+        desired_shape = points.shape[:-1] + (maximum_internal_dof,)
+        if points.shape == desired_shape:
+            expanded_points = points
+        else:
+            # TODO: most optimal solution would be to take pre-extended arrays as an argument and remove this
+            # This still copies the array, but is more efficient than filling
+            # an array with np.nan, then copying the existing points
+            append_nans = np.full(desired_shape[:-1] + (desired_shape[-1] - points.shape[-1],), np.nan)
+            expanded_points = np.append(points, append_nans, axis=-1)
     if broadcast:
         coordinate_dict.update({key: np.atleast_1d(value) for key, value in statevar_dict.items()})
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
