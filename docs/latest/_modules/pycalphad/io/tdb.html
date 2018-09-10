@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.7+12.g7e18890 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.7+13.g5ad8830 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+12.g7e18890
+                0.7+13.g5ad8830
               </div>
             
           
@@ -1058,13 +1058,15 @@
 
     <span class="c1"># Temporary storage while we process type definitions</span>
     <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span> <span class="o">=</span> <span class="p">{}</span>
+    
+    <span class="n">grammar</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span>
 
     <span class="k">for</span> <span class="n">command</span> <span class="ow">in</span> <span class="n">commands</span><span class="p">:</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">command</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
             <span class="k">continue</span>
         <span class="n">tokens</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="k">try</span><span class="p">:</span>
-            <span class="n">tokens</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
+            <span class="n">tokens</span> <span class="o">=</span> <span class="n">grammar</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
             <span class="n">_TDB_PROCESSOR</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="n">dbf</span><span class="p">,</span> <span class="o">*</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
         <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
@@ -1108,7 +1110,7 @@
     <script type="text/javascript">
         var DOCUMENTATION_OPTIONS = {
             URL_ROOT:'../../../',
-            VERSION:'0.7+12.g7e18890',
+            VERSION:'0.7+13.g5ad8830',
             LANGUAGE:'None',
             COLLAPSE_INDEX:false,
             FILE_SUFFIX:'.html',
