@@ -6,7 +6,7 @@ property surface of a system.
 from __future__ import division
 from pycalphad import Model
 from pycalphad.model import DofError
-from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.codegen.sympydiff_utils import build_functions
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components

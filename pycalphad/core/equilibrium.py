@@ -9,12 +9,11 @@ from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.codegen.sympydiff_utils import build_functions
 from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
-from sympy import Add, Symbol
 import dask
 from dask import delayed
 import dask.multiprocessing
@@ -25,7 +24,7 @@ except ImportError:
     dask.local = dask.async
 from xarray import Dataset
 import numpy as np
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from datetime import datetime
 
 
