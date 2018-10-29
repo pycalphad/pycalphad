@@ -5,18 +5,19 @@ from pycalphad.core.utils import get_pure_elements, unpack_components, unpack_kw
 from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from sympy import Symbol
 import numpy as np
-import sys
-PY2 = sys.version_info[0] == 2
-
-if PY2:
-    string_types = basestring
-else:
-    string_types = str
+import operator
 
 
-def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='GM', build_gradients=True):
+def wrap_symbol(obj):
+    if isinstance(obj, Symbol):
+        return obj
+    else:
+        return Symbol(obj)
+
+def build_callables(dbf, comps, phases, model=None, parameters=None,
+                    output='GM', build_gradients=True, build_phase_records=True, verbose=False):
     """
-    Create a dictionary of callable dictionaries for phases in equilibrium
+    Create dictionaries of callable dictionaries and PhaseRecords.
 
     Parameters
     ----------
@@ -29,12 +30,17 @@ def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='
     model : dict or type
         Dictionary of {phase_name: Model subclass} or a type corresponding to a
         Model subclass. Defaults to ``Model``.
-    param_symbols : list
-        SymPy Symbol objects that will be preserved in the callable functions.
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     output : str
         Output property of the particular Model to sample
     build_gradients : bool
         Whether or not to build gradient functions. Defaults to True.
+    build_phase_records : bool
+        Whether or not to build PhaseRecords.
+
+    verbose : bool
+        Print the name of the phase when its callables are built
 
     Returns
     -------
@@ -49,6 +55,14 @@ def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='
     >>> callables = build_callables(dbf, comps, phases)
     >>> equilibrium(dbf, comps, phases, conditions, **callables)
     """
+    parameters = parameters if parameters is not None else {}
+    if len(parameters) > 0:
+        param_symbols, param_values = zip(*[(key, val) for key, val in sorted(parameters.items(),
+                                                                              key=operator.itemgetter(0))])
+        param_values = np.asarray(param_values, dtype=np.float64)
+    else:
+        param_symbols = []
+        param_values = np.empty(0)
     comps = sorted(unpack_components(dbf, comps))
     pure_elements = get_pure_elements(dbf, comps)
 
@@ -61,19 +75,13 @@ def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='
     }
 
     models = unpack_kwarg(model, default_arg=Model)
-    param_symbols = param_symbols if param_symbols is not None else []
-    # wrap param symbols in Symbols if they are strings
-    if all([isinstance(sym, string_types) for sym in param_symbols]):
-        param_symbols = [Symbol(sym) for sym in param_symbols]
-    param_values = np.zeros_like(param_symbols, dtype=np.float64)
-
+    param_symbols = [wrap_symbol(sym) for sym in param_symbols]
     phase_records = {}
     # create models
-    # starting from pycalphad
     for name in phases:
         mod = models[name]
         if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name)
+            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
         site_fracs = mod.site_fractions
         variables = sorted(site_fracs, key=str)
         try:
@@ -87,7 +95,6 @@ def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='
         undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
         for undef in undefs:
             out = out.xreplace({undef: float(0)})
-        # XXX: Treating P and T special
         build_output = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols,
                                        include_grad=build_gradients)
         if build_gradients:
@@ -118,16 +125,18 @@ def build_callables(dbf, comps, phases, model=None, param_symbols=None, output='
             mgf = None
         callables['massfuncs'][name] = mcf
         callables['massgradfuncs'][name] = mgf
-
-        # creating the phase records triggers the compile
-        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                              np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                              param_values, callables['callables'][name],
-                                                              callables['grad_callables'][name],
-                                                              callables['hess_callables'][name],
-                                                              callables['massfuncs'][name],
-                                                              callables['massgradfuncs'][name])
-
+        if build_phase_records:
+            # creating the phase records triggers the compile
+            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
+                                                                  np.array(dbf.phases[name].sublattices, dtype=np.float),
+                                                                  param_values, callables['callables'][name],
+                                                                  callables['grad_callables'][name],
+                                                                  callables['hess_callables'][name],
+                                                                  callables['massfuncs'][name],
+                                                                  callables['massgradfuncs'][name])
+        if verbose:
+            print(name, end=' ')
     # finally, add the models to the callables
     callables['model'] = dict(models)
+    callables['phase_records'] = phase_records
     return callables
