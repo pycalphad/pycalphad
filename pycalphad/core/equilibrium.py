@@ -146,7 +146,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
         calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
-                            callables=callables, massfuncs=massfuncs, parameters=parameters, **statevars)
+                            parameters=parameters, **statevars)
         result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
@@ -278,9 +278,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict['component'] = pure_elements
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, callables=eq_callables['callables'],
-                                          massfuncs=eq_callables['massfuncs'],
-                                          fake_points=True, parameters=parameters, **grid_opts)
+                                          model=models, fake_points=True, parameters=parameters, **grid_opts)
 
     max_phase_name_len = max(len(name) for name in active_phases)
     # Need to allow for '_FAKE_' psuedo-phase
