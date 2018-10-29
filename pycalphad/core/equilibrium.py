@@ -5,7 +5,6 @@ calculated phase equilibria.
 from __future__ import print_function
 import warnings
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.lower_convex_hull import lower_convex_hull
@@ -15,12 +14,6 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
 import dask
 from dask import delayed
-import dask.multiprocessing
-try:
-    import dask.local
-except ImportError:
-    import dask.async
-    dask.local = dask.async
 from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
@@ -157,7 +150,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                scheduler=dask.local.get_sync,
+                scheduler='sync',
                 parameters=None, solver=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
@@ -350,7 +343,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                   massfuncs=eq_callables['massfuncs'], model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
     if scheduler is not None:
-        properties = dask.compute(properties, get=scheduler)[0]
+        properties = dask.compute(properties, scheduler=scheduler)[0]
     properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
