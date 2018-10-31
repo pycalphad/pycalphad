@@ -363,3 +363,20 @@ def test_equilibrium_raises_with_invalid_solver():
     SolverBase instances passed to equilibrium should raise an error.
     """
     equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
+
+
+def test_equlibrium_no_opt_solver():
+    """Passing in a solver with `ignore_convergence = True` gives a result."""
+
+    class NoOptSolver(SolverBase):
+        ignore_convergence = True
+
+    no_opt_solver = NoOptSolver()
+
+    cur_solver_eq_res = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325}, verbose=True)
+    no_opt_eq_res = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325}, solver=no_opt_solver, verbose=True)
+
+    print(cur_solver_eq_res)
+    print(no_opt_solver)
+    assert cur_solver_eq_res.GM != no_opt_eq_res.GM
+    assert np.all(np.close([-5000.0], no_opt_eq_res.GM.squeeze()))
