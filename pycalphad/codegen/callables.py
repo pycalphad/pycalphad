@@ -6,6 +6,7 @@ from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from sympy import Symbol
 import numpy as np
 import operator
+from collections import defaultdict
 
 
 def wrap_symbol(obj):
@@ -14,7 +15,7 @@ def wrap_symbol(obj):
     else:
         return Symbol(obj)
 
-def build_callables(dbf, comps, phases, model=None, parameters=None,
+def build_callables(dbf, comps, phases, model=None, parameters=None, callables=None,
                     output='GM', build_gradients=True, build_phase_records=True, verbose=False):
     """
     Create dictionaries of callable dictionaries and PhaseRecords.
@@ -32,6 +33,8 @@ def build_callables(dbf, comps, phases, model=None, parameters=None,
         Model subclass. Defaults to ``Model``.
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    callables : dict, optional
+        Pre-computed callables
     output : str
         Output property of the particular Model to sample
     build_gradients : bool
@@ -44,7 +47,7 @@ def build_callables(dbf, comps, phases, model=None, parameters=None,
 
     Returns
     -------
-    dict
+    callables : dict
         Dictionary of keyword argument callables to pass to equilibrium.
 
     Example
@@ -66,12 +69,13 @@ def build_callables(dbf, comps, phases, model=None, parameters=None,
     comps = sorted(unpack_components(dbf, comps))
     pure_elements = get_pure_elements(dbf, comps)
 
-    callables = {
+    callables = callables if callables is not None else {}
+    _callables = {
         'massfuncs': {},
         'massgradfuncs': {},
         'callables': {},
         'grad_callables': {},
-        'hess_callables': {},
+        'hess_callables': defaultdict(lambda: None),
     }
 
     models = unpack_kwarg(model, default_arg=Model)
@@ -90,53 +94,67 @@ def build_callables(dbf, comps, phases, model=None, parameters=None,
             raise AttributeError('Missing Model attribute {0} specified for {1}'
                                  .format(output, mod.__class__))
 
-        # Build the callables of the output
-        # Only force undefineds to zero if we're not overriding them
-        undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
-        for undef in undefs:
-            out = out.xreplace({undef: float(0)})
-        build_output = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols,
-                                       include_grad=build_gradients)
-        if build_gradients:
-            cf, gf = build_output
+        if callables.get('callables', {}).get(name, False) and \
+                ((not build_gradients) or callables.get('grad_callables',{}).get(name, False)):
+            _callables['callables'][name] = callables['callables'][name]
+            if build_gradients:
+                _callables['grad_callables'][name] = callables['grad_callables'][name]
+            else:
+                _callables['grad_callables'][name] = None
         else:
-            cf = build_output
-            gf = None
-        hf = None
-        callables['callables'][name] = cf
-        callables['grad_callables'][name] = gf
-        callables['hess_callables'][name] = hf
+            # Build the callables of the output
+            # Only force undefineds to zero if we're not overriding them
+            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
+            for undef in undefs:
+                out = out.xreplace({undef: float(0)})
+            build_output = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols,
+                                           include_grad=build_gradients)
+            if build_gradients:
+                cf, gf = build_output
+            else:
+                cf = build_output
+                gf = None
+            _callables['callables'][name] = cf
+            _callables['grad_callables'][name] = gf
 
-        # Build the callables for mass
-        # TODO: In principle, we should also check for undefs in mod.moles()
+        if callables.get('massfuncs', {}).get(name, False) and \
+                ((not build_gradients) or callables.get('massgradfuncs', {}).get(name, False)):
+            _callables['massfuncs'][name] = callables['massfuncs'][name]
+            if build_gradients:
+                _callables['massgradfuncs'][name] = callables['massgradfuncs'][name]
+            else:
+                _callables['massgradfuncs'][name] = None
+        else:
+            # Build the callables for mass
+            # TODO: In principle, we should also check for undefs in mod.moles()
 
-        if build_gradients:
-            mcf, mgf = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+            if build_gradients:
+                mcf, mgf = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
+                                                 include_obj=True,
+                                                 include_grad=build_gradients,
+                                                 parameters=param_symbols)
+                                 for el in pure_elements])
+            else:
+                mcf = tuple([build_functions(mod.moles(el), [v.P, v.T] + variables,
                                              include_obj=True,
                                              include_grad=build_gradients,
                                              parameters=param_symbols)
                              for el in pure_elements])
-        else:
-            mcf = tuple([build_functions(mod.moles(el), [v.P, v.T] + variables,
-                                         include_obj=True,
-                                         include_grad=build_gradients,
-                                         parameters=param_symbols)
-                         for el in pure_elements])
-            mgf = None
-        callables['massfuncs'][name] = mcf
-        callables['massgradfuncs'][name] = mgf
+                mgf = None
+            _callables['massfuncs'][name] = mcf
+            _callables['massgradfuncs'][name] = mgf
         if build_phase_records:
             # creating the phase records triggers the compile
             phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
                                                                   np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                                  param_values, callables['callables'][name],
-                                                                  callables['grad_callables'][name],
-                                                                  callables['hess_callables'][name],
-                                                                  callables['massfuncs'][name],
-                                                                  callables['massgradfuncs'][name])
+                                                                  param_values, _callables['callables'][name],
+                                                                  _callables['grad_callables'][name],
+                                                                  _callables['hess_callables'][name],
+                                                                  _callables['massfuncs'][name],
+                                                                  _callables['massgradfuncs'][name])
         if verbose:
-            print(name, end=' ')
+            print(name + ' ')
     # finally, add the models to the callables
-    callables['model'] = dict(models)
-    callables['phase_records'] = phase_records
-    return callables
+    _callables['model'] = dict(models)
+    _callables['phase_records'] = phase_records
+    return _callables

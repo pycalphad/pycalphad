@@ -58,7 +58,7 @@ def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
 
 
 def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, parameters=None,
-                 massfuncs=None, **kwargs):
+                 **kwargs):
     """
     WARNING: API/calling convention not finalized.
     Compute the *equilibrium value* of a property.
@@ -139,7 +139,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
         calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
-                            parameters=parameters, **statevars)
+                            callables=callables, parameters=parameters, **statevars)
         result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
@@ -151,7 +151,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
                 scheduler='sync',
-                parameters=None, solver=None, **kwargs):
+                parameters=None, solver=None, callables=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -188,6 +188,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     solver : pycalphad.core.solver.SolverBase
         Instance of a solver that is used to calculate local equilibria.
         Defaults to a pycalphad.core.solver.InteriorPointSolver.
+    callables : dict, optional
+        Pre-computed callable functions for equilibrium calculation.
 
     Returns
     -------
@@ -246,7 +248,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         if o == 'GM':
             eq_callables = build_callables(dbf, comps, phases, model=model,
                                            parameters=parameters,
-                                           output=o, build_gradients=True, build_phase_records=True, verbose=verbose)
+                                           output=o, build_gradients=True, callables=callables,
+                                           build_phase_records=True, verbose=verbose)
         else:
             other_output_callables[o] = build_callables(dbf, comps, phases, model=model,
                                                         parameters=parameters,
@@ -271,7 +274,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict['component'] = pure_elements
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, fake_points=True, parameters=parameters, **grid_opts)
+                                          model=models, fake_points=True, callables=eq_callables,
+                                          parameters=parameters, **grid_opts)
 
     max_phase_name_len = max(len(name) for name in active_phases)
     # Need to allow for '_FAKE_' psuedo-phase
@@ -338,9 +342,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = False
         eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
                                                   data=properties, per_phase=per_phase,
-                                                  callables=other_output_callables[out]['callables'],
+                                                  callables=other_output_callables[out],
                                                   parameters=parameters,
-                                                  massfuncs=eq_callables['massfuncs'], model=models, **calc_opts)
+                                                  model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
     if scheduler is not None:
         properties = dask.compute(properties, scheduler=scheduler)[0]

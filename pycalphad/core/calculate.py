@@ -300,9 +300,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
-    # Unused but left for compatibility, so the kwargs won't be left in place
-    callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
-    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
+    callables_dict = kwargs.pop('callables', {})
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     parameters = parameters or dict()
@@ -341,7 +339,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     output = output if output is not None else 'GM'
     eq_callables = build_callables(dbf, comps, phases, model=model_dict,
                                    parameters=parameters,
-                                   output=output, build_gradients=False, build_phase_records=True, verbose=False)
+                                   output=output, callables=callables_dict, build_gradients=False,
+                                   build_phase_records=True, verbose=False)
 
     phase_records = eq_callables['phase_records']
     models = eq_callables['model']
