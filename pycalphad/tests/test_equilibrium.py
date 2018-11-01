@@ -9,7 +9,7 @@ from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.core.solver import SolverBase
+from pycalphad.core.solver import SolverBase, InteriorPointSolver
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -368,15 +368,18 @@ def test_equilibrium_raises_with_invalid_solver():
 def test_equlibrium_no_opt_solver():
     """Passing in a solver with `ignore_convergence = True` gives a result."""
 
-    class NoOptSolver(SolverBase):
+    class NoOptSolver(InteriorPointSolver):
         ignore_convergence = True
 
-    no_opt_solver = NoOptSolver()
+    comps = ['PB', 'SN', 'VA']
+    phases = list(PBSN_DBF.phases.keys())
+    conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
+    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=InteriorPointSolver(), verbose=True)
+    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=NoOptSolver(), verbose=True)
 
-    cur_solver_eq_res = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325}, verbose=True)
-    no_opt_eq_res = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325}, solver=no_opt_solver, verbose=True)
-
-    print(cur_solver_eq_res)
-    print(no_opt_solver)
-    assert cur_solver_eq_res.GM != no_opt_eq_res.GM
-    assert np.all(np.close([-5000.0], no_opt_eq_res.GM.squeeze()))
+    ipopt_GM = ipopt_solver_eq_res.GM.values.squeeze()
+    no_opt_GM = no_opt_eq_res.GM.values.squeeze()
+    no_opt_MU = no_opt_eq_res.MU.values.squeeze()
+    assert ipopt_GM != no_opt_GM  # global min energy is different from lower convex hull
+    assert np.allclose([-17452.5115967], no_opt_GM)  # energy from lower convex hull
+    assert np.allclose([-19540.6522632, -15364.3709302], no_opt_MU)  # chempots from lower convex hull
