@@ -340,7 +340,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     eq_callables = build_callables(dbf, comps, phases, model=model_dict,
                                    parameters=parameters,
                                    output=output, callables=callables_dict, build_gradients=False,
-                                   build_phase_records=True, verbose=False)
+                                   verbose=False)
 
     phase_records = eq_callables['phase_records']
     models = eq_callables['model']

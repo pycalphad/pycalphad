@@ -249,12 +249,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             eq_callables = build_callables(dbf, comps, phases, model=model,
                                            parameters=parameters,
                                            output=o, build_gradients=True, callables=callables,
-                                           build_phase_records=True, verbose=verbose)
+                                           verbose=verbose)
         else:
             other_output_callables[o] = build_callables(dbf, comps, phases, model=model,
                                                         parameters=parameters,
                                                         output=o, build_gradients=False,
-                                                        build_phase_records=False, verbose=False)
+                                                        verbose=False)
 
     phase_records = eq_callables['phase_records']
     models = eq_callables['model']

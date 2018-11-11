@@ -6,6 +6,7 @@ from pycalphad.core.phase_rec import PhaseRecord_from_cython
 from sympy import Symbol
 import numpy as np
 import operator
+from itertools import repeat
 from collections import defaultdict
 
 
@@ -16,7 +17,7 @@ def wrap_symbol(obj):
         return Symbol(obj)
 
 def build_callables(dbf, comps, phases, model=None, parameters=None, callables=None,
-                    output='GM', build_gradients=True, build_phase_records=True, verbose=False):
+                    output='GM', build_gradients=True, verbose=False):
     """
     Create dictionaries of callable dictionaries and PhaseRecords.
 
@@ -39,8 +40,6 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
         Output property of the particular Model to sample
     build_gradients : bool
         Whether or not to build gradient functions. Defaults to True.
-    build_phase_records : bool
-        Whether or not to build PhaseRecords.
 
     verbose : bool
         Print the name of the phase when its callables are built
@@ -104,9 +103,9 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
         else:
             # Build the callables of the output
             # Only force undefineds to zero if we're not overriding them
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable) - set(param_symbols))
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
+            undefs = {x for x in out.free_symbols if not isinstance(x, v.StateVariable)} - set(param_symbols)
+            undef_vals = repeat(0., len(undefs))
+            out = out.xreplace(dict(zip(undefs, undef_vals)))
             build_output = build_functions(out, tuple([v.P, v.T] + site_fracs), parameters=param_symbols,
                                            include_grad=build_gradients)
             if build_gradients:
@@ -143,17 +142,31 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
                 mgf = None
             _callables['massfuncs'][name] = mcf
             _callables['massgradfuncs'][name] = mgf
-        if build_phase_records:
-            # creating the phase records triggers the compile
-            phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                                  np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                                  param_values, _callables['callables'][name],
-                                                                  _callables['grad_callables'][name],
-                                                                  _callables['hess_callables'][name],
-                                                                  _callables['massfuncs'][name],
-                                                                  _callables['massgradfuncs'][name])
+        if not callables.get('phase_records', {}).get(name, False):
+            pv = param_values
+        else:
+            # Copy parameter values from old PhaseRecord, if it exists
+            pv = callables['phase_records'][name].parameters
+        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
+                                                              np.array(dbf.phases[name].sublattices,
+                                                                       dtype=np.float),
+                                                              pv,
+                                                              _callables['callables'][name],
+                                                              _callables['grad_callables'][name],
+                                                              _callables['hess_callables'][name],
+                                                              _callables['massfuncs'][name],
+                                                              _callables['massgradfuncs'][name])
         if verbose:
             print(name + ' ')
+
+    # Update PhaseRecords with any user-specified parameter values, in case we skipped the build phase
+    # We assume here that users know what they are doing, and pass compatible combinations of callables and parameters
+    # See discussion in gh-192 for details
+    if len(param_values) > 0:
+        for prx_name in phase_records:
+            if len(phase_records[prx_name].parameters) != len(param_values):
+                raise ValueError('User-specified callables and parameters are incompatible')
+            phase_records[prx_name].parameters = param_values
     # finally, add the models to the callables
     _callables['model'] = dict(models)
     _callables['phase_records'] = phase_records
