@@ -84,7 +84,7 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
     for name in phases:
         mod = models[name]
         if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
+            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
         site_fracs = mod.site_fractions
         variables = sorted(site_fracs, key=str)
         try:

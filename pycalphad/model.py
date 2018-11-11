@@ -33,8 +33,9 @@ class Model(object):
         Names of components to consider in the calculation.
     phase_name : str
         Name of phase model to build.
-    parameters : dict
+    parameters : dict or list
         Optional dictionary of parameters to be substituted in the model.
+        A list of parameters will cause those symbols to remain symbolic.
         This will overwrite parameters specified in the database
 
     Methods
@@ -111,7 +112,13 @@ class Model(object):
             else:
                 return Symbol(obj)
         if parameters is not None:
-            symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
+            if isinstance(parameters, dict):
+                symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
+            else:
+                # Lists of symbols that should remain symbolic
+                for s in parameters:
+                    symbols.pop(s)
+
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
