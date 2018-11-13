@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.7+13.g5ad8830 documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.7+14.g9a2a907 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+13.g5ad8830
+                0.7+14.g9a2a907
               </div>
             
           
@@ -445,6 +445,30 @@
     <span class="k">return</span> <span class="n">eligible_species_from_database</span></div>
 
 
+<div class="viewcode-block" id="get_pure_elements"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.get_pure_elements">[docs]</a><span class="k">def</span> <span class="nf">get_pure_elements</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a list of pure elements in the system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        A Database object</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        A list of component names (species and pure elements)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of pure elements in the Database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">]</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">]</span>
+    <span class="n">pure_elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">pure_elements</span></div>
+
+
 <div class="viewcode-block" id="filter_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.filter_phases">[docs]</a><span class="k">def</span> <span class="nf">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;Return phases that are valid for equilibrium calculations for the given database and components</span>
 
@@ -489,7 +513,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, pycalphad Development Team.
+        &copy; Copyright 2015, pycalphad Development Team
 
     </p>
   </div>
@@ -508,21 +532,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../../',
-            VERSION:'0.7+13.g5ad8830',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

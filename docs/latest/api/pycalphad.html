@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.7+13.g5ad8830 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.7+14.g9a2a907 documentation</title>
   
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7+13.g5ad8830
+                0.7+14.g9a2a907
               </div>
             
           
@@ -185,7 +185,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cartesian">pycalphad.core.cartesian module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.composition_set">pycalphad.core.composition_set module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.constants">pycalphad.core.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.custom_autowrap">pycalphad.core.custom_autowrap module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-custom-autowrap-module">pycalphad.core.custom_autowrap module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqsolver">pycalphad.core.eqsolver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.equilibrium">pycalphad.core.equilibrium module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.halton">pycalphad.core.halton module</a></li>
@@ -194,7 +194,7 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.problem">pycalphad.core.problem module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.solver">pycalphad.core.solver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.sympydiff_utils">pycalphad.core.sympydiff_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-sympydiff-utils-module">pycalphad.core.sympydiff_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.utils">pycalphad.core.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core">Module contents</a></li>
 </ul>
@@ -227,13 +227,6 @@
 <span id="pycalphad-model-module"></span><h2>pycalphad.model module<a class="headerlink" href="#module-pycalphad.model" title="Permalink to this headline">¶</a></h2>
 <p>The model module provides support for using a Database to perform
 calculations under specified conditions.</p>
-<dl class="exception">
-<dt id="pycalphad.model.DofError">
-<em class="property">exception </em><code class="descclassname">pycalphad.model.</code><code class="descname">DofError</code><a class="reference internal" href="../_modules/pycalphad/model.html#DofError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.DofError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
-<p>Error due to missing degrees of freedom.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="pycalphad.model.Model">
 <em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase_name</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
@@ -248,7 +241,8 @@ for calculation of values under specified conditions.</p>
 <li><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database containing the relevant parameters.</li>
 <li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
 <li><strong>phase_name</strong> (<em>str</em>) – Name of phase model to build.</li>
-<li><strong>parameters</strong> (<em>dict</em>) – Optional dictionary of parameters to be substituted in the model.
+<li><strong>parameters</strong> (<em>dict</em><em> or </em><em>list</em>) – Optional dictionary of parameters to be substituted in the model.
+A list of parameters will cause those symbols to remain symbolic.
 This will overwrite parameters specified in the database</li>
 </ul>
 </td>
@@ -622,19 +616,43 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dl class="attribute">
 <dt id="pycalphad.variables.Species.name">
 <code class="descname">name</code><a class="headerlink" href="#pycalphad.variables.Species.name" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>string</em> – Name of the specie</p>
+<dd><p>Name of the specie</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.variables.Species.constituents">
 <code class="descname">constituents</code><a class="headerlink" href="#pycalphad.variables.Species.constituents" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>dict</em> – Dictionary of {element: quantity} where the element is a string and the quantity a float.</p>
+<dd><p>Dictionary of {element: quantity} where the element is a string and the quantity a float.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.variables.Species.charge">
 <code class="descname">charge</code><a class="headerlink" href="#pycalphad.variables.Species.charge" title="Permalink to this definition">¶</a></dt>
-<dd><p><em>int</em> – Integer charge. Can be positive or negative.</p>
+<dd><p>Integer charge. Can be positive or negative.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
+</tr>
+</tbody>
+</table>
 </dd></dl>
 
 <dl class="attribute">
@@ -713,7 +731,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, pycalphad Development Team.
+        &copy; Copyright 2015, pycalphad Development Team
 
     </p>
   </div>
@@ -732,21 +750,14 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../',
-            VERSION:'0.7+13.g5ad8830',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../_static/jquery.js"></script>
-      <script type="text/javascript" src="../_static/underscore.js"></script>
-      <script type="text/javascript" src="../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 

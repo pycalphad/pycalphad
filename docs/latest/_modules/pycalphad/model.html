@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.7+13.g5ad8830 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.7+14.g9a2a907 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+13.g5ad8830
+                0.7+14.g9a2a907
               </div>
             
           
@@ -161,6 +161,7 @@
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">exp</span><span class="p">,</span> <span class="n">log</span><span class="p">,</span> <span class="n">Abs</span><span class="p">,</span> <span class="n">Add</span><span class="p">,</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Piecewise</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">S</span><span class="p">,</span> <span class="n">sin</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span>
 <span class="kn">from</span> <span class="nn">tinydb</span> <span class="k">import</span> <span class="n">where</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="k">import</span> <span class="n">DofError</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_components</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
@@ -170,9 +171,6 @@
 <span class="c1"># other symbols</span>
 <span class="n">_MAX_PARAM_NESTING</span> <span class="o">=</span> <span class="mi">32</span>
 
-<div class="viewcode-block" id="DofError"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.DofError">[docs]</a><span class="k">class</span> <span class="nc">DofError</span><span class="p">(</span><span class="ne">Exception</span><span class="p">):</span>
-    <span class="s2">&quot;Error due to missing degrees of freedom.&quot;</span>
-    <span class="k">pass</span></div>
 
 <div class="viewcode-block" id="Model"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model">[docs]</a><span class="k">class</span> <span class="nc">Model</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -187,8 +185,9 @@
 <span class="sd">        Names of components to consider in the calculation.</span>
 <span class="sd">    phase_name : str</span>
 <span class="sd">        Name of phase model to build.</span>
-<span class="sd">    parameters : dict</span>
+<span class="sd">    parameters : dict or list</span>
 <span class="sd">        Optional dictionary of parameters to be substituted in the model.</span>
+<span class="sd">        A list of parameters will cause those symbols to remain symbolic.</span>
 <span class="sd">        This will overwrite parameters specified in the database</span>
 
 <span class="sd">    Methods</span>
@@ -265,7 +264,13 @@
             <span class="k">else</span><span class="p">:</span>
                 <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
-            <span class="n">symbols</span><span class="o">.</span><span class="n">update</span><span class="p">([(</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+                <span class="n">symbols</span><span class="o">.</span><span class="n">update</span><span class="p">([(</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">s</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Lists of symbols that should remain symbolic</span>
+                <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">:</span>
+                    <span class="n">symbols</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">s</span><span class="p">))</span>
+
         <span class="bp">self</span><span class="o">.</span><span class="n">_symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">key</span><span class="p">):</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
 
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
@@ -1033,7 +1038,7 @@
 
   <div role="contentinfo">
     <p>
-        &copy; Copyright 2015, pycalphad Development Team.
+        &copy; Copyright 2015, pycalphad Development Team
 
     </p>
   </div>
@@ -1052,21 +1057,14 @@
 
   
 
-    <script type="text/javascript">
-        var DOCUMENTATION_OPTIONS = {
-            URL_ROOT:'../../',
-            VERSION:'0.7+13.g5ad8830',
-            LANGUAGE:'None',
-            COLLAPSE_INDEX:false,
-            FILE_SUFFIX:'.html',
-            HAS_SOURCE:  true,
-            SOURCELINK_SUFFIX: '.txt'
-        };
-    </script>
-      <script type="text/javascript" src="../../_static/jquery.js"></script>
-      <script type="text/javascript" src="../../_static/underscore.js"></script>
-      <script type="text/javascript" src="../../_static/doctools.js"></script>
-      <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
 
   
 
