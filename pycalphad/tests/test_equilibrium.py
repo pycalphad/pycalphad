@@ -370,6 +370,14 @@ def test_eq_build_callables_with_parameters():
     np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
 
 
+def test_eq_some_phases_filtered():
+    """
+    Phases are filtered out from equilibrium() when some cannot be built.
+    """
+    # should not raise; AL13FE4 should be filtered out
+    equilibrium(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], {v.T: 1200, v.P: 101325})
+
+
 def test_equilibrium_result_dataset_can_serialize_to_netcdf():
     """
     The xarray Dataset returned by equilibrium should serializable to a netcdf file.
