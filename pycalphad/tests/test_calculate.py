@@ -55,14 +55,6 @@ def test_calculate_some_phases_filtered():
     calculate(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], T=1200, P=101325)
 
 
-def test_calculate_some_phases_filtered():
-    """
-    Phases are filtered out from calculate() when some cannot be built.
-    """
-    # should not raise; AL13FE4 should be filtered out
-    calculate(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], T=1200, P=101325)
-
-
 @nose.tools.raises(ConditionError)
 def test_calculate_raises_with_no_active_phases_passed():
     """Passing inactive phases to calculate() raises a ConditionError."""
