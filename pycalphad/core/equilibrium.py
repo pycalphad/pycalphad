@@ -5,38 +5,20 @@ calculated phase equilibria.
 from __future__ import print_function
 import warnings
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_kwarg
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
+from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.sympydiff_utils import build_functions
-from pycalphad.core.phase_rec import PhaseRecord_from_cython
+from pycalphad.codegen.callables import build_callables
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
-from sympy import Add, Symbol
 import dask
 from dask import delayed
-import dask.multiprocessing
-try:
-    import dask.local
-except ImportError:
-    import dask.async
-    dask.local = dask.async
 from xarray import Dataset
 import numpy as np
-from collections import namedtuple, OrderedDict
+from collections import OrderedDict
 from datetime import datetime
-
-
-class EquilibriumError(Exception):
-    "Exception related to calculation of equilibrium."
-    pass
-
-
-class ConditionError(EquilibriumError):
-    "Exception related to equilibrium conditions."
-    pass
 
 
 def _adjust_conditions(conds):
@@ -65,7 +47,9 @@ def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
             properties[dv][dv_coords] = prop_arr[dv]
     return properties
 
-def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, **kwargs):
+
+def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, parameters=None,
+                 **kwargs):
     """
     WARNING: API/calling convention not finalized.
     Compute the *equilibrium value* of a property.
@@ -99,6 +83,10 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     per_phase : bool, optional
         If True, compute and return the property for each phase present.
         If False, return the total system value, weighted by the phase fractions.
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
+    callables : dict
+        Callable functions to compute 'output' for each phase.
     kwargs
         Passed to `calculate`.
 
@@ -141,8 +129,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         statevars.update(kwargs)
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
-        calcres = calculate(dbf, comps, [phase], output=output,
-                            points=points, broadcast=False, **statevars)
+        calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
+                            callables=callables, parameters=parameters, **statevars)
         result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
@@ -153,8 +141,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                scheduler=dask.local.get_sync,
-                parameters=None, solver=None, **kwargs):
+                scheduler='sync',
+                parameters=None, solver=None, callables=None, **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -191,6 +179,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     solver : pycalphad.core.solver.SolverBase
         Instance of a solver that is used to calculate local equilibria.
         Defaults to a pycalphad.core.solver.InteriorPointSolver.
+    callables : dict, optional
+        Pre-computed callable functions for equilibrium calculation.
 
     Returns
     -------
@@ -221,19 +211,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
-    phase_records = dict()
-    diagnostic = kwargs.pop('_diagnostic', False)
-    callable_dict = kwargs.pop('callables', dict())
-    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
-    mass_grad_dict = unpack_kwarg(kwargs.pop('massgradfuncs', None), default_arg=None)
-    grad_callable_dict = kwargs.pop('grad_callables', dict())
-    hess_callable_dict = kwargs.pop('hess_callables', dict())
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    param_symbols = tuple(parameters.keys())
-    param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
-    maximum_internal_dof = 0
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
@@ -242,61 +222,34 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
-    indep_vals = list([float(x) for x in np.atleast_1d(val)]
-                      for key, val in str_conds.items() if key in indep_vars)
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(model, default_arg=Model)
+    other_output_callables = {}
     if verbose:
         print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
-    max_phase_name_len = max(len(name) for name in active_phases)
-    # Need to allow for '_FAKE_' psuedo-phase
-    max_phase_name_len = max(max_phase_name_len, 6)
-    for name in active_phases:
-        mod = models[name]
-        if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
-        site_fracs = mod.site_fractions
-        variables = sorted(site_fracs, key=str)
-        maximum_internal_dof = max(maximum_internal_dof, len(site_fracs))
-        out = models[name].energy
-        if (not callable_dict.get(name, False)) or not (grad_callable_dict.get(name, False)):
-            # Only force undefineds to zero if we're not overriding them
-            undefs = [x for x in out.free_symbols if (not isinstance(x, v.StateVariable)) and not (x in param_symbols)]
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
-            cf, gf = build_functions(out, tuple([v.P, v.T] + site_fracs),
-                                     parameters=param_symbols)
-            hf = None
-            if callable_dict.get(name, None) is None:
-                callable_dict[name] = cf
-            if grad_callable_dict.get(name, None) is None:
-                grad_callable_dict[name] = gf
-            if hess_callable_dict.get(name, None) is None:
-                hess_callable_dict[name] = hf
+    output = output if output is not None else 'GM'
+    output = output if isinstance(output, (list, tuple, set)) else [output]
+    output = set(output)
+    output |= {'GM'}
+    output = sorted(output)
+    for o in output:
+        if o == 'GM':
+            eq_callables = build_callables(dbf, comps, active_phases, model=model,
+                                           parameters=parameters,
+                                           output=o, build_gradients=True, callables=callables,
+                                           verbose=verbose)
+        else:
+            other_output_callables[o] = build_callables(dbf, comps, active_phases, model=model,
+                                                        parameters=parameters,
+                                                        output=o, build_gradients=False,
+                                                        verbose=False)
 
-        if (mass_dict[name] is None) or (mass_grad_dict[name] is None):
-            # TODO: In principle, we should also check for undefs in mod.moles()
-            tup1, tup2 = zip(*[build_functions(mod.moles(el), [v.P, v.T] + variables,
-                                               include_obj=True, include_grad=True,
-                                               parameters=param_symbols)
-                               for el in pure_elements])
-            if mass_dict[name] is None:
-                mass_dict[name] = tup1
-            if mass_grad_dict[name] is None:
-                mass_grad_dict[name] = tup2
-
-        phase_records[name.upper()] = PhaseRecord_from_cython(comps, variables,
-                                                              np.array(dbf.phases[name].sublattices, dtype=np.float),
-                                                              param_values, callable_dict[name],
-                                                              grad_callable_dict[name], hess_callable_dict[name],
-                                                              mass_dict[name], mass_grad_dict[name])
-        if verbose:
-            print(name, end=' ')
+    phase_records = eq_callables['phase_records']
+    models = eq_callables['model']
+    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
     if verbose:
         print('[done]', end='\n')
 
@@ -312,8 +265,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict['component'] = pure_elements
 
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, callables=callable_dict, massfuncs=mass_dict,
-                                          fake_points=True, parameters=parameters, **grid_opts)
+                                          model=models, fake_points=True, callables=eq_callables,
+                                          parameters=parameters, **grid_opts)
+
+    max_phase_name_len = max(len(name) for name in active_phases)
+    # Need to allow for '_FAKE_' psuedo-phase
+    max_phase_name_len = max(max_phase_name_len, 6)
 
     properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
                                                       np.empty(grid_shape)),
@@ -363,7 +320,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                                  list(str_conds.keys()), verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
-    output = output if isinstance(output, (list, tuple, set)) else [output]
     # We already computed these properties so don't recompute them
     output = sorted(set(output) - {'GM', 'MU'})
     for out in output:
@@ -376,10 +332,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         else:
             per_phase = False
         eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
-                                                  data=properties, per_phase=per_phase, model=models, **calc_opts)
+                                                  data=properties, per_phase=per_phase,
+                                                  callables=other_output_callables[out],
+                                                  parameters=parameters,
+                                                  model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
     if scheduler is not None:
-        properties = dask.compute(properties, get=scheduler)[0]
+        properties = dask.compute(properties, scheduler=scheduler)[0]
     properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))

@@ -6,9 +6,11 @@ correct solution for thermodynamic equilibrium.
 import warnings
 import os
 from nose.tools import raises
+from sympy import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
+from pycalphad.codegen.callables import build_callables
 from pycalphad.core.solver import SolverBase
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
@@ -23,6 +25,8 @@ ISSUE43_DBF = Database(ISSUE43_TDB)
 TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
 CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
+AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
+
 
 # ROSE DIAGRAM TEST
 def test_rose_nine():
@@ -321,6 +325,57 @@ def test_eq_gas_phase():
 def test_eq_ionic_liquid():
     eq = equilibrium(CUO_DBF, ['CU', 'O', 'VA'], 'IONIC_LIQ', {v.T: 1000, v.P: 1e5, v.X('CU'): 0.6618}, verbose=True)
     np.testing.assert_allclose(eq.GM, -9.25057E+04, atol=0.1)
+
+
+def test_eq_parameter_override():
+    """
+    Check that overriding parameters works in equilibrium().
+    """
+    comps = ["AL"]
+    dbf = AL_PARAMETER_DBF
+    phases = ['FCC_A1']
+    conds = {v.P: 101325, v.T: 500}
+
+    # Check that current database should work as expected
+    eq_res = equilibrium(dbf, comps, phases, conds)
+    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 5000.0)
+
+    # Check that overriding parameters works
+    eq_res = equilibrium(dbf, comps, phases, conds, parameters={'VV0000': 10000})
+    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
+
+
+def test_eq_build_callables_with_parameters():
+    """
+    Check build_callables() compatibility with the parameters kwarg.
+    """
+    comps = ["AL"]
+    dbf = AL_PARAMETER_DBF
+    phases = ['FCC_A1']
+    conds = {v.P: 101325, v.T: 500}
+    # build callables with a parameter of 20000.0
+    callables = build_callables(dbf, comps, phases, parameters={'VV0000': 20000})
+
+    # Check that passing callables should skip the build phase, but use the values from 'VV0000' saved in callables
+    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables)
+    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 20000.0)
+
+    # Check that passing callables should skip the build phase, but use the values from 'VV0000' as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={'VV0000': 10000})
+    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
+
+    # Check that passing callables should skip the build phase,
+    # but use the values from Symbol('VV0000') as passed in parameters
+    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={Symbol('VV0000'): 10000})
+    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 10000.0)
+
+
+def test_eq_some_phases_filtered():
+    """
+    Phases are filtered out from equilibrium() when some cannot be built.
+    """
+    # should not raise; AL13FE4 should be filtered out
+    equilibrium(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], {v.T: 1200, v.P: 101325})
 
 
 def test_equilibrium_result_dataset_can_serialize_to_netcdf():

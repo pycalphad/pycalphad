@@ -5,19 +5,17 @@ property surface of a system.
 
 from __future__ import division
 from pycalphad import Model
-from pycalphad.model import DofError
-from pycalphad.core.sympydiff_utils import build_functions
+from pycalphad.codegen.callables import build_callables
+from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
+from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition, unpack_components
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython
+from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
-from sympy import Symbol
 import numpy as np
 import itertools
 import collections
-import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
 
@@ -299,15 +297,12 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
     model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
-    callable_dict = unpack_kwarg(kwargs.pop('callables', None), default_arg=None)
-    mass_dict = unpack_kwarg(kwargs.pop('massfuncs', None), default_arg=None)
+    callables_dict = kwargs.pop('callables', {})
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     parameters = parameters or dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    param_symbols = tuple(parameters.keys())
-    param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
     if isinstance(phases, str):
         phases = [phases]
     if isinstance(comps, (str, v.Species)):
@@ -330,76 +325,35 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
     all_phase_data = []
-    comp_sets = {}
     largest_energy = 1e30
-    maximum_internal_dof = 0
 
     # Consider only the active phases
-    active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
-        for name in unpack_phases(phases))
+    list_of_possible_phases = filter_phases(dbf, comps)
+    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
+    active_phases = {name: dbf.phases[name] for name in active_phases}
+    if len(list_of_possible_phases) == 0:
+        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    if len(active_phases) == 0:
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
+                             .format(phases, list_of_possible_phases))
+
+    if isinstance(output, (list, tuple, set)):
+        raise NotImplementedError('Only one property can be specified in calculate() at a time')
+    output = output if output is not None else 'GM'
+    eq_callables = build_callables(dbf, comps, active_phases, model=model_dict,
+                                   parameters=parameters,
+                                   output=output, callables=callables_dict, build_gradients=False,
+                                   verbose=False)
+
+    phase_records = eq_callables['phase_records']
+    models = eq_callables['model']
+    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
 
     for phase_name, phase_obj in sorted(active_phases.items()):
-        # Build the symbolic representation of the energy
-        mod = model_dict[phase_name]
-        # if this is an object type, we need to construct it
-        if isinstance(mod, type):
-            try:
-                model_dict[phase_name] = mod = mod(dbf, comps, phase_name, parameters=parameters)
-            except DofError:
-                # we can't build the specified phase because the
-                # specified components aren't found in every sublattice
-                # we'll just skip it
-                warnings.warn("""Suspending specified phase {} due to
-                some sublattices containing only unspecified components""".format(phase_name))
-                continue
-        if points_dict[phase_name] is None:
-            maximum_internal_dof = max(maximum_internal_dof, sum(len(x) for x in mod.constituents))
-        else:
-            maximum_internal_dof = max(maximum_internal_dof, np.asarray(points_dict[phase_name]).shape[-1])
-
-    for phase_name, phase_obj in sorted(active_phases.items()):
-        try:
-            mod = model_dict[phase_name]
-        except KeyError:
-            continue
-        # this is a phase model we couldn't construct for whatever reason; skip it
-        if isinstance(mod, type):
-            continue
-        # Construct an ordered list of the variables
-        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
-        # Build the "fast" representation of that model
-        if callable_dict[phase_name] is None:
-            try:
-                out = getattr(mod, output)
-            except AttributeError:
-                raise AttributeError('Missing Model attribute {0} specified for {1}'
-                                     .format(output, mod.__class__))
-            # As a last resort, treat undefined symbols as zero
-            # But warn the user when we do this
-            # This is consistent with TC's behavior
-            undefs = list(out.atoms(Symbol) - out.atoms(v.StateVariable))
-            for undef in undefs:
-                out = out.xreplace({undef: float(0)})
-                warnings.warn('Setting undefined symbol {0} for phase {1} to zero'.format(undef, phase_name))
-            comp_sets[phase_name] = build_functions(out, list(statevar_dict.keys()) + variables,
-                                                    include_obj=True, include_grad=False,
-                                                    parameters=param_symbols)
-        else:
-            comp_sets[phase_name] = callable_dict[phase_name]
-        if mass_dict[phase_name] is None:
-            pure_elements = [spec for spec in nonvacant_components
-                             if (len(spec.constituents.keys()) == 1 and
-                                 list(spec.constituents.keys())[0] == spec.name)
-                             ]
-            # TODO: In principle, we should also check for undefs in mod.moles()
-            mass_dict[phase_name] = [build_functions(mod.moles(el), list(statevar_dict.keys()) + variables,
-                                                     include_obj=True, include_grad=False,
-                                                     parameters=param_symbols)
-                                     for el in pure_elements]
-        phase_record = PhaseRecord_from_cython(comps, list(statevar_dict.keys()) + variables,
-                                    np.array(dbf.phases[phase_name].sublattices, dtype=np.float),
-                                    param_values, comp_sets[phase_name], None, None, mass_dict[phase_name], None)
+        mod = models[phase_name]
+        phase_record = phase_records[phase_name]
         points = points_dict[phase_name]
+        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
         if points is None:
             points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
                                                 tuple(variables), sampler_dict[phase_name] or point_sample,
