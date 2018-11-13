@@ -117,7 +117,7 @@ class Model(object):
             else:
                 # Lists of symbols that should remain symbolic
                 for s in parameters:
-                    symbols.pop(s)
+                    symbols.pop(wrap_symbol(s))
 
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
