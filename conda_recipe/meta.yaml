@@ -26,7 +26,7 @@ requirements:
     - nose
     - mock
     - xarray !=0.8
-    - sympy >=1.0
+    - sympy >=1.2
     - pyparsing
     - tinydb
     - scipy
@@ -45,7 +45,7 @@ requirements:
     - matplotlib
     - pandas
     - xarray !=0.8
-    - sympy >=1.0
+    - sympy >=1.2
     - pyparsing
     - tinydb
     - scipy

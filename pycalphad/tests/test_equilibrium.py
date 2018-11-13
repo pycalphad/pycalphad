@@ -9,7 +9,7 @@ from nose.tools import raises
 from numpy.testing import assert_allclose
 import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
-from pycalphad.core.solver import SolverBase
+from pycalphad.core.solver import SolverBase, InteriorPointSolver
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -22,6 +22,7 @@ ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 ISSUE43_DBF = Database(ISSUE43_TDB)
 TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
 CUO_DBF = Database(CUO_TDB)
+PBSN_DBF = Database(PBSN_TDB)
 
 # ROSE DIAGRAM TEST
 def test_rose_nine():
@@ -346,9 +347,39 @@ def test_equilibrium_raises_when_no_phases_can_be_active():
     equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
 
 
+def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
+    """Creating datasets from equilibrium results should work when there are the maximum number of phases that can exist by Gibbs phase rule."""
+    comps = ['PB', 'SN', 'VA']
+    phases = list(PBSN_DBF.phases.keys())
+    eq_res = equilibrium(PBSN_DBF, comps, phases, {v.P: 101325, v.T: 454.562, v.X('SN'): 0.738})
+    assert eq_res.vertex.size == 3  # C+1
+    assert np.sum(~np.isnan(eq_res.NP.values)) == 3
+    assert np.sum(eq_res.Phase.values != '') == 3
+
+
 @raises(NotImplementedError)
 def test_equilibrium_raises_with_invalid_solver():
     """
     SolverBase instances passed to equilibrium should raise an error.
     """
     equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
+
+
+def test_equlibrium_no_opt_solver():
+    """Passing in a solver with `ignore_convergence = True` gives a result."""
+
+    class NoOptSolver(InteriorPointSolver):
+        ignore_convergence = True
+
+    comps = ['PB', 'SN', 'VA']
+    phases = list(PBSN_DBF.phases.keys())
+    conds = {v.T: 300, v.P: 101325, v.X('SN'): 0.50}
+    ipopt_solver_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=InteriorPointSolver(), verbose=True)
+    no_opt_eq_res = equilibrium(PBSN_DBF, comps, phases, conds, solver=NoOptSolver(), verbose=True)
+
+    ipopt_GM = ipopt_solver_eq_res.GM.values.squeeze()
+    no_opt_GM = no_opt_eq_res.GM.values.squeeze()
+    no_opt_MU = no_opt_eq_res.MU.values.squeeze()
+    assert ipopt_GM != no_opt_GM  # global min energy is different from lower convex hull
+    assert np.allclose([-17452.5115967], no_opt_GM)  # energy from lower convex hull
+    assert np.allclose([-19540.6522632, -15364.3709302], no_opt_MU)  # chempots from lower convex hull
