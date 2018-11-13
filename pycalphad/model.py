@@ -7,6 +7,7 @@ import copy
 from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
+from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components
 import numpy as np
@@ -16,9 +17,6 @@ from collections import OrderedDict
 # other symbols
 _MAX_PARAM_NESTING = 32
 
-class DofError(Exception):
-    "Error due to missing degrees of freedom."
-    pass
 
 class Model(object):
     """

@@ -7,6 +7,7 @@ import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
+from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -18,16 +19,6 @@ from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
 from datetime import datetime
-
-
-class EquilibriumError(Exception):
-    "Exception related to calculation of equilibrium."
-    pass
-
-
-class ConditionError(EquilibriumError):
-    "Exception related to equilibrium conditions."
-    pass
 
 
 def _adjust_conditions(conds):
@@ -246,12 +237,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = sorted(output)
     for o in output:
         if o == 'GM':
-            eq_callables = build_callables(dbf, comps, phases, model=model,
+            eq_callables = build_callables(dbf, comps, active_phases, model=model,
                                            parameters=parameters,
                                            output=o, build_gradients=True, callables=callables,
                                            verbose=verbose)
         else:
-            other_output_callables[o] = build_callables(dbf, comps, phases, model=model,
+            other_output_callables[o] = build_callables(dbf, comps, active_phases, model=model,
                                                         parameters=parameters,
                                                         output=o, build_gradients=False,
                                                         verbose=False)

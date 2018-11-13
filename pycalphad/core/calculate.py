@@ -5,20 +5,17 @@ property surface of a system.
 
 from __future__ import division
 from pycalphad import Model
-from pycalphad.model import DofError
-from pycalphad.codegen.sympydiff_utils import build_functions
 from pycalphad.codegen.callables import build_callables
+from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, unpack_condition, unpack_phases, unpack_components
+from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition, unpack_components
 from pycalphad.core.cache import cacheit
-from pycalphad.core.phase_rec import PhaseRecord, PhaseRecord_from_cython
+from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
-from sympy import Symbol
 import numpy as np
 import itertools
 import collections
-import warnings
 from xarray import Dataset, concat
 from collections import OrderedDict
 
@@ -331,13 +328,19 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     largest_energy = 1e30
 
     # Consider only the active phases
-    active_phases = dict((name.upper(), dbf.phases[name.upper()]) \
-        for name in unpack_phases(phases))
+    list_of_possible_phases = filter_phases(dbf, comps)
+    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
+    active_phases = {name: dbf.phases[name] for name in active_phases}
+    if len(list_of_possible_phases) == 0:
+        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    if len(active_phases) == 0:
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
+                             .format(phases, list_of_possible_phases))
 
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
-    eq_callables = build_callables(dbf, comps, phases, model=model_dict,
+    eq_callables = build_callables(dbf, comps, active_phases, model=model_dict,
                                    parameters=parameters,
                                    output=output, callables=callables_dict, build_gradients=False,
                                    verbose=False)
