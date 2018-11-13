@@ -19,8 +19,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     these objects are pickleable. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-            return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof, self.sublattice_dof,
-                                                    self.parameters, self.num_sites, self.composition_matrices,
+            return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof,
+                                                    np.array(self.sublattice_dof, dtype=np.int32),
+                                                    np.array(self.parameters), np.array(self.num_sites),
+                                                    np.array(self.composition_matrices),
                                                     self.vacancy_index, self._ofunc, self._gfunc,
                                                     self._massfuncs, self._massgradfuncs)
 
