@@ -73,8 +73,7 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
         'massfuncs': {},
         'massgradfuncs': {},
         'callables': {},
-        'grad_callables': {},
-        'hess_callables': defaultdict(lambda: None),
+        'grad_callables': {}
     }
 
     models = unpack_kwarg(model, default_arg=Model)
@@ -153,7 +152,6 @@ def build_callables(dbf, comps, phases, model=None, parameters=None, callables=N
                                                               pv,
                                                               _callables['callables'][name],
                                                               _callables['grad_callables'][name],
-                                                              _callables['hess_callables'][name],
                                                               _callables['massfuncs'][name],
                                                               _callables['massgradfuncs'][name])
         if verbose:

@@ -1,9 +1,7 @@
 from pycalphad.core.phase_rec cimport PhaseRecord
 cimport numpy as np
 import numpy as np
-from libc.stdlib cimport malloc, free
 from libc.string cimport memset
-from libc.math cimport fabs
 cimport cython
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
@@ -27,11 +25,9 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.NP = 0
         self._energy_2d_view = <double[:1]>&self.energy
         self.grad = np.zeros(self.dof.shape[0])
-        self.hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._prev_energy = 0
         self._prev_dof = np.zeros(self.dof.shape[0])
         self._prev_grad = np.zeros(self.dof.shape[0])
-        self._prev_hess = np.zeros((self.dof.shape[0], self.dof.shape[0]))
         self._first_iteration = True
 
     def __deepcopy__(self, memodict=None):
@@ -44,7 +40,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         other.dof[:] = self.dof
         other.X[:] = self.X
         other.mass_grad[:,:] = self.mass_grad
-        other.mass_hess[:,:,:] = self.mass_hess
         other.energy = 1.0*self.energy
         other._energy_2d_view = <double[:1]>&other.energy
         other.NP = 1.0*self.NP
@@ -61,53 +56,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_energy = 0
         self._prev_dof[:] = 0
         self._prev_grad[:] = 0
-        self._prev_hess[:,:] = 0
         self._first_iteration = True
 
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cdef void _hessian_update(self, double[::1] dof, double[:] prev_dof, double[:,::1] current_hess,
-                              double[:,:] prev_hess,  double[:] current_grad, double[:] prev_grad,
-                              double* energy, double* prev_energy) nogil:
-        # Notation from Nocedal and Wright, 2006, Equation 8.19
-        cdef int dof_idx, dof_idx_2
-        cdef int dof_len = dof.shape[0]
-        cdef double *sk = <double*>malloc(dof_len * sizeof(double))
-        cdef double *yk = <double*>malloc(dof_len * sizeof(double))
-        cdef double *bk_sk = <double*>malloc(dof_len * sizeof(double))
-        cdef double *ybk = <double*>malloc(dof_len * sizeof(double))
-        cdef double ybk_norm = 0
-        cdef double denominator = 0
-
-        for dof_idx in range(dof_len):
-            sk[dof_idx] = dof[dof_idx] - prev_dof[dof_idx]
-            yk[dof_idx] = current_grad[dof_idx] - prev_grad[dof_idx]
-            prev_dof[dof_idx] = dof[dof_idx]
-            prev_grad[dof_idx] = current_grad[dof_idx]
-        for dof_idx in range(dof_len):
-            bk_sk[dof_idx] = 0
-            for dof_idx_2 in range(dof_len):
-                bk_sk[dof_idx] += prev_hess[dof_idx, dof_idx_2] * sk[dof_idx_2]
-            ybk[dof_idx] = yk[dof_idx] - bk_sk[dof_idx]
-            ybk_norm += ybk[dof_idx] ** 2
-            denominator += ybk[dof_idx] * sk[dof_idx]
-        ybk_norm = ybk_norm ** 0.5
-        # Fall back to finite difference approximation unless it's a "medium-size" step
-        # This is a really conservative approach and could probably be improved for performance
-        if fabs(denominator) < 1e-2 or (ybk_norm < 1e-2) or (ybk_norm > 10):
-            self.phase_record.hess(current_hess, dof)
-        else:
-            # Symmetric Rank 1 (SR1) update
-            for dof_idx in range(dof_len):
-                for dof_idx_2 in range(dof_idx, dof_len):
-                    current_hess[dof_idx, dof_idx_2] = current_hess[dof_idx_2, dof_idx] = \
-                        prev_hess[dof_idx, dof_idx_2] + (ybk[dof_idx] * ybk[dof_idx_2] / denominator)
-            prev_hess[:,:] = current_hess
-        prev_energy[0] = energy[0]
-        free(sk)
-        free(yk)
-        free(bk_sk)
-        free(ybk)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -120,7 +70,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.NP = phase_amt
         self.energy = 0
         memset(&self.grad[0], 0, self.grad.shape[0] * sizeof(double))
-        memset(&self.hess[0,0], 0, self.hess.shape[0] * self.hess.shape[1] * sizeof(double))
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
         self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
         if not skip_derivatives:
@@ -129,12 +78,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
             self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], self._dof_2d_view, comp_idx)
         if not skip_derivatives:
             if self._first_iteration == True:
-                self.phase_record.hess(self.hess, self.dof)
                 self._prev_dof[:] = self.dof
                 self._prev_energy = self.energy
                 self._prev_grad[:] = self.grad
-                self._prev_hess[:,:] = self.hess
                 self._first_iteration = False
-            else:
-                self._hessian_update(self.dof, self._prev_dof, self.hess, self._prev_hess, self.grad, self._prev_grad,
-                                     &self.energy, &self._prev_energy)
