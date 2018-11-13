@@ -291,6 +291,30 @@ def unpack_components(dbf, comps):
     return eligible_species_from_database
 
 
+def get_pure_elements(dbf, comps):
+    """
+    Return a list of pure elements in the system.
+
+    Parameters
+    ----------
+    dbf : Database
+        A Database object
+    comps : list
+        A list of component names (species and pure elements)
+
+    Returns
+    -------
+    list
+        A list of pure elements in the Database
+    """
+    comps = sorted(unpack_components(dbf, comps))
+    components = [x for x in comps]
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
+    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
+    return pure_elements
+
+
 def filter_phases(dbf, comps):
     """Return phases that are valid for equilibrium calculations for the given database and components
 

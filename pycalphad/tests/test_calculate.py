@@ -12,11 +12,12 @@ try:
 except ImportError:
     # Python 3
     from io import StringIO
-
-from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING
+from pycalphad import ConditionError
+from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB
 
 
 DBF = Database(TDB_TEST_STRING)
+ALFE_DBF = Database(ALFE_TDB)
 
 def test_surface():
     "Bare minimum: calculation produces a result."
@@ -44,3 +45,18 @@ def test_issue116():
     result_one = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
     result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
     np.testing.assert_array_equal(result_one.GM.values, result_two.GM.values)
+
+
+def test_calculate_some_phases_filtered():
+    """
+    Phases are filtered out from calculate() when some cannot be built.
+    """
+    # should not raise; AL13FE4 should be filtered out
+    calculate(ALFE_DBF, ['AL', 'VA'], ['FCC_A1', 'AL13FE4'], T=1200, P=101325)
+
+
+@nose.tools.raises(ConditionError)
+def test_calculate_raises_with_no_active_phases_passed():
+    """Passing inactive phases to calculate() raises a ConditionError."""
+    # Phase cannot be built without FE
+    calculate(ALFE_DBF, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)

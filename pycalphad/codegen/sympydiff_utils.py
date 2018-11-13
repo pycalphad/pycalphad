@@ -1,10 +1,9 @@
 """
 This module constructs gradient functions for Models.
 """
-from .custom_autowrap import autowrap, import_extension
-from .cache import cacheit
-from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Dummy, Lambda, Eq, S
-import numpy as np
+from pycalphad.codegen.custom_autowrap import autowrap, import_extension
+from pycalphad.core.cache import cacheit
+from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Lambda, Eq, S
 import time
 import tempfile
 from threading import RLock

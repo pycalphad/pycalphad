@@ -30,9 +30,9 @@ requirements:
     - pyparsing
     - tinydb
     - scipy
-    - dask >=0.15
+    - dask >=0.18
     - distributed
-    - numpy >=1.9
+    - numpy >=1.13
     - dill
     - cython >=0.24
     - cyipopt
@@ -49,9 +49,9 @@ requirements:
     - pyparsing
     - tinydb
     - scipy
-    - dask >=0.15
+    - dask >=0.18
     - distributed
-    - numpy >=1.9
+    - numpy >=1.13
     - cython >=0.24
     - dill
     - cyipopt
