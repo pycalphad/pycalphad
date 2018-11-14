@@ -61,7 +61,7 @@ grids are required for phase diagram calculations.
 This bug should now be fixed. Please update to pycalphad 0.7.1.
 
 
-```RecursionError``` during a calculation
+``RecursionError`` during a calculation
 -----------------------------------------
 
 This bug should now be fixed. Please update to pycalphad 0.7.1.
