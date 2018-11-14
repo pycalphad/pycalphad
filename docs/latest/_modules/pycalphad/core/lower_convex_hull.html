@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.7+15.gef8b18e documentation</title>
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.7+16.g0a570d4 documentation</title>
   
 
   
@@ -59,7 +59,7 @@
             
             
               <div class="version">
-                0.7+15.gef8b18e
+                0.7+16.g0a570d4
               </div>
             
           
@@ -241,6 +241,7 @@
     <span class="n">result_array_Phase_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span>
     <span class="n">global_grid_GM_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span>
     <span class="n">global_grid_X_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">num_comps</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span>
 
     <span class="n">it</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">result_array_GM_values</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multi_index&#39;</span><span class="p">])</span>
     <span class="n">comp_coord_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">])</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">)</span>
@@ -263,9 +264,9 @@
                        <span class="n">idx_result_array_NP_values</span><span class="p">,</span> <span class="n">idx_result_array_points_values</span><span class="p">)</span>
         <span class="c1"># Copy phase values out</span>
         <span class="n">points</span> <span class="o">=</span> <span class="n">result_array_points_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
-        <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
-        <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
+        <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
+        <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
         <span class="c1"># Special case: Sometimes fictitious points slip into the result</span>
         <span class="c1"># This can happen when we calculate stoichimetric phases by themselves</span>
         <span class="k">if</span> <span class="s1">&#39;_FAKE_&#39;</span> <span class="ow">in</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]:</span>
