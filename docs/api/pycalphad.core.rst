@@ -1,131 +1,131 @@
-pycalphad\.core package
-=======================
+pycalphad.core package
+======================
 
 Submodules
 ----------
 
-pycalphad\.core\.cache module
------------------------------
+pycalphad.core.cache module
+---------------------------
 
 .. automodule:: pycalphad.core.cache
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.calculate module
----------------------------------
+pycalphad.core.calculate module
+-------------------------------
 
 .. automodule:: pycalphad.core.calculate
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.cartesian module
----------------------------------
+pycalphad.core.cartesian module
+-------------------------------
 
 .. automodule:: pycalphad.core.cartesian
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.composition\_set module
-----------------------------------------
+pycalphad.core.composition_set module
+-------------------------------------
 
 .. automodule:: pycalphad.core.composition_set
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.constants module
----------------------------------
+pycalphad.core.constants module
+-------------------------------
 
 .. automodule:: pycalphad.core.constants
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.custom\_autowrap module
-----------------------------------------
-
-.. automodule:: pycalphad.core.custom_autowrap
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycalphad\.core\.eqsolver module
---------------------------------
+pycalphad.core.eqsolver module
+------------------------------
 
 .. automodule:: pycalphad.core.eqsolver
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.equilibrium module
------------------------------------
+pycalphad.core.equilibrium module
+---------------------------------
 
 .. automodule:: pycalphad.core.equilibrium
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.halton module
-------------------------------
+pycalphad.core.errors module
+----------------------------
+
+.. automodule:: pycalphad.core.errors
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.core.halton module
+----------------------------
 
 .. automodule:: pycalphad.core.halton
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.hyperplane module
-----------------------------------
+pycalphad.core.hyperplane module
+--------------------------------
 
 .. automodule:: pycalphad.core.hyperplane
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.lower\_convex\_hull module
--------------------------------------------
+pycalphad.core.lower_convex_hull module
+---------------------------------------
 
 .. automodule:: pycalphad.core.lower_convex_hull
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.phase\_rec module
-----------------------------------
+pycalphad.core.patched_piecewise module
+---------------------------------------
+
+.. automodule:: pycalphad.core.patched_piecewise
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.core.phase_rec module
+-------------------------------
 
 .. automodule:: pycalphad.core.phase_rec
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.problem module
--------------------------------
+pycalphad.core.problem module
+-----------------------------
 
 .. automodule:: pycalphad.core.problem
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.solver module
-------------------------------
+pycalphad.core.solver module
+----------------------------
 
 .. automodule:: pycalphad.core.solver
     :members:
     :undoc-members:
     :show-inheritance:
 
-pycalphad\.core\.sympydiff\_utils module
-----------------------------------------
-
-.. automodule:: pycalphad.core.sympydiff_utils
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
-pycalphad\.core\.utils module
------------------------------
+pycalphad.core.utils module
+---------------------------
 
 .. automodule:: pycalphad.core.utils
     :members:
