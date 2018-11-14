@@ -42,9 +42,6 @@ install:
         source $HOME/miniconda2/bin/activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
         conda install --yes xarray gcc cython cyipopt
-        # install (for py34) and remove gmpy2 for Mac builds
-        conda install --yes gmpy2
-        conda remove --force gmpy2 --yes
         pip install -e .
       fi
  
