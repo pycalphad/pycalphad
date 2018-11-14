@@ -8,6 +8,7 @@ SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potential
 
 class SolverBase(object):
     """"Base class for solvers."""
+    ignore_convergence = False
     def solve(self, prob):
         """
         *Implement this method.*

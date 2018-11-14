@@ -301,7 +301,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         remove_degenerate_phases(composition_sets, [], 0.5, 100, verbose)
         iterations = 0
         history = []
-        while iterations < 10:
+        while (iterations < 10) and (not iter_solver.ignore_convergence):
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
             if result.converged:
@@ -316,8 +316,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         if changed_phases:
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
-        converged = result.converged
-        remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+        if not iter_solver.ignore_convergence:
+            converged = result.converged
+            remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+        else:
+            converged = True
         if converged:
             if verbose:
                 print('Composition Sets', composition_sets)
