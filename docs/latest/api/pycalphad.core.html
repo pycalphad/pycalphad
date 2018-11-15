@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7+17.g5535526 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7+23.g34d3cd0 documentation</title>
   
 
   
@@ -29,7 +29,7 @@
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pycalphad.io package" href="pycalphad.io.html" />
-    <link rel="prev" title="pycalphad package" href="pycalphad.html" /> 
+    <link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" /> 
 
   
   <script src="../_static/js/modernizr.min.js"></script>
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7+17.g5535526
+                0.7+23.g34d3cd0
               </div>
             
           
@@ -92,6 +92,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
 <li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
 <li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.core package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
@@ -99,6 +100,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
 </ul>
@@ -367,9 +369,6 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 in the module.
 Note that modifying these may yield unpredictable results.</p>
 </div>
-<div class="section" id="pycalphad-core-custom-autowrap-module">
-<h2>pycalphad.core.custom_autowrap module<a class="headerlink" href="#pycalphad-core-custom-autowrap-module" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
 </div>
@@ -419,6 +418,37 @@ Defaults to a pycalphad.core.solver.InteriorPointSolver.</li>
 </table>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.errors">
+<span id="pycalphad-core-errors-module"></span><h2>pycalphad.core.errors module<a class="headerlink" href="#module-pycalphad.core.errors" title="Permalink to this headline">¶</a></h2>
+<dl class="exception">
+<dt id="pycalphad.core.errors.CalculateError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.errors.</code><code class="descname">CalculateError</code><a class="reference internal" href="../_modules/pycalphad/core/errors.html#CalculateError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.errors.CalculateError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception related to use of calculate() function.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.core.errors.ConditionError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.errors.</code><code class="descname">ConditionError</code><a class="reference internal" href="../_modules/pycalphad/core/errors.html#ConditionError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.errors.ConditionError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.core.errors.CalculateError" title="pycalphad.core.errors.CalculateError"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.errors.CalculateError</span></code></a>, <a class="reference internal" href="#pycalphad.core.errors.EquilibriumError" title="pycalphad.core.errors.EquilibriumError"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.core.errors.EquilibriumError</span></code></a></p>
+<p>Exception related to calculation conditions.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.core.errors.DofError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.errors.</code><code class="descname">DofError</code><a class="reference internal" href="../_modules/pycalphad/core/errors.html#DofError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.errors.DofError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Error due to missing degrees of freedom.</p>
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.core.errors.EquilibriumError">
+<em class="property">exception </em><code class="descclassname">pycalphad.core.errors.</code><code class="descname">EquilibriumError</code><a class="reference internal" href="../_modules/pycalphad/core/errors.html#EquilibriumError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.errors.EquilibriumError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+<p>Exception related to calculation of equilibrium.</p>
 </dd></dl>
 
 </div>
@@ -534,6 +564,45 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.patched_piecewise">
+<span id="pycalphad-core-patched-piecewise-module"></span><h2>pycalphad.core.patched_piecewise module<a class="headerlink" href="#module-pycalphad.core.patched_piecewise" title="Permalink to this headline">¶</a></h2>
+<p>Copied from Piecewise SymPy. The only modification is in <cite>piecewise_eval</cite> where</p>
+<dl class="docutils">
+<dt><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></dt>
+<dd><dl class="first last docutils">
+<dt>for e, c in _args:</dt>
+<dd><dl class="first last docutils">
+<dt>if not c.is_Atom and not isinstance(c, Relational):</dt>
+<dd>free = c.free_symbols</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
+<p>is changed to</p>
+<dl class="docutils">
+<dt><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></dt>
+<dd><dl class="first last docutils">
+<dt>for e, c in _args:</dt>
+<dd><dl class="first last docutils">
+<dt>if not c.is_Atom and not isinstance(c, Relational):</dt>
+<dd>free = c.expr_free_symbols</dd>
+</dl>
+</dd>
+</dl>
+</dd>
+</dl>
+<p><a href="#id13"><span class="problematic" id="id14">``</span></a><a href="#id15"><span class="problematic" id="id16">`</span></a></p>
+<p>See the following links:
+<a class="reference external" href="https://github.com/sympy/sympy/issues/14933">https://github.com/sympy/sympy/issues/14933</a>
+<a class="reference external" href="https://github.com/pycalphad/pycalphad/pull/180">https://github.com/pycalphad/pycalphad/pull/180</a></p>
+<dl class="function">
+<dt id="pycalphad.core.patched_piecewise.piecewise_eval">
+<code class="descclassname">pycalphad.core.patched_piecewise.</code><code class="descname">piecewise_eval</code><span class="sig-paren">(</span><em>cls</em>, <em>*_args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#piecewise_eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.piecewise_eval" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-pycalphad.core.phase_rec">
@@ -871,9 +940,6 @@ Solve a non-linear problem</p>
 </dd></dl>
 
 </div>
-<div class="section" id="pycalphad-core-sympydiff-utils-module">
-<h2>pycalphad.core.sympydiff_utils module<a class="headerlink" href="#pycalphad-core-sympydiff-utils-module" title="Permalink to this headline">¶</a></h2>
-</div>
 <div class="section" id="module-pycalphad.core.utils">
 <span id="pycalphad-core-utils-module"></span><h2>pycalphad.core.utils module<a class="headerlink" href="#module-pycalphad.core.utils" title="Permalink to this headline">¶</a></h2>
 <p>The utils module handles helper routines for equilibrium calculation.</p>
@@ -1129,7 +1195,7 @@ there, then the constant value is used.</p>
         <a href="pycalphad.io.html" class="btn btn-neutral float-right" title="pycalphad.io package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="pycalphad.html" class="btn btn-neutral" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pycalphad.codegen.html" class="btn btn-neutral" title="pycalphad.codegen package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.7+17.g5535526 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.7+23.g34d3cd0 documentation</title>
   
 
   
@@ -28,7 +28,7 @@
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
-    <link rel="next" title="pycalphad.core package" href="pycalphad.core.html" />
+    <link rel="next" title="pycalphad.codegen package" href="pycalphad.codegen.html" />
     <link rel="prev" title="API Documentation" href="modules.html" /> 
 
   
@@ -61,7 +61,7 @@
             
             
               <div class="version">
-                0.7+17.g5535526
+                0.7+23.g34d3cd0
               </div>
             
           
@@ -92,6 +92,7 @@
 <li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
 <li class="toctree-l2 current"><a class="current reference internal" href="#">pycalphad package</a><ul>
 <li class="toctree-l3"><a class="reference internal" href="#subpackages">Subpackages</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
 <li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
@@ -99,6 +100,7 @@
 </li>
 <li class="toctree-l3"><a class="reference internal" href="#submodules">Submodules</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#pycalphad-refdata-module">pycalphad.refdata module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad.variables">pycalphad.variables module</a></li>
 <li class="toctree-l3"><a class="reference internal" href="#module-pycalphad">Module contents</a></li>
 </ul>
@@ -178,6 +180,14 @@
 <h2>Subpackages<a class="headerlink" href="#subpackages" title="Permalink to this headline">¶</a></h2>
 <div class="toctree-wrapper compound">
 <ul>
+<li class="toctree-l1"><a class="reference internal" href="pycalphad.codegen.html">pycalphad.codegen package</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.codegen.html#submodules">Submodules</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.codegen.html#module-pycalphad.codegen.callables">pycalphad.codegen.callables module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.codegen.html#module-pycalphad.codegen.custom_autowrap">pycalphad.codegen.custom_autowrap module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.codegen.html#module-pycalphad.codegen.sympydiff_utils">pycalphad.codegen.sympydiff_utils module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.codegen.html#module-pycalphad.codegen">Module contents</a></li>
+</ul>
+</li>
 <li class="toctree-l1"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cache">pycalphad.core.cache module</a></li>
@@ -185,16 +195,16 @@
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.cartesian">pycalphad.core.cartesian module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.composition_set">pycalphad.core.composition_set module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.constants">pycalphad.core.constants module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-custom-autowrap-module">pycalphad.core.custom_autowrap module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.eqsolver">pycalphad.core.eqsolver module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.equilibrium">pycalphad.core.equilibrium module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.errors">pycalphad.core.errors module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.halton">pycalphad.core.halton module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.hyperplane">pycalphad.core.hyperplane module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.lower_convex_hull">pycalphad.core.lower_convex_hull module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.patched_piecewise">pycalphad.core.patched_piecewise module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.phase_rec">pycalphad.core.phase_rec module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.problem">pycalphad.core.problem module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.solver">pycalphad.core.solver module</a></li>
-<li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#pycalphad-core-sympydiff-utils-module">pycalphad.core.sympydiff_utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core.utils">pycalphad.core.utils module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.core.html#module-pycalphad.core">Module contents</a></li>
 </ul>
@@ -202,6 +212,7 @@
 <li class="toctree-l1"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a><ul>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#submodules">Submodules</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.database">pycalphad.io.database module</a></li>
+<li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.grammar">pycalphad.io.grammar module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.tdb">pycalphad.io.tdb module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io.tdb_keywords">pycalphad.io.tdb_keywords module</a></li>
 <li class="toctree-l2"><a class="reference internal" href="pycalphad.io.html#module-pycalphad.io">Module contents</a></li>
@@ -548,6 +559,9 @@ If not specified, randomly generated and saved to self.solution</li>
 </dd></dl>
 
 </div>
+<div class="section" id="pycalphad-refdata-module">
+<h2>pycalphad.refdata module<a class="headerlink" href="#pycalphad-refdata-module" title="Permalink to this headline">¶</a></h2>
+</div>
 <div class="section" id="module-pycalphad.variables">
 <span id="pycalphad-variables-module"></span><h2>pycalphad.variables module<a class="headerlink" href="#module-pycalphad.variables" title="Permalink to this headline">¶</a></h2>
 <p>Classes and constants for representing thermodynamic variables.</p>
@@ -719,7 +733,7 @@ and nonnegative. The constructor handles formatting of the name.</p>
   
     <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
       
-        <a href="pycalphad.core.html" class="btn btn-neutral float-right" title="pycalphad.core package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+        <a href="pycalphad.codegen.html" class="btn btn-neutral float-right" title="pycalphad.codegen package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
         <a href="modules.html" class="btn btn-neutral" title="API Documentation" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>

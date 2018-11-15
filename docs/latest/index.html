@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad: Computational Thermodynamics &mdash; pycalphad 0.7+17.g5535526 documentation</title>
+  <title>pycalphad: Computational Thermodynamics &mdash; pycalphad 0.7+23.g34d3cd0 documentation</title>
   
 
   
@@ -60,7 +60,7 @@
             
             
               <div class="version">
-                0.7+17.g5535526
+                0.7+23.g34d3cd0
               </div>
             
           
@@ -157,7 +157,7 @@
   <div class="section" id="logo-pycalphad-computational-thermodynamics">
 <h1><a class="reference internal" href="_images/pycalphad-logo-notext.png"><img alt="Logo" src="_images/pycalphad-logo-notext.png" style="width: 20pt; height: 20pt;" /></a> pycalphad: Computational Thermodynamics<a class="headerlink" href="#logo-pycalphad-computational-thermodynamics" title="Permalink to this headline">¶</a></h1>
 <div class="align-center figure">
-<a class="reference internal image-reference" href="_images/BinaryExamples_9_1.png"><img alt="Al-Ni Phase Diagram (Dupin et al., 2001)" src="_images/BinaryExamples_9_1.png" style="width: 500px; height: 250px;" /></a>
+<a class="reference internal image-reference" href="_images/BinaryExamples_9_1.png"><img alt="Al-Ni Phase Diagram (Dupin et al., 2001)" src="_images/BinaryExamples_9_1.png" style="width: 565px; height: 416px;" /></a>
 </div>
 <p>pycalphad is a Python library for computational thermodynamics using the CALPHAD method.</p>
 <p>The latest development version of the source code can be found on <a class="reference external" href="https://github.com/pycalphad/pycalphad">GitHub</a>.
@@ -186,6 +186,7 @@ The newest stable version can be found on <a class="reference external" href="ht
 <li class="toctree-l2"><a class="reference internal" href="faq.html#is-any-parallelism-supported-in-pycalphad">Is any parallelism supported in pycalphad?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="faq.html#how-long-should-equilibrium-calculations-take">How long should equilibrium calculations take?</a></li>
 <li class="toctree-l2"><a class="reference internal" href="faq.html#typeerror-argument-is-not-an-mpz-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="faq.html#recursionerror-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation</a></li>
 <li class="toctree-l2"><a class="reference internal" href="faq.html#text-is-sometimes-cut-off-when-saving-figures">Text is sometimes cut off when saving figures</a></li>
 </ul>
 </li>
@@ -194,31 +195,32 @@ The newest stable version can be found on <a class="reference external" href="ht
 </ul>
 </li>
 <li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What’s New</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id1">0.7 (2018-03-19)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id2">0.6.1 (2017-12-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id3">0.6 (2017-11-26)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id4">0.5.2 (2017-08-10)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id5">0.5.1 (2017-05-12)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id6">0.5 (2017-05-04)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id7">0.4.2 (2016-08-26)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id8">0.4.1 (2016-08-08)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id9">0.4 (2016-08-03)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id10">0.3.6 (2016-06-01)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id11">0.3.5 (2016-05-14)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id12">0.3.4 (2016-04-28)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id13">0.3.3 (2016-04-21)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id14">0.3.2 (2016-02-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id15">0.3.1 (2016-02-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id16">0.3 (2016-02-17)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id17">0.2.5 (2015-12-22)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id18">0.2.4 (2015-11-18)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id19">0.2.3 (2015-11-08)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id20">0.2.2 (2015-10-17)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id21">0.2.1 (2015-09-10)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id22">0.2 (2015-08-23)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id1">0.7.1 (2018-11-14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id2">0.7 (2018-03-19)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id3">0.6.1 (2017-12-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id4">0.6 (2017-11-26)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id5">0.5.2 (2017-08-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id6">0.5.1 (2017-05-12)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id7">0.5 (2017-05-04)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id8">0.4.2 (2016-08-26)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id9">0.4.1 (2016-08-08)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id10">0.4 (2016-08-03)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id11">0.3.6 (2016-06-01)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id12">0.3.5 (2016-05-14)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id13">0.3.4 (2016-04-28)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id14">0.3.3 (2016-04-21)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id15">0.3.2 (2016-02-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id16">0.3.1 (2016-02-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id17">0.3 (2016-02-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id18">0.2.5 (2015-12-22)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id19">0.2.4 (2015-11-18)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id20">0.2.3 (2015-11-08)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id21">0.2.2 (2015-10-17)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id22">0.2.1 (2015-09-10)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id23">0.2 (2015-08-23)</a></li>
 <li class="toctree-l2"><a class="reference internal" href="CHANGES.html#post1-2015-04-10">0.1.1.post1 (2015-04-10)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id23">0.1.1 (2015-04-09)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id24">0.1 (2015-04-09)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id24">0.1.1 (2015-04-09)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CHANGES.html#id25">0.1 (2015-04-09)</a></li>
 </ul>
 </li>
 </ul>
