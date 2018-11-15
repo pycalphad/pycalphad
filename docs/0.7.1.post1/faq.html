@@ -1,0 +1,292 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>FAQ &mdash; pycalphad 0.7.1.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="API Documentation" href="api/modules.html" />
+    <link rel="prev" title="Exploring calculate and equilibrium xarray Datasets" href="examples/UsingCalculationResults.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1 current"><a class="current reference internal" href="#">FAQ</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#what-units-does-pycalphad-use">What units does pycalphad use?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#is-any-parallelism-supported-in-pycalphad">Is any parallelism supported in pycalphad?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#how-long-should-equilibrium-calculations-take">How long should equilibrium calculations take?</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#typeerror-argument-is-not-an-mpz-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#recursionerror-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#text-is-sometimes-cut-off-when-saving-figures">Text is sometimes cut off when saving figures</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>FAQ</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/faq.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="faq">
+<h1>FAQ<a class="headerlink" href="#faq" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="what-units-does-pycalphad-use">
+<h2>What units does pycalphad use?<a class="headerlink" href="#what-units-does-pycalphad-use" title="Permalink to this headline">¶</a></h2>
+<ul class="simple">
+<li>All units are SI units.</li>
+<li>Molar quantities are used for state variables, e.g. energy has units <code class="docutils literal notranslate"><span class="pre">J/mol</span></code>.</li>
+<li>Composition and site occupancies are mole fractions.</li>
+</ul>
+</div>
+<div class="section" id="is-any-parallelism-supported-in-pycalphad">
+<h2>Is any parallelism supported in pycalphad?<a class="headerlink" href="#is-any-parallelism-supported-in-pycalphad" title="Permalink to this headline">¶</a></h2>
+<p>Equilibrium calculations in pycalphad can be parallelized using <a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a> out of the box.
+Several schedulers are supported in <a class="reference external" href="http://dask.pydata.org/en/latest/scheduler-overview.html">dask</a>
+and some have been <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/101">benchmarked in pycalphad</a>,
+where the <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler was found to be give a mild performance boost.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler can be used as in an equilibrium calculation as follows</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distributed</span> <span class="kn">import</span> <span class="n">LocalCluster</span><span class="p">,</span> <span class="n">Client</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="c1"># this acts like a global variable in the sense that you don&#39;t have to pass it</span>
+<span class="c1"># however, this it will not work if you don&#39;t instantiate it</span>
+<span class="c1"># See the distributed docs for more options:</span>
+<span class="c1"># https://distributed.readthedocs.io/</span>
+<span class="n">scheduler</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
+
+
+<span class="c1"># set up and run the equilibrium calculation using the Client scheduler</span>
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Ti-V.tdb&#39;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TI&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BCC_A2&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">]</span>
+<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)}</span>
+
+<span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;distributed&quot;</span><span class="p">)</span>
+</pre></div>
+</div>
+</div>
+<div class="section" id="how-long-should-equilibrium-calculations-take">
+<h2>How long should equilibrium calculations take?<a class="headerlink" href="#how-long-should-equilibrium-calculations-take" title="Permalink to this headline">¶</a></h2>
+<p>Roughly speaking, single point equilibrium calculations should take on the order
+of 200ms.</p>
+<p>The <code class="docutils literal notranslate"><span class="pre">binplot</span></code> and <code class="docutils literal notranslate"><span class="pre">ternplot</span></code> functions construct phase diagrams by
+a dense grid of point calculations over the conditions passed. The phase diagrams
+are mapped by the tieline points of the two phase regions, so unless there are
+two phase regions in a very small composition range, only coarse composition
+grids are required for phase diagram calculations.</p>
+</div>
+<div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
+<h2><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
+<p>This bug should now be fixed. Please update to pycalphad 0.7.1.</p>
+</div>
+<div class="section" id="recursionerror-during-a-calculation">
+<h2><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation<a class="headerlink" href="#recursionerror-during-a-calculation" title="Permalink to this headline">¶</a></h2>
+<p>This bug should now be fixed. Please update to pycalphad 0.7.1.</p>
+</div>
+<div class="section" id="text-is-sometimes-cut-off-when-saving-figures">
+<h2>Text is sometimes cut off when saving figures<a class="headerlink" href="#text-is-sometimes-cut-off-when-saving-figures" title="Permalink to this headline">¶</a></h2>
+<p>Occasionally when saving images with the matplotlib function <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code>, axis titles and legends are cut off.</p>
+<p>This can be fixed:</p>
+<ul class="simple">
+<li>Per function call by passing <code class="docutils literal notranslate"><span class="pre">bbox_inches='tight'</span></code> keyword argument to <code class="docutils literal notranslate"><span class="pre">plt.savefig</span></code></li>
+<li>Locally by running <code class="docutils literal notranslate"><span class="pre">import</span> <span class="pre">matplotlib</span> <span class="pre">as</span> <span class="pre">mpl;</span> <span class="pre">mpl.rcParams['savefig.bbox']</span> <span class="pre">=</span> <span class="pre">'tight'</span></code></li>
+<li>Permanently by adding <code class="docutils literal notranslate"><span class="pre">savefig.bbox</span> <span class="pre">:</span> <span class="pre">tight</span></code> to your <a class="reference external" href="https://matplotlib.org/users/customizing.html">matplotlibrc file</a>.</li>
+</ul>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="api/modules.html" class="btn btn-neutral float-right" title="API Documentation" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="examples/UsingCalculationResults.html" class="btn btn-neutral" title="Exploring calculate and equilibrium xarray Datasets" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>

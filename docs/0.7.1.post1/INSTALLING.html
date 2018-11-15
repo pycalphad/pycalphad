@@ -1,0 +1,340 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Installation Instructions &mdash; pycalphad 0.7.1.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="genindex.html" />
+    <link rel="search" title="Search" href="search.html" />
+    <link rel="next" title="Examples" href="examples/index.html" />
+    <link rel="prev" title="pycalphad: Computational Thermodynamics" href="index.html" /> 
+
+  
+  <script src="_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Instructions</a><ul>
+<li class="toctree-l2"><a class="reference internal" href="#anaconda-recommended">Anaconda (recommended)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#pypi">PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#development-versions-advanced-users">Development Versions (Advanced Users)</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#id1">PyPI</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#during-installation">During installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#ipstdcinterface-h-no-such-file-or-directory"><code class="docutils literal notranslate"><span class="pre">IpStdCInterface.h:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code></a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#after-installation">After installation</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#typeerror-argument-is-not-an-mpz-during-a-calculation"><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation</a></li>
+</ul>
+</li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="index.html">Docs</a> &raquo;</li>
+        
+      <li>Installation Instructions</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="_sources/INSTALLING.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="installation-instructions">
+<h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
+<p>This page will guide you through installing pycalphad and the <a class="reference external" href="http://jupyter.readthedocs.io/en/latest/index.html">Jupyter Notebook</a>
+application, which is suggested for running pycalphad interactively.</p>
+<div class="section" id="anaconda-recommended">
+<h2>Anaconda (recommended)<a class="headerlink" href="#anaconda-recommended" title="Permalink to this headline">¶</a></h2>
+<p>For all Windows, macOS and Linux platforms, it is recommended to use <a class="reference external" href="https://anaconda.com/download">Anaconda</a>
+to install the latest release of pycalphad. Anaconda is a scientific Python
+distribution by Anaconda, Inc. It provides good support for various
+scientific packages and otherwise challenging to install packages.</p>
+<p>To install pycalphad from Anaconda</p>
+<ol class="arabic simple">
+<li>Download and install <a class="reference external" href="https://anaconda.com/download">Anaconda</a></li>
+<li>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">pycalphad</span></code></li>
+</ol>
+</div>
+<div class="section" id="pypi">
+<h2>PyPI<a class="headerlink" href="#pypi" title="Permalink to this headline">¶</a></h2>
+<p>Release versions of pycalphad are available on PyPI. As of pycalphad 0.6,
+the <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a> library is used for numerical optimization and must be installed
+separately in order to install pycalphad from PyPI. Instructions for downloading
+and installing Ipopt are found at <a class="reference external" href="https://www.coin-or.org/Ipopt/documentation/node10.html">https://www.coin-or.org/Ipopt/documentation/node10.html</a>.</p>
+<p>NumPy, SciPy and Cython are all <em>build</em> requirements of pycalphad and must be
+installed before you install pycalphad.</p>
+<p>To install pycalphad from PyPI using pip:</p>
+<ol class="arabic simple">
+<li>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></li>
+<li>Run the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code> command in a terminal emulator</li>
+<li>Run the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> command to install pycalphad</li>
+<li>(Optional) run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyter</span></code> to install the Jupyter Notebook application</li>
+</ol>
+</div>
+<div class="section" id="development-versions-advanced-users">
+<h2>Development Versions (Advanced Users)<a class="headerlink" href="#development-versions-advanced-users" title="Permalink to this headline">¶</a></h2>
+<p>To install a development version of pycalphad, you can use either an Anaconda or
+vanilla Python distribution.</p>
+<div class="section" id="anaconda">
+<h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
+<p>These instructions will walk you through installing pycalphad in a virtual
+environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-dev</span></code>. From the Anaconda Prompt (Windows) or a
+terminal emulator (macOS or Linux)</p>
+<ol class="arabic simple">
+<li>Create the virtual environment and install pycalphad into it <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
+<li>Remove the installed pycalphad package so the development version can be installed <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></li>
+<li>Activate the environment <code class="docutils literal notranslate"><span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (Windows) or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (macOS or Linux)</li>
+<li>Get the pycalphad source <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code> (or download from <a class="reference external" href="https://github.com/pycalphad/pycalphad">https://github.com/pycalphad/pycalphad</a>)</li>
+<li>Go to the top level directory of the package <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></li>
+</ol>
+</div>
+<div class="section" id="id1">
+<h3>PyPI<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
+<p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)</p>
+<ol class="arabic simple">
+<li>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></li>
+<li>Install the build requirements <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code></li>
+<li>Get the pycalphad source <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code></li>
+<li>Go to the top level directory of the package <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></li>
+<li>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></li>
+</ol>
+</div>
+</div>
+<div class="section" id="troubleshooting">
+<h2>Troubleshooting<a class="headerlink" href="#troubleshooting" title="Permalink to this headline">¶</a></h2>
+<div class="section" id="during-installation">
+<h3>During installation<a class="headerlink" href="#during-installation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="ipstdcinterface-h-no-such-file-or-directory">
+<h4><code class="docutils literal notranslate"><span class="pre">IpStdCInterface.h:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code><a class="headerlink" href="#ipstdcinterface-h-no-such-file-or-directory" title="Permalink to this headline">¶</a></h4>
+<p>During installation via pip, the error
+<code class="docutils literal notranslate"><span class="pre">src/cyipopt.c:239:29:</span> <span class="pre">fatal</span> <span class="pre">error:</span> <span class="pre">IpStdCInterface.h:</span> <span class="pre">No</span> <span class="pre">such</span> <span class="pre">file</span> <span class="pre">or</span> <span class="pre">directory</span></code>
+indicates that the headers for Ipopt library cannot be found when trying to install
+cyipopt.</p>
+<p>The library Ipopt is a new dependency in pycalphad 0.6 and requires installation
+of an external library not available on PyPI. This error message means Ipopt is
+either not installed or not in your PATH. Ipopt installation instructions are
+available at <a class="reference external" href="https://www.coin-or.org/Ipopt/documentation/node10.html">https://www.coin-or.org/Ipopt/documentation/node10.html</a>.</p>
+<p>To continue installation via pip:</p>
+<ol class="arabic simple">
+<li>Install Ipopt</li>
+<li>Download the cyipopt package source from <a class="reference external" href="https://github.com/matthias-k/cyipopt">https://github.com/matthias-k/cyipopt</a></li>
+<li>Install the downloaded cyipopt package. You may need to add the directories
+containing Ipopt header files and libraries as <code class="docutils literal notranslate"><span class="pre">IPOPT_INCLUDE_DIRS</span></code> and
+<code class="docutils literal notranslate"><span class="pre">IPOPT_LIB_DIRS</span></code> in the <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file.</li>
+</ol>
+<p>However, users (especially users on Windows) are strongly encouraged to use the
+Anaconda installation instructions for pycalphad instead. <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code>
+and <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">update</span> <span class="pre">pycalphad</span></code> will automatically install Ipopt on all platforms.</p>
+</div>
+</div>
+<div class="section" id="after-installation">
+<h3>After installation<a class="headerlink" href="#after-installation" title="Permalink to this headline">¶</a></h3>
+<div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
+<h4><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h4>
+<p>This is an upstream bug in sympy, where floats are unable to be pickled.
+The fix has been completed, but not yet released. While the fix is not released,
+removing the gmpy2 package from their Python environment (e.g.
+<code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">gmpy2</span></code>) will fix the error. Alternatively, setting the
+environment variable <code class="docutils literal notranslate"><span class="pre">MPMATH_NOGMPY</span></code> to a non-zero value will fix the error.</p>
+</div>
+</div>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="examples/index.html" class="btn btn-neutral float-right" title="Examples" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral" title="pycalphad: Computational Thermodynamics" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="./" src="_static/documentation_options.js"></script>
+        <script type="text/javascript" src="_static/jquery.js"></script>
+        <script type="text/javascript" src="_static/underscore.js"></script>
+        <script type="text/javascript" src="_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
