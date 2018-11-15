@@ -1,0 +1,714 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.codegen package &mdash; pycalphad 0.7.1.post2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="pycalphad.core package" href="pycalphad.core.html" />
+    <link rel="prev" title="pycalphad package" href="pycalphad.html" /> 
+
+  
+  <script src="../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1.post2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="modules.html">API Documentation</a><ul class="current">
+<li class="toctree-l2 current"><a class="reference internal" href="pycalphad.html">pycalphad package</a><ul class="current">
+<li class="toctree-l3 current"><a class="reference internal" href="pycalphad.html#subpackages">Subpackages</a><ul class="current">
+<li class="toctree-l4 current"><a class="current reference internal" href="#">pycalphad.codegen package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.core.html">pycalphad.core package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.io.html">pycalphad.io package</a></li>
+<li class="toctree-l4"><a class="reference internal" href="pycalphad.plot.html">pycalphad.plot package</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#submodules">Submodules</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.model">pycalphad.model module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#pycalphad-refdata-module">pycalphad.refdata module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad.variables">pycalphad.variables module</a></li>
+<li class="toctree-l3"><a class="reference internal" href="pycalphad.html#module-pycalphad">Module contents</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="modules.html">API Documentation</a> &raquo;</li>
+        
+          <li><a href="pycalphad.html">pycalphad package</a> &raquo;</li>
+        
+      <li>pycalphad.codegen package</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/api/pycalphad.codegen.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="pycalphad-codegen-package">
+<h1>pycalphad.codegen package<a class="headerlink" href="#pycalphad-codegen-package" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="submodules">
+<h2>Submodules<a class="headerlink" href="#submodules" title="Permalink to this headline">¶</a></h2>
+</div>
+<div class="section" id="module-pycalphad.codegen.callables">
+<span id="pycalphad-codegen-callables-module"></span><h2>pycalphad.codegen.callables module<a class="headerlink" href="#module-pycalphad.codegen.callables" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pycalphad.codegen.callables.build_callables">
+<code class="descclassname">pycalphad.codegen.callables.</code><code class="descname">build_callables</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>model=None</em>, <em>parameters=None</em>, <em>callables=None</em>, <em>output='GM'</em>, <em>build_gradients=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Create dictionaries of callable dictionaries and PhaseRecords.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</li>
+<li><strong>comps</strong> (<em>list</em>) – List of component names</li>
+<li><strong>phases</strong> (<em>list</em>) – List of phase names</li>
+<li><strong>model</strong> (<em>dict</em><em> or </em><em>type</em>) – Dictionary of {phase_name: Model subclass} or a type corresponding to a
+Model subclass. Defaults to <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</li>
+<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
+<li><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callables</li>
+<li><strong>output</strong> (<em>str</em>) – Output property of the particular Model to sample</li>
+<li><strong>build_gradients</strong> (<em>bool</em>) – Whether or not to build gradient functions. Defaults to True.</li>
+<li><strong>verbose</strong> (<em>bool</em>) – Print the name of the phase when its callables are built</li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>callables</strong> – Dictionary of keyword argument callables to pass to equilibrium.</p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Example</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;AL-NI.tdb&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;FCC_L12&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_B2&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI5&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL3NI&#39;</span><span class="p">]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">callables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="o">**</span><span class="n">callables</span><span class="p">)</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.callables.wrap_symbol">
+<code class="descclassname">pycalphad.codegen.callables.</code><code class="descname">wrap_symbol</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#wrap_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.callables.wrap_symbol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.codegen.custom_autowrap">
+<span id="pycalphad-codegen-custom-autowrap-module"></span><h2>pycalphad.codegen.custom_autowrap module<a class="headerlink" href="#module-pycalphad.codegen.custom_autowrap" title="Permalink to this headline">¶</a></h2>
+<p>Module for compiling codegen output, and wrap the binary for use in
+python.</p>
+<div class="admonition note">
+<p class="first admonition-title">Note</p>
+<p>To use the autowrap module it must first be imported</p>
+<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
+</pre></div>
+</div>
+</div>
+<p>This module provides a common interface for different external backends, such
+as f2py, fwrap, Cython, SWIG(?) etc. (Currently only f2py and Cython are
+implemented) The goal is to provide access to compiled binaries of acceptable
+performance with a one-button user interface, i.e.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span><span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span> <span class="o">=</span> <span class="n">autowrap</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">binary_callable</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">)</span>
+<span class="go">-1.0</span>
+</pre></div>
+</div>
+<p>The callable returned from autowrap() is a binary python function, not a
+SymPy object.  If it is desired to use the compiled function in symbolic
+expressions, it is better to use binary_function() which returns a SymPy
+Function object.  The binary callable is attached as the _imp_ attribute and
+invoked when a numerical evaluation is requested with evalf(), or with
+lambdify().</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span>
+<span class="go">y + 2*f(x, y)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">(</span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span> <span class="o">+</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">evalf</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">subs</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span><span class="mi">2</span><span class="p">})</span>
+<span class="go">0.e-110</span>
+</pre></div>
+</div>
+<p>The idea is that a SymPy user will primarily be interested in working with
+mathematical expressions, and should not have to learn details about wrapping
+tools in order to evaluate expressions numerically, even if they are
+computationally expensive.</p>
+<p>When is this useful?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>For computations on large arrays, Python iterations may be too slow,
+and depending on the mathematical expression, it may be difficult to
+exploit the advanced index operations provided by NumPy.</li>
+<li>For <em>really</em> long expressions that will be called repeatedly, the
+compiled binary should be significantly faster than SymPy’s .evalf()</li>
+<li>If you are generating code with the codegen utility in order to use
+it in another project, the automatic python wrappers let you test the
+binaries immediately from within SymPy.</li>
+<li>To create customized ufuncs for use with numpy arrays.
+See <em>ufuncify</em>.</li>
+</ol>
+</div></blockquote>
+<p>When is this module NOT the best approach?</p>
+<blockquote>
+<div><ol class="arabic simple">
+<li>If you are really concerned about speed or memory optimizations,
+you will probably get better results by working directly with the
+wrapper tools and the low level code.  However, the files generated
+by this utility may provide a useful starting point and reference
+code. Temporary files will be left intact if you supply the keyword
+tempdir=”path/to/files/”.</li>
+<li>If the array computation can be handled easily by numpy, and you
+don’t need the binaries for another project.</li>
+</ol>
+</div></blockquote>
+<dl class="class">
+<dt id="pycalphad.codegen.custom_autowrap.C89CodePrinter">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">C89CodePrinter</code><span class="sig-paren">(</span><em>settings={}</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#C89CodePrinter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.C89CodePrinter" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.printing.ccode.C89CodePrinter</span></code></p>
+<p>C89-compatible code printing allows for Windows compatibility.
+(MSVC 14 and newer support C99, but we are going for broad compatibility.)</p>
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.C89CodePrinter.order">
+<code class="descname">order</code><em class="property"> = 'none'</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.C89CodePrinter.order" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="exception">
+<dt id="pycalphad.codegen.custom_autowrap.CodeWrapError">
+<em class="property">exception </em><code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">CodeWrapError</code><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CodeWrapError"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CodeWrapError" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">Exception</span></code></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.codegen.custom_autowrap.CustomCCodeGen">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">CustomCCodeGen</code><span class="sig-paren">(</span><em>project='project'</em>, <em>printer=None</em>, <em>preprocessor_statements=None</em>, <em>cse=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CustomCCodeGen"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.utilities.codegen.CCodeGen</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.CustomCCodeGen.dump_fns">
+<code class="descname">dump_fns</code><em class="property"> = [&lt;function CCodeGen.dump_c&gt;, &lt;function CustomCCodeGen.dump_h&gt;]</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen.dump_fns" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.codegen.custom_autowrap.CustomCCodeGen.dump_h">
+<code class="descname">dump_h</code><span class="sig-paren">(</span><em>routines</em>, <em>f</em>, <em>prefix</em>, <em>header=True</em>, <em>empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CustomCCodeGen.dump_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen.dump_h" title="Permalink to this definition">¶</a></dt>
+<dd><p>Writes the C header file.</p>
+<p>This file contains all the function declarations.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>routines</strong> (<em>list</em>) – A list of Routine instances.</li>
+<li><strong>f</strong> (<em>file-like</em>) – Where to write the file.</li>
+<li><strong>prefix</strong> (<em>string</em>) – The filename prefix, used to construct the include guards.
+Only the basename of the prefix is used.</li>
+<li><strong>header</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a header comment is included on top of each source
+file.  [default : True]</li>
+<li><strong>empty</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, empty lines are included to structure the source
+files.  [default : True]</li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.codegen.custom_autowrap.CustomCCodeGen.get_prototype">
+<code class="descname">get_prototype</code><span class="sig-paren">(</span><em>routine</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CustomCCodeGen.get_prototype"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen.get_prototype" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a string for the function prototype of the routine.</p>
+<p>If the routine has multiple result objects, an CodeGenError is
+raised.</p>
+<p>See: <a class="reference external" href="http://en.wikipedia.org/wiki/Function_prototype">http://en.wikipedia.org/wiki/Function_prototype</a></p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.codegen.custom_autowrap.CustomCCodeGen.routine">
+<code class="descname">routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence</em>, <em>global_vars</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CustomCCodeGen.routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen.routine" title="Permalink to this definition">¶</a></dt>
+<dd><p>Creates an Routine object that is appropriate for this language.</p>
+<p>This implementation is appropriate for at least C/Fortran.  Subclasses
+can override this if necessary.</p>
+<p>Here, we assume at most one return value (the l-value) which must be
+scalar.  Additional outputs are OutputArguments (e.g., pointers on
+right-hand-side or pass-by-reference).  Matrices are always returned
+via OutputArguments.  If <code class="docutils literal notranslate"><span class="pre">argument_sequence</span></code> is None, arguments will
+be ordered alphabetically, but with all InputArguments first, and then
+OutputArgument and InOutArguments.</p>
+<p>This implementation is almost the same as the CodeGen class, but
+expensive calls to Basic.atoms() have been replaced with
+cheaper equivalents.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">ThreadSafeCythonCodeWrapper</code><span class="sig-paren">(</span><em>*args</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#ThreadSafeCythonCodeWrapper"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">sympy.utilities.autowrap.CythonCodeWrapper</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.command">
+<code class="descname">command</code><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.command" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.filename">
+<code class="descname">filename</code><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.filename" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name">
+<code class="descname">module_name</code><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.module_name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func">
+<code class="descname">pyx_func</code><em class="property"> = 'def {name}_c({arg_string}):\n\n{declarations}{body}\ndef get_pointer_c():\n    return PyCapsule_New(&lt;void*&gt;{name}, NULL, NULL)\n'</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header">
+<code class="descname">pyx_header</code><em class="property"> = &quot;cdef extern from '{header_file}.h':\n    {prototype}\n\n&quot;</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_header" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports">
+<code class="descname">pyx_imports</code><em class="property"> = 'import numpy as np\ncimport numpy as np\nfrom cpython cimport PyCapsule_New\n\n'</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.pyx_imports" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template">
+<code class="descname">setup_template</code><em class="property"> = &quot;from distutils.core import setup\nfrom distutils.extension import Extension\nfrom Cython.Distutils import build_ext\n{np_import}\nsetup(\n    cmdclass = {{'build_ext': build_ext}},\n    ext_modules = [Extension({ext_args},\n                             extra_compile_args=['-std=c99'])],\n{np_includes}        )&quot;</em><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code">
+<code class="descname">wrap_code</code><span class="sig-paren">(</span><em>routine</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#ThreadSafeCythonCodeWrapper.wrap_code"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.wrap_code" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.custom_autowrap.autowrap">
+<code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">autowrap</code><span class="sig-paren">(</span><em>expr</em>, <em>language=None</em>, <em>backend='Cython'</em>, <em>tempdir=None</em>, <em>args=None</em>, <em>flags=None</em>, <em>verbose=False</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#autowrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.autowrap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Generates python callable binaries based on the math expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>expr</strong> – The SymPy expression that should be wrapped as a binary routine.</li>
+<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – If supplied, (options: ‘C’ or ‘F95’), specifies the language of the
+generated code. If <code class="docutils literal notranslate"><span class="pre">None</span></code> [default], the language is inferred based
+upon the specified backend.</li>
+<li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) – Backend used to wrap the generated code. Either ‘f2py’,
+or ‘cython’ [default].</li>
+<li><strong>tempdir</strong> (<em>string</em><em>, </em><em>optional</em>) – Path to directory for temporary files. If this argument is supplied,
+the generated code and the wrapper input files are left intact in the
+specified path.</li>
+<li><strong>args</strong> (<em>iterable</em><em>, </em><em>optional</em>) – An ordered iterable of symbols. Specifies the argument sequence for the
+function.</li>
+<li><strong>flags</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Additional option flags that will be passed to the backend.</li>
+<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, autowrap will not mute the command line backends. This can be
+helpful for debugging.</li>
+<li><strong>helpers</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Used to define auxillary expressions needed for the main expr. If the
+main expression needs to call a specialized function it should be put
+in the <code class="docutils literal notranslate"><span class="pre">helpers</span></code> iterable. Autowrap will then make sure that the
+compiled main expression can link to the helper routine. Items should
+be tuples with (&lt;funtion_name&gt;, &lt;sympy_expression&gt;, &lt;arguments&gt;). It
+is mandatory to supply an argument sequence to helper routines.</li>
+<li><strong>from sympy.abc import x</strong><strong>, </strong><strong>y</strong><strong>, </strong><strong>z</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>from sympy.utilities.autowrap import autowrap</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>expr =</strong><strong> (</strong><strong>(</strong><strong>x - y + z</strong><strong>)</strong><strong>**</strong><strong>(</strong><strong>13</strong><strong>)</strong><strong>)</strong><strong>expand</strong><strong>(</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>binary_func = autowrap</strong><strong>(</strong><strong>expr</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>binary_func</strong><strong>(</strong><strong>1</strong><strong>, </strong><strong>4</strong><strong>, </strong><strong>2</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
+<li><strong>-1.0</strong> – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.custom_autowrap.binary_function">
+<code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">binary_function</code><span class="sig-paren">(</span><em>symfunc</em>, <em>expr</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#binary_function"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.binary_function" title="Permalink to this definition">¶</a></dt>
+<dd><p>Returns a sympy function with expr as binary implementation</p>
+<p>This is a convenience function that automates the steps needed to
+autowrap the SymPy expression and attaching it to a Function object
+with implemented_function().</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">binary_function</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">expr</span> <span class="o">=</span> <span class="p">((</span><span class="n">x</span> <span class="o">-</span> <span class="n">y</span><span class="p">)</span><span class="o">**</span><span class="p">(</span><span class="mi">25</span><span class="p">))</span><span class="o">.</span><span class="n">expand</span><span class="p">()</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">binary_function</span><span class="p">(</span><span class="s1">&#39;f&#39;</span><span class="p">,</span> <span class="n">expr</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="nb">type</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<span class="go">&lt;class &#39;sympy.core.function.UndefinedFunction&#39;&gt;</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="mi">2</span><span class="o">*</span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span>
+<span class="go">2*f(x, y)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">)</span><span class="o">.</span><span class="n">evalf</span><span class="p">(</span><span class="mi">2</span><span class="p">,</span> <span class="n">subs</span><span class="o">=</span><span class="p">{</span><span class="n">x</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">y</span><span class="p">:</span> <span class="mi">2</span><span class="p">})</span>
+<span class="go">-1.0</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.custom_autowrap.get_code_generator">
+<code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">get_code_generator</code><span class="sig-paren">(</span><em>language</em>, <em>project</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#get_code_generator"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.get_code_generator" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.custom_autowrap.import_extension">
+<code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">import_extension</code><span class="sig-paren">(</span><em>path</em>, <em>modname</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#import_extension"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.import_extension" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.custom_autowrap.make_routine">
+<code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">make_routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence=None</em>, <em>global_vars=None</em>, <em>language='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#make_routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.make_routine" title="Permalink to this definition">¶</a></dt>
+<dd><p>A factory that makes an appropriate Routine from an expression.</p>
+<table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
+<li><strong>name</strong> (<em>string</em>) – The name of this routine in the generated code.</li>
+<li><strong>expr</strong> (<em>expression</em><em> or </em><em>list/tuple of expressions</em>) – A SymPy expression that the Routine instance will represent.  If
+given a list or tuple of expressions, the routine will be
+considered to have multiple return values and/or output arguments.</li>
+<li><strong>argument_sequence</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – List arguments for the routine in a preferred order.  If omitted,
+the results are language dependent, for example, alphabetical order
+or in the same order as the given expressions.</li>
+<li><strong>global_vars</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Sequence of global variables used by the routine.  Variables
+listed here will not show up as function arguments.</li>
+<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – Specify a target language.  The Routine itself should be
+language-agnostic but the precise way one is created, error
+checking, etc depend on the language.  [default: “F95”].</li>
+<li><strong>decision about whether to use output arguments</strong><strong> or </strong><strong>return values is made</strong> (<em>A</em>) – </li>
+<li><strong>on both the language and the particular mathematical expressions.</strong> (<em>depending</em>) – </li>
+<li><strong>an expression of type Equality</strong><strong>, </strong><strong>the left hand side is typically made</strong> (<em>For</em>) – </li>
+<li><strong>an OutputArgument</strong><strong> (or </strong><strong>perhaps an InOutArgument if appropriate</strong><strong>)</strong><strong></strong> (<em>into</em>) – </li>
+<li><strong>typically</strong><strong>, </strong><strong>the calculated expression is made a return values of</strong> (<em>Otherwise</em><em>,</em>) – </li>
+<li><strong>routine.</strong> (<em>the</em>) – </li>
+</ul>
+</td>
+</tr>
+</tbody>
+</table>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">make_routine</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Eq</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;test&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">2</span><span class="o">*</span><span class="n">x</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">y</span><span class="p">)])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">result_var</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="go">[]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>
+<span class="go">[x, y, f, g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">result_variables</span><span class="p">]</span>
+<span class="go">[f, g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span><span class="o">.</span><span class="n">local_vars</span>
+<span class="go">set()</span>
+</pre></div>
+</div>
+<p>Another more complicated example with a mixture of specified and
+automatically-assigned names.  Also has Matrix output.</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Matrix</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">r</span> <span class="o">=</span> <span class="n">make_routine</span><span class="p">(</span><span class="s1">&#39;fcn&#39;</span><span class="p">,</span> <span class="p">[</span><span class="n">x</span><span class="o">*</span><span class="n">y</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="mi">1</span><span class="p">),</span> <span class="n">Eq</span><span class="p">(</span><span class="n">g</span><span class="p">,</span> <span class="n">x</span> <span class="o">+</span> <span class="n">g</span><span class="p">),</span> <span class="n">Matrix</span><span class="p">([[</span><span class="n">x</span><span class="p">,</span> <span class="mi">2</span><span class="p">]])])</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">result_var</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>  <span class="c1"># doctest: +SKIP</span>
+<span class="go">[result_5397460570204848505]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">results</span><span class="p">]</span>
+<span class="go">[x*y]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">arg</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span><span class="p">]</span>  <span class="c1"># doctest: +SKIP</span>
+<span class="go">[x, y, f, g, out_8598435338387848786]</span>
+</pre></div>
+</div>
+<p>We can examine the various arguments more closely:</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="p">(</span><span class="n">InputArgument</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">,</span>
+<span class="gp">... </span>                                     <span class="n">InOutArgument</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InputArgument</span><span class="p">)]</span>
+<span class="go">[x, y]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>  <span class="c1"># doctest: +SKIP</span>
+<span class="go">[f, out_8598435338387848786]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">OutputArgument</span><span class="p">)]</span>
+<span class="go">[1, Matrix([[x, 2]])]</span>
+</pre></div>
+</div>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
+<span class="go">[g]</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="p">[</span><span class="n">a</span><span class="o">.</span><span class="n">expr</span> <span class="k">for</span> <span class="n">a</span> <span class="ow">in</span> <span class="n">r</span><span class="o">.</span><span class="n">arguments</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">a</span><span class="p">,</span> <span class="n">InOutArgument</span><span class="p">)]</span>
+<span class="go">[g + x]</span>
+</pre></div>
+</div>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.codegen.sympydiff_utils">
+<span id="pycalphad-codegen-sympydiff-utils-module"></span><h2>pycalphad.codegen.sympydiff_utils module<a class="headerlink" href="#module-pycalphad.codegen.sympydiff_utils" title="Permalink to this headline">¶</a></h2>
+<p>This module constructs gradient functions for Models.</p>
+<dl class="class">
+<dt id="pycalphad.codegen.sympydiff_utils.AutowrapFunction">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">AutowrapFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#AutowrapFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.AutowrapFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.codegen.sympydiff_utils.PickleableFunction" title="pycalphad.codegen.sympydiff_utils.PickleableFunction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.codegen.sympydiff_utils.PickleableFunction</span></code></a></p>
+<dl class="method">
+<dt id="pycalphad.codegen.sympydiff_utils.AutowrapFunction.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#AutowrapFunction.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.AutowrapFunction.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.codegen.sympydiff_utils.PickleableFunction">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">PickleableFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#PickleableFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.PickleableFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>A compiled function that is recompiled when unpickled.
+This works around several issues with sending JIT’d functions over the wire.
+This approach means only the underlying SymPy object must be pickleable.
+This also means multiprocessing using fork() will NOT force a recompile.</p>
+<dl class="method">
+<dt id="pycalphad.codegen.sympydiff_utils.PickleableFunction.compile">
+<code class="descname">compile</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#PickleableFunction.compile"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.PickleableFunction.compile" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.sympydiff_utils.PickleableFunction.kernel">
+<code class="descname">kernel</code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.PickleableFunction.kernel" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.sympydiff_utils.build_functions">
+<code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<dd><table class="docutils field-list" frame="void" rules="none">
+<col class="field-name" />
+<col class="field-body" />
+<tbody valign="top">
+<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
+<li><strong>sympy_graph</strong> – </li>
+<li><strong>variables</strong> (<em>tuple of Symbols</em>) – Input arguments.</li>
+<li><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</li>
+<li><strong>include_obj</strong> – </li>
+<li><strong>include_grad</strong> – </li>
+<li><strong>parameters</strong> – </li>
+</ul>
+</td>
+</tr>
+<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
+</td>
+</tr>
+<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">One or more functions.</p>
+</td>
+</tr>
+</tbody>
+</table>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.codegen.sympydiff_utils.chunks">
+<code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">chunks</code><span class="sig-paren">(</span><em>l</em>, <em>n</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#chunks"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.chunks" title="Permalink to this definition">¶</a></dt>
+<dd><p>Yield successive n-sized chunks from l.
+Source: <a class="reference external" href="http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python">http://stackoverflow.com/questions/312443/how-do-you-split-a-list-into-evenly-sized-chunks-in-python</a></p>
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.codegen">
+<span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad.codegen" title="Permalink to this headline">¶</a></h2>
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="pycalphad.core.html" class="btn btn-neutral float-right" title="pycalphad.core package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="pycalphad.html" class="btn btn-neutral" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
