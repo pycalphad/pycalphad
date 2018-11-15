@@ -1,0 +1,342 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.lower_convex_hull &mdash; pycalphad 0.7.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+
+  
+  
+    
+
+  
+
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+
+  
+  <script src="../../../_static/js/modernizr.min.js"></script>
+
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search">
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.7.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.lower_convex_hull</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.lower_convex_hull</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The lower_convex_hull module handles geometric calculations associated with</span>
+<span class="sd">equilibrium calculation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cartesian</span> <span class="k">import</span> <span class="n">cartesian</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">.hyperplane</span> <span class="k">import</span> <span class="n">hyperplane</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># The energetic difference, in J/mol-atom, below which is considered &#39;zero&#39;</span>
+<span class="n">DRIVING_FORCE_TOLERANCE</span> <span class="o">=</span> <span class="mf">1e-8</span>
+
+
+<div class="viewcode-block" id="lower_convex_hull"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.lower_convex_hull.lower_convex_hull">[docs]</a><span class="k">def</span> <span class="nf">lower_convex_hull</span><span class="p">(</span><span class="n">global_grid</span><span class="p">,</span> <span class="n">result_array</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Find the simplices on the lower convex hull satisfying the specified</span>
+<span class="sd">    conditions in the result array.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    global_grid : Dataset</span>
+<span class="sd">        A sample of the energy surface of the system.</span>
+<span class="sd">    result_array : Dataset</span>
+<span class="sd">        This object will be modified!</span>
+<span class="sd">        Coordinates correspond to conditions axes.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    None. Results are written to result_array.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    This routine will not check if any simplex is degenerate.</span>
+<span class="sd">    Degenerate simplices will manifest with duplicate or NaN indices.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">indep_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]])</span>
+    <span class="n">comp_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">)])</span>
+    <span class="n">pot_conds</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">if</span> <span class="n">x</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;MU_&#39;</span><span class="p">)])</span>
+
+    <span class="c1"># Determine starting combinations of chemical potentials and compositions</span>
+    <span class="c1"># TODO: Check Gibbs phase rule compliance</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Chemical potential conditions are not yet supported&#39;</span><span class="p">)</span>
+
+    <span class="c1"># FIRST CASE: Only composition conditions specified</span>
+    <span class="c1"># We only need to compute the dependent composition value directly</span>
+    <span class="c1"># Initialize trial points as lowest energy point in the system</span>
+    <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">comp_conds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pot_conds</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">):</span>
+        <span class="n">comp_values</span> <span class="o">=</span> <span class="n">cartesian</span><span class="p">([</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">]</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">])</span>
+        <span class="c1"># Insert dependent composition value</span>
+        <span class="c1"># TODO: Handle W(comp) as well as X(comp) here</span>
+        <span class="n">specified_components</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span><span class="p">[</span><span class="mi">2</span><span class="p">:]</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">}</span>
+        <span class="n">dependent_component</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span> <span class="o">-</span> <span class="n">specified_components</span>
+        <span class="n">dependent_component</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Number of dependent components is different from one&#39;</span><span class="p">)</span>
+        <span class="n">insert_idx</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">values</span><span class="p">)</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">dependent_component</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+        <span class="n">comp_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">((</span><span class="n">comp_values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="p">:</span><span class="n">insert_idx</span><span class="p">],</span>
+                                      <span class="mi">1</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">comp_values</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">),</span>
+                                      <span class="n">comp_values</span><span class="p">[</span><span class="o">...</span><span class="p">,</span> <span class="n">insert_idx</span><span class="p">:]),</span>
+                                     <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
+        <span class="c1"># Prevent compositions near an edge from going negative</span>
+        <span class="n">comp_values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">comp_values</span> <span class="o">&lt;</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">)]</span> <span class="o">=</span> <span class="n">MIN_SITE_FRACTION</span><span class="o">*</span><span class="mi">10</span>
+        <span class="c1"># TODO: Assumes N=1</span>
+        <span class="n">comp_values</span> <span class="o">/=</span> <span class="n">comp_values</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">,</span> <span class="n">keepdims</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="c1">#print(comp_values)</span>
+
+    <span class="c1"># SECOND CASE: Only chemical potential conditions specified</span>
+    <span class="c1"># TODO: Implementation of chemical potential</span>
+
+    <span class="c1"># THIRD CASE: Mixture of composition and chemical potential conditions</span>
+    <span class="c1"># TODO: Implementation of mixed conditions</span>
+
+    <span class="c1"># factored out via profiling</span>
+    <span class="n">result_array_GM_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_points_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">points</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_MU_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_NP_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_X_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_Y_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">result_array_Phase_values</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">global_grid_GM_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">global_grid_X_values</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span>
+    <span class="n">num_comps</span> <span class="o">=</span> <span class="n">result_array</span><span class="o">.</span><span class="n">dims</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span>
+
+    <span class="n">it</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">result_array_GM_values</span><span class="p">,</span> <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multi_index&#39;</span><span class="p">])</span>
+    <span class="n">comp_coord_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array</span><span class="o">.</span><span class="n">coords</span><span class="p">[</span><span class="n">cond</span><span class="p">])</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">comp_conds</span><span class="p">)</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">it</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="n">indep_idx</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">[:</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">)]</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_conds</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+            <span class="n">comp_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">ravel_multi_index</span><span class="p">(</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_conds</span><span class="p">):],</span> <span class="n">comp_coord_shape</span><span class="p">)</span>
+            <span class="n">idx_comp_values</span> <span class="o">=</span> <span class="n">comp_values</span><span class="p">[</span><span class="n">comp_idx</span><span class="p">]</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">idx_comp_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="mf">1.</span><span class="p">)</span>
+        <span class="n">idx_global_grid_X_values</span> <span class="o">=</span> <span class="n">global_grid_X_values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span>
+        <span class="n">idx_global_grid_GM_values</span> <span class="o">=</span> <span class="n">global_grid_GM_values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span>
+        <span class="n">idx_result_array_MU_values</span> <span class="o">=</span> <span class="n">result_array_MU_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
+        <span class="n">idx_result_array_NP_values</span> <span class="o">=</span> <span class="n">result_array_NP_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
+        <span class="n">idx_result_array_GM_values</span> <span class="o">=</span> <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
+        <span class="n">idx_result_array_points_values</span> <span class="o">=</span> <span class="n">result_array_points_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
+        <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> \
+            <span class="n">hyperplane</span><span class="p">(</span><span class="n">idx_global_grid_X_values</span><span class="p">,</span> <span class="n">idx_global_grid_GM_values</span><span class="p">,</span>
+                       <span class="n">idx_comp_values</span><span class="p">,</span> <span class="n">idx_result_array_MU_values</span><span class="p">,</span>
+                       <span class="n">idx_result_array_NP_values</span><span class="p">,</span> <span class="n">idx_result_array_points_values</span><span class="p">)</span>
+        <span class="c1"># Copy phase values out</span>
+        <span class="n">points</span> <span class="o">=</span> <span class="n">result_array_points_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span>
+        <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
+        <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
+        <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">][:</span><span class="n">num_comps</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">indep_idx</span><span class="p">]</span><span class="o">.</span><span class="n">take</span><span class="p">(</span><span class="n">points</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)[:</span><span class="n">num_comps</span><span class="p">]</span>
+        <span class="c1"># Special case: Sometimes fictitious points slip into the result</span>
+        <span class="c1"># This can happen when we calculate stoichimetric phases by themselves</span>
+        <span class="k">if</span> <span class="s1">&#39;_FAKE_&#39;</span> <span class="ow">in</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]:</span>
+            <span class="c1"># Chemical potentials are meaningless in this case</span>
+            <span class="n">idx_result_array_MU_values</span><span class="p">[</span><span class="o">...</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
+            <span class="n">new_energy</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="n">molesum</span> <span class="o">=</span> <span class="mf">0.</span>
+            <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">])):</span>
+                <span class="n">midx</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span> <span class="o">+</span> <span class="p">(</span><span class="n">idx</span><span class="p">,)</span>
+                <span class="k">if</span> <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;_FAKE_&#39;</span><span class="p">:</span>
+                    <span class="n">result_array_Phase_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;&#39;</span>
+                    <span class="n">result_array_X_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">result_array_Y_values</span><span class="p">[</span><span class="n">midx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                    <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nan</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">new_energy</span> <span class="o">+=</span> <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span> <span class="o">*</span> <span class="n">global_grid</span><span class="o">.</span><span class="n">GM</span><span class="o">.</span><span class="n">values</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">index_exp</span><span class="p">[</span><span class="n">indep_idx</span> <span class="o">+</span> <span class="p">(</span><span class="n">points</span><span class="p">[</span><span class="n">idx</span><span class="p">],)]]</span>
+                    <span class="n">molesum</span> <span class="o">+=</span> <span class="n">idx_result_array_NP_values</span><span class="p">[</span><span class="n">idx</span><span class="p">]</span>
+            <span class="n">result_array_GM_values</span><span class="p">[</span><span class="n">it</span><span class="o">.</span><span class="n">multi_index</span><span class="p">]</span> <span class="o">=</span> <span class="n">new_energy</span> <span class="o">/</span> <span class="n">molesum</span>
+        <span class="n">it</span><span class="o">.</span><span class="n">iternext</span><span class="p">()</span>
+    <span class="k">del</span> <span class="n">result_array</span><span class="p">[</span><span class="s1">&#39;points&#39;</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">result_array</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  
+
+    
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+
+  
+
+  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script> 
+
+</body>
+</html>
