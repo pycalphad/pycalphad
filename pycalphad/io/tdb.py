@@ -125,6 +125,8 @@ def _make_piecewise_ast(toks):
             high_temp = None
 
         if high_temp is None:
+            if low_temp == 'HICKEL':
+                low_temp = Symbol('HICKEL')
             expr_cond_pairs.append(
                 (
                     _sympify_string(toks[cur_tok+1]),
@@ -132,6 +134,10 @@ def _make_piecewise_ast(toks):
                 )
             )
         else:
+            if low_temp == 'HICKEL':
+                low_temp = Symbol('HICKEL')
+            if high_temp == 'HICKEL':
+                high_temp = Symbol('HICKEL')
             expr_cond_pairs.append(
                 (
                     _sympify_string(toks[cur_tok+1]),
@@ -192,7 +198,7 @@ def _tdb_grammar(): #pylint: disable=R0914
     # Let sympy do heavy arithmetic / algebra parsing for us
     # a convenience function will handle the piecewise details
     func_expr = (float_number | ZeroOrMore(',').setParseAction(lambda t: 0.01)) + OneOrMore(SkipTo(';') \
-        + Suppress(';') + ZeroOrMore(Suppress(',')) + Optional(float_number) + \
+        + Suppress(';') + ZeroOrMore(Suppress(',')) + (CaselessKeyword('HICKEL') | Optional(float_number)) + \
         Suppress(Word('YNyn', exact=1) | White()))
     # ELEMENT
     cmd_element = TCCommand('ELEMENT') + Word(alphas+'/-', min=1, max=2) + Optional(Suppress(ref_phase_name)) + \
