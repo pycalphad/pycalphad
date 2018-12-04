@@ -14,7 +14,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef func_novec_t** _massgrads
     cdef public object _ofunc
     cdef public object _gfunc
-    cdef public object _hfunc
     cdef public object _intconsfunc
     cdef public object _intjacfunc
     cdef public object _mpconsfunc
