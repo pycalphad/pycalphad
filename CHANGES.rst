@@ -1,6 +1,25 @@
 What's New
 ==========
 
+0.7.1 (2018-11-14)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( :issue:`196` )
+* FIX: Max phases by Gibbs phase rule accommodated  ( :issue:`184` )
+* FIX: SymPy 1.2 compatibility ( :issue:`180` )
+* FIX: Model: Degree of ordering property calculation when vacancy is in the system
+* FIX: Species Python 2 unicode support ( :issue:`166` )
+* ENH: Allow solution refinement by the Ipopt solver to be disabled. ( :issue:`187` )
+* ENH: Enable custom solvers ( :issue:`177` )
+* DOC: Update pycalphad logo to be smoother and have a version with text. Thanks to Joyce Yong. ( :issue:`193` )
+* MNT: Refactor callables creation in equilibrium() and calculate() ( :issue:`192` )
+* ENH: tdb: Move tdb grammar creation out of loop
+* ENH: Add magnetic moment as default Model property BMAG
+* ENH: Optimize _compute_phase_values ( :issue:`175` )
+
+
 0.7 (2018-03-19)
 ----------------
 

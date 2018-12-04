@@ -3,7 +3,7 @@
    You can adapt this file completely to your liking, but it should at least
    contain the root `toctree` directive.
 
-.. |logo| image:: logo.png
+.. |logo| image:: pycalphad-logo-notext.png
           :height: 20pt
           :width: 20pt
           :alt: Logo
@@ -12,9 +12,9 @@
 ==============================================
 
 .. figure:: examples/BinaryExamples_files/BinaryExamples_9_1.png
-    :width: 500px
+    :width: 565px
     :align: center
-    :height: 250px
+    :height: 416px
     :alt: Al-Ni Phase Diagram (Dupin et al., 2001)
     :figclass: align-center
 

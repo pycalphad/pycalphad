@@ -904,13 +904,15 @@ def read_tdb(dbf, fd):
 
     # Temporary storage while we process type definitions
     dbf.tdbtypedefs = {}
+    
+    grammar = _tdb_grammar()
 
     for command in commands:
         if len(command) == 0:
             continue
         tokens = None
         try:
-            tokens = _tdb_grammar().parseString(command)
+            tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
         except ParseException:
             print("Failed while parsing: " + command)

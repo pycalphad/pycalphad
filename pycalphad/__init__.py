@@ -26,6 +26,7 @@ import sympy.functions.elementary.piecewise
 import pycalphad.core.patched_piecewise
 sympy.functions.elementary.piecewise.Piecewise.eval = classmethod(pycalphad.core.patched_piecewise.piecewise_eval)
 
+from pycalphad.core.errors import *
 import pycalphad.variables as v
 from pycalphad.model import Model
 from pycalphad.io.database import Database
@@ -35,7 +36,6 @@ import pycalphad.io.tdb
 
 from pycalphad.core.calculate import calculate
 from pycalphad.core.equilibrium import equilibrium
-from pycalphad.core.equilibrium import EquilibriumError, ConditionError
 from pycalphad.plot.binary import binplot
 from pycalphad.plot.ternary import ternplot
 from pycalphad.plot.eqplot import eqplot

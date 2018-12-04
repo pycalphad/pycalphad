@@ -230,7 +230,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
             phase_records[key] = PhaseRecord_from_cython(key, comps, value.state_variables, value.variables,
-                                                         value.parameters, value.obj, value.grad, value.hess,
+                                                         value.parameters, value.obj, value.grad,
                                                          value.mass, value.mass_grad,
                                                          value.internal_cons, value.internal_jac,
                                                          value.multiphase_cons, value.multiphase_jac,
@@ -298,7 +298,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         remove_degenerate_phases(composition_sets, [], 0.5, 100, verbose)
         iterations = 0
         history = []
-        while iterations < 10:
+        while (iterations < 10) and (not iter_solver.ignore_convergence):
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
             if result.converged:
@@ -313,8 +313,11 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         if changed_phases:
             result = _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
             chemical_potentials[:] = result.chemical_potentials
-        converged = result.converged
-        remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+        if not iter_solver.ignore_convergence:
+            converged = result.converged
+            remove_degenerate_phases(composition_sets, [], 1e-3, 0, verbose)
+        else:
+            converged = True
         if converged:
             if verbose:
                 print('Composition Sets', composition_sets)

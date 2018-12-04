@@ -8,6 +8,7 @@ SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potential
 
 class SolverBase(object):
     """"Base class for solvers."""
+    ignore_convergence = False
     def solve(self, prob):
         """
         *Implement this method.*
@@ -151,8 +152,7 @@ class InteriorPointSolver(SolverBase):
             nlp.addOption(b'nlp_scaling_method', b'gradient-based')
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
-                nlp.addOption(b'dual_inf_tol', self.infeasibility_threshold/10.)
-                nlp.addOption(b'compl_inf_tol', 1e-15)
+                nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
                 nlp.addOption(b'bound_relax_factor', 1e-12)
                 # This option ensures any bounds failures will fail "loudly"
                 # Otherwise we are liable to have subtle mass balance errors

@@ -6,7 +6,6 @@ cimport cython
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
     cdef func_t* _obj
     cdef func_novec_t* _grad
-    cdef func_novec_t* _hess
     cdef func_novec_t* _internal_cons
     cdef func_novec_t* _internal_jac
     cdef func_novec_t* _multiphase_cons
@@ -33,7 +32,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
-    cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil
     cpdef void internal_jacobian(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof_with_phasefrac) nogil
@@ -43,8 +41,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
 cpdef PhaseRecord PhaseRecord_from_cython(unicode phase_name, object comps, object state_variables,
                                           object variables, double[::1] parameters,
-                                          object ofunc, object gfunc, object hfunc,
+                                          object ofunc, object gfunc,
                                           object massfuncs, object massgradfuncs,
                                           object internal_cons, object internal_jac,
                                           object multiphase_cons, object multiphase_jac,
                                           size_t num_internal_cons, size_t num_multiphase_cons)
+

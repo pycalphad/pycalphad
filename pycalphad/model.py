@@ -7,6 +7,7 @@ import copy
 from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
 from tinydb import where
 import pycalphad.variables as v
+from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components
 import numpy as np
@@ -16,9 +17,6 @@ from collections import OrderedDict
 # other symbols
 _MAX_PARAM_NESTING = 32
 
-class DofError(Exception):
-    "Error due to missing degrees of freedom."
-    pass
 
 class Model(object):
     """
@@ -33,8 +31,9 @@ class Model(object):
         Names of components to consider in the calculation.
     phase_name : str
         Name of phase model to build.
-    parameters : dict
+    parameters : dict or list
         Optional dictionary of parameters to be substituted in the model.
+        A list of parameters will cause those symbols to remain symbolic.
         This will overwrite parameters specified in the database
 
     Methods
@@ -116,7 +115,13 @@ class Model(object):
             else:
                 return Symbol(obj)
         if parameters is not None:
-            symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
+            if isinstance(parameters, dict):
+                symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
+            else:
+                # Lists of symbols that should remain symbolic
+                for s in parameters:
+                    symbols.pop(wrap_symbol(s))
+
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
