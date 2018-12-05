@@ -213,34 +213,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
-    phase_records = dict()
-    callable_dict = kwargs.pop('callables', dict())
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    param_symbols = tuple(parameters.keys())
-    param_values = np.atleast_1d(np.array(list(parameters.values()), dtype=np.float))
-    maximum_internal_dof = 0
-    components = [x for x in sorted(comps)]
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
-    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    # Construct models for each phase; prioritize user models
-    models = unpack_kwarg(model, default_arg=Model)
-    state_variables = set()
-    for name in active_phases:
-        mod = models[name]
-        if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
-        state_variables |= set(mod.state_variables)
+    state_variables = {v.P, v.T} # XXX: Temporary hack
     # Temporary solution until constraint system improves
     if not conditions.get(v.N, False):
         conditions[v.N] = 1
     if conditions[v.N] != 1:
         raise ConditionError('N!=1 is not yet supported')
-    parameters = parameters if parameters is not None else dict()
-    if isinstance(parameters, dict):
-        parameters = OrderedDict(sorted(parameters.items(), key=str))
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)

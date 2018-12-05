@@ -330,12 +330,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
-    state_variables = set()
-    for phase_name, phase_obj in sorted(active_phases.items()):
-        mod = model_dict[phase_name]
-        if isinstance(mod, type):
-            model_dict[phase_name] = mod = mod(dbf, comps, phase_name, parameters=parameters)
-        state_variables |= set(mod.state_variables)
+    state_variables = {v.P, v.T} # XXX: Temporary hack
 
     unspecified_statevars = set(str(x) for x in state_variables) - set(kwargs.keys())
     if len(unspecified_statevars) > 0:
@@ -361,7 +356,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items()
                          if str(key) in [str(x) for x in state_variables])
-
+    statevar_dict[v.N] = [1] # XXX: Temporary hack
     # Sort after default state variable check to fix gh-116
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
