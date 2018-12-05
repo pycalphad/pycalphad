@@ -8,7 +8,7 @@ import scipy.spatial
 from pycalphad.core.problem cimport Problem
 from pycalphad.core.solver import InteriorPointSolver
 from pycalphad.core.composition_set cimport CompositionSet
-from pycalphad.core.phase_rec cimport PhaseRecord, PhaseRecord_from_cython
+from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
 import pycalphad.variables as v
 
@@ -226,15 +226,14 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
     iter_solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
-
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
-            phase_records[key] = PhaseRecord_from_cython(key, comps, value.state_variables, value.variables,
-                                                         value.parameters, value.obj, value.grad,
-                                                         value.mass, value.mass_grad,
-                                                         value.internal_cons, value.internal_jac,
-                                                         value.multiphase_cons, value.multiphase_jac,
-                                                         value.num_internal_cons, value.num_multiphase_cons)
+            phase_records[key] = PhaseRecord(comps, value.state_variables, value.variables,
+                                             value.parameters, value.obj, value.grad,
+                                             value.mass, value.mass_grad,
+                                             value.internal_cons, value.internal_jac,
+                                             value.multiphase_cons, value.multiphase_jac,
+                                             value.num_internal_cons, value.num_multiphase_cons)
 
     pure_elements = set(v.Species(list(spec.constituents.keys())[0])
                                   for spec in comps

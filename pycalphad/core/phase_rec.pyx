@@ -19,12 +19,72 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     these objects are pickleable. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-            return PhaseRecord_from_cython_pickle, (self.variables, self.phase_dof,
-                                                    np.array(self.sublattice_dof, dtype=np.int32),
-                                                    np.array(self.parameters), np.array(self.num_sites),
-                                                    np.array(self.composition_matrices),
-                                                    self.vacancy_index, self._ofunc, self._gfunc,
-                                                    self._massfuncs, self._massgradfuncs)
+            return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
+                                 self._ofunc, self._gfunc, self._massfuncs, self._massgradfuncs, self._intconsfunc,
+                                 self._intjacfunc, self._mpconsfunc, self._mpjacfunc,
+                                 self.num_internal_cons, self.num_multiphase_cons)
+
+    def __cinit__(self, object comps, object state_variables, object variables,
+                  double[::1] parameters, object ofunc, object gfunc,
+                  object massfuncs, object massgradfuncs, object internal_cons_func,
+                  object internal_jac_func, object multiphase_cons_func,
+                  object multiphase_jac_func, size_t num_internal_cons,
+                  size_t num_multiphase_cons):
+        cdef:
+            int var_idx, el_idx
+        self.components = comps
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
+        pure_elements = sorted(set(desired_active_pure_elements))
+        nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
+
+        self.variables = variables
+        self.state_variables = state_variables
+        self.pure_elements = pure_elements
+        self.nonvacant_elements = nonvacant_elements
+        self.phase_dof = 0
+        self.parameters = parameters
+        self.num_internal_cons = num_internal_cons
+        self.num_multiphase_cons = num_multiphase_cons
+
+        for variable in variables:
+            if not isinstance(variable, v.SiteFraction):
+                continue
+            self.phase_name = <unicode>variable.phase_name
+            self.phase_dof += 1
+        # Trigger lazy computation
+        if ofunc is not None:
+            self._ofunc = ofunc
+            ofunc.kernel
+            self._obj = <func_t*> cython_pointer(ofunc._cpointer)
+        if gfunc is not None:
+            self._gfunc = gfunc
+            gfunc.kernel
+            self._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
+        if internal_cons_func is not None:
+            self._intconsfunc = internal_cons_func
+        self._internal_cons = NULL
+        if internal_jac_func is not None:
+            self._intjacfunc = internal_jac_func
+        self._internal_jac = NULL
+        if multiphase_cons_func is not None:
+            self._mpconsfunc = multiphase_cons_func
+        self._multiphase_cons = NULL
+        if multiphase_jac_func is not None:
+            self._mpjacfunc = multiphase_jac_func
+        self._multiphase_jac = NULL
+        if massfuncs is not None:
+            self._massfuncs = massfuncs
+            self._masses = <func_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_t*))
+            for el_idx in range(len(nonvacant_elements)):
+                massfuncs[el_idx].kernel
+                self._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
+        if massgradfuncs is not None:
+            self._massgradfuncs = massgradfuncs
+            self._massgrads = <func_novec_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_novec_t*))
+            for el_idx in range(len(nonvacant_elements)):
+                massgradfuncs[el_idx].kernel
+                self._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
 
     def __dealloc__(self):
         PyMem_Free(self._masses)
@@ -92,107 +152,3 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
         if self._massgrads != NULL:
             self._massgrads[comp_idx](&dof[0], &self.parameters[0], &out[0])
-
-
-cpdef PhaseRecord PhaseRecord_from_cython(unicode phase_name, object comps, object state_variables, object variables,
-                                          double[::1] parameters, object ofunc, object gfunc,
-                                          object massfuncs, object massgradfuncs, object internal_cons_func,
-                                          object internal_jac_func, object multiphase_cons_func,
-                                          object multiphase_jac_func, size_t num_internal_cons,
-                                          size_t num_multiphase_cons):
-    cdef:
-        int var_idx, subl_index, el_idx
-        PhaseRecord inst
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
-    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-    pure_elements = sorted(set(desired_active_pure_elements))
-    nonvacant_elements = sorted([x for x in set(desired_active_pure_elements) if x != 'VA'])
-    inst = PhaseRecord()
-    inst.phase_name = phase_name
-    inst.variables = variables
-    inst.state_variables = state_variables
-    inst.pure_elements = pure_elements
-    inst.nonvacant_elements = nonvacant_elements
-    inst.phase_dof = 0
-    inst.parameters = parameters
-    inst.num_internal_cons = num_internal_cons
-    inst.num_multiphase_cons = num_multiphase_cons
-
-    for variable in variables:
-        if not isinstance(variable, v.SiteFraction):
-            continue
-        inst.phase_dof += 1
-    # Trigger lazy computation
-    if ofunc is not None:
-        inst._ofunc = ofunc
-        ofunc.kernel
-        inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
-    if gfunc is not None:
-        inst._gfunc = gfunc
-        gfunc.kernel
-        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
-    if internal_cons_func is not None:
-        inst._intconsfunc = internal_cons_func
-    inst._internal_cons = NULL
-    if internal_jac_func is not None:
-        inst._intjacfunc = internal_jac_func
-    inst._internal_jac = NULL
-    if multiphase_cons_func is not None:
-        inst._mpconsfunc = multiphase_cons_func
-    inst._multiphase_cons = NULL
-    if multiphase_jac_func is not None:
-        inst._mpjacfunc = multiphase_jac_func
-    inst._multiphase_jac = NULL
-    if massfuncs is not None:
-        inst._massfuncs = massfuncs
-        inst._masses = <func_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_t*))
-        for el_idx in range(len(nonvacant_elements)):
-            massfuncs[el_idx].kernel
-            inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
-    if massgradfuncs is not None:
-        inst._massgradfuncs = massgradfuncs
-        inst._massgrads = <func_novec_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_novec_t*))
-        for el_idx in range(len(nonvacant_elements)):
-            massgradfuncs[el_idx].kernel
-            inst._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
-    return inst
-
-
-def PhaseRecord_from_cython_pickle(variables, phase_dof, sublattice_dof, parameters, num_sites, composition_matrices,
-                                 vacancy_index, ofunc, gfunc, massfuncs, massgradfuncs):
-    inst = PhaseRecord()
-    # XXX: Missing inst.phase_name
-    # XXX: Doesn't refcounting need to happen here to keep the codegen objects from disappearing?
-    inst.variables = variables
-    for variable in variables:
-        if not isinstance(variable, v.SiteFraction):
-            continue
-        inst.phase_name = <unicode>variable.phase_name
-        break
-    inst.phase_dof = 0
-    inst.sublattice_dof = sublattice_dof
-    inst.parameters = parameters
-    inst.num_sites = num_sites
-    inst.composition_matrices = composition_matrices
-    inst.vacancy_index = vacancy_index
-    inst.phase_dof = phase_dof
-    # Trigger lazy computation
-    if ofunc is not None:
-        ofunc.kernel
-        inst._obj = <func_t*> cython_pointer(ofunc._cpointer)
-    if gfunc is not None:
-        gfunc.kernel
-        inst._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
-    if massfuncs is not None:
-        inst._massfuncs = massfuncs
-        inst._masses = <func_t**>PyMem_Malloc(len(massfuncs) * sizeof(func_t*))
-        for el_idx in range(len(massfuncs)):
-            massfuncs[el_idx].kernel
-            inst._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
-    if massgradfuncs is not None:
-        inst._massgradfuncs = massgradfuncs
-        inst._massgrads = <func_novec_t**>PyMem_Malloc(len(massgradfuncs) * sizeof(func_novec_t*))
-        for el_idx in range(len(massgradfuncs)):
-            massgradfuncs[el_idx].kernel
-            inst._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
-    return inst

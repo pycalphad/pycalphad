@@ -5,13 +5,12 @@ calculated phase equilibria.
 from __future__ import print_function
 import warnings
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_kwarg, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.constraints import build_constraints
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
 import dask
@@ -232,7 +231,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for name in active_phases:
         mod = models[name]
         if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=parameters)
+            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
         state_variables |= set(mod.state_variables)
     # Temporary solution until constraint system improves
     if not conditions.get(v.N, False):
@@ -281,12 +280,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = sorted(output)
     for o in output:
         if o == 'GM':
-            eq_callables = build_callables(dbf, comps, active_phases, model=model,
+            eq_callables = build_callables(dbf, comps, active_phases, conds=conditions,
+                                           state_variables=state_variables, model=model,
                                            parameters=parameters,
                                            output=o, build_gradients=True, callables=callables,
                                            verbose=verbose)
         else:
-            other_output_callables[o] = build_callables(dbf, comps, active_phases, model=model,
+            other_output_callables[o] = build_callables(dbf, comps, active_phases, conds=None,
+                                                        state_variables=state_variables, model=model,
                                                         parameters=parameters,
                                                         output=o, build_gradients=False,
                                                         verbose=False)
@@ -335,7 +336,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                               attrs={'engine': 'pycalphad %s' % pycalphad_version},
                                               )
     # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, properties)
+    properties = delayed(lower_convex_hull, pure=False)(grid, state_variables, properties)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'

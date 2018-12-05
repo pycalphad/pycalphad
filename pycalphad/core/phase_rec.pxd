@@ -24,6 +24,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object _massgradfuncs
     cdef public object variables
     cdef public object state_variables
+    cdef public object components
     cdef public object pure_elements
     cdef public object nonvacant_elements
     cdef public double[::1] parameters
@@ -37,12 +38,4 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void multiphase_jacobian(self, double[:,::1] out, double[::1] dof_with_phasefrac) nogil
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
-
-cpdef PhaseRecord PhaseRecord_from_cython(unicode phase_name, object comps, object state_variables,
-                                          object variables, double[::1] parameters,
-                                          object ofunc, object gfunc,
-                                          object massfuncs, object massgradfuncs,
-                                          object internal_cons, object internal_jac,
-                                          object multiphase_cons, object multiphase_jac,
-                                          size_t num_internal_cons, size_t num_multiphase_cons)
 

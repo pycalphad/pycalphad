@@ -132,9 +132,9 @@ class InteriorPointSolver(SolverBase):
         length_scale = max(length_scale, 1e-9)
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
         # It will not give valid results for the finite difference approximation
-        nlp.addOption(b'print_level', 4)
-        nlp.addOption(b'derivative_test', b'first-order')
-        nlp.addOption(b'point_perturbation_radius', 0.0)
+        #nlp.addOption(b'print_level', 4)
+        #nlp.addOption(b'derivative_test', b'first-order')
+        #nlp.addOption(b'point_perturbation_radius', 0.0)
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
             nlp.addOption(b'sb', b'yes')

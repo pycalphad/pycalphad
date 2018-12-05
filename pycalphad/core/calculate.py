@@ -330,19 +330,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
-    eq_callables = build_callables(dbf, comps, active_phases, model=model_dict,
-                                   parameters=parameters,
-                                   output=output, callables=callables_dict, build_gradients=False,
-                                   verbose=False)
-
-    phase_records = eq_callables['phase_records']
-    models = eq_callables['model']
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
-
-
     state_variables = set()
     for phase_name, phase_obj in sorted(active_phases.items()):
-        mod = models[phase_name]
+        mod = model_dict[phase_name]
+        if isinstance(mod, type):
+            model_dict[phase_name] = mod = mod(dbf, comps, phase_name, parameters=parameters)
         state_variables |= set(mod.state_variables)
 
     unspecified_statevars = set(str(x) for x in state_variables) - set(kwargs.keys())
@@ -354,6 +346,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         state_variables |= {v.StateVariable(x) for x in unused_statevars}
 
     state_variables = sorted(state_variables, key=str)
+
+    eq_callables = build_callables(dbf, comps, active_phases, conds=None, state_variables=state_variables,
+                                   model=model_dict,
+                                   parameters=parameters,
+                                   output=output, callables=callables_dict, build_gradients=False,
+                                   verbose=False)
+
+    phase_records = eq_callables['phase_records']
+    models = eq_callables['model']
+    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
 
     # Convert keyword strings to proper state variable objects
     # If we don't do this, sympy will get confused during substitution
