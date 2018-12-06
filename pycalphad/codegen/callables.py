@@ -17,7 +17,7 @@ def wrap_symbol(obj):
         return Symbol(obj)
 
 
-def build_callables(dbf, comps, phases, conds=None, state_variables=None, model=None, parameters=None, callables=None,
+def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None, callables=None,
                     output='GM', build_gradients=True, verbose=False):
     """
     Create dictionaries of callable dictionaries and PhaseRecords.
@@ -32,8 +32,6 @@ def build_callables(dbf, comps, phases, conds=None, state_variables=None, model=
         List of phase names
     conds : dict or None
         Conditions for calculation
-    state_variables : list
-        State variables
     model : dict or type
         Dictionary of {phase_name: Model subclass} or a type corresponding to a
         Model subclass. Defaults to ``Model``.
@@ -89,29 +87,31 @@ def build_callables(dbf, comps, phases, conds=None, state_variables=None, model=
     models = unpack_kwarg(model, default_arg=Model)
     param_symbols = [wrap_symbol(sym) for sym in param_symbols]
     phase_records = {}
-    if state_variables is None:
-        state_variables = set()
-        for name in phases:
-            mod = models[name]
-            if isinstance(mod, type):
-                models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
-            state_variables |= set(mod.state_variables)
 
-        unspecified_statevars = state_variables - set(conds.keys())
-        if len(unspecified_statevars) > 0:
-            #raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
-            # TODO: T,P as free variables
-            pass
+    state_variables = set()
+    for name in phases:
+        mod = models[name]
+        if isinstance(mod, type):
+            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
+        state_variables |= set(mod.state_variables)
 
-        unused_statevars = set()
-        for x in conds.keys():
-            if (getattr(v, str(x), None) is not None) and not isinstance(x, v.ChemicalPotential):
-                unused_statevars |= {x}
-        unused_statevars -= state_variables
-        if len(unused_statevars) > 0:
-            state_variables |= unused_statevars
+    unspecified_statevars = state_variables - set(conds.keys())
+    if len(unspecified_statevars) > 0:
+        #raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
+        # TODO: T,P as free variables
+        pass
 
-        state_variables = sorted(state_variables, key=str)
+    unused_statevars = set()
+    for x in conds.keys():
+        if (getattr(v, str(x), None) is not None) and not isinstance(x, v.ChemicalPotential):
+            unused_statevars |= {x}
+    unused_statevars -= state_variables
+    if len(unused_statevars) > 0:
+        state_variables |= unused_statevars
+
+    state_variables = sorted(state_variables, key=str)
+    _callables['state_variables'] = state_variables
+    print('build_callables', state_variables)
 
     for name in phases:
         mod = models[name]

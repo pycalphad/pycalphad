@@ -5,10 +5,10 @@ calculated phase equilibria.
 from __future__ import print_function
 import warnings
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_kwarg, unpack_phases, filter_phases
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.errors import EquilibriumError, ConditionError
-from pycalphad.core.lower_convex_hull import lower_convex_hull
+from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
@@ -216,7 +216,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    state_variables = {v.P, v.T} # XXX: Temporary hack
     # Temporary solution until constraint system improves
     if not conditions.get(v.N, False):
         conditions[v.N] = 1
@@ -226,21 +225,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
 
-    unspecified_statevars = state_variables - set(conds.keys())
-    if len(unspecified_statevars) > 0:
-        #raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
-        # TODO: T,P as free variables
-        pass
-
-    unused_statevars = set()
-    for x in conds.keys():
-        if (getattr(v, str(x), None) is not None) and not isinstance(x, v.ChemicalPotential):
-            unused_statevars |= {x}
-    unused_statevars -= state_variables
-    if len(unused_statevars) > 0:
-        state_variables |= unused_statevars
-
-    state_variables = sorted(state_variables, key=str)
     for cond in conds.keys():
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
@@ -261,21 +245,21 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = sorted(output)
     for o in output:
         if o == 'GM':
-            eq_callables = build_callables(dbf, comps, active_phases, conds=conditions,
-                                           state_variables=state_variables, model=model,
+            eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
+                                           model=model,
                                            parameters=parameters,
                                            output=o, build_gradients=True, callables=callables,
                                            verbose=verbose)
         else:
-            other_output_callables[o] = build_callables(dbf, comps, active_phases, conds=None,
-                                                        state_variables=state_variables, model=model,
+            other_output_callables[o] = build_callables(dbf, comps, active_phases, conds=conds,
+                                                        model=model,
                                                         parameters=parameters,
                                                         output=o, build_gradients=False,
                                                         verbose=False)
 
     phase_records = eq_callables['phase_records']
+    state_variables = eq_callables['state_variables']
     models = eq_callables['model']
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
 
     if verbose:
         print('[done]', end='\n')
@@ -294,30 +278,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = nonvacant_elements
     grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements)+1,)
-    max_phase_name_len = max(len(name) for name in active_phases)
-    # Need to allow for '_FAKE_' psuedo-phase
-    max_phase_name_len = max(max_phase_name_len, 6)
-
-    properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
-                                                      np.empty(grid_shape)),
-                                               'GM': (list(str_conds.keys()),
-                                                      np.empty(grid_shape[:-1])),
-                                               'MU': (list(str_conds.keys()) + ['component'],
-                                                      np.empty(grid_shape[:-1] + (len(nonvacant_elements),))),
-                                               'X': (list(str_conds.keys()) + ['vertex', 'component'],
-                                                     np.empty(grid_shape + (len(nonvacant_elements),))),
-                                               'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
-                                                     np.empty(grid_shape + (maximum_internal_dof,))),
-                                               'Phase': (list(str_conds.keys()) + ['vertex'],
-                                                         np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
-                                               'points': (list(str_conds.keys()) + ['vertex'],
-                                                          np.empty(grid_shape, dtype=np.int32))
-                                               },
-                                              coords=coord_dict,
-                                              attrs={'engine': 'pycalphad %s' % pycalphad_version},
-                                              )
-    # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, state_variables, properties)
+    properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'

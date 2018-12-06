@@ -330,25 +330,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
-    state_variables = {v.P, v.T} # XXX: Temporary hack
 
-    unspecified_statevars = set(str(x) for x in state_variables) - set(kwargs.keys())
-    if len(unspecified_statevars) > 0:
-        raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
-
-    unused_statevars = set(x for x in kwargs.keys() if getattr(v, str(x), None) is not None) - set(str(x) for x in state_variables)
-    if len(unused_statevars) > 0:
-        state_variables |= {v.StateVariable(x) for x in unused_statevars}
-
-    state_variables = sorted(state_variables, key=str)
-
-    eq_callables = build_callables(dbf, comps, active_phases, conds=None, state_variables=state_variables,
+    conds = {getattr(v, str(key)): value for key, value in kwargs.items() if getattr(v, str(key), None) is not None}
+    eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
                                    model=model_dict,
                                    parameters=parameters,
                                    output=output, callables=callables_dict, build_gradients=False,
                                    verbose=False)
 
     phase_records = eq_callables['phase_records']
+    state_variables = eq_callables['state_variables']
     models = eq_callables['model']
     maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
 
@@ -356,7 +347,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # If we don't do this, sympy will get confused during substitution
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items()
                          if str(key) in [str(x) for x in state_variables])
-    statevar_dict[v.N] = [1] # XXX: Temporary hack
+
     # Sort after default state variable check to fix gh-116
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \

@@ -352,9 +352,9 @@ def test_eq_build_callables_with_parameters():
     comps = ["AL"]
     dbf = AL_PARAMETER_DBF
     phases = ['FCC_A1']
-    conds = {v.P: 101325, v.T: 500}
+    conds = {v.P: 101325, v.T: 500, v.N: 1}
     # build callables with a parameter of 20000.0
-    callables = build_callables(dbf, comps, phases, parameters={'VV0000': 20000})
+    callables = build_callables(dbf, comps, phases, conds=conds, parameters={'VV0000': 20000})
 
     # Check that passing callables should skip the build phase, but use the values from 'VV0000' saved in callables
     eq_res = equilibrium(dbf, comps, phases, conds, callables=callables)

@@ -33,6 +33,14 @@ def starting_point(conditions, state_variables, phase_records, grid):
         len(nonvacant_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = nonvacant_elements
     conds_as_strings = [str(k) for k in conditions.keys()]
+    specified_elements = set()
+    for i in conds_as_strings:
+        if not i.startswith('X_'):
+            continue
+        specified_elements |= set(v.Species(i[2:]).constituents.keys()) - {'VA'}
+    dependent_comp = set(nonvacant_elements) - specified_elements
+    if len(dependent_comp) != 1:
+        raise ValueError('Number of dependent components different from one')
     if cond_analysis.global_min:
         result = Dataset({'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
                           'GM':     (conds_as_strings, np.empty(grid_shape)),
