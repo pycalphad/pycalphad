@@ -73,7 +73,8 @@ class InteriorPointSolver(SolverBase):
             # This option improves convergence when using L-BFGS
             'limited_memory_max_history': 100,
             'tol': 1e-1,
-            'constr_viol_tol': 1e-12
+            'constr_viol_tol': 1e-12,
+            'nlp_scaling_method': 'none'
         }
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
@@ -135,21 +136,12 @@ class InteriorPointSolver(SolverBase):
         #nlp.addOption(b'print_level', 4)
         #nlp.addOption(b'derivative_test', b'first-order')
         #nlp.addOption(b'point_perturbation_radius', 0.0)
-        if not self.verbose:
-            # suppress the "This program contains Ipopt" banner
-            nlp.addOption(b'sb', b'yes')
-        nlp.addOption(b'tol', 1e-1)
-        nlp.addOption(b'constr_viol_tol', 1e-12)
-        # This option improves convergence when using L-BFGS
-        nlp.addOption(b'limited_memory_max_history', 100)
-        nlp.addOption(b'nlp_scaling_method', b'none')
-        nlp.addOption(b'max_iter', 200)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
         if dual_inf > self.infeasibility_threshold:
             if self.verbose:
                 print('Trying to improve poor solution')
-            nlp.addOption(b'nlp_scaling_method', b'gradient-based')
+            #nlp.addOption(b'nlp_scaling_method', b'gradient-based')
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
                 nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
