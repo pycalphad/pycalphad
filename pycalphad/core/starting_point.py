@@ -34,10 +34,11 @@ def starting_point(conditions, state_variables, phase_records, grid):
     coord_dict['component'] = nonvacant_elements
     conds_as_strings = [str(k) for k in conditions.keys()]
     specified_elements = set()
-    for i in conds_as_strings:
-        if not i.startswith('X_'):
+    for i in conditions.keys():
+        # Assume that a condition specifying a species contributes to constraining it
+        if not hasattr(i, 'species'):
             continue
-        specified_elements |= set(v.Species(i[2:]).constituents.keys()) - {'VA'}
+        specified_elements |= set(i.species.constituents.keys()) - {'VA'}
     dependent_comp = set(nonvacant_elements) - specified_elements
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
