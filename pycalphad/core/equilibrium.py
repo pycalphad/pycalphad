@@ -100,7 +100,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         data = equilibrium(dbf, comps, phases, conditions)
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     conds = _adjust_conditions(conditions)
-    indep_vars = ['P', 'T']
+    indep_vars = ['N', 'P', 'T']
     # TODO: Rewrite this to use the coord dict from 'data'
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
