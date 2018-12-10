@@ -159,7 +159,7 @@ class InteriorPointSolver(SolverBase):
                                              :],
                             prob.mass_gradient(x).T]
         chemical_potentials = np.linalg.lstsq(mu_jacobian.T,
-                                              prob.gradient(x) - info['mult_x_L'] - info['mult_x_U'])
+                                              prob.gradient(x, mass_only=True) - info['mult_x_L'] - info['mult_x_U'])
         chemical_potentials = chemical_potentials[0][prob.num_internal_constraints:]
         if info['status'] == -10:
             # Not enough degrees of freedom; nothing to do

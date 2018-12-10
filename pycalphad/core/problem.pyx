@@ -108,7 +108,7 @@ cdef class Problem:
         print('total_obj', total_obj)
         return total_obj
 
-    def gradient(self, x_in):
+    def gradient(self, x_in, mass_only=False):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int phase_idx = 0
         cdef int num_statevars = len(compset.phase_record.state_variables)
@@ -136,18 +136,19 @@ cdef class Problem:
                 gradient_term[var_offset + dof_x_idx] = \
                     x_in[self.num_vars-self.num_phases+phase_idx] * grad_tmp[num_statevars+dof_x_idx]
             idx = 0
-            for chempot_idx in self.fixed_chempot_indices:
-                compset.phase_record.mass_obj(<double[:1]>&mass_obj_tmp, dof_2d_view, chempot_idx)
-                compset.phase_record.mass_grad(out_mass_tmp, x, chempot_idx)
-                for dof_x_idx in range(num_statevars):
-                    gradient_term[dof_x_idx] -= x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[dof_x_idx]
-                for dof_x_idx in range(compset.phase_record.phase_dof):
-                    gradient_term[var_offset + dof_x_idx] -= \
-                        x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[num_statevars+dof_x_idx]
-                out_mass_tmp[:] = 0
-                gradient_term[self.num_vars - self.num_phases + phase_idx] -= self.fixed_chempot_values[idx] * mass_obj_tmp
-                mass_obj_tmp = 0
-                idx += 1
+            if not mass_only:
+                for chempot_idx in self.fixed_chempot_indices:
+                    compset.phase_record.mass_obj(<double[:1]>&mass_obj_tmp, dof_2d_view, chempot_idx)
+                    compset.phase_record.mass_grad(out_mass_tmp, x, chempot_idx)
+                    for dof_x_idx in range(num_statevars):
+                        gradient_term[dof_x_idx] -= x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[dof_x_idx]
+                    for dof_x_idx in range(compset.phase_record.phase_dof):
+                        gradient_term[var_offset + dof_x_idx] -= \
+                            x_in[self.num_vars-self.num_phases+phase_idx] * self.fixed_chempot_values[idx] * out_mass_tmp[num_statevars+dof_x_idx]
+                    out_mass_tmp[:] = 0
+                    gradient_term[self.num_vars - self.num_phases + phase_idx] -= self.fixed_chempot_values[idx] * mass_obj_tmp
+                    mass_obj_tmp = 0
+                    idx += 1
             gradient_term[self.num_vars - self.num_phases + phase_idx] += tmp
             grad_tmp[:] = 0
             tmp = 0
