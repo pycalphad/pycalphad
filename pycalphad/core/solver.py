@@ -154,11 +154,7 @@ class InteriorPointSolver(SolverBase):
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
-        mu_jacobian = np.r_[prob.jacobian(x)[prob.num_fixed_dof_constraints:
-                                             prob.num_fixed_dof_constraints+prob.num_internal_constraints,
-                                             :],
-                            prob.mass_gradient(x).T]
-        chemical_potentials = np.linalg.lstsq(mu_jacobian.T,
+        chemical_potentials = np.linalg.lstsq(prob.mass_jacobian(x).T,
                                               prob.gradient(x, mass_only=True) - info['mult_x_L'] - info['mult_x_U'])
         chemical_potentials = chemical_potentials[0][prob.num_internal_constraints:]
         if info['status'] == -10:
