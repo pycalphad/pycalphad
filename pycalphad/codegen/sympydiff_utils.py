@@ -137,9 +137,17 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         args_with_indices.append(params[0, indx])
         args_nobroadcast.append(params[0, indx])
 
-    args = [y, inp, params, m]
-    if include_obj:
-        restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
+    if isinstance(sympy_graph, ImmutableMatrix):
+        # disable broadcasting for matrix input
+        args = (inp_nobroadcast, params)
+        nobroadcast = dict(zip(variables + parameters, args_nobroadcast))
+        sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast).xreplace({zoo: oo, S.Pi: 3.14159265359})
+        if include_obj:
+            restup.append(AutowrapFunction(args, sympy_graph_nobroadcast.as_explicit()))
+    else:
+        args = [y, inp, params, m]
+        if include_obj:
+            restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
     if include_grad:
         diffargs = (inp_nobroadcast, params)
         nobroadcast = dict(zip(variables+parameters, args_nobroadcast))
