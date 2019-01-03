@@ -130,14 +130,12 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
             raise AttributeError('Missing Model attribute {0} specified for {1}'
                                  .format(output, mod.__class__))
 
-        # TODO: What should this logic be, including Hessians?
         if callables.get('callables', {}).get(name, False) and \
-                ((not build_gradients) or callables.get('grad_callables',{}).get(name, False)):
+                ((not build_gradients) or callables.get('grad_callables', {}).get(name, False)) and \
+                ((not build_hessians) or callables.get('hess_callables', {}).get(name, False)):
             _callables['callables'][name] = callables['callables'][name]
-            if build_gradients:
-                _callables['grad_callables'][name] = callables['grad_callables'][name]
-            else:
-                _callables['grad_callables'][name] = None
+            _callables['grad_callables'][name] = callables['grad_callables'].get(name, None)
+            _callables['hess_callables'][name] = callables['hess_callables'].get(name, None)
         else:
             # Build the callables of the output
             # Only force undefineds to zero if we're not overriding them
@@ -151,14 +149,12 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
             _callables['grad_callables'][name] = gf
             _callables['hess_callables'][name] = hf
 
-        # TODO: What should this logic be, including Hessians?
         if callables.get('massfuncs', {}).get(name, False) and \
-                ((not build_gradients) or callables.get('massgradfuncs', {}).get(name, False)):
+                ((not build_gradients) or callables.get('massgradfuncs', {}).get(name, False)) and \
+                ((not build_hessians) or callables.get('masshessfuncs', {}).get(name, False)):
             _callables['massfuncs'][name] = callables['massfuncs'][name]
-            if build_gradients:
-                _callables['massgradfuncs'][name] = callables['massgradfuncs'][name]
-            else:
-                _callables['massgradfuncs'][name] = None
+            _callables['massgradfuncs'][name] = callables['massgradfuncs'].get(name, None)
+            _callables['masshessfuncs'][name] = callables['masshessfuncs'].get(name, None)
         else:
             # Build the callables for mass
             # TODO: In principle, we should also check for undefs in mod.moles()
@@ -201,10 +197,13 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         phase_records[name.upper()] = PhaseRecord(comps, state_variables, variables, pv,
                                                   _callables['callables'][name],
                                                   _callables['grad_callables'][name],
+                                                  _callables['hess_callables'][name],
                                                   _callables['massfuncs'][name],
                                                   _callables['massgradfuncs'][name],
+                                                  _callables['masshessfuncs'][name],
                                                   _callables['internal_cons'][name],
                                                   _callables['internal_jac'][name],
+                                                  _callables['internal_cons_hess'][name],
                                                   _callables['mp_cons'][name],
                                                   _callables['mp_jac'][name],
                                                   num_internal_cons,
