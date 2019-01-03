@@ -62,8 +62,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self._grad = <func_novec_t*> cython_pointer(gfunc._cpointer)
         if hfunc is not None:
             self._hfunc = hfunc
-            hfunc.kernel
-            self._hess = <func_novec_t*> cython_pointer(hfunc._cpointer)
+        self._hess = NULL
         if internal_cons_func is not None:
             self._intconsfunc = internal_cons_func
         self._internal_cons = NULL
