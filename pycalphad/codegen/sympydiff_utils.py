@@ -6,6 +6,7 @@ from pycalphad.core.cache import cacheit
 from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Lambda, Eq, S
 import time
 import tempfile
+from collections import namedtuple
 from threading import RLock
 CompileLock = RLock()
 
@@ -81,8 +82,11 @@ class AutowrapFunction(PickleableFunction):
         return result
 
 
+BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
+
+
 @cacheit
-def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True,
+def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=False,
                     parameters=None):
     """
 
@@ -95,6 +99,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         Variables to differentiate with respect to. (Default: equal to variables)
     include_obj
     include_grad
+    include_hess
     parameters
 
     Returns
@@ -114,6 +119,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     parameters = tuple(new_parameters)
     variables = tuple(variables)
     restup = []
+    func = None
     grad = None
     hess = None
     m = Symbol('veclen', integer=True)
@@ -143,12 +149,12 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
         nobroadcast = dict(zip(variables + parameters, args_nobroadcast))
         sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast).xreplace({zoo: oo, S.Pi: 3.14159265359})
         if include_obj:
-            restup.append(AutowrapFunction(args, sympy_graph_nobroadcast.as_explicit()))
+            func = AutowrapFunction(args, sympy_graph_nobroadcast.as_explicit())
     else:
         args = [y, inp, params, m]
         if include_obj:
-            restup.append(AutowrapFunction(args, Eq(y[i], f(*args_with_indices))))
-    if include_grad:
+            func = AutowrapFunction(args, Eq(y[i], f(*args_with_indices)))
+    if include_grad or include_hess:
         diffargs = (inp_nobroadcast, params)
         nobroadcast = dict(zip(variables+parameters, args_nobroadcast))
         sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast)
@@ -156,10 +162,11 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
             grad_diffs = list(sympy_graph_nobroadcast.diff(nobroadcast[i]) for i in wrt)
         if include_grad:
             grad = AutowrapFunction(diffargs, ImmutableMatrix(grad_diffs))
-
-        if include_grad:
-            restup.append(grad)
+        if include_hess:
+            with CompileLock:
+                hess_diffs = list(list(x.diff(nobroadcast[i]) for i in wrt) for x in grad_diffs)
+            hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
     if len(restup) == 1:
         return restup[0]
     else:
-        return tuple(restup)
+        return BuildFunctionsResult(func=func, grad=grad, hess=hess)

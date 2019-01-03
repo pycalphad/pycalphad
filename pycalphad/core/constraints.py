@@ -5,8 +5,11 @@ from pycalphad import variables as v
 from collections import namedtuple
 
 
+ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons', 'jac', 'cons_hess'])
+
+
 @cacheit
-def _build_constraint_functions(variables, constraints, parameters=None):
+def _build_constraint_functions(variables, constraints, include_hess=False, parameters=None):
     if parameters is None:
         parameters = []
     new_parameters = []
@@ -31,16 +34,25 @@ def _build_constraint_functions(variables, constraints, parameters=None):
     constraint_func = AutowrapFunction(args, ImmutableMatrix([c.xreplace(nobroadcast) for c in constraints]))
 
     jacobian = []
+    hessian = []
     for constraint in constraints:
         sympy_graph_nobroadcast = constraint.xreplace(nobroadcast)
         with CompileLock:
             row = list(sympy_graph_nobroadcast.diff(nobroadcast[i]) for i in wrt)
         jacobian.append(row)
+        if include_hess:
+            col = list(x.diff(nobroadcast[i]) for i in wrt for x in row)
+            hessian.append(col)
     jacobian_func = AutowrapFunction(args, ImmutableMatrix(jacobian))
-    return constraint_func, jacobian_func
+    if len(hessian) > 0:
+        hessian_func = AutowrapFunction(args, ImmutableMatrix(hessian))
+    else:
+        hessian_func = None
+    return ConstraintFunctions(cons=constraint_func, jac=jacobian_func, cons_hess=hessian_func)
 
 
-ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'multiphase_cons', 'multiphase_jac',
+ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'internal_cons_hess',
+                                                 'multiphase_cons', 'multiphase_jac',
                                                  'num_internal_cons', 'num_multiphase_cons'])
 
 
@@ -55,12 +67,22 @@ def is_multiphase_constraint(cond):
 def build_constraints(mod, variables, conds, parameters=None):
     internal_constraints = mod.get_internal_constraints()
     multiphase_constraints = mod.get_multiphase_constraints(conds)
-    internal_cons, internal_jac = _build_constraint_functions(variables, internal_constraints,
-                                                              parameters=parameters)
-    multiphase_cons, multiphase_jac = _build_constraint_functions(variables + [Symbol('NP')],
-                                                                  multiphase_constraints, parameters=parameters)
-    return ConstraintTuple(internal_cons, internal_jac, multiphase_cons, multiphase_jac,
-                           len(internal_constraints), len(multiphase_constraints))
+    # TODO: Conditions needing Hessians should probably have a 'second-order' tag or something
+    has_chempots = any(str(cond).startswith('MU') for cond in conds.keys())
+    cf_output = _build_constraint_functions(variables, internal_constraints,
+                                            include_hess=has_chempots, parameters=parameters)
+    internal_cons = cf_output.cons
+    internal_jac = cf_output.jac
+    internal_cons_hess = cf_output.cons_hess
+
+    result_build = _build_constraint_functions(variables + [Symbol('NP')],
+                                               multiphase_constraints, include_hess=False,
+                                               parameters=parameters)
+    multiphase_cons = result_build.cons
+    multiphase_jac = result_build.jac
+    return ConstraintTuple(internal_cons=internal_cons, internal_jac=internal_jac, internal_cons_hess=internal_cons_hess,
+                           multiphase_cons=multiphase_cons, multiphase_jac=multiphase_jac,
+                           num_internal_cons=len(internal_constraints), num_multiphase_cons=len(multiphase_constraints))
 
 
 def get_multiphase_constraint_rhs(conds):
