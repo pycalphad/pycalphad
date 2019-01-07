@@ -5,6 +5,33 @@ from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
 from pycalphad.core.constraints import get_multiphase_constraint_rhs
 import pycalphad.variables as v
 
+def _pinv_derivative(a, a_pinv, a_prime):
+    """
+    The derivative of a real valued pseudoinverse matrix can be specified
+    in terms of the derivative of the original matrix.
+
+    Reference
+    ---------
+    Golub, G. H.; Pereyra, V. (April 1973).
+    "The Differentiation of Pseudo-Inverses and Nonlinear Least Squares Problems Whose Variables Separate".
+    SIAM Journal on Numerical Analysis. 10 (2): 413–32. JSTOR 2156365.
+
+    Parameters
+    ----------
+    a
+    a_pinv
+    a_prime
+
+    Returns
+    -------
+
+    """
+    result = -a_pinv * a_prime * a_pinv
+    result += a_pinv * a_pinv.T * a_prime.T * (np.eye(a.shape[0]) - a * a_pinv)
+    result += (np.eye(a.shape[0]) - a_pinv * a) * a_prime.T * a_pinv.T * a_pinv
+    return result
+
+
 cdef class Problem:
     def __init__(self, comp_sets, comps, conditions):
         cdef CompositionSet compset
@@ -141,6 +168,9 @@ cdef class Problem:
         gradient_term[np.isnan(gradient_term)] = 0
         return gradient_term
 
+    def hessian(self, x_in):
+        pass
+
     def mass_gradient(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int num_statevars = len(compset.phase_record.state_variables)
@@ -192,6 +222,67 @@ cdef class Problem:
             mass_jac[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
                                var_idx:var_idx+compset.phase_record.phase_dof] = \
                 mass_jac_tmp_view[:compset.phase_record.num_internal_cons, num_statevars:num_statevars+compset.phase_record.phase_dof]
+            for iter_idx in range(num_statevars):
+                for idx in range(compset.phase_record.num_internal_cons):
+                    mass_jac[constraint_offset + idx, iter_idx] += \
+                        mass_jac_tmp_view[idx, iter_idx]
+            mass_jac_tmp[:,:] = 0
+            var_idx += compset.phase_record.phase_dof
+            constraint_offset += compset.phase_record.num_internal_cons
+        # Second: Mass constraints for pure elements
+        mass_grad = self.mass_gradient(x_in).T
+        var_idx = 0
+        for grad_idx in range(constraint_offset, mass_jac.shape[0]):
+            for var_idx in range(self.num_vars):
+                mass_jac[grad_idx, var_idx] = mass_grad[grad_idx - constraint_offset, var_idx]
+        return np.array(mass_jac)
+
+    def chemical_potentials(self, x_in):
+        "Assuming the input is a feasible solution."
+        # mu = (A+) grad
+        jac_pinv = np.linalg.pinv(self.mass_jacobian(x_in).T)
+        mu = np.dot(jac_pinv, self.gradient(x_in))
+        return mu
+
+    def chemical_potential_gradient(self, x_in):
+        "Assuming the input is a feasible solution."
+        # mu' = (A+)' grad + (A+) hess
+        jac = self.mass_jacobian(x_in).T
+        jac_pinv = np.linalg.pinv(jac)
+        mass_hess = self.mass_cons_hessian(x_in)
+        hess = self.hessian(x_in)
+        jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
+        mu_prime = np.dot(jac_pinv_prime, self.gradient(x_in)) + np.dot(jac_pinv, hess)
+        return mu_prime
+
+    def mass_cons_hessian(self, x_in):
+        cdef CompositionSet compset = self.composition_sets[0]
+        cdef int num_statevars = len(compset.phase_record.state_variables)
+        cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements),
+                                                          self.num_vars, self.num_vars))
+        cdef double[::1] mass_cons_hess_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements) *
+                                                        self.num_vars * self.num_vars))
+        cdef double[:, :, ::1] mass_cons_hess_tmp_view, mass_grad
+        cdef double[::1] x = np.array(x_in)
+        cdef double[::1] x_tmp
+        cdef int var_idx = 0
+        cdef int phase_idx, grad_idx
+        cdef int constraint_offset = 0
+        # First: Phase internal constraints
+        var_idx = num_statevars
+        for phase_idx in range(self.num_phases):
+            compset = self.composition_sets[phase_idx]
+            x_tmp = np.r_[x[:num_statevars], x[var_idx:var_idx+compset.phase_record.phase_dof]]
+            mass_cons_hess_tmp_view = <double[:compset.phase_record.num_internal_cons,
+                                              :num_statevars+compset.phase_record.phase_dof,
+                                              :num_statevars+compset.phase_record.phase_dof]>&mass_cons_hess_tmp[0]
+            compset.phase_record.internal_cons_hessian(mass_cons_hess_tmp_view, x_tmp)
+            mass_cons_hess[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
+                           var_idx:var_idx+compset.phase_record.phase_dof,
+                           var_idx:var_idx+compset.phase_record.phase_dof] = \
+                mass_cons_hess_tmp_view[:compset.phase_record.num_internal_cons,
+                                        num_statevars:num_statevars+compset.phase_record.phase_dof,
+                                        num_statevars:num_statevars+compset.phase_record.phase_dof]
             for iter_idx in range(num_statevars):
                 for idx in range(compset.phase_record.num_internal_cons):
                     mass_jac[constraint_offset + idx, iter_idx] += \
