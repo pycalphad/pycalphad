@@ -53,7 +53,7 @@ cdef class Problem:
         fixed_statevars = [(key, value) for key, value in conditions.items() if key in [str(k) for k in state_variables]]
         print('fixed_statevars', fixed_statevars)
         num_fixed_dof_cons = len(state_variables)
-        num_constraints = num_fixed_dof_cons + num_internal_cons + len(get_multiphase_constraint_rhs(conditions))
+
         self.composition_sets = comp_sets
         self.conditions = conditions
         desired_active_pure_elements = [list(x.constituents.keys()) for x in comps]
@@ -62,6 +62,8 @@ cdef class Problem:
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
         self.fixed_chempot_indices = np.array([self.nonvacant_elements.index(key[3:]) for key in conditions.keys() if key.startswith('MU_')], dtype=np.int32)
         self.fixed_chempot_values = np.array([float(value) for key, value in conditions.items() if key.startswith('MU_')])
+        num_constraints = num_fixed_dof_cons + num_internal_cons + \
+                          len(get_multiphase_constraint_rhs(conditions)) + len(self.fixed_chempot_indices)
         print(np.array(self.fixed_chempot_indices), np.array(self.fixed_chempot_values))
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases + len(state_variables)
@@ -100,9 +102,12 @@ cdef class Problem:
         for var_idx in range(num_fixed_dof_cons, num_internal_cons + num_fixed_dof_cons):
             self.cl[var_idx] = 0
             self.cu[var_idx] = 0
-        for var_idx in range(num_internal_cons + num_fixed_dof_cons, num_constraints):
+        for var_idx in range(num_internal_cons + num_fixed_dof_cons, num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs)):
             self.cl[var_idx] = multiphase_rhs[var_idx-num_internal_cons-num_fixed_dof_cons]
             self.cu[var_idx] = multiphase_rhs[var_idx-num_internal_cons-num_fixed_dof_cons]
+        for var_idx in range(num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs), num_constraints):
+            self.cl[var_idx] = self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
+            self.cu[var_idx] = self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
 
     def objective(self, x_in):
         cdef CompositionSet compset
@@ -405,7 +410,8 @@ cdef class Problem:
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int num_statevars = len(compset.phase_record.state_variables)
         cdef double[::1] l_constraints = np.zeros(self.num_constraints)
-        cdef double[::1] l_constraints_tmp = np.zeros(self.composition_sets[0].phase_record.num_multiphase_cons)
+        cdef double[::1] l_constraints_tmp = np.zeros(self.num_constraints)
+        cdef double[::1] chempots = np.zeros(len(self.nonvacant_elements))
         cdef int phase_idx, var_offset, constraint_offset, var_idx, idx, spidx
         cdef double[::1] x = np.array(x_in)
         cdef double[::1] x_tmp
@@ -438,6 +444,14 @@ cdef class Problem:
                 l_constraints[constraint_offset + c_idx] += l_constraints_tmp[c_idx]
             l_constraints_tmp[:] = 0
             var_offset += compset.phase_record.phase_dof
+        constraint_offset += compset.phase_record.num_multiphase_cons
+
+        # Fourth: Chemical potential constraints
+        if len(self.fixed_chempot_indices) > 0:
+            chempots = self.chemical_potentials(x_in)
+            for idx in range(self.fixed_chempot_indices.shape[0]):
+                l_constraints[constraint_offset] = chempots[self.fixed_chempot_indices[idx]]
+                constraint_offset += 1
         return np.array(l_constraints)
 
     def jacobian(self, x_in):
@@ -448,6 +462,7 @@ cdef class Problem:
         cdef double[:,::1] constraint_jac = np.zeros((self.num_constraints, self.num_vars))
         cdef double[:,::1] constraint_jac_tmp = np.zeros((self.num_constraints, self.num_vars))
         cdef double[:,::1] constraint_jac_tmp_view
+        cdef double[:,::1] chempot_grad
         cdef int phase_idx, var_offset, constraint_offset, var_idx, iter_idx, grad_idx, \
             hess_idx, comp_idx, idx, sum_idx, spidx, active_in_subl, phase_offset
 
@@ -494,4 +509,12 @@ cdef class Problem:
                 constraint_jac[constraint_offset+idx, spidx] = constraint_jac_tmp_view[idx, -1]
             constraint_jac_tmp[:,:] = 0
             var_offset += compset.phase_record.phase_dof
+        constraint_offset += compset.phase_record.num_multiphase_cons
+
+        # Fourth: Chemical potential constraints
+        if len(self.fixed_chempot_indices) > 0:
+            chempot_grad = self.chemical_potential_gradient(x_in)
+            for idx in range(self.fixed_chempot_indices.shape[0]):
+                constraint_jac[constraint_offset, :] = chempot_grad[self.fixed_chempot_indices[idx], :]
+                constraint_offset += 1
         return np.array(constraint_jac)
