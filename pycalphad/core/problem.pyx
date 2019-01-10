@@ -169,7 +169,56 @@ cdef class Problem:
         return gradient_term
 
     def hessian(self, x_in):
-        pass
+        cdef CompositionSet compset = self.composition_sets[0]
+        cdef size_t num_statevars = len(compset.phase_record.state_variables)
+        cdef double[:, ::1] hess = np.zeros((self.num_vars, self.num_vars))
+        cdef double[::1] hess_tmp = np.zeros((self.num_vars * self.num_vars))
+        cdef double[::1] grad_tmp = np.zeros(self.num_vars)
+        cdef double[:, ::1] hess_tmp_view
+        cdef double[::1] x = np.array(x_in)
+        cdef double[::1] x_tmp = np.zeros(x.shape[0])
+        cdef double phase_frac = 0
+        cdef size_t var_idx = 0
+        cdef size_t phase_idx, grad_idx, cons_idx, dof_idx, sv_idx
+        cdef size_t row, col
+        cdef size_t constraint_offset = 0
+        x_tmp[:num_statevars] = x[:num_statevars]
+        var_idx = num_statevars
+        for phase_idx in range(self.num_phases):
+            compset = self.composition_sets[phase_idx]
+            phase_frac = x[self.num_vars - self.num_phases + phase_idx]
+            x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
+                x[var_idx:var_idx+compset.phase_record.phase_dof]
+            hess_tmp_view = <double[:num_statevars+compset.phase_record.phase_dof,
+                                    :num_statevars+compset.phase_record.phase_dof]>&hess_tmp[0]
+            compset.phase_record.grad(grad_tmp, x_tmp)
+            compset.phase_record.hess(hess_tmp_view, x_tmp)
+            for row in range(compset.phase_record.phase_dof):
+                for col in range(compset.phase_record.phase_dof):
+                    hess[var_idx+row, var_idx+col] = \
+                        phase_frac * hess_tmp_view[num_statevars+row, num_statevars+col]
+                    hess[var_idx+row, var_idx+col] = \
+                        phase_frac * hess_tmp_view[num_statevars+row, num_statevars+col]
+            for iter_idx in range(num_statevars):
+                for dof_idx in range(compset.phase_record.phase_dof):
+                    hess[iter_idx, var_idx + dof_idx] += \
+                        phase_frac * hess_tmp_view[iter_idx, num_statevars + dof_idx]
+                    hess[var_idx + dof_idx, iter_idx] += \
+                        phase_frac * hess_tmp_view[iter_idx, num_statevars + dof_idx]
+                for sv_idx in range(num_statevars):
+                    hess[iter_idx, sv_idx] += \
+                        phase_frac * hess_tmp_view[iter_idx, sv_idx]
+                    hess[sv_idx, iter_idx] += \
+                        phase_frac * hess_tmp_view[iter_idx, sv_idx]
+            # wrt phase_frac
+            for dof_idx in range(num_statevars+compset.phase_record.phase_dof):
+                hess[self.num_vars - self.num_phases + phase_idx, dof_idx] = grad_tmp[dof_idx]
+                hess[dof_idx, self.num_vars - self.num_phases + phase_idx] = grad_tmp[dof_idx]
+            hess_tmp[:] = 0
+            grad_tmp[:] = 0
+            x_tmp[num_statevars:] = 0
+            var_idx += compset.phase_record.phase_dof
+        return np.array(hess)
 
     def mass_gradient(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
