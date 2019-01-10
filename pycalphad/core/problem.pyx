@@ -257,22 +257,28 @@ cdef class Problem:
 
     def mass_cons_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
-        cdef int num_statevars = len(compset.phase_record.state_variables)
+        cdef size_t num_statevars = len(compset.phase_record.state_variables)
         cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements),
                                                           self.num_vars, self.num_vars))
         cdef double[::1] mass_cons_hess_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements) *
                                                         self.num_vars * self.num_vars))
-        cdef double[:, :, ::1] mass_cons_hess_tmp_view, mass_grad
+        cdef double[::1] mass_grad_tmp = np.zeros(self.num_vars)
+        cdef double[:, :, ::1] mass_cons_hess_tmp_view
+        cdef double[:, ::1] mass_hess_tmp_view
         cdef double[::1] x = np.array(x_in)
-        cdef double[::1] x_tmp
-        cdef int var_idx = 0
-        cdef int phase_idx, grad_idx
-        cdef int constraint_offset = 0
+        cdef double[::1] x_tmp = np.zeros(x.shape[0])
+        cdef double phase_frac = 0
+        cdef size_t var_idx = 0
+        cdef size_t phase_idx, grad_idx, cons_idx, dof_idx, sv_idx
+        cdef size_t row, col
+        cdef size_t constraint_offset = 0
+        x_tmp[:num_statevars] = x[:num_statevars]
         # First: Phase internal constraints
         var_idx = num_statevars
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
-            x_tmp = np.r_[x[:num_statevars], x[var_idx:var_idx+compset.phase_record.phase_dof]]
+            x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
+                x[var_idx:var_idx+compset.phase_record.phase_dof]
             mass_cons_hess_tmp_view = <double[:compset.phase_record.num_internal_cons,
                                               :num_statevars+compset.phase_record.phase_dof,
                                               :num_statevars+compset.phase_record.phase_dof]>&mass_cons_hess_tmp[0]
@@ -284,19 +290,59 @@ cdef class Problem:
                                         num_statevars:num_statevars+compset.phase_record.phase_dof,
                                         num_statevars:num_statevars+compset.phase_record.phase_dof]
             for iter_idx in range(num_statevars):
-                for idx in range(compset.phase_record.num_internal_cons):
-                    mass_jac[constraint_offset + idx, iter_idx] += \
-                        mass_jac_tmp_view[idx, iter_idx]
-            mass_jac_tmp[:,:] = 0
+                for cons_idx in range(compset.phase_record.num_internal_cons):
+                    for dof_idx in range(compset.phase_record.phase_dof):
+                        mass_cons_hess[constraint_offset + cons_idx, iter_idx, var_idx + dof_idx] += \
+                            mass_cons_hess_tmp_view[cons_idx, iter_idx, num_statevars + dof_idx]
+                        mass_cons_hess[constraint_offset + cons_idx, var_idx + dof_idx, iter_idx] += \
+                            mass_cons_hess_tmp_view[cons_idx, iter_idx, num_statevars + dof_idx]
+                    for sv_idx in range(num_statevars):
+                        mass_cons_hess[constraint_offset + cons_idx, iter_idx, sv_idx] += \
+                            mass_cons_hess_tmp_view[cons_idx, iter_idx, sv_idx]
+                        mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
+                            mass_cons_hess_tmp_view[cons_idx, iter_idx, sv_idx]
+            mass_cons_hess_tmp[:] = 0
+            x_tmp[num_statevars:] = 0
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
         # Second: Mass constraints for pure elements
-        mass_grad = self.mass_gradient(x_in).T
         var_idx = 0
-        for grad_idx in range(constraint_offset, mass_jac.shape[0]):
-            for var_idx in range(self.num_vars):
-                mass_jac[grad_idx, var_idx] = mass_grad[grad_idx - constraint_offset, var_idx]
-        return np.array(mass_jac)
+        for phase_idx in range(self.num_phases):
+            compset = self.composition_sets[phase_idx]
+            x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
+                x[var_idx:var_idx+compset.phase_record.phase_dof]
+            phase_frac = x[self.num_vars - self.num_phases + phase_idx]
+            mass_hess_tmp_view = <double[:num_statevars+compset.phase_record.phase_dof,
+                                         :num_statevars+compset.phase_record.phase_dof]>&mass_cons_hess_tmp[0]
+            for cons_idx in range(len(self.nonvacant_elements)):
+                compset.phase_record.mass_grad(mass_grad_tmp, x_tmp, cons_idx)
+                compset.phase_record.mass_hess(mass_hess_tmp_view, x_tmp, cons_idx)
+                for col in range(compset.phase_record.phase_dof):
+                    for row in range(compset.phase_record.phase_dof):
+                        mass_cons_hess[constraint_offset+cons_idx, var_idx+row, var_idx+col] += \
+                            phase_frac * mass_hess_tmp_view[num_statevars+row, num_statevars+col]
+                for iter_idx in range(num_statevars):
+                    for dof_idx in range(compset.phase_record.phase_dof):
+                        mass_cons_hess[constraint_offset + cons_idx, iter_idx, var_idx + dof_idx] += \
+                            phase_frac * mass_hess_tmp_view[iter_idx, dof_idx]
+                        mass_cons_hess[constraint_offset + cons_idx, var_idx + dof_idx, iter_idx] += \
+                            phase_frac * mass_hess_tmp_view[iter_idx, dof_idx]
+                    for sv_idx in range(num_statevars):
+                        mass_cons_hess[constraint_offset + cons_idx, iter_idx, sv_idx] += \
+                            phase_frac * mass_hess_tmp_view[iter_idx, sv_idx]
+                        mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
+                            phase_frac * mass_hess_tmp_view[iter_idx, sv_idx]
+                # wrt phase_frac
+                for dof_idx in range(num_statevars+compset.phase_record.phase_dof):
+                    mass_cons_hess[constraint_offset + cons_idx,
+                                   self.num_vars - self.num_phases + phase_idx, dof_idx] = mass_grad_tmp[dof_idx]
+                    mass_cons_hess[constraint_offset + cons_idx,
+                                   dof_idx, self.num_vars - self.num_phases + phase_idx] = mass_grad_tmp[dof_idx]
+                mass_cons_hess_tmp[:] = 0
+                mass_grad_tmp[:] = 0
+            x_tmp[num_statevars:] = 0
+            var_idx += compset.phase_record.phase_dof
+        return np.array(mass_cons_hess)
 
     def constraints(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
