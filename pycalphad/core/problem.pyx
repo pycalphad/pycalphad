@@ -26,9 +26,11 @@ def _pinv_derivative(a, a_pinv, a_prime):
     -------
 
     """
-    result = -a_pinv * a_prime * a_pinv
-    result += a_pinv * a_pinv.T * a_prime.T * (np.eye(a.shape[0]) - a * a_pinv)
-    result += (np.eye(a.shape[0]) - a_pinv * a) * a_prime.T * a_pinv.T * a_pinv
+    result = np.zeros(a_pinv.shape + (a_prime.shape[2],))
+    for dof_idx in range(a_prime.shape[2]):
+        result[:,:, dof_idx] = -a_pinv @ a_prime[:, :, dof_idx] @ a_pinv
+        result[:,:, dof_idx] += a_pinv @ a_pinv.T @ a_prime.T[dof_idx] @ (np.eye(a.shape[0]) - a @ a_pinv)
+        result[:,:, dof_idx] += (np.eye(a.shape[1]) - a_pinv @ a) @ a_prime.T[dof_idx] @ a_pinv.T @ a_pinv
     return result
 
 
@@ -290,7 +292,7 @@ cdef class Problem:
         "Assuming the input is a feasible solution."
         # mu = (A+) grad
         jac_pinv = np.linalg.pinv(self.mass_jacobian(x_in).T)
-        mu = np.dot(jac_pinv, self.gradient(x_in))
+        mu = np.dot(jac_pinv, self.gradient(x_in))[-len(self.nonvacant_elements):]
         return mu
 
     def chemical_potential_gradient(self, x_in):
@@ -298,11 +300,11 @@ cdef class Problem:
         # mu' = (A+)' grad + (A+) hess
         jac = self.mass_jacobian(x_in).T
         jac_pinv = np.linalg.pinv(jac)
-        mass_hess = self.mass_cons_hessian(x_in)
+        mass_hess = np.swapaxes(self.mass_cons_hessian(x_in), 0, 1)
         hess = self.hessian(x_in)
         jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
         mu_prime = np.dot(jac_pinv_prime, self.gradient(x_in)) + np.dot(jac_pinv, hess)
-        return mu_prime
+        return mu_prime[-len(self.nonvacant_elements):]
 
     def mass_cons_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]

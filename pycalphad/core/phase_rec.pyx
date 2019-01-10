@@ -19,8 +19,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._ofunc, self._gfunc, self._massfuncs, self._massgradfuncs, self._intconsfunc,
-                                 self._intjacfunc, self._mpconsfunc, self._mpjacfunc,
+                                 self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
+                                 self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
+                                 self._mpconsfunc, self._mpjacfunc,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,

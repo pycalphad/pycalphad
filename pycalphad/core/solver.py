@@ -74,7 +74,8 @@ class InteriorPointSolver(SolverBase):
             'limited_memory_max_history': 100,
             'tol': 1e-1,
             'constr_viol_tol': 1e-12,
-            'nlp_scaling_method': 'none'
+            'nlp_scaling_method': 'none',
+            'hessian_approximation': 'limited-memory'
         }
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
