@@ -199,7 +199,7 @@ cdef class Problem:
                 for col in range(compset.phase_record.phase_dof):
                     hess[var_idx+row, var_idx+col] = \
                         phase_frac * hess_tmp_view[num_statevars+row, num_statevars+col]
-                    hess[var_idx+row, var_idx+col] = \
+                    hess[var_idx+col, var_idx+row] = \
                         phase_frac * hess_tmp_view[num_statevars+row, num_statevars+col]
             for iter_idx in range(num_statevars):
                 for dof_idx in range(compset.phase_record.phase_dof):
@@ -210,8 +210,9 @@ cdef class Problem:
                 for sv_idx in range(num_statevars):
                     hess[iter_idx, sv_idx] += \
                         phase_frac * hess_tmp_view[iter_idx, sv_idx]
-                    hess[sv_idx, iter_idx] += \
-                        phase_frac * hess_tmp_view[iter_idx, sv_idx]
+                    if iter_idx != sv_idx:
+                        hess[sv_idx, iter_idx] += \
+                            phase_frac * hess_tmp_view[iter_idx, sv_idx]
             # wrt phase_frac
             for dof_idx in range(num_statevars+compset.phase_record.phase_dof):
                 hess[self.num_vars - self.num_phases + phase_idx, dof_idx] = grad_tmp[dof_idx]
@@ -350,8 +351,9 @@ cdef class Problem:
                     for sv_idx in range(num_statevars):
                         mass_cons_hess[constraint_offset + cons_idx, iter_idx, sv_idx] += \
                             mass_cons_hess_tmp_view[cons_idx, iter_idx, sv_idx]
-                        mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
-                            mass_cons_hess_tmp_view[cons_idx, iter_idx, sv_idx]
+                        if iter_idx != sv_idx:
+                            mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
+                                mass_cons_hess_tmp_view[cons_idx, iter_idx, sv_idx]
             mass_cons_hess_tmp[:] = 0
             x_tmp[num_statevars:] = 0
             var_idx += compset.phase_record.phase_dof
@@ -369,9 +371,12 @@ cdef class Problem:
                 compset.phase_record.mass_grad(mass_grad_tmp, x_tmp, cons_idx)
                 compset.phase_record.mass_hess(mass_hess_tmp_view, x_tmp, cons_idx)
                 for col in range(compset.phase_record.phase_dof):
-                    for row in range(compset.phase_record.phase_dof):
+                    for row in range(col, compset.phase_record.phase_dof):
                         mass_cons_hess[constraint_offset+cons_idx, var_idx+row, var_idx+col] += \
                             phase_frac * mass_hess_tmp_view[num_statevars+row, num_statevars+col]
+                        if col != row:
+                            mass_cons_hess[constraint_offset+cons_idx, var_idx+col, var_idx+row] += \
+                                phase_frac * mass_hess_tmp_view[num_statevars+row, num_statevars+col]
                 for iter_idx in range(num_statevars):
                     for dof_idx in range(compset.phase_record.phase_dof):
                         mass_cons_hess[constraint_offset + cons_idx, iter_idx, var_idx + dof_idx] += \
@@ -381,8 +386,9 @@ cdef class Problem:
                     for sv_idx in range(num_statevars):
                         mass_cons_hess[constraint_offset + cons_idx, iter_idx, sv_idx] += \
                             phase_frac * mass_hess_tmp_view[iter_idx, sv_idx]
-                        mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
-                            phase_frac * mass_hess_tmp_view[iter_idx, sv_idx]
+                        if iter_idx != sv_idx:
+                            mass_cons_hess[constraint_offset + cons_idx, sv_idx, iter_idx] += \
+                                phase_frac * mass_hess_tmp_view[iter_idx, sv_idx]
                 # wrt phase_frac
                 for dof_idx in range(num_statevars+compset.phase_record.phase_dof):
                     mass_cons_hess[constraint_offset + cons_idx,
