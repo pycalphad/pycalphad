@@ -155,9 +155,7 @@ class InteriorPointSolver(SolverBase):
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
-        chemical_potentials = np.linalg.lstsq(prob.mass_jacobian(x).T,
-                                              prob.gradient(x) - info['mult_x_L'] - info['mult_x_U'])
-        chemical_potentials = chemical_potentials[0][prob.num_internal_constraints:]
+        chemical_potentials = prob.chemical_potentials(x)
         if info['status'] == -10:
             # Not enough degrees of freedom; nothing to do
             if len(prob.composition_sets) == 1:
