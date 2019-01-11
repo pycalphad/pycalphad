@@ -219,9 +219,12 @@ cdef class Problem:
                         hess[sv_idx, iter_idx] += \
                             phase_frac * hess_tmp_view[iter_idx, sv_idx]
             # wrt phase_frac
-            for dof_idx in range(num_statevars+compset.phase_record.phase_dof):
-                hess[self.num_vars - self.num_phases + phase_idx, dof_idx] = grad_tmp[dof_idx]
-                hess[dof_idx, self.num_vars - self.num_phases + phase_idx] = grad_tmp[dof_idx]
+            for dof_idx in range(compset.phase_record.phase_dof):
+                hess[self.num_vars - self.num_phases + phase_idx, var_idx + dof_idx] = grad_tmp[num_statevars+dof_idx]
+                hess[var_idx + dof_idx, self.num_vars - self.num_phases + phase_idx] = grad_tmp[num_statevars+dof_idx]
+            for sv_idx in range(num_statevars):
+                hess[self.num_vars - self.num_phases + phase_idx, sv_idx] = grad_tmp[sv_idx]
+                hess[sv_idx, self.num_vars - self.num_phases + phase_idx] = grad_tmp[sv_idx]
             hess_tmp[:] = 0
             grad_tmp[:] = 0
             x_tmp[num_statevars:] = 0
