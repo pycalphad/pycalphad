@@ -414,7 +414,9 @@ cdef class Problem:
         cdef double[::1] chempots = np.zeros(len(self.nonvacant_elements))
         cdef int phase_idx, var_offset, constraint_offset, var_idx, idx, spidx
         cdef double[::1] x = np.array(x_in)
-        cdef double[::1] x_tmp
+        cdef double[::1] x_tmp = np.zeros(x.shape[0])
+
+        x_tmp[:num_statevars] = x[:num_statevars]
 
         # First: Fixed degree of freedom constraints
         constraint_offset = 0
@@ -425,11 +427,13 @@ cdef class Problem:
         var_idx = num_statevars
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
-            x_tmp = np.r_[x[:num_statevars], x[var_idx:var_idx+compset.phase_record.phase_dof]]
+            x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
+                x[var_idx:var_idx+compset.phase_record.phase_dof]
             compset.phase_record.internal_constraints(
                 l_constraints[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons],
                 x_tmp
             )
+            x_tmp[num_statevars:] = 0
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
 
@@ -438,10 +442,13 @@ cdef class Problem:
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
             spidx = self.num_vars - self.num_phases + phase_idx
-            x_tmp = np.r_[x[:num_statevars], x[var_offset:var_offset+compset.phase_record.phase_dof], x[spidx]]
+            x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
+                x[var_idx:var_idx+compset.phase_record.phase_dof]
+            x_tmp[num_statevars+compset.phase_record.phase_dof] = x[spidx]
             compset.phase_record.multiphase_constraints(l_constraints_tmp, x_tmp)
             for c_idx in range(compset.phase_record.num_multiphase_cons):
                 l_constraints[constraint_offset + c_idx] += l_constraints_tmp[c_idx]
+            x_tmp[num_statevars:] = 0
             l_constraints_tmp[:] = 0
             var_offset += compset.phase_record.phase_dof
         constraint_offset += compset.phase_record.num_multiphase_cons
