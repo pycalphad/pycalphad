@@ -51,7 +51,6 @@ cdef class Problem:
             raise ValueError('Number of phases is zero')
         state_variables = comp_sets[0].phase_record.state_variables
         fixed_statevars = [(key, value) for key, value in conditions.items() if key in [str(k) for k in state_variables]]
-        print('fixed_statevars', fixed_statevars)
         num_fixed_dof_cons = len(state_variables)
 
         self.composition_sets = comp_sets
@@ -91,7 +90,6 @@ cdef class Problem:
             self.x0[self.num_vars-self.num_phases+phase_idx] = compset.NP
             var_idx += compset.phase_record.phase_dof
             phase_idx += 1
-        print('prob.x0', np.array(self.x0))
         self.cl = np.zeros(num_constraints)
         self.cu = np.zeros(num_constraints)
         compset = comp_sets[0]
@@ -133,8 +131,6 @@ cdef class Problem:
             phase_idx += 1
             var_offset += compset.phase_record.phase_dof
             tmp = 0
-        print('x_in', x_in)
-        print('total_obj', total_obj)
         return total_obj
 
     def gradient(self, x_in):
