@@ -259,7 +259,9 @@ cdef class Problem:
         """For chemical potential calculation."""
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int num_statevars = len(compset.phase_record.state_variables)
-        cdef double[:, ::1] mass_jac = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements), self.num_vars))
+        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1e-12))
+        cdef size_t num_active_ineq = len(active_ineq)
+        cdef double[:, ::1] mass_jac = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements), self.num_vars))
         cdef double[:, ::1] mass_jac_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements), self.num_vars))
         cdef double[:, ::1] mass_jac_tmp_view, mass_grad
         cdef double[::1] x = np.array(x_in)
@@ -285,7 +287,11 @@ cdef class Problem:
             mass_jac_tmp[:,:] = 0
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
-        # Second: Mass constraints for pure elements
+        # Second: Active inequality constraints
+        for idx in range(num_active_ineq):
+            mass_jac[constraint_offset, active_ineq[idx]] = 1
+            constraint_offset += 1
+        # Third: Mass constraints for pure elements
         mass_grad = self.mass_gradient(x_in).T
         var_idx = 0
         for grad_idx in range(constraint_offset, mass_jac.shape[0]):
