@@ -414,7 +414,6 @@ cdef class Problem:
         cdef int phase_idx, var_offset, constraint_offset, var_idx, idx, spidx
         cdef double[::1] x = np.array(x_in)
         cdef double[::1] x_tmp = np.zeros(x.shape[0])
-
         x_tmp[:num_statevars] = x[:num_statevars]
 
         # First: Fixed degree of freedom constraints
@@ -442,7 +441,7 @@ cdef class Problem:
             compset = self.composition_sets[phase_idx]
             spidx = self.num_vars - self.num_phases + phase_idx
             x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
-                x[var_idx:var_idx+compset.phase_record.phase_dof]
+                x[var_offset:var_offset+compset.phase_record.phase_dof]
             x_tmp[num_statevars+compset.phase_record.phase_dof] = x[spidx]
             compset.phase_record.multiphase_constraints(l_constraints_tmp, x_tmp)
             for c_idx in range(compset.phase_record.num_multiphase_cons):
@@ -502,20 +501,20 @@ cdef class Problem:
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
 
-        var_offset = 0
+        var_offset = num_statevars
         # Third: Multiphase constraints
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
             spidx = self.num_vars - self.num_phases + phase_idx
             x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
-                x[var_idx:var_idx+compset.phase_record.phase_dof]
+                x[var_offset:var_offset+compset.phase_record.phase_dof]
             x_tmp[num_statevars+compset.phase_record.phase_dof] = x[spidx]
             constraint_jac_tmp_view = <double[:compset.phase_record.num_multiphase_cons,
                                               :num_statevars+1+compset.phase_record.phase_dof]>&constraint_jac_tmp[0,0]
             compset.phase_record.multiphase_jacobian(constraint_jac_tmp_view, x_tmp)
             for idx in range(compset.phase_record.num_multiphase_cons):
                 for iter_idx in range(compset.phase_record.phase_dof):
-                    constraint_jac[constraint_offset+idx, var_offset+num_statevars+iter_idx] = constraint_jac_tmp_view[idx, num_statevars+iter_idx]
+                    constraint_jac[constraint_offset+idx, var_offset+iter_idx] = constraint_jac_tmp_view[idx, num_statevars+iter_idx]
                 for iter_idx in range(num_statevars):
                     constraint_jac[constraint_offset+idx, iter_idx] += constraint_jac_tmp_view[idx, iter_idx]
                 constraint_jac[constraint_offset+idx, spidx] = constraint_jac_tmp_view[idx, -1]
