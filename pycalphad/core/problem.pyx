@@ -320,7 +320,9 @@ cdef class Problem:
     def mass_cons_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef size_t num_statevars = len(compset.phase_record.state_variables)
-        cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements),
+        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1e-12+1e-13))
+        cdef size_t num_active_ineq = len(active_ineq)
+        cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements),
                                                           self.num_vars, self.num_vars))
         cdef double[::1] mass_cons_hess_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements) *
                                                         self.num_vars * self.num_vars))
@@ -368,7 +370,9 @@ cdef class Problem:
             x_tmp[num_statevars:] = 0
             var_idx += compset.phase_record.phase_dof
             constraint_offset += compset.phase_record.num_internal_cons
-        # Second: Mass constraints for pure elements
+        # Second: Active inequality constraints (Linear)
+        constraint_offset += num_active_ineq
+        # Third: Mass constraints for pure elements
         var_idx = 0
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
