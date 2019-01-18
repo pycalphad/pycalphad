@@ -48,6 +48,7 @@ cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
                         double[::1] composition,
                         double[::1] chemical_potentials,
+                        size_t[::1] fixed_chempot_indices,
                         double[::1] result_fractions,
                         int[::1] result_simplex) except *:
     """
@@ -69,6 +70,8 @@ cpdef double hyperplane(double[:,::1] compositions,
     chemical_potentials : ndarray
         Shape of (N,)
         Will be overwritten
+    fixed_chempot_indices : ndarray
+        Variable shape from (0,) to (N-1,)
     result_fractions : ndarray
         Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
         Will be overwritten. Output sums to 1.
@@ -92,20 +95,24 @@ cpdef double hyperplane(double[:,::1] compositions,
     P: N+1, max phases by gibbs phase rule that we can find in a point calculations
     """
     cdef int num_components = compositions.shape[1]
-    cdef int[::1] best_guess_simplex = np.arange(num_components, dtype=np.int32)
+    cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
+    cdef int simplex_size = num_components - num_fixed_chempots
+    cdef size_t[::1] included_composition_indices = \
+        np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)), dtype=np.uint64)
+    cdef int[::1] best_guess_simplex = np.array(included_composition_indices.copy(), dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
-    cdef int[:,::1] trial_simplices = np.empty((num_components, num_components), dtype=np.int32)
-    cdef double[:,::1] fractions = np.empty((num_components, num_components))
-    cdef int[::1] int_tmp = np.empty(num_components, dtype=np.int32)
+    cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
+    cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
+    cdef int[::1] int_tmp = np.empty(simplex_size, dtype=np.int32)
     cdef double[::1] driving_forces = np.empty(compositions.shape[0])
     for i in range(trial_simplices.shape[0]):
         trial_simplices[i, :] = best_guess_simplex
-    cdef double[::1,:,:] trial_matrix = np.empty((num_components, num_components, num_components), order='F')
-    cdef double[::1,:] candidate_tieline = np.empty((num_components, num_components), order='F')
-    cdef double[::1] candidate_energies = np.empty(num_components)
-    cdef double[::1] candidate_potentials = np.empty(num_components)
-    cdef double[::1] smallest_fractions = np.empty(num_components)
-    cdef double[::1] tmp = np.empty(num_components)
+    cdef double[::1,:,:] trial_matrix = np.empty((simplex_size, simplex_size, simplex_size), order='F')
+    cdef double[::1,:] candidate_tieline = np.empty((simplex_size, simplex_size), order='F')
+    cdef double[::1] candidate_energies = np.empty(simplex_size)
+    cdef double[::1] candidate_potentials = np.empty(simplex_size)
+    cdef double[::1] smallest_fractions = np.empty(simplex_size)
+    cdef double[::1] tmp = np.empty(simplex_size)
     cdef double[::1, :] f_contig_trial
     # Not sure how to create scalar memoryviews...
     cdef double[::1] lowest_df = np.empty(1)
@@ -118,32 +125,40 @@ cpdef double hyperplane(double[:,::1] compositions,
 
     while iterations < max_iterations:
         iterations += 1
-        for i in range(num_components):
+        for i in range(simplex_size):
             smallest_fractions[i] = 0
-            for j in range(num_components):
-                trial_matrix[:, j, i] = compositions[trial_simplices[i,j]]
+            for j in range(simplex_size):
+                for k in range(trial_matrix.shape[0]):
+                    trial_matrix[k, j, i] = compositions[trial_simplices[i,j], included_composition_indices[k]]
                 if iterations > 1:
                     if trial_simplices[i,j] < result_fractions.shape[0]:
                         smallest_fractions[i] -= 1
-        for i in range(num_components):
+        for i in range(simplex_size):
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
-            fractions[i, :] = composition
+            for j in range(fractions.shape[1]):
+                fractions[i, j] = composition[included_composition_indices[j]]
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] += min(fractions[i, :])
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
-        if smallest_fractions[saved_trial] < -num_components:
+        if smallest_fractions[saved_trial] < -simplex_size:
             break
         # Should be exactly one candidate simplex
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
             idx = candidate_simplex[i]
-            candidate_tieline[i, :] = compositions[idx]
+            for j in range(candidate_tieline.shape[1]):
+                candidate_tieline[i, j] = compositions[idx, included_composition_indices[j]]
             candidate_potentials[i] = energies[idx]
+            for j in fixed_chempot_indices:
+                candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
         solve(candidate_tieline, candidate_potentials, int_tmp)
         if candidate_potentials[0] == -1e19:
             break
         driving_forces[:] = energies
+        for idx in range(driving_forces.shape[0]):
+            for j in fixed_chempot_indices:
+                driving_forces[idx] -= chemical_potentials[j] * compositions[idx, j]
         prodsum(candidate_potentials, compositions, driving_forces)
         best_guess_simplex[:] = candidate_simplex
         for i in range(trial_simplices.shape[0]):
@@ -154,7 +169,7 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
-        for i in range(num_components):
+        for i in range(simplex_size):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
             break
@@ -162,10 +177,11 @@ cpdef double hyperplane(double[:,::1] compositions,
     for i in range(best_guess_simplex.shape[0]):
         idx = best_guess_simplex[i]
         out_energy += fractions[saved_trial, i] * energies[idx]
-    result_fractions[:num_components] = fractions[saved_trial, :]
-    chemical_potentials[:] = candidate_potentials
-    result_simplex[:num_components] = best_guess_simplex
+    result_fractions[:simplex_size] = fractions[saved_trial, :]
+    for j in range(included_composition_indices.shape[0]):
+        chemical_potentials[included_composition_indices[j]] = candidate_potentials[j]
+    result_simplex[:simplex_size] = best_guess_simplex
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
-    result_fractions[num_components:] = 0.0
-    result_simplex[num_components:] = 0
+    result_fractions[simplex_size:] = 0.0
+    result_simplex[simplex_size:] = 0
     return out_energy
