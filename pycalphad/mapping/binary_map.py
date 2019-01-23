@@ -107,14 +107,15 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 raise ValueError("Mapping error: found {} phases ({}) instead of 2".format(len(compsets), "/".join([c.phase_name for c in compsets])))
             else:
                 T_backtracks = 0; total_T_backtrack_factor = 1
-            zpf_boundaries.add_compsets(*compsets)
             cs_0 = compsets[0].composition
             cs_1 = compsets[1].composition
             if close_zero_or_one(cs_0, tol_zero_one) and close_zero_or_one(cs_1, tol_zero_one):
                 converged = True
+                zpf_boundaries.add_compsets(*compsets)
                 continue
             if close_to_same(cs_0, cs_1, tol_same):
                 converged = True
+                zpf_boundaries.add_compsets(*compsets)
                 # find other two phase equilibrium
                 new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
                 if verbose:
@@ -134,6 +135,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     print("New start points {} from three phase equilibrium at T={}K and X={}".format(new_start_points, T_current, x_current))
                 start_points.extend(new_start_points)
                 converged = True
+                # don't need to add new compsets here because they will be picked up based on the new start points
                 continue
             elif len(new_phases) > 1:
                 raise ValueError("Found more than 1 new phase")
@@ -152,7 +154,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                             if verbose:
                                 print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
                             start_points.append(StartPoint(T_current, opposite_direction(start_pt.direction), [cs, matching_cs]))
-
+            zpf_boundaries.add_compsets(*compsets)
             T_current += delta
             x_current = BinaryCompSet.mean_composition(compsets)
             prev_compsets = compsets

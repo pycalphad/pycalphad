@@ -1,6 +1,6 @@
 import numpy as np
 from operator import pos, neg
-from .utils import convex_hull, get_compsets, sort_x_by_y
+from .utils import convex_hull, get_compsets, sort_x_by_y, opposite_direction
 from .compsets import BinaryCompSet
 from pycalphad import variables as v
 import xarray as xr
@@ -73,17 +73,22 @@ def find_three_phase_start_points(new_compsets, prev_compsets, direction):
     always have to find the opposing small region. If we go from a large to small region,
     the opposing small region should be in the same direction, otherwise if we go from a small
     to large region, the new small region direction should have the opposite direction.
+
+    We also reassign the temperatures so that the next step (T+delta) will add
+    to the composition grid correctly.
     """
     prev_phases = [c.phase_name for c in prev_compsets]
     prev_comps = [c.composition for c in prev_compsets]
     prev_comps_diff = np.abs(np.max(prev_comps) - np.min(prev_comps))
+    prev_temperature = prev_compsets[0].temperature
 
     new_phases = [c.phase_name for c in new_compsets]
     new_comps = [c.composition for c in new_compsets]
     new_comps_diff = np.abs(np.max(new_comps) - np.min(new_comps))
+    new_temperature = new_compsets[0].temperature
 
     # In all cases, we want a new StartPoint for the new compsets in the direction we were going
-    start_points = [StartPoint(new_compsets[0].temperature, direction, new_compsets)]
+    start_points = [StartPoint(prev_temperature, direction, new_compsets)]
 
     # assign small and large regions
     if (new_comps_diff < prev_comps_diff):  # went from large to small region
@@ -91,16 +96,18 @@ def find_three_phase_start_points(new_compsets, prev_compsets, direction):
         S_cs = new_compsets  # small region
         L_phases = prev_phases
         S_phases = new_phases
-        new_direction = pos if direction is pos else neg
+        new_direction = direction
+        opp_reg_temperature = prev_temperature
     else:  # went from small to large region
         L_cs = new_compsets  # large region
         S_cs = prev_compsets  # small region
         L_phases = new_phases
         S_phases = prev_phases
-        new_direction = pos if direction is neg else neg
+        new_direction = opposite_direction(direction)
+        opp_reg_temperature = new_temperature
 
     opposing_small_region_cs = [c for c in S_cs if c.phase_name not in L_phases] + [c for c in L_cs if c.phase_name not in S_phases]
-    start_points.append(StartPoint(S_cs[0].temperature, new_direction, opposing_small_region_cs))
+    start_points.append(StartPoint(opp_reg_temperature, new_direction, opposing_small_region_cs))
 
     return start_points
 
