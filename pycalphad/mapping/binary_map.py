@@ -12,7 +12,7 @@ from .zpf_boundary_sets import ZPFBoundarySets
 class StartingPointError(Exception):
     pass
 
-def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, **plot_kwargs):
+def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False, **plot_kwargs):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
     # assumes conditions in T and X
@@ -87,6 +87,19 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     if verbose:
                         print(found_str + " Backtracking in temperature from {}K to {}K ({}/{})".format(T_current, T_backtrack, T_backtracks, max_T_backtracks))
                     T_current = T_backtrack
+                    continue
+                elif not backtrack_raise:
+                    # We might be stuck near a congruent point.
+                    # Try to do a nearby search using the last known compsets
+                    # If we can't find one, just continue.
+                    t_prev = prev_compsets[0].temperature
+                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, zpf_boundaries, T_prev, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
+                    if new_start_point is not None:
+                        if verbose:
+                            print("Failed to backtrack. Found new start point {} from convergence-like to same value at T={}K and X={}".format(new_start_point, T_prev, x_current))
+                        zpf_boundaries.add_compsets(*new_start_point.compsets)
+                        start_points.append(new_start_point)
+                    converged = True
                     continue
                 else:
                     raise ValueError("Mapping error:" + found_str + " Last two phase region: {}".format(prev_compsets))
