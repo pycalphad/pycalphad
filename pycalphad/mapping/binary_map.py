@@ -23,6 +23,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     start_points = []
 
     # find a starting point
+    # TODO: use convex hull to find the first two phase region from the left
     starting_x = 0.1*(x_max - x_min)+x_min
     starting_T = starting_T_max = 0.9*(T_max - T_min)+T_min
     while len(start_points) == 0:
