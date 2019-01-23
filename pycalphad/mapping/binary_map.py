@@ -17,6 +17,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     # for each temperature, proceed along increasing composition, skipping two phase regions
     # assumes conditions in T and X
 
+    eq_kwargs = eq_kwargs or {}
     # assumes only one composition
     x_cond = [c for c in conds.keys() if isinstance(c, v.Composition)][0]
     # mapping conditions
@@ -40,7 +41,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             # verify that these show up in the equilibrium calculation
             specific_conds = deepcopy(curr_conds)
             specific_conds[x_cond] = BinaryCompSet.mean_composition(cs)
-            eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds))
+            eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds, **eq_kwargs))
             if len(eq_cs) == 2:
                 # add a direction of dT > 0 and dT < 0
                 zpf_boundaries.add_compsets(*eq_cs)
@@ -73,7 +74,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 continue
             curr_conds[v.T] = T_current
             curr_conds[x_cond] = x_current
-            eq = equilibrium(dbf, comps, phases, curr_conds)
+            eq = equilibrium(dbf, comps, phases, curr_conds, **eq_kwargs)
             compsets = get_compsets(eq)
             if veryverbose:
                 print("found compsets {} at T={}K X={} eq_phases={}".format(compsets, T_current, x_current, eq.Phase.values.flatten()))
