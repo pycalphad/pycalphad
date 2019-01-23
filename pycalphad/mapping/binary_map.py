@@ -3,12 +3,12 @@ from copy import deepcopy
 from operator import pos, neg
 import numpy as np
 from pycalphad import equilibrium, variables as v
-from .utils import get_num_phases, close_to_same, close_zero_or_one, get_compsets
+from .utils import get_num_phases, close_to_same, close_zero_or_one, get_compsets, opposite_direction
 from .start_points import StartPoint, find_three_phase_start_points, find_nearby_region_start_point
 from .zpf_boundary_sets import ZPFBoundarySets
 
 
-def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, **plot_kwargs):
+def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, **plot_kwargs):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
     # assumes conditions in T and X
@@ -64,8 +64,8 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, eq_
             curr_conds[x_cond] = x_current
             eq = equilibrium(dbf, comps, phases, curr_conds)
             compsets = get_compsets(eq)
-#             if verbose:
-#                 print("found compsets {} at T={}K X={} eq_phases={}".format(compsets, T_current, x_current, eq.Phase.values.flatten()))
+            if veryverbose:
+                print("found compsets {} at T={}K X={} eq_phases={}".format(compsets, T_current, x_current, eq.Phase.values.flatten()))
             if len(compsets) == 1:
                 found_str = "Found single phase region {} at T={}K X={}".format(compsets[0].phase_name, T_current, x_current)
                 if T_backtracks < max_T_backtracks:
@@ -94,8 +94,9 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, eq_
                 new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
                 if verbose:
                     print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
-                zpf_boundaries.add_compsets(*new_start_point.compsets)
-                start_points.append(new_start_point)
+                if new_start_point is not None:
+                    zpf_boundaries.add_compsets(*new_start_point.compsets)
+                    start_points.append(new_start_point)
                 continue
 
             prev_phases = {c.phase_name for c in prev_compsets}
@@ -111,6 +112,22 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, eq_
                 continue
             elif len(new_phases) > 1:
                 raise ValueError("Found more than 1 new phase")
+            elif len(new_phases) == 0:  # TODO: this could get expensive, we hit it every time
+                # we have the same phases
+                # check that the composition of any two phases didn't change significantly
+                # if there is significant change, there may be a miscibility gap.
+                # add a start point at the current temperature in the opposite direction
+                for cs in prev_compsets:
+                    matching_compsets = [c for c in compsets if c.phase_name == cs.phase_name]
+                    if len(matching_compsets) == 1:
+                        # we are not currently in a miscibility gap
+                        matching_cs = matching_compsets[0]
+                        same_phase_comp_diff = np.abs(cs.composition - matching_cs.composition)
+                        if same_phase_comp_diff > tol_misc_gap:
+                            if verbose:
+                                print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
+                            start_points.append(StartPoint(T_current, opposite_direction(start_pt.direction), [cs, matching_cs]))
+
             T_current += delta
             x_current = np.mean([c.composition for c in compsets])
             prev_compsets = compsets

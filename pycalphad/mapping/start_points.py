@@ -104,14 +104,16 @@ def find_three_phase_start_points(new_compsets, prev_compsets, direction):
 
 
 def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, temperature, dT,
-                                   conds, indep_comp_cond,
-                                   verbose=False):
+                                   conds, indep_comp_cond, cutoff_search_distance=0.1,
+                                   verbose=False, graceful=True):
     """
     Return a starting point for a nearby region.
 
     Parameters
     ----------
     compsets : list
+    cutoff_search_distance : float
+        Distance in composition to cutoff the search for new phases.
 
     The idea here is that the compsets have converged to each other (e.g. at a congruent melting point)
     and we've mapped out one side of the point and need to find the other side.
@@ -127,14 +129,9 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     current_phases = [c.phase_name for c in compsets]
     current_phases_set = set(current_phases)
     compositions = [c.composition for c in compsets]
-    min_comp = np.min(compositions)
     str_comp = str(indep_comp_cond)
-    max_comp = np.max(compositions)
     average_comp = np.mean(compositions)
-    sorted_phases = sort_x_by_y(current_phases,
-                                compositions)  # phases sorted by min to max composition
-    sorted_compositions = sorted(compositions)
-    comp_diff = np.abs(max_comp - min_comp)
+    sorted_phases = sort_x_by_y(current_phases, compositions)  # phases sorted by min to max composition
 
     # first we'll search temperatures very close to the current temperature (shifted by dT/10, then we'll do a full dT, then dT+dT/10)
     trial_Ts = [
@@ -151,8 +148,10 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
         conds[v.T] = trial_T
         conds[indep_comp_cond] = (0, 1, 0.005)  # composition grid
         hull = convex_hull(dbf, comps, phases, conds)
-        hull = hull.sortby(np.abs(hull.X_MG - average_comp))
+        hull = hull.sortby(np.abs(hull[str_comp] - average_comp))
         for i in range(hull.sizes[str_comp]):
+            if np.abs(hull[str_comp][i] - average_comp) > cutoff_search_distance:
+                break
             cur_hull = hull.isel({str_comp: i})
             trial_compsets = get_compsets(cur_hull)
             trial_phases = [c.phase_name for c in trial_compsets]
@@ -176,6 +175,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
             # Don't add boundaries because this is an inaccurate set
             # zpf_boundaries.add_compsets(*trial_compsets)
             return sp
-    raise ValueError(
-        "Could not find start point for neighbor to compsets: {}".format(
-            compsets))
+    if graceful:
+        return
+    else:
+        raise ValueError( "Could not find start point for neighbor to compsets: {}".format(compsets))

@@ -1,4 +1,5 @@
 from __future__ import print_function
+from operator import pos, neg
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_phases, filter_phases
 from pycalphad import calculate, Model
@@ -198,3 +199,5 @@ def sort_x_by_y(x, y):
     """Sort a list of x in the order of sorting y"""
     return [xx for _, xx in sorted(zip(y, x), key=lambda pair: pair[0])]
 
+def opposite_direction(direction):
+    return neg if direction is pos else pos
