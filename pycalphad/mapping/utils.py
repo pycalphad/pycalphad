@@ -201,3 +201,30 @@ def sort_x_by_y(x, y):
 
 def opposite_direction(direction):
     return neg if direction is pos else pos
+
+
+def find_two_phase_region_compsets(dataset, indep_comp_coord, discrepancy_tol=0.01):
+    """
+    From a dataset at constant T and P, return the composition sets for a two
+    phase region or that have the smallest index composition coordinate
+
+    Parameters
+    ----------
+    dataset : xr.Dataset
+        Equilibrium-like from pycalphad that has a `Phase` Data variable.
+    indep_comp_coord : str
+        Coordinate name of the independent component
+
+    Returns
+    -------
+    list
+        List of two composition sets for different phases
+    """
+    for i in range(dataset.sizes[indep_comp_coord]):
+        cs = get_compsets(dataset.isel({indep_comp_coord: i}))
+        if len(set([c.phase_name for c in cs])) == 2:
+            # we found a multiphase region, return them if the discrepancy is
+            # above the tolerance
+            if cs[0].xdiscrepancy(cs[1], ignore_phase=True) > discrepancy_tol:
+                return cs
+    return []

@@ -2,6 +2,7 @@ import numpy as np
 from operator import pos, neg
 from .utils import convex_hull, get_compsets, sort_x_by_y
 from pycalphad import variables as v
+import xarray as xr
 
 class StartPoint():
     def __init__(self, temperature, direction, compsets, composition=None):
@@ -149,6 +150,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
         conds[indep_comp_cond] = (0, 1, 0.005)  # composition grid
         hull = convex_hull(dbf, comps, phases, conds)
         hull = hull.sortby(np.abs(hull[str_comp] - average_comp))
+        # TODO: use masking on the composition cutoff so that find_two_phase_region_compsets can be used
         for i in range(hull.sizes[str_comp]):
             if np.abs(hull[str_comp][i] - average_comp) > cutoff_search_distance:
                 break

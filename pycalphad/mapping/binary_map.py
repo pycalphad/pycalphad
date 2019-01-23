@@ -1,12 +1,15 @@
 
+import time
 from copy import deepcopy
 from operator import pos, neg
 import numpy as np
 from pycalphad import equilibrium, variables as v
-from .utils import get_num_phases, close_to_same, close_zero_or_one, get_compsets, opposite_direction
+from .utils import close_to_same, close_zero_or_one, get_compsets, opposite_direction, convex_hull, find_two_phase_region_compsets
 from .start_points import StartPoint, find_three_phase_start_points, find_nearby_region_start_point
 from .zpf_boundary_sets import ZPFBoundarySets
 
+class StartingPointError(Exception):
+    pass
 
 def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, **plot_kwargs):
     # naive algorithm to map a binary phase diagram in T-X
@@ -19,31 +22,37 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     x_min, x_max, dx = conds[x_cond]
     T_min, T_max, dT = conds[v.T]
     curr_conds = deepcopy(conds)
+    tol_zero_one = tol_zero_one if tol_zero_one is not None else dx  # convergence tolerance
+    tol_same = tol_same if tol_same is not None else dx
+    zpf_boundaries = ZPFBoundarySets()
 
     start_points = []
 
     # find a starting point
-    # TODO: use convex hull to find the first two phase region from the left
-    starting_x = 0.1*(x_max - x_min)+x_min
     starting_T = starting_T_max = 0.9*(T_max - T_min)+T_min
+    time_start = time.time()
     while len(start_points) == 0:
         curr_conds[v.T] = starting_T
-        curr_conds[x_cond] = starting_x
-        eq_res = equilibrium(dbf, comps, phases, curr_conds)
-        if get_num_phases(eq_res) == 2:
-            # add a direction of dT > 0 and dT < 0
-            start_points.append(StartPoint(starting_T, pos, get_compsets(eq_res)))
-            start_points.append(StartPoint(starting_T, neg, get_compsets(eq_res)))
+        hull = convex_hull(dbf, comps, phases, curr_conds)
+        cs = find_two_phase_region_compsets(hull, str(x_cond), discrepancy_tol=np.max([tol_zero_one, tol_misc_gap, dx]))
+        if len(cs) == 2:
+            # verify that these show up in the equilibrium calculation
+            specific_conds = deepcopy(curr_conds)
+            specific_conds[x_cond] = np.mean([c.composition for c in cs])
+            eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds))
+            if len(eq_cs) == 2:
+                # add a direction of dT > 0 and dT < 0
+                zpf_boundaries.add_compsets(*eq_cs)
+                start_points.append(StartPoint(starting_T, pos, eq_cs))
+                start_points.append(StartPoint(starting_T, neg, eq_cs))
 
         if starting_T - dT > T_min:
             starting_T -= dT
         else:
-            starting_T = starting_T_max
-            starting_x += dx
+            raise StartingPointError("Unable to find an initial starting point.")
+    if verbose:
+        print("Found start points {} in {:0.2f}s".format(start_points, time.time()-time_start))
 
-    zpf_boundaries = ZPFBoundarySets()
-    tol_zero_one = tol_zero_one if tol_zero_one is not None else dx  # convergence tolerance
-    tol_same = tol_same if tol_same is not None else dx
     # Main loop
     while len(start_points) > 0:
         start_pt = start_points.pop()
