@@ -4,6 +4,7 @@ from copy import deepcopy
 from operator import pos, neg
 import numpy as np
 from pycalphad import equilibrium, variables as v
+from .compsets import BinaryCompSet
 from .utils import close_to_same, close_zero_or_one, get_compsets, opposite_direction, convex_hull, find_two_phase_region_compsets
 from .start_points import StartPoint, find_three_phase_start_points, find_nearby_region_start_point
 from .zpf_boundary_sets import ZPFBoundarySets
@@ -38,7 +39,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
         if len(cs) == 2:
             # verify that these show up in the equilibrium calculation
             specific_conds = deepcopy(curr_conds)
-            specific_conds[x_cond] = np.mean([c.composition for c in cs])
+            specific_conds[x_cond] = BinaryCompSet.mean_composition(cs)
             eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds))
             if len(eq_cs) == 2:
                 # add a direction of dT > 0 and dT < 0
@@ -87,7 +88,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     T_current = T_backtrack
                     continue
                 else:
-                    raise ValueError("Mapping error:" + found_str)
+                    raise ValueError("Mapping error:" + found_str + " Last two phase region: {}".format(prev_compsets))
             elif len(compsets) >= 3:
                 raise ValueError("Mapping error: found {} phases ({}) instead of 2".format(len(compsets), "/".join([c.phase_name for c in compsets])))
             else:
@@ -116,7 +117,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             if len(new_phases) == 1: # we found a new phase!
                 new_start_points = find_three_phase_start_points(compsets, prev_compsets, start_pt.direction)
                 if verbose:
-                    print("New start points {} from three phase equil. at T={}K and X={}".format(new_start_points, T_current, x_current))
+                    print("New start points {} from three phase equilibrium at T={}K and X={}".format(new_start_points, T_current, x_current))
                 start_points.extend(new_start_points)
                 converged = True
                 continue
@@ -132,13 +133,13 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     if len(matching_compsets) == 1:
                         # we are not currently in a miscibility gap
                         matching_cs = matching_compsets[0]
-                        same_phase_comp_diff = np.abs(cs.composition - matching_cs.composition)
+                        same_phase_comp_diff = cs.xdiscrepancy(matching_cs)
                         if same_phase_comp_diff > tol_misc_gap:
                             if verbose:
                                 print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
                             start_points.append(StartPoint(T_current, opposite_direction(start_pt.direction), [cs, matching_cs]))
 
             T_current += delta
-            x_current = np.mean([c.composition for c in compsets])
+            x_current = BinaryCompSet.mean_composition(compsets)
             prev_compsets = compsets
     return zpf_boundaries

@@ -1,6 +1,7 @@
 import numpy as np
 from operator import pos, neg
 from .utils import convex_hull, get_compsets, sort_x_by_y
+from .compsets import BinaryCompSet
 from pycalphad import variables as v
 import xarray as xr
 
@@ -13,7 +14,7 @@ class StartPoint():
             self.composition = composition
         else:
             # get the average composition from the compsets
-            self.composition = np.mean([c.composition for c in compsets])
+            self.composition = BinaryCompSet.mean_composition(compsets)
 
     def __repr__(self):
         phases = "/".join([c.phase_name for c in self.compsets])
@@ -131,7 +132,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     current_phases_set = set(current_phases)
     compositions = [c.composition for c in compsets]
     str_comp = str(indep_comp_cond)
-    average_comp = np.mean(compositions)
+    average_comp = BinaryCompSet.mean_composition(compsets)
     sorted_phases = sort_x_by_y(current_phases, compositions)  # phases sorted by min to max composition
 
     # first we'll search temperatures very close to the current temperature (shifted by dT/10, then we'll do a full dT, then dT+dT/10)

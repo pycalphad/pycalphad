@@ -136,4 +136,4 @@ class BinaryCompSet():
         np.float
 
         """
-        np.mean([c.composition for c in compsets])
+        return np.mean([c.composition for c in compsets])
