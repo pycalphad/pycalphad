@@ -1,0 +1,37 @@
+"""
+Plotting lines from ZPF boundaries in the same style as eqplot
+"""
+
+import pycalphad.variables as v
+import matplotlib.pyplot as plt
+from pycalphad.plot.eqplot import _axis_label
+
+
+def binary_plot(zpf_boundary_sets, comps, indep_comp_cond, tielines=True):
+    fig = plt.figure()
+    ax = fig.gca()
+    pths, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
+    for pth in pths:
+        # uncomment once the paths are actually paths and not just scatted points
+        # ax.plot(pth[0], pth[1], c=pth[2], markersize=3)
+        ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
+
+        if tielines:
+            tieline_tups = zpf_boundary_sets.get_plot_tielines()
+            for xs, ys, color in tieline_tups:
+                ax.plot(xs, ys, c=[0, 1, 0, 1], marker='None', zorder=1,
+                        linewidth=0.5)
+
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+    ax.legend(handles=legend_handles, loc='center left',
+              bbox_to_anchor=(1, 0.5))
+    ax.tick_params(axis='both', which='major', labelsize=14)
+    ax.grid(True)
+    plot_title = '-'.join(
+        [component for component in sorted(comps) if component != 'VA'])
+    ax.set_title(plot_title, fontsize=20)
+    ax.set_xlabel(_axis_label(indep_comp_cond), labelpad=15, fontsize=20)
+    ax.set_ylabel(_axis_label(v.T), fontsize=20)
+    ax.set_xlim(0, 1)
+
