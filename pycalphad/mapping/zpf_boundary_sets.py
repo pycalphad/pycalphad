@@ -1,6 +1,6 @@
 from collections import defaultdict
 from pycalphad.plot.utils import phase_legend
-
+from pycalphad.mapping.utils import sort_x_by_y
 
 class ZPFBoundarySets():
     def __init__(self, components, independent_component_statevar):
@@ -88,11 +88,16 @@ class ZPFBoundarySets():
                 continue
             x_boundary_dict = defaultdict(list)
             T_boundary_dict = defaultdict(list)
+            phase_name_lookup = dict()
             for compsets in boundary_set:
                 x_tieline = []
                 T_tieline = []
-                for c in compsets:
-                    phase_name = c.phase_name
+                # for miscibilty gap handling, we give each phase an id based
+                # on the order of the composition sets. w.r.t X
+                sorted_cs = sort_x_by_y(compsets, [c.composition for c in compsets])
+                for pid, c in enumerate(sorted_cs):
+                    phase_name = c.phase_name + str(pid)
+                    phase_name_lookup[phase_name] = c.phase_name
                     x_boundary_dict[phase_name].append(c.composition)
                     T_boundary_dict[phase_name].append(c.temperature)
                     x_tieline.append(c.composition)
@@ -103,7 +108,7 @@ class ZPFBoundarySets():
                     tieline_col = [1, 0, 0, 1]
                 tieline_tuples.append((x_tieline, T_tieline, tieline_col))
             for phase_name in x_boundary_dict.keys():
-                plot_tup = (x_boundary_dict[phase_name], T_boundary_dict[phase_name], colors[phase_name])
+                plot_tup = (x_boundary_dict[phase_name], T_boundary_dict[phase_name], colors[phase_name_lookup[phase_name]])
                 plot_tuples.append(plot_tup)
         return plot_tuples, tieline_tuples, legend_handles
 
