@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from pycalphad.plot.eqplot import _axis_label
 
 
-def binary_plot(zpf_boundary_sets, tielines=True):
+def binary_plot(zpf_boundary_sets, tielines=True, scatter=False):
     """
 
     Parameters
@@ -23,8 +23,10 @@ def binary_plot(zpf_boundary_sets, tielines=True):
     ax = fig.gca()
     pths, tieline_tups, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
     for pth in pths:
-        ax.plot(pth[0], pth[1], c=pth[2], markersize=3, zorder=2)
-        # ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
+        if scatter:
+            ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
+        else:
+            ax.plot(pth[0], pth[1], c=pth[2], markersize=3, zorder=2)
         if tielines:
             for xs, ys, color in tieline_tups:
                 ax.plot(xs, ys, c=color, marker='None', zorder=1, linewidth=0.5)
