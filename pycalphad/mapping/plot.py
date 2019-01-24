@@ -7,7 +7,18 @@ import matplotlib.pyplot as plt
 from pycalphad.plot.eqplot import _axis_label
 
 
-def binary_plot(zpf_boundary_sets, comps, indep_comp_cond, tielines=True):
+def binary_plot(zpf_boundary_sets, tielines=True):
+    """
+
+    Parameters
+    ----------
+    zpf_boundary_sets : pycalphad.mapping.zpf_boundary_sets.ZPFBoundarySets
+    tielines : bool
+
+    Returns
+    -------
+
+    """
     fig = plt.figure()
     ax = fig.gca()
     pths, tieline_tups, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
@@ -23,9 +34,9 @@ def binary_plot(zpf_boundary_sets, comps, indep_comp_cond, tielines=True):
     ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
     ax.tick_params(axis='both', which='major', labelsize=14)
     ax.grid(True)
-    plot_title = '-'.join([component for component in sorted(comps) if component != 'VA'])
+    plot_title = '-'.join([component for component in sorted(zpf_boundary_sets.components) if component != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlabel(_axis_label(indep_comp_cond), labelpad=15, fontsize=20)
+    ax.set_xlabel(_axis_label(zpf_boundary_sets.indep_comp), labelpad=15, fontsize=20)
     ax.set_ylabel(_axis_label(v.T), fontsize=20)
     ax.set_xlim(0, 1)
 

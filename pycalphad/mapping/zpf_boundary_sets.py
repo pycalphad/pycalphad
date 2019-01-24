@@ -3,12 +3,13 @@ from pycalphad.plot.utils import phase_legend
 
 
 class ZPFBoundarySets():
-    def __init__(self, ):
+    def __init__(self, components, independent_component_statevar):
         self.boundaries = defaultdict(list)
         self.compset_groups = []
         self.boundary_sets = [[]]
         self.current_boundary_set = self.boundary_sets[0]
-
+        self.components = components
+        self.indep_comp = independent_component_statevar
 
     def get_phases(self):
         """Get the phases in each boundary set

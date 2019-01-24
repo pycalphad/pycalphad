@@ -26,7 +26,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     curr_conds = deepcopy(conds)
     tol_zero_one = tol_zero_one if tol_zero_one is not None else dx  # convergence tolerance
     tol_same = tol_same if tol_same is not None else dx
-    zpf_boundaries = ZPFBoundarySets()
+    zpf_boundaries = ZPFBoundarySets(comps, x_cond)
 
     start_points = []
 
@@ -93,7 +93,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     # We might be stuck near a congruent point.
                     # Try to do a nearby search using the last known compsets
                     # If we can't find one, just continue.
-                    t_prev = prev_compsets[0].temperature
+                    T_prev = prev_compsets[0].temperature
                     new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, zpf_boundaries, T_prev, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
                     if new_start_point is not None:
                         if verbose:
