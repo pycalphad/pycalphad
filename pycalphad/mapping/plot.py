@@ -10,15 +10,13 @@ from pycalphad.plot.eqplot import _axis_label
 def binary_plot(zpf_boundary_sets, comps, indep_comp_cond, tielines=True):
     fig = plt.figure()
     ax = fig.gca()
-    pths, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
+    pths, tieline_tups, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
     for pth in pths:
-        # uncomment once the paths are actually paths and not just scatted points
-        # ax.plot(pth[0], pth[1], c=pth[2], markersize=3)
-        ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
+        ax.plot(pth[0], pth[1], c=pth[2], markersize=3, zorder=2)
+        # ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
         if tielines:
-            tieline_tups = zpf_boundary_sets.get_plot_tielines()
             for xs, ys, color in tieline_tups:
-                ax.plot(xs, ys, c=[0, 1, 0, 1], marker='None', zorder=1, linewidth=0.5)
+                ax.plot(xs, ys, c=color, marker='None', zorder=1, linewidth=0.5)
 
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])

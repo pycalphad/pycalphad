@@ -44,7 +44,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds, **eq_kwargs))
             if len(eq_cs) == 2:
                 # add a direction of dT > 0 and dT < 0
-                zpf_boundaries.add_compsets(*eq_cs)
+                zpf_boundaries.add_compsets(eq_cs)
                 start_points.append(StartPoint(starting_T, pos, eq_cs))
                 start_points.append(StartPoint(starting_T, neg, eq_cs))
 
@@ -57,6 +57,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
 
     # Main loop
     while len(start_points) > 0:
+        zpf_boundaries.add_boundary_set()
         start_pt = start_points.pop()
         delta = start_pt.direction(dT)
 
@@ -97,7 +98,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     if new_start_point is not None:
                         if verbose:
                             print("Failed to backtrack. Found new start point {} from convergence-like to same value at T={}K and X={}".format(new_start_point, T_prev, x_current))
-                        zpf_boundaries.add_compsets(*new_start_point.compsets)
+                        zpf_boundaries.add_compsets(new_start_point.compsets)
                         start_points.append(new_start_point)
                     converged = True
                     continue
@@ -111,17 +112,17 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             cs_1 = compsets[1].composition
             if close_zero_or_one(cs_0, tol_zero_one) and close_zero_or_one(cs_1, tol_zero_one):
                 converged = True
-                zpf_boundaries.add_compsets(*compsets)
+                zpf_boundaries.add_compsets(compsets)
                 continue
             if close_to_same(cs_0, cs_1, tol_same):
                 converged = True
-                zpf_boundaries.add_compsets(*compsets)
+                zpf_boundaries.add_compsets(compsets)
                 # find other two phase equilibrium
                 new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
                 if verbose:
                     print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
                 if new_start_point is not None:
-                    zpf_boundaries.add_compsets(*new_start_point.compsets)
+                    zpf_boundaries.add_compsets(new_start_point.compsets)
                     start_points.append(new_start_point)
                 continue
 
@@ -154,7 +155,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                             if verbose:
                                 print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
                             start_points.append(StartPoint(T_current, opposite_direction(start_pt.direction), [cs, matching_cs]))
-            zpf_boundaries.add_compsets(*compsets)
+            zpf_boundaries.add_compsets(compsets)
             T_current += delta
             x_current = BinaryCompSet.mean_composition(compsets)
             prev_compsets = compsets
