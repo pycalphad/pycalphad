@@ -2,6 +2,10 @@ import numpy as np
 
 
 class BinaryCompSet():
+    # tolerances for defining equality
+    SITE_FRAC_ATOL = 0.001
+    TEMPERATURE_ATOL = 0.1
+
     def __init__(self, phase_name, temperature, indep_comp, composition, site_fracs):
         self.phase_name = phase_name
         self.temperature = temperature
@@ -14,6 +18,15 @@ class BinaryCompSet():
 
     def __str__(self,):
         return self.__repr__()
+
+    def __eq__(self, other):
+        if hasattr(other, 'phase_name') and hasattr(other, 'site_fracs') and hasattr(other, 'temperature'):
+            same_phase = self.phase_name == other.phase_name
+            site_frac_close = np.all(np.isclose(self.site_fracs, other.site_fracs, atol=self.__class__.SITE_FRAC_ATOL))
+            temp_close = np.isclose(self.temperature, other.temperature, atol=self.__class__.TEMPERATURE_ATOL)
+            return same_phase and site_frac_close and temp_close
+        else:
+            return False
 
     @classmethod
     def from_dataset_vertex(cls, ds):

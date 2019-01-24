@@ -25,6 +25,66 @@ class StartPoint():
         return "StartPoint<T={}, dT=({}), X={}, Phases={}>".format(
             self.temperature, dir_str, self.composition, phases)
 
+    def __eq__(self, other):
+        """
+        Check for equality between two StartPoints.
+
+        Parameters
+        ----------
+        other : StartPoint
+
+        Returns
+        -------
+        bool
+
+        Notes
+        -----
+        Two StartPoints are equal if they are the same length and all the
+        compsets of self are equal to a compset of the other and they go
+        different directions.
+        """
+        if self.direction == other.direction and len(self.compsets) == len(other.compsets):
+            return all([c in other.compsets for c in self.compsets])
+        else:
+            return False
+
+
+class StartPointsList():
+    def __init__(self):
+        self.all_start_points = []
+        self.remaining_start_points = []
+
+    def __repr__(self):
+        pts_str = ", ".join([repr(p) for p in self.remaining_start_points])
+        return "[" + pts_str + "]"
+
+    def add_start_point(self, start_point, add_duplicates=False):
+        """
+        Add a start point
+
+        Parameters
+        ----------
+        start_point : StartPoint
+        add_duplicates : bool
+            Whether duplicate StartPoints can be added. Defaults to False.
+        """
+        if add_duplicates or start_point not in self.all_start_points:
+            self.all_start_points.append(start_point)
+            self.remaining_start_points.append(start_point)
+
+    def get_next_start_point(self,):
+        """
+        Return the next start point
+
+        Returns
+        -------
+        StartPoint
+
+        """
+        if len(self.remaining_start_points) > 0:
+            return self.remaining_start_points.pop(0)
+        else:
+            return None
 
 def find_three_phase_start_points(new_compsets, prev_compsets, direction):
     """
