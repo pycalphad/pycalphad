@@ -1,28 +1,62 @@
 from __future__ import print_function
 from operator import pos, neg
-import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_phases, filter_phases
-from pycalphad import calculate, Model
-from pycalphad.core.errors import EquilibriumError, ConditionError
-from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.codegen.callables import build_callables
-from pycalphad.core.solver import InteriorPointSolver
-from pycalphad.core.equilibrium import _adjust_conditions
-import dask
-from dask import delayed
-from xarray import Dataset
-from collections import OrderedDict
-from datetime import datetime
-
-from .compsets import BinaryCompSet
 import numpy as np
 
-def convex_hull(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, broadcast=True, calc_opts=None,
-                scheduler='sync',
-                parameters=None, solver=None, callables=None, **kwargs):
+from pycalphad import calculate, variables as v
+from pycalphad.core.errors import ConditionError
+from pycalphad.core.hyperplane import hyperplane
+from pycalphad.core.equilibrium import _adjust_conditions
+from pycalphad.core.cartesian import cartesian
+from pycalphad.core.constants import MIN_SITE_FRACTION
+from .compsets import BinaryCompSet
+
+def build_composition_grid(components, conditions):
     """
-    Quickly modified version of `equilibrium` that only calculates the lower convex hull.
+    Create a cartesion grid of compositions, including adding the dependent component.
+
+    Parameters
+    ----------
+    components : list of str
+        List of component names
+    conditions : dict
+        Dictionary of pycalphad conditions
+
+    Returns
+    -------
+    np.ndarray
+        2D array of (M compositions, N components)
+
+    """
+    comp_conds = sorted([x for x in conditions.keys() if isinstance(x, v.X)])
+
+    if len(comp_conds) > 0:
+        comp_values = cartesian([conditions[cond] for cond in comp_conds])
+        # Insert dependent composition value
+        # TODO: Handle W(comp) as well as X(comp) here
+        specified_components = {x.species.name for x in comp_conds}
+        all_comps = set(components) - {'VA'}
+        dependent_component = all_comps - specified_components
+        dependent_component = list(dependent_component)
+        if len(dependent_component) != 1:
+            raise ValueError('Number of dependent components is different from one')
+        else:
+            dependent_component = dependent_component[0]
+        insert_idx = sorted(all_comps).index(dependent_component)
+        comp_values = np.concatenate((comp_values[..., :insert_idx],
+                                      1 - np.sum(comp_values, keepdims=True, axis=-1),
+                                      comp_values[..., insert_idx:]),
+                                     axis=-1)
+        # Prevent compositions near an edge from going negative
+        comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
+        # TODO: Assumes N=1
+        comp_values /= comp_values.sum(axis=-1, keepdims=True)
+    return comp_values
+
+
+def convex_hull(dbf, comps, phases, conditions, model=None,
+                calc_opts=None, parameters=None, callables=None):
+    """
+    1D convex hull for fixed potentials.
 
     Parameters
     ----------
@@ -32,148 +66,70 @@ def convex_hull(dbf, comps, phases, conditions, output=None, model=None,
         Names of components to consider in the calculation.
     phases : list or dict
         Names of phases to consider in the calculation.
-    conditions : dict or (list of dict)
+    conditions : dict
         StateVariables and their corresponding value.
-    output : str or list of str, optional
-        Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
-        These must be defined as attributes in the Model class of each phase.
     model : Model, a dict of phase names to Model, or a seq of both, optional
         Model class to use for each phase.
-    verbose : bool, optional
-        Print details of calculations. Useful for debugging.
-    broadcast : bool
-        If True, broadcast conditions against each other. This will compute all combinations.
-        If False, each condition should be an equal-length list (or single-valued).
-        Disabling broadcasting is useful for calculating equilibrium at selected conditions,
-        when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
-    scheduler : Dask scheduler, optional
-        Job scheduler for performing the computation.
-        If None, return a Dask graph of the computation instead of actually doing it.
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
-    solver : pycalphad.core.solver.SolverBase
-        Instance of a solver that is used to calculate local equilibria.
-        Defaults to a pycalphad.core.solver.InteriorPointSolver.
     callables : dict, optional
         Pre-computed callable functions for equilibrium calculation.
 
     Returns
     -------
-    Structured equilibrium calculation, or Dask graph if scheduler=None.
+    tuple
+        Tuple of (Gibbs energies, phases, phase fractions, compositions, site fractions, chemical potentials)
 
-    Examples
-    --------
-    None yet.
+    Notes
+    -----
+    Assumes that potentials are fixed and there is just a 1d composition grid.
+    Minimizes the use of Dataset objects.
+
     """
-    if not broadcast:
-        raise NotImplementedError('Broadcasting cannot yet be disabled')
-    from pycalphad import __version__ as pycalphad_version
-    comps = sorted(unpack_components(dbf, comps))
-    phases = unpack_phases(phases) or sorted(dbf.phases.keys())
-    # remove phases that cannot be active
-    list_of_possible_phases = filter_phases(dbf, comps)
-    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
-    if len(list_of_possible_phases) == 0:
-        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
-    if len(active_phases) == 0:
-        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
-    if isinstance(comps, (str, v.Species)):
-        comps = [comps]
-    if len(set(comps) - set(dbf.species)) > 0:
-        raise EquilibriumError('Components not found in database: {}'
-                               .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-    indep_vars = ['T', 'P']
-    calc_opts = calc_opts if calc_opts is not None else dict()
-    model = model if model is not None else Model
-    solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
-    parameters = parameters if parameters is not None else dict()
-    if isinstance(parameters, dict):
-        parameters = OrderedDict(sorted(parameters.items(), key=str))
-    # Modify conditions values to be within numerical limits, e.g., X(AL)=0
-    # Also wrap single-valued conditions with lists
-    conds = _adjust_conditions(conditions)
-    for cond in conds.keys():
-        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
-            raise ConditionError('{} refers to non-existent component'.format(cond))
-    str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    num_calcs = np.prod([len(i) for i in str_conds.values()])
-    components = [x for x in sorted(comps)]
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
-    desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
-    pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    other_output_callables = {}
-    if verbose:
-        print('Components:', ' '.join([str(x) for x in comps]))
-        print('Phases:', end=' ')
-    output = output if output is not None else 'GM'
-    output = output if isinstance(output, (list, tuple, set)) else [output]
-    output = set(output)
-    output |= {'GM'}
-    output = sorted(output)
-    for o in output:
-        if o == 'GM':
-            eq_callables = build_callables(dbf, comps, active_phases, model=model,
-                                           parameters=parameters,
-                                           output=o, build_gradients=True, callables=callables,
-                                           verbose=verbose)
-        else:
-            other_output_callables[o] = build_callables(dbf, comps, active_phases, model=model,
-                                                        parameters=parameters,
-                                                        output=o, build_gradients=False,
-                                                        verbose=False)
-
-    phase_records = eq_callables['phase_records']
-    models = eq_callables['model']
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
-    if verbose:
-        print('[done]', end='\n')
+    calc_opts = calc_opts or {}
+    conditions = _adjust_conditions(conditions)
 
     # 'calculate' accepts conditions through its keyword arguments
-    grid_opts = calc_opts.copy()
-    grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
-    if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 500
-    coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
-    grid_shape = np.meshgrid(*coord_dict.values(),
-                             indexing='ij', sparse=False)[0].shape
-    coord_dict['component'] = pure_elements
+    if 'pdens' not in calc_opts:
+        calc_opts['pdens'] = 500
+    grid = calculate(dbf, comps, phases, T=conditions[v.T], P=conditions[v.P],
+                     parameters=parameters, fake_points=True, output='GM',
+                     callables=callables, model=model, **calc_opts)
 
-    grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, fake_points=True, callables=eq_callables,
-                                          parameters=parameters, **grid_opts)
+    # assume only one independent component
+    indep_comp_conds = [c for c in conditions if isinstance(c, v.X)]
+    num_indep_comp = len(indep_comp_conds)
+    if num_indep_comp != 1:
+        raise ConditionError(
+            "Convex hull independent components different than one.")
+    max_num_phases = (len(indep_comp_conds) + 1,)  # Gibbs phase rule
+    comp_grid = build_composition_grid(comps, conditions)
+    calc_grid_shape = comp_grid.shape[:-1]
+    num_comps = comp_grid.shape[-1:]
 
-    max_phase_name_len = max(len(name) for name in active_phases)
-    # Need to allow for '_FAKE_' psuedo-phase
-    max_phase_name_len = max(max_phase_name_len, 6)
+    grid_energy_values = grid.GM.values.squeeze()
+    grid_composition_values = grid.X.values.squeeze()
+    grid_site_frac_values = grid.Y.values.squeeze()
+    grid_phase_values = grid.Phase.values.squeeze()
+    # construct the arrays to pass to hyperplane
+    phase_fractions = np.empty(calc_grid_shape + max_num_phases)
+    chempots = np.empty(calc_grid_shape + num_comps)
+    simplex_points = np.empty(calc_grid_shape + max_num_phases, dtype=np.int32)
 
-    properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
-                                                      np.empty(grid_shape)),
-                                               'GM': (list(str_conds.keys()),
-                                                      np.empty(grid_shape[:-1])),
-                                               'MU': (list(str_conds.keys()) + ['component'],
-                                                      np.empty(grid_shape[:-1] + (len(pure_elements),))),
-                                               'X': (list(str_conds.keys()) + ['vertex', 'component'],
-                                                     np.empty(grid_shape + (len(pure_elements),))),
-                                               'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
-                                                     np.empty(grid_shape + (maximum_internal_dof,))),
-                                               'Phase': (list(str_conds.keys()) + ['vertex'],
-                                                         np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
-                                               'points': (list(str_conds.keys()) + ['vertex'],
-                                                          np.empty(grid_shape, dtype=np.int32))
-                                               },
-                                              coords=coord_dict,
-                                              attrs={'engine': 'pycalphad %s' % pycalphad_version},
-                                              )
-    # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, properties)
-    if scheduler is not None:
-        properties = dask.compute(properties, scheduler=scheduler)[0]
-    properties.attrs['created'] = datetime.utcnow().isoformat()
-    return properties
+    it = np.nditer(np.empty(calc_grid_shape), flags=['multi_index'])
+    while not it.finished:
+        idx = it.multi_index
+        hyperplane(grid_composition_values, grid_energy_values, comp_grid[idx],
+                   chempots[idx], phase_fractions[idx], simplex_points[idx])
+        it.iternext()
+    simplex_phases = grid_phase_values[simplex_points]  # shape: (calc_grid_shape + max_num_phases)
+    GM_values = grid_energy_values[simplex_points]  # shape: (calc_grid_shape + max_num_phases)
+    phase_compositions = grid_composition_values[simplex_points]  # shape: (calc_grid_shape + max_num_phases + num_comps)
+    phase_site_fracs = grid_site_frac_values[simplex_points]  # shape: (calc_grid_shape + max_num_phases + num_internal_dof)
 
+    return (GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots)
 
 def get_num_phases(eq_dataset):
     """Return the number of phases in equilibrium from an equilibrium dataset"""
