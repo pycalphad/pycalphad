@@ -13,7 +13,7 @@ from .zpf_boundary_sets import ZPFBoundarySets
 class StartingPointError(Exception):
     pass
 
-def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False, **plot_kwargs):
+def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
     # assumes conditions in T and X
