@@ -211,13 +211,11 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     # take the first result we get
     for trial_T, trial_direction in trial_Ts:
         conds[v.T] = trial_T
-        conds[indep_comp_cond] = (0, 1, 0.005)  # composition grid
+        conds[indep_comp_cond] = (np.min(compositions)-cutoff_search_distance, np.max(compositions)+cutoff_search_distance, 0.005)  # composition grid
         hull = convex_hull(dbf, comps, phases, conds)
         hull = hull.sortby(np.abs(hull[str_comp] - average_comp))
         # TODO: use masking on the composition cutoff so that find_two_phase_region_compsets can be used
         for i in range(hull.sizes[str_comp]):
-            if np.abs(hull[str_comp][i] - average_comp) > cutoff_search_distance:
-                break
             cur_hull = hull.isel({str_comp: i})
             trial_compsets = get_compsets(cur_hull)
             trial_phases = [c.phase_name for c in trial_compsets]
