@@ -1,6 +1,6 @@
 import numpy as np
 from operator import pos, neg
-from .utils import convex_hull, get_compsets, sort_x_by_y, opposite_direction
+from .utils import convex_hull, get_compsets, sort_x_by_y, opposite_direction, v_array
 from .compsets import BinaryCompSet
 from pycalphad import variables as v
 import xarray as xr
@@ -172,14 +172,16 @@ def find_three_phase_start_points(new_compsets, prev_compsets, direction):
     return start_points
 
 
-def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, temperature, dT,
+def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx, temperature, dT,
                                    conds, indep_comp_cond, cutoff_search_distance=0.1,
-                                   verbose=False, graceful=True):
+                                   verbose=False, graceful=True, hull_kwargs=None):
     """
     Return a starting point for a nearby region.
 
     Parameters
     ----------
+    dbf : pycalphad.Database
+
     compsets : list
     cutoff_search_distance : float
         Distance in composition to cutoff the search for new phases.
@@ -198,7 +200,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     current_phases = [c.phase_name for c in compsets]
     current_phases_set = set(current_phases)
     compositions = [c.composition for c in compsets]
-    str_comp = str(indep_comp_cond)
+    str_comp = str(indep_comp_cond.species.name)
     average_comp = BinaryCompSet.mean_composition(compsets)
     sorted_phases = sort_x_by_y(current_phases, compositions)  # phases sorted by min to max composition
 
@@ -211,13 +213,19 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     # take the first result we get
     for trial_T, trial_direction in trial_Ts:
         conds[v.T] = trial_T
-        conds[indep_comp_cond] = (np.min(compositions)-cutoff_search_distance, np.max(compositions)+cutoff_search_distance, 0.005)  # composition grid
-        hull = convex_hull(dbf, comps, phases, conds)
-        hull = hull.sortby(np.abs(hull[str_comp] - average_comp))
-        # TODO: use masking on the composition cutoff so that find_two_phase_region_compsets can be used
-        for i in range(hull.sizes[str_comp]):
-            cur_hull = hull.isel({str_comp: i})
-            trial_compsets = get_compsets(cur_hull)
+        conds[indep_comp_cond] = v_array(average_comp, cutoff_search_distance, 0.005)
+        hull = convex_hull(dbf, comps, phases, conds, **hull_kwargs)
+
+        out_phases, compositions, site_fracs = hull[1], hull[3], hull[4]
+        grid_shape = out_phases.shape[:-1]
+        num_phases = out_phases.shape[-1]
+        it = np.nditer(np.empty(grid_shape), flags=['multi_index'])  # empty grid for indexing
+        while not it.finished:
+            idx = it.multi_index
+            trial_compsets = []
+            for i in np.arange(num_phases):
+                compset = BinaryCompSet(str(out_phases[idx, i]), temperature, str_comp, compositions[idx, i, indep_comp_idx], site_fracs[idx, i, :])
+                trial_compsets.append(compset)
             trial_phases = [c.phase_name for c in trial_compsets]
             trial_phases_set = set(trial_phases)
             trial_compositions = [c.composition for c in trial_compsets]
@@ -227,12 +235,15 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
             # This might break in a miscibility gap.
             # Condition 1: Number of phases must be 2
             if len(trial_phases_set) != 2:
+                it.iternext()
                 continue
             # Condition 2: Must share one unique phase
             if len(current_phases_set.intersection(trial_phases_set)) < 1:
+                it.iternext()
                 continue
             # Condition 3: Ordering of the set of phases must be different
             if sorted_phases == sorted_trial_phases:
+                it.iternext()
                 continue
             # If we made it here, we found a match!
             sp = StartPoint(trial_T, trial_direction, trial_compsets)

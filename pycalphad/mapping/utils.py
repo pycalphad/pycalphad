@@ -10,6 +10,14 @@ from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from .compsets import BinaryCompSet
 
+
+def v_array(center, distance, step):
+    """create a grid like a "V" around a specific value going from inside to outside"""
+    xs = np.arange(0, distance, step).reshape(1, -1)
+    v = np.concatenate([xs, -1*xs]).reshape(-1, order='F') + center
+    return v[1:]
+
+
 def build_composition_grid(components, conditions):
     """
     Create a cartesion grid of compositions, including adding the dependent component.
@@ -162,7 +170,7 @@ def opposite_direction(direction):
     return neg if direction is pos else pos
 
 
-def find_two_phase_region_compsets(dataset, indep_comp_coord, discrepancy_tol=0.01):
+def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.01):
     """
     From a dataset at constant T and P, return the composition sets for a two
     phase region or that have the smallest index composition coordinate
@@ -179,11 +187,20 @@ def find_two_phase_region_compsets(dataset, indep_comp_coord, discrepancy_tol=0.
     list
         List of two composition sets for different phases
     """
-    for i in range(dataset.sizes[indep_comp_coord]):
-        cs = get_compsets(dataset.isel({indep_comp_coord: i}))
+    phases, compositions, site_fracs = hull_output[1], hull_output[3], hull_output[4]
+    grid_shape = phases.shape[:-1]
+    num_phases = phases.shape[-1]
+    it = np.nditer(np.empty(grid_shape), flags=['multi_index'])  # empty grid for indexing
+    while not it.finished:
+        idx = it.multi_index
+        cs = []
+        for i in np.arange(num_phases):
+            compset = BinaryCompSet(str(phases[idx, i]), temperature, indep_comp, compositions[idx, i, indep_comp_idx], site_fracs[idx, i, :])
+            cs.append(compset)
         if len(set([c.phase_name for c in cs])) == 2:
             # we found a multiphase region, return them if the discrepancy is
             # above the tolerance
             if cs[0].xdiscrepancy(cs[1], ignore_phase=True) > discrepancy_tol:
                 return cs
+        it.iternext()
     return []

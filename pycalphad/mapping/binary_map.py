@@ -4,6 +4,7 @@ from copy import deepcopy
 from operator import pos, neg
 import numpy as np
 from pycalphad import equilibrium, variables as v
+from pycalphad.codegen.callables import build_callables
 from .compsets import BinaryCompSet
 from .utils import close_to_same, close_zero_or_one, get_compsets, opposite_direction, convex_hull, find_two_phase_region_compsets
 from .start_points import StartPoint, find_three_phase_start_points, find_nearby_region_start_point, StartPointsList
@@ -18,8 +19,13 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     # assumes conditions in T and X
 
     eq_kwargs = eq_kwargs or {}
+    if 'callables' not in eq_kwargs:
+        eq_kwargs['callables'] = build_callables(dbf, comps, phases, build_gradients=True, model=eq_kwargs.get('model'))
+        eq_kwargs['model'] = eq_kwargs['callables']['model']
     # assumes only one composition
     x_cond = [c for c in conds.keys() if isinstance(c, v.Composition)][0]
+    indep_comp = x_cond.species.name
+    comp_idx = sorted(set(comps) - {'VA'}).index(indep_comp)
     # mapping conditions
     x_min, x_max, dx = conds[x_cond]
     T_min, T_max, dT = conds[v.T]
@@ -36,8 +42,8 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     max_startpoint_discrepancy = np.max([tol_zero_one, tol_same, dx])
     while len(start_points.all_start_points) == 0:
         curr_conds[v.T] = starting_T
-        hull = convex_hull(dbf, comps, phases, curr_conds)
-        cs = find_two_phase_region_compsets(hull, str(x_cond), discrepancy_tol=max_startpoint_discrepancy)
+        hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
+        cs = find_two_phase_region_compsets(hull, starting_T, indep_comp, comp_idx, discrepancy_tol=max_startpoint_discrepancy)
         if len(cs) == 2:
             # verify that these show up in the equilibrium calculation
             specific_conds = deepcopy(curr_conds)
@@ -95,7 +101,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     # Try to do a nearby search using the last known compsets
                     # If we can't find one, just continue.
                     T_prev = prev_compsets[0].temperature
-                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, zpf_boundaries, T_prev, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
+                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, comp_idx, T_prev, dT, deepcopy(curr_conds), x_cond, verbose=verbose, hull_kwargs=eq_kwargs)
                     if new_start_point is not None:
                         if verbose:
                             print("Failed to backtrack. Found new start point {} from convergence-like to same value at T={}K and X={}".format(new_start_point, T_prev, x_current))
@@ -119,7 +125,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 converged = True
                 zpf_boundaries.add_compsets(compsets)
                 # find other two phase equilibrium
-                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose)
+                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, comp_idx, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose, hull_kwargs=eq_kwargs)
                 if verbose:
                     print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
                 if new_start_point is not None:
