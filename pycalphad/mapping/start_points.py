@@ -206,10 +206,6 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     trial_Ts = [
         (temperature - dT / 10.0, neg),
         (temperature + dT / 10.0, pos),
-        (temperature - dT, neg),
-        (temperature + dT, pos),
-        (temperature - dT - dT / 10.0, neg),
-        (temperature + dT + dT / 10.0, pos),
     ]
 
     # take the first result we get
