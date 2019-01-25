@@ -31,12 +31,13 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     start_points = StartPointsList()
 
     # find a starting point
-    starting_T = starting_T_max = 0.9*(T_max - T_min)+T_min
+    starting_T = 0.9*(T_max - T_min)+T_min
     time_start = time.time()
+    max_startpoint_discrepancy = np.max([tol_zero_one, tol_same, dx])
     while len(start_points.all_start_points) == 0:
         curr_conds[v.T] = starting_T
         hull = convex_hull(dbf, comps, phases, curr_conds)
-        cs = find_two_phase_region_compsets(hull, str(x_cond), discrepancy_tol=np.max([tol_zero_one, tol_misc_gap, dx]))
+        cs = find_two_phase_region_compsets(hull, str(x_cond), discrepancy_tol=max_startpoint_discrepancy)
         if len(cs) == 2:
             # verify that these show up in the equilibrium calculation
             specific_conds = deepcopy(curr_conds)

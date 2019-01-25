@@ -179,10 +179,13 @@ def get_num_phases(eq_dataset):
     """Return the number of phases in equilibrium from an equilibrium dataset"""
     return int(np.sum(eq_dataset.Phase.values != '', axis=-1, dtype=np.int))
 
-
-def get_compsets(eq_dataset):
+def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
     """Return a list of composition sets in an equilibrium dataset."""
-    return [BinaryCompSet.from_dataset_vertex(eq_dataset.isel(vertex=vtx)) for vtx in range(get_num_phases(eq_dataset))]
+    if indep_comp is None:
+        indep_comp = [c for c in eq_dataset.coords if 'X_' in c][0][2:]
+    if indep_comp_index is None:
+        indep_comp_index = eq_dataset.component.values.tolist().index(indep_comp)
+    return BinaryCompSet.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
 
 
 def close_zero_or_one(val, tol):

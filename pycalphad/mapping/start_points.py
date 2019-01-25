@@ -202,7 +202,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, zpf_boundaries,
     average_comp = BinaryCompSet.mean_composition(compsets)
     sorted_phases = sort_x_by_y(current_phases, compositions)  # phases sorted by min to max composition
 
-    # first we'll search temperatures very close to the current temperature (shifted by dT/10, then we'll do a full dT, then dT+dT/10)
+    # first we'll search temperatures very close to the current temperature (shifted by dT/10)
     trial_Ts = [
         (temperature - dT / 10.0, neg),
         (temperature + dT / 10.0, pos),
