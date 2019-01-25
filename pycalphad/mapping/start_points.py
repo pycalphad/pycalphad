@@ -224,7 +224,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
             idx = it.multi_index
             trial_compsets = []
             for i in np.arange(num_phases):
-                compset = BinaryCompSet(str(out_phases[idx, i]), temperature, str_comp, compositions[idx, i, indep_comp_idx], site_fracs[idx, i, :])
+                compset = BinaryCompSet(str(out_phases[idx][i]), temperature, str_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
                 trial_compsets.append(compset)
             trial_phases = [c.phase_name for c in trial_compsets]
             trial_phases_set = set(trial_phases)

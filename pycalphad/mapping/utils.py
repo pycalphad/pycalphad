@@ -195,7 +195,7 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
         idx = it.multi_index
         cs = []
         for i in np.arange(num_phases):
-            compset = BinaryCompSet(str(phases[idx, i]), temperature, indep_comp, compositions[idx, i, indep_comp_idx], site_fracs[idx, i, :])
+            compset = BinaryCompSet(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
             cs.append(compset)
         if len(set([c.phase_name for c in cs])) == 2:
             # we found a multiphase region, return them if the discrepancy is
