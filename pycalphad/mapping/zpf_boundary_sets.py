@@ -1,6 +1,8 @@
 from collections import defaultdict
 from pycalphad.plot.utils import phase_legend
 from pycalphad.mapping.utils import sort_x_by_y
+from matplotlib.collections import LineCollection
+import numpy as np
 
 class ZPFBoundarySets():
     def __init__(self, components, independent_component_statevar):
@@ -82,7 +84,8 @@ class ZPFBoundarySets():
         """
         legend_handles, colors = phase_legend(self.get_phases())
         plot_tuples = []
-        tieline_tuples = []
+        tieline_segments = []  # list of [ [x0, y0],[x1, y1] ]
+        tieline_colors = []
         for boundary_set in self.boundary_sets:
             if len(boundary_set) < 1:
                 continue
@@ -106,11 +109,14 @@ class ZPFBoundarySets():
                     tieline_col = [0, 1, 0, 1]
                 elif len(x_tieline) == 3:
                     tieline_col = [1, 0, 0, 1]
-                tieline_tuples.append((x_tieline, T_tieline, tieline_col))
+                tieline_segments.append(np.array([x_tieline, T_tieline]).T)
+                tieline_colors.append(tieline_col)
             for phase_name in x_boundary_dict.keys():
                 plot_tup = (x_boundary_dict[phase_name], T_boundary_dict[phase_name], colors[phase_name_lookup[phase_name]])
                 plot_tuples.append(plot_tup)
-        return plot_tuples, tieline_tuples, legend_handles
+        # TODO: might break for mixed 2 point and 3 point tielines, need to make list of line collections
+        tieline_collection = LineCollection(tieline_segments, zorder=1, linewidths=0.5, colors=tieline_colors)
+        return plot_tuples, tieline_collection, legend_handles
 
 
     def get_plot_tielines(self):

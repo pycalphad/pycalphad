@@ -21,16 +21,14 @@ def binary_plot(zpf_boundary_sets, tielines=True, scatter=False):
     """
     fig = plt.figure()
     ax = fig.gca()
-    pths, tieline_tups, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
+    pths, tieline_coll, legend_handles = zpf_boundary_sets.get_plot_boundary_paths()
     for pth in pths:
         if scatter:
             ax.scatter(pth[0], pth[1], c=pth[2], edgecolor='None', s=3, zorder=2)
         else:
             ax.plot(pth[0], pth[1], c=pth[2], markersize=3, zorder=2)
         if tielines:
-            for xs, ys, color in tieline_tups:
-                ax.plot(xs, ys, c=color, marker='None', zorder=1, linewidth=0.5)
-
+            ax.add_collection(tieline_coll)
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
     ax.legend(handles=legend_handles, loc='center left', bbox_to_anchor=(1, 0.5))
