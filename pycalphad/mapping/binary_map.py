@@ -13,7 +13,9 @@ from .zpf_boundary_sets import ZPFBoundarySets
 class StartingPointError(Exception):
     pass
 
-def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None, max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False):
+def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None,
+                max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False,
+                initial_start_points=None):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
     # assumes conditions in T and X
@@ -35,12 +37,19 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     zpf_boundaries = ZPFBoundarySets(comps, x_cond)
 
     start_points = StartPointsList()
+    if initial_start_points is not None:
+        if isinstance(initial_start_points, StartPoint):
+            start_points.add_start_point(initial_start_points)
+        else:
+            # assume an iterable
+            for sp in initial_start_points:
+                start_points.add_start_point(sp)
 
     # find a starting point
     starting_T = 0.9*(T_max - T_min)+T_min
     time_start = time.time()
     max_startpoint_discrepancy = np.max([tol_zero_one, tol_same, dx])
-    while len(start_points.all_start_points) == 0:
+    while len(start_points.all_start_points) < 1:
         curr_conds[v.T] = starting_T
         hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
         cs = find_two_phase_region_compsets(hull, starting_T, indep_comp, comp_idx, discrepancy_tol=max_startpoint_discrepancy)
