@@ -15,6 +15,7 @@ class StartingPointError(Exception):
 
 def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None,
                 max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False,
+                startpoint_comp_tol=0.05, startpoint_temp_tol=20,
                 initial_start_points=None):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
@@ -36,7 +37,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
     tol_same = tol_same if tol_same is not None else dx
     zpf_boundaries = ZPFBoundarySets(comps, x_cond)
 
-    start_points = StartPointsList()
+    start_points = StartPointsList(eq_comp_tol=startpoint_comp_tol, eq_temp_tol=startpoint_temp_tol)
     if initial_start_points is not None:
         if isinstance(initial_start_points, StartPoint):
             start_points.add_start_point(initial_start_points)
@@ -110,7 +111,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     # Try to do a nearby search using the last known compsets
                     # If we can't find one, just continue.
                     T_prev = prev_compsets[0].temperature
-                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, comp_idx, T_prev, dT, deepcopy(curr_conds), x_cond, verbose=verbose, hull_kwargs=eq_kwargs)
+                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, comp_idx, T_prev, dT, deepcopy(curr_conds), x_cond, start_points, verbose=verbose, hull_kwargs=eq_kwargs)
                     if new_start_point is not None:
                         if verbose:
                             print("Failed to backtrack. Found new start point {} from convergence-like to same value at T={}K and X={}".format(new_start_point, T_prev, x_current))
@@ -134,12 +135,11 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 converged = True
                 zpf_boundaries.add_compsets(compsets)
                 # find other two phase equilibrium
-                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, comp_idx, T_current, dT, deepcopy(curr_conds), x_cond, verbose=verbose, hull_kwargs=eq_kwargs)
+                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, comp_idx, T_current, dT, deepcopy(curr_conds), x_cond, start_points, verbose=verbose, hull_kwargs=eq_kwargs)
                 if new_start_point is not None:
                     if verbose:
                         print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
                     zpf_boundaries.add_compsets(new_start_point.compsets)
-                    start_points.add_start_point(new_start_point)
                 elif verbose:
                     print("Converged to same value at T={}K and X={}. No new start point found.".format(T_current, x_current))
                 continue

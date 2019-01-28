@@ -1,9 +1,9 @@
 import numpy as np
 from operator import pos, neg
-from .utils import convex_hull, get_compsets, sort_x_by_y, opposite_direction, v_array
+from .utils import convex_hull, sort_x_by_y, opposite_direction, v_array
 from .compsets import BinaryCompSet
 from pycalphad import variables as v
-import xarray as xr
+
 
 class StartPoint():
     def __init__(self, temperature, direction, compsets, composition=None):
@@ -25,7 +25,7 @@ class StartPoint():
         return "StartPoint<T={}, dT=({}), X={}, Phases={}>".format(
             self.temperature, dir_str, self.composition, phases)
 
-    def __eq__(self, other):
+    def isduplicate(self, other, comp_tol=0.01, temp_tol=1):
         """
         Check for equality between two StartPoints.
 
@@ -40,19 +40,27 @@ class StartPoint():
         Notes
         -----
         Two StartPoints are equal if they are the same length and all the
-        compsets of self are equal to a compset of the other and they go
-        different directions.
+        overall compositions are equal, and if they go the same direction.
+        The order of the composition sets has to also be the same, such that
+        two StartPoints that are on either side of a congruent (for example)
+        are not equivalent.
         """
         if self.direction == other.direction and len(self.compsets) == len(other.compsets):
-            return all([c in other.compsets for c in self.compsets])
+            dup = all([any([c.isclose(o, comp_tol=comp_tol, temp_tol=temp_tol) for o in other.compsets]) for c in self.compsets])
+            self_phases = [c.phase_name for c in BinaryCompSet.composition_sorted(self.compsets)]
+            other_phases = [c.phase_name for c in BinaryCompSet.composition_sorted(other.compsets)]
+            order_is_same = self_phases == other_phases
+            return dup and order_is_same
         else:
             return False
 
 
 class StartPointsList():
-    def __init__(self):
+    def __init__(self, eq_comp_tol=0.01, eq_temp_tol=1):
         self.all_start_points = []
         self.remaining_start_points = []
+        self.eq_comp_tol = eq_comp_tol
+        self.eq_temp_tol = eq_temp_tol
 
     def __repr__(self):
         pts_str = ", ".join([repr(p) for p in self.remaining_start_points])
@@ -67,10 +75,18 @@ class StartPointsList():
         start_point : StartPoint
         add_duplicates : bool
             Whether duplicate StartPoints can be added. Defaults to False.
+
+        Returns
+        -------
+        bool
+            True if a start point was added, False otherwise
         """
-        if add_duplicates or start_point not in self.all_start_points:
+        found_duplicates = any([start_point.isduplicate(sp, self.eq_comp_tol, self.eq_temp_tol) for sp in self.all_start_points])
+        if add_duplicates or not found_duplicates:
             self.all_start_points.append(start_point)
             self.remaining_start_points.append(start_point)
+            return True
+        return False
 
     def get_next_start_point(self,):
         """
@@ -173,7 +189,7 @@ def find_three_phase_start_points(new_compsets, prev_compsets, direction):
 
 
 def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx, temperature, dT,
-                                   conds, indep_comp_cond, cutoff_search_distance=0.1,
+                                   conds, indep_comp_cond, start_point_list, cutoff_search_distance=0.1,
                                    verbose=False, graceful=True, hull_kwargs=None):
     """
     Return a starting point for a nearby region.
@@ -185,6 +201,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
     compsets : list
     cutoff_search_distance : float
         Distance in composition to cutoff the search for new phases.
+    start_point_list : StartPointsList
 
     The idea here is that the compsets have converged to each other (e.g. at a congruent melting point)
     and we've mapped out one side of the point and need to find the other side.
@@ -245,11 +262,14 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
             if sorted_phases == sorted_trial_phases:
                 it.iternext()
                 continue
-            # If we made it here, we found a match!
+            # If we made it here, we found a potential match!
             sp = StartPoint(trial_T, trial_direction, trial_compsets)
+            if start_point_list.add_start_point(sp):
+                return sp # We found a valid start point
+            else:
+                it.iternext()
+                continue  # We didn't find a valid start point, keep going.
             # Don't add boundaries because this is an inaccurate set
-            # zpf_boundaries.add_compsets(*trial_compsets)
-            return sp
     if graceful:
         return
     else:

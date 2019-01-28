@@ -28,6 +28,12 @@ class BinaryCompSet():
         else:
             return False
 
+    def isclose(self, other, comp_tol=0.01, temp_tol=1):
+        if self.phase_name == other.phase_name:
+            if self.xdiscrepancy(other) < comp_tol and self.Tdiscrepancy(other) < temp_tol:
+                return True
+        return False
+
     @classmethod
     def from_dataset_vertices(cls, ds, indep_comp, indep_comp_idx, num_vertex):
         compsets = []
@@ -154,3 +160,21 @@ class BinaryCompSet():
 
         """
         return np.mean([c.composition for c in compsets])
+
+
+    @staticmethod
+    def composition_sorted(compsets):
+        """
+        Sort the BinaryCompSets by increasing composition
+
+        Parameters
+        ----------
+        compsets : list
+            List of BinaryCompSet objects
+
+        Returns
+        -------
+        list
+        """
+        _composition_key_func = lambda c: c.composition
+        return sorted(compsets, key=_composition_key_func)
