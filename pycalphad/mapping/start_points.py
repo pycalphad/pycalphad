@@ -22,7 +22,7 @@ class StartPoint():
             dir_str = "+"
         else:
             dir_str = "-"
-        return "StartPoint<T={}, dT=({}), X={}, Phases={}>".format(
+        return "StartPoint<T={:0.2f}, dT=({}), X={:0.3f}, Phases={}>".format(
             self.temperature, dir_str, self.composition, phases)
 
     def isduplicate(self, other, comp_tol=0.01, temp_tol=1):
@@ -57,7 +57,7 @@ class StartPoint():
 
 class StartPointsList():
     def __init__(self, eq_comp_tol=0.01, eq_temp_tol=1):
-        self.all_start_points = []
+        self.visited_start_points = []
         self.remaining_start_points = []
         self.eq_comp_tol = eq_comp_tol
         self.eq_temp_tol = eq_temp_tol
@@ -65,6 +65,39 @@ class StartPointsList():
     def __repr__(self):
         pts_str = ", ".join([repr(p) for p in self.remaining_start_points])
         return "[" + pts_str + "]"
+
+
+    def contains_start_point(self, start_point):
+        """
+        Return True if the start_point is already in the list of all start points.
+
+        Parameters
+        ----------
+        start_point : StartPoint
+
+        Returns
+        -------
+        bool
+
+        """
+        in_visited = any([start_point.isduplicate(sp, self.eq_comp_tol, self.eq_temp_tol) for sp in self.visited_start_points])
+        in_remanining = any([start_point.isduplicate(sp, self.eq_comp_tol, self.eq_temp_tol) for sp in self.remaining_start_points])
+        return in_visited or in_remanining
+
+    def visited_start_point(self, start_point):
+        """
+        Return True if the start_point has already been visited.
+
+        Parameters
+        ----------
+        start_point : StartPoint
+
+        Returns
+        -------
+        bool
+
+        """
+        return any([start_point.isduplicate(sp, self.eq_comp_tol, self.eq_temp_tol) for sp in self.visited_start_points])
 
     def add_start_point(self, start_point, add_duplicates=False):
         """
@@ -81,12 +114,22 @@ class StartPointsList():
         bool
             True if a start point was added, False otherwise
         """
-        found_duplicates = any([start_point.isduplicate(sp, self.eq_comp_tol, self.eq_temp_tol) for sp in self.all_start_points])
-        if add_duplicates or not found_duplicates:
-            self.all_start_points.append(start_point)
+        if add_duplicates or not self.contains_start_point(start_point):
             self.remaining_start_points.append(start_point)
             return True
         return False
+
+
+    def add_end_point(self, end_point):
+        """
+        Add a "start point" in the opposite direction of a current
+
+        Parameters
+        ----------
+        end_point : StartPoint
+        """
+        if not self.contains_start_point(end_point):
+            self.visited_start_points.append(end_point)
 
     def get_next_start_point(self,):
         """
@@ -97,8 +140,11 @@ class StartPointsList():
         StartPoint
 
         """
-        if len(self.remaining_start_points) > 0:
-            return self.remaining_start_points.pop(0)
+        while len(self.remaining_start_points) > 0:
+            candidate_start_point = self.remaining_start_points.pop(0)
+            if not self.visited_start_point(candidate_start_point):
+                self.visited_start_points.append(candidate_start_point)
+                return candidate_start_point
         else:
             return None
 
