@@ -3,9 +3,10 @@ pycalphad, a Python library for the CALculation of PHAse Diagrams
 
 The MIT License (MIT)
 
-Copyright (c) 2014-2017 Richard Otis
-Copyright (c) 2016-2017 Brandon Bocklund
-Copyright (c) 2016-2017 California Institute of Technology
+Copyright (c) 2014-2019 Richard Otis and Zi-Kui Liu
+Copyright (c) 2016-2019 Brandon Bocklund
+Copyright (c) 2016-2019 California Institute of Technology
+Copyright (c) 2018-2019 Materials Genome Foundation
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
