@@ -260,12 +260,10 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
     3. The ordering of the phases w.r.t composition are different e.g. (X(LIQUID)>X(CU2MG) in one set vs. X(LIQUID)<X(CU2MG) in another set)
     for the positive and negative directions.
     """
-    current_phases = [c.phase_name for c in compsets]
-    current_phases_set = set(current_phases)
-    compositions = [c.composition for c in compsets]
     str_comp = str(indep_comp_cond.species.name)
     average_comp = BinaryCompSet.mean_composition(compsets)
-    sorted_phases = sort_x_by_y(current_phases, compositions)  # phases sorted by min to max composition
+    sorted_phases = [c.phase_name for c in BinaryCompSet.composition_sorted(compsets)]  # phases sorted by min to max composition
+    current_phases_set = set(sorted_phases)
 
     # first we'll search temperatures very close to the current temperature (shifted by dT/10)
     trial_Ts = [
