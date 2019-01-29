@@ -48,7 +48,9 @@ cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
                         double[::1] composition,
                         double[::1] chemical_potentials,
+                        double total_moles,
                         size_t[::1] fixed_chempot_indices,
+                        size_t[::1] fixed_comp_indices,
                         double[::1] result_fractions,
                         int[::1] result_simplex) except *:
     """
@@ -70,12 +72,16 @@ cpdef double hyperplane(double[:,::1] compositions,
     chemical_potentials : ndarray
         Shape of (N,)
         Will be overwritten
+    total_moles : double
+        Total number of moles in the system.
     fixed_chempot_indices : ndarray
+        Variable shape from (0,) to (N-1,)
+    fixed_comp_indices : ndarray
         Variable shape from (0,) to (N-1,)
     result_fractions : ndarray
         Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
         Will be overwritten. Output sums to 1.
-    best_guess_simplex : ndarray
+    result_simplex : ndarray
         Energies of the points making up the hyperplane simplex. Shape of (P,).
         Will be overwritten. Output*result_fractions sums to out_energy (return value).
 
@@ -97,8 +103,9 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int num_components = compositions.shape[1]
     cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
     cdef int simplex_size = num_components - num_fixed_chempots
-    cdef size_t[::1] included_composition_indices = \
-        np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)), dtype=np.uint64)
+    # composition index of -1 indicates total number of moles, i.e., N=1 condition
+    cdef int[::1] included_composition_indices = \
+        np.array(sorted(fixed_comp_indices) + [-1], dtype=np.int32)
     cdef int[::1] best_guess_simplex = np.array(included_composition_indices.copy(), dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
     cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
@@ -121,7 +128,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int min_df
     cdef int max_iterations = 1000
     cdef int iterations = 0
-    cdef int idx
+    cdef int idx, ici
 
     while iterations < max_iterations:
         iterations += 1
@@ -129,14 +136,24 @@ cpdef double hyperplane(double[:,::1] compositions,
             smallest_fractions[i] = 0
             for j in range(simplex_size):
                 for k in range(trial_matrix.shape[0]):
-                    trial_matrix[k, j, i] = compositions[trial_simplices[i,j], included_composition_indices[k]]
+                    ici = included_composition_indices[k]
+                    if ici > 0:
+                        trial_matrix[k, j, i] = compositions[trial_simplices[i,j], ici]
+                    else:
+                        # ici = -1, refers to N=1 condition
+                        trial_matrix[k, j, i] = 1 # 1 mole-formula per formula unit of a phase
                 if iterations > 1:
                     if trial_simplices[i,j] < result_fractions.shape[0]:
                         smallest_fractions[i] -= 1
         for i in range(simplex_size):
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             for j in range(fractions.shape[1]):
-                fractions[i, j] = composition[included_composition_indices[j]]
+                ici = included_composition_indices[j]
+                if ici > 0:
+                    fractions[i, j] = composition[ici]
+                else:
+                    # ici = -1, refers to N=1 condition
+                    fractions[i, j] = total_moles
             solve(f_contig_trial, fractions[i, :], int_tmp)
             smallest_fractions[i] += min(fractions[i, :])
         # Choose simplex with the largest smallest-fraction
