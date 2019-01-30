@@ -62,8 +62,9 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             if len(eq_cs) == 2:
                 # add a direction of dT > 0 and dT < 0
                 zpf_boundaries.add_compsets(eq_cs)
-                start_points.add_start_point(StartPoint(starting_T, pos, eq_cs))
-                start_points.add_start_point(StartPoint(starting_T, neg, eq_cs))
+                # shift starting_T so they start at the same place.
+                start_points.add_start_point(StartPoint(starting_T - dT, pos, eq_cs))
+                start_points.add_start_point(StartPoint(starting_T + dT, neg, eq_cs))
 
         if starting_T - dT > T_min:
             starting_T -= dT
