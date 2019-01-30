@@ -45,6 +45,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     comp_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component'].values))
                                  if 'X_'+x in comp_conds])
+    comp_conds_indices = np.array(comp_conds_indices, dtype=np.uint64)
     pot_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('MU_')])
     pot_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component'].values))
                                 if 'MU_'+x in pot_conds])
@@ -55,26 +56,21 @@ def lower_convex_hull(global_grid, state_variables, result_array):
 
     if len(comp_conds) > 0:
         cart_values = cartesian([result_array.coords[cond] for cond in comp_conds])
-        # TODO: Handle W(comp) as well as X(comp) here
-        specified_components = {x[2:] for x in comp_conds} | {x[3:] for x in pot_conds}
-        dependent_component = set(result_array.coords['component'].values) - specified_components
-        dependent_component = list(dependent_component)
-        if len(dependent_component) != 1:
-            raise ValueError('Number of dependent components is different from one')
-        insert_idx = sorted(result_array.coords['component'].values).index(dependent_component[0])
-
-        comp_values = np.zeros(cart_values.shape[:-1] + (len(result_array.coords['component'].values),))
-        for idx in range(comp_values.shape[-1]):
-            if idx in comp_conds_indices:
-                comp_values[..., idx] = cart_values[..., comp_conds_indices.index(idx)]
-            elif idx in pot_conds_indices:
-                comp_values[..., idx] = 0
-            elif idx == insert_idx:
-                comp_values[..., idx] = 1 - np.sum(cart_values, keepdims=False, axis=-1)
-            else:
-                raise ValueError('Component indexing internal error')
-        # Prevent compositions near an edge from going negative
-        comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
+    else:
+        cart_values = np.atleast_2d(1.)
+    # TODO: Handle W(comp) as well as X(comp) here
+    comp_values = np.zeros(cart_values.shape[:-1] + (len(result_array.coords['component'].values),))
+    for idx in range(comp_values.shape[-1]):
+        if idx in comp_conds_indices:
+            comp_values[..., idx] = cart_values[..., np.where(comp_conds_indices == idx)[0]]
+        elif idx in pot_conds_indices:
+            # Composition value not used
+            comp_values[..., idx] = 0
+        else:
+            # Dependent component (composition value not used)
+            comp_values[..., idx] = 0
+    # Prevent compositions near an edge from going negative
+    comp_values[np.nonzero(comp_values < MIN_SITE_FRACTION)] = MIN_SITE_FRACTION*10
 
     if len(pot_conds) > 0:
         cart_pot_values = cartesian([result_array.coords[cond] for cond in pot_conds])
@@ -125,7 +121,8 @@ def lower_convex_hull(global_grid, state_variables, result_array):
         idx_result_array_points_values = result_array_points_values[it.multi_index]
         result_array_GM_values[it.multi_index] = \
             hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
-                       idx_comp_values, idx_result_array_MU_values, pot_conds_indices,
+                       idx_comp_values, idx_result_array_MU_values, float(grid.N),
+                       pot_conds_indices, comp_conds_indices,
                        idx_result_array_NP_values, idx_result_array_points_values)
         # Copy phase values out
         points = result_array_points_values[it.multi_index]
