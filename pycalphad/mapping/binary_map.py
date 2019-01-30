@@ -14,8 +14,8 @@ class StartingPointError(Exception):
     pass
 
 def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol_misc_gap=0.1, eq_kwargs=None,
-                max_T_backtracks=5, T_backtrack_factor=2, verbose=False, veryverbose=False, backtrack_raise=False,
-                startpoint_comp_tol=0.05, startpoint_temp_tol=20,
+                max_T_backtracks=5, T_backtrack_factor=2, backtrack_raise=False,
+                startpoint_comp_tol=0.05, startpoint_temp_tol=20, verbosity=0,
                 initial_start_points=None):
     # naive algorithm to map a binary phase diagram in T-X
     # for each temperature, proceed along increasing composition, skipping two phase regions
@@ -70,7 +70,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             starting_T -= dT
         else:
             raise StartingPointError("Unable to find an initial starting point.")
-    if verbose:
+    if verbosity >= 1:
         print("Found start points {} in {:0.2f}s".format(start_points, time.time()-time_start))
 
     # Main loop
@@ -81,8 +81,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
         delta = curr_direction(dT)
 
         prev_compsets = start_pt.compsets
-        d_str = "+" if curr_direction is pos else "-"
-        if verbose:
+        if verbosity >= 1:
             print("Entering region {}".format(start_pt))
         T_current = start_pt.temperature + delta
         x_current = start_pt.composition
@@ -93,14 +92,14 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 converged = True
                 end_point = StartPoint(T_current, opposite_direction(curr_direction), compsets)
                 start_points.add_end_point(end_point)
-                if veryverbose:
-                    print("Adding end point {}".format(end_point))
+                if verbosity >= 2:
+                    print("Terminating at end point from temperature outside of bounds ({}, {}) at {}".format(T_min, T_max, end_point))
                 continue
             curr_conds[v.T] = T_current
             curr_conds[x_cond] = x_current
             eq = equilibrium(dbf, comps, phases, curr_conds, **eq_kwargs)
             compsets = get_compsets(eq, indep_comp=indep_comp, indep_comp_index=comp_idx)
-            if veryverbose:
+            if verbosity >= 3:
                 print("found compsets {} at T={}K X={:0.3f} eq_phases={}".format(compsets, T_current, x_current, eq.Phase.values.flatten()))
             if len(compsets) == 1:
                 found_str = "Found single phase region {} at T={}K X={:0.3f}".format(compsets[0].phase_name, T_current, x_current)
@@ -108,7 +107,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     T_backtracks += 1
                     total_T_backtrack_factor *= T_backtrack_factor
                     T_backtrack = T_current - delta/total_T_backtrack_factor
-                    if veryverbose:
+                    if verbosity >= 2:
                         print(found_str + " Backtracking in temperature from {}K to {}K ({}/{})".format(T_current, T_backtrack, T_backtracks, max_T_backtracks))
                     T_current = T_backtrack
                     continue
@@ -116,15 +115,15 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                     converged = True
                     end_point = StartPoint(T_current, opposite_direction(curr_direction), compsets)
                     start_points.add_end_point(end_point)
-                    if veryverbose:
-                        print("Adding end point {}".format(end_point))
+                    if verbosity >= 2:
+                        print("Terminating at end point due to single phase equilibrium: {}".format(end_point))
                     # We might be stuck near a congruent point.
                     # Try to do a nearby search using the last known compsets
                     # If we can't find one, just continue.
                     T_prev = prev_compsets[0].temperature
-                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, comp_idx, T_prev, dT, deepcopy(curr_conds), x_cond, start_points, verbose=verbose, hull_kwargs=eq_kwargs)
+                    new_start_point = find_nearby_region_start_point(dbf, comps, phases, prev_compsets, comp_idx, T_prev, dT, deepcopy(curr_conds), x_cond, start_points, verbose=True if verbosity >= 1 else False, hull_kwargs=eq_kwargs)
                     if new_start_point is not None:
-                        if verbose:
+                        if verbosity >= 1:
                             print("Failed to backtrack. Found new start point {} from convergence-like to same value at T={}K and X={:0.3f}".format(new_start_point, T_prev, x_current))
                         zpf_boundaries.add_compsets(new_start_point.compsets)
                         start_points.add_start_point(new_start_point)
@@ -140,21 +139,21 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
             if close_zero_or_one(cs_0, tol_zero_one) and close_zero_or_one(cs_1, tol_zero_one):
                 converged = True
                 zpf_boundaries.add_compsets(compsets)
+                if verbosity >= 2:
+                    print("Terminating at composition near 0 or 1 with composition sets {}".format(compsets))
                 continue
             if close_to_same(cs_0, cs_1, tol_same):
                 converged = True
                 end_point = StartPoint(T_current, opposite_direction(curr_direction), compsets)
                 start_points.add_end_point(end_point)
-                if veryverbose:
-                    print("Adding end point {}".format(end_point))
                 zpf_boundaries.add_compsets(compsets)
                 # find other two phase equilibrium
-                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, comp_idx, T_current, dT, deepcopy(curr_conds), x_cond, start_points, verbose=verbose, hull_kwargs=eq_kwargs)
+                new_start_point = find_nearby_region_start_point(dbf, comps ,phases, compsets, comp_idx, T_current, dT, deepcopy(curr_conds), x_cond, start_points, verbose=True if verbosity >= 1 else False, hull_kwargs=eq_kwargs)
                 if new_start_point is not None:
-                    if verbose:
+                    if verbosity >= 1:
                         print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
-                elif verbose:
-                    print("Converged to same value at T={}K and X={}. No new start point found.".format(T_current, x_current))
+                if verbosity >= 2:
+                    print("Terminating at end point because of convergence to same value {}".format(end_point))
                 continue
 
             prev_phases = {c.phase_name for c in prev_compsets}
@@ -165,10 +164,10 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 converged = True
                 end_point = StartPoint(T_current - delta, opposite_direction(curr_direction), prev_compsets)
                 start_points.add_end_point(end_point)
-                if veryverbose:
-                    print("Adding end point {}".format(end_point))
+                if verbosity >= 2:
+                    print("Terminating at three phase equilibria with end point {}".format(end_point))
                 new_start_points = find_three_phase_start_points(compsets, prev_compsets, curr_direction)
-                if verbose:
+                if verbosity >= 1:
                     print("New start points {} from three phase equilibrium at T={}K and X={}".format(new_start_points, T_current, x_current))
                 for sp in new_start_points:
                     start_points.add_start_point(sp)
@@ -188,13 +187,17 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                         matching_cs = matching_compsets[0]
                         same_phase_comp_diff = cs.xdiscrepancy(matching_cs)
                         if same_phase_comp_diff > tol_misc_gap:
-                            if verbose:
-                                print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
-                            start_points.add_start_point(StartPoint(T_current, opposite_direction(curr_direction), [cs, matching_cs]))
+                            converged = True
+                            sp_gap = StartPoint(T_current, opposite_direction(curr_direction), [cs, matching_cs])
+                            start_points.add_start_point(sp_gap)
                             # we need to start a new start point, otherwise there will be a boundary line that "jumps" the miscibility gap
                             # the tradeoff is that there is a break in the boundaries
-                            start_points.add_start_point(StartPoint(T_current-delta, curr_direction, compsets))
-                            converged = True
+                            sp_continue = StartPoint(T_current-delta, curr_direction, compsets)
+                            start_points.add_start_point(sp_continue)
+                            if verbosity >= 1:
+                                print("New start points {} from miscibility gap".format([sp_gap, sp_continue]))
+                            if verbosity >= 2:
+                                print("Terminating at miscibility gap.")
             if converged:
                 continue
             zpf_boundaries.add_compsets(compsets)
