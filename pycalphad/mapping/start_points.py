@@ -22,7 +22,7 @@ class StartPoint():
             dir_str = "+"
         else:
             dir_str = "-"
-        return "StartPoint<T={:0.2f}, dT=({}), X={:0.3f}, Phases={}>".format(
+        return "<StartPoint T={:0.2f}, dT=({}), X={:0.3f}, Phases={}>".format(
             self.temperature, dir_str, self.composition, phases)
 
     def isduplicate(self, other, comp_tol=0.01, temp_tol=1):

@@ -14,7 +14,7 @@ class BinaryCompSet():
         self.site_fracs = site_fracs
 
     def __repr__(self,):
-        return "BinaryCompSet<{0}(T={1:0.3f}, X({2})={3:0.3f})>".format(self.phase_name, self.temperature, self.indep_comp, self.composition)
+        return "<BinaryCompSet{0}(T={1:0.3f}, X({2})={3:0.3f})>".format(self.phase_name, self.temperature, self.indep_comp, self.composition)
 
     def __str__(self,):
         return self.__repr__()
