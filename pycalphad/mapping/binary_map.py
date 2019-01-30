@@ -83,7 +83,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
         prev_compsets = start_pt.compsets
         d_str = "+" if curr_direction is pos else "-"
         if verbose:
-            print("Entering region {} in the {} direction".format(prev_compsets, d_str))
+            print("Entering region {}".format(start_pt))
         T_current = start_pt.temperature + delta
         x_current = start_pt.composition
         T_backtracks = 0; total_T_backtrack_factor = 1;
