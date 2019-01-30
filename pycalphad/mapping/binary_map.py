@@ -153,7 +153,6 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 if new_start_point is not None:
                     if verbose:
                         print("New start point {} from convergence to same value at T={}K and X={}".format(new_start_point, T_current, x_current))
-                    zpf_boundaries.add_compsets(new_start_point.compsets)
                 elif verbose:
                     print("Converged to same value at T={}K and X={}. No new start point found.".format(T_current, x_current))
                 continue

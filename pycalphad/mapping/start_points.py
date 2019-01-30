@@ -307,7 +307,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
                 it.iternext()
                 continue
             # If we made it here, we found a potential match!
-            sp = StartPoint(trial_T, trial_direction, trial_compsets)
+            sp = StartPoint(trial_T - trial_direction(dT), trial_direction, trial_compsets)
             if start_point_list.add_start_point(sp):
                 return sp # We found a valid start point
             else:
