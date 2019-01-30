@@ -191,6 +191,12 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                             if verbose:
                                 print("Found potential miscibility gap compsets {} differ in composition by {}".format([cs, matching_cs], same_phase_comp_diff))
                             start_points.add_start_point(StartPoint(T_current, opposite_direction(curr_direction), [cs, matching_cs]))
+                            # we need to start a new start point, otherwise there will be a boundary line that "jumps" the miscibility gap
+                            # the tradeoff is that there is a break in the boundaries
+                            start_points.add_start_point(StartPoint(T_current-delta, curr_direction, compsets))
+                            converged = True
+            if converged:
+                continue
             zpf_boundaries.add_compsets(compsets)
             T_current += delta
             x_current = BinaryCompSet.mean_composition(compsets)
