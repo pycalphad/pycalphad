@@ -137,7 +137,7 @@ cpdef double hyperplane(double[:,::1] compositions,
             for j in range(simplex_size):
                 for k in range(trial_matrix.shape[0]):
                     ici = included_composition_indices[k]
-                    if ici > 0:
+                    if ici >= 0:
                         trial_matrix[k, j, i] = compositions[trial_simplices[i,j], ici]
                     else:
                         # ici = -1, refers to N=1 condition
@@ -149,7 +149,7 @@ cpdef double hyperplane(double[:,::1] compositions,
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             for j in range(fractions.shape[1]):
                 ici = included_composition_indices[j]
-                if ici > 0:
+                if ici >= 0:
                     fractions[i, j] = composition[ici]
                 else:
                     # ici = -1, refers to N=1 condition

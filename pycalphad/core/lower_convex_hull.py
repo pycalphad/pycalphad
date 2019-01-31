@@ -62,7 +62,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     comp_values = np.zeros(cart_values.shape[:-1] + (len(result_array.coords['component'].values),))
     for idx in range(comp_values.shape[-1]):
         if idx in comp_conds_indices:
-            comp_values[..., idx] = cart_values[..., np.where(comp_conds_indices == idx)[0]]
+            comp_values[..., idx] = cart_values[..., np.where(comp_conds_indices == idx)[0][0]]
         elif idx in pot_conds_indices:
             # Composition value not used
             comp_values[..., idx] = 0
