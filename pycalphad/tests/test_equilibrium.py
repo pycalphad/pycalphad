@@ -459,3 +459,16 @@ def test_eq_ideal_chempot_cond():
     np.testing.assert_allclose(eq.GM.values.squeeze(), -3219.570565)
     np.testing.assert_allclose(eq.MU.values.squeeze(), [-38289.687511, -18873.23674,  -1000.])
     np.testing.assert_allclose(eq.X.isel(vertex=0).values.squeeze(), [0.01,  0.103321,  0.886679], atol=1e-4)
+
+
+def test_eq_tricky_chempot_cond():
+    """
+    Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
+    """
+    eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
+                     {v.MU('AL'): -135620.9960449, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
+                     verbose=True)
+    chempots = np.array([-135620.9960449, -47269.29002414, -92304.23688281])
+    assert_allclose(eq.GM.values, -70680.53695)
+    assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 0.6, (1-0.1246-0.6)])
+    assert_allclose(np.squeeze(eq.MU.values), chempots)
