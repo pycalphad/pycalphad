@@ -106,7 +106,8 @@ cpdef double hyperplane(double[:,::1] compositions,
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int[::1] included_composition_indices = \
         np.array(sorted(fixed_comp_indices) + [-1], dtype=np.int32)
-    cdef int[::1] best_guess_simplex = np.arange(simplex_size, dtype=np.int32)
+    cdef int[::1] best_guess_simplex = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
+                                                dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
     cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
     cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
@@ -164,9 +165,11 @@ cpdef double hyperplane(double[:,::1] compositions,
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
             idx = candidate_simplex[i]
-            for j in range(candidate_tieline.shape[1]):
+            ici = 0
+            for j in range(compositions.shape[1]):
                 if not np.in1d(fixed_chempot_indices, j):
-                    candidate_tieline[i, j] = compositions[idx, j]
+                    candidate_tieline[i, ici] = compositions[idx, j]
+                    ici += 1
             candidate_potentials[i] = energies[idx]
             for j in fixed_chempot_indices:
                 candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
