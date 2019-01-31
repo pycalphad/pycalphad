@@ -63,7 +63,6 @@ cdef class Problem:
         self.fixed_chempot_values = np.array([float(value) for key, value in conditions.items() if key.startswith('MU_')])
         num_constraints = num_fixed_dof_cons + num_internal_cons + \
                           len(get_multiphase_constraint_rhs(conditions)) + len(self.fixed_chempot_indices)
-        print(np.array(self.fixed_chempot_indices), np.array(self.fixed_chempot_values))
         self.num_phases = len(self.composition_sets)
         self.num_vars = sum(compset.phase_record.phase_dof for compset in comp_sets) + self.num_phases + len(state_variables)
         self.num_internal_constraints = num_internal_cons
