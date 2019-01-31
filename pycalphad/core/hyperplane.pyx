@@ -165,7 +165,8 @@ cpdef double hyperplane(double[:,::1] compositions,
         for i in range(candidate_simplex.shape[0]):
             idx = candidate_simplex[i]
             for j in range(candidate_tieline.shape[1]):
-                candidate_tieline[i, j] = compositions[idx, included_composition_indices[j]]
+                if not np.in1d(fixed_chempot_indices, j):
+                    candidate_tieline[i, j] = compositions[idx, j]
             candidate_potentials[i] = energies[idx]
             for j in fixed_chempot_indices:
                 candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
@@ -195,8 +196,11 @@ cpdef double hyperplane(double[:,::1] compositions,
         idx = best_guess_simplex[i]
         out_energy += fractions[saved_trial, i] * energies[idx]
     result_fractions[:simplex_size] = fractions[saved_trial, :]
-    for j in range(included_composition_indices.shape[0]):
-        chemical_potentials[included_composition_indices[j]] = candidate_potentials[j]
+    idx = 0
+    for j in range(chemical_potentials.shape[0]):
+        if not np.in1d(fixed_chempot_indices, j):
+            chemical_potentials[j] = candidate_potentials[idx]
+            idx += 1
     result_simplex[:simplex_size] = best_guess_simplex
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
     result_fractions[simplex_size:] = 0.0
