@@ -438,3 +438,24 @@ def test_equlibrium_no_opt_solver():
     assert ipopt_GM != no_opt_GM  # global min energy is different from lower convex hull
     assert np.allclose([-17452.5115967], no_opt_GM)  # energy from lower convex hull
     assert np.allclose([-19540.6522632, -15364.3709302], no_opt_MU)  # chempots from lower convex hull
+
+
+def test_eq_ideal_chempot_cond():
+    TDB = """
+     ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT B   BCC_A2                     55.847     4489.0     27.2797 !
+     ELEMENT C   BCC_A2                     55.847     4489.0     27.2797 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE TEST % 1 1 !
+     CONSTITUENT TEST : A,B,C: !
+    """
+    my_phases = ['TEST']
+    comps = ['A', 'B', 'C']
+    comps = sorted(comps)
+    conds = dict({v.T: 1000, v.P: 101325, v.N: 1})
+    conds[v.MU('C')] = -1000
+    conds[v.X('A')] = 0.01
+    eq = equilibrium(Database(TDB), comps, my_phases, conds, verbose=True)
+    np.testing.assert_allclose(eq.GM.values.squeeze(), -3219.570565)
+    np.testing.assert_allclose(eq.MU.values.squeeze(), [-38289.687511, -18873.23674,  -1000.])
+    np.testing.assert_allclose(eq.X.isel(vertex=0).values.squeeze(), [0.01,  0.103321,  0.886679], atol=1e-4)
