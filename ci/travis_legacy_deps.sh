@@ -6,6 +6,7 @@ wget -nc http://repo.continuum.io/miniconda/Miniconda2-latest-Linux-x86_64.sh -O
 fi
 chmod +x miniconda.sh
 ./miniconda.sh -b -f
+. $HOME/miniconda2/etc/profile.d/conda.sh
 conda update --yes conda
 conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
 conda install --yes -n condaenv pip
