@@ -43,7 +43,7 @@ install:
         conda deactivate
         conda activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-        conda install --yes xarray gcc cython cyipopt
+        conda install --yes xarray gcc cython cyipopt pip
         pip install -e .
       fi
  
