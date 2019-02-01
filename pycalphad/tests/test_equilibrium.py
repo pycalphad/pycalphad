@@ -472,3 +472,14 @@ def test_eq_tricky_chempot_cond():
     assert_allclose(eq.GM.values, -70680.53695)
     assert_allclose(np.nansum(np.squeeze(eq.NP * eq.X), axis=-2), [0.1246, 0.6, (1-0.1246-0.6)])
     assert_allclose(np.squeeze(eq.MU.values), chempots)
+
+def test_eq_magnetic_chempot_cond():
+    """
+    Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
+    This is difficult to reproduce so we only include some known examples here.
+    """
+    # This set of conditions is known to trigger the issue
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
+                     {v.MU('FE'): -123111.773, v.T: 300, v.P: 1e5}, verbose=True)
+    assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], atol=0.1)
