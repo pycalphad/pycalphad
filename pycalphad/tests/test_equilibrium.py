@@ -475,7 +475,7 @@ def test_eq_tricky_chempot_cond():
 
 def test_eq_magnetic_chempot_cond():
     """
-    Check equilibrium of a system with an ill-conditioned Hessian due to magnetism (Tc->0).
+    Chemical potential condition with an ill-conditioned Hessian due to magnetism (Tc->0).
     This is difficult to reproduce so we only include some known examples here.
     """
     # This set of conditions is known to trigger the issue
