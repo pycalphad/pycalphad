@@ -260,7 +260,7 @@ cdef class Problem:
         """For chemical potential calculation."""
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int num_statevars = len(compset.phase_record.state_variables)
-        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1e-12+1e-13))
+        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
         cdef size_t num_active_ineq = len(active_ineq)
         cdef double[:, ::1] mass_jac = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements), self.num_vars))
         cdef double[:, ::1] mass_jac_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements), self.num_vars))
@@ -312,16 +312,16 @@ cdef class Problem:
         # mu' = (A+)' grad + (A+) hess
         jac = self.mass_jacobian(x_in).T
         jac_pinv = np.linalg.pinv(jac)
-        mass_hess = np.swapaxes(self.mass_cons_hessian(x_in), 0, 1)
+        #mass_hess = np.swapaxes(self.mass_cons_hessian(x_in), 0, 1)
         hess = self.hessian(x_in)
-        jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
-        mu_prime = np.dot(jac_pinv_prime, self.gradient(x_in)) + np.dot(jac_pinv, hess)
+        #jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
+        mu_prime = np.dot(jac_pinv, hess)
         return mu_prime[-len(self.nonvacant_elements):]
 
     def mass_cons_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef size_t num_statevars = len(compset.phase_record.state_variables)
-        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1e-12+1e-13))
+        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
         cdef size_t num_active_ineq = len(active_ineq)
         cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements),
                                                           self.num_vars, self.num_vars))

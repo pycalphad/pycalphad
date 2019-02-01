@@ -3,6 +3,7 @@ ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
 from pycalphad.variables import string_type
+from pycalphad.core.constants import MIN_SITE_FRACTION
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
@@ -146,7 +147,7 @@ class InteriorPointSolver(SolverBase):
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
                 nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
-                nlp.addOption(b'bound_relax_factor', 1e-12)
+                nlp.addOption(b'bound_relax_factor', MIN_SITE_FRACTION)
                 # This option ensures any bounds failures will fail "loudly"
                 # Otherwise we are liable to have subtle mass balance errors
                 nlp.addOption(b'honor_original_bounds', b'no')
