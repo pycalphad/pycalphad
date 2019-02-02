@@ -463,7 +463,7 @@ def test_eq_ideal_chempot_cond():
 
 def test_eq_tricky_chempot_cond():
     """
-    Ternary equilibrium with difficult convergence for chemical potentials (gh-43).
+    Chemical potential condition with difficult convergence for chemical potentials.
     """
     eq = equilibrium(ISSUE43_DBF, ['AL', 'NI', 'CR', 'VA'], ['FCC_A1', 'GAMMA_PRIME'],
                      {v.MU('AL'): -135620.9960449, v.X('CR'): 0.6, v.T: 1273, v.P: 101325},
