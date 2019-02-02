@@ -75,7 +75,7 @@ cdef bint remove_degenerate_phases(object composition_sets, object removed_comps
                 print('Redundant phase:', composition_sets[redundant])
             composition_sets[redundant].NP = np.nan
     for phase_idx in range(num_phases):
-        if abs(composition_sets[phase_idx].NP) <= MIN_PHASE_FRACTION:
+        if abs(composition_sets[phase_idx].NP) <= 1.1*MIN_PHASE_FRACTION:
             composition_sets[phase_idx].NP = MIN_PHASE_FRACTION
             composition_sets[phase_idx].zero_seen += 1
             if composition_sets[phase_idx].zero_seen > allowed_zero_seen:

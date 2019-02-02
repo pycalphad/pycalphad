@@ -1,7 +1,7 @@
 from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
 import numpy as np
-from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION
+from pycalphad.core.constants import MIN_SITE_FRACTION, MIN_PHASE_FRACTION, CHEMPOT_CONSTRAINT_SCALING
 from pycalphad.core.constraints import get_multiphase_constraint_rhs
 import pycalphad.variables as v
 
@@ -105,8 +105,8 @@ cdef class Problem:
             self.cl[var_idx] = multiphase_rhs[var_idx-num_internal_cons-num_fixed_dof_cons]
             self.cu[var_idx] = multiphase_rhs[var_idx-num_internal_cons-num_fixed_dof_cons]
         for var_idx in range(num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs), num_constraints):
-            self.cl[var_idx] = self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
-            self.cu[var_idx] = self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
+            self.cl[var_idx] = CHEMPOT_CONSTRAINT_SCALING * self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
+            self.cu[var_idx] = CHEMPOT_CONSTRAINT_SCALING * self.fixed_chempot_values[var_idx - (num_internal_cons + num_fixed_dof_cons + len(multiphase_rhs))]
 
     def objective(self, x_in):
         cdef CompositionSet compset
