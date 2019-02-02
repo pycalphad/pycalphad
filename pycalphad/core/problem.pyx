@@ -466,7 +466,7 @@ cdef class Problem:
         if len(self.fixed_chempot_indices) > 0:
             chempots = self.chemical_potentials(x_in)
             for idx in range(self.fixed_chempot_indices.shape[0]):
-                l_constraints[constraint_offset] = chempots[self.fixed_chempot_indices[idx]]
+                l_constraints[constraint_offset] = CHEMPOT_CONSTRAINT_SCALING * chempots[self.fixed_chempot_indices[idx]]
                 constraint_offset += 1
         return np.array(l_constraints)
 
@@ -536,7 +536,7 @@ cdef class Problem:
 
         # Fourth: Chemical potential constraints
         if len(self.fixed_chempot_indices) > 0:
-            chempot_grad = self.chemical_potential_gradient(x_in)
+            chempot_grad = CHEMPOT_CONSTRAINT_SCALING * self.chemical_potential_gradient(x_in)
             for idx in range(self.fixed_chempot_indices.shape[0]):
                 constraint_jac[constraint_offset, :] = chempot_grad[self.fixed_chempot_indices[idx], :]
                 constraint_offset += 1
