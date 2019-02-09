@@ -106,8 +106,10 @@ cpdef double hyperplane(double[:,::1] compositions,
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int[::1] included_composition_indices = \
         np.array(sorted(fixed_comp_indices) + [-1], dtype=np.int32)
+    print('included_composition_indices', np.array(included_composition_indices))
     cdef int[::1] best_guess_simplex = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
                                                 dtype=np.int32)
+    print('best_guess_simplex', np.array(best_guess_simplex))
     cdef int[::1] candidate_simplex = best_guess_simplex
     cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
     cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
@@ -115,6 +117,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double[::1] driving_forces = np.empty(compositions.shape[0])
     for i in range(trial_simplices.shape[0]):
         trial_simplices[i, :] = best_guess_simplex
+    print('trial_simplices', np.array(trial_simplices))
     cdef double[::1,:,:] trial_matrix = np.empty((simplex_size, simplex_size, simplex_size), order='F')
     cdef double[::1,:] candidate_tieline = np.empty((simplex_size, simplex_size), order='F')
     cdef double[::1] candidate_energies = np.empty(simplex_size)
@@ -146,6 +149,7 @@ cpdef double hyperplane(double[:,::1] compositions,
                 if iterations > 1:
                     if trial_simplices[i,j] < result_fractions.shape[0]:
                         smallest_fractions[i] -= 1
+        print('trial_matrix.T', np.array(trial_matrix).T)
         for i in range(simplex_size):
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
             for j in range(fractions.shape[1]):
@@ -155,7 +159,15 @@ cpdef double hyperplane(double[:,::1] compositions,
                 else:
                     # ici = -1, refers to N=1 condition
                     fractions[i, j] = total_moles
+                    print('fixed_chempot_indices', np.array(fixed_chempot_indices))
+                    for k in fixed_chempot_indices:
+                        print('trial_simplices[j,i]', trial_simplices[j,i])
+                        print('compositions[trial_simplices[j,i]]', np.array(compositions[trial_simplices[j,i]]))
+                        fractions[i, j] -= compositions[trial_simplices[j,i], k]
+            print('f_contig_trial', np.array(f_contig_trial))
+            print('rhs', np.array(fractions[i,:]))
             solve(f_contig_trial, fractions[i, :], int_tmp)
+            print('fractions', np.array(fractions[i,:]))
             smallest_fractions[i] += min(fractions[i, :])
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
@@ -173,7 +185,10 @@ cpdef double hyperplane(double[:,::1] compositions,
             candidate_potentials[i] = energies[idx]
             for j in fixed_chempot_indices:
                 candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
+        print('candidate_tieline', np.array(candidate_tieline))
+        print('rhs', np.array(candidate_potentials))
         solve(candidate_tieline, candidate_potentials, int_tmp)
+        print('candidate_potentials', np.array(candidate_potentials))
         if candidate_potentials[0] == -1e19:
             break
         driving_forces[:] = energies
@@ -190,8 +205,10 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e30
         min_df = argmin(driving_forces, lowest_df)
+        print('min_df', np.array(min_df))
         for i in range(simplex_size):
             trial_simplices[i, i] = min_df
+        print('trial_simplices', np.array(trial_simplices))
         if lowest_df[0] > -1e-8:
             break
     out_energy = 0
