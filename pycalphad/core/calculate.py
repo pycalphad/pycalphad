@@ -314,7 +314,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
 
     all_phase_data = []
-    largest_energy = 1e30
+    largest_energy = 1e10
 
     # Consider only the active phases
     list_of_possible_phases = filter_phases(dbf, comps)

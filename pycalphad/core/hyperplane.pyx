@@ -132,43 +132,42 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int min_df
     cdef int max_iterations = 1000
     cdef int iterations = 0
-    cdef int idx, ici
+    cdef int idx, ici, comp_idx, simplex_idx, trial_idx
 
     while iterations < max_iterations:
         iterations += 1
-        for i in range(simplex_size):
-            smallest_fractions[i] = 0
-            for j in range(simplex_size):
-                for k in range(trial_matrix.shape[0]):
-                    ici = included_composition_indices[k]
+        for trial_idx in range(simplex_size):
+            smallest_fractions[trial_idx] = 0
+            for comp_idx in range(simplex_size):
+                ici = included_composition_indices[comp_idx]
+                for simplex_idx in range(simplex_size):
                     if ici >= 0:
-                        trial_matrix[k, j, i] = compositions[trial_simplices[i,j], ici]
+                        print('trial_matrix[{0}, {1}, {2}] = compositions[{3}, {4}] = {5}'.format(comp_idx, simplex_idx, trial_idx, trial_simplices[trial_idx, simplex_idx], ici, compositions[trial_simplices[trial_idx, simplex_idx], ici]))
+                        trial_matrix[comp_idx, simplex_idx, trial_idx] = \
+                            compositions[trial_simplices[trial_idx, simplex_idx], ici]
                     else:
                         # ici = -1, refers to N=1 condition
-                        trial_matrix[k, j, i] = 1 # 1 mole-formula per formula unit of a phase
-                if iterations > 1:
-                    if trial_simplices[i,j] < result_fractions.shape[0]:
-                        smallest_fractions[i] -= 1
-        print('trial_matrix.T', np.array(trial_matrix).T)
-        for i in range(simplex_size):
-            f_contig_trial = np.asfortranarray(trial_matrix[:, :, i].copy())
-            for j in range(fractions.shape[1]):
-                ici = included_composition_indices[j]
+                        print('trial_matrix[{0}, {1}, {2}] = 1'.format(comp_idx, simplex_idx, trial_idx))
+                        trial_matrix[comp_idx, simplex_idx, trial_idx] = 1 # 1 mole-formula per formula unit of a phase
+                    if iterations > 1:
+                        # Penalize inclusion of fake starting points in subsequent iterations
+                        if trial_simplices[trial_idx, simplex_idx] < result_fractions.shape[0]:
+                            smallest_fractions[trial_idx] -= 1
+
+        for trial_idx in range(simplex_size):
+            f_contig_trial = np.asfortranarray(trial_matrix[:, :, trial_idx].copy())
+            for simplex_idx in range(fractions.shape[1]):
+                ici = included_composition_indices[simplex_idx]
                 if ici >= 0:
-                    fractions[i, j] = composition[ici]
+                    fractions[trial_idx, simplex_idx] = composition[ici]
                 else:
                     # ici = -1, refers to N=1 condition
-                    fractions[i, j] = total_moles
-                    print('fixed_chempot_indices', np.array(fixed_chempot_indices))
-                    for k in fixed_chempot_indices:
-                        print('trial_simplices[j,i]', trial_simplices[j,i])
-                        print('compositions[trial_simplices[j,i]]', np.array(compositions[trial_simplices[j,i]]))
-                        fractions[i, j] -= compositions[trial_simplices[j,i], k]
+                    fractions[trial_idx, simplex_idx] = total_moles
             print('f_contig_trial', np.array(f_contig_trial))
-            print('rhs', np.array(fractions[i,:]))
-            solve(f_contig_trial, fractions[i, :], int_tmp)
-            print('fractions', np.array(fractions[i,:]))
-            smallest_fractions[i] += min(fractions[i, :])
+            print('rhs', np.array(fractions[trial_idx,:]))
+            solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
+            print('fractions', np.array(fractions[trial_idx,:]))
+            smallest_fractions[trial_idx] += min(fractions[trial_idx, :])
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
         if smallest_fractions[saved_trial] < -simplex_size:
@@ -193,9 +192,14 @@ cpdef double hyperplane(double[:,::1] compositions,
             break
         driving_forces[:] = energies
         for idx in range(driving_forces.shape[0]):
-            for j in fixed_chempot_indices:
-                driving_forces[idx] -= chemical_potentials[j] * compositions[idx, j]
-        prodsum(candidate_potentials, compositions, driving_forces)
+            ici = 0
+            for j in range(compositions.shape[1]):
+                if np.in1d(fixed_chempot_indices, j):
+                    driving_forces[idx] -= chemical_potentials[j] * compositions[idx, j]
+                else:
+                    driving_forces[idx] -= candidate_potentials[ici]  * compositions[idx, j]
+                    ici += 1
+        #prodsum(candidate_potentials, compositions, driving_forces)
         best_guess_simplex[:] = candidate_simplex
         for i in range(trial_simplices.shape[0]):
             trial_simplices[i, :] = best_guess_simplex
@@ -203,9 +207,10 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,
         #     excepting edge cases
-        lowest_df[0] = 1e30
+        lowest_df[0] = 1e10
         min_df = argmin(driving_forces, lowest_df)
         print('min_df', np.array(min_df))
+        print('min_df_value', np.array(driving_forces[min_df]))
         for i in range(simplex_size):
             trial_simplices[i, i] = min_df
         print('trial_simplices', np.array(trial_simplices))
