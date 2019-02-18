@@ -480,6 +480,6 @@ def test_eq_magnetic_chempot_cond():
     """
     # This set of conditions is known to trigger the issue
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
-                     {v.MU('FE'): -123111.773, v.T: 300, v.P: 1e5}, verbose=True)
-    assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
-    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], atol=0.1)
+                     {v.MU('FE'): -123110, v.T: 300, v.P: 1e5}, verbose=True)
+    assert_allclose(np.squeeze(eq.GM.values), -35427.1, atol=0.1)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.7, -123110], atol=0.1)
