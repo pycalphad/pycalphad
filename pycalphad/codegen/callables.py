@@ -116,7 +116,6 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
 
     state_variables = sorted(state_variables, key=str)
     _callables['state_variables'] = state_variables
-    print('build_callables', state_variables)
 
     for name in phases:
         mod = models[name]
