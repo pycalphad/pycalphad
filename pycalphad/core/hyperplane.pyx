@@ -106,10 +106,10 @@ cpdef double hyperplane(double[:,::1] compositions,
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int[::1] included_composition_indices = \
         np.array(sorted(fixed_comp_indices) + [-1], dtype=np.int32)
-    print('included_composition_indices', np.array(included_composition_indices))
     cdef int[::1] best_guess_simplex = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
                                                 dtype=np.int32)
-    print('best_guess_simplex', np.array(best_guess_simplex))
+    cdef int[::1] free_chempot_indices = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
+                                                dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
     cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
     cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
@@ -117,7 +117,6 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double[::1] driving_forces = np.empty(compositions.shape[0])
     for i in range(trial_simplices.shape[0]):
         trial_simplices[i, :] = best_guess_simplex
-    print('trial_simplices', np.array(trial_simplices))
     cdef double[::1,:,:] trial_matrix = np.empty((simplex_size, simplex_size, simplex_size), order='F')
     cdef double[::1,:] candidate_tieline = np.empty((simplex_size, simplex_size), order='F')
     cdef double[::1] candidate_energies = np.empty(simplex_size)
@@ -132,7 +131,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int min_df
     cdef int max_iterations = 1000
     cdef int iterations = 0
-    cdef int idx, ici, comp_idx, simplex_idx, trial_idx
+    cdef int idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
 
     while iterations < max_iterations:
         iterations += 1
@@ -157,17 +156,13 @@ cpdef double hyperplane(double[:,::1] compositions,
                 else:
                     # ici = -1, refers to N=1 condition
                     fractions[trial_idx, simplex_idx] = total_moles
-            print('f_contig_trial', np.array(f_contig_trial))
-            print('rhs', np.array(fractions[trial_idx,:]))
             solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
-            print('fractions', np.array(fractions[trial_idx,:]))
             smallest_fractions[trial_idx] = min(fractions[trial_idx, :])
             if iterations > 1:
                 # Penalize inclusion of fake starting points in subsequent iterations
                 if np.any(np.array(trial_simplices[trial_idx, :]) < result_fractions.shape[0]):
                     smallest_fractions[trial_idx] -= 1
         # Choose simplex with the largest smallest-fraction
-        print('smallest_fractions', np.array(smallest_fractions))
         saved_trial = argmax(smallest_fractions)
         if smallest_fractions[saved_trial] < -simplex_size:
             break
@@ -183,22 +178,16 @@ cpdef double hyperplane(double[:,::1] compositions,
             candidate_potentials[i] = energies[idx]
             for j in fixed_chempot_indices:
                 candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
-        print('candidate_tieline', np.array(candidate_tieline))
-        print('rhs', np.array(candidate_potentials))
         solve(candidate_tieline, candidate_potentials, int_tmp)
-        print('candidate_potentials', np.array(candidate_potentials))
         if candidate_potentials[0] == -1e19:
             break
         driving_forces[:] = energies
-        for idx in range(driving_forces.shape[0]):
-            ici = 0
-            for j in range(compositions.shape[1]):
-                if np.in1d(fixed_chempot_indices, j):
-                    driving_forces[idx] -= chemical_potentials[j] * compositions[idx, j]
-                else:
-                    driving_forces[idx] -= candidate_potentials[ici]  * compositions[idx, j]
-                    ici += 1
-        #prodsum(candidate_potentials, compositions, driving_forces)
+        for ici, chempot_idx in enumerate(free_chempot_indices):
+            for idx in range(driving_forces.shape[0]):
+                driving_forces[idx] -= candidate_potentials[ici] * compositions[idx, chempot_idx]
+        for chempot_idx in fixed_chempot_indices:
+            for idx in range(driving_forces.shape[0]):
+                driving_forces[idx] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
         best_guess_simplex[:] = candidate_simplex
         for i in range(trial_simplices.shape[0]):
             trial_simplices[i, :] = best_guess_simplex
