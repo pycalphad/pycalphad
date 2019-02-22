@@ -137,22 +137,16 @@ cpdef double hyperplane(double[:,::1] compositions,
     while iterations < max_iterations:
         iterations += 1
         for trial_idx in range(simplex_size):
-            smallest_fractions[trial_idx] = 0
+            #smallest_fractions[trial_idx] = 0
             for comp_idx in range(simplex_size):
                 ici = included_composition_indices[comp_idx]
                 for simplex_idx in range(simplex_size):
                     if ici >= 0:
-                        print('trial_matrix[{0}, {1}, {2}] = compositions[{3}, {4}] = {5}'.format(comp_idx, simplex_idx, trial_idx, trial_simplices[trial_idx, simplex_idx], ici, compositions[trial_simplices[trial_idx, simplex_idx], ici]))
                         trial_matrix[comp_idx, simplex_idx, trial_idx] = \
                             compositions[trial_simplices[trial_idx, simplex_idx], ici]
                     else:
                         # ici = -1, refers to N=1 condition
-                        print('trial_matrix[{0}, {1}, {2}] = 1'.format(comp_idx, simplex_idx, trial_idx))
                         trial_matrix[comp_idx, simplex_idx, trial_idx] = 1 # 1 mole-formula per formula unit of a phase
-                    if iterations > 1:
-                        # Penalize inclusion of fake starting points in subsequent iterations
-                        if trial_simplices[trial_idx, simplex_idx] < result_fractions.shape[0]:
-                            smallest_fractions[trial_idx] -= 1
 
         for trial_idx in range(simplex_size):
             f_contig_trial = np.asfortranarray(trial_matrix[:, :, trial_idx].copy())
@@ -167,8 +161,13 @@ cpdef double hyperplane(double[:,::1] compositions,
             print('rhs', np.array(fractions[trial_idx,:]))
             solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
             print('fractions', np.array(fractions[trial_idx,:]))
-            smallest_fractions[trial_idx] += min(fractions[trial_idx, :])
+            smallest_fractions[trial_idx] = min(fractions[trial_idx, :])
+            if iterations > 1:
+                # Penalize inclusion of fake starting points in subsequent iterations
+                if np.any(np.array(trial_simplices[trial_idx, :]) < result_fractions.shape[0]):
+                    smallest_fractions[trial_idx] -= 1
         # Choose simplex with the largest smallest-fraction
+        print('smallest_fractions', np.array(smallest_fractions))
         saved_trial = argmax(smallest_fractions)
         if smallest_fractions[saved_trial] < -simplex_size:
             break
@@ -213,7 +212,6 @@ cpdef double hyperplane(double[:,::1] compositions,
         print('min_df_value', np.array(driving_forces[min_df]))
         for i in range(simplex_size):
             trial_simplices[i, i] = min_df
-        print('trial_simplices', np.array(trial_simplices))
         if lowest_df[0] > -1e-8:
             break
     out_energy = 0
