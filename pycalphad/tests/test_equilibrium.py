@@ -122,7 +122,10 @@ def test_eq_illcond_magnetic_hessian():
     eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
                      {v.X('AL'): 0.8, v.T: 300, v.P: 1e5}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
-    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], atol=0.1)
+    # These chemical potentials have a strong dependence on MIN_SITE_FRACTION
+    # Smaller values tend to shift the potentials +- 1 J/mol
+    # Numbers below based on MIN_SITE_FRACTION=1e-12 (TC's default setting)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], rtol=1e-4)
 
 
 def test_eq_composition_cond_sorting():
