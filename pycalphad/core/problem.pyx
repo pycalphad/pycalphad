@@ -260,7 +260,7 @@ cdef class Problem:
         """For chemical potential calculation."""
         cdef CompositionSet compset = self.composition_sets[0]
         cdef int num_statevars = len(compset.phase_record.state_variables)
-        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
+        cdef np.ndarray active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
         cdef size_t num_active_ineq = len(active_ineq)
         cdef double[:, ::1] mass_jac = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements), self.num_vars))
         cdef double[:, ::1] mass_jac_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements), self.num_vars))
@@ -321,7 +321,7 @@ cdef class Problem:
     def mass_cons_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef size_t num_statevars = len(compset.phase_record.state_variables)
-        cdef long[:] active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
+        cdef np.ndarray active_ineq = np.flatnonzero((np.array(x_in) <= 1.1*MIN_SITE_FRACTION))
         cdef size_t num_active_ineq = len(active_ineq)
         cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements),
                                                           self.num_vars, self.num_vars))
