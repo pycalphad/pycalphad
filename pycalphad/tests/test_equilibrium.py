@@ -6,6 +6,7 @@ correct solution for thermodynamic equilibrium.
 import warnings
 import os
 from nose.tools import raises
+from nose import SkipTest
 from sympy import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
@@ -405,6 +406,9 @@ def test_equilibrium_raises_when_no_phases_can_be_active():
     equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
 
 
+# Defer test until inclusion of NP conditions, so test can be rewritten properly
+# As is, the "correct" test temperature is very sensitive to platform-specific numerical settings
+@SkipTest
 def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
     """Creating datasets from equilibrium results should work when there are the maximum number of phases that can exist by Gibbs phase rule."""
     comps = ['PB', 'SN', 'VA']
