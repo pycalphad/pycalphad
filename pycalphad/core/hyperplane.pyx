@@ -195,8 +195,6 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     excepting edge cases
         lowest_df[0] = 1e10
         min_df = argmin(driving_forces, lowest_df)
-        print('min_df', np.array(min_df))
-        print('min_df_value', np.array(driving_forces[min_df]))
         for i in range(simplex_size):
             trial_simplices[i, i] = min_df
         if lowest_df[0] > -1e-8:
