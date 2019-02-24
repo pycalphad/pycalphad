@@ -9,9 +9,6 @@ from .hyperplane import hyperplane
 import numpy as np
 import itertools
 
-# The energetic difference, in J/mol-atom, below which is considered 'zero'
-DRIVING_FORCE_TOLERANCE = 1e-8
-
 
 def lower_convex_hull(global_grid, state_variables, result_array):
     """
