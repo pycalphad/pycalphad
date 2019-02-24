@@ -174,23 +174,15 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
             # Copy parameter values from old PhaseRecord, if it exists
             pv = callables['phase_records'][name].parameters
 
-        if len(conds) > 0:
-            cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
-            _callables['internal_cons'][name] = cfuncs.internal_cons
-            _callables['internal_jac'][name] = cfuncs.internal_jac
-            _callables['internal_cons_hess'][name] = cfuncs.internal_cons_hess
-            _callables['mp_cons'][name] = cfuncs.multiphase_cons
-            _callables['mp_jac'][name] = cfuncs.multiphase_jac
-            num_internal_cons = cfuncs.num_internal_cons
-            num_multiphase_cons = cfuncs.num_multiphase_cons
-        else:
-            _callables['internal_cons'][name] = None
-            _callables['internal_jac'][name] = None
-            _callables['internal_cons_hess'][name] = None
-            _callables['mp_cons'][name] = None
-            _callables['mp_jac'][name] = None
-            num_internal_cons = 0
-            num_multiphase_cons = 0
+        cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
+        _callables['internal_cons'][name] = cfuncs.internal_cons
+        _callables['internal_jac'][name] = cfuncs.internal_jac
+        _callables['internal_cons_hess'][name] = cfuncs.internal_cons_hess
+        _callables['mp_cons'][name] = cfuncs.multiphase_cons
+        _callables['mp_jac'][name] = cfuncs.multiphase_jac
+        num_internal_cons = cfuncs.num_internal_cons
+        num_multiphase_cons = cfuncs.num_multiphase_cons
+
         phase_records[name.upper()] = PhaseRecord(comps, state_variables, site_fracs, pv,
                                                   _callables['callables'][name],
                                                   _callables['grad_callables'][name],
