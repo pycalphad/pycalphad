@@ -6,7 +6,7 @@ from pycalphad import variables as v
 from collections import namedtuple
 
 
-ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons', 'jac', 'cons_hess'])
+ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
 
 
 @cacheit
@@ -49,7 +49,7 @@ def _build_constraint_functions(variables, constraints, include_hess=False, para
         hessian_func = AutowrapFunction(args, ImmutableMatrix(hessian))
     else:
         hessian_func = None
-    return ConstraintFunctions(cons=constraint_func, jac=jacobian_func, cons_hess=hessian_func)
+    return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
 
 
 ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'internal_cons_hess',
@@ -74,15 +74,15 @@ def build_constraints(mod, variables, conds, parameters=None):
     has_chempots = any(str(cond).startswith('MU') for cond in conds.keys())
     cf_output = _build_constraint_functions(variables, internal_constraints,
                                             include_hess=has_chempots, parameters=parameters)
-    internal_cons = cf_output.cons
-    internal_jac = cf_output.jac
+    internal_cons = cf_output.cons_func
+    internal_jac = cf_output.cons_jac
     internal_cons_hess = cf_output.cons_hess
 
     result_build = _build_constraint_functions(variables + [Symbol('NP')],
                                                multiphase_constraints, include_hess=False,
                                                parameters=parameters)
-    multiphase_cons = result_build.cons
-    multiphase_jac = result_build.jac
+    multiphase_cons = result_build.cons_func
+    multiphase_jac = result_build.cons_jac
     return ConstraintTuple(internal_cons=internal_cons, internal_jac=internal_jac, internal_cons_hess=internal_cons_hess,
                            multiphase_cons=multiphase_cons, multiphase_jac=multiphase_jac,
                            num_internal_cons=len(internal_constraints), num_multiphase_cons=len(multiphase_constraints))
