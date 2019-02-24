@@ -135,15 +135,11 @@ class InteriorPointSolver(SolverBase):
         length_scale = max(length_scale, 1e-9)
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
         # It will not give valid results for the finite difference approximation
-        #nlp.addOption(b'print_level', 4)
-        #nlp.addOption(b'derivative_test', b'first-order')
-        #nlp.addOption(b'point_perturbation_radius', 0.0)
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
         if dual_inf > self.infeasibility_threshold:
             if self.verbose:
                 print('Trying to improve poor solution')
-            #nlp.addOption(b'nlp_scaling_method', b'gradient-based')
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
                 nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
