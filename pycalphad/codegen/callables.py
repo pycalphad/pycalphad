@@ -102,9 +102,8 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
 
     unspecified_statevars = state_variables - set(conds.keys())
     if len(unspecified_statevars) > 0:
-        #raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
+        raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
         # TODO: T,P as free variables
-        pass
 
     unused_statevars = set()
     for x in conds.keys():
