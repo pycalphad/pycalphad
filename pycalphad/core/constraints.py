@@ -2,7 +2,6 @@ from sympy import ImmutableMatrix, MatrixSymbol, Symbol
 from pycalphad.codegen.sympydiff_utils import AutowrapFunction, CompileLock
 from pycalphad.core.cache import cacheit
 from pycalphad.core.constants import INTERNAL_CONSTRAINT_SCALING, MULTIPHASE_CONSTRAINT_SCALING
-from pycalphad import variables as v
 from collections import namedtuple
 
 
