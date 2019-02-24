@@ -2,12 +2,27 @@ from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from xarray import Dataset
 import numpy as np
-from collections import namedtuple, OrderedDict
-
-ConditionsResult = namedtuple('ConditionsResult', ['global_min'])
+from collections import OrderedDict
 
 
-def analyze_conditions(conditions, state_variables):
+def global_min_is_possible(conditions, state_variables):
+    """
+    Determine whether global minimization is possible
+    to perform under the given set of conditions.
+    Global minimization is possible when only T, P, N,
+    compositions and/or chemical potentials are specified,
+    but may not be possible with other conditions because
+    there may be multiple (or zero) solutions.
+
+    Parameters
+    ----------
+    conditions : dict
+    state_variables : iterable of StateVariables
+
+    Returns
+    -------
+    bool
+    """
     global_min = True
     for cond in conditions.keys():
         if cond in state_variables or \
@@ -16,11 +31,30 @@ def analyze_conditions(conditions, state_variables):
            cond == v.N:
             continue
         global_min = False
-    return ConditionsResult(global_min=global_min)
+    return global_min
 
 
 def starting_point(conditions, state_variables, phase_records, grid):
-    cond_analysis = analyze_conditions(conditions, state_variables)
+    """
+    Find a starting point for the solution using a sample of the system energy surface.
+
+    Parameters
+    ----------
+    conditions : OrderedDict
+        Mapping of StateVariable to array of condition values.
+    state_variables : list
+        A list of the state variables (e.g., N, P, T) used in this calculation.
+    phase_records : dict
+        Mapping of phase names (strings) to PhaseRecords.
+    grid : Dataset
+        A sample of the energy surface of the system. The sample should at least
+        cover the same state variable space as specified in the conditions.
+
+    Returns
+    -------
+    Dataset
+    """
+    global_min_enabled = global_min_is_possible(conditions, state_variables)
     from pycalphad import __version__ as pycalphad_version
     active_phases = sorted(phase_records.keys())
     # Ensure that '_FAKE_' will fit in the phase name array
@@ -42,7 +76,7 @@ def starting_point(conditions, state_variables, phase_records, grid):
     dependent_comp = set(nonvacant_elements) - specified_elements
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
-    if cond_analysis.global_min:
+    if global_min_enabled:
         result = Dataset({'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
                           'GM':     (conds_as_strings, np.empty(grid_shape)),
                           'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
