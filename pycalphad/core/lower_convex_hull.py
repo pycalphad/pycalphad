@@ -41,7 +41,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     --------
     None yet.
     """
-    indep_conds = sorted([x for x in sorted(global_grid.coords.keys()) if x in [str(k) for k in state_variables]])
+    indep_conds = sorted([str(sv) for sv in state_variables])
     comp_conds = sorted([x for x in sorted(result_array.coords.keys()) if x.startswith('X_')])
     comp_conds_indices = sorted([idx for idx, x in enumerate(sorted(result_array.coords['component'].values))
                                  if 'X_'+x in comp_conds])
