@@ -121,7 +121,6 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         if isinstance(mod, type):
             models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
         site_fracs = mod.site_fractions
-        variables = sorted(site_fracs, key=str)
         try:
             out = getattr(mod, output)
         except AttributeError:
@@ -156,7 +155,7 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         else:
             # Build the callables for mass
             # TODO: In principle, we should also check for undefs in mod.moles()
-            mcf, mgf, mhf = zip(*[build_functions(mod.moles(el), state_variables + variables,
+            mcf, mgf, mhf = zip(*[build_functions(mod.moles(el), state_variables + site_fracs,
                                                   include_obj=True,
                                                   include_grad=build_gradients,
                                                   include_hess=build_hessians,
@@ -192,7 +191,7 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
             _callables['mp_jac'][name] = None
             num_internal_cons = 0
             num_multiphase_cons = 0
-        phase_records[name.upper()] = PhaseRecord(comps, state_variables, variables, pv,
+        phase_records[name.upper()] = PhaseRecord(comps, state_variables, site_fracs, pv,
                                                   _callables['callables'][name],
                                                   _callables['grad_callables'][name],
                                                   _callables['hess_callables'][name],
