@@ -32,7 +32,7 @@ from pycalphad.core.utils import wrap_symbol_symengine
 from symengine import sympify, lambdify, zoo, oo
 from collections import namedtuple
 
-BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
+BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess', 'param_grad', 'param_jac'])
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
 
 LAMBDIFY_DEFAULT_BACKEND = 'llvm'
@@ -103,7 +103,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
         parameters = [wrap_symbol_symengine(p) for p in parameters]
     variables = tuple(variables)
     parameters = tuple(parameters)
-    func, grad, hess = None, None, None
+    func, grad, hess, pg, pgd = None, None, None, None, None
     # Replace complex infinity (zoo) with real infinity because SymEngine
     # cannot lambdify complex infinity. We also replace in the derivatives in
     # case some differentiation would produce a complex infinity. The
@@ -114,12 +114,17 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
+        if len(parameters) > 0:
+            param_grad_graphs = list(graph.diff(i) for i in parameters)
+            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in parameters]
+            pg = lambdify(inp, param_grad_graphs, **_get_lambidfy_options(grad_options))
+            pgd = lambdify(inp, param_jac_graphs, **_get_lambidfy_options(hess_options))
         if include_grad:
             grad = lambdify(inp, grad_graphs, **_get_lambidfy_options(grad_options))
         if include_hess:
             hess_graphs = list(list(g.diff(w).xreplace({zoo: oo}) for w in wrt) for g in grad_graphs)
             hess = lambdify(inp, hess_graphs, **_get_lambidfy_options(hess_options))
-    return BuildFunctionsResult(func=func, grad=grad, hess=hess)
+    return BuildFunctionsResult(func=func, grad=grad, hess=hess, param_grad=pg, param_jac=pgd)
 
 
 @cacheit
