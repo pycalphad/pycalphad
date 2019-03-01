@@ -7,7 +7,7 @@ from symengine import sympify, lambdify, count_ops
 from collections import namedtuple
 
 
-BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
+BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess', 'param_grad', 'param_jac'])
 
 BACKEND_OPS_THRESHOLD = 50000
 
@@ -22,7 +22,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
         parameters = [wrap_symbol_symengine(p) for p in parameters]
     variables = tuple(variables)
     parameters = tuple(parameters)
-    func, grad, hess = None, None, None
+    func, grad, hess, pg, pgd = None, None, None, None, None
     inp = sympify(variables + parameters)
     graph = sympify(sympy_graph)
     if count_ops(graph) > BACKEND_OPS_THRESHOLD:
@@ -39,10 +39,21 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
             grad_backend = 'lambda'
         else:
             grad_backend = 'llvm'
+        if len(parameters) > 0:
+            param_grad_graphs = list(graph.diff(i) for i in parameters)
+            param_grad_ops = sum(count_ops(x) for x in param_grad_graphs)
+            if param_grad_ops > BACKEND_OPS_THRESHOLD:
+                param_grad_backend = 'lambda'
+            else:
+                param_grad_backend = 'llvm'
+            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in parameters]
+            pg = lambdify(inp, param_grad_graphs, backend=param_grad_backend, cse=cse)
+            # Hessians are hard-coded to always use the lambda backend, for performance
+            pgd = lambdify(inp, param_jac_graphs, backend='lambda', cse=cse)
         if include_grad:
             grad = lambdify(inp, grad_graphs, backend=grad_backend, cse=cse)
         if include_hess:
             hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
             # Hessians are hard-coded to always use the lambda backend, for performance
             hess = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
-    return BuildFunctionsResult(func=func, grad=grad, hess=hess)
+    return BuildFunctionsResult(func=func, grad=grad, hess=hess, param_grad=pg, param_jac=pgd)

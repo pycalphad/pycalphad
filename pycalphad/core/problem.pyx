@@ -169,6 +169,49 @@ cdef class Problem:
         gradient_term[np.isnan(gradient_term)] = 0
         return gradient_term
 
+    def parameter_jacobian(self, x_in):
+        cdef CompositionSet compset = self.composition_sets[0]
+        cdef int phase_idx = 0
+        cdef int num_statevars = len(compset.phase_record.state_variables)
+        cdef int var_offset = num_statevars
+        cdef int dof_x_idx, param_idx
+        cdef double[::1] x = np.array(x_in)
+        cdef double[::1] parameters = np.array(compset.phase_record.parameters)
+        cdef double[::1] grad_tmp = np.zeros(parameters.shape[0])
+        cdef np.ndarray[ndim=2, dtype=np.float64_t] jacobian_term = np.zeros((self.num_vars, parameters.shape[0]))
+        cdef double[::1] jac_tmp = np.zeros(jacobian_term.size)
+        cdef double[:,::1] jac_view
+
+        for compset in self.composition_sets:
+            x = np.r_[x_in[:num_statevars], x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
+            jac_view = <double[:x.shape[0], :parameters.shape[0]]>&jac_tmp[0]
+            compset.phase_record.parameter_gradient(grad_tmp, x)
+            compset.phase_record.parameter_jacobian(jac_view, x)
+            for dof_x_idx in range(num_statevars):
+                for param_idx in range(parameters.shape[0]):
+                    jacobian_term[dof_x_idx, param_idx] += x_in[self.num_vars-self.num_phases+phase_idx] * jac_view[dof_x_idx, param_idx]
+            for dof_x_idx in range(compset.phase_record.phase_dof):
+                for param_idx in range(parameters.shape[0]):
+                    jacobian_term[var_offset + dof_x_idx, param_idx] = \
+                        x_in[self.num_vars-self.num_phases+phase_idx] * jac_view[num_statevars+dof_x_idx, param_idx]
+            for param_idx in range(parameters.shape[0]):
+                jacobian_term[self.num_vars - self.num_phases + phase_idx, param_idx] += grad_tmp[param_idx]
+            grad_tmp[:] = 0
+            jac_tmp[:] = 0
+            var_offset += compset.phase_record.phase_dof
+            phase_idx += 1
+
+        return jacobian_term
+
+    def chemical_potential_parameter_gradient(self, x_in):
+        "Assuming the input is a feasible solution."
+        # mu' = (A+)' grad + (A+) hess
+        jac = self.mass_jacobian(x_in).T
+        jac_pinv = np.linalg.pinv(jac)
+        param_jac = self.parameter_jacobian(x_in)
+        param_mu_prime = np.dot(jac_pinv, param_jac)
+        return param_mu_prime[-len(self.nonvacant_elements):,:]
+
     def obj_hessian(self, x_in):
         cdef CompositionSet compset = self.composition_sets[0]
         cdef size_t num_statevars = len(compset.phase_record.state_variables)

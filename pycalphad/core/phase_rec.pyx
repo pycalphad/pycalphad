@@ -69,13 +69,15 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._obj, self._grad, self._hess, self._masses, self._massgrads,
-                                 self._masshessians, self._internal_cons_func, self._internal_cons_jac, self._internal_cons_hess,
+                                 self._obj, self._grad, self._hess, self._parameter_grad, self._parameter_jac,
+                                 self._masses, self._massgrads, self._masshessians,
+                                 self._internal_cons_func, self._internal_cons_jac, self._internal_cons_hess,
                                  self._multiphase_cons_func, self._multiphase_cons_jac, self._multiphase_cons_hess,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
                   double[::1] parameters, object ofunc, object gfunc, object hfunc,
+                  object parameter_grad_func, object parameter_jac_func,
                   object massfuncs, object massgradfuncs, object masshessianfuncs,
                   object internal_cons_func, object internal_cons_jac, object internal_cons_hess,
                   object multiphase_cons_func, object multiphase_cons_jac, object multiphase_cons_hess,
@@ -122,6 +124,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self._multiphase_cons_jac = FastFunction(multiphase_cons_jac)
         if multiphase_cons_hess is not None:
             self._multiphase_cons_hess = FastFunction(multiphase_cons_hess)
+        if parameter_grad_func is not None:
+            self._parameter_grad = FastFunction(parameter_grad_func)
+        if parameter_jac_func is not None:
+            self._parameter_jac = FastFunction(parameter_jac_func)
         if massfuncs is not None:
             self._masses = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
@@ -176,6 +182,24 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._hess.call(&out[0,0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void parameter_gradient(self, double[::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        self._parameter_grad.call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void parameter_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        self._parameter_jac.call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 

@@ -80,6 +80,8 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         'callables': {},
         'grad_callables': {},
         'hess_callables': {},
+        'paramgradfuncs': {},
+        'paramjacfuncs': {},
         'internal_cons_func': {},
         'internal_cons_jac': {},
         'internal_cons_hess': {},
@@ -117,15 +119,18 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         _callables['callables'][name] = cf
         _callables['grad_callables'][name] = gf
         _callables['hess_callables'][name] = hf
+        pg, pgd = build_output.param_grad, build_output.param_jac
+        _callables['paramgradfuncs'][name] = pg
+        _callables['paramjacfuncs'][name] = pgd
 
         # Build the callables for mass
         # TODO: In principle, we should also check for undefs in mod.moles()
-        mcf, mgf, mhf = zip(*[build_functions(mod.moles(el), state_variables + site_fracs,
-                                              include_obj=True,
-                                              include_grad=build_gradients,
-                                              include_hess=build_hessians,
-                                              parameters=parameter_symbols)
-                              for el in pure_elements])
+        mcf, mgf, mhf, _, _ = zip(*[build_functions(mod.moles(el), state_variables + site_fracs,
+                                                    include_obj=True,
+                                                    include_grad=build_gradients,
+                                                    include_hess=build_hessians,
+                                                    parameters=parameter_symbols)
+                                    for el in pure_elements])
 
         _callables['massfuncs'][name] = mcf
         _callables['massgradfuncs'][name] = mgf
@@ -221,6 +226,8 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                                   callables[output]['callables'][name],
                                                   callables[output]['grad_callables'][name],
                                                   callables[output]['hess_callables'][name],
+                                                  callables[output]['paramgradfuncs'][name],
+                                                  callables[output]['paramjacfuncs'][name],
                                                   callables[output]['massfuncs'][name],
                                                   callables[output]['massgradfuncs'][name],
                                                   callables[output]['masshessfuncs'][name],
