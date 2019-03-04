@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,32 +17,35 @@
   
 
   
+  <script type="text/javascript" src="../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../genindex.html" />
     <link rel="search" title="Search" href="../../search.html" /> 
-
-  
-  <script src="../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -164,6 +167,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="k">import</span> <span class="n">DofError</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_components</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constraints</span> <span class="k">import</span> <span class="n">is_multiphase_constraint</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">OrderedDict</span>
 
@@ -253,6 +257,11 @@
                             <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">))</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span>
+        <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">]</span>
+        <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span>
+                                        <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">]</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">pure_elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">desired_active_pure_elements</span><span class="p">))</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">nonvacant_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">pure_elements</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
 
         <span class="c1"># Convert string symbol names to sympy Symbol objects</span>
         <span class="c1"># This makes xreplace work with the symbols dict</span>
@@ -275,10 +284,12 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_phase</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">site_fractions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">ast</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">symbols</span><span class="p">)</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_fractions</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">variables</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">)],</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
 <div class="viewcode-block" id="Model.symbol_replace"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.symbol_replace">[docs]</a>    <span class="nd">@staticmethod</span>
     <span class="k">def</span> <span class="nf">symbol_replace</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">symbols</span><span class="p">):</span>
@@ -402,6 +413,28 @@
     <span class="n">mixing_entropy</span> <span class="o">=</span> <span class="n">SM_MIX</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">GM_MIX</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="n">mixing_heat_capacity</span> <span class="o">=</span> <span class="n">CPM_MIX</span> <span class="o">=</span> \
         <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">GM_MIX</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
+
+<div class="viewcode-block" id="Model.get_internal_constraints"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.get_internal_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+            <span class="n">constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">idx</span><span class="p">,</span> <span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="n">sublattice</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span>
+        <span class="k">return</span> <span class="n">constraints</span></div>
+
+<div class="viewcode-block" id="Model.get_multiphase_constraints"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.get_multiphase_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">get_multiphase_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">conds</span><span class="p">):</span>
+        <span class="n">fixed_chempots</span> <span class="o">=</span> <span class="p">[</span><span class="n">cond</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">)]</span>
+        <span class="n">multiphase_constraints</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">for</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+            <span class="k">if</span> <span class="ow">not</span> <span class="n">is_multiphase_constraint</span><span class="p">(</span><span class="n">statevar</span><span class="p">):</span>
+                <span class="k">continue</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statevar</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Composition</span><span class="p">):</span>
+                <span class="n">multiphase_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">statevar</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
+            <span class="k">elif</span> <span class="n">statevar</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span>
+                <span class="n">multiphase_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="p">)))</span>
+            <span class="k">elif</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">]:</span>
+                <span class="k">return</span> <span class="n">multiphase_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">NotImplementedError</span>
+        <span class="k">return</span> <span class="n">multiphase_constraints</span></div>
 
 <div class="viewcode-block" id="Model.build_phase"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.build_phase">[docs]</a>    <span class="k">def</span> <span class="nf">build_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
@@ -1055,26 +1088,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../" src="../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

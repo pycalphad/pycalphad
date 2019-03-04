@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.callables &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.codegen.callables &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,32 +17,35 @@
   
 
   
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -156,12 +159,12 @@
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">pycalphad.codegen.sympydiff_utils</span> <span class="k">import</span> <span class="n">build_functions</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">get_pure_elements</span><span class="p">,</span> <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_kwarg</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord_from_cython</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.phase_rec</span> <span class="k">import</span> <span class="n">PhaseRecord</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constraints</span> <span class="k">import</span> <span class="n">build_constraints</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">from</span> <span class="nn">itertools</span> <span class="k">import</span> <span class="n">repeat</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">defaultdict</span>
 
 
 <div class="viewcode-block" id="wrap_symbol"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.callables.wrap_symbol">[docs]</a><span class="k">def</span> <span class="nf">wrap_symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
@@ -170,7 +173,8 @@
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
 
-<div class="viewcode-block" id="build_callables"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.callables.build_callables">[docs]</a><span class="k">def</span> <span class="nf">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+
+<div class="viewcode-block" id="build_callables"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.callables.build_callables">[docs]</a><span class="k">def</span> <span class="nf">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                     <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span> <span class="n">build_gradients</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Create dictionaries of callable dictionaries and PhaseRecords.</span>
@@ -183,6 +187,8 @@
 <span class="sd">        List of component names</span>
 <span class="sd">    phases : list</span>
 <span class="sd">        List of phase names</span>
+<span class="sd">    conds : dict or None</span>
+<span class="sd">        Conditions for calculation</span>
 <span class="sd">    model : dict or type</span>
 <span class="sd">        Dictionary of {phase_name: Model subclass} or a type corresponding to a</span>
 <span class="sd">        Model subclass. Defaults to ``Model``.</span>
@@ -211,6 +217,7 @@
 <span class="sd">    &gt;&gt;&gt; callables = build_callables(dbf, comps, phases)</span>
 <span class="sd">    &gt;&gt;&gt; equilibrium(dbf, comps, phases, conditions, **callables)</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">conds</span> <span class="o">=</span> <span class="n">conds</span> <span class="k">if</span> <span class="n">conds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="n">param_symbols</span><span class="p">,</span> <span class="n">param_values</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">key</span><span class="p">,</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
@@ -221,25 +228,56 @@
         <span class="n">param_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
     <span class="n">comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
     <span class="n">pure_elements</span> <span class="o">=</span> <span class="n">get_pure_elements</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
+    <span class="c1"># TODO: Conditions needing Hessians should probably have a &#39;second-order&#39; tag or something</span>
+    <span class="n">build_hessians</span> <span class="o">=</span> <span class="nb">any</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;MU&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
 
     <span class="n">callables</span> <span class="o">=</span> <span class="n">callables</span> <span class="k">if</span> <span class="n">callables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">_callables</span> <span class="o">=</span> <span class="p">{</span>
         <span class="s1">&#39;massfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;massgradfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;masshessfuncs&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;grad_callables&#39;</span><span class="p">:</span> <span class="p">{}</span>
+        <span class="s1">&#39;grad_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;hess_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;mp_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;mp_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
     <span class="p">}</span>
 
     <span class="n">models</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="n">Model</span><span class="p">)</span>
     <span class="n">param_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">sym</span><span class="p">)</span> <span class="k">for</span> <span class="n">sym</span> <span class="ow">in</span> <span class="n">param_symbols</span><span class="p">]</span>
     <span class="n">phase_records</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># create models</span>
+
+    <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+        <span class="n">state_variables</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">state_variables</span><span class="p">)</span>
+
+    <span class="n">unspecified_statevars</span> <span class="o">=</span> <span class="n">state_variables</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unspecified_statevars</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;The following state variables must be specified: </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">unspecified_statevars</span><span class="p">))</span>
+        <span class="c1"># TODO: T,P as free variables</span>
+
+    <span class="n">unused_statevars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">),</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">):</span>
+            <span class="n">unused_statevars</span> <span class="o">|=</span> <span class="p">{</span><span class="n">x</span><span class="p">}</span>
+    <span class="n">unused_statevars</span> <span class="o">-=</span> <span class="n">state_variables</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">unused_statevars</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">state_variables</span> <span class="o">|=</span> <span class="n">unused_statevars</span>
+
+    <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">state_variables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
+    <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;state_variables&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">state_variables</span>
+
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">mod</span> <span class="o">=</span> <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
             <span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
         <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">site_fractions</span>
-        <span class="n">variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
         <span class="k">try</span><span class="p">:</span>
             <span class="n">out</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">output</span><span class="p">)</span>
         <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
@@ -247,67 +285,75 @@
                                  <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">output</span><span class="p">,</span> <span class="n">mod</span><span class="o">.</span><span class="vm">__class__</span><span class="p">))</span>
 
         <span class="k">if</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;callables&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> \
-                <span class="p">((</span><span class="ow">not</span> <span class="n">build_gradients</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">,{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+                <span class="p">((</span><span class="ow">not</span> <span class="n">build_gradients</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span> <span class="ow">and</span> \
+                <span class="p">((</span><span class="ow">not</span> <span class="n">build_hessians</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">build_gradients</span><span class="p">:</span>
-                <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Build the callables of the output</span>
             <span class="c1"># Only force undefineds to zero if we&#39;re not overriding them</span>
             <span class="n">undefs</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">out</span><span class="o">.</span><span class="n">free_symbols</span> <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)}</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">param_symbols</span><span class="p">)</span>
             <span class="n">undef_vals</span> <span class="o">=</span> <span class="n">repeat</span><span class="p">(</span><span class="mf">0.</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">undefs</span><span class="p">))</span>
             <span class="n">out</span> <span class="o">=</span> <span class="n">out</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">undefs</span><span class="p">,</span> <span class="n">undef_vals</span><span class="p">)))</span>
-            <span class="n">build_output</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">),</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">,</span>
-                                           <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">)</span>
-            <span class="k">if</span> <span class="n">build_gradients</span><span class="p">:</span>
-                <span class="n">cf</span><span class="p">,</span> <span class="n">gf</span> <span class="o">=</span> <span class="n">build_output</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">cf</span> <span class="o">=</span> <span class="n">build_output</span>
-                <span class="n">gf</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">build_output</span> <span class="o">=</span> <span class="n">build_functions</span><span class="p">(</span><span class="n">out</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">),</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">,</span>
+                                           <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="n">build_hessians</span><span class="p">)</span>
+            <span class="n">cf</span><span class="p">,</span> <span class="n">gf</span><span class="p">,</span> <span class="n">hf</span> <span class="o">=</span> <span class="n">build_output</span><span class="o">.</span><span class="n">func</span><span class="p">,</span> <span class="n">build_output</span><span class="o">.</span><span class="n">grad</span><span class="p">,</span> <span class="n">build_output</span><span class="o">.</span><span class="n">hess</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cf</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">gf</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">hf</span>
 
         <span class="k">if</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span> \
-                <span class="p">((</span><span class="ow">not</span> <span class="n">build_gradients</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
+                <span class="p">((</span><span class="ow">not</span> <span class="n">build_gradients</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">))</span> <span class="ow">and</span> \
+                <span class="p">((</span><span class="ow">not</span> <span class="n">build_hessians</span><span class="p">)</span> <span class="ow">or</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">)):</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
-            <span class="k">if</span> <span class="n">build_gradients</span><span class="p">:</span>
-                <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">]</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Build the callables for mass</span>
             <span class="c1"># TODO: In principle, we should also check for undefs in mod.moles()</span>
-
-            <span class="k">if</span> <span class="n">build_gradients</span><span class="p">:</span>
-                <span class="n">mcf</span><span class="p">,</span> <span class="n">mgf</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">build_functions</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
-                                                 <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                                 <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
-                                                 <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
-                                 <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">pure_elements</span><span class="p">])</span>
-            <span class="k">else</span><span class="p">:</span>
-                <span class="n">mcf</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">([</span><span class="n">build_functions</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">]</span> <span class="o">+</span> <span class="n">variables</span><span class="p">,</span>
-                                             <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
-                                             <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
-                                             <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
-                             <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">pure_elements</span><span class="p">])</span>
+            <span class="n">mcf</span><span class="p">,</span> <span class="n">mgf</span><span class="p">,</span> <span class="n">mhf</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">build_functions</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span>
+                                                  <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                                                  <span class="n">include_grad</span><span class="o">=</span><span class="n">build_gradients</span><span class="p">,</span>
+                                                  <span class="n">include_hess</span><span class="o">=</span><span class="n">build_hessians</span><span class="p">,</span>
+                                                  <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+                                  <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">pure_elements</span><span class="p">])</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mgf</span><span class="p">):</span>
                 <span class="n">mgf</span> <span class="o">=</span> <span class="kc">None</span>
+            <span class="k">if</span> <span class="nb">all</span><span class="p">(</span><span class="n">x</span> <span class="ow">is</span> <span class="kc">None</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">mhf</span><span class="p">):</span>
+                <span class="n">mhf</span> <span class="o">=</span> <span class="kc">None</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mcf</span>
             <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mgf</span>
+            <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mhf</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="n">callables</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;phase_records&#39;</span><span class="p">,</span> <span class="p">{})</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">name</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
             <span class="n">pv</span> <span class="o">=</span> <span class="n">param_values</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># Copy parameter values from old PhaseRecord, if it exists</span>
             <span class="n">pv</span> <span class="o">=</span> <span class="n">callables</span><span class="p">[</span><span class="s1">&#39;phase_records&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">parameters</span>
-        <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord_from_cython</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span>
-                                                              <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span><span class="o">.</span><span class="n">sublattices</span><span class="p">,</span>
-                                                                       <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">),</span>
-                                                              <span class="n">pv</span><span class="p">,</span>
-                                                              <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                              <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                              <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                              <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">])</span>
+
+        <span class="n">cfuncs</span> <span class="o">=</span> <span class="n">build_constraints</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_jac</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_hess</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;mp_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons</span>
+        <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;mp_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_jac</span>
+        <span class="n">num_internal_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_internal_cons</span>
+        <span class="n">num_multiphase_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_multiphase_cons</span>
+
+        <span class="n">phase_records</span><span class="p">[</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span> <span class="o">=</span> <span class="n">PhaseRecord</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">pv</span><span class="p">,</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;grad_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;hess_callables&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;mp_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_callables</span><span class="p">[</span><span class="s1">&#39;mp_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">num_internal_cons</span><span class="p">,</span>
+                                                  <span class="n">num_multiphase_cons</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="n">name</span> <span class="o">+</span> <span class="s1">&#39; &#39;</span><span class="p">)</span>
 
@@ -352,26 +398,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

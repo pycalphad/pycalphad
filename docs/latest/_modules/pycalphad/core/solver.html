@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.solver &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.core.solver &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,32 +17,35 @@
   
 
   
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -157,6 +160,7 @@
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">pycalphad.variables</span> <span class="k">import</span> <span class="n">string_type</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 
 <span class="n">SolverResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;SolverResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;converged&#39;</span><span class="p">,</span> <span class="s1">&#39;x&#39;</span><span class="p">,</span> <span class="s1">&#39;chemical_potentials&#39;</span><span class="p">])</span>
 
@@ -227,7 +231,9 @@
             <span class="c1"># This option improves convergence when using L-BFGS</span>
             <span class="s1">&#39;limited_memory_max_history&#39;</span><span class="p">:</span> <span class="mi">100</span><span class="p">,</span>
             <span class="s1">&#39;tol&#39;</span><span class="p">:</span> <span class="mf">1e-1</span><span class="p">,</span>
-            <span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">:</span> <span class="mf">1e-12</span>
+            <span class="s1">&#39;constr_viol_tol&#39;</span><span class="p">:</span> <span class="mf">1e-6</span><span class="p">,</span>
+            <span class="s1">&#39;nlp_scaling_method&#39;</span><span class="p">:</span> <span class="s1">&#39;none&#39;</span><span class="p">,</span>
+            <span class="s1">&#39;hessian_approximation&#39;</span><span class="p">:</span> <span class="s1">&#39;limited-memory&#39;</span>
         <span class="p">}</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="n">verbose</span><span class="p">:</span>
             <span class="c1"># suppress the &quot;This program contains Ipopt&quot; banner</span>
@@ -284,6 +290,8 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">apply_options</span><span class="p">(</span><span class="n">nlp</span><span class="p">)</span>
         <span class="n">length_scale</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">min</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">cl</span><span class="p">))</span>
         <span class="n">length_scale</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">length_scale</span><span class="p">,</span> <span class="mf">1e-9</span><span class="p">)</span>
+        <span class="c1"># Note: Using the ipopt derivative checker can be tricky at the edges of composition space</span>
+        <span class="c1"># It will not give valid results for the finite difference approximation</span>
         <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">x0</span><span class="p">)</span>
         <span class="n">dual_inf</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_g&#39;</span><span class="p">]</span><span class="o">*</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;g&#39;</span><span class="p">]))</span>
         <span class="k">if</span> <span class="n">dual_inf</span> <span class="o">&gt;</span> <span class="bp">self</span><span class="o">.</span><span class="n">infeasibility_threshold</span><span class="p">:</span>
@@ -292,7 +300,7 @@
             <span class="c1"># Constraints are getting tiny; need to be strict about bounds</span>
             <span class="k">if</span> <span class="n">length_scale</span> <span class="o">&lt;</span> <span class="mf">1e-6</span><span class="p">:</span>
                 <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;compl_inf_tol&#39;</span><span class="p">,</span> <span class="mf">1e-3</span> <span class="o">*</span> <span class="nb">float</span><span class="p">(</span><span class="n">length_scale</span><span class="p">))</span>
-                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;bound_relax_factor&#39;</span><span class="p">,</span> <span class="mf">1e-12</span><span class="p">)</span>
+                <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;bound_relax_factor&#39;</span><span class="p">,</span> <span class="n">MIN_SITE_FRACTION</span><span class="p">)</span>
                 <span class="c1"># This option ensures any bounds failures will fail &quot;loudly&quot;</span>
                 <span class="c1"># Otherwise we are liable to have subtle mass balance errors</span>
                 <span class="n">nlp</span><span class="o">.</span><span class="n">addOption</span><span class="p">(</span><span class="sa">b</span><span class="s1">&#39;honor_original_bounds&#39;</span><span class="p">,</span> <span class="sa">b</span><span class="s1">&#39;no&#39;</span><span class="p">)</span>
@@ -301,7 +309,7 @@
             <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span> <span class="o">=</span> <span class="n">nlp</span><span class="o">.</span><span class="n">solve</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">accurate_info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">&gt;=</span> <span class="mi">0</span><span class="p">:</span>
                 <span class="n">x</span><span class="p">,</span> <span class="n">info</span> <span class="o">=</span> <span class="n">accurate_x</span><span class="p">,</span> <span class="n">accurate_info</span>
-        <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">info</span><span class="p">[</span><span class="s1">&#39;mult_g&#39;</span><span class="p">])[</span><span class="o">-</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">-</span> <span class="p">{</span><span class="s1">&#39;VA&#39;</span><span class="p">}):]</span>
+        <span class="n">chemical_potentials</span> <span class="o">=</span> <span class="n">prob</span><span class="o">.</span><span class="n">chemical_potentials</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">info</span><span class="p">[</span><span class="s1">&#39;status&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="o">-</span><span class="mi">10</span><span class="p">:</span>
             <span class="c1"># Not enough degrees of freedom; nothing to do</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">prob</span><span class="o">.</span><span class="n">composition_sets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
@@ -350,26 +358,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

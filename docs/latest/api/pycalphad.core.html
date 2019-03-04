@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pycalphad.io package" href="pycalphad.io.html" />
     <link rel="prev" title="pycalphad.codegen package" href="pycalphad.codegen.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -506,9 +509,12 @@ Shape of (M,)</li>
 Shape of (N,)</li>
 <li><strong>chemical_potentials</strong> (<em>ndarray</em>) – Shape of (N,)
 Will be overwritten</li>
+<li><strong>total_moles</strong> (<em>double</em>) – Total number of moles in the system.</li>
+<li><strong>fixed_chempot_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</li>
+<li><strong>fixed_comp_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</li>
 <li><strong>result_fractions</strong> (<em>ndarray</em>) – Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
 Will be overwritten. Output sums to 1.</li>
-<li><strong>best_guess_simplex</strong> (<em>ndarray</em>) – Energies of the points making up the hyperplane simplex. Shape of (P,).
+<li><strong>result_simplex</strong> (<em>ndarray</em>) – Energies of the points making up the hyperplane simplex. Shape of (P,).
 Will be overwritten. Output*result_fractions sums to out_energy (return value).</li>
 </ul>
 </td>
@@ -536,7 +542,7 @@ P: N+1, max phases by gibbs phase rule that we can find in a point calculations<
 equilibrium calculation.</p>
 <dl class="function">
 <dt id="pycalphad.core.lower_convex_hull.lower_convex_hull">
-<code class="descclassname">pycalphad.core.lower_convex_hull.</code><code class="descname">lower_convex_hull</code><span class="sig-paren">(</span><em>global_grid</em>, <em>result_array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/lower_convex_hull.html#lower_convex_hull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.lower_convex_hull.lower_convex_hull" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.core.lower_convex_hull.</code><code class="descname">lower_convex_hull</code><span class="sig-paren">(</span><em>global_grid</em>, <em>state_variables</em>, <em>result_array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/lower_convex_hull.html#lower_convex_hull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.lower_convex_hull.lower_convex_hull" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the simplices on the lower convex hull satisfying the specified
 conditions in the result array.</p>
 <table class="docutils field-list" frame="void" rules="none">
@@ -545,6 +551,7 @@ conditions in the result array.</p>
 <tbody valign="top">
 <tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
 <li><strong>global_grid</strong> (<em>Dataset</em>) – A sample of the energy surface of the system.</li>
+<li><strong>state_variables</strong> (<em>list</em>) – A list of the state variables (e.g., P, T) used in this calculation.</li>
 <li><strong>result_array</strong> (<em>Dataset</em>) – This object will be modified!
 Coordinates correspond to conditions axes.</li>
 </ul>
@@ -612,11 +619,10 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <em class="property">class </em><code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>This object exposes a common API to the solver so it doesn’t need to know about the differences
-between Model and CompiledModel. Each PhaseRecord holds a reference to its own Model or CompiledModel;
-these objects are pickleable. PhaseRecords are immutable after initialization.</p>
+between Model implementations. PhaseRecords are immutable after initialization.</p>
 <dl class="attribute">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.composition_matrices">
-<code class="descname">composition_matrices</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.composition_matrices" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.components">
+<code class="descname">components</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.components" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -625,8 +631,33 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.hess">
+<code class="descname">hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_cons_hessian">
+<code class="descname">internal_cons_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_cons_hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_constraints">
+<code class="descname">internal_constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_jacobian">
+<code class="descname">internal_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pycalphad.core.phase_rec.PhaseRecord.mass_grad">
 <code class="descname">mass_grad</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_grad" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.mass_hess">
+<code class="descname">mass_hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_hess" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -634,9 +665,29 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <code class="descname">mass_obj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_obj" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_constraints">
+<code class="descname">multiphase_constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_jacobian">
+<code class="descname">multiphase_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="attribute">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.num_sites">
-<code class="descname">num_sites</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_sites" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.nonvacant_elements">
+<code class="descname">nonvacant_elements</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.nonvacant_elements" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.num_internal_cons">
+<code class="descname">num_internal_cons</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_internal_cons" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.num_multiphase_cons">
+<code class="descname">num_multiphase_cons</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -660,13 +711,13 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.sublattice_dof">
-<code class="descname">sublattice_dof</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.sublattice_dof" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.pure_elements">
+<code class="descname">pure_elements</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.pure_elements" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.vacancy_index">
-<code class="descname">vacancy_index</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.vacancy_index" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.state_variables">
+<code class="descname">state_variables</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.state_variables" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -676,16 +727,6 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 
 </dd></dl>
 
-<dl class="function">
-<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython">
-<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle">
-<code class="descclassname">pycalphad.core.phase_rec.</code><code class="descname">PhaseRecord_from_cython_pickle</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord_from_cython_pickle" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-pycalphad.core.problem">
 <span id="pycalphad-core-problem-module"></span><h2>pycalphad.core.problem module<a class="headerlink" href="#module-pycalphad.core.problem" title="Permalink to this headline">¶</a></h2>
@@ -693,6 +734,18 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dt id="pycalphad.core.problem.Problem">
 <em class="property">class </em><code class="descclassname">pycalphad.core.problem.</code><code class="descname">Problem</code><a class="headerlink" href="#pycalphad.core.problem.Problem" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.chemical_potential_gradient">
+<code class="descname">chemical_potential_gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.chemical_potential_gradient" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assuming the input is a feasible solution.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.chemical_potentials">
+<code class="descname">chemical_potentials</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.chemical_potentials" title="Permalink to this definition">¶</a></dt>
+<dd><p>Assuming the input is a feasible solution.</p>
+</dd></dl>
+
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.cl">
 <code class="descname">cl</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cl" title="Permalink to this definition">¶</a></dt>
@@ -718,15 +771,51 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <code class="descname">cu</code><a class="headerlink" href="#pycalphad.core.problem.Problem.cu" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.fixed_chempot_indices">
+<code class="descname">fixed_chempot_indices</code><a class="headerlink" href="#pycalphad.core.problem.Problem.fixed_chempot_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.fixed_chempot_values">
+<code class="descname">fixed_chempot_values</code><a class="headerlink" href="#pycalphad.core.problem.Problem.fixed_chempot_values" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.fixed_dof_indices">
+<code class="descname">fixed_dof_indices</code><a class="headerlink" href="#pycalphad.core.problem.Problem.fixed_dof_indices" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pycalphad.core.problem.Problem.gradient">
 <code class="descname">gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.gradient" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
+<dt id="pycalphad.core.problem.Problem.hessian">
+<code class="descname">hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
 <dt id="pycalphad.core.problem.Problem.jacobian">
 <code class="descname">jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.jacobian" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.mass_cons_hessian">
+<code class="descname">mass_cons_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_cons_hessian" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.mass_gradient">
+<code class="descname">mass_gradient</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_gradient" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.mass_jacobian">
+<code class="descname">mass_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.mass_jacobian" title="Permalink to this definition">¶</a></dt>
+<dd><p>For chemical potential calculation.</p>
+</dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.nonvacant_elements">
@@ -736,6 +825,16 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.num_constraints">
 <code class="descname">num_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_fixed_dof_constraints">
+<code class="descname">num_fixed_dof_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_fixed_dof_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.problem.Problem.num_internal_constraints">
+<code class="descname">num_internal_constraints</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_internal_constraints" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -754,18 +853,8 @@ these objects are pickleable. PhaseRecords are immutable after initialization.</
 <dd></dd></dl>
 
 <dl class="attribute">
-<dt id="pycalphad.core.problem.Problem.pressure">
-<code class="descname">pressure</code><a class="headerlink" href="#pycalphad.core.problem.Problem.pressure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.pure_elements">
 <code class="descname">pure_elements</code><a class="headerlink" href="#pycalphad.core.problem.Problem.pure_elements" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.core.problem.Problem.temperature">
-<code class="descname">temperature</code><a class="headerlink" href="#pycalphad.core.problem.Problem.temperature" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -1195,7 +1284,7 @@ there, then the constant value is used.</p>
         <a href="pycalphad.io.html" class="btn btn-neutral float-right" title="pycalphad.io package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="pycalphad.codegen.html" class="btn btn-neutral" title="pycalphad.codegen package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pycalphad.codegen.html" class="btn btn-neutral float-left" title="pycalphad.codegen package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -1221,26 +1310,16 @@ there, then the constant value is used.</p>
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen package &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.codegen package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,34 +17,37 @@
   
 
   
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../genindex.html" />
     <link rel="search" title="Search" href="../search.html" />
     <link rel="next" title="pycalphad.core package" href="pycalphad.core.html" />
     <link rel="prev" title="pycalphad package" href="pycalphad.html" /> 
-
-  
-  <script src="../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -61,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -185,7 +188,7 @@
 <span id="pycalphad-codegen-callables-module"></span><h2>pycalphad.codegen.callables module<a class="headerlink" href="#module-pycalphad.codegen.callables" title="Permalink to this headline">¶</a></h2>
 <dl class="function">
 <dt id="pycalphad.codegen.callables.build_callables">
-<code class="descclassname">pycalphad.codegen.callables.</code><code class="descname">build_callables</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>model=None</em>, <em>parameters=None</em>, <em>callables=None</em>, <em>output='GM'</em>, <em>build_gradients=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.codegen.callables.</code><code class="descname">build_callables</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conds=None</em>, <em>model=None</em>, <em>parameters=None</em>, <em>callables=None</em>, <em>output='GM'</em>, <em>build_gradients=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create dictionaries of callable dictionaries and PhaseRecords.</p>
 <table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
@@ -195,6 +198,7 @@
 <li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</li>
 <li><strong>comps</strong> (<em>list</em>) – List of component names</li>
 <li><strong>phases</strong> (<em>list</em>) – List of phase names</li>
+<li><strong>conds</strong> (<em>dict</em><em> or </em><em>None</em>) – Conditions for calculation</li>
 <li><strong>model</strong> (<em>dict</em><em> or </em><em>type</em>) – Dictionary of {phase_name: Model subclass} or a type corresponding to a
 Model subclass. Defaults to <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</li>
 <li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
@@ -593,6 +597,30 @@ automatically-assigned names.  Also has Matrix output.</p>
 </dd></dl>
 
 <dl class="class">
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult">
+<em class="property">class </em><code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">BuildFunctionsResult</code><span class="sig-paren">(</span><em>func</em>, <em>grad</em>, <em>hess</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func">
+<code class="descname">func</code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad">
+<code class="descname">grad</code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.grad" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess">
+<code class="descname">hess</code><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult.hess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
 <dt id="pycalphad.codegen.sympydiff_utils.PickleableFunction">
 <em class="property">class </em><code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">PickleableFunction</code><span class="sig-paren">(</span><em>sympy_vars</em>, <em>sympy_obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#PickleableFunction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.PickleableFunction" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -614,7 +642,7 @@ This also means multiprocessing using fork() will NOT force a recompile.</p>
 
 <dl class="function">
 <dt id="pycalphad.codegen.sympydiff_utils.build_functions">
-<code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
+<code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=False</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
 <dd><table class="docutils field-list" frame="void" rules="none">
 <col class="field-name" />
 <col class="field-body" />
@@ -625,6 +653,7 @@ This also means multiprocessing using fork() will NOT force a recompile.</p>
 <li><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</li>
 <li><strong>include_obj</strong> – </li>
 <li><strong>include_grad</strong> – </li>
+<li><strong>include_hess</strong> – </li>
 <li><strong>parameters</strong> – </li>
 </ul>
 </td>
@@ -663,7 +692,7 @@ Source: <a class="reference external" href="http://stackoverflow.com/questions/3
         <a href="pycalphad.core.html" class="btn btn-neutral float-right" title="pycalphad.core package" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
       
       
-        <a href="pycalphad.html" class="btn btn-neutral" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+        <a href="pycalphad.html" class="btn btn-neutral float-left" title="pycalphad package" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
       
     </div>
   
@@ -689,26 +718,16 @@ Source: <a class="reference external" href="http://stackoverflow.com/questions/3
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../_static/jquery.js"></script>
-        <script type="text/javascript" src="../_static/underscore.js"></script>
-        <script type="text/javascript" src="../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,32 +17,35 @@
   
 
   
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -160,6 +163,7 @@
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">zoo</span><span class="p">,</span> <span class="n">oo</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">,</span> <span class="n">IndexedBase</span><span class="p">,</span> <span class="n">MatrixSymbol</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">Idx</span><span class="p">,</span> <span class="n">Lambda</span><span class="p">,</span> <span class="n">Eq</span><span class="p">,</span> <span class="n">S</span>
 <span class="kn">import</span> <span class="nn">time</span>
 <span class="kn">import</span> <span class="nn">tempfile</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 <span class="kn">from</span> <span class="nn">threading</span> <span class="k">import</span> <span class="n">RLock</span>
 <span class="n">CompileLock</span> <span class="o">=</span> <span class="n">RLock</span><span class="p">()</span>
 
@@ -235,8 +239,11 @@
         <span class="k">return</span> <span class="n">result</span></div></div>
 
 
+<span class="n">BuildFunctionsResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BuildFunctionsResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">])</span>
+
+
 <div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_functions">[docs]</a><span class="nd">@cacheit</span>
-<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                     <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 
@@ -249,6 +256,7 @@
 <span class="sd">        Variables to differentiate with respect to. (Default: equal to variables)</span>
 <span class="sd">    include_obj</span>
 <span class="sd">    include_grad</span>
+<span class="sd">    include_hess</span>
 <span class="sd">    parameters</span>
 
 <span class="sd">    Returns</span>
@@ -268,6 +276,7 @@
     <span class="n">parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">new_parameters</span><span class="p">)</span>
     <span class="n">variables</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
     <span class="n">restup</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">grad</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">hess</span> <span class="o">=</span> <span class="kc">None</span>
     <span class="n">m</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;veclen&#39;</span><span class="p">,</span> <span class="n">integer</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -291,10 +300,18 @@
         <span class="n">args_with_indices</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
         <span class="n">args_nobroadcast</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">params</span><span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="n">indx</span><span class="p">])</span>
 
-    <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
-    <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
-        <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args_with_indices</span><span class="p">))))</span>
-    <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">):</span>
+        <span class="c1"># disable broadcasting for matrix input</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">(</span><span class="n">inp_nobroadcast</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
+        <span class="n">nobroadcast</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">,</span> <span class="n">args_nobroadcast</span><span class="p">))</span>
+        <span class="n">sympy_graph_nobroadcast</span> <span class="o">=</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">nobroadcast</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">zoo</span><span class="p">:</span> <span class="n">oo</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Pi</span><span class="p">:</span> <span class="mf">3.14159265359</span><span class="p">})</span>
+        <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">sympy_graph_nobroadcast</span><span class="o">.</span><span class="n">as_explicit</span><span class="p">())</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">args</span> <span class="o">=</span> <span class="p">[</span><span class="n">y</span><span class="p">,</span> <span class="n">inp</span><span class="p">,</span> <span class="n">params</span><span class="p">,</span> <span class="n">m</span><span class="p">]</span>
+        <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
+            <span class="n">func</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">Eq</span><span class="p">(</span><span class="n">y</span><span class="p">[</span><span class="n">i</span><span class="p">],</span> <span class="n">f</span><span class="p">(</span><span class="o">*</span><span class="n">args_with_indices</span><span class="p">)))</span>
+    <span class="k">if</span> <span class="n">include_grad</span> <span class="ow">or</span> <span class="n">include_hess</span><span class="p">:</span>
         <span class="n">diffargs</span> <span class="o">=</span> <span class="p">(</span><span class="n">inp_nobroadcast</span><span class="p">,</span> <span class="n">params</span><span class="p">)</span>
         <span class="n">nobroadcast</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="o">+</span><span class="n">parameters</span><span class="p">,</span> <span class="n">args_nobroadcast</span><span class="p">))</span>
         <span class="n">sympy_graph_nobroadcast</span> <span class="o">=</span> <span class="n">sympy_graph</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">nobroadcast</span><span class="p">)</span>
@@ -302,13 +319,14 @@
             <span class="n">grad_diffs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">sympy_graph_nobroadcast</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">nobroadcast</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
             <span class="n">grad</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">diffargs</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">(</span><span class="n">grad_diffs</span><span class="p">))</span>
-
-        <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
-            <span class="n">restup</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">grad</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
+            <span class="k">with</span> <span class="n">CompileLock</span><span class="p">:</span>
+                <span class="n">hess_diffs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">nobroadcast</span><span class="p">[</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">grad_diffs</span><span class="p">)</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">AutowrapFunction</span><span class="p">(</span><span class="n">diffargs</span><span class="p">,</span> <span class="n">ImmutableMatrix</span><span class="p">(</span><span class="n">hess_diffs</span><span class="p">))</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">restup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">restup</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
-        <span class="k">return</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">restup</span><span class="p">)</span></div>
+        <span class="k">return</span> <span class="n">BuildFunctionsResult</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="n">grad</span><span class="p">,</span> <span class="n">hess</span><span class="o">=</span><span class="n">hess</span><span class="p">)</span></div>
 </pre></div>
 
            </div>
@@ -338,26 +356,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.7.1.post2 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
   
 
   
@@ -17,32 +17,35 @@
   
 
   
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
-  
-  
     
 
   
-
   <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
   <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
     <link rel="index" title="Index" href="../../../genindex.html" />
     <link rel="search" title="Search" href="../../../search.html" /> 
-
-  
-  <script src="../../../_static/js/modernizr.min.js"></script>
-
 </head>
 
 <body class="wy-body-for-nav">
 
    
   <div class="wy-grid-for-nav">
-
     
     <nav data-toggle="wy-nav-shift" class="wy-nav-side">
       <div class="wy-side-scroll">
-        <div class="wy-side-nav-search">
+        <div class="wy-side-nav-search" >
           
 
           
@@ -59,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2
+                0.7.1.post2+2.g6b5e905
               </div>
             
           
@@ -162,7 +165,7 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">unpack_components</span><span class="p">,</span> <span class="n">unpack_condition</span><span class="p">,</span> <span class="n">unpack_phases</span><span class="p">,</span> <span class="n">filter_phases</span>
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="k">import</span> <span class="n">EquilibriumError</span><span class="p">,</span> <span class="n">ConditionError</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.lower_convex_hull</span> <span class="k">import</span> <span class="n">lower_convex_hull</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.starting_point</span> <span class="k">import</span> <span class="n">starting_point</span>
 <span class="kn">from</span> <span class="nn">pycalphad.codegen.callables</span> <span class="k">import</span> <span class="n">build_callables</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.eqsolver</span> <span class="k">import</span> <span class="n">_solve_eq_at_conditions</span>
@@ -179,6 +182,8 @@
     <span class="s2">&quot;Adjust conditions values to be within the numerical limit of the solver.&quot;</span>
     <span class="n">new_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
     <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
+        <span class="k">if</span> <span class="n">key</span> <span class="o">==</span> <span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">):</span>
+            <span class="n">key</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">v</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">key</span><span class="p">)</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Composition</span><span class="p">):</span>
             <span class="n">new_conds</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="p">[</span><span class="nb">max</span><span class="p">(</span><span class="n">val</span><span class="p">,</span> <span class="n">MIN_SITE_FRACTION</span><span class="o">*</span><span class="mi">1000</span><span class="p">)</span> <span class="k">for</span> <span class="n">val</span> <span class="ow">in</span> <span class="n">unpack_condition</span><span class="p">(</span><span class="n">value</span><span class="p">)]</span>
         <span class="k">else</span><span class="p">:</span>
@@ -252,7 +257,7 @@
         <span class="n">data</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">)</span>
     <span class="n">active_phases</span> <span class="o">=</span> <span class="n">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="n">conds</span> <span class="o">=</span> <span class="n">_adjust_conditions</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
-    <span class="n">indep_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">]</span>
+    <span class="n">indep_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">]</span>
     <span class="c1"># TODO: Rewrite this to use the coord dict from &#39;data&#39;</span>
     <span class="n">str_conds</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">((</span><span class="nb">str</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
     <span class="n">indep_vals</span> <span class="o">=</span> <span class="nb">list</span><span class="p">([</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">val</span><span class="p">)]</span>
@@ -344,9 +349,9 @@
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pycalphad_version</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">broadcast</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">NotImplementedError</span><span class="p">(</span><span class="s1">&#39;Broadcasting cannot yet be disabled&#39;</span><span class="p">)</span>
-    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">__version__</span> <span class="k">as</span> <span class="n">pycalphad_version</span>
     <span class="n">comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
     <span class="n">phases</span> <span class="o">=</span> <span class="n">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="ow">or</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
     <span class="c1"># remove phases that cannot be active</span>
@@ -361,16 +366,22 @@
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">EquilibriumError</span><span class="p">(</span><span class="s1">&#39;Components not found in database: </span><span class="si">{}</span><span class="s1">&#39;</span>
                                <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">))])))</span>
-    <span class="n">indep_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">]</span>
+
     <span class="n">calc_opts</span> <span class="o">=</span> <span class="n">calc_opts</span> <span class="k">if</span> <span class="n">calc_opts</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="n">model</span> <span class="o">=</span> <span class="n">model</span> <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">Model</span>
     <span class="n">solver</span> <span class="o">=</span> <span class="n">solver</span> <span class="k">if</span> <span class="n">solver</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="n">InteriorPointSolver</span><span class="p">(</span><span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">parameters</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
         <span class="n">parameters</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">))</span>
+    <span class="c1"># Temporary solution until constraint system improves</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">conditions</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+        <span class="n">conditions</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">conditions</span><span class="p">[</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">]</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;N!=1 is not yet supported&#39;</span><span class="p">)</span>
     <span class="c1"># Modify conditions values to be within numerical limits, e.g., X(AL)=0</span>
     <span class="c1"># Also wrap single-valued conditions with lists</span>
     <span class="n">conds</span> <span class="o">=</span> <span class="n">_adjust_conditions</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
+
     <span class="k">for</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">Composition</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">ChemicalPotential</span><span class="p">))</span> <span class="ow">and</span> <span class="n">cond</span><span class="o">.</span><span class="n">species</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">:</span>
             <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;</span><span class="si">{}</span><span class="s1"> refers to non-existent component&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">cond</span><span class="p">))</span>
@@ -391,61 +402,40 @@
     <span class="n">output</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">output</span><span class="p">)</span>
     <span class="k">for</span> <span class="n">o</span> <span class="ow">in</span> <span class="n">output</span><span class="p">:</span>
         <span class="k">if</span> <span class="n">o</span> <span class="o">==</span> <span class="s1">&#39;GM&#39;</span><span class="p">:</span>
-            <span class="n">eq_callables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">eq_callables</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="n">conds</span><span class="p">,</span>
+                                           <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                                            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
                                            <span class="n">output</span><span class="o">=</span><span class="n">o</span><span class="p">,</span> <span class="n">build_gradients</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="n">callables</span><span class="p">,</span>
                                            <span class="n">verbose</span><span class="o">=</span><span class="n">verbose</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
-            <span class="n">other_output_callables</span><span class="p">[</span><span class="n">o</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
+            <span class="n">other_output_callables</span><span class="p">[</span><span class="n">o</span><span class="p">]</span> <span class="o">=</span> <span class="n">build_callables</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="n">conds</span><span class="p">,</span>
+                                                        <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span>
                                                         <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span>
                                                         <span class="n">output</span><span class="o">=</span><span class="n">o</span><span class="p">,</span> <span class="n">build_gradients</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
                                                         <span class="n">verbose</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
     <span class="n">phase_records</span> <span class="o">=</span> <span class="n">eq_callables</span><span class="p">[</span><span class="s1">&#39;phase_records&#39;</span><span class="p">]</span>
+    <span class="n">state_variables</span> <span class="o">=</span> <span class="n">eq_callables</span><span class="p">[</span><span class="s1">&#39;state_variables&#39;</span><span class="p">]</span>
     <span class="n">models</span> <span class="o">=</span> <span class="n">eq_callables</span><span class="p">[</span><span class="s1">&#39;model&#39;</span><span class="p">]</span>
-    <span class="n">maximum_internal_dof</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">)</span> <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+
     <span class="k">if</span> <span class="n">verbose</span><span class="p">:</span>
         <span class="nb">print</span><span class="p">(</span><span class="s1">&#39;[done]&#39;</span><span class="p">,</span> <span class="n">end</span><span class="o">=</span><span class="s1">&#39;</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
 
     <span class="c1"># &#39;calculate&#39; accepts conditions through its keyword arguments</span>
     <span class="n">grid_opts</span> <span class="o">=</span> <span class="n">calc_opts</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">grid_opts</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">str_conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">indep_vars</span><span class="p">})</span>
+    <span class="n">grid_opts</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="n">key</span><span class="p">:</span> <span class="n">value</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">str_conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="p">[</span><span class="nb">str</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">state_variables</span><span class="p">]})</span>
     <span class="k">if</span> <span class="s1">&#39;pdens&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">grid_opts</span><span class="p">:</span>
         <span class="n">grid_opts</span><span class="p">[</span><span class="s1">&#39;pdens&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">500</span>
-    <span class="n">coord_dict</span> <span class="o">=</span> <span class="n">str_conds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
-    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># +1 is to accommodate the degenerate degree of freedom at the invariant reactions</span>
-    <span class="n">grid_shape</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">meshgrid</span><span class="p">(</span><span class="o">*</span><span class="n">coord_dict</span><span class="o">.</span><span class="n">values</span><span class="p">(),</span>
-                             <span class="n">indexing</span><span class="o">=</span><span class="s1">&#39;ij&#39;</span><span class="p">,</span> <span class="n">sparse</span><span class="o">=</span><span class="kc">False</span><span class="p">)[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">shape</span>
-    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">pure_elements</span>
-
     <span class="n">grid</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">calculate</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">,</span>
                                           <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">fake_points</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="n">eq_callables</span><span class="p">,</span>
                                           <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">grid_opts</span><span class="p">)</span>
-
-    <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">name</span><span class="p">)</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">)</span>
-    <span class="c1"># Need to allow for &#39;_FAKE_&#39; psuedo-phase</span>
-    <span class="n">max_phase_name_len</span> <span class="o">=</span> <span class="nb">max</span><span class="p">(</span><span class="n">max_phase_name_len</span><span class="p">,</span> <span class="mi">6</span><span class="p">)</span>
-
-    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">Dataset</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)({</span><span class="s1">&#39;NP&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
-                                                      <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">)),</span>
-                                               <span class="s1">&#39;GM&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span>
-                                                      <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">])),</span>
-                                               <span class="s1">&#39;MU&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">],</span>
-                                                      <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">),))),</span>
-                                               <span class="s1">&#39;X&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;component&#39;</span><span class="p">],</span>
-                                                     <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">),))),</span>
-                                               <span class="s1">&#39;Y&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_dof&#39;</span><span class="p">],</span>
-                                                     <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span> <span class="o">+</span> <span class="p">(</span><span class="n">maximum_internal_dof</span><span class="p">,))),</span>
-                                               <span class="s1">&#39;Phase&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
-                                                         <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="s1">&#39;U</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">max_phase_name_len</span><span class="p">)),</span>
-                                               <span class="s1">&#39;points&#39;</span><span class="p">:</span> <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">+</span> <span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">],</span>
-                                                          <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">int32</span><span class="p">))</span>
-                                               <span class="p">},</span>
-                                              <span class="n">coords</span><span class="o">=</span><span class="n">coord_dict</span><span class="p">,</span>
-                                              <span class="n">attrs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;engine&#39;</span><span class="p">:</span> <span class="s1">&#39;pycalphad </span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">pycalphad_version</span><span class="p">},</span>
-                                              <span class="p">)</span>
-    <span class="c1"># One last call to ensure &#39;properties&#39; and &#39;grid&#39; are consistent with one another</span>
-    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">lower_convex_hull</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">grid</span><span class="p">,</span> <span class="n">properties</span><span class="p">)</span>
+    <span class="n">nonvacant_elements</span> <span class="o">=</span> <span class="n">phase_records</span><span class="p">[</span><span class="n">active_phases</span><span class="p">[</span><span class="mi">0</span><span class="p">]]</span><span class="o">.</span><span class="n">nonvacant_elements</span>
+    <span class="n">coord_dict</span> <span class="o">=</span> <span class="n">str_conds</span><span class="o">.</span><span class="n">copy</span><span class="p">()</span>
+    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;vertex&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span>
+        <span class="nb">len</span><span class="p">(</span><span class="n">pure_elements</span><span class="p">)</span> <span class="o">+</span> <span class="mi">1</span><span class="p">)</span>  <span class="c1"># +1 is to accommodate the degenerate degree of freedom at the invariant reactions</span>
+    <span class="n">coord_dict</span><span class="p">[</span><span class="s1">&#39;component&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">nonvacant_elements</span>
+    <span class="n">grid_shape</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">values</span><span class="p">())</span> <span class="o">+</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">nonvacant_elements</span><span class="p">)</span><span class="o">+</span><span class="mi">1</span><span class="p">,)</span>
+    <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">starting_point</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">conds</span><span class="p">,</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">)</span>
     <span class="n">conditions_per_chunk_per_axis</span> <span class="o">=</span> <span class="mi">2</span>
     <span class="k">if</span> <span class="n">num_calcs</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
         <span class="c1"># Generate slices of &#39;properties&#39;</span>
@@ -465,13 +455,13 @@
             <span class="n">prop_slice</span> <span class="o">=</span> <span class="n">properties</span><span class="p">[</span><span class="n">OrderedDict</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span>
                                                          <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">sl</span><span class="p">)[</span><span class="n">ch</span><span class="p">]</span> <span class="k">for</span> <span class="n">ch</span><span class="p">,</span> <span class="n">sl</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">chunk</span><span class="p">,</span> <span class="n">slices</span><span class="p">)])))]</span>
             <span class="n">job</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">comps</span><span class="p">,</span> <span class="n">prop_slice</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span>
-                                                              <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
+                                                               <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
             <span class="n">res</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">job</span><span class="p">)</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_merge_property_slices</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">properties</span><span class="p">,</span> <span class="n">chunk_grid</span><span class="p">,</span> <span class="n">slices</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">res</span><span class="p">)</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="c1"># Single-process job; don&#39;t create child processes</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">delayed</span><span class="p">(</span><span class="n">_solve_eq_at_conditions</span><span class="p">,</span> <span class="n">pure</span><span class="o">=</span><span class="kc">False</span><span class="p">)(</span><span class="n">comps</span><span class="p">,</span> <span class="n">properties</span><span class="p">,</span> <span class="n">phase_records</span><span class="p">,</span> <span class="n">grid</span><span class="p">,</span>
-                                                                 <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
+                                                                  <span class="nb">list</span><span class="p">(</span><span class="n">str_conds</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">state_variables</span><span class="p">,</span> <span class="n">verbose</span><span class="p">,</span> <span class="n">solver</span><span class="o">=</span><span class="n">solver</span><span class="p">)</span>
 
     <span class="c1"># Compute equilibrium values of any additional user-specified properties</span>
     <span class="c1"># We already computed these properties so don&#39;t recompute them</span>
@@ -526,26 +516,16 @@
   
 
 
-  
-
-    
-    
-      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.1/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    
-
-  
-
-  <script type="text/javascript" src="../../../_static/js/theme.js"></script>
-
   <script type="text/javascript">
       jQuery(function () {
           SphinxRtdTheme.Navigation.enable(true);
       });
-  </script> 
+  </script>
+
+  
+  
+    
+   
 
 </body>
 </html>
