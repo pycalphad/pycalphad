@@ -39,9 +39,11 @@ before_install:
 install:
   - |
       if [ -z "$DOCKER_TAG" ]; then
-        source $HOME/miniconda2/bin/activate condaenv
+        . $HOME/miniconda2/etc/profile.d/conda.sh
+        conda deactivate
+        conda activate condaenv
         conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-        conda install --yes xarray gcc cython cyipopt
+        conda install --yes xarray cython cyipopt
         pip install -e .
       fi
  

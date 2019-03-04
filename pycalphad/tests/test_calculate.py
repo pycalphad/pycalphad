@@ -43,8 +43,14 @@ def test_points_kwarg_multi_phase():
 def test_issue116():
     "Calculate gives correct result when a state variable is left as default (gh-116)."
     result_one = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400)
+    result_one_values = result_one.GM.values
     result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
-    np.testing.assert_array_equal(result_one.GM.values, result_two.GM.values)
+    result_two_values = result_two.GM.values
+    np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_two_values))
+    assert len(result_one_values.shape) == 2
+    assert result_one_values.shape[0] == 1
+    assert len(result_two_values.shape) == 3
+    assert result_two_values.shape[:2] == (1, 1)
 
 
 def test_calculate_some_phases_filtered():
@@ -60,3 +66,8 @@ def test_calculate_raises_with_no_active_phases_passed():
     """Passing inactive phases to calculate() raises a ConditionError."""
     # Phase cannot be built without FE
     calculate(ALFE_DBF, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)
+
+
+if __name__ == '__main__':
+    import nose
+    nose.run()

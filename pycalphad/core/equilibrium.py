@@ -8,7 +8,7 @@ import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
 from pycalphad import calculate, Model
 from pycalphad.core.errors import EquilibriumError, ConditionError
-from pycalphad.core.lower_convex_hull import lower_convex_hull
+from pycalphad.core.starting_point import starting_point
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
@@ -25,6 +25,8 @@ def _adjust_conditions(conds):
     "Adjust conditions values to be within the numerical limit of the solver."
     new_conds = OrderedDict()
     for key, value in sorted(conds.items(), key=str):
+        if key == str(key):
+            key = getattr(v, key, key)
         if isinstance(key, v.Composition):
             new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
         else:
@@ -98,7 +100,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         data = equilibrium(dbf, comps, phases, conditions)
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     conds = _adjust_conditions(conditions)
-    indep_vars = ['P', 'T']
+    indep_vars = ['N', 'P', 'T']
     # TODO: Rewrite this to use the coord dict from 'data'
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     indep_vals = list([float(x) for x in np.atleast_1d(val)]
@@ -190,9 +192,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     --------
     None yet.
     """
+    from pycalphad import __version__ as pycalphad_version
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
-    from pycalphad import __version__ as pycalphad_version
     comps = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
@@ -207,16 +209,22 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-    indep_vars = ['T', 'P']
+
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
+    # Temporary solution until constraint system improves
+    if not conditions.get(v.N, False):
+        conditions[v.N] = 1
+    if conditions[v.N] != 1:
+        raise ConditionError('N!=1 is not yet supported')
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
+
     for cond in conds.keys():
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
@@ -237,61 +245,40 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = sorted(output)
     for o in output:
         if o == 'GM':
-            eq_callables = build_callables(dbf, comps, active_phases, model=model,
+            eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
+                                           model=model,
                                            parameters=parameters,
                                            output=o, build_gradients=True, callables=callables,
                                            verbose=verbose)
         else:
-            other_output_callables[o] = build_callables(dbf, comps, active_phases, model=model,
+            other_output_callables[o] = build_callables(dbf, comps, active_phases, conds=conds,
+                                                        model=model,
                                                         parameters=parameters,
                                                         output=o, build_gradients=False,
                                                         verbose=False)
 
     phase_records = eq_callables['phase_records']
+    state_variables = eq_callables['state_variables']
     models = eq_callables['model']
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
+
     if verbose:
         print('[done]', end='\n')
 
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts = calc_opts.copy()
-    grid_opts.update({key: value for key, value in str_conds.items() if key in indep_vars})
+    grid_opts.update({key: value for key, value in str_conds.items() if key in [str(x) for x in state_variables]})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-    coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
-    grid_shape = np.meshgrid(*coord_dict.values(),
-                             indexing='ij', sparse=False)[0].shape
-    coord_dict['component'] = pure_elements
-
     grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
                                           model=models, fake_points=True, callables=eq_callables,
                                           parameters=parameters, **grid_opts)
-
-    max_phase_name_len = max(len(name) for name in active_phases)
-    # Need to allow for '_FAKE_' psuedo-phase
-    max_phase_name_len = max(max_phase_name_len, 6)
-
-    properties = delayed(Dataset, pure=False)({'NP': (list(str_conds.keys()) + ['vertex'],
-                                                      np.empty(grid_shape)),
-                                               'GM': (list(str_conds.keys()),
-                                                      np.empty(grid_shape[:-1])),
-                                               'MU': (list(str_conds.keys()) + ['component'],
-                                                      np.empty(grid_shape[:-1] + (len(pure_elements),))),
-                                               'X': (list(str_conds.keys()) + ['vertex', 'component'],
-                                                     np.empty(grid_shape + (len(pure_elements),))),
-                                               'Y': (list(str_conds.keys()) + ['vertex', 'internal_dof'],
-                                                     np.empty(grid_shape + (maximum_internal_dof,))),
-                                               'Phase': (list(str_conds.keys()) + ['vertex'],
-                                                         np.empty(grid_shape, dtype='U%s' % max_phase_name_len)),
-                                               'points': (list(str_conds.keys()) + ['vertex'],
-                                                          np.empty(grid_shape, dtype=np.int32))
-                                               },
-                                              coords=coord_dict,
-                                              attrs={'engine': 'pycalphad %s' % pycalphad_version},
-                                              )
-    # One last call to ensure 'properties' and 'grid' are consistent with one another
-    properties = delayed(lower_convex_hull, pure=False)(grid, properties)
+    nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
+    coord_dict = str_conds.copy()
+    coord_dict['vertex'] = np.arange(
+        len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
+    coord_dict['component'] = nonvacant_elements
+    grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements)+1,)
+    properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
         # Generate slices of 'properties'
@@ -311,13 +298,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
                                                          [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
             job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                              list(str_conds.keys()), verbose, solver=solver)
+                                                               list(str_conds.keys()), state_variables, verbose, solver=solver)
             res.append(job)
         properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
     else:
         # Single-process job; don't create child processes
         properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                 list(str_conds.keys()), verbose, solver=solver)
+                                                                  list(str_conds.keys()), state_variables, verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
     # We already computed these properties so don't recompute them

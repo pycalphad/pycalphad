@@ -10,6 +10,7 @@ import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components
+from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
 
@@ -99,6 +100,11 @@ class Model(object):
                             self.components))
             self.constituents.append(set(sublattice).intersection(self.components))
         self.components = sorted(self.components)
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
+                                        for el in constituents]
+        self.pure_elements = sorted(set(desired_active_pure_elements))
+        self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
@@ -121,10 +127,12 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        self.site_fractions = sorted([x for x in self.ast.free_symbols if isinstance(x, v.SiteFraction)], key=str)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
+
+        self.site_fractions = sorted([x for x in self.variables if isinstance(x, v.SiteFraction)], key=str)
+        self.state_variables = sorted([x for x in self.variables if not isinstance(x, v.SiteFraction)], key=str)
 
     @staticmethod
     def symbol_replace(obj, symbols):
@@ -248,6 +256,28 @@ class Model(object):
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = \
         property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+
+    def get_internal_constraints(self):
+        constraints = []
+        for idx, sublattice in enumerate(self.constituents):
+            constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+        return constraints
+
+    def get_multiphase_constraints(self, conds):
+        fixed_chempots = [cond for cond in conds.keys() if isinstance(cond, v.ChemicalPotential)]
+        multiphase_constraints = []
+        for statevar in sorted(conds.keys(), key=str):
+            if not is_multiphase_constraint(statevar):
+                continue
+            if isinstance(statevar, v.Composition):
+                multiphase_constraints.append(Symbol('NP') * self.moles(statevar.species))
+            elif statevar == v.N:
+                multiphase_constraints.append(Symbol('NP') * (sum(self.moles(spec) for spec in self.nonvacant_elements)))
+            elif statevar in [v.T, v.P]:
+                return multiphase_constraints.append(S.Zero)
+            else:
+                raise NotImplementedError
+        return multiphase_constraints
 
     def build_phase(self, dbe):
         """

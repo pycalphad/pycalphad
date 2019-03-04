@@ -174,6 +174,7 @@ def _compute_phase_values(components, statevar_dict,
         statevars = statevars_
     pure_elements = [list(x.constituents.keys()) for x in components]
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
+    pure_elements = [x for x in pure_elements if x != 'VA']
     # func may only have support for vectorization along a single axis (no broadcasting)
     # we need to force broadcasting and flatten the result before calling
     bc_statevars = np.ascontiguousarray([broadcast_to(x, points.shape[:-1]).reshape(-1) for x in statevars])
@@ -312,20 +313,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
 
-    # Convert keyword strings to proper state variable objects
-    # If we don't do this, sympy will get confused during substitution
-    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items())
-    # XXX: CompiledModel assumes P, T are the only state variables
-    if statevar_dict.get(v.P, None) is None:
-        statevar_dict[v.P] = 101325
-    if statevar_dict.get(v.T, None) is None:
-        statevar_dict[v.T] = 300
-    # Sort after default state variable check to fix gh-116
-    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
-    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
-                                                for (key, value) in statevar_dict.items())
     all_phase_data = []
-    largest_energy = 1e30
+    largest_energy = 1e10
 
     # Consider only the active phases
     list_of_possible_phases = filter_phases(dbf, comps)
@@ -337,17 +326,32 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
                              .format(phases, list_of_possible_phases))
 
+
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
-    eq_callables = build_callables(dbf, comps, active_phases, model=model_dict,
+
+    conds = {getattr(v, str(key)): value for key, value in kwargs.items() if getattr(v, str(key), None) is not None}
+    eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
+                                   model=model_dict,
                                    parameters=parameters,
                                    output=output, callables=callables_dict, build_gradients=False,
                                    verbose=False)
 
     phase_records = eq_callables['phase_records']
+    state_variables = eq_callables['state_variables']
     models = eq_callables['model']
     maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
+
+    # Convert keyword strings to proper state variable objects
+    # If we don't do this, sympy will get confused during substitution
+    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items()
+                         if str(key) in [str(x) for x in state_variables])
+
+    # Sort after default state variable check to fix gh-116
+    statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
+    str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
+                                                for (key, value) in statevar_dict.items())
 
     for phase_name, phase_obj in sorted(active_phases.items()):
         mod = models[phase_name]

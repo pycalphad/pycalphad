@@ -3,6 +3,7 @@ ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
 from pycalphad.variables import string_type
+from pycalphad.core.constants import MIN_SITE_FRACTION
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
 
@@ -73,7 +74,9 @@ class InteriorPointSolver(SolverBase):
             # This option improves convergence when using L-BFGS
             'limited_memory_max_history': 100,
             'tol': 1e-1,
-            'constr_viol_tol': 1e-12
+            'constr_viol_tol': 1e-6,
+            'nlp_scaling_method': 'none',
+            'hessian_approximation': 'limited-memory'
         }
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
@@ -130,6 +133,8 @@ class InteriorPointSolver(SolverBase):
         self.apply_options(nlp)
         length_scale = np.min(np.abs(prob.cl))
         length_scale = max(length_scale, 1e-9)
+        # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
+        # It will not give valid results for the finite difference approximation
         x, info = nlp.solve(prob.x0)
         dual_inf = np.max(np.abs(info['mult_g']*info['g']))
         if dual_inf > self.infeasibility_threshold:
@@ -138,7 +143,7 @@ class InteriorPointSolver(SolverBase):
             # Constraints are getting tiny; need to be strict about bounds
             if length_scale < 1e-6:
                 nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
-                nlp.addOption(b'bound_relax_factor', 1e-12)
+                nlp.addOption(b'bound_relax_factor', MIN_SITE_FRACTION)
                 # This option ensures any bounds failures will fail "loudly"
                 # Otherwise we are liable to have subtle mass balance errors
                 nlp.addOption(b'honor_original_bounds', b'no')
@@ -147,7 +152,7 @@ class InteriorPointSolver(SolverBase):
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
-        chemical_potentials = -np.array(info['mult_g'])[-len(set(comps) - {'VA'}):]
+        chemical_potentials = prob.chemical_potentials(x)
         if info['status'] == -10:
             # Not enough degrees of freedom; nothing to do
             if len(prob.composition_sets) == 1:

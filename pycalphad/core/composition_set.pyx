@@ -14,11 +14,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     not pickleable. They are used in miscibility gap deteciton.
     """
     def __cinit__(self, PhaseRecord prx):
-        cdef int has_va = <int>(prx.vacancy_index > -1)
         self.phase_record = prx
         self.zero_seen = 0
-        self.dof = np.zeros(len(self.phase_record.variables)+2)
-        self.X = np.zeros(self.phase_record.composition_matrices.shape[0]-has_va)
+        self.dof = np.zeros(len(self.phase_record.variables)+len(self.phase_record.state_variables))
+        self.X = np.zeros(len(self.phase_record.nonvacant_elements))
         self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
         self.energy = 0
@@ -31,7 +30,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._first_iteration = True
 
     def __deepcopy__(self, memodict=None):
-        cdef int has_va = <int>(self.phase_record.vacancy_index > -1)
         cdef CompositionSet other
         memodict = {} if memodict is None else memodict
         other = CompositionSet(self.phase_record)
@@ -61,12 +59,10 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cdef void update(self, double[::1] site_fracs, double phase_amt, double pressure, double temperature, bint skip_derivatives) nogil:
+    cdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives) nogil:
         cdef int comp_idx
-        cdef int past_va = 0
-        self.dof[0] = pressure
-        self.dof[1] = temperature
-        self.dof[2:] = site_fracs
+        self.dof[:state_variables.shape[0]] = state_variables
+        self.dof[state_variables.shape[0]:] = site_fracs
         self.NP = phase_amt
         self.energy = 0
         memset(&self.grad[0], 0, self.grad.shape[0] * sizeof(double))
@@ -75,7 +71,7 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         if not skip_derivatives:
             self.phase_record.grad(self.grad, self.dof)
         for comp_idx in range(self.X.shape[0]):
-            self.phase_record.mass_obj(self._X_2d_view[comp_idx-past_va], self._dof_2d_view, comp_idx)
+            self.phase_record.mass_obj(self._X_2d_view[comp_idx], self._dof_2d_view, comp_idx)
         if not skip_derivatives:
             if self._first_iteration == True:
                 self._prev_dof[:] = self.dof
