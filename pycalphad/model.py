@@ -9,7 +9,7 @@ from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.utils import unpack_components
+from pycalphad.core.utils import unpack_components, get_pure_elements
 from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
@@ -17,6 +17,44 @@ from collections import OrderedDict
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
 _MAX_PARAM_NESTING = 32
+
+
+class ReferenceState():
+    """
+    Define the phase and any fixed state variables as a reference state for a component.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    fixed_statevars : dict
+        Dictionary of {StateVariable: value} that will be fixed, e.g. {v.T: 298.15, v.P: 101325}
+    phase_name : str
+        Name of phase
+    species : Species
+        pycalphad Species variable
+
+    """
+    def __init__(self, species, reference_phase, fixed_statevars=None):
+        """
+        Parameters
+        ----------
+        species : str or Species
+            Species to define the reference state for. Only pure elements supported.
+        reference_phase : str
+            Name of phase
+        fixed_statevars : None, optional
+            Dictionary of {StateVariable: value} that will be fixed, e.g. {v.T: 298.15, v.P: 101325}
+            If None (the default), an empty dict will be created.
+
+        """
+        if isinstance(species, v.Species):
+            self.species = species
+        else:
+            self.species = v.Species(species)
+        self.phase_name = reference_phase
+        self.fixed_statevars = fixed_statevars if fixed_statevars is not None else {}
 
 
 class Model(object):
@@ -116,12 +154,15 @@ class Model(object):
             else:
                 return Symbol(obj)
         if parameters is not None:
+            self._parameters_arg = parameters
             if isinstance(parameters, dict):
                 symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
             else:
                 # Lists of symbols that should remain symbolic
                 for s in parameters:
                     symbols.pop(wrap_symbol(s))
+        else:
+            self._parameters_arg = None
 
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
@@ -853,6 +894,58 @@ class Model(object):
                                    dbe.phases[ordered_phase_name].sublattices)
 
         return ordered_energy - ordered_energy.xreplace(molefraction_dict)
+
+
+    # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
+    def shift_reference_state(self, reference_states, dbe, output=('GM', 'HM', 'SM', 'CPM',), fmt_str="{}R"):
+        """
+        Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.
+
+        Parameters
+        ----------
+        reference_states : Iterable of ReferenceState
+            Pure element ReferenceState objects. Must include all the pure
+            elements defined in the current model.
+        dbe : Database
+            Database containing the relevant parameters.
+        output : Iterable, optional
+            Parameters to subtract the ReferenceState from, defaults to ('GM', 'HM', 'SM', 'CPM').
+        fmt_str : str, optional
+            String that will be formatted with the `output` parameter name.
+            Defaults to "{}R", e.g. the transformation of 'GM' -> 'GMR'
+
+        """
+        # Error checking
+        # We ignore the case that the ref states are overspecified (same ref states can be used in different models w/ different active pure elements)
+        model_pure_elements = set(get_pure_elements(dbf, m.components))
+        refstate_pure_elements_list = get_pure_elements(dbf, [r.species for r in reference_states])
+        refstate_pure_elements = set(refstate_pure_elements_list)
+        if len(refstate_pure_elements_list) != len(refstate_pure_elements):
+            raise DofError("Multiple ReferenceState objects exist for at least one pure element: {}".format(refstate_pure_elements_list))
+        if not refstate_pure_elements.issuperset(model_pure_elements):
+            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
+
+        reference_dict = {out: [] for out in output}  # output: terms list
+        for ref_state in reference_states:
+            if ref_state.species not in self.components:
+                continue
+            mod_pure = self.__class__(dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
+            # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
+            site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
+            for mod_key, mod_val in mod_pure.models.items():
+                mod_pure.models[mod_key] = mod_val.subs(site_frac_subs)
+            moles = self.moles(ref_state.species)
+            # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
+            # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
+            for out in reference_dict.keys():
+                mod_out = getattr(mod_pure, out).subs(ref_state.fixed_statevars)
+                reference_dict[out].append(mod_out*moles)
+
+        # set the attribute on the class
+        for out, terms in reference_dict.items():
+            reference_contrib = Add(*terms)
+            referenced_value = getattr(self, out) - reference_contrib
+            setattr(self, fmt_str.format(out), referenced_value)
 
 
 class TestModel(Model):
