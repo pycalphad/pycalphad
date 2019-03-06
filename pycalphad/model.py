@@ -917,13 +917,13 @@ class Model(object):
         """
         # Error checking
         # We ignore the case that the ref states are overspecified (same ref states can be used in different models w/ different active pure elements)
-        model_pure_elements = set(get_pure_elements(dbf, m.components))
-        refstate_pure_elements_list = get_pure_elements(dbf, [r.species for r in reference_states])
+        model_pure_elements = set(get_pure_elements(dbe, self.components))
+        refstate_pure_elements_list = get_pure_elements(dbe, [r.species for r in reference_states])
         refstate_pure_elements = set(refstate_pure_elements_list)
         if len(refstate_pure_elements_list) != len(refstate_pure_elements):
             raise DofError("Multiple ReferenceState objects exist for at least one pure element: {}".format(refstate_pure_elements_list))
         if not refstate_pure_elements.issuperset(model_pure_elements):
-            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
+            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
 
         reference_dict = {out: [] for out in output}  # output: terms list
         for ref_state in reference_states:
