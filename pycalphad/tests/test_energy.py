@@ -4,9 +4,11 @@ correct abstract syntax tree for the energy.
 """
 
 import nose.tools
-from pycalphad import Database, Model, calculate
+from pycalphad import Database, Model, calculate, ReferenceState
 from pycalphad.core.utils import make_callable
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
+from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 import warnings
@@ -14,6 +16,9 @@ import warnings
 DBF = Database(ALCRNI_TDB)
 ALFE_DBF = Database(ALFE_TDB)
 FEMN_DBF = Database(FEMN_TDB)
+CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
+CUMG_DBF = Database(CUMG_TDB)
+VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 
 @nose.tools.raises(ValueError)
 def test_sympify_safety():
@@ -217,3 +222,135 @@ def test_zero_site_fraction():
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
              v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
         5.52773e3, mode='sympy')
+
+
+def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero():
+    """The referenced energy for the pure elements in a unary Model with twostate and Einstein contributions referenced to that phase is zero."""
+    m = Model(FEMN_DBF, ['FE', 'VA'], 'LIQUID')
+    statevars = {v.T: 298.15, v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+    check_output(m, statevars, 'GMR', 0.0)
+
+
+@nose.tools.raises(DofError)
+def test_underspecified_refstate_raises():
+    """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
+    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+
+
+def test_reference_energy_of_binary_twostate_einstein_is_zero():
+    """The referenced energy for the pure elements in a binary Model with twostate and Einstein contributions referenced to that phase is zero."""
+    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID'), ReferenceState(v.Species('MN'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+
+    statevars_FE = {v.T: 298.15,
+             v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 0, 'MN'): 0,
+             v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    check_output(m, statevars_FE, 'GMR', 0.0)
+
+    statevars_CR = {v.T: 298.15,
+             v.SiteFraction('LIQUID', 0, 'FE'): 0, v.SiteFraction('LIQUID', 0, 'MN'): 1,
+             v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    check_output(m, statevars_CR, 'GMR', 0.0)
+
+
+def test_magnetic_reference_energy_is_zero():
+    """The referenced energy binary magnetic Model is zero."""
+    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    refstates = [ReferenceState('CR', 'BCC_A2'), ReferenceState('FE', 'BCC_A2')]
+    m.shift_reference_state(refstates, CRFE_DBF)
+
+    statevars_FE = {v.T: 300,
+             v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
+             v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars_FE, 'GMR', 0.0)
+
+    statevars_CR = {v.T: 300,
+             v.SiteFraction('BCC_A2', 0, 'CR'): 1, v.SiteFraction('BCC_A2', 0, 'FE'): 0,
+             v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars_CR, 'GMR', 0.0)
+
+
+# TODO: Not finished, check with Thermo-Calc
+def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
+    """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
+    m = Model(VA_INTERACTION_DBF, ['AL', 'VA'], 'FCC_A1')
+    refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'FCC_A1')]
+    m.shift_reference_state(refstates, VA_INTERACTION_DBF)
+
+    statevars_pure = {v.T: 300,
+         v.SiteFraction('FCC_A1', 0, 'AL'): 1, v.SiteFraction('FCC_A1', 0, 'VA'): 0,
+         v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    check_output(m, statevars_pure, 'HMR', 0.0)
+
+    statevars_mix = {v.T: 300,
+        v.SiteFraction('FCC_A1', 0, 'AL'): 0.5, v.SiteFraction('FCC_A1', 0, 'VA'): 0.5,
+        v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    # 4000.0 * 0.5 (Y0VA doesn't contribute)
+    check_output(m, statevars_mix, 'HMR', 2000.0)
+
+
+# TODO: Not finished, check with Thermo-Calc
+def test_reference_energy_for_different_phase():
+    """The referenced energy a different phase should be correct."""
+    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'AL2FE')
+    # formation reference states
+    refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'BCC_A2')]
+    m.shift_reference_state(refstates, ALFE_DBF)
+
+    statevars = {v.T: 300, v.SiteFraction('AL2FE', 0, 'AL'): 1, v.SiteFraction('AL2FE', 1, 'FE'): 1}
+    check_output(m, statevars, 'GMR', 12345)
+
+
+def test_endmember_mixing_energy_is_zero():
+    """The mixing energy for an endmember in a multi-sublattice model should be zero."""
+    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
+                    v.SiteFraction('CU2MG', 1, 'CU'): 0, v.SiteFraction('CU2MG', 1, 'MG'): 1,
+                }
+    check_output(m, statevars, 'GM_MIX', 0.0)
+
+
+def test_magnetic_endmember_mixing_energy_is_zero():
+    """The mixing energy for an endmember with a magnetic contribution should be zero."""
+    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
+                    v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars, 'GM_MIX', 0.0)
+
+
+def test_order_disorder_mixing_energy_is_nan():
+    """The endmember-referenced mixing energy is undefined and the energy should be NaN."""
+    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('B2_BCC', 0, 'AL'): 1, v.SiteFraction('B2_BCC', 0, 'FE'): 0,
+                    v.SiteFraction('B2_BCC', 1, 'AL'): 0, v.SiteFraction('B2_BCC', 1, 'FE'): 1,
+                    v.SiteFraction('B2_BCC', 2, 'VA'): 1}
+    check_output(m, statevars, 'GM_MIX', np.nan)
+
+
+# TODO: This currently fails because 'mag' is not properly accounted for in GM_MIX
+# After adding the proper mixing fix to pycalphad,
+# This should fail because the mixing models are built by `build_mixing_attrs`,
+# which is called during `build_phase`. Changing a contribution changes the
+# AST (changes GM), however the `_MIX` part is statically built.
+def test_changing_models_also_changes_mixing_energy():
+    """If a models contribution is modified, the mixing energy should update accordingly."""
+    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    m.models['mag'] = 1000
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
+                    v.SiteFraction('CU2MG', 1, 'CU'): 0, v.SiteFraction('CU2MG', 1, 'MG'): 1,
+                }
+    check_output(m, statevars, 'GM_MIX', 0.0)
+
