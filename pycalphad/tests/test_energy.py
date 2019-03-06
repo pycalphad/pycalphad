@@ -275,26 +275,30 @@ def test_magnetic_reference_energy_is_zero():
     check_output(m, statevars_CR, 'GMR', 0.0)
 
 
-# TODO: Not finished, check with Thermo-Calc
 def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
     """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
     m = Model(VA_INTERACTION_DBF, ['AL', 'VA'], 'FCC_A1')
-    refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'FCC_A1')]
+    refstates = [ReferenceState('AL', 'FCC_A1')]
     m.shift_reference_state(refstates, VA_INTERACTION_DBF)
 
     statevars_pure = {v.T: 300,
          v.SiteFraction('FCC_A1', 0, 'AL'): 1, v.SiteFraction('FCC_A1', 0, 'VA'): 0,
          v.SiteFraction('FCC_A1', 1, 'VA'): 1}
-    check_output(m, statevars_pure, 'HMR', 0.0)
+    check_output(m, statevars_pure, 'GMR', 0.0)
+
+    statevars_mix = {v.T: 300,
+        v.SiteFraction('FCC_A1', 0, 'AL'): 0.5, v.SiteFraction('FCC_A1', 0, 'VA'): 0.5,
+        v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    # 4000.0 * 0.5=2000 +500 # (Y0VA doesn't contribute), but the VA endmember does (not referenced)
+    check_output(m, statevars_mix, 'HMR', 2500.0)
 
     statevars_mix = {v.T: 300,
         v.SiteFraction('FCC_A1', 0, 'AL'): 0.5, v.SiteFraction('FCC_A1', 0, 'VA'): 0.5,
         v.SiteFraction('FCC_A1', 1, 'VA'): 1}
     # 4000.0 * 0.5 (Y0VA doesn't contribute)
-    check_output(m, statevars_mix, 'HMR', 2000.0)
+    check_output(m, statevars_mix, 'HM_MIX', 2000.0)
 
 
-# TODO: Not finished, check with Thermo-Calc
 def test_reference_energy_for_different_phase():
     """The referenced energy a different phase should be correct."""
     m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'AL2FE')
@@ -303,7 +307,7 @@ def test_reference_energy_for_different_phase():
     m.shift_reference_state(refstates, ALFE_DBF)
 
     statevars = {v.T: 300, v.SiteFraction('AL2FE', 0, 'AL'): 1, v.SiteFraction('AL2FE', 1, 'FE'): 1}
-    check_output(m, statevars, 'GMR', 12345)
+    check_output(m, statevars, 'GMR', -28732.525)  # Checked in Thermo-Calc
 
 
 def test_endmember_mixing_energy_is_zero():
