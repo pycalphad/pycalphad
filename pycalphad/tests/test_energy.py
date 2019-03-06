@@ -6,12 +6,14 @@ correct abstract syntax tree for the energy.
 import nose.tools
 from pycalphad import Database, Model, calculate
 from pycalphad.core.utils import make_callable
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB
 import pycalphad.variables as v
 import numpy as np
 import warnings
 
 DBF = Database(ALCRNI_TDB)
+ALFE_DBF = Database(ALFE_TDB)
+FEMN_DBF = Database(FEMN_TDB)
 
 @nose.tools.raises(ValueError)
 def test_sympify_safety():
@@ -21,7 +23,7 @@ def test_sympify_safety():
     _sympify_string(teststr) # should throw ParseException
 
 
-def calculate_energy(model, variables, mode='sympy'):
+def calculate_output(model, variables, output, mode='sympy'):
     """
     Calculate the value of the energy at a point.
 
@@ -33,22 +35,35 @@ def calculate_energy(model, variables, mode='sympy'):
     variables, dict
         Dictionary of all input variables.
 
+    output : str
+        String of the property to calculate, e.g. 'ast'
+
     mode, ['numpy', 'sympy'], optional
         Optimization method for the abstract syntax tree.
     """
-    # Generate a callable energy function
+    # Generate a callable function
     # Normally we would use model.subs(variables) here, but we want to ensure
     # our optimization functions are working.
-    energy = make_callable(model.ast, list(variables.keys()), mode=mode)
+    prop = make_callable(getattr(model, output), list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
-    return energy(*(list(variables.values())))
+    return prop(*(list(variables.values())))
+
+
+def check_output(model, variables, output, known_value, mode='sympy'):
+    "Check that our calculated quantity matches the known value."
+    desired = calculate_output(model, variables, output, mode)
+    known_value = np.array(known_value, dtype=np.complex)
+    desired = np.array(desired, dtype=np.complex)
+    # atol defaults to zero here, but it cannot be zero if desired is zero
+    # we set it to a reasonably small number for energies and derivatives (in Joules)
+    # An example where expected = 0, but known != 0 is for ideal mix xlogx terms
+    # This 1e-8 value is also used in hyperplane, motivating the use here.
+    np.testing.assert_allclose(known_value, desired, rtol=1e-5, atol=1e-8)
+
 
 def check_energy(model, variables, known_value, mode='sympy'):
     "Check that our calculated energy matches the known value."
-    desired = calculate_energy(model, variables, mode)
-    known_value = np.array(known_value, dtype=np.complex)
-    desired = np.array(desired, dtype=np.complex)
-    np.testing.assert_allclose(known_value, desired, rtol=1e-5)
+    check_output(model, variables, 'ast', known_value, mode=mode)
 
 # PURE COMPONENT TESTS
 def test_pure_sympy():
