@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
+from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
@@ -313,6 +313,8 @@ class Model(object):
 
         Notes
         -----
+        Requires that self.build_phase has already been called.
+
         This builds a special reference state that is referenced to the CEF
         endmembers. The endmembers for the _MIX properties of this class
         referenced to the reference_model energies will always be zero, such
@@ -326,6 +328,13 @@ class Model(object):
         however, we have this option so users can just see the
         mixing properties in terms of the parameters
 
+        If the current model has an ordering energy as part of a partitioned
+        model, then this special reference state is not well defined because
+        the endmembers in the model have energetic contributions from
+        the ordered endmember energies and the disordered mixing energies.
+        Therefore, this reference state cannot be used sensibly for partitioned
+        models and the energies of all the reference_model.models are set to nan.
+
         """
         endmember_only_dbe = copy.deepcopy(dbe)
         endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
@@ -333,6 +342,9 @@ class Model(object):
         if preserve_ideal:
             mod_endmember_only.models['idmix'] = 0
         self.reference_model = mod_endmember_only
+        if self.models['ord'] != S.Zero:
+                for k in self.reference_model.models.keys():
+                    self.reference_model.models[k] = nan
 
     def get_internal_constraints(self):
         constraints = []
