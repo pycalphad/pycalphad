@@ -973,11 +973,24 @@ class Model(object):
         if not refstate_pure_elements.issuperset(model_pure_elements):
             raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
 
+        def _pure_element_test(constituent_array):
+            all_comps = set()
+            for sublattice in constituent_array:
+                if len(sublattice) != 1:
+                    return False
+                all_comps.add(sublattice[0].name)
+            pure_els = all_comps.intersection(model_pure_elements)
+            print("pure", pure_els, 'const array', constituent_array)
+            return len(pure_els) == 1
+
+        # Remove interactions from a copy of the Database, avoids any element/VA interactions.
+        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe._parameters.remove(~where('constituent_array').test(_pure_element_test))
         reference_dict = {out: [] for out in output}  # output: terms list
         for ref_state in reference_states:
             if ref_state.species not in self.components:
                 continue
-            mod_pure = self.__class__(dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
+            mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
             # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
             for mod_key, mod_val in mod_pure.models.items():
