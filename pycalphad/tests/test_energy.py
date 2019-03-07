@@ -342,11 +342,6 @@ def test_order_disorder_mixing_energy_is_nan():
     check_output(m, statevars, 'GM_MIX', np.nan)
 
 
-# TODO: This currently fails because 'mag' is not properly accounted for in GM_MIX
-# After adding the proper mixing fix to pycalphad,
-# This should fail because the mixing models are built by `build_mixing_attrs`,
-# which is called during `build_phase`. Changing a contribution changes the
-# AST (changes GM), however the `_MIX` part is statically built.
 def test_changing_model_ast_also_changes_mixing_energy():
     """If a models contribution is modified, the mixing energy should update accordingly."""
     m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
@@ -358,7 +353,7 @@ def test_changing_model_ast_also_changes_mixing_energy():
                 }
     check_output(m, statevars, 'GM_MIX', 1000)
 
-    m.reference.models['mag'] = 1000
+    m.reference_model.models['mag'] = 1000
     check_output(m, statevars, 'GM_MIX', 0)
 
 
