@@ -93,7 +93,7 @@ class Model(object):
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
 
-    def __init__(self, dbe, comps, phase_name, parameters=None):
+    def __init__(self, dbe, comps, phase_name, parameters=None, build_mix=True):
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
@@ -168,6 +168,9 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
+        # build mixing properties, this needs to be behind a flag to avoid recursion
+        if build_mix:
+            self.build_mix_properties(dbe)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -291,12 +294,56 @@ class Model(object):
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
-    mixing_energy = GM_MIX = property(lambda self: self.GM - self.models['ref'])
-    mixing_enthalpy = HM_MIX = \
-        property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
-    mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
-    mixing_heat_capacity = CPM_MIX = \
-        property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+    # mixing_energy = GM_MIX = property(lambda self: self.GM - self.models['ref'])
+    # mixing_enthalpy = HM_MIX = \
+    #     property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
+    # mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
+    # mixing_heat_capacity = CPM_MIX = \
+    #     property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+
+    def build_mix_properties(self, dbe, properties=('GM', 'HM', 'SM', 'CPM',), preserve_ideal=True):
+        """
+        Add {GM,HM,SM,CPM}_MIX properties to the current model, referenced to the endmembers.
+
+        Parameters
+        ----------
+        dbe : Database
+        properties : Iterable, optional
+            List of properties that will have a `_MIX` property generated
+        preserve_ideal : bool, optional
+            If True, the default, the ideal mixing energy will not be subtracted out.
+
+        Notes
+        -----
+        This is a special reference state that is referenced to the CEF
+        endmembers. The endmember energies will always be zero and the _MIX
+        properties generated here allow users to see mixing energies on the
+        internal degrees of freedom of this phase.
+
+        The approach here does the following:
+        1. Make a copy of the database
+        2. Remove all interaction parameters from the copy
+        3. Build the interaction-free Model for this phase
+        4. Subtract the interaction-free Model from the current Model for the
+           desired properties.
+
+        Note that changing the AST for the current model object after it is
+        instantiated likely invalidates these mixing properties.
+
+        Ideal mixing is always added to the AST, we need to set it to
+        zero here so that it's not subtracted out of the reference
+        however, we have this option so users can just see the
+        mixing properties in terms of the parameters
+
+        """
+        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
+        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg, build_mix=False)
+        if preserve_ideal:
+            mod_endmember_only.models['idmix'] = 0
+        for out in properties:
+            referenced_value = getattr(self, out) - getattr(mod_endmember_only, out)
+            setattr(self, "{}_MIX".format(out), referenced_value)
 
     def get_internal_constraints(self):
         constraints = []

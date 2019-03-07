@@ -347,7 +347,7 @@ def test_order_disorder_mixing_energy_is_nan():
 # This should fail because the mixing models are built by `build_mixing_attrs`,
 # which is called during `build_phase`. Changing a contribution changes the
 # AST (changes GM), however the `_MIX` part is statically built.
-def test_changing_models_also_changes_mixing_energy():
+def test_changing_model_ast_also_changes_mixing_energy():
     """If a models contribution is modified, the mixing energy should update accordingly."""
     m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
     m.models['mag'] = 1000
@@ -356,5 +356,10 @@ def test_changing_models_also_changes_mixing_energy():
                     v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
                     v.SiteFraction('CU2MG', 1, 'CU'): 0, v.SiteFraction('CU2MG', 1, 'MG'): 1,
                 }
-    check_output(m, statevars, 'GM_MIX', 0.0)
+    check_output(m, statevars, 'GM_MIX', 1000)
+
+    m.reference.models['mag'] = 1000
+    check_output(m, statevars, 'GM_MIX', 0)
+
+
 
