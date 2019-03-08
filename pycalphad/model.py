@@ -342,7 +342,7 @@ class Model(object):
         if preserve_ideal:
             mod_endmember_only.models['idmix'] = 0
         self.reference_model = mod_endmember_only
-        if self.models['ord'] != S.Zero:
+        if self.models.get('ord', S.Zero) != S.Zero:
                 for k in self.reference_model.models.keys():
                     self.reference_model.models[k] = nan
 
