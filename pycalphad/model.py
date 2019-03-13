@@ -56,6 +56,13 @@ class ReferenceState():
         self.phase_name = reference_phase
         self.fixed_statevars = fixed_statevars if fixed_statevars is not None else {}
 
+    def __repr__(self):
+        if len(self.fixed_statevars.keys()) > 0:
+            s = "<ReferenceState('{}', '{}', {})>".format(self.species.name, self.phase_name, self.fixed_statevars)
+        else:
+            s = "<ReferenceState('{}', '{}')>".format(self.species.name, self.phase_name)
+        return s
+
 
 class Model(object):
     """
@@ -295,11 +302,9 @@ class Model(object):
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
     mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
-    mixing_enthalpy = HM_MIX = \
-        property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
+    mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
-    mixing_heat_capacity = CPM_MIX = \
-        property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+    mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
     def build_reference_model(self, dbe, preserve_ideal=True):
         """
@@ -945,7 +950,7 @@ class Model(object):
 
 
     # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
-    def shift_reference_state(self, reference_states, dbe, output=('GM', 'HM', 'SM', 'CPM',), fmt_str="{}R"):
+    def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
         """
         Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.
 
@@ -958,6 +963,11 @@ class Model(object):
             Database containing the relevant parameters.
         output : Iterable, optional
             Parameters to subtract the ReferenceState from, defaults to ('GM', 'HM', 'SM', 'CPM').
+        contrib_mods : Mapping, optional
+            Map of {model contribution: new value}. Used to adjust the pure
+            reference model contributions at the time this is called, since
+            the `models` attribute of the pure element references are
+            effectively static after calling this method.
         fmt_str : str, optional
             String that will be formatted with the `output` parameter name.
             Defaults to "{}R", e.g. the transformation of 'GM' -> 'GMR'
@@ -973,6 +983,8 @@ class Model(object):
         if not refstate_pure_elements.issuperset(model_pure_elements):
             raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
 
+        contrib_mods = contrib_mods or {}
+
         def _pure_element_test(constituent_array):
             all_comps = set()
             for sublattice in constituent_array:
@@ -980,7 +992,6 @@ class Model(object):
                     return False
                 all_comps.add(sublattice[0].name)
             pure_els = all_comps.intersection(model_pure_elements)
-            print("pure", pure_els, 'const array', constituent_array)
             return len(pure_els) == 1
 
         # Remove interactions from a copy of the Database, avoids any element/VA interactions.
@@ -991,6 +1002,9 @@ class Model(object):
             if ref_state.species not in self.components:
                 continue
             mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
+            # apply the modifications to the Models
+            for contrib, new_val in contrib_mods.items():
+                mod_pure.models[contrib] = new_val
             # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
             site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
             for mod_key, mod_val in mod_pure.models.items():
