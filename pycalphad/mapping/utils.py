@@ -1,5 +1,4 @@
 from __future__ import print_function
-from operator import pos, neg
 import numpy as np
 
 from pycalphad import calculate, variables as v
@@ -9,6 +8,15 @@ from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from .compsets import BinaryCompSet
+
+
+class Direction():
+    POSITIVE = 1
+    NEGATIVE = -1
+
+def opposite_direction(direction):
+    return Direction.NEGATIVE if direction is Direction.POSITIVE else Direction.POSITIVE
+
 
 
 def v_array(center, distance, step):
@@ -165,9 +173,6 @@ def close_to_same(val_1, val_2, tol):
 def sort_x_by_y(x, y):
     """Sort a list of x in the order of sorting y"""
     return [xx for _, xx in sorted(zip(y, x), key=lambda pair: pair[0])]
-
-def opposite_direction(direction):
-    return neg if direction is pos else pos
 
 
 def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.01):

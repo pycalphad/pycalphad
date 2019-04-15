@@ -1,12 +1,11 @@
 
 import time
 from copy import deepcopy
-from operator import pos, neg
 import numpy as np
 from pycalphad import equilibrium, variables as v
 from pycalphad.codegen.callables import build_callables
 from .compsets import BinaryCompSet
-from .utils import close_to_same, close_zero_or_one, get_compsets, opposite_direction, convex_hull, find_two_phase_region_compsets
+from .utils import close_to_same, close_zero_or_one, get_compsets, opposite_direction, convex_hull, find_two_phase_region_compsets, Direction
 from .start_points import StartPoint, find_three_phase_start_points, find_nearby_region_start_point, StartPointsList
 from .zpf_boundary_sets import ZPFBoundarySets
 
@@ -63,8 +62,8 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
                 # add a direction of dT > 0 and dT < 0
                 zpf_boundaries.add_compsets(eq_cs)
                 # shift starting_T so they start at the same place.
-                start_points.add_start_point(StartPoint(starting_T - dT, pos, eq_cs))
-                start_points.add_start_point(StartPoint(starting_T + dT, neg, eq_cs))
+                start_points.add_start_point(StartPoint(starting_T - dT, Direction.POSITIVE, eq_cs))
+                start_points.add_start_point(StartPoint(starting_T + dT, Direction.NEGATIVE, eq_cs))
 
         if starting_T - dT > T_min:
             starting_T -= dT
@@ -78,7 +77,7 @@ def binplot_map(dbf, comps, phases, conds, tol_zero_one=None, tol_same=None, tol
         zpf_boundaries.add_boundary_set()
         start_pt = start_points.get_next_start_point()
         curr_direction = start_pt.direction
-        delta = curr_direction(dT)
+        delta = curr_direction*dT
 
         prev_compsets = start_pt.compsets
         if verbosity >= 1:

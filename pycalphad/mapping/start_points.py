@@ -1,6 +1,5 @@
 import numpy as np
-from operator import pos, neg
-from .utils import convex_hull, sort_x_by_y, opposite_direction, v_array
+from .utils import convex_hull, sort_x_by_y, opposite_direction, v_array, Direction
 from .compsets import BinaryCompSet
 from pycalphad import variables as v
 
@@ -18,7 +17,7 @@ class StartPoint():
 
     def __repr__(self):
         phases = "/".join([c.phase_name for c in self.compsets])
-        if self.direction is pos:
+        if self.direction is Direction.POSITIVE:
             dir_str = "+"
         else:
             dir_str = "-"
@@ -267,8 +266,8 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
 
     # first we'll search temperatures very close to the current temperature (shifted by dT/10)
     trial_Ts = [
-        (temperature - dT / 10.0, neg),
-        (temperature + dT / 10.0, pos),
+        (temperature - dT / 10.0, Direction.NEGATIVE),
+        (temperature + dT / 10.0, Direction.POSITIVE),
     ]
 
     # take the first result we get
@@ -307,7 +306,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
                 it.iternext()
                 continue
             # If we made it here, we found a potential match!
-            sp = StartPoint(trial_T - trial_direction(dT), trial_direction, trial_compsets)
+            sp = StartPoint(trial_T - trial_direction*dT, trial_direction, trial_compsets)
             if start_point_list.add_start_point(sp):
                 return sp # We found a valid start point
             else:
