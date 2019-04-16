@@ -1,7 +1,8 @@
 import numpy as np
-from .utils import convex_hull, sort_x_by_y, opposite_direction, v_array, Direction
+from copy import deepcopy
+from .utils import convex_hull, sort_x_by_y, opposite_direction, v_array, Direction, find_two_phase_region_compsets, get_compsets
 from .compsets import BinaryCompSet
-from pycalphad import variables as v
+from pycalphad import variables as v, calculate, equilibrium
 
 
 class StartPoint():
@@ -64,7 +65,6 @@ class StartPointsList():
     def __repr__(self):
         pts_str = ", ".join([repr(p) for p in self.remaining_start_points])
         return "[" + pts_str + "]"
-
 
     def contains_start_point(self, start_point):
         """
@@ -146,6 +146,7 @@ class StartPointsList():
                 return candidate_start_point
         else:
             return None
+
 
 def find_three_phase_start_points(new_compsets, prev_compsets, direction):
     """
@@ -252,7 +253,7 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
     and we've mapped out one side of the point and need to find the other side.
 
     The idea is that we select several temperatures and construct a convex hull in composition
-    at those temperature to search the composition region. Then we will go through the points in overall composition
+    at those temperatures to search the composition region. Then we will go through the points in overall composition
     from nearest to farthest from the average composition and try to find where there is
     1. Two phases in equilibrium
     2. At least one common phase with the current equilibrium
@@ -317,3 +318,127 @@ def find_nearby_region_start_point(dbf, comps ,phases, compsets, indep_comp_idx,
         return
     else:
         raise ValueError( "Could not find start point for neighbor to compsets: {}".format(compsets))
+
+
+def find_X_start_point(dbf, comps, phases, conditions, T, indep_comp, indep_comp_idx, dT, max_discrepancy=0.01, verbosity=0, hull_kwargs=None):
+    """Find a StartPoint by searching in composition"""
+    hull_kwargs = hull_kwargs or dict()
+    found_nodes = []
+    curr_conds = deepcopy(conditions)
+    curr_conds[v.T] = T
+    x_cond = [k for k in conditions.keys() if isinstance(k, v.X)][0]
+    hull = convex_hull(dbf, comps, phases, curr_conds, **hull_kwargs)
+    cs = find_two_phase_region_compsets(hull, T, indep_comp, indep_comp_idx, discrepancy_tol=max_discrepancy)
+    if len(cs) == 2:
+        # verify that these show up in the equilibrium calculation
+        specific_conds = deepcopy(curr_conds)
+        specific_conds[x_cond] = BinaryCompSet.mean_composition(cs)
+        eq_cs = get_compsets(equilibrium(dbf, comps, phases, specific_conds, **hull_kwargs), indep_comp=indep_comp, indep_comp_index=indep_comp_idx)
+        if len(eq_cs) == 2:
+            # add a direction of dT > 0 and dT < 0
+            # shift starting_T so they start at the same place.
+            found_nodes.append(StartPoint(T - dT, Direction.POSITIVE, eq_cs))
+            found_nodes.append(StartPoint(T + dT, Direction.NEGATIVE, eq_cs))
+    return found_nodes
+
+
+def find_T_start_point(dbf, comps, phases, conditions, pure_component, X_distance=0.05, num_X=40, hull_kwargs=None):
+    """Find a StartPoint by searching in temperature, special cased for a pure element
+
+    Parameters
+    ----------
+    dbf : Database
+    comps : list
+        Components to consider.
+    phases : list
+        Phases to consider.
+    pure_component : str
+        Pure component (must be in comps) to
+    T : Tuple
+        Temperature grid for calculation. Either a tuple of (T_min, T_max, T_step) or a NumPy array of a temperature grid (must be understood by pycalphad)
+    P : float
+        Scalar pressure to use in calculation.
+    X_distance : float, optional
+        Distance from the edge of composition space to search for a two phase node.
+    verbosity : int, optional
+
+    """
+    # TODO: Binary assumption, multicomponent generalization needs equilibrium vs. T
+    hull_kwargs = hull_kwargs or dict()
+    # find which component is the degree of freedom (matters for composition set ordering)
+
+    comp_keys = [key for key, val in conditions.items() if isinstance(key, v.X)]
+    if len(comp_keys) == 1:
+        comp_key = comp_keys[0]
+        dof_comp = comp_key.name[2:]
+    else:
+        raise ValueError("Too many component degrees of freedom")
+    indep_comp_idx = sorted(comps).index(dof_comp)
+
+    T_cond = conditions[v.T]
+    dT = T_cond[2]  # used when generating nodes
+    calc_T_cond = (T_cond[0], T_cond[1], 1)
+
+    # calculate the pure element as a function of temperature
+    pure_comps = [pure_component] + (['VA'] if 'VA' in comps else [])
+    calc_res = calculate(dbf, pure_comps, phases, T=calc_T_cond, P=conditions[v.P])
+    # Phase indices of the phase with minimum gibbs energy (over grid of T, P)
+    min_energy_phase_idx = calc_res.GM.argmin(dim='points').values.squeeze()
+    # transition temperature is when the next phase does not match the last phase
+    # this is the lower bracket temperature (upper bracket: add one to non-zero indices)
+    idx_transition_temperatures = np.nonzero(min_energy_phase_idx[:-1] != min_energy_phase_idx[1:])[0]
+    transition_temperatures = np.atleast_1d(calc_res.T[idx_transition_temperatures].values.squeeze()).tolist()
+    phase_sets = [] # sets of phases for each transition
+    for tt_idx in idx_transition_temperatures:
+        TL_phase = str(calc_res.Phase.isel(points=min_energy_phase_idx[tt_idx], T=tt_idx).values.squeeze())
+        TH_phase = str(calc_res.Phase.isel(points=min_energy_phase_idx[tt_idx+1], T=tt_idx+1).values.squeeze())
+        phase_sets.append({TL_phase, TH_phase})
+
+    conds = deepcopy(conditions)
+    # set the composition to near the pure element of interest
+    if pure_component == dof_comp:
+        conds[v.X(dof_comp)] = np.linspace(1.0-X_distance, 1.0, num_X)
+    else:
+        conds[v.X(dof_comp)] = np.linspace(0.0, 0.0+X_distance, num_X)
+    nodes_found = []
+    for temperature, current_phase_set in zip(transition_temperatures, phase_sets):
+        # we don't know whether the two phase region is pointed up or down, need to search both
+        trial_Ts = [
+            (temperature - 2, Direction.NEGATIVE),
+            (temperature + 2, Direction.POSITIVE),
+        ]
+        for trial_T, trial_direction in trial_Ts:
+            conds[v.T] = trial_T
+            hull = convex_hull(dbf, comps, phases, conds, **hull_kwargs)
+
+            out_phases, compositions, site_fracs = hull[1], hull[3], hull[4]
+            grid_shape = out_phases.shape[:-1]
+            num_phases = out_phases.shape[-1]
+            it = np.nditer(np.empty(grid_shape), flags=['multi_index'])  # empty grid for indexing
+            while not it.finished:
+                idx = it.multi_index
+                trial_compsets = []
+                for i in np.arange(num_phases):
+                    compset = BinaryCompSet(str(out_phases[idx][i]), temperature, dof_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
+                    trial_compsets.append(compset)
+                trial_phases = [c.phase_name for c in trial_compsets]
+                trial_phases_set = set(trial_phases)
+                trial_compositions = [c.composition for c in trial_compsets]
+                # Convex hull always gives back pairs of compsets, even for true single phase regions.
+                # We need to filter out regions where the phases aren't the same, those aren't true two phase regions.
+                # This might break in a miscibility gap.
+                # Condition 1: Number of phases must be 2
+                if len(trial_phases_set) != 2:
+                    it.iternext()
+                    continue
+                # Condition 2: Must share the phases around the transition
+                if len(current_phase_set.intersection(trial_phases_set)) != 2:
+                    it.iternext()
+                    continue
+                # If we made it here, we found a potential match!
+                sp = StartPoint(trial_T - trial_direction*dT, trial_direction, trial_compsets)
+                nodes_found.append(sp)
+                break
+    return nodes_found
+
+
