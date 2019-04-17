@@ -10,22 +10,6 @@ from pycalphad.core.constants import MIN_SITE_FRACTION
 from .compsets import CompSet2D
 
 
-class Direction():
-    POSITIVE = 1
-    NEGATIVE = -1
-
-def opposite_direction(direction):
-    return Direction.NEGATIVE if direction is Direction.POSITIVE else Direction.POSITIVE
-
-
-
-def v_array(center, distance, step):
-    """create a grid like a "V" around a specific value going from inside to outside"""
-    xs = np.arange(0, distance, step).reshape(1, -1)
-    v = np.concatenate([xs, -1*xs]).reshape(-1, order='F') + center
-    return v[1:]
-
-
 def build_composition_grid(components, conditions):
     """
     Create a cartesion grid of compositions, including adding the dependent component.
@@ -147,9 +131,11 @@ def convex_hull(dbf, comps, phases, conditions, model=None,
 
     return (GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots)
 
+
 def get_num_phases(eq_dataset):
     """Return the number of phases in equilibrium from an equilibrium dataset"""
     return int(np.sum(eq_dataset.Phase.values != '', axis=-1, dtype=np.int))
+
 
 def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
     """Return a list of composition sets in an equilibrium dataset."""
@@ -158,16 +144,6 @@ def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
     if indep_comp_index is None:
         indep_comp_index = eq_dataset.component.values.tolist().index(indep_comp)
     return CompSet2D.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
-
-
-def close_zero_or_one(val, tol):
-    zero = np.isclose(0, val, atol=tol)
-    one = np.isclose(1, val, atol=tol)
-    return zero or one
-
-
-def close_to_same(val_1, val_2, tol):
-    return np.isclose(val_1, val_2, atol=tol)
 
 
 def sort_x_by_y(x, y):
