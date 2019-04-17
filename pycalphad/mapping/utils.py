@@ -7,7 +7,7 @@ from pycalphad.core.hyperplane import hyperplane
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from .compsets import BinaryCompSet
+from .compsets import CompSet2D
 
 
 class Direction():
@@ -157,7 +157,7 @@ def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
         indep_comp = [c for c in eq_dataset.coords if 'X_' in c][0][2:]
     if indep_comp_index is None:
         indep_comp_index = eq_dataset.component.values.tolist().index(indep_comp)
-    return BinaryCompSet.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
+    return CompSet2D.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
 
 
 def close_zero_or_one(val, tol):
@@ -175,7 +175,7 @@ def sort_x_by_y(x, y):
     return [xx for _, xx in sorted(zip(y, x), key=lambda pair: pair[0])]
 
 
-def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.01):
+def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
     """
     From a dataset at constant T and P, return the composition sets for a two
     phase region or that have the smallest index composition coordinate
@@ -199,13 +199,22 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
     while not it.finished:
         idx = it.multi_index
         cs = []
+        if minimum_composition is not None and np.all(compositions[idx][:, indep_comp_idx] < minimum_composition):
+            it.iternext()
+            continue
         for i in np.arange(num_phases):
-            compset = BinaryCompSet(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
+            compset = CompSet2D(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
             cs.append(compset)
-        if len(cs) == 2:
+        if len(set([c.phase_name for c in cs])) == 2:
             # we found a multiphase region, return them if the discrepancy is
             # above the tolerance
             if cs[0].xdiscrepancy(cs[1], ignore_phase=True) > discrepancy_tol:
+                return cs
+        elif len(cs) == 2:
+            # Same phase, either a single phase region or miscibility gap.
+            # Skip the last sublattice because it can sometimes be a VA sublattice.
+            discrep = cs[0].ydiscrepancy(cs[1])
+            if np.any((discrep > misc_gap_tol)):
                 return cs
         it.iternext()
     return []

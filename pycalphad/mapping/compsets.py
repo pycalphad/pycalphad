@@ -1,7 +1,10 @@
 import numpy as np
 
 
-class BinaryCompSet():
+class CompSet2D():
+    """
+    Composition set for 2D representations of binary, ternary or multicomponent equilibrium.
+    """
     # tolerances for defining equality
     SITE_FRAC_ATOL = 0.001
     TEMPERATURE_ATOL = 0.1
@@ -14,7 +17,7 @@ class BinaryCompSet():
         self.site_fracs = site_fracs
 
     def __repr__(self,):
-        return "<BinaryCompSet{0}(T={1:0.3f}, X({2})={3:0.3f})>".format(self.phase_name, self.temperature, self.indep_comp, self.composition)
+        return "CompSet2D({0}:<T={1:0.3f}, X({2})={3:0.3f}>)".format(self.phase_name, self.temperature, self.indep_comp, self.composition)
 
     def __str__(self,):
         return self.__repr__()
@@ -161,6 +164,9 @@ class BinaryCompSet():
         """
         return np.mean([c.composition for c in compsets])
 
+    @staticmethod
+    def max_composition(compsets):
+        return np.max([c.composition for c in compsets])
 
     @staticmethod
     def composition_sorted(compsets):
