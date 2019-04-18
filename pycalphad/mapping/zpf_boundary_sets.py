@@ -158,11 +158,16 @@ class ZPFBoundarySets():
         tieline_collection = LineCollection(tieline_segments, zorder=1, linewidths=0.5, colors=tieline_colors)
         return scatter_dict, tieline_collection, legend_handles
 
-    def get_line_plot_boundaries(self):
+    def get_line_plot_boundaries(self, close_miscibility_gaps=0.05):
         """
         Get the ZPF boundaries to plot from each two phase region.
 
-
+        Parameters
+        ----------
+        close_miscibility_gaps : float, optional
+            If a float is passed, add a line segment between compsets at the top
+             or bottom of a two phase region if the discrepancy is below a
+             tolerance. If `None` is passed, do not close the gap.
         Notes
         -----
         For now, we will not support connecting regions with lines, so this
@@ -207,11 +212,24 @@ class ZPFBoundarySets():
                 tieline_colors.append([0, 1, 0, 1])
 
             # build the line collections for each two phase region
-            boundary_segments.append(a_path)
-            boundary_segments.append(b_path)
             ordered_phases = tpr.compsets[0].phases
             a_color = to_rgba(colors[ordered_phases[0]])
             b_color = to_rgba(colors[ordered_phases[1]])
+
+            # close miscibility gaps, both top and bottom
+            if close_miscibility_gaps is not None and len(tpr.phases) == 1:
+                bottom_cs = tpr.compsets[0]
+                if bottom_cs.xdiscrepancy() < close_miscibility_gaps:
+                    boundary_segments.append(np.array([bottom_cs.compositions, [bottom_cs.temperature, bottom_cs.temperature]]).T)
+                    boundary_colors.append(colors[ordered_phases[0]])  # colors are the same
+                top_cs = tpr.compsets[-1]
+                if top_cs.xdiscrepancy() < close_miscibility_gaps:
+                    boundary_segments.append(np.array([top_cs.compositions, [top_cs.temperature, top_cs.temperature]]).T)
+                    boundary_colors.append(colors[ordered_phases[0]])  # colors are the same
+
+
+            boundary_segments.append(a_path)
+            boundary_segments.append(b_path)
             boundary_colors.append(a_color)
             boundary_colors.append(b_color)
         boundary_collection = LineCollection(boundary_segments, colors=boundary_colors)
