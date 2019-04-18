@@ -225,7 +225,6 @@ class ZPFBoundarySets():
         #       a new line segment if they are close.
         all_phases = self.get_phases()
         legend_handles, colors = phase_legend(all_phases)
-        line_collections = []
         tieline_segments = []
         tieline_colors = []
         boundary_segments = []
