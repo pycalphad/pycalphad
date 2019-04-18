@@ -40,6 +40,15 @@ class TwoPhaseRegion():
         -------
         bool
 
+        Notes
+        -----
+        A new CompSet2D object belongs in the this region if, when compared to
+        the most recently added CompSet2D:
+        1. All the phases are the same (in the same order)
+        2. The composition discrepancies between CompSets of the same phase are
+            below Xtol
+        3. The temperature discrepancy between the CompSet2D objects is below Ttol
+
         """
         if compsets.unique_phases == self.phases:
             last_compsets = self.compsets[-1]
@@ -62,19 +71,24 @@ class TwoPhaseRegion():
         """
         self.compsets.append(compsets)
 
+
 class ZPFBoundarySets():
     """
 
     Attributes
     ----------
+    components : list of str
+        List of components
+    indep_comp_cond : v.X
+        Condition for the independent component
+    all_compsets : list of CompSet2D
     two_phase_regions : list of TwoPhaseRegion
     """
-    def __init__(self, components, independent_component_statevar):
-        self.boundaries = defaultdict(list)
-        self.compset_groups = []
+    def __init__(self, comps, indep_composition_condition):
+        self.components = comps
+        self.indep_comp_cond = indep_composition_condition
+        self.all_compsets = []
         self.two_phase_regions = []
-        self.components = components
-        self.indep_comp = independent_component_statevar
 
     def get_phases(self):
         """
@@ -95,6 +109,7 @@ class ZPFBoundarySets():
         -------
 
         """
+        self.all_compsets.append(compsets)
         if len(self.two_phase_regions) == 0:
             self.two_phase_regions.append(TwoPhaseRegion(compsets))
         else:
@@ -109,6 +124,28 @@ class ZPFBoundarySets():
         phase_string = "/".join(
             ["{}: {}".format(p, len(v)) for p, v in self.boundaries.items()])
         return "ZPFBoundarySets<{}>".format(phase_string)
+
+    def rebuild_two_phase_regions(self, Xtol=0.05, Ttol=10):
+        """
+        Rebuild the two phase regions with new tolerances.
+
+        Parameters
+        ----------
+        Xtol : float
+            See TwoPhaseRegion.compsets_belong_in_region
+        Ttol : float
+            See TwoPhaseRegion.compsets_belong_in_region
+
+        Returns
+        -------
+        list
+            List of the rebuilt two_phase_regions
+        """
+        self.two_phase_regions = []
+        previous_all_compsets = self.all_compsets
+        self.all_compsets = []
+        for cs in previous_all_compsets:
+            self.add_compsets(cs, Xtol=Xtol, Ttol=Ttol)
 
     def get_scatter_plot_boundaries(self, ):
         """

@@ -37,7 +37,7 @@ def binary_plot(zpf_boundary_sets, tielines=True, scatter=True, ax=None, grid=Fa
     ax.grid(True)
     plot_title = '-'.join([component for component in sorted(zpf_boundary_sets.components) if component != 'VA'])
     ax.set_title(plot_title, fontsize=20)
-    ax.set_xlabel(_axis_label(zpf_boundary_sets.indep_comp), labelpad=15, fontsize=20)
+    ax.set_xlabel(_axis_label(zpf_boundary_sets.indep_comp_cond), labelpad=15, fontsize=20)
     ax.set_ylabel(_axis_label(v.T), fontsize=20)
     ax.set_xlim(0, 1)
     # autoscale needs to be used in case boundaries are plotted as lines because
