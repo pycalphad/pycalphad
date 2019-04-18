@@ -221,6 +221,8 @@ class ZPFBoundarySets():
         -------
         (line_collections, tieline_collection, legend_handles)
         """
+        # TODO: add some tracking of the endpoints/startpoints and join them with
+        #       a new line segment if they are close.
         all_phases = self.get_phases()
         legend_handles, colors = phase_legend(all_phases)
         line_collections = []
