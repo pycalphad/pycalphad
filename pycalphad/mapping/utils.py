@@ -7,7 +7,7 @@ from pycalphad.core.hyperplane import hyperplane
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from .compsets import CompSet2D
+from .compsets import CompSet2D, CompSet
 
 
 def build_composition_grid(components, conditions):
@@ -138,12 +138,29 @@ def get_num_phases(eq_dataset):
 
 
 def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
-    """Return a list of composition sets in an equilibrium dataset."""
+    """
+    Return a CompSet2D object if a pair of composition sets is found in an
+    equilibrium dataset. Otherwise return None.
+
+    Parameters
+    ----------
+    eq_dataset :
+    indep_comp :
+    indep_comp_index :
+
+    Returns
+    -------
+    CompSet2D
+    """
     if indep_comp is None:
         indep_comp = [c for c in eq_dataset.coords if 'X_' in c][0][2:]
     if indep_comp_index is None:
         indep_comp_index = eq_dataset.component.values.tolist().index(indep_comp)
-    return CompSet2D.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
+    extracted_compsets = CompSet.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
+    if len(extracted_compsets) == 2:
+        return CompSet2D(extracted_compsets)
+    else:
+        return None
 
 
 def sort_x_by_y(x, y):
@@ -165,8 +182,8 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
 
     Returns
     -------
-    list
-        List of two composition sets for different phases
+    CompSet2D
+
     """
     phases, compositions, site_fracs = hull_output[1], hull_output[3], hull_output[4]
     grid_shape = phases.shape[:-1]
@@ -179,18 +196,18 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
             it.iternext()
             continue
         for i in np.arange(num_phases):
-            compset = CompSet2D(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
-            cs.append(compset)
-        if len(set([c.phase_name for c in cs])) == 2:
-            # we found a multiphase region, return them if the discrepancy is
-            # above the tolerance
-            if cs[0].xdiscrepancy(cs[1], ignore_phase=True) > discrepancy_tol:
-                return cs
-        elif len(cs) == 2:
-            # Same phase, either a single phase region or miscibility gap.
-            # Skip the last sublattice because it can sometimes be a VA sublattice.
-            discrep = cs[0].ydiscrepancy(cs[1])
-            if np.any((discrep > misc_gap_tol)):
-                return cs
+            stable_composition_sets = CompSet(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
+            cs.append(stable_composition_sets)
+        if len(cs) == 2:
+            compsets = CompSet2D(cs)
+            if len(compsets.unique_phases) == 2:
+                # we found a multiphase region, return them if the discrepancy is
+                # above the tolerance
+                if compsets.xdiscrepancy(ignore_phase=True) > discrepancy_tol:
+                    return compsets
+            else:
+                # Same phase, either a single phase region or miscibility gap.
+                if np.any(compsets.ydiscrepancy() > misc_gap_tol):
+                    return compsets
         it.iternext()
-    return []
+    return None

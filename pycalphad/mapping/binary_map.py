@@ -5,7 +5,6 @@ import numpy as np
 from pycalphad import equilibrium, variables as v
 from pycalphad.core.utils import unpack_condition
 from pycalphad.codegen.callables import build_callables
-from .compsets import CompSet2D
 from .utils import get_compsets, convex_hull, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
@@ -53,6 +52,7 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
     dX = composition_grid[1] - composition_grid[0]
     Xmax = composition_grid.max()
     temperature_grid = unpack_condition(conds[v.T])
+    dT = temperature_grid[1] - temperature_grid[0]
 
     boundary_sets = boundary_sets or ZPFBoundarySets(comps, comp_cond)
 
@@ -66,11 +66,11 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
         hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
         while Xmax_visited < Xmax:
             hull_compsets = find_two_phase_region_compsets(hull, T, indep_comp, indep_comp_idx, minimum_composition=Xmax_visited)
-            if len(hull_compsets) == 0:
+            if hull_compsets is None:
                 if verbose:
                     print("== Convex hull: max visited = {} - no multiphase phase compsets found ==".format(Xmax_visited, hull_compsets))
                 break
-            Xeq = CompSet2D.mean_composition(hull_compsets)
+            Xeq = hull_compsets.mean_composition
             eq_conds[comp_cond] = Xeq
             eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
             # composition sets in the plane of the calculation:
@@ -78,20 +78,19 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
             compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
             if verbose:
                 print("== Convex hull: max visited = {} - hull compsets: {} equilibrium compsets: {} ==".format(Xmax_visited, hull_compsets, compsets))
-            if len(compsets) < 2:
+            if compsets is None:
                 # equilibrium calculation, didn't find a valid multiphase composition set
                 # we need to find the next feasible one from the convex hull.
                 Xmax_visited += dX
                 continue
             # this seems kind of sloppy, but captures the effect that we want to
             # keep doing equilibrium calculations, if possible.
-            while Xmax_visited < Xmax and len(compsets) == 2:
+            while Xmax_visited < Xmax and compsets is not None:
                 # TODO: This might not be necessary, but we're playing it safe
                 #       for now. This is the result of an old design where we
                 #       did only specific two phase regions at a time.
-                boundary_sets.add_boundary_set()
-                boundary_sets.add_compsets(compsets)
-                Xmax_visited = CompSet2D.max_composition(compsets) + dX
+                boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
+                Xmax_visited = compsets.max_composition + dX
                 eq_conds[comp_cond] = Xmax_visited
                 eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
