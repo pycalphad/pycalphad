@@ -40,7 +40,7 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
     as necessary.
 
     """
-
+    eq_kwargs = eq_kwargs or {}
     # binary assumption, only one composition specified.
     comp_cond = [k for k in conds.keys() if isinstance(k, v.X)][0]
     # TODO: In the general case, we need this and the index to be replaced with
