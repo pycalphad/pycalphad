@@ -11,18 +11,24 @@ from .zpf_boundary_sets import ZPFBoundarySets
 class StartingPointError(Exception):
     pass
 
-def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundary_sets=None):
+def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundary_sets=None,
+                summary=False,):
     """
 
     Parameters
     ----------
-    dbf :
-    comps :
-    phases :
-    conds :
-    eq_kwargs :
-    verbosity :
-    boundary_sets :
+    dbf : Database
+    comps : list of str
+
+    phases : list of str
+        List of phases to consider in mapping
+    conds : dict
+        Dictionary of conditions
+    eq_kwargs : dict
+        Dictionary of keyword arguments to pass to equilibrium
+    verbosity : bool
+    boundary_sets : ZPFBoundarySets
+        Existing ZPFBoundarySets
 
     Returns
     -------
@@ -56,6 +62,10 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
 
     boundary_sets = boundary_sets or ZPFBoundarySets(comps, comp_cond)
 
+    equilibria_calculated = 0
+    equilibrium_time = 0
+    convex_hulls_calculated = 0
+    convex_hull_time = 0
     curr_conds = deepcopy(conds)
     for T in np.nditer(temperature_grid):
         if verbose:
@@ -63,16 +73,22 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
         curr_conds[v.T] = float(T)
         eq_conds = deepcopy(curr_conds)
         Xmax_visited = 0.0
+        hull_time = time.time()
         hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
+        convex_hull_time += time.time() - hull_time
+        convex_hulls_calculated += 1
         while Xmax_visited < Xmax:
-            hull_compsets = find_two_phase_region_compsets(hull, T, indep_comp, indep_comp_idx, minimum_composition=Xmax_visited)
+            hull_compsets = find_two_phase_region_compsets(hull, T, indep_comp, indep_comp_idx, minimum_composition=Xmax_visited, misc_gap_tol=2*dX)
             if hull_compsets is None:
                 if verbose:
                     print("== Convex hull: max visited = {} - no multiphase phase compsets found ==".format(Xmax_visited, hull_compsets))
                 break
             Xeq = hull_compsets.mean_composition
             eq_conds[comp_cond] = Xeq
+            eq_time = time.time()
             eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
+            equilibrium_time += time.time() - eq_time
+            equilibria_calculated += 1
             # composition sets in the plane of the calculation:
             # even for isopleths, this should always be two.
             compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
@@ -86,15 +102,17 @@ def binplot_map(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, bounda
             # this seems kind of sloppy, but captures the effect that we want to
             # keep doing equilibrium calculations, if possible.
             while Xmax_visited < Xmax and compsets is not None:
-                # TODO: This might not be necessary, but we're playing it safe
-                #       for now. This is the result of an old design where we
-                #       did only specific two phase regions at a time.
                 boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
                 Xmax_visited = compsets.max_composition + dX
                 eq_conds[comp_cond] = Xmax_visited
+                eq_time = time.time()
                 eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
+                equilibrium_time += time.time() - eq_time
+                equilibria_calculated += 1
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
                 if verbose:
                     print("Equilibrium: at X = {}, found compsets {}".format(Xmax_visited, compsets))
-
+    if verbose or summary:
+        print("{} Convex hulls calculated ({:0.2f}s)".format(convex_hulls_calculated, convex_hull_time))
+        print("{} Equilbria calculated ({:0.0f}s)".format(equilibria_calculated, equilibrium_time))
     return boundary_sets
