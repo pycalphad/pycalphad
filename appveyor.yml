@@ -7,14 +7,13 @@ environment:
       PYTHON_VERSION: "2.7"
       PYTHON_ARCH: "64"
 
-    - PYTHON: "C:\\Python35-conda64"
-      PYTHON_VERSION: "3.5"
-      PYTHON_ARCH: "64"
-
     - PYTHON: "C:\\Python36-conda64"
       PYTHON_VERSION: "3.6"
       PYTHON_ARCH: "64"
 
+    - PYTHON: "C:\\Python37-conda64"
+      PYTHON_VERSION: "3.6"
+      PYTHON_ARCH: "64"
 
 install:
   # Install miniconda Python

@@ -10,19 +10,21 @@ matrix:
     include:
         - python: 2.7
           #env: DOCKER_TAG=linux-python27
-        - python: 3.5
-          #env: DOCKER_TAG=linux-python35
         - python: 3.6
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81
+        - name: "Python 3.7.1 on Xenial Linux"
+          python: 3.7           # this works for Linux but is ignored on macOS or Windows
+          dist: xenial          # required for Python >= 3.7
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
         - language: generic
           os: osx
-          env: TRAVIS_PYTHON_VERSION=3.5
-        - language: generic
-          os: osx
           env: TRAVIS_PYTHON_VERSION=3.6
+        - name: "Python 3.7.2 on macOS"
+          os: osx
+          osx_image: xcode10.2  # Python 3.7.2 running on macOS 10.14.3
+          language: generic       # 'language: python' is an error on Travis CI macOS
 
 # Setup anaconda
 before_install:
