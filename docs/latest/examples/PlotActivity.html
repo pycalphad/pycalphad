@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Calculate and Plot Activity &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>Calculate and Plot Activity &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -190,7 +190,7 @@ Alloy Systems, Trans. Japan Inst. Met. 11 (1970) 411–418.
 <a class="reference external" href="https://doi.org/10.2320/matertrans1960.11.411">https://doi.org/10.2320/matertrans1960.11.411</a>.</p>
 <p>The measurements at at 1073 K and they used a reference state of the
 pure Zn at that temperature.</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">exp_x_zn</span> <span class="o">=</span>   <span class="p">[</span><span class="mf">0.0482</span><span class="p">,</span> <span class="mf">0.1990</span><span class="p">,</span> <span class="mf">0.3550</span><span class="p">,</span> <span class="mf">0.5045</span><span class="p">,</span> <span class="mf">0.6549</span><span class="p">,</span> <span class="mf">0.8070</span><span class="p">,</span> <span class="mf">0.9569</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">exp_x_zn</span> <span class="o">=</span>   <span class="p">[</span><span class="mf">0.0482</span><span class="p">,</span> <span class="mf">0.1990</span><span class="p">,</span> <span class="mf">0.3550</span><span class="p">,</span> <span class="mf">0.5045</span><span class="p">,</span> <span class="mf">0.6549</span><span class="p">,</span> <span class="mf">0.8070</span><span class="p">,</span> <span class="mf">0.9569</span><span class="p">]</span>
 <span class="n">exp_acr_zn</span> <span class="o">=</span> <span class="p">[</span><span class="mf">0.1154</span><span class="p">,</span> <span class="mf">0.3765</span><span class="p">,</span> <span class="mf">0.5411</span><span class="p">,</span> <span class="mf">0.6433</span><span class="p">,</span> <span class="mf">0.7352</span><span class="p">,</span> <span class="mf">0.8384</span><span class="p">,</span> <span class="mf">0.9531</span><span class="p">]</span>
 </pre></div>
 </div>
@@ -199,7 +199,7 @@ pure Zn at that temperature.</p>
 <h2>Set up the database<a class="headerlink" href="#set-up-the-database" title="Permalink to this headline">¶</a></h2>
 <p>Al-Zn database is taken from S. Mey, Reevaluation of the Al-Zn system,
 Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
@@ -214,14 +214,14 @@ Zeitschrift F{ü}r Met. 84 (1993) 451–455.</p>
 <p>Because all chemical activities must be specified with a reference
 state, we’re going to choose a reference state as the pure element at
 the same temperature, consistent with the experimental data.</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">ref_eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">})</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">ref_eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="mi">1</span><span class="p">})</span>
 </pre></div>
 </div>
 </div>
 <div class="section" id="calculate-the-equilibria">
 <h2>Calculate the equilibria<a class="headerlink" href="#calculate-the-equilibria" title="Permalink to this headline">¶</a></h2>
 <p>Do the calculation over the composition range</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">1013325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)})</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">1013325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">1023</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.005</span><span class="p">)})</span>
 </pre></div>
 </div>
 </div>
@@ -229,7 +229,7 @@ the same temperature, consistent with the experimental data.</p>
 <h2>Get the chemical potentials and calculate activity<a class="headerlink" href="#get-the-chemical-potentials-and-calculate-activity" title="Permalink to this headline">¶</a></h2>
 <p>We need to select the chemical potentials from the xarray Dataset and
 calculate the activity.</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">chempot_ref</span> <span class="o">=</span> <span class="n">ref_eq</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">chempot_ref</span> <span class="o">=</span> <span class="n">ref_eq</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 <span class="n">chempot</span> <span class="o">=</span> <span class="n">eq</span><span class="o">.</span><span class="n">MU</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZN&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
 
 <span class="n">acr_zn</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">exp</span><span class="p">((</span><span class="n">chempot</span> <span class="o">-</span> <span class="n">chempot_ref</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="mf">8.315</span><span class="o">*</span><span class="mi">1023</span><span class="p">))</span>
@@ -238,7 +238,7 @@ calculate the activity.</p>
 </div>
 <div class="section" id="plot-the-result">
 <h2>Plot the result<a class="headerlink" href="#plot-the-result" title="Permalink to this headline">¶</a></h2>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
 
 <span class="n">plt</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">eq</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="n">vertex</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">acr_zn</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;Calculated&#39;</span><span class="p">)</span>

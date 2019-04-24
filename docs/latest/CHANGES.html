@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>What’s New &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>What’s New &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -191,102 +191,102 @@
 <h2>0.7.1 (2018-11-14)<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/196">issue 196</a> )</li>
-<li>FIX: Max phases by Gibbs phase rule accommodated  ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/184">issue 184</a> )</li>
-<li>FIX: SymPy 1.2 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/180">issue 180</a> )</li>
-<li>FIX: Model: Degree of ordering property calculation when vacancy is in the system</li>
-<li>FIX: Species Python 2 unicode support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/166">issue 166</a> )</li>
-<li>ENH: Allow solution refinement by the Ipopt solver to be disabled. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/187">issue 187</a> )</li>
-<li>ENH: Enable custom solvers ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/177">issue 177</a> )</li>
-<li>DOC: Update pycalphad logo to be smoother and have a version with text. Thanks to Joyce Yong. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/193">issue 193</a> )</li>
-<li>MNT: Refactor callables creation in equilibrium() and calculate() ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/192">issue 192</a> )</li>
-<li>ENH: tdb: Move tdb grammar creation out of loop</li>
-<li>ENH: Add magnetic moment as default Model property BMAG</li>
-<li>ENH: Optimize _compute_phase_values ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/175">issue 175</a> )</li>
+<li><p>FIX: PhaseRecord: Fix pickling, so distributed scheduling will work ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/196">issue 196</a> )</p></li>
+<li><p>FIX: Max phases by Gibbs phase rule accommodated  ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/184">issue 184</a> )</p></li>
+<li><p>FIX: SymPy 1.2 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/180">issue 180</a> )</p></li>
+<li><p>FIX: Model: Degree of ordering property calculation when vacancy is in the system</p></li>
+<li><p>FIX: Species Python 2 unicode support ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/166">issue 166</a> )</p></li>
+<li><p>ENH: Allow solution refinement by the Ipopt solver to be disabled. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/187">issue 187</a> )</p></li>
+<li><p>ENH: Enable custom solvers ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/177">issue 177</a> )</p></li>
+<li><p>DOC: Update pycalphad logo to be smoother and have a version with text. Thanks to Joyce Yong. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/193">issue 193</a> )</p></li>
+<li><p>MNT: Refactor callables creation in equilibrium() and calculate() ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/192">issue 192</a> )</p></li>
+<li><p>ENH: tdb: Move tdb grammar creation out of loop</p></li>
+<li><p>ENH: Add magnetic moment as default Model property BMAG</p></li>
+<li><p>ENH: Optimize _compute_phase_values ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/175">issue 175</a> )</p></li>
 </ul>
 </div>
 <div class="section" id="id2">
 <h2>0.7 (2018-03-19)<a class="headerlink" href="#id2" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with new features and performance improvements.</p>
 <ul class="simple">
-<li>ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/161">issue 161</a> ).</li>
-<li>The compiled backed of common models has been removed. Users should expect that the first set of calculations with new phases in a Python script or session be slower as the models for each phase are compiled in real time.</li>
-<li>ENH: Performance of JIT compilation of phases has been improved.</li>
-<li>ENH: equilibrium: Performance optimizations to reduce the overhead of calling equilibrium, particularly in tight loops.</li>
+<li><p>ENH: Add support for calculations with species, including support for the associate, ionic liquid, and gas phase models ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/161">issue 161</a> ).</p></li>
+<li><p>The compiled backed of common models has been removed. Users should expect that the first set of calculations with new phases in a Python script or session be slower as the models for each phase are compiled in real time.</p></li>
+<li><p>ENH: Performance of JIT compilation of phases has been improved.</p></li>
+<li><p>ENH: equilibrium: Performance optimizations to reduce the overhead of calling equilibrium, particularly in tight loops.</p></li>
 </ul>
 </div>
 <div class="section" id="id3">
 <h2>0.6.1 (2017-12-01)<a class="headerlink" href="#id3" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and new features.</p>
 <ul class="simple">
-<li>ENH: tdb: Add more command parsing: TEMPERATURE_LIMITS, DATABASE_INFO, VERSION_DATE, REFERENCE_FILE, ADD_REFERENCES</li>
-<li>FIX: tdb: Allow ‘-‘ character in phase names.</li>
-<li>ENH/FIX: tdb: Allow comma character to specify default low temperature limit (0.01 K)</li>
+<li><p>ENH: tdb: Add more command parsing: TEMPERATURE_LIMITS, DATABASE_INFO, VERSION_DATE, REFERENCE_FILE, ADD_REFERENCES</p></li>
+<li><p>FIX: tdb: Allow ‘-‘ character in phase names.</p></li>
+<li><p>ENH/FIX: tdb: Allow comma character to specify default low temperature limit (0.01 K)</p></li>
 </ul>
 </div>
 <div class="section" id="id4">
 <h2>0.6 (2017-11-26)<a class="headerlink" href="#id4" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with new features, bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>Users updating from an earlier version should follow the updated installation instructions to ensure they have all the correct dependencies.</li>
-<li>MAINT: Python 3.4 support has been dropped ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/145">issue 145</a> ).</li>
-<li>MAINT: Windows Python 2.7 32-bit support has been dropped. 64-bit is still supported.</li>
-<li>ENH: A new solver based on the optimization package IPOPT has been implemented, leading to increased accuracy and lower memory consumption ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/124">issue 124</a> ).</li>
-<li>ENH: Windows users no longer have to install the Microsoft C compiler if they use Anaconda. The installer will now automatically download a MinGW-based compiler toolchain.</li>
-<li>DOC: The documentation has been updated and expanded ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/146">issue 146</a> ).</li>
-<li>ENH: calculate: Automatically suspend inactive phases from calculation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/141">issue 141</a> ).</li>
-<li>ENH: Tielines can now be toggled on and off in phase diagrams ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/136">issue 136</a> ).</li>
-<li>ENH: Species support in Database and TDB read/write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/137">issue 137</a> ).</li>
-<li>FIX: Axis labeling bug in eqplot due to leaking list comprehension variable.</li>
-<li>FIX: Maintain sorted state variable ordering when one or more state variables is left as default ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/116">issue 116</a> ).</li>
-<li>MAINT: Cleanup refdata, fitting, and core.eqresult modules ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/135">issue 135</a> ).</li>
-<li>FIX: tdb: Update float parsing regex ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/144">issue 144</a> ).</li>
+<li><p>Users updating from an earlier version should follow the updated installation instructions to ensure they have all the correct dependencies.</p></li>
+<li><p>MAINT: Python 3.4 support has been dropped ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/145">issue 145</a> ).</p></li>
+<li><p>MAINT: Windows Python 2.7 32-bit support has been dropped. 64-bit is still supported.</p></li>
+<li><p>ENH: A new solver based on the optimization package IPOPT has been implemented, leading to increased accuracy and lower memory consumption ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/124">issue 124</a> ).</p></li>
+<li><p>ENH: Windows users no longer have to install the Microsoft C compiler if they use Anaconda. The installer will now automatically download a MinGW-based compiler toolchain.</p></li>
+<li><p>DOC: The documentation has been updated and expanded ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/146">issue 146</a> ).</p></li>
+<li><p>ENH: calculate: Automatically suspend inactive phases from calculation ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/141">issue 141</a> ).</p></li>
+<li><p>ENH: Tielines can now be toggled on and off in phase diagrams ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/136">issue 136</a> ).</p></li>
+<li><p>ENH: Species support in Database and TDB read/write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/137">issue 137</a> ).</p></li>
+<li><p>FIX: Axis labeling bug in eqplot due to leaking list comprehension variable.</p></li>
+<li><p>FIX: Maintain sorted state variable ordering when one or more state variables is left as default ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/116">issue 116</a> ).</p></li>
+<li><p>MAINT: Cleanup refdata, fitting, and core.eqresult modules ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/135">issue 135</a> ).</p></li>
+<li><p>FIX: tdb: Update float parsing regex ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/144">issue 144</a> ).</p></li>
 </ul>
 </div>
 <div class="section" id="id5">
 <h2>0.5.2 (2017-08-10)<a class="headerlink" href="#id5" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with a new feature, bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>ENH: Add ternary isothermal phase diagram plotting. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/98">issue 98</a> ).</li>
-<li>FIX: sympy 1.1 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/108">issue 108</a> ).</li>
-<li>ENH/FIX: Make equilibrium Datasets serializable to netCDF ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/111">issue 111</a> ).</li>
-<li>FIX: Raise an error if invalid keyword arguments are passed to Database.write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/117">issue 117</a> ).</li>
-<li>ENH/DOC: Remove log.py module ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/104">issue 104</a> ).</li>
-<li>FIX: Mistake in the Cementite Analysis example ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a> ).</li>
+<li><p>ENH: Add ternary isothermal phase diagram plotting. ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/98">issue 98</a> ).</p></li>
+<li><p>FIX: sympy 1.1 compatibility ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/108">issue 108</a> ).</p></li>
+<li><p>ENH/FIX: Make equilibrium Datasets serializable to netCDF ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/111">issue 111</a> ).</p></li>
+<li><p>FIX: Raise an error if invalid keyword arguments are passed to Database.write ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/117">issue 117</a> ).</p></li>
+<li><p>ENH/DOC: Remove log.py module ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/104">issue 104</a> ).</p></li>
+<li><p>FIX: Mistake in the Cementite Analysis example ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a> ).</p></li>
 </ul>
 </div>
 <div class="section" id="id6">
 <h2>0.5.1 (2017-05-12)<a class="headerlink" href="#id6" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes.</p>
 <ul class="simple">
-<li>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</li>
-<li>FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/90">issue 90</a>.</li>
+<li><p>FIX: Custom Models involving certain mathematical constants will compile. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/91">issue 91</a>.</p></li>
+<li><p>FIX: Undefined symbols in CompiledModel are automatically set to zero. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/90">issue 90</a>.</p></li>
 </ul>
 </div>
 <div class="section" id="id7">
 <h2>0.5 (2017-05-04)<a class="headerlink" href="#id7" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>Python 3.6 is now supported. Python 3.3 support has been dropped.</li>
-<li>The equilibrium solver is now significantly faster and more robust. A new Cython-based implementation of the Model class,
-CompiledModel, has virtually eliminated cold-start calculation time.</li>
-<li>Cython is now a run-time and build-time dependency. Obsolete dependencies have been removed. Windows is still supported
-with the caveat that users will need to install the Microsoft Visual C++ Build Tools to get a working C compiler.</li>
-<li>The [pycalphad paper](<a class="reference external" href="http://doi.org/10.5334/jors.140">http://doi.org/10.5334/jors.140</a>) has been published.</li>
-<li>The progress bar has been removed along with the dependency on tqdm.</li>
-<li>ENH: Raise warning if unused kwargs are passed to equilibrium</li>
-<li>ENH: TDB compatibility: All characters after command delimiters should be ignored.</li>
-<li>FIX: Fix solver when sum of compositions &gt; 1</li>
-<li>DOC: calculate: Add default pdens value to docstring. Fixes  <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/85">issue 85</a>.</li>
-<li>FIX: Indexing errors ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/63">issue 63</a> ).</li>
-<li>FIX: eqsolver: Handle component index correctly when VA is not last component in alphabetical order. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/62">issue 62</a>.</li>
-<li>ENH: calculate/equilibrium: Add parameters kwarg to allow users to override Database FUNCTIONs.</li>
-<li>DOC: Add Getting Help section to readme and docs.</li>
-<li>FIX: binplot: Fix ordering of phase labels and colors.</li>
-<li>tdb: Make ELEMENT grammar more strict to catch typos easier. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/57">issue 57</a>.</li>
-<li>ENH: Caching rewrite and performance increase. Database objects are now hashable.</li>
-<li>ENH: calculate: Performance enhancements via profiling.</li>
-<li>ENH: equilibrium: Break computation up into parallelizable pieces using dask.</li>
+<li><p>Python 3.6 is now supported. Python 3.3 support has been dropped.</p></li>
+<li><p>The equilibrium solver is now significantly faster and more robust. A new Cython-based implementation of the Model class,
+CompiledModel, has virtually eliminated cold-start calculation time.</p></li>
+<li><p>Cython is now a run-time and build-time dependency. Obsolete dependencies have been removed. Windows is still supported
+with the caveat that users will need to install the Microsoft Visual C++ Build Tools to get a working C compiler.</p></li>
+<li><p>The [pycalphad paper](<a class="reference external" href="http://doi.org/10.5334/jors.140">http://doi.org/10.5334/jors.140</a>) has been published.</p></li>
+<li><p>The progress bar has been removed along with the dependency on tqdm.</p></li>
+<li><p>ENH: Raise warning if unused kwargs are passed to equilibrium</p></li>
+<li><p>ENH: TDB compatibility: All characters after command delimiters should be ignored.</p></li>
+<li><p>FIX: Fix solver when sum of compositions &gt; 1</p></li>
+<li><p>DOC: calculate: Add default pdens value to docstring. Fixes  <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/85">issue 85</a>.</p></li>
+<li><p>FIX: Indexing errors ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/63">issue 63</a> ).</p></li>
+<li><p>FIX: eqsolver: Handle component index correctly when VA is not last component in alphabetical order. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/62">issue 62</a>.</p></li>
+<li><p>ENH: calculate/equilibrium: Add parameters kwarg to allow users to override Database FUNCTIONs.</p></li>
+<li><p>DOC: Add Getting Help section to readme and docs.</p></li>
+<li><p>FIX: binplot: Fix ordering of phase labels and colors.</p></li>
+<li><p>tdb: Make ELEMENT grammar more strict to catch typos easier. Fixes <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/57">issue 57</a>.</p></li>
+<li><p>ENH: Caching rewrite and performance increase. Database objects are now hashable.</p></li>
+<li><p>ENH: calculate: Performance enhancements via profiling.</p></li>
+<li><p>ENH: equilibrium: Break computation up into parallelizable pieces using dask.</p></li>
 </ul>
 </div>
 <div class="section" id="id8">
@@ -294,91 +294,92 @@ with the caveat that users will need to install the Microsoft Visual C++ Build T
 <p>This is a minor feature release with one breaking change.
 * There is now support for the Xiong magnetic model (Xiong et al, Calphad, 2012), two-state liquid-amorphous model,</p>
 <blockquote>
-<div>and Einstein model in the Model class. TDB support has been extended where necessary.</div></blockquote>
+<div><p>and Einstein model in the Model class. TDB support has been extended where necessary.</p>
+</div></blockquote>
 <ul class="simple">
-<li>ENH/BRK: Model: Add ‘contributions’ class attribute to make it easier for users to define custom energetic
-contributions. The API for custom contributions has changed; the old method will no longer work.</li>
-<li>FIX: equilibrium: Correctly use custom models during property calculation with <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument.</li>
+<li><p>ENH/BRK: Model: Add ‘contributions’ class attribute to make it easier for users to define custom energetic
+contributions. The API for custom contributions has changed; the old method will no longer work.</p></li>
+<li><p>FIX: equilibrium: Correctly use custom models during property calculation with <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument.</p></li>
 </ul>
 </div>
 <div class="section" id="id9">
 <h2>0.4.1 (2016-08-08)<a class="headerlink" href="#id9" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li>Python 3.3 support has been dropped. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/46">issue 46</a>.</li>
-<li>Documentation has been transitioned to a new domain, [<a class="reference external" href="https://pycalphad.org](https://pycalphad.org">https://pycalphad.org](https://pycalphad.org</a>). See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/47">issue 47</a>.</li>
-<li>BLD: Exclude xarray 0.8 from dependencies since it has a regression. (Newer versions are fine.)</li>
-<li>DOC: Automated project documentation building and deployment via Travis CI.</li>
+<li><p>Python 3.3 support has been dropped. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/46">issue 46</a>.</p></li>
+<li><p>Documentation has been transitioned to a new domain, [<a class="reference external" href="https://pycalphad.org](https://pycalphad.org">https://pycalphad.org](https://pycalphad.org</a>). See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/47">issue 47</a>.</p></li>
+<li><p>BLD: Exclude xarray 0.8 from dependencies since it has a regression. (Newer versions are fine.)</p></li>
+<li><p>DOC: Automated project documentation building and deployment via Travis CI.</p></li>
 </ul>
 </div>
 <div class="section" id="id10">
 <h2>0.4 (2016-08-03)<a class="headerlink" href="#id10" title="Permalink to this headline">¶</a></h2>
 <p>This is a major release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>The equilibrium solver core has been rewritten, resulting in a significant increase in robustness and accuracy,
-particularly for chemical potential calculation with miscibility gaps. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/43">issue 43</a>.</li>
-<li>For performance, dask-powered multiprocessing is now used to parallelize equilibrium calculations.
-Because of this, dask and dill are now dependencies.</li>
-<li>Database and Model objects can now be pickled on all supported platforms, fixing a multiprocessing issue.</li>
+<li><p>The equilibrium solver core has been rewritten, resulting in a significant increase in robustness and accuracy,
+particularly for chemical potential calculation with miscibility gaps. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/43">issue 43</a>.</p></li>
+<li><p>For performance, dask-powered multiprocessing is now used to parallelize equilibrium calculations.
+Because of this, dask and dill are now dependencies.</p></li>
+<li><p>Database and Model objects can now be pickled on all supported platforms, fixing a multiprocessing issue.</p></li>
 </ul>
 </div>
 <div class="section" id="id11">
 <h2>0.3.6 (2016-06-01)<a class="headerlink" href="#id11" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>Fix installation problem on Windows when using Anaconda.</li>
-<li>Add new compiled backend for phase models. This new backend provides a significant performance improvement.</li>
-<li>Experimental support for the numba library has been removed.</li>
+<li><p>Fix installation problem on Windows when using Anaconda.</p></li>
+<li><p>Add new compiled backend for phase models. This new backend provides a significant performance improvement.</p></li>
+<li><p>Experimental support for the numba library has been removed.</p></li>
 </ul>
 </div>
 <div class="section" id="id12">
 <h2>0.3.5 (2016-05-14)<a class="headerlink" href="#id12" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">tdb</span></code>: Fix TDB parsing errors on recent (&gt;=2.1) versions of pyparsing.</li>
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Improve convergence and numerical stability of solver. Fix potential sign error in Hessian matrix.
+<li><p><code class="docutils literal notranslate"><span class="pre">tdb</span></code>: Fix TDB parsing errors on recent (&gt;=2.1) versions of pyparsing.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Improve convergence and numerical stability of solver. Fix potential sign error in Hessian matrix.
 Support mapping over two composition variables at once.
-An error is now raised if a calculation specifies components not in the Database.</li>
+An error is now raised if a calculation specifies components not in the Database.</p></li>
 </ul>
 </div>
 <div class="section" id="id13">
 <h2>0.3.4 (2016-04-28)<a class="headerlink" href="#id13" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Support the use of the absolute value function in the energy function.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Support the use of the absolute value function in the energy function.</p></li>
 </ul>
 </div>
 <div class="section" id="id14">
 <h2>0.3.3 (2016-04-21)<a class="headerlink" href="#id14" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Significant improvements to the speed and accuracy of the solver.
-There is still some work to do for step and map calculations, planned for 0.4.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Numerical accuracy improvement for the magnetic model <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/40">issue 40</a>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Improvements to TDB writing, particularly for order-disorder models.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Support for reading diffusion mobility databases.
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Significant improvements to the speed and accuracy of the solver.
+There is still some work to do for step and map calculations, planned for 0.4.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Numerical accuracy improvement for the magnetic model <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/40">issue 40</a>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Improvements to TDB writing, particularly for order-disorder models.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code>: Support for reading diffusion mobility databases.
 Kinetic simulations are not on the roadmap, but this makes it easier to manipulate diffusion data.
-Pull requests improving pycalphad’s support for kinetic calculations are welcome.</li>
+Pull requests improving pycalphad’s support for kinetic calculations are welcome.</p></li>
 </ul>
 </div>
 <div class="section" id="id15">
 <h2>0.3.2 (2016-02-22)<a class="headerlink" href="#id15" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug causing calculations at multiple temperatures to fail in multi-component systems.
-Thanks to Ali for reporting.</li>
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: More numerical robustness improvements.
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug causing calculations at multiple temperatures to fail in multi-component systems.
+Thanks to Ali for reporting.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: More numerical robustness improvements.
 (Global search now satisfies the strong Wolfe conditions on every iteration.)
-Further performance improvements will come to this soon.</li>
-<li>pycalphad now depends on pyparsing&lt;2.1.0 pending resolution of <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/38">issue 38</a>.</li>
+Further performance improvements will come to this soon.</p></li>
+<li><p>pycalphad now depends on pyparsing&lt;2.1.0 pending resolution of <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/38">issue 38</a>.</p></li>
 </ul>
 </div>
 <div class="section" id="id16">
 <h2>0.3.1 (2016-02-18)<a class="headerlink" href="#id16" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bug fix release.</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Make the <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> attribute work when dealing with the order-disorder model.</li>
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug involving the <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument in multi-phase calculations.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Make the <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> attribute work when dealing with the order-disorder model.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>: Fix a bug involving the <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument in multi-phase calculations.</p></li>
 </ul>
 </div>
 <div class="section" id="id17">
@@ -386,111 +387,111 @@ Further performance improvements will come to this soon.</li>
 <p>This is a major release with new features and fixes. It is very likely that
 if you will need to update code to be compatible with this version.</p>
 <ul class="simple">
-<li><strong>Breaking change</strong>: Removed <code class="docutils literal notranslate"><span class="pre">residuals</span></code> module and the deprecated <code class="docutils literal notranslate"><span class="pre">energy_surf</span></code> routine.</li>
-<li><strong>Breaking change</strong>: Removed ternary isotherm plotting for now, pending a rewrite.</li>
-<li><strong>Breaking change</strong>: The <code class="docutils literal notranslate"><span class="pre">refstates</span></code> module has been renamed to <code class="docutils literal notranslate"><span class="pre">refdata</span></code>.</li>
-<li><strong>Breaking change</strong> in <code class="docutils literal notranslate"><span class="pre">Database</span></code>: Removed <code class="docutils literal notranslate"><span class="pre">typedefs</span></code> member.</li>
-<li><code class="docutils literal notranslate"><span class="pre">binplot</span></code>:
+<li><p><strong>Breaking change</strong>: Removed <code class="docutils literal notranslate"><span class="pre">residuals</span></code> module and the deprecated <code class="docutils literal notranslate"><span class="pre">energy_surf</span></code> routine.</p></li>
+<li><p><strong>Breaking change</strong>: Removed ternary isotherm plotting for now, pending a rewrite.</p></li>
+<li><p><strong>Breaking change</strong>: The <code class="docutils literal notranslate"><span class="pre">refstates</span></code> module has been renamed to <code class="docutils literal notranslate"><span class="pre">refdata</span></code>.</p></li>
+<li><p><strong>Breaking change</strong> in <code class="docutils literal notranslate"><span class="pre">Database</span></code>: Removed <code class="docutils literal notranslate"><span class="pre">typedefs</span></code> member.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">binplot</span></code>:
 Completely rewritten to use the new equilibrium engine. See also the new companion function <code class="docutils literal notranslate"><span class="pre">eqplot</span></code>.
-<strong>Breaking change</strong>: The API for calling <code class="docutils literal notranslate"><span class="pre">binplot</span></code> has also been completely changed.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Database</span></code>:
+<strong>Breaking change</strong>: The API for calling <code class="docutils literal notranslate"><span class="pre">binplot</span></code> has also been completely changed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code>:
 <code class="docutils literal notranslate"><span class="pre">to_file</span></code> learned a <code class="docutils literal notranslate"><span class="pre">groupby</span></code> keyword argument for changing how PARAMETERs are sorted.
 Loading a TDB will now raise <code class="docutils literal notranslate"><span class="pre">ValueError</span></code> if the file contains duplicate FUNCTIONs.
-The TDB writer now generates output more conformant with Thermo-Calc.</li>
-<li><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>:
+The TDB writer now generates output more conformant with Thermo-Calc.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>:
 Substantively rewritten for robustness and accuracy. Users will notice a difference, especially for dilute calculations.
 Unfortunately it’s still a bit slow; fixing that will be a focus of the 0.3.x cycle. See <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/37">issue 37</a>.
-Learned a <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument for specifying additional equilibrium properties to compute.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">tqdm</span></code> library is now a dependency. It adds progress bar support to <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Model</span></code>:
+Learned a <code class="docutils literal notranslate"><span class="pre">output</span></code> keyword argument for specifying additional equilibrium properties to compute.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">tqdm</span></code> library is now a dependency. It adds progress bar support to <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>:
 Added <code class="docutils literal notranslate"><span class="pre">constituents</span></code>, <code class="docutils literal notranslate"><span class="pre">phase_name</span></code> and <code class="docutils literal notranslate"><span class="pre">site_ratios</span></code> attributes, in analogy with <code class="docutils literal notranslate"><span class="pre">Phase</span></code> objects.
 This makes it easier to interact with the sublattice model without having to keep <code class="docutils literal notranslate"><span class="pre">Database</span></code> objects around.
 Added a <code class="docutils literal notranslate"><span class="pre">degree_of_ordering</span></code> (abbreviation <code class="docutils literal notranslate"><span class="pre">DOO</span></code>) property. Only has meaning for phases with sublattice ordering.
-Added a <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> (abbreviation <code class="docutils literal notranslate"><span class="pre">TC</span></code>) property. Only nonzero for phases with magnetic ordering.</li>
-<li><code class="docutils literal notranslate"><span class="pre">calculate</span></code>:
+Added a <code class="docutils literal notranslate"><span class="pre">curie_temperature</span></code> (abbreviation <code class="docutils literal notranslate"><span class="pre">TC</span></code>) property. Only nonzero for phases with magnetic ordering.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">calculate</span></code>:
 Learned a <code class="docutils literal notranslate"><span class="pre">broadcast</span></code> boolean keyword argument for turning broadcasting off. This is useful
 for computing many different system configurations in a pointwise fashion, when there’s no
-obvious way of expressing the calculation as a traditional “step” or “map”.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">xray</span></code> dependency was renamed to <code class="docutils literal notranslate"><span class="pre">xarray</span></code>. The change should be transparent to users when updating.</li>
+obvious way of expressing the calculation as a traditional “step” or “map”.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">xray</span></code> dependency was renamed to <code class="docutils literal notranslate"><span class="pre">xarray</span></code>. The change should be transparent to users when updating.</p></li>
 </ul>
 </div>
 <div class="section" id="id18">
 <h2>0.2.5 (2015-12-22)<a class="headerlink" href="#id18" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with new features and bug fixes.</p>
 <ul class="simple">
-<li><strong>Breaking change</strong> in <code class="docutils literal notranslate"><span class="pre">Model</span></code>: All mixing attributes have been renamed from <code class="docutils literal notranslate"><span class="pre">MIX_{attr}</span></code> to <code class="docutils literal notranslate"><span class="pre">{attr}_MIX</span></code>.</li>
-<li>Early support for reference states has been added to the <code class="docutils literal notranslate"><span class="pre">refstates</span></code> module. The reference molar Gibbs energies
-of the pure elements according to the 1991 SGTE standard can be found in <code class="docutils literal notranslate"><span class="pre">pycalphad.refstates.SGTE91</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Database</span></code> now has file import/export support with <code class="docutils literal notranslate"><span class="pre">to_file</span></code>, <code class="docutils literal notranslate"><span class="pre">from_file</span></code>, <code class="docutils literal notranslate"><span class="pre">from_string</span></code> and <code class="docutils literal notranslate"><span class="pre">to_string</span></code>.
+<li><p><strong>Breaking change</strong> in <code class="docutils literal notranslate"><span class="pre">Model</span></code>: All mixing attributes have been renamed from <code class="docutils literal notranslate"><span class="pre">MIX_{attr}</span></code> to <code class="docutils literal notranslate"><span class="pre">{attr}_MIX</span></code>.</p></li>
+<li><p>Early support for reference states has been added to the <code class="docutils literal notranslate"><span class="pre">refstates</span></code> module. The reference molar Gibbs energies
+of the pure elements according to the 1991 SGTE standard can be found in <code class="docutils literal notranslate"><span class="pre">pycalphad.refstates.SGTE91</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Database</span></code> now has file import/export support with <code class="docutils literal notranslate"><span class="pre">to_file</span></code>, <code class="docutils literal notranslate"><span class="pre">from_file</span></code>, <code class="docutils literal notranslate"><span class="pre">from_string</span></code> and <code class="docutils literal notranslate"><span class="pre">to_string</span></code>.
 Currently TDB is the only supported format, but more can now easily be added in the future.
 The function for extending pycalphad with new formats is <code class="docutils literal notranslate"><span class="pre">Database.register_format</span></code>.
-Loading databases with the default constructor, i.e., <code class="docutils literal notranslate"><span class="pre">Database('file.tdb')</span></code>, will continue to work.</li>
-<li>Equivalence comparison support for <code class="docutils literal notranslate"><span class="pre">Database</span></code> and <code class="docutils literal notranslate"><span class="pre">Model</span></code>.
+Loading databases with the default constructor, i.e., <code class="docutils literal notranslate"><span class="pre">Database('file.tdb')</span></code>, will continue to work.</p></li>
+<li><p>Equivalence comparison support for <code class="docutils literal notranslate"><span class="pre">Database</span></code> and <code class="docutils literal notranslate"><span class="pre">Model</span></code>.
 For example, if <code class="docutils literal notranslate"><span class="pre">dbf</span></code> is a <code class="docutils literal notranslate"><span class="pre">Database</span></code>, <code class="docutils literal notranslate"><span class="pre">dbf</span> <span class="pre">==</span> <span class="pre">Database.from_string(dbf.to_string(fmt='tdb'),</span> <span class="pre">fmt='tdb')</span></code>.
 Equivalent <code class="docutils literal notranslate"><span class="pre">Database</span></code> objects should always produce equivalent <code class="docutils literal notranslate"><span class="pre">Model</span></code> objects.
-We have tests for this, but if you find a case where this isn’t true, it’s a bug and can be reported on the issue tracker.</li>
-<li>A new sampling algorithm for equilibrium calculation, based on the scrambled Halton sequence, has been implemented.
+We have tests for this, but if you find a case where this isn’t true, it’s a bug and can be reported on the issue tracker.</p></li>
+<li><p>A new sampling algorithm for equilibrium calculation, based on the scrambled Halton sequence, has been implemented.
 It should improve performance for multi-component systems once some other improvements have been finalized.
-For now, users will probably not notice a difference.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Added <code class="docutils literal notranslate"><span class="pre">CPM_MIX</span></code> attribute for molar isobaric heat capacity of mixing.</li>
-<li>Many unit tests have been cleaned up and streamlined, with test coverage back up above 80%.</li>
+For now, users will probably not notice a difference.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Model</span></code>: Added <code class="docutils literal notranslate"><span class="pre">CPM_MIX</span></code> attribute for molar isobaric heat capacity of mixing.</p></li>
+<li><p>Many unit tests have been cleaned up and streamlined, with test coverage back up above 80%.</p></li>
 </ul>
 </div>
 <div class="section" id="id19">
 <h2>0.2.4 (2015-11-18)<a class="headerlink" href="#id19" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>Optional, experimental support for <a class="reference external" href="http://numba.pydata.org/">numba</a> has been added to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.
+<li><p>Optional, experimental support for <a class="reference external" href="http://numba.pydata.org/">numba</a> has been added to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.
 If numba&gt;=0.22 is installed and <code class="docutils literal notranslate"><span class="pre">calculate</span></code> is directly called without the <cite>mode</cite>
 keyword argument, a numba-optimized function will be generated for the calculation.
 You can force the old behavior with <cite>mode=’numpy’</cite>.
-<code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> does not currently use this code path regardless.</li>
-<li>A performance improvement to how <code class="docutils literal notranslate"><span class="pre">lower_convex_hull</span></code> computes driving force
+<code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> does not currently use this code path regardless.</p></li>
+<li><p>A performance improvement to how <code class="docutils literal notranslate"><span class="pre">lower_convex_hull</span></code> computes driving force
 gives a nice speedup when calling <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>.
-There’s still a lot of room for improvement, especially for step/map calculations.</li>
-<li>Piecewise-defined functions are now lazily-evaluated, meaning only the values necessary
+There’s still a lot of room for improvement, especially for step/map calculations.</p></li>
+<li><p>Piecewise-defined functions are now lazily-evaluated, meaning only the values necessary
 for the given conditions will be computed. Before, all values were always computed.
-Users will notice the biggest difference when calculating phases with the magnetic model.</li>
-<li>Fix a small but serious bug when running tinydb v3 with pycalphad ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/30">issue 30</a> ).</li>
-<li>Fix a platform-dependent crash bug when using <code class="docutils literal notranslate"><span class="pre">binplot</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/31">issue 31</a> ).</li>
-<li>Support for numexpr has been removed.</li>
-<li>The documentation on ReadTheDocs should be building properly again ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/26">issue 26</a> ).</li>
+Users will notice the biggest difference when calculating phases with the magnetic model.</p></li>
+<li><p>Fix a small but serious bug when running tinydb v3 with pycalphad ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/30">issue 30</a> ).</p></li>
+<li><p>Fix a platform-dependent crash bug when using <code class="docutils literal notranslate"><span class="pre">binplot</span></code> ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/31">issue 31</a> ).</p></li>
+<li><p>Support for numexpr has been removed.</p></li>
+<li><p>The documentation on ReadTheDocs should be building properly again ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/26">issue 26</a> ).</p></li>
 </ul>
 </div>
 <div class="section" id="id20">
 <h2>0.2.3 (2015-11-08)<a class="headerlink" href="#id20" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor release with bug fixes and performance improvements.</p>
 <ul class="simple">
-<li>Autograd is now a required dependency. It should be automatically installed on upgrade.</li>
-<li>The magnetic contribution to the energy has been improved in performance.
-For some users (mainly Fe or Ni systems), the difference will be dramatic.</li>
-<li>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
+<li><p>Autograd is now a required dependency. It should be automatically installed on upgrade.</p></li>
+<li><p>The magnetic contribution to the energy has been improved in performance.
+For some users (mainly Fe or Ni systems), the difference will be dramatic.</p></li>
+<li><p>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
 The minimizer now solves using exact Hessians and is generally more robust.
 <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> has been removed.
 There are still issues computing dilute compositions; these will continue to be addressed.
-Please report these numerical issues if you run into them because they are difficult to find through automated testing.</li>
-<li>Automated testing is now enabled for Mac OSX and Windows, as well as Linux (previously enabled).
+Please report these numerical issues if you run into them because they are difficult to find through automated testing.</p></li>
+<li><p>Automated testing is now enabled for Mac OSX and Windows, as well as Linux (previously enabled).
 This should help to find tricky bugs more quickly. (Note that this runs entirely on separate
-infrastructure and is not collecting information from users.)</li>
+infrastructure and is not collecting information from users.)</p></li>
 </ul>
 </div>
 <div class="section" id="id21">
 <h2>0.2.2 (2015-10-17)<a class="headerlink" href="#id21" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
-<li>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
+<li><p>Numerical stability improvements to the energy minimizer ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/23">issue 23</a> ).
 If you’re still getting singular matrix errors occasionally, you can try adjusting
 the value of <cite>pycalphad.core.equilibrium.MIN_STEP_LENGTH</cite> as discussed in the issue above.
-Please report these numerical issues if you run into them because they are difficult to find through automated testing.</li>
-<li>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</li>
+Please report these numerical issues if you run into them because they are difficult to find through automated testing.</p></li>
+<li><p>Fixes for the minimizer sometimes giving type conversion errors on numpy 1.10 ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/24">issue 24</a> ).</p></li>
 </ul>
 </div>
 <div class="section" id="id22">
 <h2>0.2.1 (2015-09-10)<a class="headerlink" href="#id22" title="Permalink to this headline">¶</a></h2>
 <p>This is a minor bugfix release.</p>
 <ul class="simple">
-<li>Composition conditions are correctly constructed when the dependent component does not come
-last in alphabetical order ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/21">issue 21</a> ).</li>
+<li><p>Composition conditions are correctly constructed when the dependent component does not come
+last in alphabetical order ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/21">issue 21</a> ).</p></li>
 </ul>
 </div>
 <div class="section" id="id23">
@@ -500,46 +501,46 @@ This was necessary for the move to the new equilibrium engine.
 0.2.x will be the last “alpha” version of pycalphad where APIs are broken without notice.
 0.3 will begin the “beta” cycle where API stability will be enforced.</p>
 <ul class="simple">
-<li>pycalphad now depends on numpy&gt;=1.9 and xray</li>
-<li>New unified equilibrium computation interface with <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> function.
+<li><p>pycalphad now depends on numpy&gt;=1.9 and xray</p></li>
+<li><p>New unified equilibrium computation interface with <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> function.
 Features point, step and map calculation for multi-phase, multi-component problems.
-Time performance is a known issue. A typical calculation will take 3-5 minutes until it’s fixed.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Ellipsis</span></code> or <code class="docutils literal notranslate"><span class="pre">...</span></code> can be used in the phases argument of <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> to mean “all phases in a Database”.</li>
-<li><code class="docutils literal notranslate"><span class="pre">pycalphad.eq</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">pycalphad.core</span></code></li>
-<li><code class="docutils literal notranslate"><span class="pre">energy_surf</span></code> is now deprecated in favor of the new xray-based <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.
-It’s possible to convert xray Datasets to pandas DataFrames with the <code class="docutils literal notranslate"><span class="pre">.to_dataframe()</span></code> function.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">Equilibrium</span></code> class has been removed without deprecation. The old engine worked unreliably.
-Use the new <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> routine instead.</li>
-<li>The <code class="docutils literal notranslate"><span class="pre">Model</span></code> class has been streamlined. It’s now much easier to modify a <code class="docutils literal notranslate"><span class="pre">Model</span></code> by accessing the
-<code class="docutils literal notranslate"><span class="pre">Model.models</span></code> member dict. Changes to <code class="docutils literal notranslate"><span class="pre">models</span></code> will be reflected in <code class="docutils literal notranslate"><span class="pre">Model.ast</span></code>, <code class="docutils literal notranslate"><span class="pre">Model.energy</span></code>, etc.</li>
-<li>Adding a property attribute to a subclass of <code class="docutils literal notranslate"><span class="pre">Model</span></code> automatically makes it available to use in the <code class="docutils literal notranslate"><span class="pre">output</span></code>
-keyword argument of <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. This is useful for computing properties not yet defined in <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</li>
-<li>Experimental support for model parameter fitting is available in the <code class="docutils literal notranslate"><span class="pre">residuals</span></code> module.
-It requires the unlisted dependency <code class="docutils literal notranslate"><span class="pre">lmfit</span></code> to import.</li>
-<li>BUG: tdb: Sanitize sympify input and clean up pyparsing tracebacks inside parser actions.</li>
-<li>BUG: Always alphabetically sort components listed in interaction parameters ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/17">issue 17</a> ).</li>
-<li>ENH: V0 TDB parameter support</li>
-<li>ENH: Model: Symbol replacement performance improvement during initialization.</li>
-<li>TST: Test coverage above 80%</li>
+Time performance is a known issue. A typical calculation will take 3-5 minutes until it’s fixed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Ellipsis</span></code> or <code class="docutils literal notranslate"><span class="pre">...</span></code> can be used in the phases argument of <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> to mean “all phases in a Database”.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">pycalphad.eq</span></code> is renamed to <code class="docutils literal notranslate"><span class="pre">pycalphad.core</span></code></p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">energy_surf</span></code> is now deprecated in favor of the new xray-based <code class="docutils literal notranslate"><span class="pre">calculate</span></code>.
+It’s possible to convert xray Datasets to pandas DataFrames with the <code class="docutils literal notranslate"><span class="pre">.to_dataframe()</span></code> function.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Equilibrium</span></code> class has been removed without deprecation. The old engine worked unreliably.
+Use the new <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> routine instead.</p></li>
+<li><p>The <code class="docutils literal notranslate"><span class="pre">Model</span></code> class has been streamlined. It’s now much easier to modify a <code class="docutils literal notranslate"><span class="pre">Model</span></code> by accessing the
+<code class="docutils literal notranslate"><span class="pre">Model.models</span></code> member dict. Changes to <code class="docutils literal notranslate"><span class="pre">models</span></code> will be reflected in <code class="docutils literal notranslate"><span class="pre">Model.ast</span></code>, <code class="docutils literal notranslate"><span class="pre">Model.energy</span></code>, etc.</p></li>
+<li><p>Adding a property attribute to a subclass of <code class="docutils literal notranslate"><span class="pre">Model</span></code> automatically makes it available to use in the <code class="docutils literal notranslate"><span class="pre">output</span></code>
+keyword argument of <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. This is useful for computing properties not yet defined in <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</p></li>
+<li><p>Experimental support for model parameter fitting is available in the <code class="docutils literal notranslate"><span class="pre">residuals</span></code> module.
+It requires the unlisted dependency <code class="docutils literal notranslate"><span class="pre">lmfit</span></code> to import.</p></li>
+<li><p>BUG: tdb: Sanitize sympify input and clean up pyparsing tracebacks inside parser actions.</p></li>
+<li><p>BUG: Always alphabetically sort components listed in interaction parameters ( <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/17">issue 17</a> ).</p></li>
+<li><p>ENH: V0 TDB parameter support</p></li>
+<li><p>ENH: Model: Symbol replacement performance improvement during initialization.</p></li>
+<li><p>TST: Test coverage above 80%</p></li>
 </ul>
 </div>
 <div class="section" id="post1-2015-04-10">
 <h2>0.1.1.post1 (2015-04-10)<a class="headerlink" href="#post1-2015-04-10" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Fixes for automated test coverage</li>
-<li>Add funding acknowledgment</li>
+<li><p>Fixes for automated test coverage</p></li>
+<li><p>Add funding acknowledgment</p></li>
 </ul>
 </div>
 <div class="section" id="id24">
 <h2>0.1.1 (2015-04-09)<a class="headerlink" href="#id24" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Single-source version support with Versioneer</li>
+<li><p>Single-source version support with Versioneer</p></li>
 </ul>
 </div>
 <div class="section" id="id25">
 <h2>0.1 (2015-04-09)<a class="headerlink" href="#id25" title="Permalink to this headline">¶</a></h2>
 <ul class="simple">
-<li>Initial public release</li>
+<li><p>Initial public release</p></li>
 </ul>
 </div>
 </div>

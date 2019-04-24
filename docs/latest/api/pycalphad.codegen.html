@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad.codegen package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -190,33 +190,29 @@
 <dt id="pycalphad.codegen.callables.build_callables">
 <code class="descclassname">pycalphad.codegen.callables.</code><code class="descname">build_callables</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conds=None</em>, <em>model=None</em>, <em>parameters=None</em>, <em>callables=None</em>, <em>output='GM'</em>, <em>build_gradients=True</em>, <em>verbose=False</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/callables.html#build_callables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.callables.build_callables" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create dictionaries of callable dictionaries and PhaseRecords.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</li>
-<li><strong>comps</strong> (<em>list</em>) – List of component names</li>
-<li><strong>phases</strong> (<em>list</em>) – List of phase names</li>
-<li><strong>conds</strong> (<em>dict</em><em> or </em><em>None</em>) – Conditions for calculation</li>
-<li><strong>model</strong> (<em>dict</em><em> or </em><em>type</em>) – Dictionary of {phase_name: Model subclass} or a type corresponding to a
-Model subclass. Defaults to <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</li>
-<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
-<li><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callables</li>
-<li><strong>output</strong> (<em>str</em>) – Output property of the particular Model to sample</li>
-<li><strong>build_gradients</strong> (<em>bool</em>) – Whether or not to build gradient functions. Defaults to True.</li>
-<li><strong>verbose</strong> (<em>bool</em>) – Print the name of the phase when its callables are built</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – List of component names</p></li>
+<li><p><strong>phases</strong> (<em>list</em>) – List of phase names</p></li>
+<li><p><strong>conds</strong> (<em>dict</em><em> or </em><em>None</em>) – Conditions for calculation</p></li>
+<li><p><strong>model</strong> (<em>dict</em><em> or </em><em>type</em>) – Dictionary of {phase_name: Model subclass} or a type corresponding to a
+Model subclass. Defaults to <code class="docutils literal notranslate"><span class="pre">Model</span></code>.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
+<li><p><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callables</p></li>
+<li><p><strong>output</strong> (<em>str</em>) – Output property of the particular Model to sample</p></li>
+<li><p><strong>build_gradients</strong> (<em>bool</em>) – Whether or not to build gradient functions. Defaults to True.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em>) – Print the name of the phase when its callables are built</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>callables</strong> – Dictionary of keyword argument callables to pass to equilibrium.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">dict</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>callables</strong> – Dictionary of keyword argument callables to pass to equilibrium.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 <p class="rubric">Example</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;AL-NI.tdb&#39;</span><span class="p">)</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
@@ -238,9 +234,9 @@ Model subclass. Defaults to <code class="docutils literal notranslate"><span cla
 <p>Module for compiling codegen output, and wrap the binary for use in
 python.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
+<p class="admonition-title">Note</p>
 <p>To use the autowrap module it must first be imported</p>
-<div class="last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.autowrap</span> <span class="k">import</span> <span class="n">autowrap</span>
 </pre></div>
 </div>
 </div>
@@ -276,29 +272,29 @@ computationally expensive.</p>
 <p>When is this useful?</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>For computations on large arrays, Python iterations may be too slow,
+<li><p>For computations on large arrays, Python iterations may be too slow,
 and depending on the mathematical expression, it may be difficult to
-exploit the advanced index operations provided by NumPy.</li>
-<li>For <em>really</em> long expressions that will be called repeatedly, the
-compiled binary should be significantly faster than SymPy’s .evalf()</li>
-<li>If you are generating code with the codegen utility in order to use
+exploit the advanced index operations provided by NumPy.</p></li>
+<li><p>For <em>really</em> long expressions that will be called repeatedly, the
+compiled binary should be significantly faster than SymPy’s .evalf()</p></li>
+<li><p>If you are generating code with the codegen utility in order to use
 it in another project, the automatic python wrappers let you test the
-binaries immediately from within SymPy.</li>
-<li>To create customized ufuncs for use with numpy arrays.
-See <em>ufuncify</em>.</li>
+binaries immediately from within SymPy.</p></li>
+<li><p>To create customized ufuncs for use with numpy arrays.
+See <em>ufuncify</em>.</p></li>
 </ol>
 </div></blockquote>
 <p>When is this module NOT the best approach?</p>
 <blockquote>
 <div><ol class="arabic simple">
-<li>If you are really concerned about speed or memory optimizations,
+<li><p>If you are really concerned about speed or memory optimizations,
 you will probably get better results by working directly with the
 wrapper tools and the low level code.  However, the files generated
 by this utility may provide a useful starting point and reference
 code. Temporary files will be left intact if you supply the keyword
-tempdir=”path/to/files/”.</li>
-<li>If the array computation can be handled easily by numpy, and you
-don’t need the binaries for another project.</li>
+tempdir=”path/to/files/”.</p></li>
+<li><p>If the array computation can be handled easily by numpy, and you
+don’t need the binaries for another project.</p></li>
 </ol>
 </div></blockquote>
 <dl class="class">
@@ -334,24 +330,20 @@ don’t need the binaries for another project.</li>
 <code class="descname">dump_h</code><span class="sig-paren">(</span><em>routines</em>, <em>f</em>, <em>prefix</em>, <em>header=True</em>, <em>empty=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#CustomCCodeGen.dump_h"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.CustomCCodeGen.dump_h" title="Permalink to this definition">¶</a></dt>
 <dd><p>Writes the C header file.</p>
 <p>This file contains all the function declarations.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>routines</strong> (<em>list</em>) – A list of Routine instances.</li>
-<li><strong>f</strong> (<em>file-like</em>) – Where to write the file.</li>
-<li><strong>prefix</strong> (<em>string</em>) – The filename prefix, used to construct the include guards.
-Only the basename of the prefix is used.</li>
-<li><strong>header</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a header comment is included on top of each source
-file.  [default : True]</li>
-<li><strong>empty</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, empty lines are included to structure the source
-files.  [default : True]</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>routines</strong> (<em>list</em>) – A list of Routine instances.</p></li>
+<li><p><strong>f</strong> (<em>file-like</em>) – Where to write the file.</p></li>
+<li><p><strong>prefix</strong> (<em>string</em>) – The filename prefix, used to construct the include guards.
+Only the basename of the prefix is used.</p></li>
+<li><p><strong>header</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, a header comment is included on top of each source
+file.  [default : True]</p></li>
+<li><p><strong>empty</strong> (<em>bool</em><em>, </em><em>optional</em>) – When True, empty lines are included to structure the source
+files.  [default : True]</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -432,42 +424,38 @@ cheaper equivalents.</p>
 <dt id="pycalphad.codegen.custom_autowrap.autowrap">
 <code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">autowrap</code><span class="sig-paren">(</span><em>expr</em>, <em>language=None</em>, <em>backend='Cython'</em>, <em>tempdir=None</em>, <em>args=None</em>, <em>flags=None</em>, <em>verbose=False</em>, <em>helpers=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#autowrap"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.autowrap" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generates python callable binaries based on the math expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>expr</strong> – The SymPy expression that should be wrapped as a binary routine.</li>
-<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – If supplied, (options: ‘C’ or ‘F95’), specifies the language of the
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>expr</strong> – The SymPy expression that should be wrapped as a binary routine.</p></li>
+<li><p><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – If supplied, (options: ‘C’ or ‘F95’), specifies the language of the
 generated code. If <code class="docutils literal notranslate"><span class="pre">None</span></code> [default], the language is inferred based
-upon the specified backend.</li>
-<li><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) – Backend used to wrap the generated code. Either ‘f2py’,
-or ‘cython’ [default].</li>
-<li><strong>tempdir</strong> (<em>string</em><em>, </em><em>optional</em>) – Path to directory for temporary files. If this argument is supplied,
+upon the specified backend.</p></li>
+<li><p><strong>backend</strong> (<em>string</em><em>, </em><em>optional</em>) – Backend used to wrap the generated code. Either ‘f2py’,
+or ‘cython’ [default].</p></li>
+<li><p><strong>tempdir</strong> (<em>string</em><em>, </em><em>optional</em>) – Path to directory for temporary files. If this argument is supplied,
 the generated code and the wrapper input files are left intact in the
-specified path.</li>
-<li><strong>args</strong> (<em>iterable</em><em>, </em><em>optional</em>) – An ordered iterable of symbols. Specifies the argument sequence for the
-function.</li>
-<li><strong>flags</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Additional option flags that will be passed to the backend.</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, autowrap will not mute the command line backends. This can be
-helpful for debugging.</li>
-<li><strong>helpers</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Used to define auxillary expressions needed for the main expr. If the
+specified path.</p></li>
+<li><p><strong>args</strong> (<em>iterable</em><em>, </em><em>optional</em>) – An ordered iterable of symbols. Specifies the argument sequence for the
+function.</p></li>
+<li><p><strong>flags</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Additional option flags that will be passed to the backend.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, autowrap will not mute the command line backends. This can be
+helpful for debugging.</p></li>
+<li><p><strong>helpers</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Used to define auxillary expressions needed for the main expr. If the
 main expression needs to call a specialized function it should be put
 in the <code class="docutils literal notranslate"><span class="pre">helpers</span></code> iterable. Autowrap will then make sure that the
 compiled main expression can link to the helper routine. Items should
 be tuples with (&lt;funtion_name&gt;, &lt;sympy_expression&gt;, &lt;arguments&gt;). It
-is mandatory to supply an argument sequence to helper routines.</li>
-<li><strong>from sympy.abc import x</strong><strong>, </strong><strong>y</strong><strong>, </strong><strong>z</strong> (<em>&gt;&gt;&gt;</em>) – </li>
-<li><strong>from sympy.utilities.autowrap import autowrap</strong> (<em>&gt;&gt;&gt;</em>) – </li>
-<li><strong>expr =</strong><strong> (</strong><strong>(</strong><strong>x - y + z</strong><strong>)</strong><strong>**</strong><strong>(</strong><strong>13</strong><strong>)</strong><strong>)</strong><strong>expand</strong><strong>(</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
-<li><strong>binary_func = autowrap</strong><strong>(</strong><strong>expr</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
-<li><strong>binary_func</strong><strong>(</strong><strong>1</strong><strong>, </strong><strong>4</strong><strong>, </strong><strong>2</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </li>
-<li><strong>-1.0</strong> – </li>
+is mandatory to supply an argument sequence to helper routines.</p></li>
+<li><p><strong>from sympy.abc import x</strong><strong>, </strong><strong>y</strong><strong>, </strong><strong>z</strong> (<em>&gt;&gt;&gt;</em>) – </p></li>
+<li><p><strong>from sympy.utilities.autowrap import autowrap</strong> (<em>&gt;&gt;&gt;</em>) – </p></li>
+<li><p><strong>expr =</strong><strong> (</strong><strong>(</strong><strong>x - y + z</strong><strong>)</strong><strong>**</strong><strong>(</strong><strong>13</strong><strong>)</strong><strong>)</strong><strong>expand</strong><strong>(</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </p></li>
+<li><p><strong>binary_func = autowrap</strong><strong>(</strong><strong>expr</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </p></li>
+<li><p><strong>binary_func</strong><strong>(</strong><strong>1</strong><strong>, </strong><strong>4</strong><strong>, </strong><strong>2</strong><strong>)</strong> (<em>&gt;&gt;&gt;</em>) – </p></li>
+<li><p><strong>-1.0</strong> – </p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -505,34 +493,30 @@ with implemented_function().</p>
 <dt id="pycalphad.codegen.custom_autowrap.make_routine">
 <code class="descclassname">pycalphad.codegen.custom_autowrap.</code><code class="descname">make_routine</code><span class="sig-paren">(</span><em>name</em>, <em>expr</em>, <em>argument_sequence=None</em>, <em>global_vars=None</em>, <em>language='C'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/custom_autowrap.html#make_routine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.custom_autowrap.make_routine" title="Permalink to this definition">¶</a></dt>
 <dd><p>A factory that makes an appropriate Routine from an expression.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>name</strong> (<em>string</em>) – The name of this routine in the generated code.</li>
-<li><strong>expr</strong> (<em>expression</em><em> or </em><em>list/tuple of expressions</em>) – A SymPy expression that the Routine instance will represent.  If
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>name</strong> (<em>string</em>) – The name of this routine in the generated code.</p></li>
+<li><p><strong>expr</strong> (<em>expression</em><em> or </em><em>list/tuple of expressions</em>) – A SymPy expression that the Routine instance will represent.  If
 given a list or tuple of expressions, the routine will be
-considered to have multiple return values and/or output arguments.</li>
-<li><strong>argument_sequence</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – List arguments for the routine in a preferred order.  If omitted,
+considered to have multiple return values and/or output arguments.</p></li>
+<li><p><strong>argument_sequence</strong> (<em>list</em><em> or </em><em>tuple</em><em>, </em><em>optional</em>) – List arguments for the routine in a preferred order.  If omitted,
 the results are language dependent, for example, alphabetical order
-or in the same order as the given expressions.</li>
-<li><strong>global_vars</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Sequence of global variables used by the routine.  Variables
-listed here will not show up as function arguments.</li>
-<li><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – Specify a target language.  The Routine itself should be
+or in the same order as the given expressions.</p></li>
+<li><p><strong>global_vars</strong> (<em>iterable</em><em>, </em><em>optional</em>) – Sequence of global variables used by the routine.  Variables
+listed here will not show up as function arguments.</p></li>
+<li><p><strong>language</strong> (<em>string</em><em>, </em><em>optional</em>) – Specify a target language.  The Routine itself should be
 language-agnostic but the precise way one is created, error
-checking, etc depend on the language.  [default: “F95”].</li>
-<li><strong>decision about whether to use output arguments</strong><strong> or </strong><strong>return values is made</strong> (<em>A</em>) – </li>
-<li><strong>on both the language and the particular mathematical expressions.</strong> (<em>depending</em>) – </li>
-<li><strong>an expression of type Equality</strong><strong>, </strong><strong>the left hand side is typically made</strong> (<em>For</em>) – </li>
-<li><strong>an OutputArgument</strong><strong> (or </strong><strong>perhaps an InOutArgument if appropriate</strong><strong>)</strong><strong></strong> (<em>into</em>) – </li>
-<li><strong>typically</strong><strong>, </strong><strong>the calculated expression is made a return values of</strong> (<em>Otherwise</em><em>,</em>) – </li>
-<li><strong>routine.</strong> (<em>the</em>) – </li>
+checking, etc depend on the language.  [default: “F95”].</p></li>
+<li><p><strong>decision about whether to use output arguments</strong><strong> or </strong><strong>return values is made</strong> (<em>A</em>) – </p></li>
+<li><p><strong>on both the language and the particular mathematical expressions.</strong> (<em>depending</em>) – </p></li>
+<li><p><strong>an expression of type Equality</strong><strong>, </strong><strong>the left hand side is typically made</strong> (<em>For</em>) – </p></li>
+<li><p><strong>an OutputArgument</strong><strong> (or </strong><strong>perhaps an InOutArgument if appropriate</strong><strong>)</strong><strong></strong> (<em>into</em>) – </p></li>
+<li><p><strong>typically</strong><strong>, </strong><strong>the calculated expression is made a return values of</strong> (<em>Otherwise</em><em>,</em>) – </p></li>
+<li><p><strong>routine.</strong> (<em>the</em>) – </p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.utilities.codegen</span> <span class="k">import</span> <span class="n">make_routine</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">x</span><span class="p">,</span> <span class="n">y</span><span class="p">,</span> <span class="n">f</span><span class="p">,</span> <span class="n">g</span>
@@ -643,29 +627,25 @@ This also means multiprocessing using fork() will NOT force a recompile.</p>
 <dl class="function">
 <dt id="pycalphad.codegen.sympydiff_utils.build_functions">
 <code class="descclassname">pycalphad.codegen.sympydiff_utils.</code><code class="descname">build_functions</code><span class="sig-paren">(</span><em>sympy_graph</em>, <em>variables</em>, <em>wrt=None</em>, <em>include_obj=True</em>, <em>include_grad=True</em>, <em>include_hess=False</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/codegen/sympydiff_utils.html#build_functions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.codegen.sympydiff_utils.build_functions" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>sympy_graph</strong> – </li>
-<li><strong>variables</strong> (<em>tuple of Symbols</em>) – Input arguments.</li>
-<li><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</li>
-<li><strong>include_obj</strong> – </li>
-<li><strong>include_grad</strong> – </li>
-<li><strong>include_hess</strong> – </li>
-<li><strong>parameters</strong> – </li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>sympy_graph</strong> – </p></li>
+<li><p><strong>variables</strong> (<em>tuple of Symbols</em>) – Input arguments.</p></li>
+<li><p><strong>wrt</strong> (<em>tuple of Symbols</em><em>, </em><em>optional</em>) – Variables to differentiate with respect to. (Default: equal to variables)</p></li>
+<li><p><strong>include_obj</strong> – </p></li>
+<li><p><strong>include_grad</strong> – </p></li>
+<li><p><strong>include_hess</strong> – </p></li>
+<li><p><strong>parameters</strong> – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">One or more functions.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>One or more functions.</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">

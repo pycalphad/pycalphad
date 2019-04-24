@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>sympy.core.assumptions &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>sympy.core.assumptions &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -294,17 +294,17 @@
 <span class="sd">References</span>
 <span class="sd">==========</span>
 
-<span class="sd">.. [1] http://en.wikipedia.org/wiki/Negative_number</span>
-<span class="sd">.. [2] http://en.wikipedia.org/wiki/Parity_%28mathematics%29</span>
-<span class="sd">.. [3] http://en.wikipedia.org/wiki/Imaginary_number</span>
-<span class="sd">.. [4] http://en.wikipedia.org/wiki/Composite_number</span>
-<span class="sd">.. [5] http://en.wikipedia.org/wiki/Irrational_number</span>
-<span class="sd">.. [6] http://en.wikipedia.org/wiki/Prime_number</span>
-<span class="sd">.. [7] http://en.wikipedia.org/wiki/Finite</span>
+<span class="sd">.. [1] https://en.wikipedia.org/wiki/Negative_number</span>
+<span class="sd">.. [2] https://en.wikipedia.org/wiki/Parity_%28mathematics%29</span>
+<span class="sd">.. [3] https://en.wikipedia.org/wiki/Imaginary_number</span>
+<span class="sd">.. [4] https://en.wikipedia.org/wiki/Composite_number</span>
+<span class="sd">.. [5] https://en.wikipedia.org/wiki/Irrational_number</span>
+<span class="sd">.. [6] https://en.wikipedia.org/wiki/Prime_number</span>
+<span class="sd">.. [7] https://en.wikipedia.org/wiki/Finite</span>
 <span class="sd">.. [8] https://docs.python.org/3/library/math.html#math.isfinite</span>
 <span class="sd">.. [9] http://docs.scipy.org/doc/numpy/reference/generated/numpy.isfinite.html</span>
-<span class="sd">.. [10] http://en.wikipedia.org/wiki/Transcendental_number</span>
-<span class="sd">.. [11] http://en.wikipedia.org/wiki/Algebraic_number</span>
+<span class="sd">.. [10] https://en.wikipedia.org/wiki/Transcendental_number</span>
+<span class="sd">.. [11] https://en.wikipedia.org/wiki/Algebraic_number</span>
 
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">__future__</span> <span class="k">import</span> <span class="n">print_function</span><span class="p">,</span> <span class="n">division</span>
@@ -484,10 +484,9 @@
 
         <span class="n">defs</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="nb">reversed</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">):</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">defs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">_explicit_class_assumptions</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">assumptions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;_explicit_class_assumptions&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">assumptions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">defs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">assumptions</span><span class="p">)</span>
         <span class="n">defs</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">local_defs</span><span class="p">)</span>
 
         <span class="bp">cls</span><span class="o">.</span><span class="n">_explicit_class_assumptions</span> <span class="o">=</span> <span class="n">defs</span>
@@ -495,10 +494,9 @@
 
         <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_handler</span> <span class="o">=</span> <span class="p">{}</span>
         <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="n">_assume_defined</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_handler</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_eval_is_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">pass</span>
+            <span class="n">eval_is_meth</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="s1">&#39;_eval_is_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="n">k</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="k">if</span> <span class="n">eval_is_meth</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="bp">cls</span><span class="o">.</span><span class="n">_prop_handler</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">eval_is_meth</span>
 
         <span class="c1"># Put definite results directly into the class dict, for speed</span>
         <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="n">default_assumptions</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
@@ -507,10 +505,11 @@
         <span class="c1"># protection e.g. for Integer.is_even=F &lt;- (Rational.is_integer=F)</span>
         <span class="n">derived_from_bases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="k">for</span> <span class="n">base</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__bases__</span><span class="p">:</span>
-            <span class="k">try</span><span class="p">:</span>
-                <span class="n">derived_from_bases</span> <span class="o">|=</span> <span class="nb">set</span><span class="p">(</span><span class="n">base</span><span class="o">.</span><span class="n">default_assumptions</span><span class="p">)</span>
-            <span class="k">except</span> <span class="ne">AttributeError</span><span class="p">:</span>
-                <span class="k">continue</span>  <span class="c1"># not an assumption-aware class</span>
+            <span class="n">default_assumptions</span> <span class="o">=</span> <span class="nb">getattr</span><span class="p">(</span><span class="n">base</span><span class="p">,</span> <span class="s1">&#39;default_assumptions&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span>
+            <span class="c1"># is an assumption-aware class</span>
+            <span class="k">if</span> <span class="n">default_assumptions</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                <span class="n">derived_from_bases</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">default_assumptions</span><span class="p">)</span>
+
         <span class="k">for</span> <span class="n">fact</span> <span class="ow">in</span> <span class="n">derived_from_bases</span> <span class="o">-</span> <span class="nb">set</span><span class="p">(</span><span class="bp">cls</span><span class="o">.</span><span class="n">default_assumptions</span><span class="p">):</span>
             <span class="n">pname</span> <span class="o">=</span> <span class="n">as_property</span><span class="p">(</span><span class="n">fact</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">pname</span> <span class="ow">not</span> <span class="ow">in</span> <span class="bp">cls</span><span class="o">.</span><span class="vm">__dict__</span><span class="p">:</span>

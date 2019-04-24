@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -542,11 +542,11 @@
 
 <div class="viewcode-block" id="to_interval"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.to_interval">[docs]</a><span class="k">def</span> <span class="nf">to_interval</span><span class="p">(</span><span class="n">relational</span><span class="p">):</span>
     <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">And</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Intersection</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Intersection</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">Or</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Union</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Union</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
     <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">relational</span><span class="p">,</span> <span class="n">Not</span><span class="p">):</span>
-        <span class="k">return</span> <span class="n">Complement</span><span class="p">([</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
+        <span class="k">return</span> <span class="n">Complement</span><span class="p">(</span><span class="o">*</span><span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">relational</span><span class="o">.</span><span class="n">args</span><span class="p">])</span>
     <span class="k">if</span> <span class="n">relational</span> <span class="o">==</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span><span class="p">:</span>
         <span class="k">return</span> <span class="n">Interval</span><span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">left_open</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">right_open</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
 
@@ -592,9 +592,9 @@
         <span class="c1"># Need to verify that each cond&#39;s highlim equals the next cond&#39;s lowlim</span>
         <span class="c1"># to_interval() is used instead of sympy.Relational.as_set() for performance reasons</span>
         <span class="n">intervals</span> <span class="o">=</span> <span class="p">[</span><span class="n">to_interval</span><span class="p">(</span><span class="n">i</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]</span>
-        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Intersection</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">EmptySet</span><span class="p">():</span>
+        <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">intervals</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">)</span> <span class="ow">and</span> <span class="n">Intersection</span><span class="p">(</span><span class="o">*</span><span class="n">intervals</span><span class="p">)</span> <span class="o">!=</span> <span class="n">EmptySet</span><span class="p">():</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Overlapping intervals cannot be represented: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">intervals</span><span class="p">))</span>
-        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Union</span><span class="p">(</span><span class="n">intervals</span><span class="p">),</span> <span class="n">Interval</span><span class="p">):</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">Union</span><span class="p">(</span><span class="o">*</span><span class="n">intervals</span><span class="p">),</span> <span class="n">Interval</span><span class="p">):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Piecewise intervals must be continuous&#39;</span><span class="p">)</span>
         <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">([</span><span class="n">arg</span><span class="o">.</span><span class="n">cond</span><span class="o">.</span><span class="n">free_symbols</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span> <span class="k">for</span> <span class="n">arg</span> <span class="ow">in</span> <span class="n">filtered_args</span><span class="p">]):</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Only temperature-dependent piecewise conditions are supported&#39;</span><span class="p">)</span>

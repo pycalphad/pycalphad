@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -192,29 +192,25 @@
 <code class="descclassname">pycalphad.plot.binary.</code><code class="descname">binplot</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conds</em>, <em>eq_kwargs=None</em>, <em>**plot_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/binary.html#binplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.binary.binplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the binary isobaric phase diagram.
 This function is a convenience wrapper around equilibrium() and eqplot().</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>list</em>) – Names of phases to consider in the calculation.</li>
-<li><strong>conds</strong> (<em>dict</em>) – Maps StateVariables to values and/or iterables of values.
-For binplot only one changing composition and one potential coordinate each is supported.</li>
-<li><strong>eq_kwargs</strong> (<em>optional</em>) – Keyword arguments to equilibrium().</li>
-<li><strong>plot_kwargs</strong> (<em>optional</em>) – Keyword arguments to eqplot().</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phases</strong> (<em>list</em>) – Names of phases to consider in the calculation.</p></li>
+<li><p><strong>conds</strong> (<em>dict</em>) – Maps StateVariables to values and/or iterables of values.
+For binplot only one changing composition and one potential coordinate each is supported.</p></li>
+<li><p><strong>eq_kwargs</strong> (<em>optional</em>) – Keyword arguments to equilibrium().</p></li>
+<li><p><strong>plot_kwargs</strong> (<em>optional</em>) – Keyword arguments to eqplot().</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A phase diagram as a figure.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>A phase diagram as a figure.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -229,29 +225,25 @@ the results of equilibrium calculations.</p>
 <code class="descclassname">pycalphad.plot.eqplot.</code><code class="descname">eqplot</code><span class="sig-paren">(</span><em>eq</em>, <em>ax=None</em>, <em>x=None</em>, <em>y=None</em>, <em>z=None</em>, <em>tielines=True</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/eqplot.html#eqplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.eqplot.eqplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Plot the result of an equilibrium calculation.</p>
 <p>The type of plot is controlled by the degrees of freedom in the equilibrium calculation.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>eq</strong> (<em>xarray.Dataset</em>) – Result of equilibrium calculation.</li>
-<li><strong>ax</strong> (<em>matplotlib.Axes</em>) – Default axes used if not specified.</li>
-<li><strong>x</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </li>
-<li><strong>y</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </li>
-<li><strong>z</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </li>
-<li><strong>tielines</strong> (<em>bool</em>) – If True, will plot tielines</li>
-<li><strong>kwargs</strong> (<em>kwargs</em>) – Passed to <cite>matplotlib.pyplot.scatter</cite>.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>eq</strong> (<em>xarray.Dataset</em>) – Result of equilibrium calculation.</p></li>
+<li><p><strong>ax</strong> (<em>matplotlib.Axes</em>) – Default axes used if not specified.</p></li>
+<li><p><strong>x</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>z</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><em>StateVariable</em></a><em>, </em><em>optional</em>) – </p></li>
+<li><p><strong>tielines</strong> (<em>bool</em>) – If True, will plot tielines</p></li>
+<li><p><strong>kwargs</strong> (<em>kwargs</em>) – Passed to <cite>matplotlib.pyplot.scatter</cite>.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">matplotlib AxesSubplot</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>matplotlib AxesSubplot</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -263,33 +255,29 @@ the results of equilibrium calculations.</p>
 <code class="descclassname">pycalphad.plot.ternary.</code><code class="descname">ternplot</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conds</em>, <em>x=None</em>, <em>y=None</em>, <em>eq_kwargs=None</em>, <em>**plot_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/ternary.html#ternplot"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.ternary.ternplot" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the ternary isothermal, isobaric phase diagram.
 This function is a convenience wrapper around equilibrium() and eqplot().</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>list</em>) – Names of phases to consider in the calculation.</li>
-<li><strong>conds</strong> (<em>dict</em>) – Maps StateVariables to values and/or iterables of values.
-For ternplot only one changing composition and one potential coordinate each is supported.</li>
-<li><strong>x</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><em>Composition</em></a>) – instance of a pycalphad.variables.composition to plot on the x-axis.
-Must correspond to an independent condition.</li>
-<li><strong>y</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><em>Composition</em></a>) – instance of a pycalphad.variables.composition to plot on the y-axis.
-Must correspond to an independent condition.</li>
-<li><strong>eq_kwargs</strong> (<em>optional</em>) – Keyword arguments to equilibrium().</li>
-<li><strong>plot_kwargs</strong> (<em>optional</em>) – Keyword arguments to eqplot().</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phases</strong> (<em>list</em>) – Names of phases to consider in the calculation.</p></li>
+<li><p><strong>conds</strong> (<em>dict</em>) – Maps StateVariables to values and/or iterables of values.
+For ternplot only one changing composition and one potential coordinate each is supported.</p></li>
+<li><p><strong>x</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><em>Composition</em></a>) – instance of a pycalphad.variables.composition to plot on the x-axis.
+Must correspond to an independent condition.</p></li>
+<li><p><strong>y</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><em>Composition</em></a>) – instance of a pycalphad.variables.composition to plot on the y-axis.
+Must correspond to an independent condition.</p></li>
+<li><p><strong>eq_kwargs</strong> (<em>optional</em>) – Keyword arguments to equilibrium().</p></li>
+<li><p><strong>plot_kwargs</strong> (<em>optional</em>) – Keyword arguments to eqplot().</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">A phase diagram as a figure.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>A phase diagram as a figure.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -320,15 +308,15 @@ Must correspond to an independent condition.</li>
 <dd><p>Called when the mouse moves during a pan operation.</p>
 <p><em>button</em> is the mouse button number:</p>
 <ul class="simple">
-<li>1: LEFT</li>
-<li>2: MIDDLE</li>
-<li>3: RIGHT</li>
+<li><p>1: LEFT</p></li>
+<li><p>2: MIDDLE</p></li>
+<li><p>3: RIGHT</p></li>
 </ul>
 <p><em>key</em> is a “shift” key</p>
 <p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Intended to be overridden by new projection types.</p>
+<p class="admonition-title">Note</p>
+<p>Intended to be overridden by new projection types.</p>
 </div>
 </dd></dl>
 
@@ -338,8 +326,8 @@ Must correspond to an independent condition.</li>
 <dd><p>Called when a pan operation completes (when the mouse button
 is up.)</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Intended to be overridden by new projection types.</p>
+<p class="admonition-title">Note</p>
+<p>Intended to be overridden by new projection types.</p>
 </div>
 </dd></dl>
 
@@ -357,8 +345,8 @@ and the y-direction is in axis coordinates.  Returns a
 <p>where <em>valign</em> and <em>halign</em> are requested alignments for the
 text.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -379,8 +367,8 @@ Returns a 3-tuple of the form:</p>
 <p>where <em>valign</em> and <em>halign</em> are requested alignments for the
 text.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -394,8 +382,8 @@ place axis elements in different locations.</p>
 and gridlines.  The x-direction is in data coordinates and the
 y-direction is in axis coordinates.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -416,8 +404,8 @@ of the form:</p>
 <p>where <em>valign</em> and <em>halign</em> are requested alignments for the
 text.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -438,8 +426,8 @@ Returns a 3-tuple of the form:</p>
 <p>where <em>valign</em> and <em>halign</em> are requested alignments for the
 text.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -453,8 +441,8 @@ place axis elements in different locations.</p>
 and gridlines.  The x-direction is in axis coordinates and the
 y-direction is in data coordinates.</p>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">This transformation is primarily used by the
+<p class="admonition-title">Note</p>
+<p>This transformation is primarily used by the
 <code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
@@ -473,13 +461,13 @@ place axis elements in different locations.</p>
 <p><em>x</em>, <em>y</em> are the mouse coordinates in display coords.
 button is the mouse button number:</p>
 <ul class="simple">
-<li>1: LEFT</li>
-<li>2: MIDDLE</li>
-<li>3: RIGHT</li>
+<li><p>1: LEFT</p></li>
+<li><p>2: MIDDLE</p></li>
+<li><p>3: RIGHT</p></li>
 </ul>
 <div class="admonition note">
-<p class="first admonition-title">Note</p>
-<p class="last">Intended to be overridden by new projection types.</p>
+<p class="admonition-title">Note</p>
+<p>Intended to be overridden by new projection types.</p>
 </div>
 </dd></dl>
 
@@ -493,21 +481,19 @@ button is the mouse button number:</p>
 <dt id="pycalphad.plot.utils.phase_legend">
 <code class="descclassname">pycalphad.plot.utils.</code><code class="descname">phase_legend</code><span class="sig-paren">(</span><em>phases</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/utils.html#phase_legend"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.utils.phase_legend" title="Permalink to this definition">¶</a></dt>
 <dd><p>Build matplotlib handles for the plot legend.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>phases</strong> (<em>list</em>) – Names of the phases.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><ul class="simple">
-<li><em>A tuple containing</em></li>
-<li><em>(1) A list of matplotlib handle objects</em></li>
-<li><em>(2) A dict mapping phase names to their RGB color on the plot</em></li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>phases</strong> (<em>list</em>) – Names of the phases.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>A tuple containing</em></p></li>
+<li><p><em>(1) A list of matplotlib handle objects</em></p></li>
+<li><p><em>(2) A dict mapping phase names to their RGB color on the plot</em></p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">colors</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">([</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_A2&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">])</span>
 </pre></div>

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -228,42 +228,38 @@ property surface of a system.</p>
 <dd><p>Sample the property surface of ‘output’ containing the specified
 components and phases. Model parameters are taken from ‘dbf’ and any
 state variables (T, P, etc.) can be specified as keyword arguments.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of phases to consider in the calculation.</li>
-<li><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – See ‘make_callable’ docstring for details.</li>
-<li><strong>output</strong> (<em>string</em><em>, </em><em>optional</em>) – Model attribute to sample.</li>
-<li><strong>fake_points</strong> (<em>bool</em><em>, </em><em>optional</em><em> (</em><em>Default: False</em><em>)</em>) – If True, the first few points of the output surface will be fictitious
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phases</strong> (<em>str</em><em> or </em><em>sequence</em>) – Names of phases to consider in the calculation.</p></li>
+<li><p><strong>mode</strong> (<em>string</em><em>, </em><em>optional</em>) – See ‘make_callable’ docstring for details.</p></li>
+<li><p><strong>output</strong> (<em>string</em><em>, </em><em>optional</em>) – Model attribute to sample.</p></li>
+<li><p><strong>fake_points</strong> (<em>bool</em><em>, </em><em>optional</em><em> (</em><em>Default: False</em><em>)</em>) – If True, the first few points of the output surface will be fictitious
 points used to define an equilibrium hyperplane guaranteed to be above
-all the other points. This is used for convex hull computations.</li>
-<li><strong>broadcast</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, broadcast given state variable lists against each other to create a grid.
-If False, assume state variables are given as equal-length lists.</li>
-<li><strong>points</strong> (<em>ndarray</em><em> or </em><em>a dict of phase names to ndarray</em><em>, </em><em>optional</em>) – Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
-If this is not specified, points will be generated automatically.</li>
-<li><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Number of points to sample per degree of freedom.
-Default: 2000; Default when called from equilibrium(): 500</li>
-<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</li>
-<li><strong>sampler</strong> (<em>callable</em><em>, </em><em>a dict of phase names to callable</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Function to sample phase constitution space.
-Must have same signature as ‘pycalphad.core.utils.point_sample’</li>
-<li><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em>) – Whether to add evenly spaced points between end-members.
-The density of points is determined by ‘pdens’</li>
-<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
+all the other points. This is used for convex hull computations.</p></li>
+<li><p><strong>broadcast</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, broadcast given state variable lists against each other to create a grid.
+If False, assume state variables are given as equal-length lists.</p></li>
+<li><p><strong>points</strong> (<em>ndarray</em><em> or </em><em>a dict of phase names to ndarray</em><em>, </em><em>optional</em>) – Columns of ndarrays must be internal degrees of freedom (site fractions), sorted.
+If this is not specified, points will be generated automatically.</p></li>
+<li><p><strong>pdens</strong> (<em>int</em><em>, </em><em>a dict of phase names to int</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Number of points to sample per degree of freedom.
+Default: 2000; Default when called from equilibrium(): 500</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</p></li>
+<li><p><strong>sampler</strong> (<em>callable</em><em>, </em><em>a dict of phase names to callable</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Function to sample phase constitution space.
+Must have same signature as ‘pycalphad.core.utils.point_sample’</p></li>
+<li><p><strong>grid_points</strong> (<em>bool</em><em>, </em><em>a dict of phase names to bool</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em><em> (</em><em>Default: True</em><em>)</em>) – Whether to add evenly spaced points between end-members.
+The density of points is determined by ‘pdens’</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Dataset of the sampled attribute as a function of state variables</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataset of the sampled attribute as a function of state variables</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -278,25 +274,21 @@ of N arrays.</p>
 <code class="descclassname">pycalphad.core.cartesian.</code><code class="descname">cartesian</code><span class="sig-paren">(</span><em>arrays</em>, <em>out=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/cartesian.html#cartesian"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.cartesian.cartesian" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a cartesian product of input arrays.
 Source: <a class="reference external" href="http://stackoverflow.com/questions/1208118/using-numpy-to-build-an-array-of-all-combinations-of-two-arrays">http://stackoverflow.com/questions/1208118/using-numpy-to-build-an-array-of-all-combinations-of-two-arrays</a></p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>arrays</strong> (<em>list of array-like</em>) – 1-D arrays to form the cartesian product of.</li>
-<li><strong>out</strong> (<em>ndarray</em>) – Array to place the cartesian product in.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>arrays</strong> (<em>list of array-like</em>) – 1-D arrays to form the cartesian product of.</p></li>
+<li><p><strong>out</strong> (<em>ndarray</em>) – Array to place the cartesian product in.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out</strong> – 2-D array of shape (M, len(arrays)) containing cartesian products
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out</strong> – 2-D array of shape (M, len(arrays)) containing cartesian products
 formed of input arrays.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">cartesian</span><span class="p">(([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">],</span> <span class="p">[</span><span class="mi">4</span><span class="p">,</span> <span class="mi">5</span><span class="p">],</span> <span class="p">[</span><span class="mi">6</span><span class="p">,</span> <span class="mi">7</span><span class="p">]))</span>
 <span class="go">array([[1, 4, 6],</span>
@@ -384,41 +376,37 @@ calculated phase equilibria.</p>
 <code class="descclassname">pycalphad.core.equilibrium.</code><code class="descname">equilibrium</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>conditions</em>, <em>output=None</em>, <em>model=None</em>, <em>verbose=False</em>, <em>broadcast=True</em>, <em>calc_opts=None</em>, <em>scheduler='sync'</em>, <em>parameters=None</em>, <em>solver=None</em>, <em>callables=None</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phases</strong> (<em>list</em><em> or </em><em>dict</em>) – Names of phases to consider in the calculation.</li>
-<li><strong>conditions</strong> (<em>dict</em><em> or </em><em>(</em><em>list of dict</em><em>)</em>) – StateVariables and their corresponding value.</li>
-<li><strong>output</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em>) – Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
-These must be defined as attributes in the Model class of each phase.</li>
-<li><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</li>
-<li><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print details of calculations. Useful for debugging.</li>
-<li><strong>broadcast</strong> (<em>bool</em>) – If True, broadcast conditions against each other. This will compute all combinations.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phases</strong> (<em>list</em><em> or </em><em>dict</em>) – Names of phases to consider in the calculation.</p></li>
+<li><p><strong>conditions</strong> (<em>dict</em><em> or </em><em>(</em><em>list of dict</em><em>)</em>) – StateVariables and their corresponding value.</p></li>
+<li><p><strong>output</strong> (<em>str</em><em> or </em><em>list of str</em><em>, </em><em>optional</em>) – Additional equilibrium model properties (e.g., CPM, HM, etc.) to compute.
+These must be defined as attributes in the Model class of each phase.</p></li>
+<li><p><strong>model</strong> (<a class="reference internal" href="pycalphad.html#pycalphad.model.Model" title="pycalphad.model.Model"><em>Model</em></a><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a seq of both</em><em>, </em><em>optional</em>) – Model class to use for each phase.</p></li>
+<li><p><strong>verbose</strong> (<em>bool</em><em>, </em><em>optional</em>) – Print details of calculations. Useful for debugging.</p></li>
+<li><p><strong>broadcast</strong> (<em>bool</em>) – If True, broadcast conditions against each other. This will compute all combinations.
 If False, each condition should be an equal-length list (or single-valued).
 Disabling broadcasting is useful for calculating equilibrium at selected conditions,
-when those conditions don’t comprise a grid.</li>
-<li><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</li>
-<li><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
-If None, return a Dask graph of the computation instead of actually doing it.</li>
-<li><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</li>
-<li><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – Instance of a solver that is used to calculate local equilibria.
-Defaults to a pycalphad.core.solver.InteriorPointSolver.</li>
-<li><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callable functions for equilibrium calculation.</li>
+when those conditions don’t comprise a grid.</p></li>
+<li><p><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</p></li>
+<li><p><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
+If None, return a Dask graph of the computation instead of actually doing it.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
+<li><p><strong>solver</strong> (<a class="reference internal" href="#pycalphad.core.solver.SolverBase" title="pycalphad.core.solver.SolverBase"><em>pycalphad.core.solver.SolverBase</em></a>) – Instance of a solver that is used to calculate local equilibria.
+Defaults to a pycalphad.core.solver.InteriorPointSolver.</p></li>
+<li><p><strong>callables</strong> (<em>dict</em><em>, </em><em>optional</em>) – Pre-computed callable functions for equilibrium calculation.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">Structured equilibrium calculation, or Dask graph if scheduler=None.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Structured equilibrium calculation, or Dask graph if scheduler=None.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -463,26 +451,22 @@ scrambled Halton sequences.</p>
 <dt id="pycalphad.core.halton.halton">
 <code class="descclassname">pycalphad.core.halton.</code><code class="descname">halton</code><span class="sig-paren">(</span><em>dim</em>, <em>nbpts</em>, <em>primes=None</em>, <em>scramble=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/halton.html#halton"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.halton.halton" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate a multi-dimensional Halton sequence.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dim</strong> (<em>int</em>) – Number of dimensions in the sequence.</li>
-<li><strong>nbpts</strong> (<em>int</em>) – Number of points along each dimension.</li>
-<li><strong>primes</strong> (<em>sequence</em><em>, </em><em>optional</em>) – A sequence of at least ‘dim’ prime numbers.</li>
-<li><strong>scramble</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dim</strong> (<em>int</em>) – Number of dimensions in the sequence.</p></li>
+<li><p><strong>nbpts</strong> (<em>int</em>) – Number of points along each dimension.</p></li>
+<li><p><strong>primes</strong> (<em>sequence</em><em>, </em><em>optional</em>) – A sequence of at least ‘dim’ prime numbers.</p></li>
+<li><p><strong>scramble</strong> (<em>boolean</em><em>, </em><em>optional</em><em> (</em><em>default: True</em><em>)</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray of shape (nbpts, dim)</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray of shape (nbpts, dim)</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -495,38 +479,35 @@ scrambled Halton sequences.</p>
 at the given composition.
 :param compositions: A sample of the energy surface of the system.</p>
 <blockquote>
-<div>Aligns with ‘energies’.
-Shape of (M, N)</div></blockquote>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>energies</strong> (<em>ndarray</em>) – A sample of the energy surface of the system.
+<div><p>Aligns with ‘energies’.
+Shape of (M, N)</p>
+</div></blockquote>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>energies</strong> (<em>ndarray</em>) – A sample of the energy surface of the system.
 Aligns with ‘compositions’.
-Shape of (M,)</li>
-<li><strong>composition</strong> (<em>ndarray</em>) – Target composition for the hyperplane.
-Shape of (N,)</li>
-<li><strong>chemical_potentials</strong> (<em>ndarray</em>) – Shape of (N,)
-Will be overwritten</li>
-<li><strong>total_moles</strong> (<em>double</em>) – Total number of moles in the system.</li>
-<li><strong>fixed_chempot_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</li>
-<li><strong>fixed_comp_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</li>
-<li><strong>result_fractions</strong> (<em>ndarray</em>) – Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
-Will be overwritten. Output sums to 1.</li>
-<li><strong>result_simplex</strong> (<em>ndarray</em>) – Energies of the points making up the hyperplane simplex. Shape of (P,).
-Will be overwritten. Output*result_fractions sums to out_energy (return value).</li>
+Shape of (M,)</p></li>
+<li><p><strong>composition</strong> (<em>ndarray</em>) – Target composition for the hyperplane.
+Shape of (N,)</p></li>
+<li><p><strong>chemical_potentials</strong> (<em>ndarray</em>) – Shape of (N,)
+Will be overwritten</p></li>
+<li><p><strong>total_moles</strong> (<em>double</em>) – Total number of moles in the system.</p></li>
+<li><p><strong>fixed_chempot_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</p></li>
+<li><p><strong>fixed_comp_indices</strong> (<em>ndarray</em>) – Variable shape from (0,) to (N-1,)</p></li>
+<li><p><strong>result_fractions</strong> (<em>ndarray</em>) – Relative amounts of the points making up the hyperplane simplex. Shape of (P,).
+Will be overwritten. Output sums to 1.</p></li>
+<li><p><strong>result_simplex</strong> (<em>ndarray</em>) – Energies of the points making up the hyperplane simplex. Shape of (P,).
+Will be overwritten. Output*result_fractions sums to out_energy (return value).</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>out_energy</strong> – Energy of the output configuration.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">double</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>out_energy</strong> – Energy of the output configuration.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>double</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 <p class="rubric">Notes</p>
@@ -545,26 +526,22 @@ equilibrium calculation.</p>
 <code class="descclassname">pycalphad.core.lower_convex_hull.</code><code class="descname">lower_convex_hull</code><span class="sig-paren">(</span><em>global_grid</em>, <em>state_variables</em>, <em>result_array</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/lower_convex_hull.html#lower_convex_hull"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.lower_convex_hull.lower_convex_hull" title="Permalink to this definition">¶</a></dt>
 <dd><p>Find the simplices on the lower convex hull satisfying the specified
 conditions in the result array.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>global_grid</strong> (<em>Dataset</em>) – A sample of the energy surface of the system.</li>
-<li><strong>state_variables</strong> (<em>list</em>) – A list of the state variables (e.g., P, T) used in this calculation.</li>
-<li><strong>result_array</strong> (<em>Dataset</em>) – This object will be modified!
-Coordinates correspond to conditions axes.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>global_grid</strong> (<em>Dataset</em>) – A sample of the energy surface of the system.</p></li>
+<li><p><strong>state_variables</strong> (<em>list</em>) – A list of the state variables (e.g., P, T) used in this calculation.</p></li>
+<li><p><strong>result_array</strong> (<em>Dataset</em>) – This object will be modified!
+Coordinates correspond to conditions axes.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">None. Results are written to result_array.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>None. Results are written to result_array.</p>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>This routine will not check if any simplex is degenerate.
 Degenerate simplices will manifest with duplicate or NaN indices.</p>
@@ -576,13 +553,11 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <div class="section" id="module-pycalphad.core.patched_piecewise">
 <span id="pycalphad-core-patched-piecewise-module"></span><h2>pycalphad.core.patched_piecewise module<a class="headerlink" href="#module-pycalphad.core.patched_piecewise" title="Permalink to this headline">¶</a></h2>
 <p>Copied from Piecewise SymPy. The only modification is in <cite>piecewise_eval</cite> where</p>
-<dl class="docutils">
-<dt><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></dt>
-<dd><dl class="first last docutils">
-<dt>for e, c in _args:</dt>
-<dd><dl class="first last docutils">
-<dt>if not c.is_Atom and not isinstance(c, Relational):</dt>
-<dd>free = c.free_symbols</dd>
+<dl class="simple">
+<dt><a href="#id1"><span class="problematic" id="id2">``</span></a><a href="#id3"><span class="problematic" id="id4">`</span></a></dt><dd><dl class="simple">
+<dt>for e, c in _args:</dt><dd><dl class="simple">
+<dt>if not c.is_Atom and not isinstance(c, Relational):</dt><dd><p>free = c.free_symbols</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -590,13 +565,11 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 </dl>
 <p><a href="#id5"><span class="problematic" id="id6">``</span></a><a href="#id7"><span class="problematic" id="id8">`</span></a></p>
 <p>is changed to</p>
-<dl class="docutils">
-<dt><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></dt>
-<dd><dl class="first last docutils">
-<dt>for e, c in _args:</dt>
-<dd><dl class="first last docutils">
-<dt>if not c.is_Atom and not isinstance(c, Relational):</dt>
-<dd>free = c.expr_free_symbols</dd>
+<dl class="simple">
+<dt><a href="#id9"><span class="problematic" id="id10">``</span></a><a href="#id11"><span class="problematic" id="id12">`</span></a></dt><dd><dl class="simple">
+<dt>for e, c in _args:</dt><dd><dl class="simple">
+<dt>if not c.is_Atom and not isinstance(c, Relational):</dt><dd><p>free = c.expr_free_symbols</p>
+</dd>
 </dl>
 </dd>
 </dl>
@@ -886,14 +859,11 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dt id="pycalphad.core.solver.InteriorPointSolver.verbose">
 <code class="descname">verbose</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.verbose" title="Permalink to this definition">¶</a></dt>
 <dd><p>If True, will print solver diagonstics. Defaults to False.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">bool</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -901,28 +871,22 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <code class="descname">infeasibility_threshold</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.infeasibility_threshold" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dual infeasibility threshold used to tighten constraints and
 attempt a second solve, if necessary. Defaults to 1e-4.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">float</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>float</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.core.solver.InteriorPointSolver.ipopt_options">
 <code class="descname">ipopt_options</code><a class="headerlink" href="#pycalphad.core.solver.InteriorPointSolver.ipopt_options" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of options to pass to IPOPT.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -941,14 +905,11 @@ attempt a second solve, if necessary. Defaults to 1e-4.</p>
 <dt>
 <code class="descname">apply_options</code><span class="sig-paren">(</span><em>problem</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.apply_options"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Apply global options to the solver</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>problem</strong> (<em>ipopt.problem</em>) – A problem object that will be solved</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>problem</strong> (<em>ipopt.problem</em>) – A problem object that will be solved</p>
+</dd>
+</dl>
 <p class="rubric">Notes</p>
 <p>Strings are encoded to byte strings.</p>
 </dd></dl>
@@ -957,18 +918,17 @@ attempt a second solve, if necessary. Defaults to 1e-4.</p>
 <dt>
 <code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#InteriorPointSolver.solve"><span class="viewcode-link">[source]</span></a></dt>
 <dd><p>Solve a non-linear problem</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">SolverResult</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -988,18 +948,17 @@ attempt a second solve, if necessary. Defaults to 1e-4.</p>
 <code class="descname">solve</code><span class="sig-paren">(</span><em>prob</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/solver.html#SolverBase.solve"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.solver.SolverBase.solve" title="Permalink to this definition">¶</a></dt>
 <dd><p><em>Implement this method.</em>
 Solve a non-linear problem</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">pycalphad.core.solver.SolverResult</a></td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>prob</strong> (<a class="reference internal" href="#pycalphad.core.problem.Problem" title="pycalphad.core.problem.Problem"><em>pycalphad.core.problem.Problem</em></a>) – </p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.core.solver.SolverResult" title="pycalphad.core.solver.SolverResult">pycalphad.core.solver.SolverResult</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -1037,19 +996,15 @@ Solve a non-linear problem</p>
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">endmember_matrix</code><span class="sig-paren">(</span><em>dof</em>, <em>vacancy_indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#endmember_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.endmember_matrix" title="Permalink to this definition">¶</a></dt>
 <dd><p>Accept the number of components in each sublattice.
 Return a matrix corresponding to the compositions of all endmembers.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</li>
-<li><strong>list of list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
-in each sublattice to ensure the “pure vacancy” endmembers are excluded.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dof</strong> (<em>list of int</em>) – Number of components in each sublattice.</p></li>
+<li><p><strong>list of list of int</strong><strong>, </strong><strong>optional</strong> (<em>vacancy_indices</em><em>,</em>) – If vacancies are present in every sublattice, specify their indices
+in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>Sublattice configuration like: <cite>(AL, NI, VA):(AL, NI, VA):(VA)</cite>
 &gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])</p>
@@ -1062,24 +1017,20 @@ in each sublattice to ensure the “pure vacancy” endmembers are excluded.</li
 <p>Filters out phases that
 * Have no active components in any sublattice of a phase
 * Are disordered phases in an order-disorder model</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Sorted list of phases that are valid for the Database and components</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Sorted list of phases that are valid for the Database and components</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1093,53 +1044,45 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 <dt id="pycalphad.core.utils.get_pure_elements">
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">get_pure_elements</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#get_pure_elements"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.get_pure_elements" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return a list of pure elements in the system.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</li>
-<li><strong>comps</strong> (<em>list</em>) – A list of component names (species and pure elements)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A Database object</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – A list of component names (species and pure elements)</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">A list of pure elements in the Database</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>A list of pure elements in the Database</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="pycalphad.core.utils.make_callable">
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">make_callable</code><span class="sig-paren">(</span><em>model</em>, <em>variables</em>, <em>mode=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#make_callable"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.make_callable" title="Permalink to this definition">¶</a></dt>
 <dd><p>Take a SymPy object and create a callable function.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>SymPy object</strong> (<em>model</em><em>,</em>) – Abstract representation of function</li>
-<li><strong>list</strong> (<em>variables</em><em>,</em>) – Input variables, ordered in the way the return function will expect</li>
-<li><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em>) – Method to use when ‘compiling’ the function. SymPy mode is
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>SymPy object</strong> (<em>model</em><em>,</em>) – Abstract representation of function</p></li>
+<li><p><strong>list</strong> (<em>variables</em><em>,</em>) – Input variables, ordered in the way the return function will expect</p></li>
+<li><p><strong>[</strong><strong>'numpy'</strong><strong>, </strong><strong>'numba'</strong><strong>, </strong><strong>'sympy'</strong><strong>]</strong><strong>, </strong><strong>optional</strong> (<em>mode</em><em>,</em>) – Method to use when ‘compiling’ the function. SymPy mode is
 slow and should only be used for debugging. If Numba is installed,
 it can offer speed-ups when calling the energy function many
-times on multi-core CPUs.</li>
+times on multi-core CPUs.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first last"><ul class="simple">
-<li><em>Function that takes arguments in the same order as ‘variables’</em></li>
-<li><em>and returns the energy according to ‘model’.</em></li>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><ul class="simple">
+<li><p><em>Function that takes arguments in the same order as ‘variables’</em></p></li>
+<li><p><em>and returns the energy according to ‘model’.</em></p></li>
 </ul>
 </p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -1155,24 +1098,20 @@ result will always be the same for a given ‘comp_count’ and ‘pdof’.
 Note: For systems with only one component, only one point will be
 returned, regardless of ‘pdof’. This is because the degrees of freedom
 are zero for that case.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>comp_count</strong> (<em>list</em>) – Number of components in each sublattice.</li>
-<li><strong>pdof</strong> (<em>int</em>) – Number of points to sample per degree of freedom.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>comp_count</strong> (<em>list</em>) – Number of components in each sublattice.</p></li>
+<li><p><strong>pdof</strong> (<em>int</em>) – Number of points to sample per degree of freedom.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">ndarray of generated points satisfying the mass balance.</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>ndarray of generated points satisfying the mass balance.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="mi">8</span><span class="p">,</span><span class="mi">1</span><span class="p">]</span> <span class="c1"># 8 components in sublattice 1; only 1 in sublattice 2</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">pts</span> <span class="o">=</span> <span class="n">point_sample</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">20</span><span class="p">)</span> <span class="c1"># 7 d.o.f, returns a 140x7 ndarray</span>
@@ -1190,24 +1129,20 @@ are zero for that case.</p>
 <dl class="function">
 <dt id="pycalphad.core.utils.unpack_components">
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_components</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_components"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_components" title="Permalink to this definition">¶</a></dt>
-<dd><table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing elements and species.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing elements and species.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first">Set of Species objects</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">set</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Set of Species objects</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -1231,24 +1166,20 @@ dict of phase names and values, or a list containing both of these. If
 the latter, then the dict is checked first; if the phase of interest is not
 there, then the constant value is used.</p>
 <p>This function is a way to construct defaultdicts out of keyword arguments.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>kwarg_obj</strong> (<em>dict</em><em>, </em><em>iterable</em><em>, or </em><em>None</em>) – Argument to unpack into a defaultdict</li>
-<li><strong>default_arg</strong> (<em>object</em>) – Default value to use if iterable isn’t specified</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>kwarg_obj</strong> (<em>dict</em><em>, </em><em>iterable</em><em>, or </em><em>None</em>) – Argument to unpack into a defaultdict</p></li>
+<li><p><strong>default_arg</strong> (<em>object</em>) – Default value to use if iterable isn’t specified</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">defaultdict for the keyword argument of interest</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>defaultdict for the keyword argument of interest</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">:</span> <span class="nb">print</span><span class="p">(</span><span class="n">unpack_kwarg</span><span class="p">(</span><span class="s1">&#39;opt&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">test_func</span><span class="p">(</span><span class="n">opt</span><span class="o">=</span><span class="mi">100</span><span class="p">)</span>

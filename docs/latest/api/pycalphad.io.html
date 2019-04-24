@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -194,17 +194,17 @@ associated with structured thermodynamic/kinetic data.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <blockquote>
 <div><p>Structured thermodynamic and/or kinetic data.</p>
-<dl class="docutils">
-<dt>elements <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of elements in database.</dd>
-<dt>species <span class="classifier-delimiter">:</span> <span class="classifier">list</span></dt>
-<dd>List of species in database.</dd>
-<dt>phases <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Phase objects indexed by their system-local name.</dd>
-<dt>symbols <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</dd>
-<dt>references <span class="classifier-delimiter">:</span> <span class="classifier">dict</span></dt>
-<dd>Reference objects indexed by their system-local identifier.</dd>
+<dl class="simple">
+<dt>elements<span class="classifier">list</span></dt><dd><p>List of elements in database.</p>
+</dd>
+<dt>species<span class="classifier">list</span></dt><dd><p>List of species in database.</p>
+</dd>
+<dt>phases<span class="classifier">dict</span></dt><dd><p>Phase objects indexed by their system-local name.</p>
+</dd>
+<dt>symbols<span class="classifier">dict</span></dt><dd><p>SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
+</dd>
+<dt>references<span class="classifier">dict</span></dt><dd><p>Reference objects indexed by their system-local identifier.</p>
+</dd>
 </dl>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
@@ -212,9 +212,8 @@ associated with structured thermodynamic/kinetic data.</p>
 </pre></div>
 </div>
 </div></blockquote>
-<dl class="docutils">
-<dt>‘)</dt>
-<dd><div class="first last highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
+<dl>
+<dt>‘)</dt><dd><div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
 </dd>
@@ -223,23 +222,19 @@ associated with structured thermodynamic/kinetic data.</p>
 <dt id="pycalphad.io.database.Database.add_parameter">
 <code class="descname">add_parameter</code><span class="sig-paren">(</span><em>param_type</em>, <em>phase_name</em>, <em>constituent_array</em>, <em>param_order</em>, <em>param</em>, <em>ref=None</em>, <em>diffusing_species=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a parameter.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>param_type</strong> (<em>str</em>) – Type name of the parameter, e.g., G, L, BMAGN.</li>
-<li><strong>phase_name</strong> (<em>str</em>) – Name of the phase.</li>
-<li><strong>constituent_array</strong> (<em>list</em>) – Configuration of the sublattices (elements and/or species).</li>
-<li><strong>param_order</strong> (<em>int</em>) – Polynomial order of the parameter.</li>
-<li><strong>param</strong> (<em>object</em>) – Abstract representation of the parameter, e.g., in SymPy format.</li>
-<li><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference for the parameter.</li>
-<li><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) – (If kinetic parameter) Diffusing species for this parameter.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>param_type</strong> (<em>str</em>) – Type name of the parameter, e.g., G, L, BMAGN.</p></li>
+<li><p><strong>phase_name</strong> (<em>str</em>) – Name of the phase.</p></li>
+<li><p><strong>constituent_array</strong> (<em>list</em>) – Configuration of the sublattices (elements and/or species).</p></li>
+<li><p><strong>param_order</strong> (<em>int</em>) – Polynomial order of the parameter.</p></li>
+<li><p><strong>param</strong> (<em>object</em>) – Abstract representation of the parameter, e.g., in SymPy format.</p></li>
+<li><p><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference for the parameter.</p></li>
+<li><p><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) – (If kinetic parameter) Diffusing species for this parameter.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -248,20 +243,16 @@ associated with structured thermodynamic/kinetic data.</p>
 <dt id="pycalphad.io.database.Database.add_phase">
 <code class="descname">add_phase</code><span class="sig-paren">(</span><em>phase_name</em>, <em>model_hints</em>, <em>sublattices</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a phase.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</li>
-<li><strong>model_hints</strong> (<em>list</em>) – Structured “hints” for a Model trying to read this phase.
-Hints for major constituents and typedefs (Thermo-Calc) go here.</li>
-<li><strong>sublattices</strong> (<em>list</em>) – Site ratios of sublattices.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>model_hints</strong> (<em>list</em>) – Structured “hints” for a Model trying to read this phase.
+Hints for major constituents and typedefs (Thermo-Calc) go here.</p></li>
+<li><p><strong>sublattices</strong> (<em>list</em>) – Site ratios of sublattices.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -270,18 +261,14 @@ Hints for major constituents and typedefs (Thermo-Calc) go here.</li>
 <dt id="pycalphad.io.database.Database.add_phase_constituents">
 <code class="descname">add_phase_constituents</code><span class="sig-paren">(</span><em>phase_name</em>, <em>constituents</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_phase_constituents"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_phase_constituents" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a phase.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</li>
-<li><strong>constituents</strong> (<em>list</em>) – Possible phase constituents (elements and/or species).</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>phase_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>constituents</strong> (<em>list</em>) – Possible phase constituents (elements and/or species).</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -292,18 +279,14 @@ Hints for major constituents and typedefs (Thermo-Calc) go here.</li>
 <dd><p>Define a relation between the system-local name of a phase and a
 “global” identifier. This is used to link crystallographically
 similar phases known by different colloquial names.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>local_name</strong> (<em>string</em>) – System-local name of the phase.</li>
-<li><strong>global_name</strong> (<em>object</em>) – Abstract representation of symbol, e.g., in SymPy format.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>local_name</strong> (<em>string</em>) – System-local name of the phase.</p></li>
+<li><p><strong>global_name</strong> (<em>object</em>) – Abstract representation of symbol, e.g., in SymPy format.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -312,24 +295,20 @@ similar phases known by different colloquial names.</p>
 <dt id="pycalphad.io.database.Database.from_file">
 <em class="property">static </em><code class="descname">from_file</code><span class="sig-paren">(</span><em>fname</em>, <em>fmt=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Create a Database from a file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to read.</li>
-<li><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to read.</p></li>
+<li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dbf</strong> – Database from file.</p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dbf</strong> – Database from file.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -339,43 +318,35 @@ similar phases known by different colloquial names.</p>
 <em class="property">classmethod </em><code class="descname">from_string</code><span class="sig-paren">(</span><em>data</em>, <em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.from_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.from_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns Database from a string in the specified format.
 This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>data</strong> (<em>str</em>) – Raw database string in the specified format.</li>
-<li><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>from_file</cite>.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>data</strong> (<em>str</em>) – Raw database string in the specified format.</p></li>
+<li><p><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>from_file</cite>.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>dbf</strong></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last"><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>dbf</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="staticmethod">
 <dt id="pycalphad.io.database.Database.register_format">
 <em class="property">static </em><code class="descname">register_format</code><span class="sig-paren">(</span><em>fmt</em>, <em>read=None</em>, <em>write=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.register_format"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.register_format" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add support for reading and/or writing the specified format.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fmt</strong> (<em>str</em>) – Format.</li>
-<li><strong>read</strong> (<em>callable</em><em>, </em><em>optional</em>) – Read function with arguments (Database, file_descriptor)</li>
-<li><strong>write</strong> (<em>callable</em><em>, </em><em>optional</em>) – Write function with arguments (Database, file_descriptor)</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fmt</strong> (<em>str</em>) – Format.</p></li>
+<li><p><strong>read</strong> (<em>callable</em><em>, </em><em>optional</em>) – Read function with arguments (Database, file_descriptor)</p></li>
+<li><p><strong>write</strong> (<em>callable</em><em>, </em><em>optional</em>) – Write function with arguments (Database, file_descriptor)</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -384,14 +355,11 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 <dt id="pycalphad.io.database.Database.search">
 <code class="descname">search</code><span class="sig-paren">(</span><em>query</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.search"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.search" title="Permalink to this definition">¶</a></dt>
 <dd><p>Search for parameters matching the specified query.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>query</strong> (<em>object</em>) – Structured database query in TinyDB format.</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>query</strong> (<em>object</em>) – Structured database query in TinyDB format.</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>&gt;&gt;&gt;&gt; from tinydb import where
 &gt;&gt;&gt;&gt; db = Database()
@@ -403,24 +371,20 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 <dt id="pycalphad.io.database.Database.to_file">
 <code class="descname">to_file</code><span class="sig-paren">(</span><em>fname</em>, <em>fmt=None</em>, <em>if_exists='raise'</em>, <em>**write_kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.to_file"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.to_file" title="Permalink to this definition">¶</a></dt>
 <dd><p>Write the Database to a file.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to write.</li>
-<li><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</li>
-<li><strong>if_exists</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'rename'</em><em>, </em><em>'overwrite'</em><em>]</em>) – Strategy if ‘fname’ already exists.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>fname</strong> (<em>str</em><em> or </em><em>file-like</em>) – File name/descriptor to write.</p></li>
+<li><p><strong>fmt</strong> (<em>str</em><em>, </em><em>optional</em>) – File format. If not specified, an attempt at auto-detection is made.</p></li>
+<li><p><strong>if_exists</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'rename'</em><em>, </em><em>'overwrite'</em><em>]</em>) – Strategy if ‘fname’ already exists.
 The ‘raise’ option (default) will raise a FileExistsError.
 The ‘rename’ option will append the date/time to the filename.
 The ‘overwrite’ option will overwrite the file.
-This argument is ignored if ‘fname’ is file-like.</li>
-<li><strong>write_kwargs</strong> (<em>optional</em>) – Keyword arguments to pass to write function.</li>
+This argument is ignored if ‘fname’ is file-like.</p></li>
+<li><p><strong>write_kwargs</strong> (<em>optional</em>) – Keyword arguments to pass to write function.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>
@@ -430,18 +394,17 @@ This argument is ignored if ‘fname’ is file-like.</li>
 <code class="descname">to_string</code><span class="sig-paren">(</span><em>**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.to_string"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.to_string" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns Database as a string.
 This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>to_file</cite>.</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><strong>result</strong></td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body">str</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>kwargs</strong> (<em>optional</em>) – See keyword arguments for <cite>to_file</cite>.</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>result</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -480,42 +443,33 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 <dt id="pycalphad.io.database.Phase.name">
 <code class="descname">name</code><a class="headerlink" href="#pycalphad.io.database.Phase.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>System-local name of the phase.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.io.database.Phase.constituents">
 <code class="descname">constituents</code><a class="headerlink" href="#pycalphad.io.database.Phase.constituents" title="Permalink to this definition">¶</a></dt>
 <dd><p>Possible sublattice constituents (elements and/or species).</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">tuple of frozenset</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>tuple of frozenset</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.io.database.Phase.sublattices">
 <code class="descname">sublattices</code><a class="headerlink" href="#pycalphad.io.database.Phase.sublattices" title="Permalink to this definition">¶</a></dt>
 <dd><p>Site ratios of sublattices.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">list</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -523,14 +477,11 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 <code class="descname">model_hints</code><a class="headerlink" href="#pycalphad.io.database.Phase.model_hints" title="Permalink to this definition">¶</a></dt>
 <dd><p>Structured “hints” for a Model trying to read this phase.
 Hints for major constituents and typedefs (Thermo-Calc) go here.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
@@ -572,42 +523,34 @@ Thermo-Calc TDB format.</p>
 <dt id="pycalphad.io.tdb.read_tdb">
 <code class="descclassname">pycalphad.io.tdb.</code><code class="descname">read_tdb</code><span class="sig-paren">(</span><em>dbf</em>, <em>fd</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#read_tdb"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.read_tdb" title="Permalink to this definition">¶</a></dt>
 <dd><p>Parse a TDB file into a pycalphad Database object.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</li>
-<li><strong>fd</strong> (<em>file-like</em>) – File descriptor.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</p></li>
+<li><p><strong>fd</strong> (<em>file-like</em>) – File descriptor.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
 <dt id="pycalphad.io.tdb.reflow_text">
 <code class="descclassname">pycalphad.io.tdb.</code><code class="descname">reflow_text</code><span class="sig-paren">(</span><em>text</em>, <em>linewidth=80</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb.html#reflow_text"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb.reflow_text" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add line breaks to ensure text doesn’t exceed a certain line width.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>text</strong> (<em>str</em>) – </li>
-<li><strong>linewidth</strong> (<em>int</em><em>, </em><em>optional</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>text</strong> (<em>str</em>) – </p></li>
+<li><p><strong>linewidth</strong> (<em>int</em><em>, </em><em>optional</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"><strong>reflowed_text</strong></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">str</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p><strong>reflowed_text</strong></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="function">
@@ -632,24 +575,20 @@ to fix the incompatibility.</p>
 - Element names &lt;= 2 characters (Thermo-Calc)
 - Phase names &lt;= 24 characters (Thermo-Calc)</p>
 <p>Other TDB compatibility issues required by Thermo-Calc or other software should be reported to the issue tracker.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</li>
-<li><strong>fd</strong> (<em>file-like</em>) – File descriptor.</li>
-<li><strong>groupby</strong> (<em>[</em><em>'subsystem'</em><em>, </em><em>'phase'</em><em>]</em><em>, </em><em>optional</em>) – Desired grouping of parameters in the file.</li>
-<li><strong>if_incompatible</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'warn'</em><em>, </em><em>'fix'</em><em>]</em>) – Strategy if the database does not conform to the most restrictive database specification.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – A pycalphad Database.</p></li>
+<li><p><strong>fd</strong> (<em>file-like</em>) – File descriptor.</p></li>
+<li><p><strong>groupby</strong> (<em>[</em><em>'subsystem'</em><em>, </em><em>'phase'</em><em>]</em><em>, </em><em>optional</em>) – Desired grouping of parameters in the file.</p></li>
+<li><p><strong>if_incompatible</strong> (<em>string</em><em>, </em><em>optional</em><em> [</em><em>'raise'</em><em>, </em><em>'warn'</em><em>, </em><em>'fix'</em><em>]</em>) – Strategy if the database does not conform to the most restrictive database specification.
 The ‘warn’ option (default) will write out the incompatible database with a warning.
 The ‘raise’ option will raise a DatabaseExportError.
 The ‘ignore’ option will write out the incompatible database silently.
-The ‘fix’ option will rectify the incompatibilities e.g. through name mangling.</li>
+The ‘fix’ option will rectify the incompatibilities e.g. through name mangling.</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
@@ -661,24 +600,20 @@ Note that not all of these keywords are fully supported yet.</p>
 <dt id="pycalphad.io.tdb_keywords.expand_keyword">
 <code class="descclassname">pycalphad.io.tdb_keywords.</code><code class="descname">expand_keyword</code><span class="sig-paren">(</span><em>possible</em>, <em>candidate</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb_keywords.html#expand_keyword"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb_keywords.expand_keyword" title="Permalink to this definition">¶</a></dt>
 <dd><p>Expand an abbreviated keyword based on the provided list.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>possible</strong> (<em>list of str</em>) – Possible keywords for ‘candidate’ to be matched against.</li>
-<li><strong>candidate</strong> (<em>str</em>) – Abbreviated keyword to expand.</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>possible</strong> (<em>list of str</em>) – Possible keywords for ‘candidate’ to be matched against.</p></li>
+<li><p><strong>candidate</strong> (<em>str</em>) – Abbreviated keyword to expand.</p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">list of str of matching expanded keywords</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>list of str of matching expanded keywords</p>
+</dd>
+</dl>
 <p class="rubric">Examples</p>
 <p>None yet.</p>
 </dd></dl>

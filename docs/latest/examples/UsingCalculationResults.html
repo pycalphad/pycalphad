@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -195,12 +195,12 @@ documentation</a>.</p>
 the values of the properties as a function of the different conditions.
 There are three key terms:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>: these are the conditions that are calculated over,
-e.g. pressure (P) and temperature (T). They are essentially labels.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Coordinates</span></code>: these are the actual <em>values</em> that are taken on by
-the dimensions.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
-such as the Gibbs energy, mixing energy, composition, etc.</li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>: these are the conditions that are calculated over,
+e.g. pressure (P) and temperature (T). They are essentially labels.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Coordinates</span></code>: these are the actual <em>values</em> that are taken on by
+the dimensions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
+such as the Gibbs energy, mixing energy, composition, etc.</p></li>
 </ul>
 </div>
 <div class="section" id="calculate-results">
@@ -208,34 +208,34 @@ such as the Gibbs energy, mixing energy, composition, etc.</li>
 <p>Calculate is used to sample properties of a single phase. There are five
 dimensions/coordinates:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</li>
-<li><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</li>
-<li><code class="docutils literal notranslate"><span class="pre">component</span></code>: the string names of the components in the system</li>
-<li><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: the string names of the components in the system</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: The internal_dof (internal degrees of freedom) is
 the index of the site in any phase’s site fraction array. Below the
 FCC_A1 phase has the sublattice model (AL, ZN) and thus the
 internal_dof are integers 0 and 1 referring to the AL site (index 0)
-and the ZN site (index 1).</li>
-<li><code class="docutils literal notranslate"><span class="pre">points</span></code>: By default, the calculate function samples points over
+and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">points</span></code>: By default, the calculate function samples points over
 all of the internal degrees of freedom. Each coordinate point simply
 represents the index is a list of all configurations of the
 internal_dof sampled. There is no underlying physical meaning or
-order.</li>
+order.</p></li>
 </ul>
 <p>There are also at least four Data variables:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase. For <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will
-always be the phase name passed.</li>
-<li><code class="docutils literal notranslate"><span class="pre">X</span></code>: The composition of each component in mole fraction as a
+<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase. For <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will
+always be the phase name passed.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The composition of each component in mole fraction as a
 function of the temperature, pressure, and the index of the points
-(there is one composition for each point).</li>
-<li><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for
-the given temperature, pressure and point.</li>
-<li><code class="docutils literal notranslate"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the
+(there is one composition for each point).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The site fraction of each index in the internal_dof array for
+the given temperature, pressure and point.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: “output” is always whatever property is calculated by the
 output keyword passed to <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. The default is the molar
-Gibbs energy, GM.</li>
+Gibbs energy, GM.</p></li>
 </ul>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="n">matplotlib</span> <span class="n">inline</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
@@ -267,7 +267,7 @@ of 1 selected by index) at 1000K (selected by value) for the 50th point
 which is useful for plotting or performing computations on (see
 <a class="reference external" href="http://xarray.pydata.org/en/stable/data-structures.html">DataArrays vs
 Datasets</a>).</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">internal_dof</span><span class="o">=</span><span class="mi">1</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="mi">49</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">T</span><span class="o">=</span><span class="mi">1000</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="s1">&#39;Y&#39;</span> <span class="p">(</span><span class="n">P</span><span class="p">:</span> <span class="mi">1</span><span class="p">)</span><span class="o">&gt;</span>
@@ -279,7 +279,7 @@ Datasets</a>).</p>
 </div>
 <p>accessing the <code class="docutils literal notranslate"><span class="pre">values</span></code> attribute on any on any DataArray returns the
 multidimensional NumPy array</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">calc_result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">values</span><span class="p">)</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">[[[[</span>  <span class="mf">1.00000000e+00</span>   <span class="mf">1.00000000e-12</span><span class="p">]</span>
@@ -306,52 +306,52 @@ multidimensional NumPy array</p>
 however there are several key differences worth discussing. In
 equilibrium Datasets, there are six dimensions/coordinates:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</li>
-<li><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</li>
-<li><code class="docutils literal notranslate"><span class="pre">component</span></code>: (Same as calculate) The string names of the components
-in the system.</li>
-<li><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest
+<li><p><code class="docutils literal notranslate"><span class="pre">P</span></code>: pressures (in Pa).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">T</span></code>: temperatures (in K).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">component</span></code>: (Same as calculate) The string names of the components
+in the system.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">internal_dof</span></code>: (Same as calculate, except it will be the longest
 possible internal_dof for all phases) The internal_dof (internal
 degrees of freedom) is the index of the site in any phase’s site
 fraction array. Below the FCC_A1 phase has the sublattice model (AL,
 ZN) and thus the internal_dof are integers 0 and 1 referring to the
-AL site (index 0) and the ZN site (index 1).</li>
-<li><code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>: This is the composition of the species that was passed into
+AL site (index 0) and the ZN site (index 1).</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>: This is the composition of the species that was passed into
 the conditions array. Since we passed <code class="docutils literal notranslate"><span class="pre">v.X('ZN')</span></code> to the conditions
-dictionary, this is <code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">vertex</span></code>: The vertex is the index of the phase in equilibrium. The
+dictionary, this is <code class="docutils literal notranslate"><span class="pre">X_ZN</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">vertex</span></code>: The vertex is the index of the phase in equilibrium. The
 vertex has no inherent physical meaning. There will automatically be
 enough to describe the number of phases present in any equilibria
 calculated, implying that vertex can never be large enough to
-invalidate Gibbs phase rule.</li>
+invalidate Gibbs phase rule.</p></li>
 </ul>
 <p>There are also at least six Data variables:</p>
 <ul class="simple">
-<li><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the
+<li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the
 conditions. There are as many as <code class="docutils literal notranslate"><span class="pre">len(vertex)</span></code> phases. Any time
 there are fewer phases in equilibrium than the indices described by
 <code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a
 single phase region for FCC_A1, the values of Phase will be
 <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is
-important to note that they are not necessarily sorted.</li>
-<li><code class="docutils literal notranslate"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no
+important to note that they are not necessarily sorted.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no
 other equilibrium phase (e.g. single phase <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then
 the value of <code class="docutils literal notranslate"><span class="pre">NP</span></code> will be <code class="docutils literal notranslate"><span class="pre">nan</span></code> for the absence of a phase,
-rather than 0.</li>
-<li><code class="docutils literal notranslate"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions
-calculated.</li>
-<li><code class="docutils literal notranslate"><span class="pre">X</span></code>: The equilibrium composition of each element in each phase for
-the calculated conditions.</li>
-<li><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The equilibrium site fraction of each site in each phase for
-the calculated conditions.</li>
-<li><code class="docutils literal notranslate"><span class="pre">GM</span></code>: Same as <code class="docutils literal notranslate"><span class="pre">output</span></code> for <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. It is always reported
-no matter the value of <code class="docutils literal notranslate"><span class="pre">output</span></code>.</li>
-<li><code class="docutils literal notranslate"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium
+rather than 0.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions
+calculated.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">X</span></code>: The equilibrium composition of each element in each phase for
+the calculated conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">Y</span></code>: The equilibrium site fraction of each site in each phase for
+the calculated conditions.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">GM</span></code>: Same as <code class="docutils literal notranslate"><span class="pre">output</span></code> for <code class="docutils literal notranslate"><span class="pre">calculate</span></code>. It is always reported
+no matter the value of <code class="docutils literal notranslate"><span class="pre">output</span></code>.</p></li>
+<li><p><code class="docutils literal notranslate"><span class="pre">output</span></code>: (optional) “output” is always whatever equilibrium
 property is calculated by the output keyword passed to
 <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code>. Unlike <code class="docutils literal notranslate"><span class="pre">calculate</span></code>, this will be in addition to
-the <code class="docutils literal notranslate"><span class="pre">GM</span></code> because <code class="docutils literal notranslate"><span class="pre">GM</span></code> is always reported.</li>
+the <code class="docutils literal notranslate"><span class="pre">GM</span></code> because <code class="docutils literal notranslate"><span class="pre">GM</span></code> is always reported.</p></li>
 </ul>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
 <span class="n">eq_result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span> <span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.05</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">500</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">100</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM&#39;</span><span class="p">)</span>
 <span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="p">)</span>
 </pre></div>
@@ -387,7 +387,7 @@ or <code class="docutils literal notranslate"><span class="pre">isel</span></cod
 <p>Since we do not know this, we can do what is called
 <a class="reference external" href="http://xarray.pydata.org/en/stable/indexing.html#masking-with-where">masking</a>
 to find the data values that match a condition (the Phase is FCC_A1):</p>
-<div class="code ipython3 highlight-default notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="nb">print</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">NP</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">eq_result</span><span class="o">.</span><span class="n">Phase</span><span class="o">==</span><span class="s1">&#39;FCC_A1&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">800</span><span class="p">))</span>
 </pre></div>
 </div>
 <div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="o">&lt;</span><span class="n">xarray</span><span class="o">.</span><span class="n">DataArray</span> <span class="p">(</span><span class="n">X_ZN</span><span class="p">:</span> <span class="mi">20</span><span class="p">,</span> <span class="n">vertex</span><span class="p">:</span> <span class="mi">2</span><span class="p">)</span><span class="o">&gt;</span>

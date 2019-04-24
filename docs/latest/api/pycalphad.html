@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.7.1.post2+2.g6b5e905 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+2.g6b5e905
+                0.7.1.post2+3.gba1a1fc
               </div>
             
           
@@ -247,22 +247,18 @@ calculations under specified conditions.</p>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Models use an abstract representation of the function
 for calculation of values under specified conditions.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database containing the relevant parameters.</li>
-<li><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phase_name</strong> (<em>str</em>) – Name of phase model to build.</li>
-<li><strong>parameters</strong> (<em>dict</em><em> or </em><em>list</em>) – Optional dictionary of parameters to be substituted in the model.
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database containing the relevant parameters.</p></li>
+<li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phase_name</strong> (<em>str</em>) – Name of phase model to build.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em> or </em><em>list</em>) – Optional dictionary of parameters to be substituted in the model.
 A list of parameters will cause those symbols to remain symbolic.
-This will overwrite parameters specified in the database</li>
+This will overwrite parameters specified in the database</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="method">
 <dt>
 <code class="descname">None yet.</code></dt>
@@ -342,14 +338,11 @@ Description follows Servant and Ansara, Calphad, 2001.</p>
 <dt id="pycalphad.model.Model.build_phase">
 <code class="descname">build_phase</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_phase" title="Permalink to this definition">¶</a></dt>
 <dd><p>Generate the symbolic form of all the contributions to this phase.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
@@ -498,24 +491,20 @@ in symbolic form.</p>
 <dt id="pycalphad.model.Model.symbol_replace">
 <em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>obj</em>, <em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.symbol_replace" title="Permalink to this definition">¶</a></dt>
 <dd><p>Substitute values of symbols into ‘obj’.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first simple">
-<li><strong>obj</strong> (<em>SymPy object</em>) – </li>
-<li><strong>symbols</strong> (<em>dict mapping sympy.Symbol to SymPy object</em>) – </li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>obj</strong> (<em>SymPy object</em>) – </p></li>
+<li><p><strong>symbols</strong> (<em>dict mapping sympy.Symbol to SymPy object</em>) – </p></li>
 </ul>
-</td>
-</tr>
-<tr class="field-even field"><th class="field-name">Returns:</th><td class="field-body"><p class="first"></p>
-</td>
-</tr>
-<tr class="field-odd field"><th class="field-name">Return type:</th><td class="field-body"><p class="first last">SymPy object</p>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>SymPy object</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="method">
@@ -547,21 +536,17 @@ The approach follows W. Xiong et al, Calphad, 2012.</p>
 <p>Equation 15.2 in:
 P.M. Pardalos, H.E. Romeijn (Eds.), Handbook of Global Optimization,
 vol. 2. Kluwer Academic Publishers, Boston/Dordrecht/London (2002)</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Parameters:</th><td class="field-body"><ul class="first last simple">
-<li><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Ignored by TestModel but retained for API compatibility.</li>
-<li><strong>comps</strong> (<em>sequence</em>) – Names of components to consider in the calculation.</li>
-<li><strong>phase</strong> (<em>str</em>) – Name of phase model to build.</li>
-<li><strong>solution</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Float array locating the true minimum. Same length as ‘comps’.
-If not specified, randomly generated and saved to self.solution</li>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Ignored by TestModel but retained for API compatibility.</p></li>
+<li><p><strong>comps</strong> (<em>sequence</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phase</strong> (<em>str</em>) – Name of phase model to build.</p></li>
+<li><p><strong>solution</strong> (<em>sequence</em><em>, </em><em>optional</em>) – Float array locating the true minimum. Same length as ‘comps’.
+If not specified, randomly generated and saved to self.solution</p></li>
 </ul>
-</td>
-</tr>
-</tbody>
-</table>
+</dd>
+</dl>
 <dl class="method">
 <dt>
 <code class="descname">None yet.</code></dt>
@@ -644,42 +629,33 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dt id="pycalphad.variables.Species.name">
 <code class="descname">name</code><a class="headerlink" href="#pycalphad.variables.Species.name" title="Permalink to this definition">¶</a></dt>
 <dd><p>Name of the specie</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">string</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>string</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.variables.Species.constituents">
 <code class="descname">constituents</code><a class="headerlink" href="#pycalphad.variables.Species.constituents" title="Permalink to this definition">¶</a></dt>
 <dd><p>Dictionary of {element: quantity} where the element is a string and the quantity a float.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">dict</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.variables.Species.charge">
 <code class="descname">charge</code><a class="headerlink" href="#pycalphad.variables.Species.charge" title="Permalink to this definition">¶</a></dt>
 <dd><p>Integer charge. Can be positive or negative.</p>
-<table class="docutils field-list" frame="void" rules="none">
-<col class="field-name" />
-<col class="field-body" />
-<tbody valign="top">
-<tr class="field-odd field"><th class="field-name">Type:</th><td class="field-body">int</td>
-</tr>
-</tbody>
-</table>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>int</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">
