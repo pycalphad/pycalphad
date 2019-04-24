@@ -385,11 +385,11 @@ _TDB_PROCESSOR = {
 
 def to_interval(relational):
     if isinstance(relational, And):
-        return Intersection([to_interval(i) for i in relational.args])
+        return Intersection(*[to_interval(i) for i in relational.args])
     elif isinstance(relational, Or):
-        return Union([to_interval(i) for i in relational.args])
+        return Union(*[to_interval(i) for i in relational.args])
     elif isinstance(relational, Not):
-        return Complement([to_interval(i) for i in relational.args])
+        return Complement(*[to_interval(i) for i in relational.args])
     if relational == S.true:
         return Interval(S.NegativeInfinity, S.Infinity, left_open=True, right_open=True)
 
@@ -435,9 +435,9 @@ class TCPrinter(StrPrinter):
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
         intervals = [to_interval(i.cond) for i in filtered_args]
-        if (len(intervals) > 1) and Intersection(intervals) != EmptySet():
+        if (len(intervals) > 1) and Intersection(*intervals) != EmptySet():
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
-        if not isinstance(Union(intervals), Interval):
+        if not isinstance(Union(*intervals), Interval):
             raise ValueError('Piecewise intervals must be continuous')
         if not all([arg.cond.free_symbols == {v.T} for arg in filtered_args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')

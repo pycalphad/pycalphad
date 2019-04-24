@@ -323,7 +323,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                   callables=other_output_callables[out],
                                                   parameters=parameters,
                                                   model=models, **calc_opts)
-        properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
+        properties = delayed(properties.merge, pure=False)(eqcal, compat='equals')
     if scheduler is not None:
         properties = dask.compute(properties, scheduler=scheduler)[0]
     properties.attrs['created'] = datetime.utcnow().isoformat()

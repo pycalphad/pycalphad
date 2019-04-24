@@ -25,12 +25,12 @@ requirements:
     - pandas
     - nose
     - mock
-    - xarray !=0.8
-    - sympy >=1.2
+    - xarray >=0.11.2
+    - sympy >=1.4
     - pyparsing
     - tinydb
     - scipy
-    - dask >=0.18
+    - dask >=1.2.0
     - distributed
     - numpy >=1.13
     - dill
@@ -44,12 +44,12 @@ requirements:
     - gcc # [osx or linux]
     - matplotlib
     - pandas
-    - xarray !=0.8
-    - sympy >=1.2
+    - xarray >=0.11.2
+    - sympy >=1.4
     - pyparsing
     - tinydb
     - scipy
-    - dask >=0.18
+    - dask >=1.2.0
     - distributed
     - numpy >=1.13
     - cython >=0.24
