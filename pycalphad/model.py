@@ -58,9 +58,9 @@ class ReferenceState():
 
     def __repr__(self):
         if len(self.fixed_statevars.keys()) > 0:
-            s = "<ReferenceState('{}', '{}', {})>".format(self.species.name, self.phase_name, self.fixed_statevars)
+            s = "ReferenceState('{}', '{}', {})".format(self.species.name, self.phase_name, self.fixed_statevars)
         else:
-            s = "<ReferenceState('{}', '{}')>".format(self.species.name, self.phase_name)
+            s = "ReferenceState('{}', '{}')".format(self.species.name, self.phase_name)
         return s
 
 
