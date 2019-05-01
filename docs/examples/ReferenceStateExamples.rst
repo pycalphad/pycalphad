@@ -9,20 +9,20 @@ By default, energies calculated with pycalphad (e.g. ``GM``, ``HM``,
 etc.) are the absolute energies as defined in the database and are not
 calculated with respect to any reference state.
 
-pycalphad ``Model`` objects allows the reference phase for the pure
-components to be set to arbitrary phases and temperature/pressure
-conditions through the ``shift_reference_state`` method, which creates
-new properties for the energies that are referenced to the new reference
+pycalphad ``Model`` objects allow the reference for the pure components
+to be set to arbitrary phases and temperature/pressure conditions
+through the ``shift_reference_state`` method, which creates new
+properties for the energies that are referenced to the new reference
 state, ``GMR``, ``HMR``, ``SMR``, and ``CPMR``.
 
 Enthalpy of mixing
 ~~~~~~~~~~~~~~~~~~
 
-The enthalpy of mixing in the liquid, analogous to what would be measure
-experimentally, is calculated plotted below with the reference states of
-the pure elements both set to the liquid phase. No temperature and
-pressure are specified as we would like the reference state to be
-calculated with respect to the calculation temperature.
+The enthalpy of mixing in the liquid, analogous to what would be
+measured experimentally, is calculated and plotted below with the
+reference states of the pure elements both set to the liquid phase. No
+temperature and pressure are specified as we would like the reference
+state to be calculated with respect to the calculation temperature.
 
 .. code:: ipython3
 
@@ -73,8 +73,8 @@ Formation enthalpies are often reported in the literature with respect
 to the pure elements in their stable phase at 298.15 K. The enthalpy of
 formation of the phases in equilibrium, analogous to what would be
 measured experimentally, is calculated and plotted below for T=2800 K,
-with the reference states of the pure elements both set to the pure
-elements at 298.15 K and 1 atm.
+with the reference states of the pure elements both set to the stable
+phases and fixed at 298.15 K and 1 atm.
 
 .. code:: ipython3
 
