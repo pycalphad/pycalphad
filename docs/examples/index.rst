@@ -8,5 +8,6 @@ Examples
    CementiteAnalysis
    EquilibriumWithOrdering
    TernaryExamples
+   ReferenceStateExamples
    PlotActivity
    UsingCalculationResults
