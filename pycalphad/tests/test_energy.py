@@ -4,6 +4,7 @@ correct abstract syntax tree for the energy.
 """
 
 import nose.tools
+from sympy import S
 from pycalphad import Database, Model, calculate, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
@@ -357,4 +358,35 @@ def test_changing_model_ast_also_changes_mixing_energy():
     check_output(m, statevars, 'GM_MIX', 0)
 
 
+def test_shift_reference_state_model_contribs_take_effect():
+    """Shift reference state with contrib_mods set adds contributions to the pure elements."""
+    TDB = """
+     ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT B   BCC_A2                     55.847     4489.0     27.2797 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE TEST % 1 1 !
+     CONSTITUENT TEST : A,B: !
+    """
+    dbf = Database(TDB)
+    comps = ['A', 'B']
+    phase = 'TEST'
+    m = Model(dbf, comps, phase)
+    refstates = [ReferenceState('A', phase), ReferenceState('B', phase)]
+    m.shift_reference_state(refstates, dbf)
 
+    statevars =  {
+        v.T: 298.15, v.P: 101325,
+        v.SiteFraction(phase, 0, 'A'): 0.5, v.SiteFraction(phase, 0, 'B'): 0.5,
+        }
+
+    # ideal mixing should be present for GMR
+    idmix_val = 2*0.5*np.log(0.5)*v.R*298.15
+    check_output(m, statevars, 'GMR', idmix_val)
+
+    # shifting the reference state, adding an excess contribution
+    # should see that addition in the output
+    m.shift_reference_state(refstates, dbf, contrib_mods={'xsmix': S(1000.0)})
+    # each pure element contribution is has xsmix changed from 0 to 1
+    # At x=0.5, the reference xsmix energy is added to by 0.5*1000.0, which is
+    # then subtracted out of the GM energy
+    check_output(m, statevars, 'GMR', idmix_val-1000.0)
