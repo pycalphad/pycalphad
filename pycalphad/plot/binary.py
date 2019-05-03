@@ -1,17 +1,15 @@
 """
-The binary module enables plotting of binary isobaric phase diagrams.
+The binary module provides an interface to map_binary and plot_binary for
+plotting binary isobaric phase diagrams.
 """
-import numpy as np
 
-from pycalphad import equilibrium
-import pycalphad.variables as v
-from pycalphad.plot.eqplot import eqplot
+from .mapping import map_binary, plot_binary
 
-
-def binplot(dbf, comps, phases, conds, eq_kwargs=None, **plot_kwargs):
+def binplot(dbf, comps, phases, conds, eq_kwargs=None, map_kwargs=None, plot_kwargs=None):
     """
     Calculate the binary isobaric phase diagram.
-    This function is a convenience wrapper around equilibrium() and eqplot().
+
+    This function is a convenience wrapper around map_binary() and plot_binary()
 
     Parameters
     ----------
@@ -24,26 +22,36 @@ def binplot(dbf, comps, phases, conds, eq_kwargs=None, **plot_kwargs):
     conds : dict
         Maps StateVariables to values and/or iterables of values.
         For binplot only one changing composition and one potential coordinate each is supported.
-    eq_kwargs : optional
-        Keyword arguments to equilibrium().
-    plot_kwargs : optional
-        Keyword arguments to eqplot().
+    eq_kwargs : dict, optional
+        Keyword arguments to use in equilibrium() within map_binary(). If
+        eq_kwargs is defined in map_kwargs, this argument takes precedence.
+    map_kwargs : dict, optional
+        Keyword arguments to map_binary().
+    plot_kwargs : dict, optional
+        Keyword arguments to plot_binary().
 
     Returns
     -------
-    A phase diagram as a figure.
+    Axes
+        Matplotlib Axes of the phase diagram
 
     Examples
     --------
     None yet.
     """
     eq_kwargs = eq_kwargs if eq_kwargs is not None else dict()
-    indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
-    indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
-    if (len(indep_comp) != 1) or (len(indep_pot) != 1):
-        raise ValueError('binplot() requires exactly one composition and one potential coordinate')
-    indep_comp = indep_comp[0]
-    indep_pot = indep_pot[0]
-
-    full_eq = equilibrium(dbf, comps, phases, conds, **eq_kwargs)
-    return eqplot(full_eq, x=indep_comp, y=indep_pot, **plot_kwargs)
+    map_kwargs = map_kwargs if map_kwargs is not None else dict()
+    plot_kwargs = plot_kwargs if plot_kwargs is not None else dict()
+    # update map_kwargs with any explicitly passed eq_kwargs
+    if 'eq_kwargs' not in map_kwargs:
+        map_kwargs['eq_kwargs'] = eq_kwargs
+    else:
+        map_kwargs.update(eq_kwargs)
+    # Precompile the callables if they are not already included.
+    # This leads to a significant performance boost.
+    if 'callables' not in map_kwargs['eq_kwargs'].keys():
+        eq_kwargs['callables'] = None
+        raise NotImplementedError()
+    zpf_boundaries = map_binary(dbf, comps, phases, conds, **map_kwargs)
+    ax = plot_binary(zpf_boundaries, **plot_kwargs)
+    return ax
