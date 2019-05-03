@@ -44,8 +44,9 @@ install:
         . $HOME/miniconda2/etc/profile.d/conda.sh
         conda deactivate
         conda activate condaenv
-        conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-        conda install --yes xarray cython cyipopt
+        # Fuse together the conda-forge and pycalphad channels, including only
+        # dependencies of pycalphad. See https://github.com/regro/conda-metachannel
+        conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge,pycalphad/pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
         pip install -e .
       fi
  
