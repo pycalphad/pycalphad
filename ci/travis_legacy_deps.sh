@@ -1,4 +1,5 @@
 #!/bin/bash
+echo "!!! inside travis_legacy_deps.sh"
 if [ "$TRAVIS_OS_NAME" == "osx" ]; then
 wget -nc http://repo.continuum.io/miniconda/Miniconda2-latest-MacOSX-x86_64.sh -O miniconda.sh;
 else
@@ -12,3 +13,4 @@ conda update --yes conda
 conda create --yes -n condaenv python=$TRAVIS_PYTHON_VERSION
 conda install --yes -n condaenv pip
 conda config --add channels conda-forge
+echo "!!! Exiting travis_legacy_deps.sh"
