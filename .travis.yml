@@ -71,5 +71,5 @@ script:
       else
         echo "!!! Running nosetests and ci deploy script in docker"
         env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME -u TRAVIS_COMMIT_MESSAGE > ./env.list
-        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv && nosetests --with-coverage && pip install sphinx sphinx_rtd_theme coveralls ipython && bash ci/deploy.sh && coveralls"
+        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv && && conda list && nosetests --with-coverage && pip install sphinx sphinx_rtd_theme coveralls ipython && bash ci/deploy.sh && coveralls"
       fi
