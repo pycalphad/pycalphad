@@ -192,7 +192,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     --------
     None yet.
     """
-    from pycalphad import __version__ as pycalphad_version
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     comps = sorted(unpack_components(dbf, comps))
@@ -209,7 +208,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-
+    # TODO: check unspecified state variables
+    # TODO: determine whether to build Hessians (MU and NP conditions)
     calc_opts = calc_opts if calc_opts is not None else dict()
     model = model if model is not None else Model
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)

@@ -1,24 +1,14 @@
 import pycalphad.variables as v
-from pycalphad import Model
 from pycalphad.codegen.sympydiff_utils import build_functions
-from pycalphad.core.utils import get_pure_elements, unpack_components, unpack_kwarg
+from pycalphad.core.utils import get_pure_elements, unpack_components, extract_parameters, get_state_variables
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.constraints import build_constraints
-from sympy import Symbol
-import numpy as np
-import operator
 from itertools import repeat
 
 
-def wrap_symbol(obj):
-    if isinstance(obj, Symbol):
-        return obj
-    else:
-        return Symbol(obj)
-
-
-def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None, callables=None,
-                    output='GM', build_gradients=True, verbose=False):
+def build_callables(dbf, comps, phases, models, conds, parameters=None, callables=None,
+                    output='GM', build_gradients=True, build_hessians=False,
+                    additional_statevars=None, verbose=False):
     """
     Create dictionaries of callable dictionaries and PhaseRecords.
 
@@ -32,9 +22,8 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         List of phase names
     conds : dict or None
         Conditions for calculation
-    model : dict or type
-        Dictionary of {phase_name: Model subclass} or a type corresponding to a
-        Model subclass. Defaults to ``Model``.
+    models : dict
+        Dictionary of {phase_name: Model subclass}
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
     callables : dict, optional
@@ -43,6 +32,10 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         Output property of the particular Model to sample
     build_gradients : bool
         Whether or not to build gradient functions. Defaults to True.
+    build_hessians : bool
+        Whether or not to build Hessian functions. Defaults to False.
+    additional_statevars : set or None
+        State variables to include in the callables that may not be in the models
 
     verbose : bool
         Print the name of the phase when its callables are built
@@ -60,19 +53,11 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
     >>> callables = build_callables(dbf, comps, phases)
     >>> equilibrium(dbf, comps, phases, conditions, **callables)
     """
-    conds = conds if conds is not None else {}
+    additional_statevars = additional_statevars if additional_statevars is not None else set()
     parameters = parameters if parameters is not None else {}
-    if len(parameters) > 0:
-        param_symbols, param_values = zip(*[(key, val) for key, val in sorted(parameters.items(),
-                                                                              key=operator.itemgetter(0))])
-        param_values = np.asarray(param_values, dtype=np.float64)
-    else:
-        param_symbols = []
-        param_values = np.empty(0)
+    param_symbols, param_values = extract_parameters(parameters)
     comps = sorted(unpack_components(dbf, comps))
     pure_elements = get_pure_elements(dbf, comps)
-    # TODO: Conditions needing Hessians should probably have a 'second-order' tag or something
-    build_hessians = any(str(cond).startswith('MU') for cond in conds.keys())
 
     callables = callables if callables is not None else {}
     _callables = {
@@ -89,37 +74,14 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
         'mp_jac': {},
     }
 
-    models = unpack_kwarg(model, default_arg=Model)
-    param_symbols = [wrap_symbol(sym) for sym in param_symbols]
     phase_records = {}
 
-    state_variables = set()
-    for name in phases:
-        mod = models[name]
-        if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
-        state_variables |= set(mod.state_variables)
-
-    unspecified_statevars = state_variables - set(conds.keys())
-    if len(unspecified_statevars) > 0:
-        raise ValueError('The following state variables must be specified: {0}'.format(unspecified_statevars))
-        # TODO: T,P as free variables
-
-    unused_statevars = set()
-    for x in conds.keys():
-        if (getattr(v, str(x), None) is not None) and not isinstance(x, v.ChemicalPotential):
-            unused_statevars |= {x}
-    unused_statevars -= state_variables
-    if len(unused_statevars) > 0:
-        state_variables |= unused_statevars
-
+    state_variables = get_state_variables(models=models)
+    state_variables |= additional_statevars
     state_variables = sorted(state_variables, key=str)
-    _callables['state_variables'] = state_variables
 
     for name in phases:
         mod = models[name]
-        if isinstance(mod, type):
-            models[name] = mod = mod(dbf, comps, name, parameters=param_symbols)
         site_fracs = mod.site_fractions
         try:
             out = getattr(mod, output)
@@ -208,7 +170,4 @@ def build_callables(dbf, comps, phases, conds=None, model=None, parameters=None,
             if len(phase_records[prx_name].parameters) != len(param_values):
                 raise ValueError('User-specified callables and parameters are incompatible')
             phase_records[prx_name].parameters = param_values
-    # finally, add the models to the callables
-    _callables['model'] = dict(models)
-    _callables['phase_records'] = phase_records
-    return _callables
+    return phase_records, state_variables
