@@ -61,6 +61,9 @@ script:
       if [ -z "$DOCKER_TAG" ]; then
         echo "!!! pip installing test packages"
         pip install sphinx sphinx_rtd_theme coveralls ipython
+        echo "!!! conda list output"
+        conda list
+        echo "!!! running nosetests"
         nosetests --with-coverage
         echo "!!! Running ci/deploy script"
         bash ci/deploy.sh
