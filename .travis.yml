@@ -50,7 +50,14 @@ install:
         conda activate condaenv
         # Fuse together the conda-forge and pycalphad channels, including only
         # dependencies of pycalphad. See https://github.com/regro/conda-metachannel
-        conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
+        # for some reason, conda-metachannel is breaking Linux by not picking up gfortran
+        # only use conda metachannel on mac
+        if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+          conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
+        else
+          conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
+          conda install --yes xarray cython cyipopt
+        fi
         echo "!!! pip pycalphad as editable"
         pip install -e .
       fi
