@@ -44,7 +44,6 @@ before_install:
 install:
   - |
       if [ -z "$DOCKER_TAG" ]; then
-        echo "!!! Installing pycalphad dependencies via conda metachannel"
         . $HOME/miniconda2/etc/profile.d/conda.sh
         conda deactivate
         conda activate condaenv
@@ -53,8 +52,10 @@ install:
         # for some reason, conda-metachannel is breaking Linux by not picking up gfortran
         # only use conda metachannel on mac
         if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+          echo "!!! Installing pycalphad dependencies via conda metachannel"
           conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge,defaults/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
         else
+          echo "!!! Installing pycalphad dependencies via conda metachannel"
           # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
           conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge,defaults/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
           # conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
