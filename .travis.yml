@@ -47,19 +47,19 @@ install:
         . $HOME/miniconda2/etc/profile.d/conda.sh
         conda deactivate
         conda activate condaenv
-        # Fuse together the conda-forge and pycalphad channels, including only
-        # dependencies of pycalphad. See https://github.com/regro/conda-metachannel
-        # for some reason, conda-metachannel is breaking Linux by not picking up gfortran
-        # only use conda metachannel on mac
+        # Use a conda-forge metachannel for speed, including only dependencies
+        # of pycalphad. See https://github.com/regro/conda-metachannel
+        # For some reason, conda-metachannel is breaking Linux by not picking
+        # up some packages (e.g. libgfortran-ng), which I think come from
+        # defaults. Only use conda metachannel on Mac.
         if [ "$TRAVIS_OS_NAME" == "osx" ]; then
           echo "!!! Installing pycalphad dependencies via conda metachannel"
           conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge,defaults/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
         else
-          echo "!!! Installing pycalphad dependencies via conda metachannel"
+          echo "!!! Installing pycalphad dependencies via conda the normal way"
           # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
-          conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge,defaults/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
-          # conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-          # conda install --yes xarray cython cyipopt
+          conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
+          conda install --yes xarray cython cyipopt
         fi
         echo "!!! pip pycalphad as editable"
         pip install -e .
