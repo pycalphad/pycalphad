@@ -9,7 +9,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Index &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
+  <title>Index &mdash; pycalphad 0.7.1.post2+4.g41a473d documentation</title>
   
 
   
@@ -63,7 +63,7 @@
             
             
               <div class="version">
-                0.7.1.post2+3.gba1a1fc
+                0.7.1.post2+4.g41a473d
               </div>
             
           
@@ -221,13 +221,15 @@
 </li>
       <li><a href="api/pycalphad.io.html#pycalphad.io.tdb.TCPrinter.blacklisted">blacklisted() (pycalphad.io.tdb.TCPrinter method)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pycalphad.codegen.html#pycalphad.codegen.callables.build_callables">build_callables() (in module pycalphad.codegen.callables)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_functions">build_functions() (in module pycalphad.codegen.sympydiff_utils)</a>
 </li>
       <li><a href="api/pycalphad.html#pycalphad.model.Model.build_phase">build_phase() (pycalphad.model.Model method)</a>
+</li>
+      <li><a href="api/pycalphad.html#pycalphad.model.Model.build_reference_model">build_reference_model() (pycalphad.model.Model method)</a>
 </li>
       <li><a href="api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.BuildFunctionsResult">BuildFunctionsResult (class in pycalphad.codegen.sympydiff_utils)</a>
 </li>
@@ -401,11 +403,13 @@
 </li>
       <li><a href="api/pycalphad.core.html#pycalphad.core.problem.Problem.fixed_chempot_indices">fixed_chempot_indices (pycalphad.core.problem.Problem attribute)</a>
 </li>
-  </ul></td>
-  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pycalphad.core.html#pycalphad.core.problem.Problem.fixed_chempot_values">fixed_chempot_values (pycalphad.core.problem.Problem attribute)</a>
 </li>
+  </ul></td>
+  <td style="width: 33%; vertical-align: top;"><ul>
       <li><a href="api/pycalphad.core.html#pycalphad.core.problem.Problem.fixed_dof_indices">fixed_dof_indices (pycalphad.core.problem.Problem attribute)</a>
+</li>
+      <li><a href="api/pycalphad.html#pycalphad.model.ReferenceState.fixed_statevars">fixed_statevars (pycalphad.model.ReferenceState attribute)</a>
 </li>
       <li><a href="api/pycalphad.io.html#pycalphad.io.database.Database.from_file">from_file() (pycalphad.io.database.Database static method)</a>
 </li>
@@ -664,7 +668,11 @@
       <li><a href="api/pycalphad.plot.html#pycalphad.plot.utils.phase_legend">phase_legend() (in module pycalphad.plot.utils)</a>
 </li>
       <li><a href="api/pycalphad.core.html#pycalphad.core.phase_rec.PhaseRecord.phase_name">phase_name (pycalphad.core.phase_rec.PhaseRecord attribute)</a>
+
+      <ul>
+        <li><a href="api/pycalphad.html#pycalphad.model.ReferenceState.phase_name">(pycalphad.model.ReferenceState attribute)</a>
 </li>
+      </ul></li>
       <li><a href="api/pycalphad.core.html#pycalphad.core.composition_set.CompositionSet.phase_record">phase_record (pycalphad.core.composition_set.CompositionSet attribute)</a>
 </li>
       <li><a href="api/pycalphad.html#pycalphad.variables.PhaseFraction">PhaseFraction (class in pycalphad.variables)</a>
@@ -775,9 +783,11 @@
 </li>
       <li><a href="api/pycalphad.html#pycalphad.model.Model.redlich_kister_sum">redlich_kister_sum() (pycalphad.model.Model method)</a>
 </li>
+      <li><a href="api/pycalphad.html#pycalphad.model.Model.reference_energy">reference_energy() (pycalphad.model.Model method)</a>
+</li>
   </ul></td>
   <td style="width: 33%; vertical-align: top;"><ul>
-      <li><a href="api/pycalphad.html#pycalphad.model.Model.reference_energy">reference_energy() (pycalphad.model.Model method)</a>
+      <li><a href="api/pycalphad.html#pycalphad.model.ReferenceState">ReferenceState (class in pycalphad.model)</a>
 </li>
       <li><a href="api/pycalphad.io.html#pycalphad.io.tdb.reflow_text">reflow_text() (in module pycalphad.io.tdb)</a>
 </li>
@@ -794,6 +804,8 @@
       <li><a href="api/pycalphad.io.html#pycalphad.io.database.Database.search">search() (pycalphad.io.database.Database method)</a>
 </li>
       <li><a href="api/pycalphad.codegen.html#pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper.setup_template">setup_template (pycalphad.codegen.custom_autowrap.ThreadSafeCythonCodeWrapper attribute)</a>
+</li>
+      <li><a href="api/pycalphad.html#pycalphad.model.Model.shift_reference_state">shift_reference_state() (pycalphad.model.Model method)</a>
 </li>
       <li><a href="api/pycalphad.html#pycalphad.variables.site_fraction">site_fraction (in module pycalphad.variables)</a>
 </li>
@@ -818,6 +830,8 @@
       <li><a href="api/pycalphad.core.html#pycalphad.core.solver.SolverResult">SolverResult (class in pycalphad.core.solver)</a>
 </li>
       <li><a href="api/pycalphad.html#pycalphad.variables.Species">Species (class in pycalphad.variables)</a>
+</li>
+      <li><a href="api/pycalphad.html#pycalphad.model.ReferenceState.species">species (pycalphad.model.ReferenceState attribute)</a>
 </li>
       <li><a href="api/pycalphad.plot.html#pycalphad.plot.triangular.TriangularAxes.start_pan">start_pan() (pycalphad.plot.triangular.TriangularAxes method)</a>
 </li>

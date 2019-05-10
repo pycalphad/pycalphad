@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.7.1.post2+3.gba1a1fc documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.7.1.post2+4.g41a473d documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+3.gba1a1fc
+                0.7.1.post2+4.g41a473d
               </div>
             
           
@@ -243,7 +243,7 @@
 calculations under specified conditions.</p>
 <dl class="class">
 <dt id="pycalphad.model.Model">
-<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase_name</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">Model</code><span class="sig-paren">(</span><em>dbe</em>, <em>comps</em>, <em>phase_name</em>, <em>parameters=None</em>, <em>build_reference=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Models use an abstract representation of the function
 for calculation of values under specified conditions.</p>
@@ -343,6 +343,38 @@ Description follows Servant and Ansara, Calphad, 2001.</p>
 <dd class="field-odd"><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.build_reference_model">
+<code class="descname">build_reference_model</code><span class="sig-paren">(</span><em>dbe</em>, <em>preserve_ideal=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_reference_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_reference_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Build a reference_model for the current model, referenced to the endmembers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p></li>
+<li><p><strong>preserve_ideal</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the default, the ideal mixing energy will not be subtracted out.</p></li>
+</ul>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>Requires that self.build_phase has already been called.</p>
+<p>This builds a special reference state that is referenced to the CEF
+endmembers. The endmembers for the _MIX properties of this class
+referenced to the reference_model energies will always be zero, such
+that the _MIX properties generated here allow users to see mixing
+energies on the internal degrees of freedom of this phase.</p>
+<p>The reference_model AST can be modified in the same way as the current Model.</p>
+<p>Ideal mixing is always added to the AST, we need to set it to
+zero here so that it’s not subtracted out of the reference
+however, we have this option so users can just see the
+mixing properties in terms of the parameters</p>
+<p>If the current model has an ordering energy as part of a partitioned
+model, then this special reference state is not well defined because
+the endmembers in the model have energetic contributions from
+the ordered endmember energies and the disordered mixing energies.
+Therefore, this reference state cannot be used sensibly for partitioned
+models and the energies of all the reference_model.models are set to nan.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -487,6 +519,28 @@ the Muggianu ternary parameter extension.</p>
 in symbolic form.</p>
 </dd></dl>
 
+<dl class="method">
+<dt id="pycalphad.model.Model.shift_reference_state">
+<code class="descname">shift_reference_state</code><span class="sig-paren">(</span><em>reference_states</em>, <em>dbe</em>, <em>contrib_mods=None</em>, <em>output=('GM'</em>, <em>'HM'</em>, <em>'SM'</em>, <em>'CPM')</em>, <em>fmt_str='{}R'</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.shift_reference_state"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.shift_reference_state" title="Permalink to this definition">¶</a></dt>
+<dd><p>Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>reference_states</strong> (<em>Iterable of ReferenceState</em>) – Pure element ReferenceState objects. Must include all the pure
+elements defined in the current model.</p></li>
+<li><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database containing the relevant parameters.</p></li>
+<li><p><strong>output</strong> (<em>Iterable</em><em>, </em><em>optional</em>) – Parameters to subtract the ReferenceState from, defaults to (‘GM’, ‘HM’, ‘SM’, ‘CPM’).</p></li>
+<li><p><strong>contrib_mods</strong> (<em>Mapping</em><em>, </em><em>optional</em>) – Map of {model contribution: new value}. Used to adjust the pure
+reference model contributions at the time this is called, since
+the <cite>models</cite> attribute of the pure element references are
+effectively static after calling this method.</p></li>
+<li><p><strong>fmt_str</strong> (<em>str</em><em>, </em><em>optional</em>) – String that will be formatted with the <cite>output</cite> parameter name.
+Defaults to “{}R”, e.g. the transformation of ‘GM’ -&gt; ‘GMR’</p></li>
+</ul>
+</dd>
+</dl>
+</dd></dl>
+
 <dl class="staticmethod">
 <dt id="pycalphad.model.Model.symbol_replace">
 <em class="property">static </em><code class="descname">symbol_replace</code><span class="sig-paren">(</span><em>obj</em>, <em>symbols</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.symbol_replace"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.symbol_replace" title="Permalink to this definition">¶</a></dt>
@@ -524,6 +578,46 @@ in symbolic form.</p>
 <code class="descname">xiong_magnetic_energy</code><span class="sig-paren">(</span><em>dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.xiong_magnetic_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.xiong_magnetic_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return the energy from magnetic ordering in symbolic form.
 The approach follows W. Xiong et al, Calphad, 2012.</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.model.ReferenceState">
+<em class="property">class </em><code class="descclassname">pycalphad.model.</code><code class="descname">ReferenceState</code><span class="sig-paren">(</span><em>species</em>, <em>reference_phase</em>, <em>fixed_statevars=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#ReferenceState"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.ReferenceState" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+<p>Define the phase and any fixed state variables as a reference state for a component.</p>
+<dl class="attribute">
+<dt id="pycalphad.model.ReferenceState.fixed_statevars">
+<code class="descname">fixed_statevars</code><a class="headerlink" href="#pycalphad.model.ReferenceState.fixed_statevars" title="Permalink to this definition">¶</a></dt>
+<dd><p>Dictionary of {StateVariable: value} that will be fixed, e.g. {v.T: 298.15, v.P: 101325}</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.ReferenceState.phase_name">
+<code class="descname">phase_name</code><a class="headerlink" href="#pycalphad.model.ReferenceState.phase_name" title="Permalink to this definition">¶</a></dt>
+<dd><p>Name of phase</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>str</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.model.ReferenceState.species">
+<code class="descname">species</code><a class="headerlink" href="#pycalphad.model.ReferenceState.species" title="Permalink to this definition">¶</a></dt>
+<dd><p>pycalphad Species variable</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species">Species</a></p>
+</dd>
+</dl>
 </dd></dl>
 
 </dd></dl>
