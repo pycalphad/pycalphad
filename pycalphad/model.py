@@ -4,12 +4,12 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo
+from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.utils import unpack_components
+from pycalphad.core.utils import unpack_components, get_pure_elements
 from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
@@ -17,6 +17,51 @@ from collections import OrderedDict
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
 _MAX_PARAM_NESTING = 32
+
+
+class ReferenceState():
+    """
+    Define the phase and any fixed state variables as a reference state for a component.
+
+    Parameters
+    ----------
+
+    Attributes
+    ----------
+    fixed_statevars : dict
+        Dictionary of {StateVariable: value} that will be fixed, e.g. {v.T: 298.15, v.P: 101325}
+    phase_name : str
+        Name of phase
+    species : Species
+        pycalphad Species variable
+
+    """
+    def __init__(self, species, reference_phase, fixed_statevars=None):
+        """
+        Parameters
+        ----------
+        species : str or Species
+            Species to define the reference state for. Only pure elements supported.
+        reference_phase : str
+            Name of phase
+        fixed_statevars : None, optional
+            Dictionary of {StateVariable: value} that will be fixed, e.g. {v.T: 298.15, v.P: 101325}
+            If None (the default), an empty dict will be created.
+
+        """
+        if isinstance(species, v.Species):
+            self.species = species
+        else:
+            self.species = v.Species(species)
+        self.phase_name = reference_phase
+        self.fixed_statevars = fixed_statevars if fixed_statevars is not None else {}
+
+    def __repr__(self):
+        if len(self.fixed_statevars.keys()) > 0:
+            s = "ReferenceState('{}', '{}', {})".format(self.species.name, self.phase_name, self.fixed_statevars)
+        else:
+            s = "ReferenceState('{}', '{}')".format(self.species.name, self.phase_name)
+        return s
 
 
 class Model(object):
@@ -55,7 +100,7 @@ class Model(object):
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
 
-    def __init__(self, dbe, comps, phase_name, parameters=None):
+    def __init__(self, dbe, comps, phase_name, parameters=None, build_reference=True):
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
@@ -116,17 +161,23 @@ class Model(object):
             else:
                 return Symbol(obj)
         if parameters is not None:
+            self._parameters_arg = parameters
             if isinstance(parameters, dict):
                 symbols.update([(wrap_symbol(s), val) for s, val in parameters.items()])
             else:
                 # Lists of symbols that should remain symbolic
                 for s in parameters:
                     symbols.pop(wrap_symbol(s))
+        else:
+            self._parameters_arg = None
 
         self._symbols = {wrap_symbol(key): value for key, value in symbols.items()}
 
         self.models = OrderedDict()
         self.build_phase(dbe)
+        # build reference model, this needs to be behind a flag to avoid recursion
+        if build_reference:
+            self.build_reference_model(dbe)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -250,12 +301,55 @@ class Model(object):
     enthalpy = HM = property(lambda self: self.GM - v.T*self.GM.diff(v.T))
     heat_capacity = CPM = property(lambda self: -v.T*self.GM.diff(v.T, v.T))
     #pylint: enable=C0103
-    mixing_energy = GM_MIX = property(lambda self: self.GM - self.models['ref'])
-    mixing_enthalpy = HM_MIX = \
-        property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
+    mixing_energy = GM_MIX = property(lambda self: self.GM - self.reference_model.GM)
+    mixing_enthalpy = HM_MIX = property(lambda self: self.GM_MIX - v.T*self.GM_MIX.diff(v.T))
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
-    mixing_heat_capacity = CPM_MIX = \
-        property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+    mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
+
+    def build_reference_model(self, dbe, preserve_ideal=True):
+        """
+        Build a reference_model for the current model, referenced to the endmembers.
+
+        Parameters
+        ----------
+        dbe : Database
+        preserve_ideal : bool, optional
+            If True, the default, the ideal mixing energy will not be subtracted out.
+
+        Notes
+        -----
+        Requires that self.build_phase has already been called.
+
+        This builds a special reference state that is referenced to the CEF
+        endmembers. The endmembers for the _MIX properties of this class
+        referenced to the reference_model energies will always be zero, such
+        that the _MIX properties generated here allow users to see mixing
+        energies on the internal degrees of freedom of this phase.
+
+        The reference_model AST can be modified in the same way as the current Model.
+
+        Ideal mixing is always added to the AST, we need to set it to
+        zero here so that it's not subtracted out of the reference
+        however, we have this option so users can just see the
+        mixing properties in terms of the parameters
+
+        If the current model has an ordering energy as part of a partitioned
+        model, then this special reference state is not well defined because
+        the endmembers in the model have energetic contributions from
+        the ordered endmember energies and the disordered mixing energies.
+        Therefore, this reference state cannot be used sensibly for partitioned
+        models and the energies of all the reference_model.models are set to nan.
+
+        """
+        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
+        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg, build_reference=False)
+        if preserve_ideal:
+            mod_endmember_only.models['idmix'] = 0
+        self.reference_model = mod_endmember_only
+        if self.models.get('ord', S.Zero) != S.Zero:
+                for k in self.reference_model.models.keys():
+                    self.reference_model.models[k] = nan
 
     def get_internal_constraints(self):
         constraints = []
@@ -853,6 +947,80 @@ class Model(object):
                                    dbe.phases[ordered_phase_name].sublattices)
 
         return ordered_energy - ordered_energy.xreplace(molefraction_dict)
+
+
+    # TODO: fix case for VA interactions: L(PHASE,A,VA:VA;0)-type parameters
+    def shift_reference_state(self, reference_states, dbe, contrib_mods=None, output=('GM', 'HM', 'SM', 'CPM'), fmt_str="{}R"):
+        """
+        Add new attributes for calculating properties w.r.t. an arbitrary pure element reference state.
+
+        Parameters
+        ----------
+        reference_states : Iterable of ReferenceState
+            Pure element ReferenceState objects. Must include all the pure
+            elements defined in the current model.
+        dbe : Database
+            Database containing the relevant parameters.
+        output : Iterable, optional
+            Parameters to subtract the ReferenceState from, defaults to ('GM', 'HM', 'SM', 'CPM').
+        contrib_mods : Mapping, optional
+            Map of {model contribution: new value}. Used to adjust the pure
+            reference model contributions at the time this is called, since
+            the `models` attribute of the pure element references are
+            effectively static after calling this method.
+        fmt_str : str, optional
+            String that will be formatted with the `output` parameter name.
+            Defaults to "{}R", e.g. the transformation of 'GM' -> 'GMR'
+
+        """
+        # Error checking
+        # We ignore the case that the ref states are overspecified (same ref states can be used in different models w/ different active pure elements)
+        model_pure_elements = set(get_pure_elements(dbe, self.components))
+        refstate_pure_elements_list = get_pure_elements(dbe, [r.species for r in reference_states])
+        refstate_pure_elements = set(refstate_pure_elements_list)
+        if len(refstate_pure_elements_list) != len(refstate_pure_elements):
+            raise DofError("Multiple ReferenceState objects exist for at least one pure element: {}".format(refstate_pure_elements_list))
+        if not refstate_pure_elements.issuperset(model_pure_elements):
+            raise DofError("Non-existent ReferenceState for pure components {} in {} for {}".format(model_pure_elements.difference(refstate_pure_elements), self, self.phase_name))
+
+        contrib_mods = contrib_mods or {}
+
+        def _pure_element_test(constituent_array):
+            all_comps = set()
+            for sublattice in constituent_array:
+                if len(sublattice) != 1:
+                    return False
+                all_comps.add(sublattice[0].name)
+            pure_els = all_comps.intersection(model_pure_elements)
+            return len(pure_els) == 1
+
+        # Remove interactions from a copy of the Database, avoids any element/VA interactions.
+        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe._parameters.remove(~where('constituent_array').test(_pure_element_test))
+        reference_dict = {out: [] for out in output}  # output: terms list
+        for ref_state in reference_states:
+            if ref_state.species not in self.components:
+                continue
+            mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
+            # apply the modifications to the Models
+            for contrib, new_val in contrib_mods.items():
+                mod_pure.models[contrib] = new_val
+            # set all the free site fractions to one, this should effectively delete any mixing terms spuriously added, e.g. idmix
+            site_frac_subs = {sf: 1 for sf in mod_pure.ast.free_symbols if isinstance(sf, v.SiteFraction)}
+            for mod_key, mod_val in mod_pure.models.items():
+                mod_pure.models[mod_key] = mod_val.subs(site_frac_subs)
+            moles = self.moles(ref_state.species)
+            # get the output property of interest, substitute the fixed state variables (e.g. T=298.15) and add the pure element moles weighted term to the list of terms
+            # substitution of fixed state variables has to happen after getting the attribute in case there are any derivatives involving that state variable
+            for out in reference_dict.keys():
+                mod_out = getattr(mod_pure, out).subs(ref_state.fixed_statevars)
+                reference_dict[out].append(mod_out*moles)
+
+        # set the attribute on the class
+        for out, terms in reference_dict.items():
+            reference_contrib = Add(*terms)
+            referenced_value = getattr(self, out) - reference_contrib
+            setattr(self, fmt_str.format(out), referenced_value)
 
 
 class TestModel(Model):

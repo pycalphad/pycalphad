@@ -4170,3 +4170,143 @@ PHASE FCC_A1  %  1 1 !
    CONSTITUENT FCC_A1  :AL:  !
    PARAMETER G(FCC_A1,AL;0)      298.15   +VV0000#;       2900 N !
 """
+
+VA_INTERACTION_TDB = """
+ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
+ELEMENT VA   BLANK                     0.0 0.0 0.0 !
+
+PHASE FCC_A1  %  2 1 1 !
+   CONSTITUENT FCC_A1  :AL,VA:VA:  !
+   PARAMETER G(FCC_A1,AL:VA;0)      0.01   100;       6000 N !
+   PARAMETER G(FCC_A1,VA:VA;0)      0.01   500;       6000 N !
+   PARAMETER G(FCC_A1,AL,VA:VA;0)      0.01   4000;       6000 N !
+
+"""
+
+CRFE_BCC_MAGNETIC_TDB = """
+ELEMENT CR BLANK 0 0 0 !
+ELEMENT FE BLANK 0 0 0 !
+ELEMENT VA BLANK 0 0 0 !
+
+FUNCTION GHSERCR 1 -1.47721E-6*T**3 + 0.00189435*T**2 - 26.908*T*LN(T) +
+   157.48*T - 8856.94 + 139250*T**(-1); 2180.0 Y -50*T*LN(T) + 344.18*T -
+   34869.344 - 2.88526E+32*T**(-9); 6000.0 N !
+FUNCTION GHSERFE 1 -5.8927E-8*T**3 - 0.00439752*T**2 - 23.5143*T*LN(T) +
+   124.134*T + 1225.7 + 77359*T**(-1); 1811.0 Y -46*T*LN(T) + 299.31255*T -
+   25383.581 + 2.29603E+31*T**(-9); 6000.0 N !
+
+FUNCTION GBCCCR 1 GHSERCR#; 6000.0 N !
+FUNCTION GBCCFE 1 GHSERFE#; 6000.0 N !
+
+TYPE_DEFINITION % SEQ * !
+DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+DEFAULT_COMMAND DEFINE_SYSTEM_ELEMENT VA !
+
+TYPE_DEFINITION & GES A_P_D BCC_A2 MAGNETIC -1.0 0.4 !
+
+PHASE BCC_A2 %&  2 1 3 !
+CONSTITUENT BCC_A2 :CR,FE:VA: !
+
+PARAMETER G(BCC_A2,CR:VA;0) 1 GBCCCR#; 10000 N !
+PARAMETER G(BCC_A2,FE:VA;0) 1 GBCCFE#; 10000 N !
+
+PARAMETER TC(BCC_A2,CR:VA;0) 1 -311.50; 6000 N !
+PARAMETER BM(BCC_A2,CR:VA;0) 1 -0.008; 6000 N !
+
+PARAMETER TC(BCC_A2,FE:VA;0) 1 1043; 6000 N !
+PARAMETER BM(BCC_A2,FE:VA;0) 1 2.22; 6000 N !
+
+PARAMETER L(BCC_A2,CR,FE:VA;0) 1 1000; 10000 N !
+
+"""
+
+CUMG_TDB = """$ CUMG
+$
+$ TDB-file for the thermodynamic assessment of the Cu-Mg system
+$
+$--------------------------------------------------------------------------
+$ 2008.10.21
+$
+$ TDB file for PANDAT created by M.Palumbo, T.Abe and K.Hashimoto
+$
+$ Particle Simulation and Thermodynamics Group, National Institute for
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi@nims.go.jp
+$ Copyright (C) NIMS 2008
+$
+$
+$ PARAMETERS ARE TAKEN FROM
+$   P. Liang et al. CALPHAD 22 (1998) pp. 527-544
+$
+$ Parameters are the same as in C. A. Coughanowr et al. Z. Metallkde. 82
+$ (1991) pp. 574-581 (Parameter set 3), with some minor adjustments on Cu2Mg
+$ Laves phase in order to use it in ternary and higher order systems.
+$ With respect to results published by Coughanowr, some minor differences
+$ exist in reaction temperatures (<5K).
+$
+$ -------------------------------------------------------------------------
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT CU   FCC_A1                    6.3546E+01  5.0041E+03  3.3150E+01!
+ ELEMENT MG   HCP_A3                    2.4305E+01  4.9980E+03  3.2671E+01!
+$
+$ -------------------------------------------------------------------------
+$
+ FUNCTION GHSERCU    298.15  -7770.458+130.485403*T-24.112392*T*LN(T)
+                  -.00265684*T**2+1.29223E-07*T**3+52478*T**(-1); 1358.02 Y
+        -13542.33+183.804197*T-31.38*T*LN(T)+3.64643E+29*T**(-9);  3200 N !
+ FUNCTION GMGLIQ     298.15  +8202.24-8.83693*T-8.01759E-20*T**7
+                                                       +GHSERMG#;  923 Y
+                 +8690.32-9.39216*T-1.03819E+28*T**(-9)+GHSERMG#;  6000 N !
+ FUNCTION GHSERMG    298.15  -8367.34+143.677875*T-26.1849782*T*LN(T)
+                 +4.858E-04*T**2-1.393669E-06*T**3+78950*T**(-1);  923 Y
+    -14130.185+204.718543*T-34.3088*T*LN(T)+1.038192E+28*T**(-9);  3000 N !
+ FUNCTION UN_ASS     298.15                                    0;   300 N !
+
+ TYPE_DEFINITION % SEQ *!
+ DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+ DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+$
+$ -------------------------------------------------------------------------
+$
+ PHASE LIQUID:L %  1  1.0  !
+  CONSTITUENT LIQUID:L :CU,MG :  !
+  PARAMETER G(LIQUID,CU;0)     298.15      +12964.84-9.510243*T
+                                     -5.83932E-21*T**7+GHSERCU#; 1358.02 Y
+               +13495.4-9.920463*T-3.64643E+29*T**(-9)+GHSERCU#;  3200 N !
+  PARAMETER G(LIQUID,MG;0)     298.15                  +GMGLIQ#;  3000 N !
+  PARAMETER G(LIQUID,CU,MG;0)  298.15       -36984.00+4.75612*T;  6000 N !
+  PARAMETER G(LIQUID,CU,MG;1)  298.15                  -8191.29;  6000 N !
+
+ TYPE_DEFINITION & GES A_P_D FCC_A1 MAGNETIC  -3.0    2.80000E-01 !
+ PHASE FCC_A1  %&  2 1   1 !
+  CONSTITUENT FCC_A1  :CU,MG : VA :  !
+  PARAMETER G(FCC_A1,CU:VA;0)     298.15              +GHSERCU#;  3200 N !
+  PARAMETER G(FCC_A1,MG:VA;0)     298.15    +2600-.9*T+GHSERMG#;  3000 N !
+  PARAMETER G(FCC_A1,CU,MG:VA;0)  298.15      -22279.28+5.868*T;  6000 N !
+
+ PHASE HCP_A3  %  2 1   .5 !
+  CONSTITUENT HCP_A3  :MG : VA :  !
+  PARAMETER G(HCP_A3,MG:VA;0)     298.15              +GHSERMG#;  3000 N !
+
+ PHASE CU2MG  %  2 2 1 !
+  CONSTITUENT CU2MG  :CU,MG : CU,MG :  !
+  PARAMETER G(CU2MG,CU:CU;0)     298.15    +21014.88+3*GHSERCU#;  6000 N !
+   PARAMETER G(CU2MG,CU:MG;0)    298.15   -54690.99+364.73085*T
+               -69.276417*T*LN(T)-5.1925E-4*T**2+143502*T**(-1)
+                                             -5.65953E-6*T**(3);  6000 N !
+   PARAMETER G(CU2MG,MG:CU;0)    298.15          +105000-16.5*T
+                                           +2*GHSERMG#+GHSERCU#;  6000 N !
+   PARAMETER G(CU2MG,MG:MG;0)    298.15    +27357.33+3*GHSERMG#;  6000 N !
+   PARAMETER G(CU2MG,CU,MG:*;0)  298.15                 6599.45;  6000 N !
+   PARAMETER G(CU2MG,*:CU,MG;0)  298.15                13011.35;  6000 N !
+
+ PHASE CUMG2  %  2 1   2 !
+  CONSTITUENT CUMG2  :CU : MG :  !
+  PARAMETER G(CUMG2,CU:MG;0)     298.15    -28620.00+1.859733*T
+                                           +GHSERCU#+2*GHSERMG#;  6000 N !
+$
+$------------------------------------------------------------ END OF LINE
+$ CU-MG NIMS
+"""

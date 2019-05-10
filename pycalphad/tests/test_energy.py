@@ -4,14 +4,22 @@ correct abstract syntax tree for the energy.
 """
 
 import nose.tools
-from pycalphad import Database, Model, calculate
+from sympy import S
+from pycalphad import Database, Model, calculate, ReferenceState
 from pycalphad.core.utils import make_callable
-from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
+from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
 import warnings
 
 DBF = Database(ALCRNI_TDB)
+ALFE_DBF = Database(ALFE_TDB)
+FEMN_DBF = Database(FEMN_TDB)
+CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
+CUMG_DBF = Database(CUMG_TDB)
+VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 
 @nose.tools.raises(ValueError)
 def test_sympify_safety():
@@ -21,7 +29,7 @@ def test_sympify_safety():
     _sympify_string(teststr) # should throw ParseException
 
 
-def calculate_energy(model, variables, mode='sympy'):
+def calculate_output(model, variables, output, mode='sympy'):
     """
     Calculate the value of the energy at a point.
 
@@ -33,22 +41,35 @@ def calculate_energy(model, variables, mode='sympy'):
     variables, dict
         Dictionary of all input variables.
 
+    output : str
+        String of the property to calculate, e.g. 'ast'
+
     mode, ['numpy', 'sympy'], optional
         Optimization method for the abstract syntax tree.
     """
-    # Generate a callable energy function
+    # Generate a callable function
     # Normally we would use model.subs(variables) here, but we want to ensure
     # our optimization functions are working.
-    energy = make_callable(model.ast, list(variables.keys()), mode=mode)
+    prop = make_callable(getattr(model, output), list(variables.keys()), mode=mode)
     # Unpack all the values in the dict and use them to call the function
-    return energy(*(list(variables.values())))
+    return prop(*(list(variables.values())))
+
+
+def check_output(model, variables, output, known_value, mode='sympy'):
+    "Check that our calculated quantity matches the known value."
+    desired = calculate_output(model, variables, output, mode)
+    known_value = np.array(known_value, dtype=np.complex)
+    desired = np.array(desired, dtype=np.complex)
+    # atol defaults to zero here, but it cannot be zero if desired is zero
+    # we set it to a reasonably small number for energies and derivatives (in Joules)
+    # An example where expected = 0, but known != 0 is for ideal mix xlogx terms
+    # This 1e-8 value is also used in hyperplane, motivating the use here.
+    np.testing.assert_allclose(known_value, desired, rtol=1e-5, atol=1e-8)
+
 
 def check_energy(model, variables, known_value, mode='sympy'):
     "Check that our calculated energy matches the known value."
-    desired = calculate_energy(model, variables, mode)
-    known_value = np.array(known_value, dtype=np.complex)
-    desired = np.array(desired, dtype=np.complex)
-    np.testing.assert_allclose(known_value, desired, rtol=1e-5)
+    check_output(model, variables, 'ast', known_value, mode=mode)
 
 # PURE COMPONENT TESTS
 def test_pure_sympy():
@@ -202,3 +223,170 @@ def test_zero_site_fraction():
             {v.T: 300, v.SiteFraction('LIQUID', 0, 'CR'): 0,
              v.SiteFraction('LIQUID', 0, 'NI'): 1}, \
         5.52773e3, mode='sympy')
+
+
+def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero():
+    """The referenced energy for the pure elements in a unary Model with twostate and Einstein contributions referenced to that phase is zero."""
+    m = Model(FEMN_DBF, ['FE', 'VA'], 'LIQUID')
+    statevars = {v.T: 298.15, v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+    check_output(m, statevars, 'GMR', 0.0)
+
+
+@nose.tools.raises(DofError)
+def test_underspecified_refstate_raises():
+    """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
+    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+
+
+def test_reference_energy_of_binary_twostate_einstein_is_zero():
+    """The referenced energy for the pure elements in a binary Model with twostate and Einstein contributions referenced to that phase is zero."""
+    m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
+    refstates = [ReferenceState(v.Species('FE'), 'LIQUID'), ReferenceState(v.Species('MN'), 'LIQUID')]
+    m.shift_reference_state(refstates, FEMN_DBF)
+
+    statevars_FE = {v.T: 298.15,
+             v.SiteFraction('LIQUID', 0, 'FE'): 1, v.SiteFraction('LIQUID', 0, 'MN'): 0,
+             v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    check_output(m, statevars_FE, 'GMR', 0.0)
+
+    statevars_CR = {v.T: 298.15,
+             v.SiteFraction('LIQUID', 0, 'FE'): 0, v.SiteFraction('LIQUID', 0, 'MN'): 1,
+             v.SiteFraction('LIQUID', 1, 'VA'): 1}
+    check_output(m, statevars_CR, 'GMR', 0.0)
+
+
+def test_magnetic_reference_energy_is_zero():
+    """The referenced energy binary magnetic Model is zero."""
+    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    refstates = [ReferenceState('CR', 'BCC_A2'), ReferenceState('FE', 'BCC_A2')]
+    m.shift_reference_state(refstates, CRFE_DBF)
+
+    statevars_FE = {v.T: 300,
+             v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
+             v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars_FE, 'GMR', 0.0)
+
+    statevars_CR = {v.T: 300,
+             v.SiteFraction('BCC_A2', 0, 'CR'): 1, v.SiteFraction('BCC_A2', 0, 'FE'): 0,
+             v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars_CR, 'GMR', 0.0)
+
+
+def test_non_zero_reference_mixing_enthalpy_for_va_interaction():
+    """The referenced mixing enthalpy for a Model with a VA interaction parameter is non-zero."""
+    m = Model(VA_INTERACTION_DBF, ['AL', 'VA'], 'FCC_A1')
+    refstates = [ReferenceState('AL', 'FCC_A1')]
+    m.shift_reference_state(refstates, VA_INTERACTION_DBF)
+
+    statevars_pure = {v.T: 300,
+         v.SiteFraction('FCC_A1', 0, 'AL'): 1, v.SiteFraction('FCC_A1', 0, 'VA'): 0,
+         v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    check_output(m, statevars_pure, 'GMR', 0.0)
+
+    statevars_mix = {v.T: 300,
+        v.SiteFraction('FCC_A1', 0, 'AL'): 0.5, v.SiteFraction('FCC_A1', 0, 'VA'): 0.5,
+        v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    # 4000.0 * 0.5=2000 +500 # (Y0VA doesn't contribute), but the VA endmember does (not referenced)
+    check_output(m, statevars_mix, 'HMR', 2500.0)
+
+    statevars_mix = {v.T: 300,
+        v.SiteFraction('FCC_A1', 0, 'AL'): 0.5, v.SiteFraction('FCC_A1', 0, 'VA'): 0.5,
+        v.SiteFraction('FCC_A1', 1, 'VA'): 1}
+    # 4000.0 * 0.5 (Y0VA doesn't contribute)
+    check_output(m, statevars_mix, 'HM_MIX', 2000.0)
+
+
+def test_reference_energy_for_different_phase():
+    """The referenced energy a different phase should be correct."""
+    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'AL2FE')
+    # formation reference states
+    refstates = [ReferenceState('AL', 'FCC_A1'), ReferenceState('FE', 'BCC_A2')]
+    m.shift_reference_state(refstates, ALFE_DBF)
+
+    statevars = {v.T: 300, v.SiteFraction('AL2FE', 0, 'AL'): 1, v.SiteFraction('AL2FE', 1, 'FE'): 1}
+    check_output(m, statevars, 'GMR', -28732.525)  # Checked in Thermo-Calc
+
+
+def test_endmember_mixing_energy_is_zero():
+    """The mixing energy for an endmember in a multi-sublattice model should be zero."""
+    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
+                    v.SiteFraction('CU2MG', 1, 'CU'): 0, v.SiteFraction('CU2MG', 1, 'MG'): 1,
+                }
+    check_output(m, statevars, 'GM_MIX', 0.0)
+
+
+def test_magnetic_endmember_mixing_energy_is_zero():
+    """The mixing energy for an endmember with a magnetic contribution should be zero."""
+    m = Model(CRFE_DBF, ['CR', 'FE', 'VA'], 'BCC_A2')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('BCC_A2', 0, 'CR'): 0, v.SiteFraction('BCC_A2', 0, 'FE'): 1,
+                    v.SiteFraction('BCC_A2', 1, 'VA'): 1}
+    check_output(m, statevars, 'GM_MIX', 0.0)
+
+
+def test_order_disorder_mixing_energy_is_nan():
+    """The endmember-referenced mixing energy is undefined and the energy should be NaN."""
+    m = Model(ALFE_DBF, ['AL', 'FE', 'VA'], 'B2_BCC')
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('B2_BCC', 0, 'AL'): 1, v.SiteFraction('B2_BCC', 0, 'FE'): 0,
+                    v.SiteFraction('B2_BCC', 1, 'AL'): 0, v.SiteFraction('B2_BCC', 1, 'FE'): 1,
+                    v.SiteFraction('B2_BCC', 2, 'VA'): 1}
+    check_output(m, statevars, 'GM_MIX', np.nan)
+
+
+def test_changing_model_ast_also_changes_mixing_energy():
+    """If a models contribution is modified, the mixing energy should update accordingly."""
+    m = Model(CUMG_DBF, ['CU', 'MG', 'VA'], 'CU2MG')
+    m.models['mag'] = 1000
+    statevars = {
+                    v.T: 300,
+                    v.SiteFraction('CU2MG', 0, 'CU'): 1, v.SiteFraction('CU2MG', 0, 'MG'): 0,
+                    v.SiteFraction('CU2MG', 1, 'CU'): 0, v.SiteFraction('CU2MG', 1, 'MG'): 1,
+                }
+    check_output(m, statevars, 'GM_MIX', 1000)
+
+    m.reference_model.models['mag'] = 1000
+    check_output(m, statevars, 'GM_MIX', 0)
+
+
+def test_shift_reference_state_model_contribs_take_effect():
+    """Shift reference state with contrib_mods set adds contributions to the pure elements."""
+    TDB = """
+     ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT B   BCC_A2                     55.847     4489.0     27.2797 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE TEST % 1 1 !
+     CONSTITUENT TEST : A,B: !
+    """
+    dbf = Database(TDB)
+    comps = ['A', 'B']
+    phase = 'TEST'
+    m = Model(dbf, comps, phase)
+    refstates = [ReferenceState('A', phase), ReferenceState('B', phase)]
+    m.shift_reference_state(refstates, dbf)
+
+    statevars =  {
+        v.T: 298.15, v.P: 101325,
+        v.SiteFraction(phase, 0, 'A'): 0.5, v.SiteFraction(phase, 0, 'B'): 0.5,
+        }
+
+    # ideal mixing should be present for GMR
+    idmix_val = 2*0.5*np.log(0.5)*v.R*298.15
+    check_output(m, statevars, 'GMR', idmix_val)
+
+    # shifting the reference state, adding an excess contribution
+    # should see that addition in the output
+    m.shift_reference_state(refstates, dbf, contrib_mods={'xsmix': S(1000.0)})
+    # each pure element contribution is has xsmix changed from 0 to 1
+    # At x=0.5, the reference xsmix energy is added to by 0.5*1000.0, which is
+    # then subtracted out of the GM energy
+    check_output(m, statevars, 'GMR', idmix_val-1000.0)

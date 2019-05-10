@@ -28,7 +28,7 @@ sympy.functions.elementary.piecewise.Piecewise.eval = classmethod(pycalphad.core
 
 from pycalphad.core.errors import *
 import pycalphad.variables as v
-from pycalphad.model import Model
+from pycalphad.model import Model, ReferenceState
 from pycalphad.io.database import Database
 
 # Trigger format extension hooks
