@@ -10,4 +10,5 @@ Examples
    TernaryExamples
    ReferenceStateExamples
    PlotActivity
+   ViscosityModel
    UsingCalculationResults
