@@ -1,6 +1,7 @@
 from sympy import ImmutableMatrix, MatrixSymbol, Symbol
 from pycalphad.codegen.sympydiff_utils import AutowrapFunction, CompileLock
 from pycalphad.core.cache import cacheit
+from pycalphad import variables as v
 from pycalphad.core.constants import INTERNAL_CONSTRAINT_SCALING, MULTIPHASE_CONSTRAINT_SCALING
 from collections import namedtuple
 
@@ -70,9 +71,9 @@ def build_constraints(mod, variables, conds, parameters=None):
     multiphase_constraints = mod.get_multiphase_constraints(conds)
     multiphase_constraints = [MULTIPHASE_CONSTRAINT_SCALING*x for x in multiphase_constraints]
     # TODO: Conditions needing Hessians should probably have a 'second-order' tag or something
-    has_chempots = any(str(cond).startswith('MU') for cond in conds.keys())
+    need_hess = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
     cf_output = _build_constraint_functions(variables, internal_constraints,
-                                            include_hess=has_chempots, parameters=parameters)
+                                            include_hess=need_hess, parameters=parameters)
     internal_cons = cf_output.cons_func
     internal_jac = cf_output.cons_jac
     internal_cons_hess = cf_output.cons_hess
