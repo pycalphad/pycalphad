@@ -3,7 +3,6 @@ The utils module handles helper routines for equilibrium calculation.
 """
 from __future__ import division
 import pycalphad.variables as v
-from pycalphad import Model
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy.utilities.lambdify import lambdify
@@ -375,7 +374,7 @@ def extract_parameters(parameters):
     return param_symbols, param_values
 
 
-def instantiate_models(dbf, comps, phases, models, parameters=None, symbols_only=True):
+def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_only=True):
     """
 
     Parameters
@@ -386,22 +385,24 @@ def instantiate_models(dbf, comps, phases, models, parameters=None, symbols_only
         Names of components to consider in the calculation.
     phases : Iterable
         Names of phases to consider in the calculation.
-    models : Model class, a dict of phase names to Model, or a Iterable of both
+    model : Model class, a dict of phase names to Model, or a Iterable of both
         Model class to use for each phase.
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in
         the Database.
     symbols_only : bool
-        If True, symbols will be extracted from the parameters dict as used to
+        If True, symbols will be extracted from the parameters dict and used to
         construct the Model instances.
 
     Returns
     -------
 
     """
+    from pycalphad import Model
+    parameters = parameters if parameters is not None else {}
     if symbols_only:
         parameters, _ = extract_parameters(parameters)
-    models_dict = unpack_kwarg(models, Model)
+    models_dict = unpack_kwarg(model, Model)
     for name in phases:
         mod = models_dict[name]
         if isinstance(mod, type):
@@ -424,6 +425,13 @@ def get_state_variables(models=None, conds=None):
     -------
     set
         State variables that are defined in the models and or conditions.
+
+    Examples
+    --------
+    >>> from pycalphad import variables as v
+    >>> from pycalphad.core.utils import get_state_variables
+    >>> get_state_variables(conds={v.P: 101325, v.N: 1, v.X('AL'): 0.2}) == {v.P, v.N, v.T}
+    True
     """
     state_vars = set()
     if models is not None:

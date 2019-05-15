@@ -46,11 +46,17 @@ def test_issue116():
     result_one_values = result_one.GM.values
     result_two = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325)
     result_two_values = result_two.GM.values
+    result_three = calculate(DBF, ['AL', 'CR', 'NI'], 'LIQUID', T=400, P=101325, N=1)
+    result_three_values = result_three.GM.values
     np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_two_values))
-    assert len(result_one_values.shape) == 2
+    np.testing.assert_array_equal(np.squeeze(result_one_values), np.squeeze(result_three_values))
+    # N is added automatically
+    assert len(result_one_values.shape) == 3  # N, T, points
     assert result_one_values.shape[0] == 1
-    assert len(result_two_values.shape) == 3
-    assert result_two_values.shape[:2] == (1, 1)
+    assert len(result_two_values.shape) == 4  # N, P, T, points
+    assert result_two_values.shape[:3] == (1, 1, 1)
+    assert len(result_three_values.shape) == 4  # N, P, T, points
+    assert result_three_values.shape[:3] == (1, 1, 1)
 
 
 def test_calculate_some_phases_filtered():
