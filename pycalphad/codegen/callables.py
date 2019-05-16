@@ -5,6 +5,7 @@ from pycalphad.core.utils import get_pure_elements, unpack_components, \
 from pycalphad.core.phase_rec import PhaseRecord
 from pycalphad.core.constraints import build_constraints
 from itertools import repeat
+import warnings
 
 
 def build_callables(dbf, comps, phases, models, parameter_symbols=None,
@@ -88,6 +89,11 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
 
     state_variables = get_state_variables(models=models)
     state_variables |= additional_statevars
+    if state_variables != {v.T, v.P, v.N}:
+        warnings.warn("State variables in `build_callables` are not {{N, P, T}}, "
+                      "but {}. Be sure you know what you are doing. "
+                      "State variables can be added with the `additional_statevars` "
+                      "argument.".format(state_variables))
     state_variables = sorted(state_variables, key=str)
 
     for name in phases:
