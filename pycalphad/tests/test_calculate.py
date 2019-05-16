@@ -4,7 +4,7 @@ Model quantities correctly.
 """
 
 import nose.tools
-from pycalphad import Database, calculate
+from pycalphad import Database, calculate, Model
 import numpy as np
 try:
     # Python 2
@@ -72,6 +72,24 @@ def test_calculate_raises_with_no_active_phases_passed():
     """Passing inactive phases to calculate() raises a ConditionError."""
     # Phase cannot be built without FE
     calculate(ALFE_DBF, ['AL', 'VA'], ['AL13FE4'], T=1200, P=101325)
+
+
+@nose.tools.raises(ValueError)
+def test_incompatible_model_instance_raises():
+    "Calculate raises when an incompatible Model instance built with a different phase is passed."
+    comps = ['AL', 'CR', 'NI']
+    phase_name = 'L12_FCC'
+    mod = Model(DBF, comps, 'LIQUID')  # Model instance does not match the phase
+    calculate(DBF, comps, phase_name, T=1400.0, output='_fail_', model=mod)
+
+
+@nose.tools.raises(ValueError)
+def test_single_model_instance_raises():
+    "Calculate raises when a single Model instance is passed with multiple phases."
+    comps = ['AL', 'CR', 'NI']
+    phase_name = 'L12_FCC'
+    mod = Model(DBF, comps, 'L12_FCC')  # Model instance does not match the phase
+    calculate(DBF, comps, ['LIQUID', 'L12_FCC'], T=1400.0, output='_fail_', model=mod)
 
 
 if __name__ == '__main__':

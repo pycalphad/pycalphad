@@ -325,7 +325,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
                              .format(phases, list_of_possible_phases))
 
-    models = instantiate_models(dbf, comps, active_phases, model=kwargs.pop('model', None), parameters=parameters)
+    models = instantiate_models(dbf, comps, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
 
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')

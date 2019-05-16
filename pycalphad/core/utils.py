@@ -398,10 +398,16 @@ def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_
     -------
 
     """
-    from pycalphad import Model
+    from pycalphad import Model  # avoid cyclic imports
     parameters = parameters if parameters is not None else {}
     if symbols_only:
         parameters, _ = extract_parameters(parameters)
+    if isinstance(model, Model):  # Check that this instance is compatible with phases
+        if len(phases) > 1:
+            raise ValueError("Cannot instantiate models for multiple phases ({}) using a Model instance ({}, phase: {})".format(phases, model, model.phase_name))
+        else:
+            if phases[0] != model.phase_name:
+                raise ValueError("Cannot instantiate models because the desired {} phase does not match the Model instance () {} phase.".format(phases[0], model.phase_name, model))
     models_dict = unpack_kwarg(model, Model)
     for name in phases:
         mod = models_dict[name]
