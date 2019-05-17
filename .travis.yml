@@ -1,15 +1,12 @@
 language: python
 sudo: required
 dist: trusty
-services:
-    - docker
 notifications:
   email: false
 
 matrix:
     include:
         - python: 2.7
-          #env: DOCKER_TAG=linux-python27
         - python: 3.6
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81
         - name: "Python 3.7.1 on Xenial Linux"
@@ -29,57 +26,40 @@ matrix:
 # Setup anaconda
 before_install:
   - set -e # Exit immediately if a command exits with a non-zero status
-  - |
-      if [ -z "$DOCKER_TAG" ]; then
-        echo "!!! DOCKER_TAG not defined. Running travis legacy deps"
-        ./ci/travis_legacy_deps.sh
-      else
-        echo "!!! DOCKER_TAG defined. Doing docker run"
-        export DOCKER_USER=richardotis
-        docker run --cidfile /tmp/build.cid -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad-base:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv ; conda develop . ; pip install coveralls nose-cov; python setup.py build_ext --inplace ; python setup.py install ; python -c 'import pycalphad ; print(pycalphad.__version__)' ; cd /work"
-        echo "!!! Committing to docker"
-        docker commit `cat /tmp/build.cid` $DOCKER_USER/pycalphad:$DOCKER_TAG
-      fi
+  - ./ci/travis_legacy_deps.sh
+
 # Install packages
 install:
   - |
-      if [ -z "$DOCKER_TAG" ]; then
-        . $HOME/miniconda2/etc/profile.d/conda.sh
-        conda deactivate
-        conda activate condaenv
-        # Use a conda-forge metachannel for speed, including only dependencies
-        # of pycalphad. See https://github.com/regro/conda-metachannel
-        # For some reason, conda-metachannel is breaking Linux by not picking
-        # up some packages (e.g. libgfortran-ng), which I think come from
-        # defaults. Only use conda metachannel on Mac.
-        if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-          echo "!!! Installing pycalphad dependencies via conda metachannel"
-          conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
-        else
-          echo "!!! Installing pycalphad dependencies via conda the normal way"
-          # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
-          conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
-          conda install --yes xarray cython cyipopt
-        fi
-        echo "!!! pip pycalphad as editable"
-        pip install -e .
+      . $HOME/miniconda2/etc/profile.d/conda.sh
+      conda deactivate
+      conda activate condaenv
+      # Use a conda-forge metachannel for speed, including only dependencies
+      # of pycalphad. See https://github.com/regro/conda-metachannel
+      # For some reason, conda-metachannel is breaking Linux by not picking
+      # up some packages (e.g. libgfortran-ng), which I think come from
+      # defaults. Only use conda metachannel on Mac.
+      if [ "$TRAVIS_OS_NAME" == "osx" ]; then
+        echo "!!! Installing pycalphad dependencies via conda metachannel"
+        conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge/nose,pycalphad python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt
+      else
+        echo "!!! Installing pycalphad dependencies via conda the normal way"
+        # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
+        conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill
+        conda install --yes xarray cython cyipopt
       fi
- 
+      echo "!!! pip pycalphad as editable"
+      pip install -e .
+
 # Run test
 script:
   - |
-      if [ -z "$DOCKER_TAG" ]; then
-        echo "!!! pip installing test packages"
-        pip install sphinx sphinx_rtd_theme coveralls ipython
-        echo "!!! conda list output"
-        conda list
-        echo "!!! running nosetests"
-        nosetests --with-coverage
-        echo "!!! Running ci/deploy script"
-        bash ci/deploy.sh
-        coveralls
-      else
-        echo "!!! Running nosetests and ci deploy script in docker"
-        env -u PATH -u PYTHONPATH -u LANG -u PWD -u HOME -u TRAVIS_COMMIT_MESSAGE > ./env.list
-        docker run --rm --env-file ./env.list -v $(pwd):/pycalphad:rw  -it $DOCKER_USER/pycalphad:$DOCKER_TAG /bin/bash -c "cd /pycalphad ; source /work/miniconda/envs/condaenv/bin/activate condaenv && && conda list && nosetests --with-coverage && pip install sphinx sphinx_rtd_theme coveralls ipython && bash ci/deploy.sh && coveralls"
-      fi
+      echo "!!! pip installing test packages"
+      pip install sphinx sphinx_rtd_theme coveralls ipython
+      echo "!!! conda list output"
+      conda list
+      echo "!!! running nosetests"
+      nosetests --with-coverage
+      echo "!!! Running ci/deploy script"
+      bash ci/deploy.sh
+      coveralls
