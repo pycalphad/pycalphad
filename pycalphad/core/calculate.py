@@ -4,12 +4,12 @@ property surface of a system.
 """
 
 from __future__ import division
-from pycalphad import Model
-from pycalphad.codegen.callables import build_callables
+from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
-from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition, unpack_components
+from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
+    unpack_components, get_state_variables, instantiate_models
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
@@ -297,8 +297,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # there may be keyword arguments that aren't state variables
     pdens_dict = unpack_kwarg(kwargs.pop('pdens', 2000), default_arg=2000)
     points_dict = unpack_kwarg(kwargs.pop('points', None), default_arg=None)
-    model_dict = unpack_kwarg(kwargs.pop('model', Model), default_arg=Model)
-    callables_dict = kwargs.pop('callables', {})
+    callables = kwargs.pop('callables', {})
     sampler_dict = unpack_kwarg(kwargs.pop('sampler', None), default_arg=None)
     fixedgrid_dict = unpack_kwarg(kwargs.pop('grid_points', True), default_arg=True)
     parameters = parameters or dict()
@@ -326,33 +325,31 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
                              .format(phases, list_of_possible_phases))
 
+    models = instantiate_models(dbf, comps, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
 
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
     output = output if output is not None else 'GM'
 
-    conds = {getattr(v, str(key)): value for key, value in kwargs.items() if getattr(v, str(key), None) is not None}
-    eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
-                                   model=model_dict,
-                                   parameters=parameters,
-                                   output=output, callables=callables_dict, build_gradients=False,
-                                   verbose=False)
+    # Implicitly add 'N' state variable as a string to keyword arguements if it's not passed
+    if kwargs.get('N') is None:
+        kwargs['N'] = 1
+    if np.any(np.array(kwargs['N']) != 1):
+        raise ConditionError('N!=1 is not yet supported, got N={}'.format(kwargs['N']))
 
-    phase_records = eq_callables['phase_records']
-    state_variables = eq_callables['state_variables']
-    models = eq_callables['model']
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
-
-    # Convert keyword strings to proper state variable objects
+    # TODO: conditions dict of StateVariable instances should become part of the calculate API
+    statevar_strings = [sv for sv in kwargs.keys() if getattr(v, sv) is not None]
     # If we don't do this, sympy will get confused during substitution
-    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for (key, value) in kwargs.items()
-                         if str(key) in [str(x) for x in state_variables])
-
+    statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
+    phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
+                                   models=models, parameters=parameters,
+                                   output=output, callables=callables,
+                                   verbose=kwargs.pop('verbose', False))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
-
+    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
     for phase_name, phase_obj in sorted(active_phases.items()):
         mod = models[phase_name]
         phase_record = phase_records[phase_name]

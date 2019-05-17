@@ -13,6 +13,7 @@ import numpy as np
 from pycalphad import Database, Model, calculate, equilibrium, EquilibriumError, ConditionError
 from pycalphad.codegen.callables import build_callables
 from pycalphad.core.solver import SolverBase, InteriorPointSolver
+from pycalphad.core.utils import get_state_variables
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 
@@ -357,12 +358,10 @@ def test_eq_build_callables_with_parameters():
     dbf = AL_PARAMETER_DBF
     phases = ['FCC_A1']
     conds = {v.P: 101325, v.T: 500, v.N: 1}
+    conds_statevars = get_state_variables(conds=conds)
+    models = {'FCC_A1': Model(dbf, comps, 'FCC_A1', parameters=['VV0000'])}
     # build callables with a parameter of 20000.0
-    callables = build_callables(dbf, comps, phases, conds=conds, parameters={'VV0000': 20000})
-
-    # Check that passing callables should skip the build phase, but use the values from 'VV0000' saved in callables
-    eq_res = equilibrium(dbf, comps, phases, conds, callables=callables)
-    np.testing.assert_allclose(eq_res.GM.values.squeeze(), 20000.0)
+    callables = build_callables(dbf, comps, phases, models=models, parameter_symbols=['VV0000'], additional_statevars=conds_statevars)
 
     # Check that passing callables should skip the build phase, but use the values from 'VV0000' as passed in parameters
     eq_res = equilibrium(dbf, comps, phases, conds, callables=callables, parameters={'VV0000': 10000})

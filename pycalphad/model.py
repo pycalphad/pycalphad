@@ -9,7 +9,7 @@ from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
 from pycalphad.core.constants import MIN_SITE_FRACTION
-from pycalphad.core.utils import unpack_components, get_pure_elements
+from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
 from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
 from collections import OrderedDict
@@ -155,11 +155,6 @@ class Model(object):
         # This makes xreplace work with the symbols dict
         symbols = {Symbol(s): val for s, val in dbe.symbols.items()}
 
-        def wrap_symbol(obj):
-            if isinstance(obj, Symbol):
-                return obj
-            else:
-                return Symbol(obj)
         if parameters is not None:
             self._parameters_arg = parameters
             if isinstance(parameters, dict):

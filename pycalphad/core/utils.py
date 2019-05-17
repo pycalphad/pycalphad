@@ -7,6 +7,7 @@ from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy.utilities.lambdify import lambdify
 from sympy.printing.lambdarepr import LambdaPrinter
+from sympy import Symbol
 import numpy as np
 import operator
 import functools
@@ -347,3 +348,112 @@ def filter_phases(dbf, comps):
                 all_sublattices_active(comps, dbf.phases[phase]) and
                 phase not in disordered_phases]
     return sorted(phases)
+
+
+def extract_parameters(parameters):
+    """
+    Extract symbols and values from parameters.
+
+    Parameters
+    ----------
+    parameters : dict
+        Dictionary of parameters
+
+    Returns
+    -------
+    tuple
+        Tuple of parameter symbols and parameter values
+    """
+    if len(parameters) > 0:
+        param_symbols, param_values = zip(*[(wrap_symbol(key), val) for key, val in sorted(parameters.items(),
+                                                                              key=operator.itemgetter(0))])
+        param_values = np.asarray(param_values, dtype=np.float64)
+    else:
+        param_symbols = []
+        param_values = np.empty(0)
+    return param_symbols, param_values
+
+
+def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_only=True):
+    """
+
+    Parameters
+    ----------
+    dbf : Database
+        Database used to construct the Model instances.
+    comps : Iterable
+        Names of components to consider in the calculation.
+    phases : Iterable
+        Names of phases to consider in the calculation.
+    model : Model class, a dict of phase names to Model, or a Iterable of both
+        Model class to use for each phase.
+    parameters : dict, optional
+        Maps SymPy Symbol to numbers, for overriding the values of parameters in
+        the Database.
+    symbols_only : bool
+        If True, symbols will be extracted from the parameters dict and used to
+        construct the Model instances.
+
+    Returns
+    -------
+
+    """
+    from pycalphad import Model  # avoid cyclic imports
+    parameters = parameters if parameters is not None else {}
+    if symbols_only:
+        parameters, _ = extract_parameters(parameters)
+    if isinstance(model, Model):  # Check that this instance is compatible with phases
+        if len(phases) > 1:
+            raise ValueError("Cannot instantiate models for multiple phases ({}) using a Model instance ({}, phase: {})".format(phases, model, model.phase_name))
+        else:
+            if phases[0] != model.phase_name:
+                raise ValueError("Cannot instantiate models because the desired {} phase does not match the Model instance () {} phase.".format(phases[0], model.phase_name, model))
+    models_dict = unpack_kwarg(model, Model)
+    for name in phases:
+        mod = models_dict[name]
+        if isinstance(mod, type):
+            models_dict[name] = mod(dbf, comps, name, parameters=parameters)
+    return models_dict
+
+
+def get_state_variables(models=None, conds=None):
+    """
+    Return a set of StateVariables defined Model instances and/or conditions.
+
+    Parameters
+    ----------
+    models : dict, optional
+        Dictionary mapping phase names to instances of Model objects
+    conds : dict, optional
+        Dictionary mapping pycalphad StateVariables to values
+
+    Returns
+    -------
+    set
+        State variables that are defined in the models and or conditions.
+
+    Examples
+    --------
+    >>> from pycalphad import variables as v
+    >>> from pycalphad.core.utils import get_state_variables
+    >>> get_state_variables(conds={v.P: 101325, v.N: 1, v.X('AL'): 0.2}) == {v.P, v.N, v.T}
+    True
+    """
+    state_vars = set()
+    if models is not None:
+        for mod in models.values():
+            state_vars.update(mod.state_variables)
+    if conds is not None:
+        for c in conds.keys():
+            # StateVariable instances are ok (e.g. P, T, N, V, S),
+            # however, subclasses (X, Y, MU, NP) are not ok.
+            if type(c) is v.StateVariable:
+                state_vars.add(c)
+    return state_vars
+
+
+def wrap_symbol(obj):
+    if isinstance(obj, Symbol):
+        return obj
+    else:
+        return Symbol(obj)

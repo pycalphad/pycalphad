@@ -252,3 +252,5 @@ site_fraction = Y = SiteFraction
 X = Composition
 MU = ChemicalPotential
 si_gas_constant = R = Float(8.3145) # ideal gas constant
+
+CONDITIONS_REQUIRING_HESSIANS = {ChemicalPotential, PhaseFraction}

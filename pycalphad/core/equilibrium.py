@@ -5,11 +5,11 @@ calculated phase equilibria.
 from __future__ import print_function
 import warnings
 import pycalphad.variables as v
-from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases
-from pycalphad import calculate, Model
+from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
+from pycalphad import calculate
 from pycalphad.core.errors import EquilibriumError, ConditionError
 from pycalphad.core.starting_point import starting_point
-from pycalphad.codegen.callables import build_callables
+from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
@@ -141,10 +141,11 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         result['NP'] = data['NP'].copy()
     return result
 
+
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None,
-                scheduler='sync',
-                parameters=None, solver=None, callables=None, **kwargs):
+                scheduler='sync', parameters=None, solver=None, callables=None,
+                **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
     components and phases, under the specified conditions.
@@ -192,7 +193,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     --------
     None yet.
     """
-    from pycalphad import __version__ as pycalphad_version
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     comps = sorted(unpack_components(dbf, comps))
@@ -209,18 +209,17 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if len(set(comps) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
                                .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
-
     calc_opts = calc_opts if calc_opts is not None else dict()
-    model = model if model is not None else Model
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
+    models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
     # Temporary solution until constraint system improves
-    if not conditions.get(v.N, False):
+    if conditions.get(v.N) is None:
         conditions[v.N] = 1
-    if conditions[v.N] != 1:
-        raise ConditionError('N!=1 is not yet supported')
+    if np.any(np.array(conditions[v.N]) != 1):
+        raise ConditionError('N!=1 is not yet supported, got N={}'.format(conditions[v.N]))
     # Modify conditions values to be within numerical limits, e.g., X(AL)=0
     # Also wrap single-valued conditions with lists
     conds = _adjust_conditions(conditions)
@@ -228,13 +227,13 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     for cond in conds.keys():
         if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
+    state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
     num_calcs = np.prod([len(i) for i in str_conds.values()])
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
-    other_output_callables = {}
     if verbose:
         print('Components:', ' '.join([str(x) for x in comps]))
         print('Phases:', end=' ')
@@ -243,41 +242,29 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = set(output)
     output |= {'GM'}
     output = sorted(output)
-    for o in output:
-        if o == 'GM':
-            eq_callables = build_callables(dbf, comps, active_phases, conds=conds,
-                                           model=model,
-                                           parameters=parameters,
-                                           output=o, build_gradients=True, callables=callables,
-                                           verbose=verbose)
-        else:
-            other_output_callables[o] = build_callables(dbf, comps, active_phases, conds=conds,
-                                                        model=model,
-                                                        parameters=parameters,
-                                                        output=o, build_gradients=False,
-                                                        verbose=False)
-
-    phase_records = eq_callables['phase_records']
-    state_variables = eq_callables['state_variables']
-    models = eq_callables['model']
-
+    need_hessians = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
+    phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
+                                        output='GM', callables=callables,
+                                        parameters=parameters, verbose=verbose,
+                                        build_gradients=True, build_hessians=need_hessians)
     if verbose:
         print('[done]', end='\n')
 
     # 'calculate' accepts conditions through its keyword arguments
     grid_opts = calc_opts.copy()
-    grid_opts.update({key: value for key, value in str_conds.items() if key in [str(x) for x in state_variables]})
+    statevar_strings = [str(x) for x in state_variables]
+    grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-    grid = delayed(calculate, pure=False)(dbf, comps, active_phases, output='GM',
-                                          model=models, fake_points=True, callables=eq_callables,
+    grid = delayed(calculate, pure=False)(dbf, comps, active_phases,
+                                          model=models, fake_points=True,
+                                          callables=callables, output='GM',
                                           parameters=parameters, **grid_opts)
-    nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(
         len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
-    coord_dict['component'] = nonvacant_elements
-    grid_shape = tuple(len(x) for x in conds.values()) + (len(nonvacant_elements)+1,)
+    coord_dict['component'] = pure_elements
+    grid_shape = tuple(len(x) for x in conds.values()) + (len(pure_elements)+1,)
     properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
     conditions_per_chunk_per_axis = 2
     if num_calcs > 1:
@@ -320,7 +307,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = False
         eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
                                                   data=properties, per_phase=per_phase,
-                                                  callables=other_output_callables[out],
+                                                  callables=callables,
                                                   parameters=parameters,
                                                   model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, compat='equals')
