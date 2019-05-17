@@ -28,7 +28,7 @@ requirements:
     - xarray >=0.11.2
     - sympy >=1.4
     - pyparsing
-    - tinydb
+    - tinydb >=3.8
     - scipy
     - dask >=1.2.0
     - distributed
@@ -47,7 +47,7 @@ requirements:
     - xarray >=0.11.2
     - sympy >=1.4
     - pyparsing
-    - tinydb
+    - tinydb >=3.8
     - scipy
     - dask >=1.2.0
     - distributed

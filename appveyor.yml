@@ -38,7 +38,7 @@ install:
   - "conda config --add channels msys2"
   - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill tinydb cython cyipopt m2w64-toolchain libpython"
+  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt m2w64-toolchain libpython"
   - "pip install -e ."
 
 build: false
