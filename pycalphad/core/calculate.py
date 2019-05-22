@@ -349,7 +349,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                                    verbose=kwargs.pop('verbose', False))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
-    maximum_internal_dof = max(len(mod.site_fractions) for mod in models.values())
+    maximum_internal_dof = max(len(models[phase_name].site_fractions) for phase_name in active_phases)
     for phase_name, phase_obj in sorted(active_phases.items()):
         mod = models[phase_name]
         phase_record = phase_records[phase_name]
