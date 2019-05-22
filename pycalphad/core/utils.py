@@ -396,7 +396,8 @@ def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_
 
     Returns
     -------
-
+    dict
+        Dictionary of Model instances corresponding to the passed phases.
     """
     from pycalphad import Model  # avoid cyclic imports
     parameters = parameters if parameters is not None else {}
@@ -408,11 +409,14 @@ def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_
         else:
             if phases[0] != model.phase_name:
                 raise ValueError("Cannot instantiate models because the desired {} phase does not match the Model instance () {} phase.".format(phases[0], model.phase_name, model))
-    models_dict = unpack_kwarg(model, Model)
+    models_defaultdict = unpack_kwarg(model, Model)
+    models_dict = {}
     for name in phases:
-        mod = models_dict[name]
+        mod = models_defaultdict[name]
         if isinstance(mod, type):
             models_dict[name] = mod(dbf, comps, name, parameters=parameters)
+        else:
+            models_dict[name] = mod
     return models_dict
 
 
