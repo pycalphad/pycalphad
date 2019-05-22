@@ -35,7 +35,7 @@ def test_instantiate_models_only_returns_desired_phases():
     assert len(inst_mods) == len(phases)
 
     # models are underspecified w.r.t. phases
-    too_few_phases = ['FCC_A1', 'LIQUID', 'AL3NI1']
-    too_few_models = {phase: Model(ALNIPT_DBF, comps, phase) for phase in too_many_phases}
+    too_few_phases = ['FCC_A1']
+    too_few_models = {phase: Model(ALNIPT_DBF, comps, phase) for phase in too_few_phases}
     inst_mods = instantiate_models(ALNIPT_DBF, comps, phases, model=too_few_models)
     assert len(inst_mods) == len(phases)
