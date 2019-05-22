@@ -1,5 +1,0 @@
-FROM richardotis/pycalphad-base:linux-python35
-RUN conda install -n condaenv -y mkl libgfortran gcc && \
-    pip install git+git://github.com/pycalphad/pycalphad@develop && \
-    pip install tinydb==2.4 && \
-    conda clean -tipsy && rm -Rf /tmp/*
