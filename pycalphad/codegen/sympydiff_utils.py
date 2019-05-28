@@ -118,7 +118,6 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
             new_parameters.append(Symbol(param))
     parameters = tuple(new_parameters)
     variables = tuple(variables)
-    restup = []
     func = None
     grad = None
     hess = None
@@ -166,7 +165,4 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
             with CompileLock:
                 hess_diffs = list(list(x.diff(nobroadcast[i]) for i in wrt) for x in grad_diffs)
             hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
-    if len(restup) == 1:
-        return restup[0]
-    else:
-        return BuildFunctionsResult(func=func, grad=grad, hess=hess)
+    return BuildFunctionsResult(func=func, grad=grad, hess=hess)
