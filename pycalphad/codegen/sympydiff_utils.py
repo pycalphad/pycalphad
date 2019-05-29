@@ -3,7 +3,8 @@ This module constructs gradient functions for Models.
 """
 from pycalphad.codegen.custom_autowrap import autowrap, import_extension
 from pycalphad.core.cache import cacheit
-from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Lambda, Eq, S
+from pycalphad.core.utils import wrap_symbol_symengine
+from symengine import sympify, lambdify, Symbol
 import time
 import tempfile
 from collections import namedtuple
@@ -86,7 +87,7 @@ BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess
 
 
 @cacheit
-def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=False,
+def build_functions_sympy(sympy_graph, variables, wrt=None, include_obj=True, include_grad=True, include_hess=False,
                     parameters=None):
     """
 
@@ -106,6 +107,8 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
     -------
     One or more functions.
     """
+    from sympy import zoo, oo, ImmutableMatrix, IndexedBase, MatrixSymbol, Symbol, Idx, Lambda, Eq, S
+
     if wrt is None:
         wrt = tuple(variables)
     if parameters is None:
@@ -144,6 +147,7 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
 
     if isinstance(sympy_graph, ImmutableMatrix):
         # disable broadcasting for matrix input
+        raise ValueError("hit that")
         args = (inp_nobroadcast, params)
         nobroadcast = dict(zip(variables + parameters, args_nobroadcast))
         sympy_graph_nobroadcast = sympy_graph.xreplace(nobroadcast).xreplace({zoo: oo, S.Pi: 3.14159265359})
@@ -165,4 +169,35 @@ def build_functions(sympy_graph, variables, wrt=None, include_obj=True, include_
             with CompileLock:
                 hess_diffs = list(list(x.diff(nobroadcast[i]) for i in wrt) for x in grad_diffs)
             hess = AutowrapFunction(diffargs, ImmutableMatrix(hess_diffs))
+    return BuildFunctionsResult(func=func, grad=grad, hess=hess)
+
+
+@cacheit
+def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_obj=True, include_grad=False, include_hess=False, cse=True):
+    if wrt is None:
+        wrt = sympify(tuple(variables))
+    if parameters is None:
+        parameters = []
+    else:
+        parameters = [wrap_symbol_symengine(p) for p in parameters]
+    variables = tuple(variables)
+    parameters = tuple(parameters)
+    func, grad, hess = None, None, None
+    t1 = time.time()
+    inp = sympify(variables + parameters)
+    graph = sympify(sympy_graph)
+    t2 = time.time()
+    print('sympify time', t2-t1)
+    if include_obj:
+        lfunc = lambdify(inp, [graph], backend='llvm', cse=cse)
+        func = lfunc.unsafe_real
+    if include_grad or include_hess:
+        grad_graphs = list(graph.diff(w) for w in wrt)
+        if include_grad:
+            lgrad = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
+            grad = lgrad.unsafe_real
+        if include_hess:
+            hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
+            lhess = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
+            hess = lhess.unsafe_real
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)
