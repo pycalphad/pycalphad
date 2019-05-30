@@ -1,6 +1,7 @@
 # distutils: language = c++
 
 cimport cython
+from libc.stdlib cimport malloc, free
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 import numpy as np
 cimport numpy as np
@@ -287,22 +288,60 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
-        # with gil:
-        #     self._ofunc.call(&outp[0], &dof[0, 0])
-        cdef int i
+        cdef double* dof_concat
+        cdef int i, j
         cdef int num_inps = dof.shape[0]
+        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
+
+        if self.parameters.shape[0] == 0:
+            dof_concat = &dof[0, 0]
+        else:
+            dof_concat = <double *> malloc(num_inps * num_dof * sizeof(double))
+            for i in range(num_inps):
+                for j in range(0,dof.shape[1]):
+                    dof_concat[i * num_dof + j] = dof[i, j]
+                for j in range(dof.shape[1], num_dof):
+                    dof_concat[i * num_dof + j] = self.parameters[j - dof.shape[1]]
         for i in range(num_inps):
-            self._obj.call(&outp[i], &dof[i, 0])
+            self._obj.call(&outp[i], &dof_concat[i * num_dof])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
-        self._grad.call(&out[0], &dof[0])
+        cdef double* dof_concat
+        cdef int j
+        cdef int num_dof = dof.shape[0] + self.parameters.shape[0]
+        if self.parameters.shape[0] == 0:
+            dof_concat = &dof[0]
+        else:
+            dof_concat = <double *> malloc(num_dof * sizeof(double))
+            for j in range(0,dof.shape[0]):
+                dof_concat[j] = dof[j]
+            for j in range(dof.shape[0], num_dof):
+                dof_concat[j] = self.parameters[j - dof.shape[0]]
+        self._grad.call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
-        self._hess.call(&out[0,0], &dof[0])
+        cdef double* dof_concat
+        cdef int j
+        cdef int num_dof = dof.shape[0] + self.parameters.shape[0]
+        if self.parameters.shape[0] == 0:
+            dof_concat = &dof[0]
+        else:
+            dof_concat = <double *> malloc(num_dof * sizeof(double))
+            for j in range(0,dof.shape[0]):
+                dof_concat[j] = dof[j]
+            for j in range(dof.shape[0], num_dof):
+                dof_concat[j] = self.parameters[j - dof.shape[0]]
+        self._hess.call(&out[0,0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
 
     @cython.boundscheck(False)
