@@ -57,7 +57,9 @@ setup(
     },
     # TODO: hardcoded include
     # This include is for the compiler to find the *.h files during the build_ext phase
-    include_dirs=[np.get_include(), '/Users/brandon/anaconda3/envs/calphad-dev/include/symengine/'],
+    # the include must contain a symengine directory with header files
+    # TODO: Brandon needed to add a CFLAGS='-std=c++11' before the setup.py build_ext command.
+    include_dirs=[np.get_include(), '/Users/brandon/anaconda3/envs/calphad-dev/include'],
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
