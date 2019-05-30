@@ -234,7 +234,7 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
 
         cdef symengine.LLVMDoubleVisitor _ocaller = symengine.LLVMDoubleVisitor()
         _ocaller.loads(ofunc.__reduce__()[-1][-1])
-        self._ofunc = _ocaller
+        self._obj = _ocaller
         if gfunc is not None:
             self._gfunc = gfunc
             self._grad = gfunc
@@ -286,7 +286,7 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
         cdef int i
         cdef int num_inps = dof.shape[0]
         for i in range(num_inps):
-            self._ofunc.call(&outp[i], &dof[i, 0])
+            self._obj.call(&outp[i], &dof[i, 0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

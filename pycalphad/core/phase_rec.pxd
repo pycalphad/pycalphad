@@ -54,7 +54,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
 @cython.final
 cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseRecordSEObject]:
-    cdef public object _obj
+    cdef symengine.LLVMDoubleVisitor _obj
     cdef public object _grad
     cdef public object _hess
     cdef func_novec_t* _internal_cons
@@ -65,7 +65,7 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     cdef func_t** _masses
     cdef func_novec_t** _massgrads
     cdef func_novec_t** _masshessians
-    cdef symengine.LLVMDoubleVisitor _ofunc
+    cdef public object _ofunc
     cdef public object _gfunc
     cdef public object _hfunc
     cdef public object _intconsfunc
