@@ -13,13 +13,19 @@ cdef void* cython_pointer(obj):
         return PyCapsule_GetPointer(obj, NULL);
     raise ValueError("Not an object containing a void ptr")
 
-cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
+cdef symengine.LLVMDoubleVisitor llvm_double_visitor(llvm_double_obj):
+    """Use the bytes from calling reduce on an LLVMDouble object to construct an LLVMDoubleVisitor"""
+    cdef symengine.LLVMDoubleVisitor f = symengine.LLVMDoubleVisitor()
+    f.loads(llvm_double_obj.__reduce__()[-1][-1])
+    return f
+
+cdef public class OldPhaseRecord(object)[type OldPhaseRecordType, object OldPhaseRecordObject]:
     """
     This object exposes a common API to the solver so it doesn't need to know about the differences
     between Model implementations. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-            return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
+            return OldPhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
                                  self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
                                  self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
                                  self._mpconsfunc, self._mpjacfunc,
@@ -191,13 +197,13 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
 
 
-cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseRecordSEObject]:
+cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
     """
     This object exposes a common API to the solver so it doesn't need to know about the differences
     between Model implementations. PhaseRecords are immutable after initialization.
     """
     def __reduce__(self):
-            return PhaseRecordSE, (self.components, self.state_variables, self.variables, np.array(self.parameters),
+            return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
                                  self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
                                  self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
                                  self._mpconsfunc, self._mpjacfunc,
@@ -232,15 +238,15 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
             self.phase_name = <unicode>variable.phase_name
             self.phase_dof += 1
 
-        cdef symengine.LLVMDoubleVisitor _ocaller = symengine.LLVMDoubleVisitor()
-        _ocaller.loads(ofunc.__reduce__()[-1][-1])
-        self._obj = _ocaller
+        if ofunc is not None:
+            self._ofunc = ofunc
+            self._obj = llvm_double_visitor(ofunc)
         if gfunc is not None:
             self._gfunc = gfunc
-            self._grad = gfunc
+            self._grad = llvm_double_visitor(gfunc)
         if hfunc is not None:
             self._hfunc = hfunc
-            self._hess = hfunc
+            self._hess = llvm_double_visitor(hfunc)
         if internal_cons_func is not None:
             self._intconsfunc = internal_cons_func
         self._internal_cons = NULL
@@ -290,17 +296,14 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void grad(self, double[::1] out, double[::1] dof):
-        pass
-        # self._grad(dof[0], &self.parameters[0], &out[0])
+    cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
+        self._grad.call(&out[0], &dof[0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void hess(self, double[:, ::1] out, double[::1] dof):
-        pass
-        # self._hfunc.kernel
-        # self._hess = <func_novec_t*> cython_pointer(self._hfunc._cpointer)
-        # self._hess(dof[0], &self.parameters[0], &out[0,0])
+    cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
+        self._hess.call(&out[0,0], &dof[0])
+
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

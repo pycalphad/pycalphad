@@ -1,5 +1,5 @@
 import pycalphad.variables as v
-from pycalphad.codegen.sympydiff_utils import build_functions
+from pycalphad.codegen.sympydiff_utils import build_functions, build_functions_sympy
 from pycalphad.core.utils import get_pure_elements, unpack_components, \
     extract_parameters, get_state_variables, wrap_symbol
 from pycalphad.core.phase_rec import PhaseRecord
@@ -113,19 +113,13 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         build_output = build_functions(out, tuple(state_variables + site_fracs), parameters=parameter_symbols,
                                        include_grad=build_gradients, include_hess=build_hessians)
         cf, gf, hf = build_output.func, build_output.grad, build_output.hess
-        # trigger the JIT
-        cf.kernel
-        if gf is not None:
-            gf.kernel
-        if hf is not None:
-            hf.kernel
         _callables['callables'][name] = cf
         _callables['grad_callables'][name] = gf
         _callables['hess_callables'][name] = hf
 
         # Build the callables for mass
         # TODO: In principle, we should also check for undefs in mod.moles()
-        mcf, mgf, mhf = zip(*[build_functions(mod.moles(el), state_variables + site_fracs,
+        mcf, mgf, mhf = zip(*[build_functions_sympy(mod.moles(el), state_variables + site_fracs,
                                               include_obj=True,
                                               include_grad=build_gradients,
                                               include_hess=build_hessians,

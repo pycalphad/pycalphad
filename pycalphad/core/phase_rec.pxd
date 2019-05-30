@@ -6,7 +6,7 @@ cimport cython
 cimport symengine
 
 @cython.final
-cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
+cdef public class OldPhaseRecord(object)[type OldPhaseRecordType, object OldPhaseRecordObject]:
     cdef func_t* _obj
     cdef func_novec_t* _grad
     cdef func_novec_t* _hess
@@ -53,10 +53,10 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
 
 @cython.final
-cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseRecordSEObject]:
+cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
     cdef symengine.LLVMDoubleVisitor _obj
-    cdef public object _grad
-    cdef public object _hess
+    cdef symengine.LLVMDoubleVisitor _grad
+    cdef symengine.LLVMDoubleVisitor _hess
     cdef func_novec_t* _internal_cons
     cdef func_novec_t* _internal_jac
     cdef func_novec_t* _internal_cons_hess
@@ -87,8 +87,8 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     cdef public int phase_dof
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[:, ::1] dof) nogil
-    cpdef void grad(self, double[::1] out, double[::1] dof)
-    cpdef void hess(self, double[:,::1] out, double[::1] dof)
+    cpdef void grad(self, double[::1] out, double[::1] dof) nogil
+    cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil
     cpdef void internal_jacobian(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_cons_hessian(self, double[:,:,::1] out, double[::1] dof) nogil
