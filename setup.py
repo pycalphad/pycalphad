@@ -74,14 +74,12 @@ setup(
                                     sources=['pycalphad/core/eqsolver.pyx'],
                                     extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
-                                    library_dirs=[symengine_pyx_get_include()],
                                     libraries=['symengine']
                                     ),
                            Extension('pycalphad.core.phase_rec',
                                     sources=['pycalphad/core/phase_rec.pyx'],
                                     extra_compile_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
-                                    library_dirs=[symengine_pyx_get_include()],
                                     extra_link_args=['-std=c++11'],
                                     libraries=['symengine']
                                      ),
@@ -89,14 +87,12 @@ setup(
                                     sources=['pycalphad/core/composition_set.pyx'],
                                     extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
-                                    library_dirs=[symengine_pyx_get_include()],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.problem',
                                     sources=['pycalphad/core/problem.pyx'],
                                     extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
-                                    library_dirs=[symengine_pyx_get_include()],
                                     libraries=['symengine']
                                      ),
 
