@@ -2,16 +2,18 @@ import platform
 from distutils.sysconfig import get_config_var
 import sys
 from distutils.version import LooseVersion
-from setuptools import setup
+from setuptools import setup, Extension
 import os
 import versioneer
+from sysconfig import get_paths
 
 try:
     from Cython.Build import cythonize
     import numpy as np
+    import symengine
     import scipy
 except ImportError:
-     raise ImportError("Cython, numpy and scipy must be installed before pycalphad can be installed.")
+     raise ImportError("Cython, numpy, SymEngine, and scipy must be installed before pycalphad can be installed.")
 
 
 # These are related to a fix where Cython does not pick up the correct
@@ -41,6 +43,15 @@ if is_platform_mac():
 def read(fname):
     return open(os.path.join(os.path.dirname(__file__), fname)).read()
 
+
+def symengine_pyx_get_include():
+    return os.path.join(os.path.dirname(symengine.__file__), 'lib')
+
+
+def symengine_h_get_include():
+    return os.path.dirname(get_paths()['include'])
+
+
 setup(
     name='pycalphad',
     version=versioneer.get_version(),
@@ -49,23 +60,48 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
-    # TODO: hardcoded include
     # The includes here are to pick up the *.pyx files
     # We might be able to get around these includes if symengine uses zip_safe=False
     # see: https://cython.readthedocs.io/en/latest/src/userguide/sharing_declarations.html
-    ext_modules=cythonize(['pycalphad/core/hyperplane.pyx', 'pycalphad/core/eqsolver.pyx',
-                           'pycalphad/core/phase_rec.pyx',
-                           'pycalphad/core/composition_set.pyx',
-                           'pycalphad/core/problem.pyx'], include_path=['.', np.get_include(), '/Users/brandon/anaconda3/envs/calphad-dev/lib/python3.6/site-packages/symengine/lib']),
-
+    ext_modules=cythonize([Extension('pycalphad.core.hyperplane',
+                                    sources=['pycalphad/core/hyperplane.pyx'],
+                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_pyx_get_include()]
+                                     ),
+                           Extension('pycalphad.core.eqsolver',
+                                    sources=['pycalphad/core/eqsolver.pyx'],
+                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_pyx_get_include()]
+                                    ),
+                           Extension('pycalphad.core.phase_rec',
+                                    sources=['pycalphad/core/phase_rec.pyx'],
+                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_pyx_get_include()]
+                                     ),
+                           Extension('pycalphad.core.composition_set',
+                                    sources=['pycalphad/core/composition_set.pyx'],
+                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_pyx_get_include()]
+                                     ),
+                           Extension('pycalphad.core.problem',
+                                    sources=['pycalphad/core/problem.pyx'],
+                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_pyx_get_include()]
+                                     )
+                          ]),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },
-    # TODO: hardcoded include
     # This include is for the compiler to find the *.h files during the build_ext phase
     # the include must contain a symengine directory with header files
     # TODO: Brandon needed to add a CFLAGS='-std=c++11' before the setup.py build_ext command.
-    include_dirs=[np.get_include(), '/Users/brandon/anaconda3/envs/calphad-dev/include'],
+    include_dirs=[np.get_include(), symengine_pyx_get_include(), symengine_h_get_include()],
+    library_dirs=[symengine_pyx_get_include()],
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
