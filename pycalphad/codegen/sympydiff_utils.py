@@ -188,6 +188,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
     graph = sympify(sympy_graph)
     t2 = time.time()
     print('sympify time', t2-t1)
+    # TODO: did not replace zoo with oo
     if include_obj:
         func = lambdify(inp, [graph], backend='llvm', cse=cse)
     if include_grad or include_hess:
