@@ -13,6 +13,12 @@ try:
 except ImportError:
      raise ImportError("Cython, numpy and scipy must be installed before pycalphad can be installed.")
 
+
+# These are related to a fix where Cython does not pick up the correct
+# C++ standard library, due to changes in the macOS compiler toolchain
+# See the changes here and discussion at the following links:
+# https://github.com/pandas-dev/pandas/pull/24274 and
+# https://github.com/pandas-dev/pandas/issues/23424#issuecomment-446393981
 def is_platform_mac():
     return sys.platform == 'darwin'
 
