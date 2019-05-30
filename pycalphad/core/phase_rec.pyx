@@ -20,6 +20,43 @@ cdef symengine.LLVMDoubleVisitor llvm_double_visitor(llvm_double_obj):
     f.loads(llvm_double_obj.__reduce__()[-1][-1])
     return f
 
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef double* alloc_dof_with_parameters(double[::1] dof, double[::1] parameters) nogil:
+    """Remember to free() if parameters.shape[0] > 0"""
+    cdef double* dof_concat
+    cdef int j
+    cdef int num_dof = dof.shape[0] + parameters.shape[0]
+    if parameters.shape[0] == 0:
+        dof_concat = &dof[0]
+    else:
+        dof_concat = <double *> malloc(num_dof * sizeof(double))
+        for j in range(0,dof.shape[0]):
+            dof_concat[j] = dof[j]
+        for j in range(dof.shape[0], num_dof):
+            dof_concat[j] = parameters[j - dof.shape[0]]
+    return dof_concat
+
+@cython.boundscheck(False)
+@cython.wraparound(False)
+cdef double* alloc_dof_with_parameters_vectorized(double[:, ::1] dof, double[::1] parameters) nogil:
+    """Remember to free() if parameters.shape[0] > 0"""
+    cdef double* dof_concat
+    cdef int i, j
+    cdef int num_inps = dof.shape[0]
+    cdef int num_dof = dof.shape[1] + parameters.shape[0]
+
+    if parameters.shape[0] == 0:
+        dof_concat = &dof[0, 0]
+    else:
+        dof_concat = <double *> malloc(num_inps * num_dof * sizeof(double))
+        for i in range(num_inps):
+            for j in range(0,dof.shape[1]):
+                dof_concat[i * num_dof + j] = dof[i, j]
+            for j in range(dof.shape[1], num_dof):
+                dof_concat[i * num_dof + j] = parameters[j - dof.shape[1]]
+    return dof_concat
+
 cdef public class OldPhaseRecord(object)[type OldPhaseRecordType, object OldPhaseRecordObject]:
     """
     This object exposes a common API to the solver so it doesn't need to know about the differences
@@ -288,20 +325,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
-        cdef double* dof_concat
-        cdef int i, j
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+        cdef int i
         cdef int num_inps = dof.shape[0]
         cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
 
-        if self.parameters.shape[0] == 0:
-            dof_concat = &dof[0, 0]
-        else:
-            dof_concat = <double *> malloc(num_inps * num_dof * sizeof(double))
-            for i in range(num_inps):
-                for j in range(0,dof.shape[1]):
-                    dof_concat[i * num_dof + j] = dof[i, j]
-                for j in range(dof.shape[1], num_dof):
-                    dof_concat[i * num_dof + j] = self.parameters[j - dof.shape[1]]
         for i in range(num_inps):
             self._obj.call(&outp[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
@@ -310,17 +338,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat
-        cdef int j
-        cdef int num_dof = dof.shape[0] + self.parameters.shape[0]
-        if self.parameters.shape[0] == 0:
-            dof_concat = &dof[0]
-        else:
-            dof_concat = <double *> malloc(num_dof * sizeof(double))
-            for j in range(0,dof.shape[0]):
-                dof_concat[j] = dof[j]
-            for j in range(dof.shape[0], num_dof):
-                dof_concat[j] = self.parameters[j - dof.shape[0]]
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
         self._grad.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -328,17 +346,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat
-        cdef int j
-        cdef int num_dof = dof.shape[0] + self.parameters.shape[0]
-        if self.parameters.shape[0] == 0:
-            dof_concat = &dof[0]
-        else:
-            dof_concat = <double *> malloc(num_dof * sizeof(double))
-            for j in range(0,dof.shape[0]):
-                dof_concat[j] = dof[j]
-            for j in range(dof.shape[0], num_dof):
-                dof_concat[j] = self.parameters[j - dof.shape[0]]
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
         self._hess.call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
