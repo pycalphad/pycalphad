@@ -1,3 +1,4 @@
+# distutils: language = c++
 from pycalphad.core.phase_rec cimport PhaseRecord
 cimport numpy as np
 import numpy as np

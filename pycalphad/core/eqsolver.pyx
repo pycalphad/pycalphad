@@ -1,3 +1,4 @@
+# distutils: language = c++
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np

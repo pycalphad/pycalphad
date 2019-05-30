@@ -1,3 +1,4 @@
+# distutils: language = c++
 from pycalphad.core.composition_set cimport CompositionSet
 cimport numpy as np
 import numpy as np

@@ -189,15 +189,12 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
     t2 = time.time()
     print('sympify time', t2-t1)
     if include_obj:
-        lfunc = lambdify(inp, [graph], backend='llvm', cse=cse)
-        func = lfunc.unsafe_real
+        func = lambdify(inp, [graph], backend='llvm', cse=cse)
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w) for w in wrt)
         if include_grad:
-            lgrad = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
-            grad = lgrad.unsafe_real
+            grad = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
         if include_hess:
             hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
-            lhess = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
-            hess = lhess.unsafe_real
+            hess = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)

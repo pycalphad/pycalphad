@@ -1,6 +1,9 @@
+# distutils: language = c++
+
 ctypedef void func_t(double *out, double *dof, double *params, int bounds) nogil
 ctypedef void func_novec_t(double *dof, double* params, double *out) nogil
 cimport cython
+cimport symengine
 
 @cython.final
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
@@ -62,7 +65,7 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     cdef func_t** _masses
     cdef func_novec_t** _massgrads
     cdef func_novec_t** _masshessians
-    cdef public object _ofunc
+    cdef symengine.LLVMDoubleVisitor _ofunc
     cdef public object _gfunc
     cdef public object _hfunc
     cdef public object _intconsfunc
@@ -75,7 +78,6 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     cdef public object _massfuncs
     cdef public object _massgradfuncs
     cdef public object _masshessianfuncs
-    cdef public double[::1] inp
     cdef public object variables
     cdef public object state_variables
     cdef public object components
@@ -84,8 +86,7 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     cdef public double[::1] parameters
     cdef public int phase_dof
     cdef public unicode phase_name
-    cpdef void obj(self, double[::1] out, double[::1] dof)
-    cpdef void update_inp(self, double[::1] dof)
+    cpdef void obj(self, double[::1] out, double[:, ::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof)
     cpdef void hess(self, double[:,::1] out, double[::1] dof)
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil

@@ -1,3 +1,5 @@
+# distutils: language = c++
+
 cimport cython
 from cpython.mem cimport PyMem_Malloc, PyMem_Free
 import numpy as np
@@ -10,7 +12,6 @@ cdef void* cython_pointer(obj):
     if PyCapsule_CheckExact(obj):
         return PyCapsule_GetPointer(obj, NULL);
     raise ValueError("Not an object containing a void ptr")
-
 
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
     """
@@ -195,12 +196,12 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
     This object exposes a common API to the solver so it doesn't need to know about the differences
     between Model implementations. PhaseRecords are immutable after initialization.
     """
-    def __reduce__(self):
-            return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
-                                 self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
-                                 self._mpconsfunc, self._mpjacfunc,
-                                 self.num_internal_cons, self.num_multiphase_cons)
+    # def __reduce__(self):
+    #         return PhaseRecordSE, (self.components, self.state_variables, self.variables, np.array(self.parameters),
+    #                              self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
+    #                              self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
+    #                              self._mpconsfunc, self._mpjacfunc,
+    #                              self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
                   double[::1] parameters, object ofunc, object gfunc, object hfunc,
@@ -230,10 +231,31 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
                 continue
             self.phase_name = <unicode>variable.phase_name
             self.phase_dof += 1
+
+
+        # object ofunc  -> the LLVMDouble from lambdify
+        # cdef symengine.LLVMDoubleVisitor* _ofunc
+
+
+        # cdef symengine.LLVMDouble mytest = ofunc
+        cdef symengine.LLVMDoubleVisitor _ocaller = symengine.LLVMDoubleVisitor()
+        _ocaller.loads(ofunc.__reduce__()[-1][-1])
+        self._ofunc = _ocaller
+        # cdef symengine_wrapper.LLVMDouble mytest = ofunc
+        # self._ofunc = mytest.lambda_double[0]
+
+
         # Trigger lazy computation
-        if ofunc is not None:
-            self._ofunc = ofunc
-            self._obj = ofunc
+        # if ofunc is not None:
+        # oo = <symengine_wrapper.LLVMDouble *><void*> ofunc
+        # oo.lambda_double
+        # #cdef symengine.LLVMDoubleVisitor* ooo = oo.lambda_double[0]
+        #self._ofunc = ooo
+            # cdef symengine.LLVMDoubleVisitor* lamb = <symengine.LLVMDoubleVisitor *>user_data
+            #         cdef double result
+            #         deref(lamb).call(&result, x)
+            #         return result
+            # self._obj = ofunc
         if gfunc is not None:
             self._gfunc = gfunc
             self._grad = gfunc
@@ -273,32 +295,60 @@ cdef public class PhaseRecordSE(object)[type PhaseRecordSEType, object PhaseReco
                 masshessianfuncs[el_idx].kernel
                 self._masshessians[el_idx] = <func_novec_t*> cython_pointer(masshessianfuncs[el_idx]._cpointer)
         # params = np.asarray(self.parameters)
-        num_dof = len(self.variables) + len(self.state_variables)
-        num_params = len(self.parameters)
-        self.inp = np.zeros(num_dof + num_params)
+        # cdef int num_dof = len(self.variables) + len(self.state_variables)
+        # cdef int num_params = len(self.parameters)
+        # self.num_dof = num_dof
+        # self.num_params = num_params
+        #self.inp = np.zeros(num_dof + num_params)
         # print("input size", self.inp.size, 'nv', num_dof, 'np', num_params)
         # print('variables', self.variables)
-        if num_params > 0:
-            self.inp[num_dof:] = self.parameters
-
+        # if num_params > 0:
+        #     self.inp[num_dof:] = self.parameters
 
     def __dealloc__(self):
         PyMem_Free(self._masses)
         PyMem_Free(self._massgrads)
-
+    #
+    # # @cython.boundscheck(False)
+    # # @cython.wraparound(False)
+    # cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil except +:
+    #     # self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
+    #     # PyMem_Malloc, PyMem_Free
+    #     cdef:
+    #         int i, d, p, num_inps, ndof, nparams
+    #         cdef double[::1] inp
+    #
+    #     # cdef symengine.LLVMDoubleVisitor* lamb = self._obj
+    #     with gil:
+    #         ndof = len(self.variables) + len(self.state_variables)
+    #         nparams = len(self.parameters)
+    #         inp = np.empty(nparams+ndof)
+    #     num_inps = dof.shape[0]
+    #     # cdef double *inp = <double *> malloc(num_inps * sizeof(double))
+    #     # cdef double *xyz = <double *> malloc(num_inps * sizeof(double))
+    #     for p in range(nparams):
+    #         inp[ndof+p] = self.parameters[p]
+    #     # *inp[ndof:] = &self.parameters[0]
+    #     for i in range(num_inps):
+    #         for d in range(ndof):
+    #             inp[d] = dof[i][d]
+    #         # self._ofunc.call(&outp[i], &inp[0])
+    #         with gil:
+    #             self._ofunc.call(&outp[0], &inp[0])
+    #         # *inp[:ndof] = &dof[0][i]
+    #         # with gil:
+    #         #     self._obj(inp, outp, out_offset=i)
+    #
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void update_inp(self, double[::1] dof):
-        self.inp[:dof.size] = dof
-
-    @cython.boundscheck(False)
-    @cython.wraparound(False)
-    cpdef void obj(self, double[::1] outp, double[::1] dof):
-        # self._obj(&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
-        self.update_inp(dof)
-        inp = self.inp
-        self._obj(inp, outp)
+    cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
+        # with gil:
+        #     self._ofunc.call(&outp[0], &dof[0, 0])
+        cdef int i
+        cdef int num_inps = dof.shape[0]
+        for i in range(num_inps):
+            self._ofunc.call(&outp[i], &dof[i, 0])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
