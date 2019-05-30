@@ -22,11 +22,25 @@ https://github.com/pycalphad/pycalphad/pull/180
 """
 
 import sympy.functions.elementary.piecewise
-from sympy.core import S, Function, Dummy
+from sympy.core import S, Function, Dummy, Tuple
+from sympy.core.basic import as_Basic
 from sympy.core.relational import Relational, _canonical
-from sympy.logic.boolalg import And, Boolean, distribute_and_over_or, Or
-from sympy.utilities.misc import filldedent
+from sympy.logic.boolalg import And, Boolean, distribute_and_over_or, Or, true, false
+from sympy.utilities.misc import filldedent, func_name
 
+# Removes ITE rewriting, which is not compatible with SymEngine
+def exprcondpair_new(cls, expr, cond):
+    expr = as_Basic(expr)
+    if cond == True:
+        return Tuple.__new__(cls, expr, true)
+    elif cond == False:
+        return Tuple.__new__(cls, expr, false)
+
+    if not isinstance(cond, Boolean):
+        raise TypeError(filldedent('''
+            Second argument must be a Boolean,
+            not `%s`''' % func_name(cond)))
+    return Tuple.__new__(cls, expr, cond)
 
 def piecewise_eval(cls, *_args):
     if not _args:

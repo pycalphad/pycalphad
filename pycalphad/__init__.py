@@ -25,6 +25,7 @@ warnings.filterwarnings('ignore', message='invalid value encountered in true_div
 import sympy.functions.elementary.piecewise
 import pycalphad.core.patched_piecewise
 sympy.functions.elementary.piecewise.Piecewise.eval = classmethod(pycalphad.core.patched_piecewise.piecewise_eval)
+sympy.functions.elementary.piecewise.ExprCondPair.__new__ = pycalphad.core.patched_piecewise.exprcondpair_new
 
 from pycalphad.core.errors import *
 import pycalphad.variables as v
