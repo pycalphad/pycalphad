@@ -92,8 +92,9 @@ setup(
                                     extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     library_dirs=[symengine_pyx_get_include()]
-                                     )
-                          ]),
+                                     ),
+
+                          ], include_path=['.', np.get_include(), symengine_pyx_get_include()]),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },
