@@ -1,0 +1,385 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.patched_piecewise &mdash; pycalphad 0.8 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.patched_piecewise</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.patched_piecewise</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">Copied from Piecewise SymPy. The only modification is in `piecewise_eval` where</span>
+
+<span class="sd">```</span>
+<span class="sd">    for e, c in _args:</span>
+<span class="sd">        if not c.is_Atom and not isinstance(c, Relational):</span>
+<span class="sd">            free = c.free_symbols</span>
+<span class="sd">```</span>
+
+<span class="sd">is changed to</span>
+
+<span class="sd">```</span>
+<span class="sd">    for e, c in _args:</span>
+<span class="sd">        if not c.is_Atom and not isinstance(c, Relational):</span>
+<span class="sd">            free = c.expr_free_symbols</span>
+<span class="sd">```</span>
+
+<span class="sd">See the following links:</span>
+<span class="sd">https://github.com/sympy/sympy/issues/14933</span>
+<span class="sd">https://github.com/pycalphad/pycalphad/pull/180</span>
+
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="kn">import</span> <span class="nn">sympy.functions.elementary.piecewise</span>
+<span class="kn">from</span> <span class="nn">sympy.core</span> <span class="k">import</span> <span class="n">S</span><span class="p">,</span> <span class="n">Function</span><span class="p">,</span> <span class="n">Dummy</span><span class="p">,</span> <span class="n">Tuple</span>
+<span class="kn">from</span> <span class="nn">sympy.core.basic</span> <span class="k">import</span> <span class="n">as_Basic</span>
+<span class="kn">from</span> <span class="nn">sympy.core.relational</span> <span class="k">import</span> <span class="n">Relational</span><span class="p">,</span> <span class="n">_canonical</span>
+<span class="kn">from</span> <span class="nn">sympy.logic.boolalg</span> <span class="k">import</span> <span class="n">And</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">,</span> <span class="n">distribute_and_over_or</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">true</span><span class="p">,</span> <span class="n">false</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.misc</span> <span class="k">import</span> <span class="n">filldedent</span><span class="p">,</span> <span class="n">func_name</span>
+
+<span class="c1"># Removes ITE rewriting, which is not compatible with SymEngine</span>
+<div class="viewcode-block" id="exprcondpair_new"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.patched_piecewise.exprcondpair_new">[docs]</a><span class="k">def</span> <span class="nf">exprcondpair_new</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span><span class="p">):</span>
+    <span class="n">expr</span> <span class="o">=</span> <span class="n">as_Basic</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cond</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Tuple</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">true</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">cond</span> <span class="o">==</span> <span class="kc">False</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Tuple</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">false</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">):</span>
+        <span class="k">raise</span> <span class="ne">TypeError</span><span class="p">(</span><span class="n">filldedent</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            Second argument must be a Boolean,</span>
+<span class="s1">            not `</span><span class="si">%s</span><span class="s1">`&#39;&#39;&#39;</span> <span class="o">%</span> <span class="n">func_name</span><span class="p">(</span><span class="n">cond</span><span class="p">)))</span>
+    <span class="k">return</span> <span class="n">Tuple</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="piecewise_eval"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.patched_piecewise.piecewise_eval">[docs]</a><span class="k">def</span> <span class="nf">piecewise_eval</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">_args</span><span class="p">):</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">_args</span><span class="p">:</span>
+        <span class="k">return</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">_args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="n">_args</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">==</span> <span class="kc">True</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">_args</span><span class="p">[</span><span class="mi">0</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
+
+    <span class="n">newargs</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># the unevaluated conditions</span>
+    <span class="n">current_cond</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>  <span class="c1"># the conditions up to a given e, c pair</span>
+    <span class="c1"># make conditions canonical</span>
+    <span class="n">args</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">e</span><span class="p">,</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">_args</span><span class="p">:</span>
+        <span class="k">if</span> <span class="ow">not</span> <span class="n">c</span><span class="o">.</span><span class="n">is_Atom</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Relational</span><span class="p">):</span>
+            <span class="n">free</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">expr_free_symbols</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">free</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                <span class="n">funcs</span> <span class="o">=</span> <span class="p">[</span><span class="n">i</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Function</span><span class="p">)</span>
+                         <span class="k">if</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">i</span><span class="p">,</span> <span class="n">Boolean</span><span class="p">)]</span>
+                <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">funcs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span>
+                        <span class="n">c</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="nb">list</span><span class="p">(</span><span class="n">funcs</span><span class="p">)[</span><span class="mi">0</span><span class="p">]:</span> <span class="n">Dummy</span><span class="p">()}</span>
+                                   <span class="p">)</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+                    <span class="c1"># we can treat function like a symbol</span>
+                    <span class="n">free</span> <span class="o">=</span> <span class="n">funcs</span>
+                <span class="n">_c</span> <span class="o">=</span> <span class="n">c</span>
+                <span class="n">x</span> <span class="o">=</span> <span class="n">free</span><span class="o">.</span><span class="n">pop</span><span class="p">()</span>
+                <span class="k">try</span><span class="p">:</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">as_set</span><span class="p">()</span><span class="o">.</span><span class="n">as_relational</span><span class="p">(</span><span class="n">x</span><span class="p">)</span>
+                <span class="k">except</span> <span class="ne">NotImplementedError</span><span class="p">:</span>
+                    <span class="k">pass</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">reps</span> <span class="o">=</span> <span class="p">{}</span>
+                    <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">c</span><span class="o">.</span><span class="n">atoms</span><span class="p">(</span><span class="n">Relational</span><span class="p">):</span>
+                        <span class="n">ic</span> <span class="o">=</span> <span class="n">i</span><span class="o">.</span><span class="n">canonical</span>
+                        <span class="k">if</span> <span class="n">ic</span><span class="o">.</span><span class="n">rhs</span> <span class="ow">in</span> <span class="p">(</span><span class="n">S</span><span class="o">.</span><span class="n">Infinity</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">NegativeInfinity</span><span class="p">):</span>
+                            <span class="k">if</span> <span class="ow">not</span> <span class="n">_c</span><span class="o">.</span><span class="n">has</span><span class="p">(</span><span class="n">ic</span><span class="o">.</span><span class="n">rhs</span><span class="p">):</span>
+                                <span class="c1"># don&#39;t accept introduction of</span>
+                                <span class="c1"># new Relationals with +/-oo</span>
+                                <span class="n">reps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span>
+                            <span class="k">elif</span> <span class="p">(</span><span class="s1">&#39;=&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">ic</span><span class="o">.</span><span class="n">rel_op</span> <span class="ow">and</span>
+                                  <span class="n">c</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">rhs</span><span class="p">})</span> <span class="o">!=</span>
+                                  <span class="n">_c</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">x</span><span class="p">:</span> <span class="n">i</span><span class="o">.</span><span class="n">rhs</span><span class="p">})):</span>
+                                <span class="n">reps</span><span class="p">[</span><span class="n">i</span><span class="p">]</span> <span class="o">=</span> <span class="n">Relational</span><span class="p">(</span>
+                                    <span class="n">i</span><span class="o">.</span><span class="n">lhs</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">rhs</span><span class="p">,</span> <span class="n">i</span><span class="o">.</span><span class="n">rel_op</span> <span class="o">+</span> <span class="s1">&#39;=&#39;</span><span class="p">)</span>
+                    <span class="n">c</span> <span class="o">=</span> <span class="n">c</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">reps</span><span class="p">)</span>
+        <span class="n">args</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">_canonical</span><span class="p">(</span><span class="n">c</span><span class="p">)))</span>
+
+    <span class="k">for</span> <span class="n">expr</span><span class="p">,</span> <span class="n">cond</span> <span class="ow">in</span> <span class="n">args</span><span class="p">:</span>
+        <span class="c1"># Check here if expr is a Piecewise and collapse if one of</span>
+        <span class="c1"># the conds in expr matches cond. This allows the collapsing</span>
+        <span class="c1"># of Piecewise((Piecewise((x,x&lt;0)),x&lt;0)) to Piecewise((x,x&lt;0)).</span>
+        <span class="c1"># This is important when using piecewise_fold to simplify</span>
+        <span class="c1"># multiple Piecewise instances having the same conds.</span>
+        <span class="c1"># Eventually, this code should be able to collapse Piecewise&#39;s</span>
+        <span class="c1"># having different intervals, but this will probably require</span>
+        <span class="c1"># using the new assumptions.</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">sympy</span><span class="o">.</span><span class="n">functions</span><span class="o">.</span><span class="n">elementary</span><span class="o">.</span><span class="n">piecewise</span><span class="o">.</span><span class="n">Piecewise</span><span class="p">):</span>
+            <span class="n">unmatching</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">i</span><span class="p">,</span> <span class="p">(</span><span class="n">e</span><span class="p">,</span> <span class="n">c</span><span class="p">)</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">expr</span><span class="o">.</span><span class="n">args</span><span class="p">):</span>
+                <span class="k">if</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">current_cond</span><span class="p">:</span>
+                    <span class="c1"># this would already have triggered</span>
+                    <span class="k">continue</span>
+                <span class="k">if</span> <span class="n">c</span> <span class="o">==</span> <span class="n">cond</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="n">c</span> <span class="o">!=</span> <span class="kc">True</span><span class="p">:</span>
+                        <span class="c1"># nothing past this condition will ever</span>
+                        <span class="c1"># trigger and only those args before this</span>
+                        <span class="c1"># that didn&#39;t match a previous condition</span>
+                        <span class="c1"># could possibly trigger</span>
+                        <span class="k">if</span> <span class="n">unmatching</span><span class="p">:</span>
+                            <span class="n">expr</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">functions</span><span class="o">.</span><span class="n">elementary</span><span class="o">.</span><span class="n">piecewise</span><span class="o">.</span><span class="n">Piecewise</span><span class="p">(</span><span class="o">*</span><span class="p">(</span>
+                                    <span class="n">unmatching</span> <span class="o">+</span> <span class="p">[(</span><span class="n">e</span><span class="p">,</span> <span class="n">c</span><span class="p">)]))</span>
+                        <span class="k">else</span><span class="p">:</span>
+                            <span class="n">expr</span> <span class="o">=</span> <span class="n">e</span>
+                    <span class="k">break</span>
+                <span class="k">else</span><span class="p">:</span>
+                    <span class="n">unmatching</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">e</span><span class="p">,</span> <span class="n">c</span><span class="p">))</span>
+
+        <span class="c1"># check for condition repeats</span>
+        <span class="n">got</span> <span class="o">=</span> <span class="kc">False</span>
+        <span class="c1"># -- if an And contains a condition that was</span>
+        <span class="c1">#    already encountered, then the And will be</span>
+        <span class="c1">#    False: if the previous condition was False</span>
+        <span class="c1">#    then the And will be False and if the previous</span>
+        <span class="c1">#    condition is True then then we wouldn&#39;t get to</span>
+        <span class="c1">#    this point. In either case, we can skip this condition.</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="p">([</span><span class="n">cond</span><span class="p">]</span> <span class="o">+</span>
+                  <span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">cond</span><span class="o">.</span><span class="n">args</span><span class="p">)</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">And</span><span class="p">)</span> <span class="k">else</span>
+                  <span class="p">[])):</span>
+            <span class="k">if</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">current_cond</span><span class="p">:</span>
+                <span class="n">got</span> <span class="o">=</span> <span class="kc">True</span>
+                <span class="k">break</span>
+        <span class="k">if</span> <span class="n">got</span><span class="p">:</span>
+            <span class="k">continue</span>
+
+        <span class="c1"># -- if not(c) is already in current_cond then c is</span>
+        <span class="c1">#    a redundant condition in an And. This does not</span>
+        <span class="c1">#    apply to Or, however: (e1, c), (e2, Or(~c, d))</span>
+        <span class="c1">#    is not (e1, c), (e2, d) because if c and d are</span>
+        <span class="c1">#    both False this would give no results when the</span>
+        <span class="c1">#    true answer should be (e2, True)</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">And</span><span class="p">):</span>
+            <span class="n">nonredundant</span> <span class="o">=</span> <span class="p">[]</span>
+            <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">cond</span><span class="o">.</span><span class="n">args</span><span class="p">:</span>
+                <span class="k">if</span> <span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="n">Relational</span><span class="p">)</span> <span class="ow">and</span>
+                        <span class="p">(</span><span class="o">~</span><span class="n">c</span><span class="p">)</span><span class="o">.</span><span class="n">canonical</span> <span class="ow">in</span> <span class="n">current_cond</span><span class="p">):</span>
+                    <span class="k">continue</span>
+                <span class="n">nonredundant</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+            <span class="n">cond</span> <span class="o">=</span> <span class="n">cond</span><span class="o">.</span><span class="n">func</span><span class="p">(</span><span class="o">*</span><span class="n">nonredundant</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">Relational</span><span class="p">):</span>
+            <span class="k">if</span> <span class="p">(</span><span class="o">~</span><span class="n">cond</span><span class="p">)</span><span class="o">.</span><span class="n">canonical</span> <span class="ow">in</span> <span class="n">current_cond</span><span class="p">:</span>
+                <span class="n">cond</span> <span class="o">=</span> <span class="n">S</span><span class="o">.</span><span class="n">true</span>
+
+        <span class="n">current_cond</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+
+        <span class="c1"># collect successive e,c pairs when exprs or cond match</span>
+        <span class="k">if</span> <span class="n">newargs</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">expr</span> <span class="o">==</span> <span class="n">expr</span><span class="p">:</span>
+                <span class="n">orcond</span> <span class="o">=</span> <span class="n">Or</span><span class="p">(</span><span class="n">cond</span><span class="p">,</span> <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cond</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orcond</span><span class="p">,</span> <span class="p">(</span><span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">)):</span>
+                    <span class="n">orcond</span> <span class="o">=</span> <span class="n">distribute_and_over_or</span><span class="p">(</span><span class="n">orcond</span><span class="p">)</span>
+                <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">functions</span><span class="o">.</span><span class="n">elementary</span><span class="o">.</span><span class="n">piecewise</span><span class="o">.</span><span class="n">ExprCondPair</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">orcond</span><span class="p">)</span>
+                <span class="k">continue</span>
+            <span class="k">elif</span> <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">cond</span> <span class="o">==</span> <span class="n">cond</span><span class="p">:</span>
+                <span class="n">orexpr</span> <span class="o">=</span> <span class="n">Or</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">expr</span><span class="p">)</span>
+                <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">orexpr</span><span class="p">,</span> <span class="p">(</span><span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">)):</span>
+                    <span class="n">orexpr</span> <span class="o">=</span> <span class="n">distribute_and_over_or</span><span class="p">(</span><span class="n">orexpr</span><span class="p">)</span>
+                <span class="n">newargs</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span> <span class="o">=</span> <span class="n">sympy</span><span class="o">.</span><span class="n">functions</span><span class="o">.</span><span class="n">elementary</span><span class="o">.</span><span class="n">piecewise</span><span class="o">.</span><span class="n">ExprCondPair</span><span class="p">(</span><span class="n">orexpr</span><span class="p">,</span> <span class="n">cond</span><span class="p">)</span>
+                <span class="k">continue</span>
+
+        <span class="n">newargs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">sympy</span><span class="o">.</span><span class="n">functions</span><span class="o">.</span><span class="n">elementary</span><span class="o">.</span><span class="n">piecewise</span><span class="o">.</span><span class="n">ExprCondPair</span><span class="p">(</span><span class="n">expr</span><span class="p">,</span> <span class="n">cond</span><span class="p">))</span>
+
+    <span class="c1"># some conditions may have been redundant</span>
+    <span class="n">missing</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">newargs</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="n">_args</span><span class="p">)</span>
+    <span class="c1"># some conditions may have changed</span>
+    <span class="n">same</span> <span class="o">=</span> <span class="nb">all</span><span class="p">(</span><span class="n">a</span> <span class="o">==</span> <span class="n">b</span> <span class="k">for</span> <span class="n">a</span><span class="p">,</span> <span class="n">b</span> <span class="ow">in</span> <span class="nb">zip</span><span class="p">(</span><span class="n">newargs</span><span class="p">,</span> <span class="n">_args</span><span class="p">))</span>
+    <span class="c1"># if either change happened we return the expr with the</span>
+    <span class="c1"># updated args</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="n">newargs</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="n">filldedent</span><span class="p">(</span><span class="s1">&#39;&#39;&#39;</span>
+<span class="s1">            There are no conditions (or none that</span>
+<span class="s1">            are not trivially false) to define an</span>
+<span class="s1">            expression.&#39;&#39;&#39;</span><span class="p">))</span>
+    <span class="k">if</span> <span class="n">missing</span> <span class="ow">or</span> <span class="ow">not</span> <span class="n">same</span><span class="p">:</span>
+        <span class="k">return</span> <span class="bp">cls</span><span class="p">(</span><span class="o">*</span><span class="n">newargs</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
