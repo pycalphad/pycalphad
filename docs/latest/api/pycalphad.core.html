@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+4.g41a473d documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+10.g4aeff91 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+4.g41a473d
+                0.7.1.post2+10.g4aeff91
               </div>
             
           
@@ -580,6 +580,11 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <a class="reference external" href="https://github.com/sympy/sympy/issues/14933">https://github.com/sympy/sympy/issues/14933</a>
 <a class="reference external" href="https://github.com/pycalphad/pycalphad/pull/180">https://github.com/pycalphad/pycalphad/pull/180</a></p>
 <dl class="function">
+<dt id="pycalphad.core.patched_piecewise.exprcondpair_new">
+<code class="descclassname">pycalphad.core.patched_piecewise.</code><code class="descname">exprcondpair_new</code><span class="sig-paren">(</span><em>cls</em>, <em>expr</em>, <em>cond</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#exprcondpair_new"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.exprcondpair_new" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
 <dt id="pycalphad.core.patched_piecewise.piecewise_eval">
 <code class="descclassname">pycalphad.core.patched_piecewise.</code><code class="descname">piecewise_eval</code><span class="sig-paren">(</span><em>cls</em>, <em>*_args</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/patched_piecewise.html#piecewise_eval"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.patched_piecewise.piecewise_eval" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
@@ -1011,6 +1016,23 @@ in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p>
 </dd></dl>
 
 <dl class="function">
+<dt id="pycalphad.core.utils.extract_parameters">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">extract_parameters</code><span class="sig-paren">(</span><em>parameters</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#extract_parameters"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.extract_parameters" title="Permalink to this definition">¶</a></dt>
+<dd><p>Extract symbols and values from parameters.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><p><strong>parameters</strong> (<em>dict</em>) – Dictionary of parameters</p>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Tuple of parameter symbols and parameter values</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>tuple</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
 <dt id="pycalphad.core.utils.filter_phases">
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">filter_phases</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#filter_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.filter_phases" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return phases that are valid for equilibrium calculations for the given database and components</p>
@@ -1056,6 +1078,58 @@ Return a tuple of variable names and the sublattice degrees of freedom.</p>
 </dd>
 <dt class="field-odd">Return type</dt>
 <dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.get_state_variables">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">get_state_variables</code><span class="sig-paren">(</span><em>models=None</em>, <em>conds=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#get_state_variables"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.get_state_variables" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a set of StateVariables defined Model instances and/or conditions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>models</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary mapping phase names to instances of Model objects</p></li>
+<li><p><strong>conds</strong> (<em>dict</em><em>, </em><em>optional</em>) – Dictionary mapping pycalphad StateVariables to values</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>State variables that are defined in the models and or conditions.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>set</p>
+</dd>
+</dl>
+<p class="rubric">Examples</p>
+<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">get_state_variables</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">get_state_variables</span><span class="p">(</span><span class="n">conds</span><span class="o">=</span><span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="mf">0.2</span><span class="p">})</span> <span class="o">==</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">}</span>
+<span class="go">True</span>
+</pre></div>
+</div>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.instantiate_models">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">instantiate_models</code><span class="sig-paren">(</span><em>dbf</em>, <em>comps</em>, <em>phases</em>, <em>model=None</em>, <em>parameters=None</em>, <em>symbols_only=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#instantiate_models"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.instantiate_models" title="Permalink to this definition">¶</a></dt>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Database used to construct the Model instances.</p></li>
+<li><p><strong>comps</strong> (<em>Iterable</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>phases</strong> (<em>Iterable</em>) – Names of phases to consider in the calculation.</p></li>
+<li><p><strong>model</strong> (<em>Model class</em><em>, </em><em>a dict of phase names to Model</em><em>, or </em><em>a Iterable of both</em>) – Model class to use for each phase.</p></li>
+<li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in
+the Database.</p></li>
+<li><p><strong>symbols_only</strong> (<em>bool</em>) – If True, symbols will be extracted from the parameters dict and used to
+construct the Model instances.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p>Dictionary of Model instances corresponding to the passed phases.</p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>dict</p>
 </dd>
 </dl>
 </dd></dl>
@@ -1197,6 +1271,16 @@ there, then the constant value is used.</p>
 <code class="descclassname">pycalphad.core.utils.</code><code class="descname">unpack_phases</code><span class="sig-paren">(</span><em>phases</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#unpack_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.unpack_phases" title="Permalink to this definition">¶</a></dt>
 <dd><p>Convert a phases list/dict into a sorted list.</p>
 </dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.wrap_symbol">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">wrap_symbol</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.utils.wrap_symbol_symengine">
+<code class="descclassname">pycalphad.core.utils.</code><code class="descname">wrap_symbol_symengine</code><span class="sig-paren">(</span><em>obj</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#wrap_symbol_symengine"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.wrap_symbol_symengine" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
 
 </div>
 <div class="section" id="module-pycalphad.core">

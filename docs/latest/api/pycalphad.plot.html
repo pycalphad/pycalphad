@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot package &mdash; pycalphad 0.7.1.post2+4.g41a473d documentation</title>
+  <title>pycalphad.plot package &mdash; pycalphad 0.7.1.post2+10.g4aeff91 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+4.g41a473d
+                0.7.1.post2+10.g4aeff91
               </div>
             
           
@@ -334,45 +334,45 @@ is up.)</p>
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform">
 <code class="descname">get_xaxis_text1_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text1_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the transformation used for drawing x-axis labels, which
-will add the given amount of padding (in points) between the
-axes and the label.  The x-direction is in data coordinates
-and the y-direction is in axis coordinates.  Returns a
-3-tuple of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
-text.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
-overridden by new kinds of projections that may need to
-place axis elements in different locations.</p>
-</div>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>transform</strong> (<em>Transform</em>) – The transform used for drawing x-axis labels, which will add
+<em>pad_points</em> of padding (in points) between the axes and the label.
+The x-direction is in data coordinates and the y-direction is in
+axis corrdinates</p></li>
+<li><p><strong>valign</strong> (<em>{‘center’, ‘top’, ‘bottom’, ‘baseline’, ‘center_baseline’}</em>) – The text vertical alignment.</p></li>
+<li><p><strong>halign</strong> (<em>{‘center’, ‘left’, ‘right’}</em>) – The text horizontal alignment.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This transformation is primarily used by the <cite>~matplotlib.axis.Axis</cite>
+class, and is meant to be overridden by new kinds of projections that
+may need to place axis elements in different locations.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform">
 <code class="descname">get_xaxis_text2_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_xaxis_text2_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_xaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the transformation used for drawing the secondary x-axis
-labels, which will add the given amount of padding (in points)
-between the axes and the label.  The x-direction is in data
-coordinates and the y-direction is in axis coordinates.
-Returns a 3-tuple of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
-text.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
-overridden by new kinds of projections that may need to
-place axis elements in different locations.</p>
-</div>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>transform</strong> (<em>Transform</em>) – The transform used for drawing secondary x-axis labels, which will
+add <em>pad_points</em> of padding (in points) between the axes and the
+label.  The x-direction is in data coordinates and the y-direction
+is in axis corrdinates</p></li>
+<li><p><strong>valign</strong> (<em>{‘center’, ‘top’, ‘bottom’, ‘baseline’, ‘center_baseline’}</em>) – The text vertical alignment.</p></li>
+<li><p><strong>halign</strong> (<em>{‘center’, ‘left’, ‘right’}</em>) – The text horizontal alignment.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This transformation is primarily used by the <cite>~matplotlib.axis.Axis</cite>
+class, and is meant to be overridden by new kinds of projections that
+may need to place axis elements in different locations.</p>
 </dd></dl>
 
 <dl class="method">
@@ -384,7 +384,7 @@ y-direction is in axis coordinates.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+<cite>~matplotlib.axis.Axis</cite> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
 </div>
@@ -393,45 +393,45 @@ place axis elements in different locations.</p>
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform">
 <code class="descname">get_yaxis_text1_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text1_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text1_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the transformation used for drawing y-axis labels, which
-will add the given amount of padding (in points) between the
-axes and the label.  The x-direction is in axis coordinates
-and the y-direction is in data coordinates.  Returns a 3-tuple
-of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
-text.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
-overridden by new kinds of projections that may need to
-place axis elements in different locations.</p>
-</div>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>transform</strong> (<em>Transform</em>) – The transform used for drawing y-axis labels, which will add
+<em>pad_points</em> of padding (in points) between the axes and the label.
+The x-direction is in axis coordinates and the y-direction is in
+data corrdinates</p></li>
+<li><p><strong>valign</strong> (<em>{‘center’, ‘top’, ‘bottom’, ‘baseline’, ‘center_baseline’}</em>) – The text vertical alignment.</p></li>
+<li><p><strong>halign</strong> (<em>{‘center’, ‘left’, ‘right’}</em>) – The text horizontal alignment.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This transformation is primarily used by the <cite>~matplotlib.axis.Axis</cite>
+class, and is meant to be overridden by new kinds of projections that
+may need to place axis elements in different locations.</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform">
 <code class="descname">get_yaxis_text2_transform</code><span class="sig-paren">(</span><em>pad</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/plot/triangular.html#TriangularAxes.get_yaxis_text2_transform"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.plot.triangular.TriangularAxes.get_yaxis_text2_transform" title="Permalink to this definition">¶</a></dt>
-<dd><p>Get the transformation used for drawing the secondary y-axis
-labels, which will add the given amount of padding (in points)
-between the axes and the label.  The x-direction is in axis
-coordinates and the y-direction is in data coordinates.
-Returns a 3-tuple of the form:</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="p">(</span><span class="n">transform</span><span class="p">,</span> <span class="n">valign</span><span class="p">,</span> <span class="n">halign</span><span class="p">)</span>
-</pre></div>
-</div>
-<p>where <em>valign</em> and <em>halign</em> are requested alignments for the
-text.</p>
-<div class="admonition note">
-<p class="admonition-title">Note</p>
-<p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
-overridden by new kinds of projections that may need to
-place axis elements in different locations.</p>
-</div>
+<dd><dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p><ul class="simple">
+<li><p><strong>transform</strong> (<em>Transform</em>) – The transform used for drawing secondart y-axis labels, which will
+add <em>pad_points</em> of padding (in points) between the axes and the
+label.  The x-direction is in axis coordinates and the y-direction
+is in data corrdinates</p></li>
+<li><p><strong>valign</strong> (<em>{‘center’, ‘top’, ‘bottom’, ‘baseline’, ‘center_baseline’}</em>) – The text vertical alignment.</p></li>
+<li><p><strong>halign</strong> (<em>{‘center’, ‘left’, ‘right’}</em>) – The text horizontal alignment.</p></li>
+</ul>
+</p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>This transformation is primarily used by the <cite>~matplotlib.axis.Axis</cite>
+class, and is meant to be overridden by new kinds of projections that
+may need to place axis elements in different locations.</p>
 </dd></dl>
 
 <dl class="method">
@@ -443,7 +443,7 @@ y-direction is in data coordinates.</p>
 <div class="admonition note">
 <p class="admonition-title">Note</p>
 <p>This transformation is primarily used by the
-<code class="xref py py-class docutils literal notranslate"><span class="pre">Axis</span></code> class, and is meant to be
+<cite>~matplotlib.axis.Axis</cite> class, and is meant to be
 overridden by new kinds of projections that may need to
 place axis elements in different locations.</p>
 </div>
