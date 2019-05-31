@@ -44,6 +44,14 @@ pycalphad.core.constants module
     :undoc-members:
     :show-inheritance:
 
+pycalphad.core.constraints module
+---------------------------------
+
+.. automodule:: pycalphad.core.constraints
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
 pycalphad.core.eqsolver module
 ------------------------------
 
@@ -120,6 +128,14 @@ pycalphad.core.solver module
 ----------------------------
 
 .. automodule:: pycalphad.core.solver
+    :members:
+    :undoc-members:
+    :show-inheritance:
+
+pycalphad.core.starting_point module
+-------------------------------------
+
+.. automodule:: pycalphad.core.starting_point
     :members:
     :undoc-members:
     :show-inheritance:

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.7.1.post2+10.g4aeff91 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.7.1.post2+10.g4aeff91
+                0.8
               </div>
             
           
@@ -363,6 +363,96 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 <p>The constants module contains some numerical constants for use
 in the module.
 Note that modifying these may yield unpredictable results.</p>
+</div>
+<div class="section" id="module-pycalphad.core.constraints">
+<span id="pycalphad-core-constraints-module"></span><h2>pycalphad.core.constraints module<a class="headerlink" href="#module-pycalphad.core.constraints" title="Permalink to this headline">¶</a></h2>
+<dl class="class">
+<dt id="pycalphad.core.constraints.ConstraintFunctions">
+<em class="property">class </em><code class="descclassname">pycalphad.core.constraints.</code><code class="descname">ConstraintFunctions</code><span class="sig-paren">(</span><em>cons_func</em>, <em>cons_jac</em>, <em>cons_hess</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintFunctions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintFunctions.cons_func">
+<code class="descname">cons_func</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintFunctions.cons_func" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintFunctions.cons_hess">
+<code class="descname">cons_hess</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintFunctions.cons_hess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintFunctions.cons_jac">
+<code class="descname">cons_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintFunctions.cons_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.core.constraints.ConstraintTuple">
+<em class="property">class </em><code class="descclassname">pycalphad.core.constraints.</code><code class="descname">ConstraintTuple</code><span class="sig-paren">(</span><em>internal_cons</em>, <em>internal_jac</em>, <em>internal_cons_hess</em>, <em>multiphase_cons</em>, <em>multiphase_jac</em>, <em>num_internal_cons</em>, <em>num_multiphase_cons</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.internal_cons">
+<code class="descname">internal_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_cons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 0</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.internal_cons_hess">
+<code class="descname">internal_cons_hess</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_cons_hess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 2</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.internal_jac">
+<code class="descname">internal_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 1</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons">
+<code class="descname">multiphase_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 3</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_jac">
+<code class="descname">multiphase_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_jac" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 4</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.num_internal_cons">
+<code class="descname">num_internal_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_internal_cons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons">
+<code class="descname">num_multiphase_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 6</p>
+</dd></dl>
+
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.constraints.build_constraints">
+<code class="descclassname">pycalphad.core.constraints.</code><code class="descname">build_constraints</code><span class="sig-paren">(</span><em>mod</em>, <em>variables</em>, <em>conds</em>, <em>parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#build_constraints"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.constraints.build_constraints" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.constraints.get_multiphase_constraint_rhs">
+<code class="descclassname">pycalphad.core.constraints.</code><code class="descname">get_multiphase_constraint_rhs</code><span class="sig-paren">(</span><em>conds</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#get_multiphase_constraint_rhs"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.constraints.get_multiphase_constraint_rhs" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.constraints.is_multiphase_constraint">
+<code class="descclassname">pycalphad.core.constraints.</code><code class="descname">is_multiphase_constraint</code><span class="sig-paren">(</span><em>cond</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/constraints.html#is_multiphase_constraint"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.constraints.is_multiphase_constraint" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </div>
 <div class="section" id="module-pycalphad.core.eqsolver">
 <span id="pycalphad-core-eqsolver-module"></span><h2>pycalphad.core.eqsolver module<a class="headerlink" href="#module-pycalphad.core.eqsolver" title="Permalink to this headline">¶</a></h2>
@@ -990,6 +1080,57 @@ Solve a non-linear problem</p>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
+</dd></dl>
+
+</div>
+<div class="section" id="module-pycalphad.core.starting_point">
+<span id="pycalphad-core-starting-point-module"></span><h2>pycalphad.core.starting_point module<a class="headerlink" href="#module-pycalphad.core.starting_point" title="Permalink to this headline">¶</a></h2>
+<dl class="function">
+<dt id="pycalphad.core.starting_point.global_min_is_possible">
+<code class="descclassname">pycalphad.core.starting_point.</code><code class="descname">global_min_is_possible</code><span class="sig-paren">(</span><em>conditions</em>, <em>state_variables</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/starting_point.html#global_min_is_possible"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.starting_point.global_min_is_possible" title="Permalink to this definition">¶</a></dt>
+<dd><p>Determine whether global minimization is possible
+to perform under the given set of conditions.
+Global minimization is possible when only T, P, N,
+compositions and/or chemical potentials are specified,
+but may not be possible with other conditions because
+there may be multiple (or zero) solutions.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conditions</strong> (<em>dict</em>) – </p></li>
+<li><p><strong>state_variables</strong> (<em>iterable of StateVariables</em>) – </p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>bool</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.core.starting_point.starting_point">
+<code class="descclassname">pycalphad.core.starting_point.</code><code class="descname">starting_point</code><span class="sig-paren">(</span><em>conditions</em>, <em>state_variables</em>, <em>phase_records</em>, <em>grid</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/starting_point.html#starting_point"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.starting_point.starting_point" title="Permalink to this definition">¶</a></dt>
+<dd><p>Find a starting point for the solution using a sample of the system energy surface.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>conditions</strong> (<em>OrderedDict</em>) – Mapping of StateVariable to array of condition values.</p></li>
+<li><p><strong>state_variables</strong> (<em>list</em>) – A list of the state variables (e.g., N, P, T) used in this calculation.</p></li>
+<li><p><strong>phase_records</strong> (<em>dict</em>) – Mapping of phase names (strings) to PhaseRecords.</p></li>
+<li><p><strong>grid</strong> (<em>Dataset</em>) – A sample of the energy surface of the system. The sample should at least
+cover the same state variable space as specified in the conditions.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dataset</p>
+</dd>
+</dl>
 </dd></dl>
 
 </div>
