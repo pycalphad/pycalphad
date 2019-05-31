@@ -12,16 +12,8 @@ pycalphad.codegen.callables module
     :undoc-members:
     :show-inheritance:
 
-pycalphad.codegen.custom_autowrap module
-----------------------------------------
-
-.. automodule:: pycalphad.codegen.custom_autowrap
-    :members:
-    :undoc-members:
-    :show-inheritance:
-
 pycalphad.codegen.sympydiff_utils module
-----------------------------------------
+-----------------------------------------
 
 .. automodule:: pycalphad.codegen.sympydiff_utils
     :members:

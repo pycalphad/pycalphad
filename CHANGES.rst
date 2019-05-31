@@ -1,6 +1,19 @@
 What's New
 ==========
 
+0.8 (2019-05-31)
+----------------
+
+This is a major release with bug fixes and performance improvements.
+
+* ENH: Major performance improvement with new Just-In-Time SymEngine/LLVM-based compiler. ( :issue:`220` )
+* ENH: Support for fixing the chemical potential of an element as an equilibrium constraint. ( :issue:`200` )
+* ENH: Support for shifting the reference state of an equilibrium calculation. ( :issue:`205` )
+* MAINT: Internal reorganization of the phase model constructors. ( :issue:`214` :issue:`217` )
+* DOC: A new example for computing properties of custom models has been added.
+* MAINT: Windows Python 2.7 support has been dropped. ( :issue:`220` )
+
+
 0.7.1 (2018-11-14)
 ------------------
 
