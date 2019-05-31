@@ -45,7 +45,7 @@ install:
       else
         echo "!!! Installing pycalphad dependencies via conda the normal way"
         # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
-        conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill python-symengine
+        conda install --yes python=$TRAVIS_PYTHON_VERSION gxx_linux-64 numpy scipy matplotlib nose pandas sympy pyparsing dask dill python-symengine
         conda install --yes xarray cython cyipopt
       fi
       echo "!!! pip pycalphad as editable"
