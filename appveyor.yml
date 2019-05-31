@@ -22,13 +22,16 @@ install:
   # Install miniconda Python
   - "powershell ./ci/install_python.ps1"
 
-  # Make sure the compiler is accessible
-  - '"%VS140COMNTOOLS%\..\..\VC\vcvarsall.bat" %PLATFORM%'
-
   # Prepend newly installed Python to the PATH of this build (this cannot be
   # done from inside the powershell script as it would require to restart
   # the parent CMD process).
   - "SET PATH=%PYTHON%;%PYTHON%\\Scripts;%PATH%"
+
+  # Fix MSVC builds for 64-bit Python
+  # See
+  # http://stackoverflow.com/questions/32091593/cannot-install-windows-sdk-7-1-on-windows-10
+  - echo "C:\Program Files\Microsoft SDKs\Windows\v7.1\Bin\SetEnv.cmd" /x64 > "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\amd64/vcvars64.bat"
+
 
   # Check that we have the expected version and architecture for Python
   - "python --version"
@@ -44,7 +47,7 @@ install:
   - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
   - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine"
-  - "%CMD_IN_ENV% pip install -e ."
+  - "pip install -e ."
 
 build: false
 
