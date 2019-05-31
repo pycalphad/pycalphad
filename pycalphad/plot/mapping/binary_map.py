@@ -3,7 +3,7 @@ import time
 from copy import deepcopy
 import numpy as np
 from pycalphad import equilibrium, variables as v
-from pycalphad.core.utils import unpack_condition
+from pycalphad.core.utils import unpack_condition, extract_parameters, instantiate_models
 from pycalphad.codegen.callables import build_callables
 from .utils import get_compsets, convex_hull, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
@@ -54,8 +54,16 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
     """
     eq_kwargs = eq_kwargs or {}
 
+    if 'callables' not in eq_kwargs:
+        params = eq_kwargs.get('parameters', {})
+        models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'), parameters=params, symbols_only=True)
+        syms = sorted(extract_parameters(params)[0], key=str)
+        eq_kwargs['model'] = models
+        eq_kwargs['callables'] = build_callables(dbf, comps, phases, models, parameter_symbols=syms,
+                            output='GM', additional_statevars={v.P, v.T, v.N})
+
     indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
-    indep_pot = [key for key, value in conds.items() if ((key == v.T) or (key == v.P)) and len(np.atleast_1d(value)) > 1]
+    indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comp) != 1) or (len(indep_pot) != 1):
         raise ValueError('Binary map requires exactly one composition and one potential coordinate')
     if indep_pot[0] != v.T:
@@ -134,4 +142,5 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
     if verbose or summary:
         print("{} Convex hulls calculated ({:0.2f}s)".format(convex_hulls_calculated, convex_hull_time))
         print("{} Equilbria calculated ({:0.0f}s)".format(equilibria_calculated, equilibrium_time))
+        print("{:0.0f}% of brute force calculations skipped".format(100*(1-equilibria_calculated/(composition_grid.size*temperature_grid.size))))
     return boundary_sets

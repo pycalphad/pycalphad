@@ -47,11 +47,6 @@ def binplot(dbf, comps, phases, conds, eq_kwargs=None, map_kwargs=None, plot_kwa
         map_kwargs['eq_kwargs'] = eq_kwargs
     else:
         map_kwargs.update(eq_kwargs)
-    # Precompile the callables if they are not already included.
-    # This leads to a significant performance boost.
-    if 'callables' not in map_kwargs['eq_kwargs'].keys():
-        eq_kwargs['callables'] = None
-        raise NotImplementedError()
     zpf_boundaries = map_binary(dbf, comps, phases, conds, **map_kwargs)
     ax = plot_binary(zpf_boundaries, **plot_kwargs)
     return ax

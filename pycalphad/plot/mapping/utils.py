@@ -3,7 +3,6 @@ import numpy as np
 from collections import OrderedDict
 from xarray import Dataset
 
-import copy
 from pycalphad import calculate, variables as v
 from pycalphad.core.errors import ConditionError
 from pycalphad.core.lower_convex_hull import lower_convex_hull
@@ -96,21 +95,25 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
 
     # 'calculate' accepts conditions through its keyword arguments
     if 'pdens' not in calc_opts:
-        calc_opts['pdens'] = 500
+        calc_opts['pdens'] = 2000
     grid = calculate(dbf, comps, phases, T=conditions[v.T], P=conditions[v.P],
                      parameters=parameters, fake_points=True, output='GM',
                      callables=callables, model=model, N=1, **calc_opts)
 
-    if callables is None:
-        raise NotImplementedError("Callables must be specified")
-    phase_records = callables['phase_records']
-    state_variables = callables['state_variables']
 
-    active_phases = sorted(phase_records.keys())
+    active_phases = sorted(phases)
     # Ensure that '_FAKE_' will fit in the phase name array
     max_phase_name_len = max(max([len(x) for x in active_phases]), 6)
-    maximum_internal_dof = max(prx.phase_dof for prx in phase_records.values())
-    nonvacant_elements = phase_records[active_phases[0]].nonvacant_elements
+    from pycalphad.core.utils import generate_dof, unpack_components, get_state_variables, instantiate_models, get_pure_elements
+    models = instantiate_models(dbf, comps, phases, model=model)
+    active_comps = unpack_components(dbf, comps)
+    maximum_internal_dof = 0
+    for name, ph_obj in dbf.phases.items():
+        dof = generate_dof(ph_obj, active_comps)
+        maximum_internal_dof = max((len(dof[0]), maximum_internal_dof))
+
+    state_variables = get_state_variables(models=models, conds=conditions)
+    nonvacant_elements = get_pure_elements(dbf, comps)
     coord_dict = OrderedDict([(str(key), value) for key, value in conditions.items()])
     coord_dict.update({key: value/10 for key, value in coord_dict.items() if isinstance(key, v.X)})
     grid_shape = tuple(len(x) for x in coord_dict.values())
@@ -141,7 +144,6 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
                       },
                      coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
     result = lower_convex_hull(grid, state_variables, result)
-    #
     GM_values = result.GM.values.squeeze()
     simplex_phases = result.Phase.values.squeeze()
     phase_fractions = result.NP.values.squeeze()
@@ -190,7 +192,7 @@ def old_convex_hull(dbf, comps, phases, conditions, model=None,
 
     # 'calculate' accepts conditions through its keyword arguments
     if 'pdens' not in calc_opts:
-        calc_opts['pdens'] = 500
+        calc_opts['pdens'] = 2000
     grid = calculate(dbf, comps, phases, T=conditions[v.T], P=conditions[v.P],
                      parameters=parameters, fake_points=True, output='GM',
                      callables=callables, model=model, **calc_opts)
