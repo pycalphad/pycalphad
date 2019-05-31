@@ -17,7 +17,8 @@ cdef void* cython_pointer(obj):
 cdef symengine.LLVMDoubleVisitor llvm_double_visitor(llvm_double_obj):
     """Use the bytes from calling reduce on an LLVMDouble object to construct an LLVMDoubleVisitor"""
     cdef symengine.LLVMDoubleVisitor f = symengine.LLVMDoubleVisitor()
-    f.loads(llvm_double_obj.__reduce__()[-1][-1])
+    if llvm_double_obj is not None:
+        f.loads(llvm_double_obj.__reduce__()[-1][-1])
     return f
 
 @cython.boundscheck(False)
@@ -301,26 +302,19 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         self._multiphase_jac = NULL
         if massfuncs is not None:
             self._massfuncs = massfuncs
-            self._masses = <func_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_t*))
+            self._masses.resize(len(nonvacant_elements))
             for el_idx in range(len(nonvacant_elements)):
-                massfuncs[el_idx].kernel
-                self._masses[el_idx] = <func_t*> cython_pointer(massfuncs[el_idx]._cpointer)
+                self._masses[el_idx] = llvm_double_visitor(massfuncs[el_idx])
         if massgradfuncs is not None:
             self._massgradfuncs = massgradfuncs
-            self._massgrads = <func_novec_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_novec_t*))
+            self._massgrads.resize(len(nonvacant_elements))
             for el_idx in range(len(nonvacant_elements)):
-                massgradfuncs[el_idx].kernel
-                self._massgrads[el_idx] = <func_novec_t*> cython_pointer(massgradfuncs[el_idx]._cpointer)
+                self._massgrads[el_idx] = llvm_double_visitor(massgradfuncs[el_idx])
         if masshessianfuncs is not None:
             self._masshessianfuncs = masshessianfuncs
-            self._masshessians = <func_novec_t**>PyMem_Malloc(len(nonvacant_elements) * sizeof(func_novec_t*))
+            self._masshessians.resize(len(nonvacant_elements))
             for el_idx in range(len(nonvacant_elements)):
-                masshessianfuncs[el_idx].kernel
-                self._masshessians[el_idx] = <func_novec_t*> cython_pointer(masshessianfuncs[el_idx]._cpointer)
-
-    def __dealloc__(self):
-        PyMem_Free(self._masses)
-        PyMem_Free(self._massgrads)
+                self._masshessians[el_idx] = llvm_double_visitor(masshessianfuncs[el_idx])
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -400,17 +394,30 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
-        if self._masses != NULL:
-            self._masses[comp_idx](&out[0], &dof[0,0], &self.parameters[0], <int>out.shape[0])
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+        cdef int i
+        cdef int num_inps = dof.shape[0]
+        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
+        if not self._masses.empty():
+            for i in range(num_inps):
+                self._masses[comp_idx].call(&out[i], &dof_concat[i * num_dof])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
-        if self._massgrads != NULL:
-            self._massgrads[comp_idx](&dof[0], &self.parameters[0], &out[0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        if not self._massgrads.empty():
+            self._massgrads[comp_idx].call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
-        if self._masshessians != NULL:
-            self._masshessians[comp_idx](&dof[0], &self.parameters[0], &out[0,0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        if not self._masshessians.empty():
+            self._masshessians[comp_idx].call(&out[0,0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)

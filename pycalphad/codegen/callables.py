@@ -119,22 +119,13 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
 
         # Build the callables for mass
         # TODO: In principle, we should also check for undefs in mod.moles()
-        mcf, mgf, mhf = zip(*[build_functions_sympy(mod.moles(el), state_variables + site_fracs,
+        mcf, mgf, mhf = zip(*[build_functions(mod.moles(el), state_variables + site_fracs,
                                               include_obj=True,
                                               include_grad=build_gradients,
                                               include_hess=build_hessians,
                                               parameters=parameter_symbols)
                               for el in pure_elements])
-        # Compile and/or set the gradients and hessians to None
-        [x.kernel for x in mcf]
-        if all(x is None for x in mgf):
-            mgf = None
-        else:
-            [x.kernel for x in mgf if x is not None]
-        if all(x is None for x in mhf):
-            mhf = None
-        else:
-            [x.kernel for x in mhf if x is not None]
+
         _callables['massfuncs'][name] = mcf
         _callables['massgradfuncs'][name] = mgf
         _callables['masshessfuncs'][name] = mhf

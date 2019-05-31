@@ -4,6 +4,7 @@ ctypedef void func_t(double *out, double *dof, double *params, int bounds) nogil
 ctypedef void func_novec_t(double *dof, double* params, double *out) nogil
 cimport cython
 cimport symengine
+from libcpp.vector cimport vector
 
 @cython.final
 cdef public class OldPhaseRecord(object)[type OldPhaseRecordType, object OldPhaseRecordObject]:
@@ -62,9 +63,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef func_novec_t* _internal_cons_hess
     cdef func_novec_t* _multiphase_cons
     cdef func_novec_t* _multiphase_jac
-    cdef func_t** _masses
-    cdef func_novec_t** _massgrads
-    cdef func_novec_t** _masshessians
+    cdef vector[symengine.LLVMDoubleVisitor] _masses
+    cdef vector[symengine.LLVMDoubleVisitor] _massgrads
+    cdef vector[symengine.LLVMDoubleVisitor] _masshessians
     cdef public object _ofunc
     cdef public object _gfunc
     cdef public object _hfunc
