@@ -46,8 +46,8 @@ install:
   - "conda config --add channels conda-forge"
   - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine"
-  - "pip install -e ."
+  - "conda install --yes -n condaenv --quiet vc=14 pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine"
+  - "python setup.py install build_ext --compiler=msvc"
 
 build: false
 
