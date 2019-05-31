@@ -58,11 +58,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef symengine.LLVMDoubleVisitor _obj
     cdef symengine.LLVMDoubleVisitor _grad
     cdef symengine.LLVMDoubleVisitor _hess
-    cdef func_novec_t* _internal_cons
-    cdef func_novec_t* _internal_jac
-    cdef func_novec_t* _internal_cons_hess
-    cdef func_novec_t* _multiphase_cons
-    cdef func_novec_t* _multiphase_jac
+    cdef symengine.LLVMDoubleVisitor _internal_cons
+    cdef symengine.LLVMDoubleVisitor _internal_jac
+    cdef symengine.LLVMDoubleVisitor _internal_cons_hess
+    cdef symengine.LLVMDoubleVisitor _multiphase_cons
+    cdef symengine.LLVMDoubleVisitor _multiphase_jac
     cdef vector[symengine.LLVMDoubleVisitor] _masses
     cdef vector[symengine.LLVMDoubleVisitor] _massgrads
     cdef vector[symengine.LLVMDoubleVisitor] _masshessians

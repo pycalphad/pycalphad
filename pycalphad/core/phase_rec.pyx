@@ -288,18 +288,19 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self._hess = llvm_double_visitor(hfunc)
         if internal_cons_func is not None:
             self._intconsfunc = internal_cons_func
-        self._internal_cons = NULL
+            self._internal_cons = llvm_double_visitor(internal_cons_func)
         if internal_jac_func is not None:
             self._intjacfunc = internal_jac_func
-        self._internal_jac = NULL
+            self._internal_jac = llvm_double_visitor(internal_jac_func)
         if internal_cons_hess_func is not None:
             self._intconshessfunc = internal_cons_hess_func
+            self._internal_cons_hess = llvm_double_visitor(internal_cons_hess_func)
         if multiphase_cons_func is not None:
             self._mpconsfunc = multiphase_cons_func
-        self._multiphase_cons = NULL
+            self._multiphase_cons = llvm_double_visitor(multiphase_cons_func)
         if multiphase_jac_func is not None:
             self._mpjacfunc = multiphase_jac_func
-        self._multiphase_jac = NULL
+            self._multiphase_jac = llvm_double_visitor(multiphase_jac_func)
         if massfuncs is not None:
             self._massfuncs = massfuncs
             self._masses.resize(len(nonvacant_elements))
@@ -349,47 +350,42 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
-        if self._internal_cons == NULL:
-            with gil:
-                self._intconsfunc.kernel
-                self._internal_cons = <func_novec_t*> cython_pointer(self._intconsfunc._cpointer)
-        self._internal_cons(&dof[0], &self.parameters[0], &out[0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._internal_cons.call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        if self._internal_jac == NULL:
-            with gil:
-                self._intjacfunc.kernel
-                self._internal_jac = <func_novec_t*> cython_pointer(self._intjacfunc._cpointer)
-        self._internal_jac(&dof[0], &self.parameters[0], &out[0,0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._internal_jac.call(&out[0, 0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
-        if self._internal_cons_hess == NULL:
-            with gil:
-                self._intconshessfunc.kernel
-                self._internal_cons_hess = <func_novec_t*> cython_pointer(self._intconshessfunc._cpointer)
-        self._internal_cons_hess(&dof[0], &self.parameters[0], &out[0,0,0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._internal_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
-        if self._multiphase_cons == NULL:
-            with gil:
-                self._mpconsfunc.kernel
-                self._multiphase_cons = <func_novec_t*> cython_pointer(self._mpconsfunc._cpointer)
-        self._multiphase_cons(&dof[0], &self.parameters[0], &out[0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._multiphase_cons.call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        if self._multiphase_jac == NULL:
-            with gil:
-                self._mpjacfunc.kernel
-                self._multiphase_jac = <func_novec_t*> cython_pointer(self._mpjacfunc._cpointer)
-        self._multiphase_jac(&dof[0], &self.parameters[0], &out[0,0])
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._multiphase_jac.call(&out[0, 0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)

@@ -1,24 +1,27 @@
-from sympy import ImmutableMatrix, MatrixSymbol, Symbol
+from sympy import ImmutableMatrix, MatrixSymbol, Symbol as sympy_Symbol
+from symengine import sympify, lambdify, Symbol
 from pycalphad.codegen.sympydiff_utils import AutowrapFunction, CompileLock
 from pycalphad.core.cache import cacheit
 from pycalphad import variables as v
 from pycalphad.core.constants import INTERNAL_CONSTRAINT_SCALING, MULTIPHASE_CONSTRAINT_SCALING
+from pycalphad.core.utils import wrap_symbol_symengine
 from collections import namedtuple
+import time
 
 
 ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac', 'cons_hess'])
 
 
 @cacheit
-def _build_constraint_functions(variables, constraints, include_hess=False, parameters=None):
+def _build_constraint_functions_sympy(variables, constraints, include_hess=False, parameters=None):
     if parameters is None:
         parameters = []
     new_parameters = []
     for param in parameters:
-        if isinstance(param, Symbol):
+        if isinstance(param, sympy_Symbol):
             new_parameters.append(param)
         else:
-            new_parameters.append(Symbol(param))
+            new_parameters.append(sympy_Symbol(param))
     parameters = tuple(new_parameters)
     variables = tuple(variables)
     wrt = variables
@@ -49,6 +52,30 @@ def _build_constraint_functions(variables, constraints, include_hess=False, para
         hessian_func = AutowrapFunction(args, ImmutableMatrix(hessian))
     else:
         hessian_func = None
+    return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
+
+
+@cacheit
+def _build_constraint_functions(variables, constraints, include_hess=False, parameters=None, cse=True):
+    if parameters is None:
+        parameters = []
+    else:
+        parameters = [wrap_symbol_symengine(p) for p in parameters]
+    variables = tuple(variables)
+    wrt = variables
+    parameters = tuple(parameters)
+    constraint__func, jacobian_func, hessian_func = None, None, None
+    t1 = time.time()
+    inp = sympify(variables + parameters)
+    graph = sympify(constraints)
+    t2 = time.time()
+    print('sympify time', t2-t1)
+    constraint_func = lambdify(inp, [graph], backend='llvm', cse=cse)
+    grad_graphs = list(list(c.diff(w) for w in wrt) for c in graph)
+    jacobian_func = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
+    if include_hess:
+        hess_graphs = list(list(list(g.diff(w) for w in wrt) for g in c) for c in grad_graphs)
+        hessian_func = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
 
 
