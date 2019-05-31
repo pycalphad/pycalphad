@@ -1,5 +1,5 @@
 import pycalphad.variables as v
-from pycalphad.codegen.sympydiff_utils import build_functions, build_functions_sympy
+from pycalphad.codegen.sympydiff_utils import build_functions
 from pycalphad.core.utils import get_pure_elements, unpack_components, \
     extract_parameters, get_state_variables, wrap_symbol
 from pycalphad.core.phase_rec import PhaseRecord
