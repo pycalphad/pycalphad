@@ -63,35 +63,37 @@ setup(
     # The includes here are to pick up the *.pyx files
     # We might be able to get around these includes if symengine uses zip_safe=False
     # see: https://cython.readthedocs.io/en/latest/src/userguide/sharing_declarations.html
+    # "error: '::hypot' has not been declared when compiling with MingGW64"
+    # https://github.com/Theano/Theano/issues/4926
     ext_modules=cythonize([Extension('pycalphad.core.hyperplane',
                                     sources=['pycalphad/core/hyperplane.pyx'],
-                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     library_dirs=[symengine_pyx_get_include()],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.eqsolver',
                                     sources=['pycalphad/core/eqsolver.pyx'],
-                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     libraries=['symengine']
                                     ),
                            Extension('pycalphad.core.phase_rec',
                                     sources=['pycalphad/core/phase_rec.pyx'],
-                                    extra_compile_args=["-std=c++11"],
+                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     extra_link_args=['-std=c++11'],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.composition_set',
                                     sources=['pycalphad/core/composition_set.pyx'],
-                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.problem',
                                     sources=['pycalphad/core/problem.pyx'],
-                                    extra_compile_args=["-std=c++11"],extra_link_args=["-std=c++11"],
+                                    extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
                                     libraries=['symengine']
                                      ),
@@ -104,7 +106,6 @@ setup(
     # the include must contain a symengine directory with header files
     # TODO: Brandon needed to add a CFLAGS='-std=c++11' before the setup.py build_ext command.
     include_dirs=[np.get_include(), symengine_pyx_get_include(), symengine_h_get_include()],
-    library_dirs=[symengine_pyx_get_include()],
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
