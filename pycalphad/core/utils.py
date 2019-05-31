@@ -461,3 +461,14 @@ def wrap_symbol(obj):
         return obj
     else:
         return Symbol(obj)
+
+
+def wrap_symbol_symengine(obj):
+    from symengine import Symbol, sympify
+    from sympy import Symbol as Symbol_sympy
+    if isinstance(obj, Symbol):
+        return obj
+    elif isinstance(obj, Symbol_sympy):
+        return sympify(obj)
+    else:
+        return Symbol(obj)

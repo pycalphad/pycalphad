@@ -70,9 +70,9 @@ def eqplot(eq, ax=None, x=None, y=None, z=None, tielines=True, **kwargs):
     """
     conds = OrderedDict([(_map_coord_to_variable(key), unpack_condition(np.asarray(value)))
                          for key, value in sorted(eq.coords.items(), key=str)
-                         if (key == 'T') or (key == 'P') or (key.startswith('X_'))])
+                         if (key in ('T', 'P', 'N')) or (key.startswith('X_'))])
     indep_comps = sorted([key for key, value in conds.items() if isinstance(key, v.Composition) and len(value) > 1], key=str)
-    indep_pots = [key for key, value in conds.items() if ((key == v.T) or (key == v.P)) and len(value) > 1]
+    indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(value) > 1]
 
     # determine what the type of plot will be
     if len(indep_comps) == 1 and len(indep_pots) == 1:

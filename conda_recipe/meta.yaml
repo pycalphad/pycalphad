@@ -16,17 +16,23 @@ source:
   path: ../
   {% endif %}
 
+build:
+  number: 0
+  skip: true        # [win and not py>=35]
+
 requirements:
   build:
+    - {{ compiler('c') }}
+    - {{ compiler('cxx') }}
+  host:
     - python
-    - libpython # [win]
     - setuptools
     - matplotlib
     - pandas
     - nose
     - mock
     - xarray >=0.11.2
-    - sympy >=1.4
+    - sympy ==1.4
     - pyparsing
     - tinydb >=3.8
     - scipy
@@ -36,16 +42,15 @@ requirements:
     - dill
     - cython >=0.24
     - cyipopt
-    - m2w64-toolchain # [win]
+    - python-symengine ==0.4.0
+    - symengine ==0.4.0
 
   run:
     - python
-    - libpython # [win]
-    - gcc # [osx or linux]
     - matplotlib
     - pandas
     - xarray >=0.11.2
-    - sympy >=1.4
+    - sympy ==1.4
     - pyparsing
     - tinydb >=3.8
     - scipy
@@ -55,10 +60,11 @@ requirements:
     - cython >=0.24
     - dill
     - cyipopt
-    - m2w64-toolchain # [win]
+    - python-symengine ==0.4.0
+    - symengine ==0.4.0
 
 build:
-  script: python setup.py build_ext --compiler=mingw32 && python setup.py install --single-version-externally-managed --record=record.txt
+  script: python setup.py build_ext && python setup.py install --single-version-externally-managed --record=record.txt
 
 test:
   # Python imports

@@ -1,3 +1,4 @@
+# distutils: language = c++
 cdef class Problem:
     cdef public int num_constraints
     cdef public int num_fixed_dof_constraints

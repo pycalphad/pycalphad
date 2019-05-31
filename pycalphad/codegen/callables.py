@@ -113,12 +113,6 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         build_output = build_functions(out, tuple(state_variables + site_fracs), parameters=parameter_symbols,
                                        include_grad=build_gradients, include_hess=build_hessians)
         cf, gf, hf = build_output.func, build_output.grad, build_output.hess
-        # trigger the JIT
-        cf.kernel
-        if gf is not None:
-            gf.kernel
-        if hf is not None:
-            hf.kernel
         _callables['callables'][name] = cf
         _callables['grad_callables'][name] = gf
         _callables['hess_callables'][name] = hf
@@ -131,16 +125,7 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
                                               include_hess=build_hessians,
                                               parameters=parameter_symbols)
                               for el in pure_elements])
-        # Compile and/or set the gradients and hessians to None
-        [x.kernel for x in mcf]
-        if all(x is None for x in mgf):
-            mgf = None
-        else:
-            [x.kernel for x in mgf if x is not None]
-        if all(x is None for x in mhf):
-            mhf = None
-        else:
-            [x.kernel for x in mhf if x is not None]
+
         _callables['massfuncs'][name] = mcf
         _callables['massgradfuncs'][name] = mgf
         _callables['masshessfuncs'][name] = mhf

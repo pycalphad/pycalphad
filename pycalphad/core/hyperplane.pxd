@@ -1,3 +1,4 @@
+# distutils: language = c++
 cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
                         double[::1] composition,

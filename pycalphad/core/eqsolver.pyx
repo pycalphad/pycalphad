@@ -1,3 +1,4 @@
+# distutils: language = c++
 from collections import defaultdict, OrderedDict
 import numpy as np
 cimport numpy as np
@@ -229,7 +230,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         if not isinstance(phase_records[key], PhaseRecord):
             phase_records[key] = PhaseRecord(comps, value.state_variables, value.variables,
                                              value.parameters, value.obj, value.grad,
-                                             value.mass, value.mass_grad,
+                                             value.mass_obj, value.mass_grad,
                                              value.internal_cons, value.internal_jac,
                                              value.multiphase_cons, value.multiphase_jac,
                                              value.num_internal_cons, value.num_multiphase_cons)

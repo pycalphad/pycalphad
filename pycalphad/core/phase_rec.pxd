@@ -1,20 +1,22 @@
-ctypedef void func_t(double *out, double *dof, double *params, int bounds) nogil
-ctypedef void func_novec_t(double *dof, double* params, double *out) nogil
+# distutils: language = c++
+
 cimport cython
+cimport symengine
+from libcpp.vector cimport vector
 
 @cython.final
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
-    cdef func_t* _obj
-    cdef func_novec_t* _grad
-    cdef func_novec_t* _hess
-    cdef func_novec_t* _internal_cons
-    cdef func_novec_t* _internal_jac
-    cdef func_novec_t* _internal_cons_hess
-    cdef func_novec_t* _multiphase_cons
-    cdef func_novec_t* _multiphase_jac
-    cdef func_t** _masses
-    cdef func_novec_t** _massgrads
-    cdef func_novec_t** _masshessians
+    cdef symengine.LLVMDoubleVisitor _obj
+    cdef symengine.LLVMDoubleVisitor _grad
+    cdef symengine.LLVMDoubleVisitor _hess
+    cdef symengine.LLVMDoubleVisitor _internal_cons
+    cdef symengine.LLVMDoubleVisitor _internal_jac
+    cdef symengine.LLVMDoubleVisitor _internal_cons_hess
+    cdef symengine.LLVMDoubleVisitor _multiphase_cons
+    cdef symengine.LLVMDoubleVisitor _multiphase_jac
+    cdef vector[symengine.LLVMDoubleVisitor] _masses
+    cdef vector[symengine.LLVMDoubleVisitor] _massgrads
+    cdef vector[symengine.LLVMDoubleVisitor] _masshessians
     cdef public object _ofunc
     cdef public object _gfunc
     cdef public object _hfunc
@@ -36,7 +38,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public double[::1] parameters
     cdef public int phase_dof
     cdef public unicode phase_name
-    cpdef void obj(self, double[::1] out, double[:,::1] dof) nogil
+    cpdef void obj(self, double[::1] out, double[:, ::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil

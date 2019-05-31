@@ -1,3 +1,4 @@
+# distutils: language = c++
 cimport numpy as np
 import numpy as np
 cimport cython
@@ -158,10 +159,6 @@ cpdef double hyperplane(double[:,::1] compositions,
                     fractions[trial_idx, simplex_idx] = total_moles
             solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
             smallest_fractions[trial_idx] = min(fractions[trial_idx, :])
-            if iterations > 1:
-                # Penalize inclusion of fake starting points in subsequent iterations
-                if np.any(np.array(trial_simplices[trial_idx, :]) < result_fractions.shape[0]):
-                    smallest_fractions[trial_idx] -= 1
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
         if smallest_fractions[saved_trial] < -simplex_size:

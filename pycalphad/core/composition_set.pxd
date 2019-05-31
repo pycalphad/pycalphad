@@ -1,3 +1,4 @@
+# distutils: language = c++
 from pycalphad.core.phase_rec cimport PhaseRecord
 
 cdef public class CompositionSet(object)[type CompositionSetType, object CompositionSetObject]:
