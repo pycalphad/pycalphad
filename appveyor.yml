@@ -3,9 +3,6 @@
 
 environment:
   matrix:
-    - PYTHON: "C:\\Python27-conda32"
-      PYTHON_VERSION: "2.7"
-      PYTHON_ARCH: "64"
 
     - PYTHON: "C:\\Python36-conda64"
       PYTHON_VERSION: "3.6"
@@ -35,10 +32,9 @@ install:
   # workaround for conda-forge/hdf5-feedstock#41
   - "conda install --yes -n condaenv hdf5"
   - "conda config --add channels conda-forge"
-  - "conda config --add channels msys2"
   - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt m2w64-toolchain libpython symengine python-symengine"
+  - "conda install --yes -n condaenv --quiet pip setuptools nose numpy pandas scipy sympy pyparsing matplotlib xarray dask dill 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine"
   - "pip install -e ."
 
 build: false

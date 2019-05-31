@@ -48,8 +48,26 @@ def symengine_pyx_get_include():
     return os.path.join(os.path.dirname(symengine.__file__), 'lib')
 
 
+def symengine_lib_get_include():
+    if sys.platform == 'win32':
+        # Strictly only valid for recent conda installations
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(symengine.__file__)))), 'Library', 'lib')
+    else:
+        return os.path.join(os.path.dirname(symengine.__file__), 'lib')
+
+def symengine_bin_get_include():
+    if sys.platform == 'win32':
+        # Strictly only valid for recent conda installations
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(symengine.__file__)))), 'Library', 'bin')
+    else:
+        return os.path.join(os.path.dirname(symengine.__file__), 'bin')
+
 def symengine_h_get_include():
-    return os.path.dirname(get_paths()['include'])
+    if sys.platform == 'win32':
+        # Strictly only valid for recent conda installations
+        return os.path.join(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(symengine.__file__)))), 'Library', 'include')
+    else:
+        return os.path.dirname(get_paths()['include'])
 
 
 setup(
@@ -69,19 +87,21 @@ setup(
                                     sources=['pycalphad/core/hyperplane.pyx'],
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
-                                    library_dirs=[symengine_pyx_get_include()],
+                                    library_dirs=[symengine_lib_get_include(),symengine_bin_get_include()],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.eqsolver',
                                     sources=['pycalphad/core/eqsolver.pyx'],
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_lib_get_include(),symengine_bin_get_include()],
                                     libraries=['symengine']
                                     ),
                            Extension('pycalphad.core.phase_rec',
                                     sources=['pycalphad/core/phase_rec.pyx'],
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_lib_get_include(),symengine_bin_get_include()],
                                     extra_link_args=['-std=c++11'],
                                     libraries=['symengine']
                                      ),
@@ -89,16 +109,18 @@ setup(
                                     sources=['pycalphad/core/composition_set.pyx'],
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_lib_get_include(),symengine_bin_get_include()],
                                     libraries=['symengine']
                                      ),
                            Extension('pycalphad.core.problem',
                                     sources=['pycalphad/core/problem.pyx'],
                                     extra_compile_args=["-std=c++11", "-D_hypot=hypot"],extra_link_args=["-std=c++11"],
                                     include_dirs=['.', np.get_include(), symengine_pyx_get_include()],
+                                    library_dirs=[symengine_lib_get_include(),symengine_bin_get_include()],
                                     libraries=['symengine']
                                      ),
 
-                          ], include_path=['.', np.get_include(), symengine_pyx_get_include()]),
+                          ], include_path=['.', np.get_include(), symengine_pyx_get_include(), symengine_lib_get_include(),symengine_bin_get_include()]),
     package_data={
         'pycalphad/core': ['*.pxd'],
     },
