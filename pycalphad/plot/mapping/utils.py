@@ -144,12 +144,12 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
                       },
                      coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
     result = lower_convex_hull(grid, state_variables, result)
-    GM_values = result.GM.values.squeeze()
-    simplex_phases = result.Phase.values.squeeze()
-    phase_fractions = result.NP.values.squeeze()
-    phase_compositions = result.X.values.squeeze()
-    phase_site_fracs = result.Y.values.squeeze()
-    chempots = result.MU.values.squeeze()
+    GM_values = result["GM"].values.squeeze()
+    simplex_phases = result["Phase"].values.squeeze()
+    phase_fractions = result["NP"].values.squeeze()
+    phase_compositions = result["X"].values.squeeze()
+    phase_site_fracs = result["Y"].values.squeeze()
+    chempots = result["MU"].values.squeeze()
     return GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots
 
 def old_convex_hull(dbf, comps, phases, conditions, model=None,

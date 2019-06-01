@@ -53,6 +53,9 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
         doi:10.1016/j.calphad.2014.09.005.
     """
     eq_kwargs = eq_kwargs or {}
+    # implictly add v.N to conditions
+    if v.N not in conds:
+        conds[v.N] = 1.0
 
     if 'callables' not in eq_kwargs:
         params = eq_kwargs.get('parameters', {})
@@ -126,12 +129,12 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
                 Xmax_visited += dX
                 continue
             else:
+                boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
                 if compsets.max_composition > Xmax_visited:
                     Xmax_visited = compsets.max_composition
             # this seems kind of sloppy, but captures the effect that we want to
             # keep doing equilibrium calculations, if possible.
             while Xmax_visited < Xmax and compsets is not None:
-                boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
                 eq_conds[comp_cond] = Xmax_visited + dX
                 eq_time = time.time()
                 eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
@@ -140,6 +143,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
                 if compsets is not None:
                     Xmax_visited = compsets.max_composition
+                    boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
                 else:
                     Xmax_visited += dX
                 if verbose:
