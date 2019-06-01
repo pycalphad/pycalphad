@@ -295,7 +295,9 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
     while not it.finished:
         idx = it.multi_index
         cs = []
-        if minimum_composition is not None and np.all(compositions[idx][:, indep_comp_idx] < minimum_composition):
+        # TODO: assumption of only two phases, seems like the third phase index can have bad points
+        # Three phases is probably an error anyways...
+        if minimum_composition is not None and np.all(compositions[idx][:, indep_comp_idx][:2] < minimum_composition):
             it.iternext()
             continue
         for i in np.arange(num_phases):

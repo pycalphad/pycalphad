@@ -92,6 +92,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
     convex_hull_time = 0
     curr_conds = deepcopy(conds)
     for T in np.nditer(temperature_grid):
+        iter_equilibria = 0
         if verbose:
             print("=== T = {} ===".format(float(T)))
         curr_conds[v.T] = float(T)
@@ -113,16 +114,20 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
             eq_ds = equilibrium(dbf, comps, phases, eq_conds, **eq_kwargs)
             equilibrium_time += time.time() - eq_time
             equilibria_calculated += 1
+            iter_equilibria += 1
             # composition sets in the plane of the calculation:
             # even for isopleths, this should always be two.
             compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
             if verbose:
-                print("== Convex hull: max visited = {} - hull compsets: {} equilibrium compsets: {} ==".format(Xmax_visited, hull_compsets, compsets))
+                print("== Convex hull: max visited = {:0.4f} - hull compsets: {} equilibrium compsets: {} ==".format(Xmax_visited, hull_compsets, compsets))
             if compsets is None:
                 # equilibrium calculation, didn't find a valid multiphase composition set
                 # we need to find the next feasible one from the convex hull.
                 Xmax_visited += dX
                 continue
+            else:
+                if compsets.max_composition > Xmax_visited:
+                    Xmax_visited = compsets.max_composition
             # this seems kind of sloppy, but captures the effect that we want to
             # keep doing equilibrium calculations, if possible.
             while Xmax_visited < Xmax and compsets is not None:
@@ -138,7 +143,9 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
                 else:
                     Xmax_visited += dX
                 if verbose:
-                    print("Equilibrium: at X = {}, found compsets {}".format(Xmax_visited, compsets))
+                    print("Equilibrium: at X = {:0.4f}, found compsets {}".format(Xmax_visited, compsets))
+        if verbose:
+            print(iter_equilibria, 'equilibria calculated in this iteration.')
     if verbose or summary:
         print("{} Convex hulls calculated ({:0.2f}s)".format(convex_hulls_calculated, convex_hull_time))
         print("{} Equilbria calculated ({:0.0f}s)".format(equilibria_calculated, equilibrium_time))
