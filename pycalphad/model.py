@@ -108,6 +108,7 @@ class Model(object):
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
         active_species = unpack_components(dbe, comps)
+        self.model_hints = copy.deepcopy(phase.model_hints)
         for idx, sublattice in enumerate(phase.constituents):
             subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
@@ -371,9 +372,18 @@ class Model(object):
                     self._reference_model.models[k] = nan
 
     def get_internal_constraints(self):
+        # phase = .phases[self.phase_name]
         constraints = []
+        # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
             constraints.append(sum(v.SiteFraction(self.phase_name, idx, spec) for spec in sublattice) - 1)
+        # Charge balance for all phases that are charged
+        if self.model_hints.get('charged_phase', False):
+            TARGET_CHARGE = 0
+            total_charge = 0
+            for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
+                total_charge += sum(v.SiteFraction(self.phase_name, idx, spec)*spec.charge*site_ratio for spec in sublattice) - TARGET_CHARGE
+            constraints.append(total_charge)
         return constraints
 
     def get_multiphase_constraints(self, conds):
