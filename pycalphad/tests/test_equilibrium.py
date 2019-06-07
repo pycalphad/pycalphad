@@ -28,6 +28,7 @@ TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
 CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
+AL2O3_ND2O3_ZRO2_DBF = Database(AL2O3_ND2O3_ZRO2_TDB)
 
 
 # ROSE DIAGRAM TEST
@@ -491,3 +492,21 @@ def test_eq_magnetic_chempot_cond():
                      {v.MU('FE'): -123110, v.T: 300, v.P: 1e5}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -35427.1, atol=0.1)
     assert_allclose(np.squeeze(eq.MU.values), [-8490.7, -123110], atol=0.1)
+
+def test_charge_balance_constraint():
+    """Phases with charged species are correctly calculated and charged balanced in equilibrium"""
+    comps = ['ND', 'ZR', 'O', 'VA']
+    #phases = list(AL2O3_ND2O3_ZRO2_DBF.phases.keys())
+    phases = ['ND2O3_A', 'PYRO']
+    conds = {v.P: 101325, v.N: 1, v.T: 1400, v.X('ND'): 0.25, v.X('O'): 0.625}
+    # Higher point density is required for convergence. Lower point densities
+    # Can result in either no phases, or only FLUO phase (incorrect)
+    res = equilibrium(AL2O3_ND2O3_ZRO2_DBF, comps, phases, conds, calc_opts={'pdens':2000}, verbose=True)
+    # Values below checked with Thermo-Calc
+    assert np.isclose(-432325.423784, res.GM.values.squeeze())
+    assert np.all(res.Phase.values.squeeze() == np.array(['ND2O3_A', 'PYRO', '', '']))
+    assert np.allclose(res.NP.values.squeeze()[:2], [0.30164254, 0.69835646])
+    # site fractions of ND2O3_A
+    sf = res.Y.values.squeeze()
+    assert np.allclose(sf[0, :5], [9.79497936e-01, 2.05020639e-02, 1.00000000e+00, 2.05020639e-02, 9.79497936e-01])
+    assert np.allclose(sf[1, :], [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01, 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01])

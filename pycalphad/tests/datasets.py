@@ -4310,3 +4310,379 @@ $
 $------------------------------------------------------------ END OF LINE
 $ CU-MG NIMS
 """
+
+AL2O3_ND2O3_ZRO2_TDB = """$ ZrO2-Nd2O3-Al2O3
+$
+$ TDB-file for the thermodynamic assessment of the Nd2O3-Y2O3 system
+$
+$------------------------------------------------------------------------------
+$ 2013.3.15
+$
+$ TDB file created by T.Abe, K.Hashimoto and Y.Sawada
+$
+$ Thermodynamics Modeling Group, National Institute for
+$ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
+$ e-mail: abe.taichi @nims.go.jp
+$ Copyright (C) NIMS 2013
+$     Assessment of thermodynamic functions in the ZrO2-Nd2O3-Al2O3 system.
+$     O.Fabrichnaya, H.J.Seifert, CALPHAD, 32 (2008), 142-151.
+
+$     Note: modify value in GNDALO3.
+
+$ 2013-03-11
+
+$ Modified slightly by Brandon Bocklund to make T-C compatible (line length)
+$ and to add :I phase codes to all charged phases.
+
+$
+$
+ ELEMENT /-   ELECTRON_GAS              0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT VA   VACUUM                    0.0000E+00  0.0000E+00  0.0000E+00!
+ ELEMENT AL   FCC_A1                    26.981539   4577.296    28.3215!
+ ELEMENT ND   DOUBLE_HCP(ABAC)          1.4424E+02  0.0000E+00  0.0000E+00!
+ ELEMENT O    1/2_MOLE_O2(G)            1.5999E+01  4.3410E+03  1.0252E+02!
+ ELEMENT ZR   HCP_A3                    91.224      5566.27     39.181 !
+$--------1---------2---------3---------4---------5---------6---------7---------8
+$
+  SPECIES O2        O2!
+  SPECIES O-2       O1/-2!
+  SPECIES AL+3      AL1/+3!
+  SPECIES ND+3      ND1/+3!
+  SPECIES ZR+4      ZR1/+4!
+  SPECIES ALO3/2    AL1O1.5!
+
+ FUNCTION GHSERAL 298.15  -7976.15+137.093038*T-24.3671976*T*LN(T)
+   -.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);                  700  Y
+   -11276.24+223.048446*T-38.5844296*T*LN(T)+.018531982*T**2
+   -5.764227E-06*T**3+74092*T**(-1);                                 933.47  Y
+   -11278.378+188.684153*T-31.748192*T*LN(T)-1.230524E+28*T**(-9);   2900  N !
+
+
+ FUNCTION GHSERND   298.15
+    -8402.93+111.10239*T-27.0858*T*LN(T)
+    +5.56125E-04*T**2-2.6923E-06*T**3+34887*T**(-1);                    900 Y
+    -6984.083+83.662617*T-22.7536*T*LN(T)-.00420402*T**2-1.802E-06*T**3;
+                                                                       1128 Y
+    -225610.846+1673.04075*T-238.182873*T*LN(T)+.078615997*T**2
+    -6.048207E-06*T**3+38810350*T**(-1);                               1800 N !
+
+
+ FUNCTION GNDLIQ    298.15
+    +5350.01-86.593963*T+5.357301*T*LN(T)-.046955463*T**2+6.860782E-06*T**3
+    -374380*T**(-1);                                                   1128 Y
+    -16335.232+268.625903*T-48.7854*T*LN(T);                           1800 N !
+
+
+ FUNCTION GNDBCC    298.15
+    -6965.635+110.556109*T-27.0858*T*LN(T)+5.56125E-04*T**2
+    -2.6923E-06*T**3+34887*T**(-1);                                     400 Y
+    +7312.2-153.033976*T+14.9956777*T*LN(T)-.050479*T**2+7.287217E-06*T**3
+    -831810*T**(-1);                                                   1128 Y
+    -18030.266+239.677322*T-44.5596*T*LN(T);                           1289 Y
+    +334513.017-2363.9199*T+311.409193*T*LN(T)-.156030778*T**2
+    +1.2408421E-05*T**3-64319604*T**(-1);                              1800 N !
+
+ FUNCTION GND2O3A   298.15
+          -1847329+637.4243*T-116.358*T*LN(T)
+          -0.014677*T**2 +711000*T**(-1) -1E+07*T**(-2);
+                                                        6000  N ! $ 08Fab,06Hua
+ FUNCTION GND2O3L   298.15 +GND2O3A  +143621-56.785*T;
+                                                        6000  N ! $ 08Fab,06Hua
+ FUNCTION GND2O3H   298.15 +GND2O3A   +33189-13.986*T;
+                                                        6000  N ! $ 08Fab,06Hua
+ FUNCTION GND2O3X   298.15 +GND2O3A   +44489-18.555*T;
+                                                        6000  N ! $ 08Fab,06Hua
+ FUNCTION GND2O3B   298.15 +GND2O3A     -399+1.684*T;
+                                                        6000  N ! $       06Hua
+ FUNCTION GND2O3C   298.15 +GND2O3A    -1311+6.55*T;
+                                                        6000  N ! $       06Hua
+
+
+
+ FUNCTION GHSEROO    298.15 -3480.87-25.503038*T-11.136*T*LN(T)
+               -.005098888*T**2+6.61846E-07*T**3-38365*T**(-1);          1000 Y
+               -6568.763+12.65988*T-16.8138*T*LN(T)-5.95798E-04*T**2
+               +6.781E-09*T**3+262905*T**(-1);                           3300 Y
+               -13986.728+31.259625*T-18.9536*T*LN(T)-4.25243E-04*T**2
+               +1.0721E-08*T**3+4383200*T**(-1);               6000 N ! $ 91Din
+
+ FUNCTION GOOBCC     298.15 +26519.13-25.503038*T-11.1355*T*LN(T)
+              -.005098875*T**2+6.61846E-07*T**3-38365*T**(-1);           1000 Y
+              +23431.237+12.659879*T-16.8138*T*LN(T)-5.95797E-04*T**2
+              +6.781E-09*T**3+262905*T**(-1);                            3300 Y
+              +16013.272+31.259624*T-18.9536*T*LN(T)-4.25243E-04*T**2
+              +1.0721E-08*T**3+4383200*T**(-1);                6000 N ! $ 91Din
+
+
+ FUNCTION GHSERZR    298.15  -7827.595+125.64905*T-24.1618*T*LN(T)
+     -.00437791*T**2+34971*T**(-1);  2.12800E+03  Y
+      -26085.921+262.724183*T-42.144*T*LN(T)-1.342895E+31*T**(-9);
+     4.00000E+03  N !
+
+
+ FUNCTION GZRO2M     298.15  -1126163.54+424.890806*T-69.3875137*T*LN(T)
+                     -0.00375880141*T**2 +683000*T**(-1);      6000 N ! $ 08Fab
+ FUNCTION GZRO2T     298.15  +5468-4.0*T  +GZRO2M;             6000 N ! $ 08Fab
+ FUNCTION GZRO2C     298.15  +10336-4.0*T +GZRO2T;             6000 N ! $ 08Fab
+ FUNCTION GZRO2L     298.15  +87027-29.17432*T +GZRO2C;        6000 N ! $ 08Fab
+
+
+
+
+$               08Fab = 21207*T**(-1)
+
+$ Corundum from 92Tay , CALPHAD 16 (1992), 173-179.
+
+ FUNCTION GCORUND     298.15  -1707351.298 +448.021092*T -67.4804*T*LN(T)
+      -0.06747*T**2 +14.205433E-06*T**3 +938780*T**(-1);                 600  Y
+      -1724886.064+754.856573*T-116.258*T*LN(T)
+      -0.0072257*T**2+0.278532E-06*T**3+2120700*T**(-1);                1500  Y
+      -1772163.194+1053.4548*T-156.058*T*LN(T)
+      +0.00709105*T**2-0.629402E-06*T**3+12366650*T**(-1);
+                                                  3000  N ! $ 92Tay,97Lee,08Fab
+
+ FUNCTION GAL2O3L    298.15  -1607850.8+405.559491*T
+      -67.4804*T*LN(T)-0.06747*T**2+1.4205433E-05*T**3+938780*T**(-1);
+                                                                          600 Y
+                                              -1625385.57+712.394972*T
+      -116.258*T*LN(T)-0.0072257*T**2+2.78532E-07*T**3+2120700*T**(-1);
+                                                                         1500 Y
+                                              -1672662.69+1010.9932*T
+      -156.058*T*LN(T)+0.00709105*T**2-6.29402E-07*T**3+12366650*T**(-1);
+                                                                         1912 Y
+                                              +29178041.6-168360.926*T
+      +21987.1791*T*LN(T)-6.99552951*T**2+4.10226192E-04*T**3
+      -7.98843618E+09*T**(-1);                                           2327 Y
+      -1757702.05+1344.84833*T-192.464*T*LN(T);          4000 N ! $ 97Lee,08Fab
+
+$FUNCTION GNDALO3    298.15  -18032701+643.783*T-109.1273*T*LN(T)
+$                         -0.013364*T**2 +890990*T**(-1);  6000 N ! $ 08Fab_org
+
+ FUNCTION GNDALO3    298.15  -1803270.1 -29000 +643.783*T-109.1273*T*LN(T)
+                          -0.013364*T**2 +890990*T**(-1);
+                                                           6000 N ! $ 08Fab_mod
+ FUNCTION GND2O3F    298.15  +GND2O3A +63285.47-19.33*T;       6000 N ! $ 08Fab
+ FUNCTION GND2O3T    298.15  +GND2O3F  +10000;                 6000 N ! $ 08Fab
+ FUNCTION GPYRO      298.15  -4.17E+06 +1561.884*T -270.085210*T*LN(T)
+                          +1.89413764E+06*T**(-1) -0.0156136089*T**2;
+                                                               6000 N ! $ 08Fab
+ FUNCTION GANCA      298.15  +317600;                          6000 N ! $ 08Fab
+ FUNCTION GPYROZR    298.15  +4*GZRO2C  +10000+16*T;           6000 N ! $ 08Fab
+ FUNCTION GPYROND    298.15  +2*GND2O3A +120000-13*T;          6000 N ! $ 08Fab
+
+ FUNCTION GREC1      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC2      298.15  +59000;                           6000 N ! $ 08Fab
+ FUNCTION GREC3      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC4      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC5      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC6      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC7      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC8      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC9      298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC10     298.15  +0;                               6000 N ! $ 08Fab
+ FUNCTION GREC11     298.15  +0;                               6000 N ! $ 08Fab
+
+ FUNCTION UN_ASS     298.15  +0;                                       300. N !
+ FUNCTION ZERO       298.15  +0;                                       300. N !
+
+
+ TYPE_DEFINITION % SEQ * !
+
+$
+$ -----------------------------------------------------------------------------
+$
+$ PHASE GAS:G %  1  1.0  !
+$   CONSTITUENT GAS:G :O2:  !
+$   PARAMETER G(GAS,O2;0)    298.15 +2*GHSEROO +R*T*LN(1E-05*P); 6000 N !
+
+
+
+
+ PHASE I_LIQUID:Y  %  2  1  1  !
+   CONSTITUENT I_LIQUID:Y    :ND+3,ZR+4:O-2,ALO3/2:  !                  $ 08Fab
+   PARAMETER G(I_LIQUID,ZR+4:O-2;0)        298.15   +2*GZRO2L;       6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3:O-2;0)        298.15   +GND2O3L;        6000 N ! $
+   PARAMETER G(I_LIQUID,ALO3/2;0)          298.15   +0.5*GAL2O3L;    6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3,ZR+4:O-2;0)   298.15   -173251;         6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3,ZR+4:O-2;1)   298.15   -33251;          6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3:O-2,ALO3/2;0) 298.15   -118838.48;      6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3:O-2,ALO3/2;1) 298.15   -52117.431;      6000 N ! $
+   PARAMETER G(I_LIQUID,ZR+4:O-2,ALO3/2;0) 298.15   +50000;          6000 N ! $
+   PARAMETER G(I_LIQUID,ZR+4:O-2,ALO3/2;1) 298.15   -40000;          6000 N ! $
+   PARAMETER G(I_LIQUID,ND+3,ZR+4:O-2,ALO3/2;0)     298.15   +175000;
+                                                               6000 N ! $ 08Fab
+
+
+$ Fluorite
+
+ PHASE FLUO:I  %  2  2  4    !
+   CONSTITUENT FLUO:I  :AL+3,ND+3,ZR+4:O-2,VA:  !   $ 08Fab
+   PARAMETER G(FLUO,ZR+4:O-2;0)        298.15  +2*GZRO2C;
+                                                                     6000 N ! $
+   PARAMETER G(FLUO,ZR+4:VA;0)         298.15  +2*GZRO2C -4*GHSEROO;
+                                                                     6000 N ! $
+   PARAMETER G(FLUO,AL+3:O-2;0)        298.15
+      +GCORUND    +GHSEROO +18.702165*T +100000;                     6000 N ! $
+   PARAMETER G(FLUO,AL+3:VA;0)         298.15
+      +GCORUND  -3*GHSEROO +18.702165*T +100000;                     6000 N ! $
+   PARAMETER G(FLUO,ND+3:O-2;0)        298.15
+      +GND2O3F    +GHSEROO +18.702165*T;                             6000 N ! $
+   PARAMETER G(FLUO,ND+3:VA;0)         298.15
+      +GND2O3F  -3*GHSEROO +18.702165*T;                             6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:O-2;0)   298.15
+      -269135+299.193*T-32*T*LN(T);                                  6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:VA;0)    298.15
+      -269135+299.193*T-32*T*LN(T);                                  6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:O-2;1)   298.15  -54416;               6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:VA;1)    298.15  -54416;               6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:O-2;2)   298.15  +35213;               6000 N ! $
+   PARAMETER G(FLUO,ND+3,ZR+4:VA;2)    298.15  +35213;               6000 N ! $
+   PARAMETER G(FLUO,AL+3,ZR+4:O-2;0)   298.15  +18500;               6000 N ! $
+   PARAMETER G(FLUO,AL+3,ZR+4:VA;0)    298.15  +18500;               6000 N ! $
+   PARAMETER G(FLUO,AL+3,ND+3:O-2;0)   298.15  +100000;              6000 N ! $
+   PARAMETER G(FLUO,AL+3,ND+3:VA;0)    298.15  +100000;        6000 N ! $ 08Gab
+
+$ Tetragonal
+
+ PHASE TETR:I  %  2  2  4    !
+   CONSTITUENT TETR:I  :AL+3,ND+3,ZR+4:O-2,VA:  ! $ 08Fab
+   PARAMETER G(TETR,ZR+4:O-2;0)        298.15  +2*GZRO2T;            6000 N ! $
+   PARAMETER G(TETR,ZR+4:VA;0)         298.15
+      +2*GZRO2T -4*GHSEROO;                                          6000 N ! $
+   PARAMETER G(TETR,AL+3:O-2;0)        298.15
+      +GCORUND    +GHSEROO +18.702165*T +100000;           6000 N ! $ same FLUO
+   PARAMETER G(TETR,AL+3:VA;0)         298.15
+      +GCORUND  -3*GHSEROO +18.702165*T +100000;           6000 N ! $ same FLUO
+   PARAMETER G(TETR,ND+3:O-2;0)        298.15
+      +GND2O3T    +GHSEROO +18.702165*T;                             6000 N ! $
+   PARAMETER G(TETR,ND+3:VA;0)         298.15
+      +GND2O3T  -3*GHSEROO +18.702165*T;                             6000 N ! $
+   PARAMETER G(TETR,ND+3,ZR+4:O-2;0)   298.15  -30000;               6000 N ! $
+   PARAMETER G(TETR,ND+3,ZR+4:VA;0)    298.15  -30000;               6000 N ! $
+   PARAMETER G(TETR,AL+3,ZR+4:O-2;0)   298.15  +20000;               6000 N ! $
+   PARAMETER G(TETR,AL+3,ZR+4:VA;0)    298.15  +20000;               6000 N ! $
+   PARAMETER G(TETR,AL+3,ND+3:O-2;0)   298.15  +100000;              6000 N ! $
+   PARAMETER G(TETR,AL+3,ND+3:VA;0)    298.15  +100000;        6000 N ! $ 08Fab
+
+$ Monoclinic
+
+ PHASE MONO:I  %  2  2  4    !
+   CONSTITUENT MONO:I  :AL+3,ND+3,ZR+4:O-2,VA:  ! $ 08Fab
+   PARAMETER G(MONO,ZR+4:O-2;0)        298.15  +2*GZRO2M;            6000 N ! $
+   PARAMETER G(MONO,ZR+4:VA;0)         298.15
+      +2*GZRO2M -4*GHSEROO;                                          6000 N ! $
+   PARAMETER G(MONO,AL+3:O-2;0)        298.15
+      +GCORUND    +GHSEROO +18.702165*T +200000;                     6000 N ! $
+   PARAMETER G(MONO,AL+3:VA;0)         298.15
+      +GCORUND  -3*GHSEROO +18.702165*T +200000;                     6000 N ! $
+   PARAMETER G(MONO,ND+3:O-2;0)        298.15
+      +GND2O3A    +GHSEROO +18.702165*T +160000;                     6000 N ! $
+   PARAMETER G(MONO,ND+3:VA;0)         298.15
+      +GND2O3A  -3*GHSEROO +18.702165*T +160000;               6000 N ! $ 08Fab
+
+
+
+
+ PHASE ND2O3_A:I  %  3  2  3  1  !
+   CONSTITUENT ND2O3_A:I  :ND+3,ZR+4:O-2:O-2,VA:  ! $ 08Fab
+   PARAMETER G(ND2O3_A,ZR+4:O-2:O-2;0)      298.15
+      +2*GZRO2C +50000;                                              6000 N ! $
+   PARAMETER G(ND2O3_A,ZR+4:O-2:VA;0)       298.15
+      +2*GZRO2C-GHSEROO+50000;                                       6000 N ! $
+   PARAMETER G(ND2O3_A,ND+3:O-2:O-2;0)      298.15
+      +GND2O3A +GHSEROO;                                             6000 N ! $
+   PARAMETER G(ND2O3_A,ND+3:O-2:VA;0)       298.15
+      +GND2O3A;                                                      6000 N ! $
+   PARAMETER G(ND2O3_A,ND+3,ZR+4:O-2:O-2;0) 298.15  -30000;          6000 N ! $
+   PARAMETER G(ND2O3_A,ND+3,ZR+4:O-2:VA;0)  298.15  -30000;    6000 N ! $ 08Fab
+
+ PHASE ND2O3_H:I  %  3  2  3  1  !
+   CONSTITUENT ND2O3_H:I  :ND+3,ZR+4:O-2:O-2,VA:  ! $ 08Fab
+   PARAMETER G(ND2O3_H,ZR+4:O-2:O-2;0)      298.15
+      +2*GZRO2C +20000;                                              6000 N ! $
+   PARAMETER G(ND2O3_H,ZR+4:O-2:VA;0)       298.15
+      +2*GZRO2C-GHSEROO+20000;                                       6000 N ! $
+   PARAMETER G(ND2O3_H,ND+3:O-2:O-2;0)      298.15
+      +GND2O3H +GHSEROO;                                             6000 N ! $
+   PARAMETER G(ND2O3_H,ND+3:O-2:VA;0)       298.15  +GND2O3H;        6000 N ! $
+   PARAMETER G(ND2O3_H,ND+3,ZR+4:O-2:O-2;0) 298.15  -37700;          6000 N ! $
+   PARAMETER G(ND2O3_H,ND+3,ZR+4:O-2:VA;0)  298.15  -37700;    6000 N ! $ 08Fab
+
+ PHASE ND2O3_X:I  %  3  2  3  1  !
+   CONSTITUENT ND2O3_X:I  :ND+3,ZR+4:O-2:O-2,VA:  ! $ 08Fab
+   PARAMETER G(ND2O3_X,ZR+4:O-2:O-2;0)      298.15
+      +2*GZRO2C +10000;                                              6000 N ! $
+   PARAMETER G(ND2O3_X,ZR+4:O-2:VA;0)       298.15
+      +2*GZRO2C-GHSEROO+10000;                                       6000 N ! $
+   PARAMETER G(ND2O3_X,ND+3:O-2:O-2;0)      298.15
+      +GND2O3X +GHSEROO;                                             6000 N ! $
+   PARAMETER G(ND2O3_X,ND+3:O-2:VA;0)       298.15  +GND2O3X;        6000 N ! $
+   PARAMETER G(ND2O3_X,ND+3,ZR+4:O-2:O-2;0) 298.15  -35763;          6000 N ! $
+   PARAMETER G(ND2O3_X,ND+3,ZR+4:O-2:VA;0)  298.15  -35763;    6000 N ! $ 08Fab
+
+$ corundum
+
+ PHASE AL2O3_C:I  %  2  2  3    !
+   CONSTITUENT AL2O3_C:I  :AL+3:O-2:  ! $ 08Fab
+   PARAMETER G(AL2O3_C,AL+3:O-2;0)          298.15  +GCORUND;  6000 N ! $ 08Fab
+
+$ NDAP_NdAlO3
+
+ PHASE NDAP:I  %  3   1  1   3    !
+   CONSTITUENT NDAP:I  :ND+3:AL+3:O-2:  ! $ 08Fab
+   PARAMETER G(NDAP,ND+3:AL+3:O-2;0)        298.15  +GNDALO3;  6000 N ! $ 08Fab
+
+$ Beta_NdAl11O18
+
+ PHASE BETA:I  %  3   1  11   18    !
+   CONSTITUENT BETA:I  :ND+3:AL+3:O-2:  !  $ 08Fab
+   PARAMETER G(BETA,ND+3:AL+3:O-2;0) 298.15
+     +5.5*GCORUND+0.5*GND2O3A-59000+1.9*T;  6000 N ! $ 08Fab
+
+$ Pyrochlore
+
+ PHASE PYRO:I  %  5   2  2  6  1  1    !
+   CONSTITUENT PYRO:I  :ND+3,ZR+4:ND+3,ZR+4:O-2,VA:O-2:O-2,VA:  !  $ 08Fab
+   PARAMETER G(PYRO,ZR+4:ZR+4:O-2:O-2:VA;0)   298.15
+      +GPYROZR -GHSEROO;                                             6000 N ! $
+   PARAMETER G(PYRO,ND+3:ZR+4:O-2:O-2:VA;0)   298.15
+      +GPYRO;                                                        6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ND+3:O-2:O-2:VA;0)   298.15
+      +GPYRO +GANCA;                                                 6000 N ! $
+   PARAMETER G(PYRO,ND+3:ND+3:O-2:O-2:VA;0)   298.15
+      +2*GPYRO -GPYROZR +GHSEROO +GANCA +GREC1;                      6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ZR+4:O-2:O-2:O-2;0)  298.15  +GPYROZR;      6000 N ! $
+   PARAMETER G(PYRO,ND+3:ZR+4:O-2:O-2:O-2;0)  298.15
+      +GPYRO+GHSEROO +GREC2;                                         6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ND+3:O-2:O-2:O-2;0)  298.15
+      +GPYRO +GHSEROO +GANCA -GREC1 +GREC2+GREC3+GREC4;              6000 N ! $
+   PARAMETER G(PYRO,ND+3:ND+3:O-2:O-2:O-2;0)  298.15
+      +2*GPYRO +2*GHSEROO -GPYROZR +GANCA +GREC1+GREC2+GREC3;        6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ZR+4:VA:O-2:VA;0)    298.15
+      +6*GPYROND -12*GPYRO -7*GHSEROO +7*GPYROZR -6*GANCA +134.8548*T
+      -6*GREC1+GREC5+GREC6;                                          6000 N ! $
+   PARAMETER G(PYRO,ND+3:ZR+4:VA:O-2:VA;0)    298.15
+      +6*GPYROND -11*GPYRO -6*GHSEROO +6*GPYROZR -6*GANCA +134.8548*T
+      -6*GREC1+GREC5+GREC6;                                          6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ND+3:VA:O-2:VA;0)    298.15
+      +6*GPYROND -11*GPYRO -6*GHSEROO +6*GPYROZR -5*GANCA +134.8548*T
+      -6*GREC1+GREC7;                                                6000 N ! $
+   PARAMETER G(PYRO,ND+3:ND+3:VA:O-2:VA;0)    298.15
+      +6*GPYROND -10*GPYRO -5*GHSEROO +5*GPYROZR -5*GANCA
+      +134.8548*T -5*GREC1;                                          6000 N ! $
+
+   PARAMETER G(PYRO,ZR+4:ZR+4:VA:O-2:O-2;0)   298.15
+      +6*GPYROND -12*GPYRO -6*GHSEROO +7*GPYROZR -6*GANCA +134.8548*T
+      -6*GREC1+GREC5+GREC8+GREC10;                                   6000 N ! $
+   PARAMETER G(PYRO,ND+3:ZR+4:VA:O-2:O-2;0)   298.15
+      +6*GPYROND -11*GPYRO -5*GHSEROO +6*GPYROZR -6*GANCA +134.8548*T
+      -6*GREC1+GREC2+GREC5+GREC8;                                    6000 N ! $
+   PARAMETER G(PYRO,ZR+4:ND+3:VA:O-2:O-2;0)   298.15
+      +6*GPYROND -11*GPYRO -5*GHSEROO +6*GPYROZR -5*GANCA +134.8548*T
+      -6*GREC1+GREC5+GREC8+GREC10;                                   6000 N ! $
+   PARAMETER G(PYRO,ND+3:ND+3:VA:O-2:O-2;0)    298.15
+      +6*GPYROND -10*GPYRO -4*GHSEROO +5*GPYROZR -5*GANCA +134.8548*T
+      -5*GREC1+GREC2+GREC3+GREC5+GREC8+GREC9; 6000 N !                  $ 08Fab
+
+$
+"""
