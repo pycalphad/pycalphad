@@ -74,7 +74,7 @@ class InteriorPointSolver(SolverBase):
             # This option improves convergence when using L-BFGS
             'limited_memory_max_history': 100,
             'tol': 1e-1,
-            'constr_viol_tol': 1e-7,
+            'constr_viol_tol': 1e-5,
             'nlp_scaling_method': 'none',
             'hessian_approximation': 'limited-memory'
         }

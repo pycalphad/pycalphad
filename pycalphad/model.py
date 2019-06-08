@@ -391,6 +391,7 @@ class Model(object):
             total_charge = 0
             for idx, (sublattice, site_ratio) in enumerate(zip(self.constituents, self.site_ratios)):
                 total_charge += sum(v.SiteFraction(self.phase_name, idx, spec)*spec.charge*site_ratio for spec in sublattice) - TARGET_CHARGE
+            total_charge *= 1.0e-2  # rescale charge constraints
             constraints.append(total_charge)
         return constraints
 
