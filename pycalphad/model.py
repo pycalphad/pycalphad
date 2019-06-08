@@ -4,6 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
+import warnings
 from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
@@ -153,6 +154,13 @@ class Model(object):
                                         for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
+
+        # Warn if charged species present, but not charged model
+        comps_with_charge = {sp for sp in self.components if sp.charge != 0}
+        valid_charged_type_hints = ('ionic_liquid_2SL', 'charged_phase', 'aqueous', 'gas')
+        phase_has_charged_model = any(typ in self.model_hints for typ in valid_charged_type_hints)
+        if len(comps_with_charge) > 0 and not phase_has_charged_model:
+            warnings.warn( "Phase {} contains charged species, but is not a charged model (one of {})".format(phase_name, valid_charged_type_hints))
 
         # Convert string symbol names to sympy Symbol objects
         # This makes xreplace work with the symbols dict
