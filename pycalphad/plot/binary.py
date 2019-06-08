@@ -5,7 +5,7 @@ plotting binary isobaric phase diagrams.
 
 from .mapping import map_binary, plot_binary
 
-def binplot(dbf, comps, phases, conds, eq_kwargs=None, map_kwargs=None, plot_kwargs=None):
+def binplot(dbf, comps, phases, conds, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.
 
@@ -39,14 +39,7 @@ def binplot(dbf, comps, phases, conds, eq_kwargs=None, map_kwargs=None, plot_kwa
     --------
     None yet.
     """
-    eq_kwargs = eq_kwargs if eq_kwargs is not None else dict()
-    map_kwargs = map_kwargs if map_kwargs is not None else dict()
     plot_kwargs = plot_kwargs if plot_kwargs is not None else dict()
-    # update map_kwargs with any explicitly passed eq_kwargs
-    if 'eq_kwargs' not in map_kwargs:
-        map_kwargs['eq_kwargs'] = eq_kwargs
-    else:
-        map_kwargs.update(eq_kwargs)
     zpf_boundaries = map_binary(dbf, comps, phases, conds, **map_kwargs)
     ax = plot_binary(zpf_boundaries, **plot_kwargs)
     return ax
