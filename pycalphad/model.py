@@ -337,10 +337,10 @@ class Model(object):
 
         """
         if self._reference_model is None:
-            self.build_reference_model(self._dbe)
+            self._build_reference_model()
         return self._reference_model
 
-    def build_reference_model(self, dbe, preserve_ideal=True):
+    def _build_reference_model(self, preserve_ideal=True):
         """
         Build a reference_model for the current model, referenced to the endmembers.
 
@@ -360,7 +360,7 @@ class Model(object):
         Requires that self.build_phase has already been called.
 
         """
-        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe = copy.deepcopy(self._dbe)
         endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
         mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
         if preserve_ideal:
