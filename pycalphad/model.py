@@ -99,15 +99,17 @@ class Model(object):
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
-
-    def __init__(self, dbe, comps, phase_name, parameters=None, build_reference=True):
+    def __init__(self, dbe, comps, phase_name, parameters=None):
+        self._dbe = dbe
+        self._reference_model = None
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
+        active_species = unpack_components(dbe, comps)
         for idx, sublattice in enumerate(phase.constituents):
-            subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+            subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
             # Support for variable site ratios in ionic liquid model
             if phase.model_hints.get('ionic_liquid_2SL', False):
@@ -122,7 +124,7 @@ class Model(object):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
             # These are treated as having variable valence
             for idx, sublattice in enumerate(phase.constituents):
-                subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+                subl_comps = set(sublattice).intersection(active_species)
                 if v.Species('VA') in subl_comps:
                     if idx == 0:
                         subl_idx = 1
@@ -170,9 +172,6 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        # build reference model, this needs to be behind a flag to avoid recursion
-        if build_reference:
-            self.build_reference_model(dbe)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -301,6 +300,13 @@ class Model(object):
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
+    @property
+    def reference_model(self):
+        """Reference model built as needed improve performance."""
+        if self._reference_model is None:
+            self.build_reference_model(self._dbe)
+        return self._reference_model
+
     def build_reference_model(self, dbe, preserve_ideal=True):
         """
         Build a reference_model for the current model, referenced to the endmembers.
@@ -338,13 +344,13 @@ class Model(object):
         """
         endmember_only_dbe = copy.deepcopy(dbe)
         endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
-        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg, build_reference=False)
+        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
         if preserve_ideal:
             mod_endmember_only.models['idmix'] = 0
-        self.reference_model = mod_endmember_only
+        self._reference_model = mod_endmember_only
         if self.models.get('ord', S.Zero) != S.Zero:
                 for k in self.reference_model.models.keys():
-                    self.reference_model.models[k] = nan
+                    self._reference_model.models[k] = nan
 
     def get_internal_constraints(self):
         constraints = []
