@@ -302,7 +302,40 @@ class Model(object):
 
     @property
     def reference_model(self):
-        """Reference model built as needed improve performance."""
+        """
+        Return a Model containing only energy contributions from endmembers.
+
+        Returns
+        -------
+        Model
+
+        Notes
+        -----
+        The reference_model is defined such that subtracting it from the model
+        will set the energy of the endmembers for the _MIX properties of this
+        class to zero. The _MIX properties generated here allow users to see
+        mixing energies on the internal degrees of freedom of this phase.
+
+        The reference_model AST can be modified in the same way as the current Model.
+
+        Ideal mixing is always added to the AST, we need to set it to zero here
+        so that it's not subtracted out of the reference however, we have this
+        option so users can just see the mixing properties in terms of the
+        parameters.
+
+        If the current model has an ordering energy as part of a partitioned
+        model, then this special reference state is not well defined because
+        the endmembers in the model have energetic contributions from
+        the ordered endmember energies and the disordered mixing energies.
+        Therefore, this reference state cannot be used sensibly for partitioned
+        models and the energies of all reference_model.models are set to nan.
+
+        Since build_reference_model requires that Database instances are copied
+        and new instances of Model are created, it can be computationally
+        expensive to build the reference Model by default. This property delays
+        building the reference_model until it is used.
+
+        """
         if self._reference_model is None:
             self.build_reference_model(self._dbe)
         return self._reference_model
@@ -317,29 +350,14 @@ class Model(object):
         preserve_ideal : bool, optional
             If True, the default, the ideal mixing energy will not be subtracted out.
 
+
+        See Also
+        --------
+        Model.reference_model
+
         Notes
         -----
         Requires that self.build_phase has already been called.
-
-        This builds a special reference state that is referenced to the CEF
-        endmembers. The endmembers for the _MIX properties of this class
-        referenced to the reference_model energies will always be zero, such
-        that the _MIX properties generated here allow users to see mixing
-        energies on the internal degrees of freedom of this phase.
-
-        The reference_model AST can be modified in the same way as the current Model.
-
-        Ideal mixing is always added to the AST, we need to set it to
-        zero here so that it's not subtracted out of the reference
-        however, we have this option so users can just see the
-        mixing properties in terms of the parameters
-
-        If the current model has an ordering energy as part of a partitioned
-        model, then this special reference state is not well defined because
-        the endmembers in the model have energetic contributions from
-        the ordered endmember energies and the disordered mixing energies.
-        Therefore, this reference state cannot be used sensibly for partitioned
-        models and the energies of all the reference_model.models are set to nan.
 
         """
         endmember_only_dbe = copy.deepcopy(dbe)
