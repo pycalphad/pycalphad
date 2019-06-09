@@ -99,15 +99,17 @@ class Model(object):
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
                      ('ord', 'atomic_ordering_energy')]
-
-    def __init__(self, dbe, comps, phase_name, parameters=None, build_reference=True):
+    def __init__(self, dbe, comps, phase_name, parameters=None):
+        self._dbe = dbe
+        self._reference_model = None
         self.components = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
+        active_species = unpack_components(dbe, comps)
         for idx, sublattice in enumerate(phase.constituents):
-            subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+            subl_comps = set(sublattice).intersection(active_species)
             self.components |= subl_comps
             # Support for variable site ratios in ionic liquid model
             if phase.model_hints.get('ionic_liquid_2SL', False):
@@ -122,7 +124,7 @@ class Model(object):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
             # These are treated as having variable valence
             for idx, sublattice in enumerate(phase.constituents):
-                subl_comps = set(sublattice).intersection(unpack_components(dbe, comps))
+                subl_comps = set(sublattice).intersection(active_species)
                 if v.Species('VA') in subl_comps:
                     if idx == 0:
                         subl_idx = 1
@@ -170,9 +172,6 @@ class Model(object):
 
         self.models = OrderedDict()
         self.build_phase(dbe)
-        # build reference model, this needs to be behind a flag to avoid recursion
-        if build_reference:
-            self.build_reference_model(dbe)
 
         for name, value in self.models.items():
             self.models[name] = self.symbol_replace(value, symbols)
@@ -301,7 +300,47 @@ class Model(object):
     mixing_entropy = SM_MIX = property(lambda self: -self.GM_MIX.diff(v.T))
     mixing_heat_capacity = CPM_MIX = property(lambda self: -v.T*self.GM_MIX.diff(v.T, v.T))
 
-    def build_reference_model(self, dbe, preserve_ideal=True):
+    @property
+    def reference_model(self):
+        """
+        Return a Model containing only energy contributions from endmembers.
+
+        Returns
+        -------
+        Model
+
+        Notes
+        -----
+        The reference_model is defined such that subtracting it from the model
+        will set the energy of the endmembers for the _MIX properties of this
+        class to zero. The _MIX properties generated here allow users to see
+        mixing energies on the internal degrees of freedom of this phase.
+
+        The reference_model AST can be modified in the same way as the current Model.
+
+        Ideal mixing is always added to the AST, we need to set it to zero here
+        so that it's not subtracted out of the reference however, we have this
+        option so users can just see the mixing properties in terms of the
+        parameters.
+
+        If the current model has an ordering energy as part of a partitioned
+        model, then this special reference state is not well defined because
+        the endmembers in the model have energetic contributions from
+        the ordered endmember energies and the disordered mixing energies.
+        Therefore, this reference state cannot be used sensibly for partitioned
+        models and the energies of all reference_model.models are set to nan.
+
+        Since build_reference_model requires that Database instances are copied
+        and new instances of Model are created, it can be computationally
+        expensive to build the reference Model by default. This property delays
+        building the reference_model until it is used.
+
+        """
+        if self._reference_model is None:
+            self._build_reference_model()
+        return self._reference_model
+
+    def _build_reference_model(self, preserve_ideal=True):
         """
         Build a reference_model for the current model, referenced to the endmembers.
 
@@ -311,40 +350,25 @@ class Model(object):
         preserve_ideal : bool, optional
             If True, the default, the ideal mixing energy will not be subtracted out.
 
+
+        See Also
+        --------
+        Model.reference_model
+
         Notes
         -----
         Requires that self.build_phase has already been called.
 
-        This builds a special reference state that is referenced to the CEF
-        endmembers. The endmembers for the _MIX properties of this class
-        referenced to the reference_model energies will always be zero, such
-        that the _MIX properties generated here allow users to see mixing
-        energies on the internal degrees of freedom of this phase.
-
-        The reference_model AST can be modified in the same way as the current Model.
-
-        Ideal mixing is always added to the AST, we need to set it to
-        zero here so that it's not subtracted out of the reference
-        however, we have this option so users can just see the
-        mixing properties in terms of the parameters
-
-        If the current model has an ordering energy as part of a partitioned
-        model, then this special reference state is not well defined because
-        the endmembers in the model have energetic contributions from
-        the ordered endmember energies and the disordered mixing energies.
-        Therefore, this reference state cannot be used sensibly for partitioned
-        models and the energies of all the reference_model.models are set to nan.
-
         """
-        endmember_only_dbe = copy.deepcopy(dbe)
+        endmember_only_dbe = copy.deepcopy(self._dbe)
         endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
-        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg, build_reference=False)
+        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
         if preserve_ideal:
             mod_endmember_only.models['idmix'] = 0
-        self.reference_model = mod_endmember_only
+        self._reference_model = mod_endmember_only
         if self.models.get('ord', S.Zero) != S.Zero:
                 for k in self.reference_model.models.keys():
-                    self.reference_model.models[k] = nan
+                    self._reference_model.models[k] = nan
 
     def get_internal_constraints(self):
         constraints = []
