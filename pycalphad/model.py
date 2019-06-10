@@ -380,7 +380,6 @@ class Model(object):
                     self._reference_model.models[k] = nan
 
     def get_internal_constraints(self):
-        # phase = .phases[self.phase_name]
         constraints = []
         # Site fraction balance
         for idx, sublattice in enumerate(self.constituents):
