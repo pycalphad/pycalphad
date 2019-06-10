@@ -507,6 +507,17 @@ def test_charge_balance_constraint():
     assert np.all(res.Phase.values.squeeze() == np.array(['ND2O3_A', 'PYRO', '', '']))
     assert np.allclose(res.NP.values.squeeze()[:2], [0.30164254, 0.69835646])
     # site fractions of ND2O3_A
-    sf = res.Y.values.squeeze()
-    assert np.allclose(sf[0, :5], [9.79497936e-01, 2.05020639e-02, 1.00000000e+00, 2.05020639e-02, 9.79497936e-01], rtol=1e-4)
-    assert np.allclose(sf[1, :], [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01, 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=1e-4)
+    Y_ND2O3_A = res.Y.values.squeeze()[0, :5]
+    Y_PYRO = res.Y.values.squeeze()[1, :]
+    SPEC_CHG_ND2O3_A = np.array([3, 4, -2, -2, 0])  # (ND+3,ZR+4):(O-2):(O-2,VA)
+    SITE_RATIO_ND2O3_A = np.array([2, 2, 3, 1, 1])  # 2:3:1
+    SPEC_CHG_PYRO = np.array([3, 4, 3, 4, -2, 0, -2, -2, 0])  # (ND+3,ZR+4):(ND+3,ZR+4):(O-2,VA):(O-2):(O-2,VA)
+    SITE_RATIO_PYRO = np.array([2, 2, 2, 2, 6, 6, 1, 1, 1])  # 2:2:6:1:1
+    CHG_ND2O3_A = np.dot(Y_ND2O3_A*SPEC_CHG_ND2O3_A, SITE_RATIO_ND2O3_A)
+    CHG_PYRO = np.dot(Y_PYRO*SPEC_CHG_PYRO, SITE_RATIO_PYRO)
+    print('CHARGE ND2O3_A', CHG_ND2O3_A)
+    print('CHARGE PYRO', CHG_PYRO)
+    assert np.isclose(CHG_ND2O3_A, 0)
+    assert np.isclose(CHG_PYRO, 0)
+    assert np.allclose(Y_ND2O3_A, [9.79497936e-01, 2.05020639e-02, 1.00000000e+00, 2.05020639e-02, 9.79497936e-01], rtol=5e-4)
+    assert np.allclose(Y_PYRO, [9.99970071e-01, 2.99288042e-05, 3.83395063e-02, 9.61660494e-01, 9.93381787e-01, 6.61821340e-03, 1.00000000e+00, 1.39970285e-03, 9.98600297e-01], rtol=5e-4)
