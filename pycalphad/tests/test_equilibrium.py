@@ -5,8 +5,7 @@ correct solution for thermodynamic equilibrium.
 
 import warnings
 import os
-from nose.tools import raises
-from nose import SkipTest
+import pytest
 from sympy import Symbol
 from numpy.testing import assert_allclose
 import numpy as np
@@ -71,22 +70,22 @@ def test_eq_b2_without_all_comps():
                 verbose=True)
 
 
-@raises(ValueError)
 def test_eq_underdetermined_comps():
     """
     The number of composition conditions should yield exactly one dependent component.
     This is the underdetermined case.
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
+    with pytest.raises(ValueError):
+        equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325})
 
 
-@raises(ValueError)
 def test_eq_overdetermined_comps():
     """
     The number of composition conditions should yield exactly one dependent component.
     This is the overdetermined case.
     """
-    equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
+    with pytest.raises(ValueError):
+        equilibrium(ALFE_DBF, ['AL', 'FE'], 'LIQUID', {v.T: 2000, v.P: 101325,
                                                    v.X('FE'): 0.2, v.X('AL'): 0.8})
 
 def test_dilute_condition():
@@ -170,25 +169,25 @@ def test_eq_four_sublattice():
     # Not a strict equality here because we can't yet reach TC's value of -87260.6
     assert eq.GM.values < -87256.3
 
-@raises(EquilibriumError)
 def test_eq_missing_component():
     """
     Specifying a non-existent component raises an error.
     """
     # No Co or Cr in this database ; Co component specification should cause failure
-    equilibrium(ALNIFCC4SL_DBF, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
-                {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                 v.X('CO'): 0.11188888888888888, v.P: 101325})
+    with pytest.raises(EquilibriumError):
+        equilibrium(ALNIFCC4SL_DBF, ['AL', 'CO', 'CR', 'VA'], ['LIQUID'],
+                    {v.T: 1523, v.X('AL'): 0.88811111111111107,
+                     v.X('CO'): 0.11188888888888888, v.P: 101325})
 
-@raises(ConditionError)
 def test_eq_missing_component():
     """
     Specifying a condition involving a non-existent component raises an error.
     """
     # No Co or Cr in this database ; Co condition specification should cause failure
-    equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
-                {v.T: 1523, v.X('AL'): 0.88811111111111107,
-                 v.X('CO'): 0.11188888888888888, v.P: 101325})
+    with pytest.raises(ConditionError):
+        equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['LIQUID'],
+                    {v.T: 1523, v.X('AL'): 0.88811111111111107,
+                     v.X('CO'): 0.11188888888888888, v.P: 101325})
 
 def test_eq_ternary_edge_case_mass():
     """
@@ -391,23 +390,23 @@ def test_equilibrium_result_dataset_can_serialize_to_netcdf():
     os.remove(fname)  # cleanup
 
 
-@raises(ConditionError)
 def test_equilibrium_raises_with_no_active_phases_passed():
     """Passing inactive phases to equilibrium raises a ConditionError."""
     # the only phases passed are the disordered phases, which are inactive
-    equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['FCC_A1', 'BCC_A2'], {v.T: 300, v.P: 101325})
+    with pytest.raises(ConditionError):
+        equilibrium(ALNIFCC4SL_DBF, ['AL', 'NI', 'VA'], ['FCC_A1', 'BCC_A2'], {v.T: 300, v.P: 101325})
 
 
-@raises(ConditionError)
 def test_equilibrium_raises_when_no_phases_can_be_active():
     """Equliibrium raises when the components passed cannot give any active phases"""
     # all phases contain AL and/or FE in a sublattice, so no phases can be active
-    equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
+    with pytest.raises(ConditionError):
+        equilibrium(ALFE_DBF, ['VA'], list(ALFE_DBF.phases.keys()), {v.T: 300, v.P: 101325})
 
 
 # Defer test until inclusion of NP conditions, so test can be rewritten properly
 # As is, the "correct" test temperature is very sensitive to platform-specific numerical settings
-@SkipTest
+@pytest.mark.skip("Skip until NP conditions are complete.")
 def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
     """Creating datasets from equilibrium results should work when there are the maximum number of phases that can exist by Gibbs phase rule."""
     comps = ['PB', 'SN', 'VA']
@@ -419,12 +418,12 @@ def test_dataset_can_hold_maximum_phases_allowed_by_gibbs_phase_rule():
     assert np.sum(eq_res.Phase.values != '') == 3
 
 
-@raises(NotImplementedError)
 def test_equilibrium_raises_with_invalid_solver():
     """
     SolverBase instances passed to equilibrium should raise an error.
     """
-    equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
+    with pytest.raises(NotImplementedError):
+        equilibrium(CUO_DBF, ['O'], 'GAS', {v.T: 1000, v.P: 1e5}, solver=SolverBase())
 
 
 def test_equlibrium_no_opt_solver():
