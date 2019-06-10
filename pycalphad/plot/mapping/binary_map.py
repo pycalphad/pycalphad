@@ -11,6 +11,7 @@ from .zpf_boundary_sets import ZPFBoundarySets
 from pycalphad.core.starting_point import starting_point
 
 def _eq(species, conditions, phase_records, grid, state_variables):
+    """Fast equilibrium assuming everything is set up and a grid is calculated"""
     start = starting_point(conditions, state_variables, phase_records, grid)
     str_conds = sorted([str(k) for k in conditions.keys()])
     properties = _solve_eq_at_conditions(species, start, phase_records, grid, str_conds, state_variables, False)

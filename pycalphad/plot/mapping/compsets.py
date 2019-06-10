@@ -40,10 +40,10 @@ class CompSet():
     @classmethod
     def from_dataset_vertices(cls, ds, indep_comp, indep_comp_idx, num_vertex):
         compsets = []
-        Phase = ds.Phase.values.squeeze()
-        T = ds.T.values.squeeze()
-        X = ds.X.values.squeeze()
-        Y = ds.Y.values.squeeze()
+        Phase = ds["Phase"].values.squeeze()
+        T = ds["T"].values.squeeze()
+        X = ds["X"].values.squeeze()
+        Y = ds["Y"].values.squeeze()
         for i in range(num_vertex):
             phase_name = Phase[i]
             if phase_name != '':
