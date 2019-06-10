@@ -6,12 +6,16 @@ notifications:
 
 matrix:
     include:
-        - python: 2.7
-        - python: 3.6
+        - name: "Python 2.7.15 on Xenial Linux"
+          python: 2.7           # this works for Linux but is ignored on macOS or Windows
+          dist: xenial
+        - name: "Python 3.6.1 on Xenial Linux"
+          python: 3.6           # this works for Linux but is ignored on macOS or Windows
+          dist: xenial
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81
         - name: "Python 3.7.1 on Xenial Linux"
           python: 3.7           # this works for Linux but is ignored on macOS or Windows
-          dist: xenial          # required for Python >= 3.7
+          dist: xenial
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -35,7 +39,7 @@ install:
       conda deactivate
       conda activate condaenv
       echo "!!! Installing pycalphad dependencies via conda"
-      conda install --yes python=$TRAVIS_PYTHON_VERSION libcxx numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
+      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
       echo "!!! pip pycalphad as editable"
       pip install -e .
 
