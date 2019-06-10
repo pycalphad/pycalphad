@@ -111,7 +111,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
             idx_pot_values = np.array(cart_pot_values[pot_idx, :])
 
         idx_global_grid_X_values = global_grid_X_values[indep_idx]
-        idx_global_grid_GM_values = global_grid_GM_values
+        idx_global_grid_GM_values = global_grid_GM_values[indep_idx]
         idx_result_array_MU_values = result_array_MU_values[it.multi_index]
         idx_result_array_MU_values[:] = 0
         for idx in range(len(pot_conds_indices)):
