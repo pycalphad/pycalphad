@@ -35,7 +35,7 @@ install:
       conda deactivate
       conda activate condaenv
       echo "!!! Installing pycalphad dependencies via conda"
-      conda install --yes python=$TRAVIS_PYTHON_VERSION gxx_linux-64 numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
+      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
       echo "!!! pip pycalphad as editable"
       pip install -e .
 
