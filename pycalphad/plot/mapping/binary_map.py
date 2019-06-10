@@ -8,11 +8,9 @@ from pycalphad.codegen.callables import build_callables
 from .utils import get_compsets, convex_hull, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
-class StartingPointError(Exception):
-    pass
 
-def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundary_sets=None,
-                summary=False,):
+def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
+               verbose=False, summary=False,):
     """
 
     Parameters
@@ -59,11 +57,13 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, verbose=False, boundar
 
     if 'callables' not in eq_kwargs:
         params = eq_kwargs.get('parameters', {})
-        models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'), parameters=params, symbols_only=True)
+        models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
+                                    parameters=params, symbols_only=True)
         syms = sorted(extract_parameters(params)[0], key=str)
+        cbs = build_callables(dbf, comps, phases, models, parameter_symbols=syms,
+                              output='GM', additional_statevars={v.P, v.T, v.N})
         eq_kwargs['model'] = models
-        eq_kwargs['callables'] = build_callables(dbf, comps, phases, models, parameter_symbols=syms,
-                            output='GM', additional_statevars={v.P, v.T, v.N})
+        eq_kwargs['callables'] = cbs
 
     indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
