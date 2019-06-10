@@ -101,7 +101,6 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     pot_coord_shape = tuple(len(result_array.coords[cond]) for cond in pot_conds)
     while not it.finished:
         indep_idx = tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in indep_conds)
-        grid = global_grid.isel(**dict(zip(indep_conds, indep_idx)))
         if len(comp_conds) > 0:
             comp_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in comp_conds), comp_coord_shape)
             idx_comp_values = comp_values[comp_idx, :]
@@ -111,8 +110,8 @@ def lower_convex_hull(global_grid, state_variables, result_array):
             pot_idx = np.ravel_multi_index(tuple(idx for idx, key in zip(it.multi_index, result_array_GM_dims) if key in pot_conds), pot_coord_shape)
             idx_pot_values = np.array(cart_pot_values[pot_idx, :])
 
-        idx_global_grid_X_values = grid.X.values
-        idx_global_grid_GM_values = grid.GM.values
+        idx_global_grid_X_values = global_grid_X_values[indep_idx]
+        idx_global_grid_GM_values = global_grid_GM_values
         idx_result_array_MU_values = result_array_MU_values[it.multi_index]
         idx_result_array_MU_values[:] = 0
         for idx in range(len(pot_conds_indices)):
@@ -121,7 +120,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
         idx_result_array_points_values = result_array_points_values[it.multi_index]
         result_array_GM_values[it.multi_index] = \
             hyperplane(idx_global_grid_X_values, idx_global_grid_GM_values,
-                       idx_comp_values, idx_result_array_MU_values, float(grid.N),
+                       idx_comp_values, idx_result_array_MU_values, float(global_grid.coords['N'][0]),
                        pot_conds_indices, comp_conds_indices,
                        idx_result_array_NP_values, idx_result_array_points_values)
         # Copy phase values out
