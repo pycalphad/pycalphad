@@ -34,10 +34,12 @@ install:
       . $HOME/miniconda2/etc/profile.d/conda.sh
       conda deactivate
       conda activate condaenv
-      echo "!!! Installing pycalphad dependencies via conda"
-      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
-      echo "!!! pip pycalphad as editable"
-      pip install -e .
+      echo "!!! Installing pycalphad testing dependencies via conda"
+      conda install --yes python=$TRAVIS_PYTHON_VERSION libcxx pytest pytest-cov conda-build
+      echo "!!! conda-build pycalphad"
+      conda build conda_recipe
+      echo "!!! conda install pycalphad"
+      conda install --use-local pycalphad
 
 # Run test
 script:
