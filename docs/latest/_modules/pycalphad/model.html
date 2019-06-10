@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.8+1.gfb371ee documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+1.gfb371ee
+                0.8+2.gf784c38
               </div>
             
           
@@ -256,15 +256,17 @@
                      <span class="p">(</span><span class="s1">&#39;xsmix&#39;</span><span class="p">,</span> <span class="s1">&#39;excess_mixing_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;mag&#39;</span><span class="p">,</span> <span class="s1">&#39;magnetic_energy&#39;</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">&#39;2st&#39;</span><span class="p">,</span> <span class="s1">&#39;twostate_energy&#39;</span><span class="p">),</span> <span class="p">(</span><span class="s1">&#39;ein&#39;</span><span class="p">,</span> <span class="s1">&#39;einstein_energy&#39;</span><span class="p">),</span>
                      <span class="p">(</span><span class="s1">&#39;ord&#39;</span><span class="p">,</span> <span class="s1">&#39;atomic_ordering_energy&#39;</span><span class="p">)]</span>
-
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">build_reference</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span> <span class="o">=</span> <span class="n">dbe</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">=</span> <span class="p">[]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">site_ratios</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">sublattices</span><span class="p">)</span>
+        <span class="n">active_species</span> <span class="o">=</span> <span class="n">unpack_components</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
         <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="n">subl_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
+            <span class="n">subl_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">components</span> <span class="o">|=</span> <span class="n">subl_comps</span>
             <span class="c1"># Support for variable site ratios in ionic liquid model</span>
             <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
@@ -279,7 +281,7 @@
             <span class="c1"># Special treatment of &quot;neutral&quot; vacancies in 2SL ionic liquid</span>
             <span class="c1"># These are treated as having variable valence</span>
             <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-                <span class="n">subl_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbe</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
+                <span class="n">subl_comps</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_species</span><span class="p">)</span>
                 <span class="k">if</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">subl_comps</span><span class="p">:</span>
                     <span class="k">if</span> <span class="n">idx</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
                         <span class="n">subl_idx</span> <span class="o">=</span> <span class="mi">1</span>
@@ -327,9 +329,6 @@
 
         <span class="bp">self</span><span class="o">.</span><span class="n">models</span> <span class="o">=</span> <span class="n">OrderedDict</span><span class="p">()</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">build_phase</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
-        <span class="c1"># build reference model, this needs to be behind a flag to avoid recursion</span>
-        <span class="k">if</span> <span class="n">build_reference</span><span class="p">:</span>
-            <span class="bp">self</span><span class="o">.</span><span class="n">build_reference_model</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
 
         <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
             <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">symbol_replace</span><span class="p">(</span><span class="n">value</span><span class="p">,</span> <span class="n">symbols</span><span class="p">)</span>
@@ -458,7 +457,47 @@
     <span class="n">mixing_entropy</span> <span class="o">=</span> <span class="n">SM_MIX</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="bp">self</span><span class="o">.</span><span class="n">GM_MIX</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
     <span class="n">mixing_heat_capacity</span> <span class="o">=</span> <span class="n">CPM_MIX</span> <span class="o">=</span> <span class="nb">property</span><span class="p">(</span><span class="k">lambda</span> <span class="bp">self</span><span class="p">:</span> <span class="o">-</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="o">*</span><span class="bp">self</span><span class="o">.</span><span class="n">GM_MIX</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">))</span>
 
-<div class="viewcode-block" id="Model.build_reference_model"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.build_reference_model">[docs]</a>    <span class="k">def</span> <span class="nf">build_reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">dbe</span><span class="p">,</span> <span class="n">preserve_ideal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="nd">@property</span>
+    <span class="k">def</span> <span class="nf">reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Return a Model containing only energy contributions from endmembers.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Model</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The reference_model is defined such that subtracting it from the model</span>
+<span class="sd">        will set the energy of the endmembers for the _MIX properties of this</span>
+<span class="sd">        class to zero. The _MIX properties generated here allow users to see</span>
+<span class="sd">        mixing energies on the internal degrees of freedom of this phase.</span>
+
+<span class="sd">        The reference_model AST can be modified in the same way as the current Model.</span>
+
+<span class="sd">        Ideal mixing is always added to the AST, we need to set it to zero here</span>
+<span class="sd">        so that it&#39;s not subtracted out of the reference however, we have this</span>
+<span class="sd">        option so users can just see the mixing properties in terms of the</span>
+<span class="sd">        parameters.</span>
+
+<span class="sd">        If the current model has an ordering energy as part of a partitioned</span>
+<span class="sd">        model, then this special reference state is not well defined because</span>
+<span class="sd">        the endmembers in the model have energetic contributions from</span>
+<span class="sd">        the ordered endmember energies and the disordered mixing energies.</span>
+<span class="sd">        Therefore, this reference state cannot be used sensibly for partitioned</span>
+<span class="sd">        models and the energies of all reference_model.models are set to nan.</span>
+
+<span class="sd">        Since build_reference_model requires that Database instances are copied</span>
+<span class="sd">        and new instances of Model are created, it can be computationally</span>
+<span class="sd">        expensive to build the reference Model by default. This property delays</span>
+<span class="sd">        building the reference_model until it is used.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_build_reference_model</span><span class="p">()</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span>
+
+    <span class="k">def</span> <span class="nf">_build_reference_model</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">preserve_ideal</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Build a reference_model for the current model, referenced to the endmembers.</span>
 
@@ -468,40 +507,25 @@
 <span class="sd">        preserve_ideal : bool, optional</span>
 <span class="sd">            If True, the default, the ideal mixing energy will not be subtracted out.</span>
 
+
+<span class="sd">        See Also</span>
+<span class="sd">        --------</span>
+<span class="sd">        Model.reference_model</span>
+
 <span class="sd">        Notes</span>
 <span class="sd">        -----</span>
 <span class="sd">        Requires that self.build_phase has already been called.</span>
 
-<span class="sd">        This builds a special reference state that is referenced to the CEF</span>
-<span class="sd">        endmembers. The endmembers for the _MIX properties of this class</span>
-<span class="sd">        referenced to the reference_model energies will always be zero, such</span>
-<span class="sd">        that the _MIX properties generated here allow users to see mixing</span>
-<span class="sd">        energies on the internal degrees of freedom of this phase.</span>
-
-<span class="sd">        The reference_model AST can be modified in the same way as the current Model.</span>
-
-<span class="sd">        Ideal mixing is always added to the AST, we need to set it to</span>
-<span class="sd">        zero here so that it&#39;s not subtracted out of the reference</span>
-<span class="sd">        however, we have this option so users can just see the</span>
-<span class="sd">        mixing properties in terms of the parameters</span>
-
-<span class="sd">        If the current model has an ordering energy as part of a partitioned</span>
-<span class="sd">        model, then this special reference state is not well defined because</span>
-<span class="sd">        the endmembers in the model have energetic contributions from</span>
-<span class="sd">        the ordered endmember energies and the disordered mixing energies.</span>
-<span class="sd">        Therefore, this reference state cannot be used sensibly for partitioned</span>
-<span class="sd">        models and the energies of all the reference_model.models are set to nan.</span>
-
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="n">endmember_only_dbe</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="n">dbe</span><span class="p">)</span>
+        <span class="n">endmember_only_dbe</span> <span class="o">=</span> <span class="n">copy</span><span class="o">.</span><span class="n">deepcopy</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="p">)</span>
         <span class="n">endmember_only_dbe</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">remove</span><span class="p">(</span><span class="n">where</span><span class="p">(</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">test</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_interaction_test</span><span class="p">))</span>
-        <span class="n">mod_endmember_only</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">endmember_only_dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters_arg</span><span class="p">,</span> <span class="n">build_reference</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
+        <span class="n">mod_endmember_only</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">(</span><span class="n">endmember_only_dbe</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameters_arg</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">preserve_ideal</span><span class="p">:</span>
             <span class="n">mod_endmember_only</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="s1">&#39;idmix&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="mi">0</span>
-        <span class="bp">self</span><span class="o">.</span><span class="n">reference_model</span> <span class="o">=</span> <span class="n">mod_endmember_only</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span> <span class="o">=</span> <span class="n">mod_endmember_only</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ord&#39;</span><span class="p">,</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">)</span> <span class="o">!=</span> <span class="n">S</span><span class="o">.</span><span class="n">Zero</span><span class="p">:</span>
                 <span class="k">for</span> <span class="n">k</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">reference_model</span><span class="o">.</span><span class="n">models</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                    <span class="bp">self</span><span class="o">.</span><span class="n">reference_model</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">nan</span></div>
+                    <span class="bp">self</span><span class="o">.</span><span class="n">_reference_model</span><span class="o">.</span><span class="n">models</span><span class="p">[</span><span class="n">k</span><span class="p">]</span> <span class="o">=</span> <span class="n">nan</span>
 
 <div class="viewcode-block" id="Model.get_internal_constraints"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.model.Model.get_internal_constraints">[docs]</a>    <span class="k">def</span> <span class="nf">get_internal_constraints</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="n">constraints</span> <span class="o">=</span> <span class="p">[]</span>

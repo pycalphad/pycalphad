@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.8+1.gfb371ee documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+1.gfb371ee
+                0.8+2.gf784c38
               </div>
             
           
@@ -244,7 +244,7 @@
 calculations under specified conditions.</p>
 <dl class="class">
 <dt id="pycalphad.model.Model">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.model.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param">dbe</em>, <em class="sig-param">comps</em>, <em class="sig-param">phase_name</em>, <em class="sig-param">parameters=None</em>, <em class="sig-param">build_reference=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.model.</code><code class="sig-name descname">Model</code><span class="sig-paren">(</span><em class="sig-param">dbe</em>, <em class="sig-param">comps</em>, <em class="sig-param">phase_name</em>, <em class="sig-param">parameters=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
 <p>Models use an abstract representation of the function
 for calculation of values under specified conditions.</p>
@@ -344,38 +344,6 @@ Description follows Servant and Ansara, Calphad, 2001.</p>
 <dd class="field-odd"><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p>
 </dd>
 </dl>
-</dd></dl>
-
-<dl class="method">
-<dt id="pycalphad.model.Model.build_reference_model">
-<code class="sig-name descname">build_reference_model</code><span class="sig-paren">(</span><em class="sig-param">dbe</em>, <em class="sig-param">preserve_ideal=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.build_reference_model"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.build_reference_model" title="Permalink to this definition">¶</a></dt>
-<dd><p>Build a reference_model for the current model, referenced to the endmembers.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>dbe</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – </p></li>
-<li><p><strong>preserve_ideal</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, the default, the ideal mixing energy will not be subtracted out.</p></li>
-</ul>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<p>Requires that self.build_phase has already been called.</p>
-<p>This builds a special reference state that is referenced to the CEF
-endmembers. The endmembers for the _MIX properties of this class
-referenced to the reference_model energies will always be zero, such
-that the _MIX properties generated here allow users to see mixing
-energies on the internal degrees of freedom of this phase.</p>
-<p>The reference_model AST can be modified in the same way as the current Model.</p>
-<p>Ideal mixing is always added to the AST, we need to set it to
-zero here so that it’s not subtracted out of the reference
-however, we have this option so users can just see the
-mixing properties in terms of the parameters</p>
-<p>If the current model has an ordering energy as part of a partitioned
-model, then this special reference state is not well defined because
-the endmembers in the model have energetic contributions from
-the ordered endmember energies and the disordered mixing energies.
-Therefore, this reference state cannot be used sensibly for partitioned
-models and the energies of all the reference_model.models are set to nan.</p>
 </dd></dl>
 
 <dl class="attribute">
@@ -518,6 +486,40 @@ the Muggianu ternary parameter extension.</p>
 <code class="sig-name descname">reference_energy</code><span class="sig-paren">(</span><em class="sig-param">dbe</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/model.html#Model.reference_energy"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.model.Model.reference_energy" title="Permalink to this definition">¶</a></dt>
 <dd><p>Returns the weighted average of the endmember energies
 in symbolic form.</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.model.Model.reference_model">
+<em class="property">property </em><code class="sig-name descname">reference_model</code><a class="headerlink" href="#pycalphad.model.Model.reference_model" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a Model containing only energy contributions from endmembers.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Returns</dt>
+<dd class="field-odd"><p></p>
+</dd>
+<dt class="field-even">Return type</dt>
+<dd class="field-even"><p><a class="reference internal" href="#pycalphad.model.Model" title="pycalphad.model.Model">Model</a></p>
+</dd>
+</dl>
+<p class="rubric">Notes</p>
+<p>The reference_model is defined such that subtracting it from the model
+will set the energy of the endmembers for the _MIX properties of this
+class to zero. The _MIX properties generated here allow users to see
+mixing energies on the internal degrees of freedom of this phase.</p>
+<p>The reference_model AST can be modified in the same way as the current Model.</p>
+<p>Ideal mixing is always added to the AST, we need to set it to zero here
+so that it’s not subtracted out of the reference however, we have this
+option so users can just see the mixing properties in terms of the
+parameters.</p>
+<p>If the current model has an ordering energy as part of a partitioned
+model, then this special reference state is not well defined because
+the endmembers in the model have energetic contributions from
+the ordered endmember energies and the disordered mixing energies.
+Therefore, this reference state cannot be used sensibly for partitioned
+models and the energies of all reference_model.models are set to nan.</p>
+<p>Since build_reference_model requires that Database instances are copied
+and new instances of Model are created, it can be computationally
+expensive to build the reference Model by default. This property delays
+building the reference_model until it is used.</p>
 </dd></dl>
 
 <dl class="method">
