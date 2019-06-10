@@ -4,11 +4,9 @@ from collections import OrderedDict
 from xarray import Dataset
 
 from pycalphad import calculate, variables as v
-from pycalphad.core.errors import ConditionError
 from pycalphad.core.lower_convex_hull import lower_convex_hull
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.cartesian import cartesian
-from pycalphad.core.hyperplane import hyperplane
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from .compsets import CompSet2D, CompSet
 
@@ -152,10 +150,6 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
     chempots = result["MU"].values.squeeze()
     return GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots, grid
 
-def get_num_phases(eq_dataset):
-    """Return the number of phases in equilibrium from an equilibrium dataset"""
-    return int(np.sum(eq_dataset.Phase.values != '', axis=-1, dtype=np.int))
-
 
 def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
     """
@@ -181,11 +175,6 @@ def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
         return CompSet2D(extracted_compsets)
     else:
         return None
-
-
-def sort_x_by_y(x, y):
-    """Sort a list of x in the order of sorting y"""
-    return [xx for _, xx in sorted(zip(y, x), key=lambda pair: pair[0])]
 
 
 def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
