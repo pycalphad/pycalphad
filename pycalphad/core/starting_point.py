@@ -1,5 +1,6 @@
 from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
+from pycalphad.core.equilibrium_result import EquilibriumResult
 from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
@@ -77,19 +78,20 @@ def starting_point(conditions, state_variables, phase_records, grid):
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
     if global_min_enabled:
-        result = Dataset({'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
-                          'GM':     (conds_as_strings, np.empty(grid_shape)),
-                          'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
-                          'X':      (conds_as_strings + ['vertex', 'component'],
-                                     np.empty(grid_shape + (len(nonvacant_elements)+1, len(nonvacant_elements),))),
-                          'Y':      (conds_as_strings + ['vertex', 'internal_dof'],
-                                     np.empty(grid_shape + (len(nonvacant_elements)+1, maximum_internal_dof,))),
-                          'Phase':  (conds_as_strings + ['vertex'],
-                                     np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype='U%s' % max_phase_name_len)),
-                          'points': (conds_as_strings + ['vertex'],
-                                     np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype=np.int32))
-                          },
-                         coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
+        result = EquilibriumResult(
+            {'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
+             'GM':     (conds_as_strings, np.empty(grid_shape)),
+             'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
+             'X':      (conds_as_strings + ['vertex', 'component'],
+                        np.empty(grid_shape + (len(nonvacant_elements)+1, len(nonvacant_elements),))),
+             'Y':      (conds_as_strings + ['vertex', 'internal_dof'],
+                        np.empty(grid_shape + (len(nonvacant_elements)+1, maximum_internal_dof,))),
+             'Phase':  (conds_as_strings + ['vertex'],
+                        np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype='U%s' % max_phase_name_len)),
+             'points': (conds_as_strings + ['vertex'],
+                        np.empty(grid_shape + (len(nonvacant_elements)+1,), dtype=np.int32))
+             },
+             coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
         result = lower_convex_hull(grid, state_variables, result)
     else:
         raise NotImplementedError('Conditions not yet supported')
