@@ -13,6 +13,7 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
+from pycalphad.core.equilibrium_result import EquilibriumResult
 import dask
 from dask import delayed
 from xarray import Dataset
@@ -37,6 +38,8 @@ def _adjust_conditions(conds):
 def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
     "Merge back together slices of 'properties'."
     for prop_slice, prop_arr in zip(chunk_grid, results):
+        if isinstance(prop_arr, EquilibriumResult):
+            prop_arr = prop_arr.get_dataset()
         if not isinstance(prop_arr, Dataset):
             print('Error: {}'.format(prop_arr))
             continue
@@ -97,7 +100,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     Dataset of property as a function of equilibrium conditions
     """
     if data is None:
-        data = equilibrium(dbf, comps, phases, conditions)
+        data = equilibrium(dbf, comps, phases, conditions, dataset=False)
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     conds = _adjust_conditions(conditions)
     indep_vars = ['N', 'P', 'T']
@@ -116,15 +119,15 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     prop_shape = grid_shape
     prop_dims = list(str_conds.keys()) + ['vertex']
 
-    result = Dataset({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
+    result = EquilibriumResult({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
         dof = sum([len(x) for x in dbf.phases[phase].constituents])
-        current_phase_indices = (data.Phase.values == phase)
+        current_phase_indices = (data.Phase == phase)
         if ~np.any(current_phase_indices):
             continue
-        points = data.Y.values[np.nonzero(current_phase_indices)][..., :dof]
+        points = data.Y[np.nonzero(current_phase_indices)][..., :dof]
         statevar_indices = np.nonzero(current_phase_indices)[:len(indep_vals)]
         statevars = {key: np.take(np.asarray(vals), idx)
                      for key, vals, idx in zip(indep_vars, indep_vals, statevar_indices)}
@@ -133,17 +136,23 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
             statevars['mode'] = 'numpy'
         calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
                             callables=callables, parameters=parameters, **statevars)
-        result[output].values[np.nonzero(current_phase_indices)] = calcres[output].values
+        result[output][np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
-        result[output] = (result[output] * data['NP']).sum(dim='vertex', skipna=True)
+        out = np.nansum(result[output] * data['NP'], axis=-1)
+        dv_output = result.data_vars[output]
+        result.remove(output)
+        # remove the vertex coordinate because we summed over it
+        result.add_variable(output, dv_output[0][:-1], out)
     else:
-        result['Phase'] = data['Phase'].copy()
-        result['NP'] = data['NP'].copy()
+        dv_phase = data.data_vars['Phase']
+        dv_np = data.data_vars['NP']
+        result.add_variable('Phase', dv_phase[0], dv_phase[1])
+        result.add_variable('NP', dv_np[0], dv_np[1])
     return result
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, broadcast=True, calc_opts=None,
+                verbose=False, broadcast=True, calc_opts=None, dataset=True,
                 scheduler='sync', parameters=None, solver=None, callables=None,
                 **kwargs):
     """
@@ -174,6 +183,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
+    dataset : bool
+        *XXX: Needs a better name.* Whether to return an xarray Dataset. Defaults to True.
     scheduler : Dask scheduler, optional
         Job scheduler for performing the computation.
         If None, return a Dask graph of the computation instead of actually doing it.
@@ -264,34 +275,9 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict['vertex'] = np.arange(
         len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
-    grid_shape = tuple(len(x) for x in conds.values()) + (len(pure_elements)+1,)
     properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
-    conditions_per_chunk_per_axis = 2
-    if num_calcs > 1:
-        # Generate slices of 'properties'
-        slices = []
-        for val in grid_shape[:-1]:
-            idx_arr = list(range(val))
-            num_chunks = int(np.floor(val/conditions_per_chunk_per_axis))
-            if num_chunks > 0:
-                cond_slices = [x for x in np.array_split(np.asarray(idx_arr), num_chunks) if len(x) > 0]
-            else:
-                cond_slices = [idx_arr]
-            slices.append(cond_slices)
-        chunk_dims = [len(slc) for slc in slices]
-        chunk_grid = np.array(np.unravel_index(np.arange(np.prod(chunk_dims)), chunk_dims)).T
-        res = []
-        for chunk in chunk_grid:
-            prop_slice = properties[OrderedDict(list(zip(str_conds.keys(),
-                                                         [np.atleast_1d(sl)[ch] for ch, sl in zip(chunk, slices)])))]
-            job = delayed(_solve_eq_at_conditions, pure=False)(comps, prop_slice, phase_records, grid,
-                                                               list(str_conds.keys()), state_variables, verbose, solver=solver)
-            res.append(job)
-        properties = delayed(_merge_property_slices, pure=False)(properties, chunk_grid, slices, list(str_conds.keys()), res)
-    else:
-        # Single-process job; don't create child processes
-        properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                                  list(str_conds.keys()), state_variables, verbose, solver=solver)
+    properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
+                                                              list(str_conds.keys()), state_variables, verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
     # We already computed these properties so don't recompute them
@@ -310,8 +296,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                   callables=callables,
                                                   parameters=parameters,
                                                   model=models, **calc_opts)
-        properties = delayed(properties.merge, pure=False)(eqcal, compat='equals')
-    if scheduler is not None:
+        properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
+    if dataset:
+        properties = delayed(properties.get_dataset, pure=False)()
+    if scheduler is not None and scheduler != 'debug':
         properties = dask.compute(properties, scheduler=scheduler)[0]
     properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:

@@ -9,6 +9,7 @@ from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.cartesian import cartesian
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from .compsets import CompSet2D, CompSet
+from pycalphad.core.equilibrium_result import EquilibriumResult
 
 
 def build_composition_grid(components, conditions):
@@ -128,7 +129,7 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
     dependent_comp = set(nonvacant_elements) - specified_elements
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
-    result = Dataset({'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
+    result = EquilibriumResult({'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
                       'GM':     (conds_as_strings, np.empty(grid_shape)),
                       'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),
                       'X':      (conds_as_strings + ['vertex', 'component'],
@@ -142,12 +143,12 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
                       },
                      coords=coord_dict, attrs={'engine': 'pycalphad %s' % pycalphad_version})
     result = lower_convex_hull(grid, state_variables, result)
-    GM_values = result["GM"].values.squeeze()
-    simplex_phases = result["Phase"].values.squeeze()
-    phase_fractions = result["NP"].values.squeeze()
-    phase_compositions = result["X"].values.squeeze()
-    phase_site_fracs = result["Y"].values.squeeze()
-    chempots = result["MU"].values.squeeze()
+    GM_values = result["GM"].squeeze()
+    simplex_phases = result["Phase"].squeeze()
+    phase_fractions = result["NP"].squeeze()
+    phase_compositions = result["X"].squeeze()
+    phase_site_fracs = result["Y"].squeeze()
+    chempots = result["MU"].squeeze()
     return GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots, grid
 
 
