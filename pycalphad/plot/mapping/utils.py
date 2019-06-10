@@ -150,7 +150,7 @@ def convex_hull(dbf, comps, phases, conditions, model=None, calc_opts=None, para
     phase_compositions = result["X"].values.squeeze()
     phase_site_fracs = result["Y"].values.squeeze()
     chempots = result["MU"].values.squeeze()
-    return GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots
+    return GM_values, simplex_phases, phase_fractions, phase_compositions, phase_site_fracs, chempots, grid
 
 def old_convex_hull(dbf, comps, phases, conditions, model=None,
                 calc_opts=None, parameters=None, callables=None):
