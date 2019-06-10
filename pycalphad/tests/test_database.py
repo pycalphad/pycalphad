@@ -3,7 +3,6 @@ The test_database module contains tests for the Database object.
 """
 from __future__ import print_function
 import pytest
-import warnings
 import hashlib
 import os
 from copy import deepcopy
@@ -22,7 +21,6 @@ except ImportError:
     # Python 3
     from io import StringIO
 
-warnings.simplefilter("always", UserWarning) # so we can test warnings
 
 #
 # DATABASE LOADING TESTS
@@ -87,11 +85,8 @@ def test_export_import():
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='Ignoring that the following function names are beyond the 8 character TDB limit'):
         invalid_dbf = test_dbf.to_string(fmt='tdb')
-        assert len(w) >= 1
-        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_raises_error_with_kwarg_raise():
@@ -103,20 +98,15 @@ def test_incompatible_db_raises_error_with_kwarg_raise():
 def test_incompatible_db_warns_with_kwarg_warn():
     "Symbol names too long for Thermo-Calc warn and write the database as given."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='Ignoring that the following function names are beyond the 8 character TDB limit'):
         invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='warn')
-        assert len(w) >= 1
-        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
+@pytest.mark.filterwarnings("error")
 def test_incompatible_db_ignores_with_kwarg_ignore():
     "Symbol names too long for Thermo-Calc are ignored the database written as given."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
-        invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='ignore')
-        not_expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert all([not_expected_string_fragment not in str(warning.message) for warning in w])
+    invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='ignore')
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_mangles_names_with_kwarg_fix():
