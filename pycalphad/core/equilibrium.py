@@ -100,7 +100,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     Dataset of property as a function of equilibrium conditions
     """
     if data is None:
-        data = equilibrium(dbf, comps, phases, conditions, dataset=False)
+        data = equilibrium(dbf, comps, phases, conditions, to_xarray=False)
     active_phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     conds = _adjust_conditions(conditions)
     indep_vars = ['N', 'P', 'T']
@@ -152,7 +152,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 
 
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
-                verbose=False, broadcast=True, calc_opts=None, dataset=True,
+                verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
                 scheduler='sync', parameters=None, solver=None, callables=None,
                 **kwargs):
     """
@@ -183,7 +183,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         when those conditions don't comprise a grid.
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
-    dataset : bool
+    to_xarray : bool
         *XXX: Needs a better name.* Whether to return an xarray Dataset. Defaults to True.
     scheduler : Dask scheduler, optional
         Job scheduler for performing the computation.
@@ -297,7 +297,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                                                   parameters=parameters,
                                                   model=models, **calc_opts)
         properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
-    if dataset:
+    if to_xarray:
         properties = delayed(properties.get_dataset, pure=False)()
     if scheduler is not None and scheduler != 'debug':
         properties = dask.compute(properties, scheduler=scheduler)[0]
