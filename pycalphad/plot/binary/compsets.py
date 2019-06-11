@@ -250,17 +250,26 @@ def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
         return None
 
 
-def find_two_phase_region_compsets(hull, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
+def find_two_phase_region_compsets(hull, temperature, indep_comp, indep_comp_idx, misc_gap_tol=0.1, minimum_composition=None):
     """
-    From a dataset at constant T and P, return the composition sets for a two
-    phase region or that have the smallest index composition coordinate
+    From a 1D convex hull at constant T and P, return the composition sets for
+    a two phase region or that have the smallest index composition coordinate
 
     Parameters
     ----------
     hull : EquilibriumResult
         Equilibrium-like from pycalphad that has a `Phase` Data variable.
-    indep_comp_coord : str
-        Coordinate name of the independent component
+    temperature : float
+        Temperature that the calculation was performed at
+    indep_comp : str
+        Name of the independent component
+    indep_comp_idx : str
+        Index of the independent component in the the sorted pure elements
+    misc_gap_tol : float
+        If any site fractions are different by at least this amount, the
+        composition sets are considered distinct and in a miscibility gap.
+    minimum_composition : float
+        Minimum composition in the convex hull to search for composition sets
 
     Returns
     -------
@@ -288,13 +297,11 @@ def find_two_phase_region_compsets(hull, temperature, indep_comp, indep_comp_idx
         if len(cs) == 2:
             compsets = CompsetPair(cs)
             if len(compsets.unique_phases) == 2:
-                # we found a multiphase region, return them if the discrepancy is
-                # above the tolerance
-                if compsets.xdiscrepancy(ignore_phase=True) > discrepancy_tol:
-                    return compsets
+                return compsets  # found a multiphase region
             else:
-                # Same phase, either a single phase region or miscibility gap.
-                if np.any(compsets.ydiscrepancy() > misc_gap_tol):
-                    return compsets
+                # Same phase, either single phase region or a miscibility gap.
+                y_discrep = compsets.ydiscrepancy()
+                if np.any(y_discrep[~np.isnan(y_discrep)] > misc_gap_tol):
+                    return compsets  # miscibility gap
         it.iternext()
     return None
