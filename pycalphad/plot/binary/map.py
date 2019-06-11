@@ -101,6 +101,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
     convex_hulls_calculated = 0
     convex_hull_time = 0
     curr_conds = {key: unpack_condition(val) for key, val in conds.items()}
+    str_conds = sorted([str(k) for k in curr_conds.keys()])
     for T in np.nditer(temperature_grid):
         iter_equilibria = 0
         if verbose:
@@ -122,7 +123,6 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
                 break
             Xeq = hull_compsets.mean_composition
             eq_conds[comp_cond] = [float(Xeq)]
-            str_conds = sorted([str(k) for k in eq_conds.keys()])
             eq_time = time.time()
             start_point = starting_point(eq_conds, statevars, prxs, grid)
             eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
@@ -147,7 +147,6 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
             # keep doing equilibrium calculations, if possible.
             while Xmax_visited < Xmax and compsets is not None:
                 eq_conds[comp_cond] = [float(Xmax_visited + dX)]
-                str_conds = sorted([str(k) for k in eq_conds.keys()])
                 eq_time = time.time()
                 # TODO: starting point could be improved by basing it off the previous calculation
                 start_point = starting_point(eq_conds, statevars, prxs, grid)
