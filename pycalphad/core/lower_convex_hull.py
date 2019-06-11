@@ -72,15 +72,6 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     if len(pot_conds) > 0:
         cart_pot_values = cartesian([result_array.coords[cond] for cond in pot_conds])
 
-    def force_indep_align(da):
-        return da.transpose(*itertools.chain(indep_conds + [x for x in da.dims if x not in indep_conds]))
-
-    #result_array['GM'] = force_indep_align(result_array.GM)
-    #result_array['points'] = force_indep_align(result_array.points)
-    #result_array['MU'] = force_indep_align(result_array.MU)
-    #result_array['NP'] = force_indep_align(result_array.NP)
-    #result_array['X'] = force_indep_align(result_array.X)
-    #result_array['Y'] = force_indep_align(result_array.Y)
     #result_array['Phase'] = force_indep_align(result_array.Phase)
     # factored out via profiling
     result_array_GM_values = result_array.GM
