@@ -131,24 +131,19 @@ class InteriorPointSolver(SolverBase):
             cu=prob.cu
         )
         self.apply_options(nlp)
-        length_scale = np.min(np.abs(prob.cl))
-        length_scale = max(length_scale, 1e-9)
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
         # It will not give valid results for the finite difference approximation
         x, info = nlp.solve(prob.x0)
-        dual_inf = np.max(np.abs(info['mult_g']*info['g']))
-        if dual_inf > self.infeasibility_threshold:
+        length_scale = np.min(np.abs(x))
+        if length_scale < 1e-6:
             if self.verbose:
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds
-            if length_scale < 1e-6:
-                nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
-                nlp.addOption(b'bound_relax_factor', MIN_SITE_FRACTION)
-                # This option ensures any bounds failures will fail "loudly"
-                # Otherwise we are liable to have subtle mass balance errors
-                nlp.addOption(b'honor_original_bounds', b'no')
-            else:
-                nlp.addOption(b'dual_inf_tol', self.infeasibility_threshold)
+            nlp.addOption(b'compl_inf_tol', 1e-3 * float(length_scale))
+            nlp.addOption(b'bound_relax_factor', MIN_SITE_FRACTION)
+            # This option ensures any bounds failures will fail "loudly"
+            # Otherwise we are liable to have subtle mass balance errors
+            nlp.addOption(b'honor_original_bounds', b'no')
             accurate_x, accurate_info = nlp.solve(x)
             if accurate_info['status'] >= 0:
                 x, info = accurate_x, accurate_info
