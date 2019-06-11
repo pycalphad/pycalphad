@@ -134,7 +134,7 @@ class InteriorPointSolver(SolverBase):
         # Note: Using the ipopt derivative checker can be tricky at the edges of composition space
         # It will not give valid results for the finite difference approximation
         x, info = nlp.solve(prob.x0)
-        length_scale = np.min(np.abs(x))
+        length_scale = max(np.min(np.abs(x)), 1e-9)
         if length_scale < 1e-6:
             if self.verbose:
                 print('Trying to improve poor solution')
