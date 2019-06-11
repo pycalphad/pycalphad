@@ -184,7 +184,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     calc_opts : dict, optional
         Keyword arguments to pass to `calculate`, the energy/property calculation routine.
     to_xarray : bool
-        *XXX: Needs a better name.* Whether to return an xarray Dataset. Defaults to True.
+        Whether to return an xarray Dataset (True, default) or an EquilibriumResult.
     scheduler : Dask scheduler, optional
         Job scheduler for performing the computation.
         If None, return a Dask graph of the computation instead of actually doing it.
