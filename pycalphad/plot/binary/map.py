@@ -3,7 +3,7 @@ import time
 from copy import deepcopy
 import numpy as np
 from pycalphad import calculate, variables as v
-from pycalphad.codegen.callables import build_callables, build_phase_records
+from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
@@ -61,23 +61,14 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         calc_kwargs['pdens'] = 2000
 
     species = unpack_components(dbf, comps)
-    params = eq_kwargs.get('parameters', {})
-    syms = sorted(extract_parameters(params)[0], key=str)
+    parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')
     statevars = get_state_variables(models=models, conds=conds)
     if models is None:
-        # TODO: case fail if model is not a dict of instantiated models, e.g. Model class
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
-                                    parameters=params, symbols_only=True)
-        eq_kwargs['model'] = models
-    if 'callables' not in eq_kwargs:
-        cbs = build_callables(dbf, comps, phases, models, parameter_symbols=syms,
-                              output='GM', additional_statevars={v.P, v.T, v.N})
-        eq_kwargs['callables'] = cbs
-
+                                    parameters=parameters, symbols_only=True)
     prxs = build_phase_records(dbf, species, phases, conds, models, output='GM',
-                               callables=cbs, parameters=params,
-                               build_gradients=True)
+                               parameters=parameters, build_gradients=True)
 
     indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
@@ -104,7 +95,12 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     convex_hull_time = 0
     curr_conds = {key: unpack_condition(val) for key, val in conds.items()}
     str_conds = sorted([str(k) for k in curr_conds.keys()])
-    for T in np.nditer(temperature_grid):
+    grid_conds = _adjust_conditions(curr_conds)
+    complete_grid = calculate(dbf, comps, phases, fake_points=True, output='GM',
+                             T=grid_conds[v.T], P=grid_conds[v.P], N=1,
+                             model=models, parameters=parameters, **calc_kwargs)
+    for T_idx in range(temperature_grid.size):
+        T = temperature_grid[T_idx]
         iter_equilibria = 0
         if verbose:
             print("=== T = {} ===".format(float(T)))
@@ -112,12 +108,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         eq_conds = deepcopy(curr_conds)
         Xmax_visited = 0.0
         hull_time = time.time()
-        grid_conds = _adjust_conditions(eq_conds)
-        grid = calculate(dbf, comps, phases,
-                         T=grid_conds[v.T], P=grid_conds[v.P], N=1,
-                         fake_points=True, output='GM',
-                         phase_records=prxs, model=models, **calc_kwargs)
-
+        grid = complete_grid.isel(T=[T_idx])
         hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
         convex_hulls_calculated += 1
@@ -170,7 +161,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         if verbose:
             print(iter_equilibria, 'equilibria calculated in this iteration.')
     if verbose or summary:
-        print("{} Convex hulls calculated ({:0.2f}s)".format(convex_hulls_calculated, convex_hull_time))
-        print("{} Equilbria calculated ({:0.0f}s)".format(equilibria_calculated, equilibrium_time))
+        print("{} Convex hulls calculated ({:0.1f}s)".format(convex_hulls_calculated, convex_hull_time))
+        print("{} Equilbria calculated ({:0.1f}s)".format(equilibria_calculated, equilibrium_time))
         print("{:0.0f}% of brute force calculations skipped".format(100*(1-equilibria_calculated/(composition_grid.size*temperature_grid.size))))
     return boundary_sets
