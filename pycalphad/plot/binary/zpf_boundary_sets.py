@@ -1,5 +1,5 @@
 from pycalphad.plot.utils import phase_legend
-from pycalphad.plot.mapping.compsets import CompSet2D
+from pycalphad.plot.binary.compsets import CompsetPair
 from matplotlib.collections import LineCollection
 from matplotlib.colors import to_rgba
 import numpy as np
@@ -13,7 +13,7 @@ class TwoPhaseRegion():
     ----------
     phases : frozenset
         Unique phases in this two phase region
-    compsets : list of CompSet2D
+    compsets : list of CompsetPair
     """
     def __init__(self, initial_compsets):
         self.phases = initial_compsets.unique_phases
@@ -30,9 +30,11 @@ class TwoPhaseRegion():
 
         Parameters
         ----------
-        compsets : CompSet2D
+        compsets : CompsetPair
         Xtol : float
+            Composition discrepancy tolerance
         Ttol : float
+            Temperature discrepancy tolerance
 
         Returns
         -------
@@ -40,12 +42,12 @@ class TwoPhaseRegion():
 
         Notes
         -----
-        A new CompSet2D object belongs in the this region if, when compared to
-        the most recently added CompSet2D:
+        A new CompsetPair object belongs in the this region if, when compared to
+        the most recently added CompsetPair:
         1. All the phases are the same (in the same order)
-        2. The composition discrepancies between CompSets of the same phase are
-            below Xtol
-        3. The temperature discrepancy between the CompSet2D objects is below Ttol
+        2. The composition discrepancies between BinaryCompsets of the same
+            phase are below Xtol
+        3. The temperature discrepancy between the CompsetPairs is below Ttol
 
         """
         if compsets.unique_phases == self.phases:
@@ -55,23 +57,29 @@ class TwoPhaseRegion():
                 return True
         return False
 
-    def add_compsets(self, compsets):
+    def add_compsets(self, compset_pair):
         """
+        Add composition sets to this region.
 
         Parameters
         ----------
-        compsets : CompSet2D
+        pair : CompsetPair
+            Add a CompsetPair to the list of composition sets
 
         Notes
         -----
-        Users are responsible for determining if the compsets belong in this TwoPhaseRegion
+        For performance reasons (checking whether the CompsetPair belongs has a
+        complexity of O(N)), users are responsible for determining if the
+        compsets belong in this TwoPhaseRegion.
 
         """
-        self.compsets.append(compsets)
+        self.compsets.append(compset_pair)
 
 
 class ZPFBoundarySets():
     """
+    Holds CompsetPairs that can be organized into TwoPhaseRegions and plotted
+    together.
 
     Attributes
     ----------
@@ -79,8 +87,9 @@ class ZPFBoundarySets():
         List of components
     indep_comp_cond : v.X
         Condition for the independent component
-    all_compsets : list of CompSet2D
+    all_compsets : list of CompsetPair
     two_phase_regions : list of TwoPhaseRegion
+
     """
     def __init__(self, comps, indep_composition_condition):
         self.components = comps
@@ -101,7 +110,7 @@ class ZPFBoundarySets():
 
         Parameters
         ----------
-        compsets : CompSet2D
+        compsets : CompsetPair
 
         Returns
         -------
@@ -145,10 +154,9 @@ class ZPFBoundarySets():
         for cs in previous_all_compsets:
             self.add_compsets(cs, Xtol=Xtol, Ttol=Ttol)
 
-    def get_scatter_plot_boundaries(self, ):
+    def get_scatter_plot_boundaries(self):
         """
         Get the ZPF boundaries to plot from each two phase region.
-
 
         Notes
         -----
@@ -236,11 +244,8 @@ class ZPFBoundarySets():
                 # TODO: X=composition, Y=Temperature assumption
                 xs = cs.compositions.tolist()
                 ys = [cs.temperature, cs.temperature]
-                phases = cs.phases
-
                 a_path.append([xs[0], ys[0]])
                 b_path.append([xs[1], ys[1]])
-
                 # add tieline segment segment
                 # a segment is a list of [[x1, y1], [x2, y2]]
                 tieline_segments.append(np.array([xs, ys]).T)
@@ -262,7 +267,6 @@ class ZPFBoundarySets():
                 if top_cs.xdiscrepancy() < close_miscibility_gaps:
                     boundary_segments.append(np.array([top_cs.compositions, [top_cs.temperature, top_cs.temperature]]).T)
                     boundary_colors.append(colors[ordered_phases[0]])  # colors are the same
-
 
             boundary_segments.append(a_path)
             boundary_segments.append(b_path)

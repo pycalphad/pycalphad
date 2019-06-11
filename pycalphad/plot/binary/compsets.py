@@ -1,11 +1,29 @@
 import numpy as np
 import warnings
 
-class CompSet():
+class BinaryCompset():
     """
-    Composition set for 2D representations of binary, ternary or multicomponent equilibrium.
+    Composition set for representations of a phase equilibria in a two
+    component system with a temperature condition.
+
+    Parameters
+    ----------
+    phase_name : str
+        Name of phase
+    temperature : float
+        Temperature corresponding the the calculation
+    indep_comp : str
+        Name of the independent component
+    composition : float
+        Composition of the independent component
+    site_fracs : np.ndarray
+        Array of floats corresponding to the site fractions.
+
+    Notes
+    -----
+    In the future, this representation could be phased out if `equilibrium` returned composition sets.
     """
-    # tolerances for defining equality
+    # tolerances for defining equality between composition sets
     SITE_FRAC_ATOL = 0.001
     TEMPERATURE_ATOL = 0.1
 
@@ -31,12 +49,6 @@ class CompSet():
         else:
             return False
 
-    def isclose(self, other, comp_tol=0.01, temp_tol=1):
-        if self.phase_name == other.phase_name:
-            if self.xdiscrepancy(other) < comp_tol and self.Tdiscrepancy(other) < temp_tol:
-                return True
-        return False
-
     @classmethod
     def from_dataset_vertices(cls, ds, indep_comp, indep_comp_idx, num_vertex):
         compsets = []
@@ -56,17 +68,21 @@ class CompSet():
         return compsets
 
 
-class CompSet2D():
+class CompsetPair():
     """
-    Pair of composition sets
+    Pair of binary composition sets that make up an equilibrium
+
+    Parameters
+    ----------
+    compsets : list of BinaryCompset
 
     Attributes
     ----------
-    compsets : list of CompSet
+    compsets : list of BinaryCompset
         CompSets sorted by composition
-    a : CompSet
+    a : BinaryCompset
         Composition set in the pair with the lower composition
-    b : CompSet
+    b : BinaryCompset
         Composition set in the pair with the higher composition
     phases : list of str
         List of phase names, sorted by composition
@@ -173,7 +189,7 @@ class CompSet2D():
 
         Parameters
         ----------
-        other : CompSet2D
+        other : CompsetPair
 
         Returns
         -------
@@ -196,7 +212,7 @@ class CompSet2D():
 
         Parameters
         ----------
-        other : CompSet2D
+        other : CompsetPair
 
         Returns
         -------
@@ -206,3 +222,77 @@ class CompSet2D():
             return np.abs(self.compositions - other.compositions)
         else:
             return np.full(self.compositions.shape, np.infty)
+
+
+def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
+    """
+    Return a CompSet2D object if a pair of composition sets is found in an
+    equilibrium dataset. Otherwise return None.
+
+    Parameters
+    ----------
+    eq_dataset :
+    indep_comp :
+    indep_comp_index :
+
+    Returns
+    -------
+    CompsetPair
+    """
+    if indep_comp is None:
+        indep_comp = [c for c in eq_dataset.coords if 'X_' in c][0][2:]
+    if indep_comp_index is None:
+        indep_comp_index = eq_dataset.component.values.tolist().index(indep_comp)
+    extracted_compsets = BinaryCompset.from_dataset_vertices(eq_dataset, indep_comp, indep_comp_index, 3)
+    if len(extracted_compsets) == 2:
+        return CompsetPair(extracted_compsets)
+    else:
+        return None
+
+
+def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
+    """
+    From a dataset at constant T and P, return the composition sets for a two
+    phase region or that have the smallest index composition coordinate
+
+    Parameters
+    ----------
+    dataset : xr.Dataset
+        Equilibrium-like from pycalphad that has a `Phase` Data variable.
+    indep_comp_coord : str
+        Coordinate name of the independent component
+
+    Returns
+    -------
+    CompsetPair
+
+    """
+    phases, compositions, site_fracs = hull_output[1], hull_output[3], hull_output[4]
+    grid_shape = phases.shape[:-1]
+    num_phases = phases.shape[-1]
+    it = np.nditer(np.empty(grid_shape), flags=['multi_index'])  # empty grid for indexing
+    while not it.finished:
+        idx = it.multi_index
+        cs = []
+        # TODO: assumption of only two phases, seems like the third phase index can have bad points
+        # Three phases is probably an error anyways...
+        if minimum_composition is not None and np.all(compositions[idx][:, indep_comp_idx][:2] < minimum_composition):
+            it.iternext()
+            continue
+        for i in np.arange(num_phases):
+            if str(phases[idx][i]) != '':
+                stable_composition_sets = BinaryCompset(str(phases[idx][i]), temperature, indep_comp, compositions[idx][i, indep_comp_idx], site_fracs[idx][i, :])
+                cs.append(stable_composition_sets)
+        if len(cs) == 2:
+            compsets = CompsetPair(cs)
+            if len(compsets.unique_phases) == 2:
+                # we found a multiphase region, return them if the discrepancy is
+                # above the tolerance
+                if compsets.xdiscrepancy(ignore_phase=True) > discrepancy_tol:
+                    return compsets
+            else:
+                # Same phase, either a single phase region or miscibility gap.
+                if np.any(compsets.ydiscrepancy() > misc_gap_tol):
+                    return compsets
+        it.iternext()
+    return None

@@ -3,24 +3,19 @@ import time
 from copy import deepcopy
 import numpy as np
 from pycalphad import variables as v
+from pycalphad.core.starting_point import starting_point
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.utils import unpack_condition, extract_parameters, instantiate_models, unpack_components, get_state_variables
 from pycalphad.codegen.callables import build_callables, build_phase_records
-from .utils import get_compsets, convex_hull, find_two_phase_region_compsets
+from .convex_hull import convex_hull
+from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
-from pycalphad.core.starting_point import starting_point
-
-def _eq(species, conditions, phase_records, grid, state_variables):
-    """Fast equilibrium assuming everything is set up and a grid is calculated"""
-    start = starting_point(conditions, state_variables, phase_records, grid)
-    str_conds = sorted([str(k) for k in conditions.keys()])
-    properties = _solve_eq_at_conditions(species, start, phase_records, grid, str_conds, state_variables, False)
-    return properties
 
 
 def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
                verbose=False, summary=False,):
     """
+    Map a binary T-X phase diagram
 
     Parameters
     ----------
@@ -32,7 +27,8 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
         Dictionary of conditions
     eq_kwargs : dict
         Dictionary of keyword arguments to pass to equilibrium
-    verbosity : bool
+    verbose : bool
+        Print verbose output for mapping
     boundary_sets : ZPFBoundarySets
         Existing ZPFBoundarySets
 
@@ -42,18 +38,15 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
 
     Notes
     -----
-    Naïve algorithm to map a binary phase diagram in T-X. More or less follows
+    Assumes conditions in T and X.
+
+    Simple algorithm to map a binary phase diagram in T-X. More or less follows
     the algorithm described in Figure 2 by Snider et al. [1] with the small
     algorithmic improvement of constructing a convex hull to find the next
     potential two phase region.
 
-    for each temperature, proceed along increasing composition, skipping two phase regions
-    assumes conditions in T and X
-    Right now, this is assumed to be a binary system, but it's feasible to accept
-    a set of constraints in the conditions for compositions that specify an
-    ispleth in multicomponent space, and this code will transform so that X
-    follows the path with the constraints, transforming the equilibrium hyperplanes
-    as necessary.
+    For each temperature, proceed along increasing composition, skipping two
+    over two phase regions, once calculated.
 
     [1] J. Snider, I. Griva, X. Sun, M. Emelianenko, Set based framework for
         Gibbs energy minimization, Calphad. 48 (2015) 18–26.
@@ -69,8 +62,8 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
     syms = sorted(extract_parameters(params)[0], key=str)
     models = eq_kwargs.get('model')
     statevars = get_state_variables(models=models, conds=conds)
-    # TODO: failing case if model is not a dict of instantiated models, e.g. Model class
     if models is None:
+        # TODO: case fail if model is not a dict of instantiated models, e.g. Model class
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
                                     parameters=params, symbols_only=True)
         eq_kwargs['model'] = models
@@ -89,14 +82,9 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
         raise ValueError('Binary map requires exactly one composition and one potential coordinate')
     if indep_pot[0] != v.T:
         raise ValueError('Binary map requires that a temperature grid must be defined')
-    indep_comp = indep_comp[0]
-    indep_pot = indep_pot[0]
 
     # binary assumption, only one composition specified.
     comp_cond = [k for k in conds.keys() if isinstance(k, v.X)][0]
-    # TODO: In the general case, we need this and the index to be replaced with
-    #       a function to calculate the mapping composition based on all the
-    #       pure element compositions and the constraints.
     indep_comp = comp_cond.name[2:]
     indep_comp_idx = sorted(comps).index(indep_comp)
     composition_grid = unpack_condition(conds[comp_cond])
@@ -120,6 +108,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
         eq_conds = deepcopy(curr_conds)
         Xmax_visited = 0.0
         hull_time = time.time()
+        # TODO: try to refactor this to just use starting point generation, build my own grid
         hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
         grid = hull[-1]
         convex_hull_time += time.time() - hull_time
@@ -132,8 +121,10 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
                 break
             Xeq = hull_compsets.mean_composition
             eq_conds[comp_cond] = [float(Xeq)]
+            str_conds = sorted([str(k) for k in eq_conds.keys()])
             eq_time = time.time()
-            eq_ds = _eq(species, eq_conds, prxs, grid, statevars)
+            start_point = starting_point(eq_conds, statevars, prxs, grid)
+            eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
             equilibrium_time += time.time() - eq_time
             equilibria_calculated += 1
             iter_equilibria += 1
@@ -155,8 +146,11 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
             # keep doing equilibrium calculations, if possible.
             while Xmax_visited < Xmax and compsets is not None:
                 eq_conds[comp_cond] = [float(Xmax_visited + dX)]
+                str_conds = sorted([str(k) for k in eq_conds.keys()])
                 eq_time = time.time()
-                eq_ds = _eq(species, eq_conds, prxs, grid, statevars)
+                # TODO: starting point could be improved by basing it off the previous calculation
+                start_point = starting_point(eq_conds, statevars, prxs, grid)
+                eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
                 equilibrium_time += time.time() - eq_time
                 equilibria_calculated += 1
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
