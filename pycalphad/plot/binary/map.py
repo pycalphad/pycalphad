@@ -5,7 +5,8 @@ import numpy as np
 from pycalphad import variables as v
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
-from pycalphad.core.utils import unpack_condition, extract_parameters, instantiate_models, unpack_components, get_state_variables
+from pycalphad.core.utils import instantiate_models, get_state_variables, \
+    extract_parameters, unpack_components, unpack_condition, get_pure_elements
 from pycalphad.codegen.callables import build_callables, build_phase_records
 from .convex_hull import convex_hull
 from .compsets import get_compsets, find_two_phase_region_compsets
@@ -86,7 +87,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
     # binary assumption, only one composition specified.
     comp_cond = [k for k in conds.keys() if isinstance(k, v.X)][0]
     indep_comp = comp_cond.name[2:]
-    indep_comp_idx = sorted(comps).index(indep_comp)
+    indep_comp_idx = sorted(get_pure_elements(dbf, comps)).index(indep_comp)
     composition_grid = unpack_condition(conds[comp_cond])
     dX = composition_grid[1] - composition_grid[0]
     Xmax = composition_grid.max()
