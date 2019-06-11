@@ -8,7 +8,7 @@ from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
-    extract_parameters, unpack_components, unpack_condition, get_pure_elements
+    unpack_components, unpack_condition, get_pure_elements
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
