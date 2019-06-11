@@ -54,7 +54,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     """
     eq_kwargs = eq_kwargs or {}
     calc_kwargs = calc_kwargs or {}
-    # implictly add v.N to conditions
+    # implicitly add v.N to conditions
     if v.N not in conds:
         conds[v.N] = [1.0]
     if 'pdens' not in calc_kwargs:
