@@ -250,14 +250,14 @@ def get_compsets(eq_dataset, indep_comp=None, indep_comp_index=None):
         return None
 
 
-def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
+def find_two_phase_region_compsets(hull, temperature, indep_comp, indep_comp_idx, discrepancy_tol=0.001, misc_gap_tol=0.1, minimum_composition=None):
     """
     From a dataset at constant T and P, return the composition sets for a two
     phase region or that have the smallest index composition coordinate
 
     Parameters
     ----------
-    dataset : xr.Dataset
+    hull : EquilibriumResult
         Equilibrium-like from pycalphad that has a `Phase` Data variable.
     indep_comp_coord : str
         Coordinate name of the independent component
@@ -267,7 +267,9 @@ def find_two_phase_region_compsets(hull_output, temperature, indep_comp, indep_c
     CompsetPair
 
     """
-    phases, compositions, site_fracs = hull_output[1], hull_output[3], hull_output[4]
+    phases = hull.Phase.squeeze()
+    compositions = hull.X.squeeze()
+    site_fracs = hull.Y.squeeze()
     grid_shape = phases.shape[:-1]
     num_phases = phases.shape[-1]
     it = np.nditer(np.empty(grid_shape), flags=['multi_index'])  # empty grid for indexing

@@ -2,19 +2,18 @@
 import time
 from copy import deepcopy
 import numpy as np
-from pycalphad import variables as v
-from pycalphad.core.starting_point import starting_point
+from pycalphad import calculate, variables as v
+from pycalphad.codegen.callables import build_callables, build_phase_records
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
+from pycalphad.core.equilibrium import _adjust_conditions
+from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
     extract_parameters, unpack_components, unpack_condition, get_pure_elements
-from pycalphad.codegen.callables import build_callables, build_phase_records
-from .convex_hull import convex_hull
 from .compsets import get_compsets, find_two_phase_region_compsets
 from .zpf_boundary_sets import ZPFBoundarySets
 
-
-def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
-               verbose=False, summary=False,):
+def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
+               boundary_sets=None, verbose=False, summary=False,):
     """
     Map a binary T-X phase diagram
 
@@ -54,9 +53,12 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
         doi:10.1016/j.calphad.2014.09.005.
     """
     eq_kwargs = eq_kwargs or {}
+    calc_kwargs = calc_kwargs or {}
     # implictly add v.N to conditions
     if v.N not in conds:
         conds[v.N] = [1.0]
+    if 'pdens' not in calc_kwargs:
+        calc_kwargs['pdens'] = 2000
 
     species = unpack_components(dbf, comps)
     params = eq_kwargs.get('parameters', {})
@@ -110,9 +112,13 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, boundary_sets=None,
         eq_conds = deepcopy(curr_conds)
         Xmax_visited = 0.0
         hull_time = time.time()
-        # TODO: try to refactor this to just use starting point generation, build my own grid
-        hull = convex_hull(dbf, comps, phases, curr_conds, **eq_kwargs)
-        grid = hull[-1]
+        grid_conds = _adjust_conditions(eq_conds)
+        grid = calculate(dbf, comps, phases,
+                         T=grid_conds[v.T], P=grid_conds[v.P], N=1,
+                         fake_points=True, output='GM',
+                         phase_records=prxs, model=models, **calc_kwargs)
+
+        hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
         convex_hulls_calculated += 1
         while Xmax_visited < Xmax:
