@@ -70,13 +70,14 @@ class InteriorPointSolver(SolverBase):
         # set default options
         self.ipopt_options = {
             'max_iter': 200,
-            'print_level': 0,
-            # This option improves convergence when using L-BFGS
-            'limited_memory_max_history': 100,
+            'print_level': 4,
             'tol': 1e-1,
             'constr_viol_tol': 1e-5,
             'nlp_scaling_method': 'none',
-            'hessian_approximation': 'limited-memory'
+            'hessian_approximation': 'exact',
+            'derivative_test': 'second-order',
+            'derivative_test_perturbation': 1e-6,
+            'derivative_test_print_all': 'yes'
         }
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
@@ -135,7 +136,7 @@ class InteriorPointSolver(SolverBase):
         # It will not give valid results for the finite difference approximation
         x, info = nlp.solve(prob.x0)
         length_scale = max(np.min(np.abs(x)), 1e-9)
-        if length_scale < 1e-6:
+        if length_scale < 1e-2:
             if self.verbose:
                 print('Trying to improve poor solution')
             # Constraints are getting tiny; need to be strict about bounds

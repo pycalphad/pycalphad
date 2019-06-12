@@ -14,6 +14,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef symengine.LLVMDoubleVisitor _internal_cons_hess
     cdef symengine.LLVMDoubleVisitor _multiphase_cons
     cdef symengine.LLVMDoubleVisitor _multiphase_jac
+    cdef symengine.LLVMDoubleVisitor _multiphase_cons_hess
     cdef vector[symengine.LLVMDoubleVisitor] _masses
     cdef vector[symengine.LLVMDoubleVisitor] _massgrads
     cdef vector[symengine.LLVMDoubleVisitor] _masshessians
@@ -25,6 +26,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object _intconshessfunc
     cdef public object _mpconsfunc
     cdef public object _mpjacfunc
+    cdef public object _mpconshessfunc
     cdef public size_t num_internal_cons
     cdef public size_t num_multiphase_cons
     cdef public object _massfuncs
@@ -46,6 +48,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void internal_cons_hessian(self, double[:,:,::1] out, double[::1] dof) nogil
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof_with_phasefrac) nogil
     cpdef void multiphase_jacobian(self, double[:,::1] out, double[::1] dof_with_phasefrac) nogil
+    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil

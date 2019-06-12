@@ -60,14 +60,14 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
                                  self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
                                  self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
-                                 self._mpconsfunc, self._mpjacfunc,
+                                 self._mpconsfunc, self._mpjacfunc, self._mpconshessfunc,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
                   double[::1] parameters, object ofunc, object gfunc, object hfunc,
                   object massfuncs, object massgradfuncs, object masshessianfuncs,
                   object internal_cons_func, object internal_jac_func, object internal_cons_hess_func,
-                  object multiphase_cons_func, object multiphase_jac_func,
+                  object multiphase_cons_func, object multiphase_jac_func, object multiphase_cons_hess_func,
                   size_t num_internal_cons, size_t num_multiphase_cons):
         cdef:
             int var_idx, el_idx
@@ -116,6 +116,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if multiphase_jac_func is not None:
             self._mpjacfunc = multiphase_jac_func
             self._multiphase_jac = llvm_double_visitor(multiphase_jac_func)
+        if multiphase_cons_hess_func is not None:
+            self._mpconshessfunc = multiphase_cons_hess_func
+            self._multiphase_cons_hess = llvm_double_visitor(multiphase_cons_hess_func)
         if massfuncs is not None:
             self._massfuncs = massfuncs
             self._masses.resize(len(nonvacant_elements))
@@ -199,6 +202,14 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
         cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
         self._multiphase_jac.call(&out[0, 0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
+        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        self._multiphase_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 

@@ -31,7 +31,7 @@ def _build_constraint_functions(variables, constraints, include_hess=False, para
 
 
 ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'internal_cons_hess',
-                                                 'multiphase_cons', 'multiphase_jac',
+                                                 'multiphase_cons', 'multiphase_jac', 'multiphase_cons_hess',
                                                  'num_internal_cons', 'num_multiphase_cons'])
 
 
@@ -49,7 +49,7 @@ def build_constraints(mod, variables, conds, parameters=None):
     multiphase_constraints = mod.get_multiphase_constraints(conds)
     multiphase_constraints = [MULTIPHASE_CONSTRAINT_SCALING*x for x in multiphase_constraints]
     # TODO: Conditions needing Hessians should probably have a 'second-order' tag or something
-    need_hess = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
+    need_hess = True#any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
     cf_output = _build_constraint_functions(variables, internal_constraints,
                                             include_hess=need_hess, parameters=parameters)
     internal_cons = cf_output.cons_func
@@ -57,12 +57,13 @@ def build_constraints(mod, variables, conds, parameters=None):
     internal_cons_hess = cf_output.cons_hess
 
     result_build = _build_constraint_functions(variables + [Symbol('NP')],
-                                               multiphase_constraints, include_hess=False,
+                                               multiphase_constraints, include_hess=need_hess,
                                                parameters=parameters)
     multiphase_cons = result_build.cons_func
     multiphase_jac = result_build.cons_jac
+    multiphase_cons_hess = result_build.cons_hess
     return ConstraintTuple(internal_cons=internal_cons, internal_jac=internal_jac, internal_cons_hess=internal_cons_hess,
-                           multiphase_cons=multiphase_cons, multiphase_jac=multiphase_jac,
+                           multiphase_cons=multiphase_cons, multiphase_jac=multiphase_jac, multiphase_cons_hess=multiphase_cons_hess,
                            num_internal_cons=len(internal_constraints), num_multiphase_cons=len(multiphase_constraints))
 
 

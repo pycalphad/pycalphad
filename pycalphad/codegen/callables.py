@@ -189,6 +189,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         'internal_cons_hess': {},
         'mp_cons': {},
         'mp_jac': {},
+        'mp_cons_hess': {}
     }
     phase_records = {}
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
@@ -199,7 +200,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                     parameter_symbols=parameters.keys(), output=output,
                                     additional_statevars=state_variables,
                                     build_gradients=build_gradients,
-                                    build_hessians=build_hessians)
+                                    build_hessians=True)
 
     for name in phases:
         mod = models[name]
@@ -211,6 +212,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess
         _constraints['mp_cons'][name] = cfuncs.multiphase_cons
         _constraints['mp_jac'][name] = cfuncs.multiphase_jac
+        _constraints['mp_cons_hess'][name] = cfuncs.multiphase_cons_hess
         num_internal_cons = cfuncs.num_internal_cons
         num_multiphase_cons = cfuncs.num_multiphase_cons
 
@@ -226,6 +228,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                                   _constraints['internal_cons_hess'][name],
                                                   _constraints['mp_cons'][name],
                                                   _constraints['mp_jac'][name],
+                                                  _constraints['mp_cons_hess'][name],
                                                   num_internal_cons,
                                                   num_multiphase_cons)
 
