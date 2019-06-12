@@ -16,7 +16,6 @@ from pycalphad.core.solver import InteriorPointSolver
 from pycalphad.core.equilibrium_result import EquilibriumResult
 import dask
 from dask import delayed
-from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
 from datetime import datetime
@@ -33,24 +32,6 @@ def _adjust_conditions(conds):
         else:
             new_conds[key] = unpack_condition(value)
     return new_conds
-
-
-def _merge_property_slices(properties, chunk_grid, slices, conds_keys, results):
-    "Merge back together slices of 'properties'."
-    for prop_slice, prop_arr in zip(chunk_grid, results):
-        if isinstance(prop_arr, EquilibriumResult):
-            prop_arr = prop_arr.get_dataset()
-        if not isinstance(prop_arr, Dataset):
-            print('Error: {}'.format(prop_arr))
-            continue
-        all_coords = dict(zip(conds_keys, [np.atleast_1d(sl)[ch]
-                                                               for ch, sl in zip(prop_slice, slices)]))
-        for dv in properties.data_vars.keys():
-            # Have to be very careful with how we assign to 'properties' here
-            # We may accidentally assign to a copy unless we index the data variable first
-            dv_coords = {key: val for key, val in all_coords.items() if key in properties[dv].coords.keys()}
-            properties[dv][dv_coords] = prop_arr[dv]
-    return properties
 
 
 def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, parameters=None,
