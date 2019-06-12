@@ -14,8 +14,6 @@ from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
 from pycalphad.core.equilibrium_result import EquilibriumResult
-import dask
-from dask import delayed
 import numpy as np
 from collections import OrderedDict
 from datetime import datetime
@@ -221,7 +219,6 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             raise ConditionError('{} refers to non-existent component'.format(cond))
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    num_calcs = np.prod([len(i) for i in str_conds.values()])
     components = [x for x in sorted(comps)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
@@ -248,17 +245,15 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-    grid = delayed(calculate, pure=False)(dbf, comps, active_phases,
-                                          model=models, fake_points=True,
-                                          callables=callables, output='GM',
-                                          parameters=parameters, **grid_opts)
+    grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
+                     callables=callables, output='GM', parameters=parameters, **grid_opts)
     coord_dict = str_conds.copy()
-    coord_dict['vertex'] = np.arange(
-        len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
+    coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
-    properties = delayed(starting_point, pure=False)(conds, state_variables, phase_records, grid)
-    properties = delayed(_solve_eq_at_conditions, pure=False)(comps, properties, phase_records, grid,
-                                                              list(str_conds.keys()), state_variables, verbose, solver=solver)
+    properties = starting_point(conds, state_variables, phase_records, grid)
+    properties = _solve_eq_at_conditions(comps, properties, phase_records, grid,
+                                         list(str_conds.keys()), state_variables,
+                                         verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
     # We already computed these properties so don't recompute them
@@ -272,16 +267,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        eqcal = delayed(_eqcalculate, pure=False)(dbf, comps, active_phases, conditions, out,
-                                                  data=properties, per_phase=per_phase,
-                                                  callables=callables,
-                                                  parameters=parameters,
-                                                  model=models, **calc_opts)
-        properties = delayed(properties.merge, pure=False)(eqcal, inplace=True, compat='equals')
+        eqcal = _eqcalculate(dbf, comps, active_phases, conditions, out,
+                             data=properties, per_phase=per_phase, model=models,
+                             callables=callables, parameters=parameters, **calc_opts)
+        properties = properties.merge(eqcal, inplace=True, compat='equals')
     if to_xarray:
-        properties = delayed(properties.get_dataset, pure=False)()
-    if scheduler is not None and scheduler != 'debug':
-        properties = dask.compute(properties, scheduler=scheduler)[0]
+        properties = properties.get_dataset()
     properties.attrs['created'] = datetime.utcnow().isoformat()
     if len(kwargs) > 0:
         warnings.warn('The following equilibrium keyword arguments were passed, but unused:\n{}'.format(kwargs))
