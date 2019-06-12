@@ -143,11 +143,11 @@ class SiteFraction(StateVariable):
     def __getnewargs__(self):
         return self.phase_name, self.sublattice_index, self.species
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
         return 'y^{'+self.phase_name.replace('_', '-') + \
-            '}_{'+str(self.subl_index)+'},_{'+self.species.escaped_name+'}'
+            '}_{'+str(self.sublattice_index)+'},_{'+self.species.escaped_name+'}'
 
     def __str__(self):
         "String representation."
@@ -171,7 +171,7 @@ class PhaseFraction(StateVariable):
     def __getnewargs__(self):
         return self.phase_name, self.multiplicity
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
         return 'f^{'+self.phase_name.replace('_', '-') + \
@@ -212,7 +212,7 @@ class Composition(StateVariable):
         else:
             return self.species,
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
         if self.phase_name:
@@ -235,7 +235,7 @@ class ChemicalPotential(StateVariable):
     def __getnewargs__(self):
         return self.species,
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         return '\mu_{'+self.species.escaped_name+'}'
 
