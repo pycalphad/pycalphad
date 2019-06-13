@@ -345,7 +345,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
                                    models=models, parameters=parameters,
-                                   output=output, callables=callables,
+                                   output=output, callables=callables, build_gradients=False, build_hessians=False,
                                    verbose=kwargs.pop('verbose', False))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())

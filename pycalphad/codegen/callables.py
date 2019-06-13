@@ -200,7 +200,7 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                     parameter_symbols=parameters.keys(), output=output,
                                     additional_statevars=state_variables,
                                     build_gradients=build_gradients,
-                                    build_hessians=True)
+                                    build_hessians=build_hessians)
 
     for name in phases:
         mod = models[name]

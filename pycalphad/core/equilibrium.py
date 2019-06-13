@@ -242,11 +242,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = set(output)
     output |= {'GM'}
     output = sorted(output)
-    need_hessians = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
     phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
                                         output='GM', callables=callables,
                                         parameters=parameters, verbose=verbose,
-                                        build_gradients=True, build_hessians=need_hessians)
+                                        build_gradients=True, build_hessians=True)
     if verbose:
         print('[done]', end='\n')
 
