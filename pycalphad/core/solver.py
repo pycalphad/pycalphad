@@ -70,14 +70,14 @@ class InteriorPointSolver(SolverBase):
         # set default options
         self.ipopt_options = {
             'max_iter': 200,
-            'print_level': 4,
+            'print_level': 0,
             'tol': 1e-1,
             'constr_viol_tol': 1e-5,
             'nlp_scaling_method': 'none',
             'hessian_approximation': 'exact',
-            'derivative_test': 'second-order',
-            'derivative_test_perturbation': 1e-6,
-            'derivative_test_print_all': 'yes'
+            #'derivative_test': 'second-order',
+            #'derivative_test_perturbation': 1e-6,
+            #'derivative_test_print_all': 'yes'
         }
         if not self.verbose:
             # suppress the "This program contains Ipopt" banner
