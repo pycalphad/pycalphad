@@ -10,6 +10,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
     unpack_components, get_state_variables, instantiate_models
+from pycalphad.core.equilibrium_result import EquilibriumResult
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
@@ -239,11 +240,10 @@ def _compute_phase_values(components, statevar_dict,
         # Add state variables as data variables rather than as coordinates
         for sym, vals in zip(statevar_dict.keys(), statevars):
             data_arrays.update({sym: (output_columns, vals)})
+    return EquilibriumResult(data_arrays, coords=coordinate_dict)
 
-    return Dataset(data_arrays, coords=coordinate_dict)
 
-
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, **kwargs):
+def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -370,9 +370,22 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
     # speedup for single-phase case (found by profiling)
     if len(all_phase_data) > 1:
-        final_ds = concat(all_phase_data, dim='points')
-        final_ds['points'].values = np.arange(len(final_ds['points']))
-        final_ds.coords['points'].values = np.arange(len(final_ds['points']))
+        concatenated_coords = all_phase_data[0].coords
+
+        data_vars = all_phase_data[0].data_vars
+        concatenated_data_vars = {}
+        for var in data_vars.keys():
+            data_coords = data_vars[var][0]
+            points_idx = data_coords.index('points')  # concatenation axis
+            arrs = []
+            for phase_data in all_phase_data:
+                arrs.append(getattr(phase_data, var))
+            concat_data = np.concatenate(arrs, axis=points_idx)
+            concatenated_data_vars[var] = (data_coords, concat_data)
+        final_ds = EquilibriumResult(data_vars=concatenated_data_vars, coords=concatenated_coords)
     else:
         final_ds = all_phase_data[0]
-    return final_ds
+    if to_xarray:
+        return final_ds.get_dataset()
+    else:
+        return final_ds
