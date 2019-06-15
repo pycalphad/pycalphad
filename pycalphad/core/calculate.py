@@ -10,7 +10,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
     unpack_components, get_state_variables, instantiate_models
-from pycalphad.core.equilibrium_result import EquilibriumResult
+from pycalphad.core.equilibrium_result import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
@@ -240,7 +240,7 @@ def _compute_phase_values(components, statevar_dict,
         # Add state variables as data variables rather than as coordinates
         for sym, vals in zip(statevar_dict.keys(), statevars):
             data_arrays.update({sym: (output_columns, vals)})
-    return EquilibriumResult(data_arrays, coords=coordinate_dict)
+    return LightDataset(data_arrays, coords=coordinate_dict)
 
 
 def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
@@ -382,7 +382,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
                 arrs.append(getattr(phase_data, var))
             concat_data = np.concatenate(arrs, axis=points_idx)
             concatenated_data_vars[var] = (data_coords, concat_data)
-        final_ds = EquilibriumResult(data_vars=concatenated_data_vars, coords=concatenated_coords)
+        final_ds = LightDataset(data_vars=concatenated_data_vars, coords=concatenated_coords)
     else:
         final_ds = all_phase_data[0]
     if to_xarray:

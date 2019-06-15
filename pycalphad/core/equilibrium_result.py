@@ -4,14 +4,27 @@ import numpy as np
 from xarray import Dataset
 
 
-class EquilibriumResult:
+class LightDataset:
     """
+    Lightweight wrapper around an xarray Dataset.
 
     Attributes
     ----------
     data_vars : dict
     coords : dict
     attrs : dict
+
+    Notes
+    -----
+    The idea of LightDataset is to provide the same constructor API as Dataset
+    objects, but doesn't provide any `sel` or other functionality. Calls to
+    getitem or getattr to get a DataArray from xarray Datasets can take ~1ms or
+    more, which is problematic when the equilibrium solver operates on the order
+    of a few tens of ms and xarray Datasets are in the core loop.
+
+    This class provides a similar getattr API to accessing data variables and
+    "wraps" xarray Datasets in the sense that any LightDataset can be converted
+    to an xarray Dataset by the getdataset method.
 
     """
     def __init__(self, data_vars=None, coords=None, attrs=None):
@@ -27,7 +40,7 @@ class EquilibriumResult:
 
         Returns
         -------
-        EquilibriumResult
+        LightDataset
 
         Notes
         -----

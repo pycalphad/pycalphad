@@ -1,6 +1,6 @@
 from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.equilibrium_result import EquilibriumResult
+from pycalphad.core.equilibrium_result import LightDataset
 from xarray import Dataset
 import numpy as np
 from collections import OrderedDict
@@ -78,7 +78,7 @@ def starting_point(conditions, state_variables, phase_records, grid):
     if len(dependent_comp) != 1:
         raise ValueError('Number of dependent components different from one')
     if global_min_enabled:
-        result = EquilibriumResult(
+        result = LightDataset(
             {'NP':     (conds_as_strings + ['vertex'], np.empty(grid_shape + (len(nonvacant_elements)+1,))),
              'GM':     (conds_as_strings, np.empty(grid_shape)),
              'MU':     (conds_as_strings + ['component'], np.empty(grid_shape + (len(nonvacant_elements),))),

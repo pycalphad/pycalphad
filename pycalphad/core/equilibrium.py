@@ -13,7 +13,7 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
-from pycalphad.core.equilibrium_result import EquilibriumResult
+from pycalphad.core.equilibrium_result import LightDataset
 import numpy as np
 from collections import OrderedDict
 from datetime import datetime
@@ -98,7 +98,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     prop_shape = grid_shape
     prop_dims = list(str_conds.keys()) + ['vertex']
 
-    result = EquilibriumResult({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
+    result = LightDataset({output: (prop_dims, np.full(prop_shape, np.nan))}, coords=coord_dict)
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
