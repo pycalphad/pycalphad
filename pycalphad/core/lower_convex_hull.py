@@ -82,10 +82,10 @@ def lower_convex_hull(global_grid, state_variables, result_array):
     result_array_X_values = result_array.X
     result_array_Y_values = result_array.Y
     result_array_Phase_values = result_array.Phase
-    global_grid_GM_values = global_grid["GM"].values
-    global_grid_X_values = global_grid["X"].values
-    global_grid_Y_values = global_grid["Y"].values
-    global_grid_Phase_values = global_grid["Phase"].values
+    global_grid_GM_values = global_grid.GM
+    global_grid_X_values = global_grid.X
+    global_grid_Y_values = global_grid.Y
+    global_grid_Phase_values = global_grid.Phase
     num_comps = len(result_array.coords['component'])
 
     it = np.nditer(result_array_GM_values, flags=['multi_index'])
@@ -132,7 +132,7 @@ def lower_convex_hull(global_grid, state_variables, result_array):
                     result_array_Y_values[midx] = np.nan
                     idx_result_array_NP_values[idx] = np.nan
                 else:
-                    new_energy += idx_result_array_NP_values[idx] * global_grid["GM"].values[np.index_exp[indep_idx + (points[idx],)]]
+                    new_energy += idx_result_array_NP_values[idx] * global_grid.GM[np.index_exp[indep_idx + (points[idx],)]]
                     molesum += idx_result_array_NP_values[idx]
             result_array_GM_values[it.multi_index] = new_energy / molesum
         it.iternext()
