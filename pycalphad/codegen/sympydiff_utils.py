@@ -25,12 +25,12 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
     graph = sympify(sympy_graph)
     # TODO: did not replace zoo with oo
     if include_obj:
-        func = lambdify(inp, [graph], backend='llvm', cse=cse)
+        func = lambdify(inp, [graph], backend='lambda', cse=cse)
     if include_grad or include_hess:
         grad_graphs = list(graph.diff(w) for w in wrt)
         if include_grad:
-            grad = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
+            grad = lambdify(inp, grad_graphs, backend='lambda', cse=cse)
         if include_hess:
             hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
-            hess = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
+            hess = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)

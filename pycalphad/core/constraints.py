@@ -21,12 +21,12 @@ def _build_constraint_functions(variables, constraints, include_hess=False, para
     constraint__func, jacobian_func, hessian_func = None, None, None
     inp = sympify(variables + parameters)
     graph = sympify(constraints)
-    constraint_func = lambdify(inp, [graph], backend='llvm', cse=cse)
+    constraint_func = lambdify(inp, [graph], backend='lambda', cse=cse)
     grad_graphs = list(list(c.diff(w) for w in wrt) for c in graph)
-    jacobian_func = lambdify(inp, grad_graphs, backend='llvm', cse=cse)
+    jacobian_func = lambdify(inp, grad_graphs, backend='lambda', cse=cse)
     if include_hess:
         hess_graphs = list(list(list(g.diff(w) for w in wrt) for g in c) for c in grad_graphs)
-        hessian_func = lambdify(inp, hess_graphs, backend='llvm', cse=cse)
+        hessian_func = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
 
 

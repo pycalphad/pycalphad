@@ -6,18 +6,18 @@ from libcpp.vector cimport vector
 
 @cython.final
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
-    cdef symengine.LLVMDoubleVisitor _obj
-    cdef symengine.LLVMDoubleVisitor _grad
-    cdef symengine.LLVMDoubleVisitor _hess
-    cdef symengine.LLVMDoubleVisitor _internal_cons
-    cdef symengine.LLVMDoubleVisitor _internal_jac
-    cdef symengine.LLVMDoubleVisitor _internal_cons_hess
-    cdef symengine.LLVMDoubleVisitor _multiphase_cons
-    cdef symengine.LLVMDoubleVisitor _multiphase_jac
-    cdef symengine.LLVMDoubleVisitor _multiphase_cons_hess
-    cdef vector[symengine.LLVMDoubleVisitor] _masses
-    cdef vector[symengine.LLVMDoubleVisitor] _massgrads
-    cdef vector[symengine.LLVMDoubleVisitor] _masshessians
+    cdef symengine.LambdaRealDoubleVisitor* _obj
+    cdef symengine.LambdaRealDoubleVisitor* _grad
+    cdef symengine.LambdaRealDoubleVisitor* _hess
+    cdef symengine.LambdaRealDoubleVisitor* _internal_cons
+    cdef symengine.LambdaRealDoubleVisitor* _internal_jac
+    cdef symengine.LambdaRealDoubleVisitor* _internal_cons_hess
+    cdef symengine.LambdaRealDoubleVisitor* _multiphase_cons
+    cdef symengine.LambdaRealDoubleVisitor* _multiphase_jac
+    cdef symengine.LambdaRealDoubleVisitor* _multiphase_cons_hess
+    cdef vector[symengine.LambdaRealDoubleVisitor*] _masses
+    cdef vector[symengine.LambdaRealDoubleVisitor*] _massgrads
+    cdef vector[symengine.LambdaRealDoubleVisitor*] _masshessians
     cdef public object _ofunc
     cdef public object _gfunc
     cdef public object _hfunc

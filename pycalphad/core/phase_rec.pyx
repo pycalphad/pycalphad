@@ -1,16 +1,16 @@
 # distutils: language = c++
 
 cimport cython
+from cython.operator cimport dereference
 from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 import pycalphad.variables as v
+from symengine.lib.symengine_wrapper cimport LLVMDouble, LambdaDouble
 
-cdef symengine.LLVMDoubleVisitor llvm_double_visitor(llvm_double_obj):
+cdef symengine.LambdaRealDoubleVisitor* llvm_double_visitor(LambdaDouble llvm_double_obj):
     """Use the bytes from calling reduce on an LLVMDouble object to construct an LLVMDoubleVisitor"""
-    cdef symengine.LLVMDoubleVisitor f = symengine.LLVMDoubleVisitor()
-    if llvm_double_obj is not None:
-        f.loads(llvm_double_obj.__reduce__()[-1][-1])
+    cdef symengine.LambdaRealDoubleVisitor *f = &llvm_double_obj.lambda_double[0]
     return f
 
 @cython.boundscheck(False)
