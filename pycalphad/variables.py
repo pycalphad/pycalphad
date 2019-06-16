@@ -13,7 +13,7 @@ else:
 import itertools
 from sympy import Float, Symbol
 from pyparsing import ParseException
-from pycalphad.io.grammar import chemical_formula
+from pycalphad.io.grammar import parse_chemical_formula
 
 
 class Species(object):
@@ -56,16 +56,13 @@ class Species(object):
             return new_self
 
         if isinstance(arg, string_type):
-            try:
-                parse_list = chemical_formula.parseString(arg.upper())
-            except ParseException:
-                return None
+            parse_list = parse_chemical_formula(arg.upper())
         else:
             parse_list = arg
         new_self.name = name
         new_self.charge = parse_list[1]
         parse_list = parse_list[0]
-        new_self.constituents = {parse_list[i]: parse_list[i+1] for i in range(0, len(parse_list), 2)}
+        new_self.constituents = dict(parse_list)
         return new_self
 
     def __getnewargs__(self):
