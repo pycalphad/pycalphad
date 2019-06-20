@@ -10,9 +10,7 @@ if sys.version_info[0] >= 3:
 else:
     string_type = basestring
 
-import itertools
 from sympy import Float, Symbol
-from pyparsing import ParseException
 from pycalphad.io.grammar import parse_chemical_formula
 
 
@@ -143,8 +141,8 @@ class SiteFraction(StateVariable):
     def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'y^{'+self.phase_name.replace('_', '-') + \
-            '}_{'+str(self.sublattice_index)+'},_{'+self.species.escaped_name+'}'
+        return 'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
+            '}}_{'+str(self.sublattice_index)+',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
