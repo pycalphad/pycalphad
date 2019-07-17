@@ -38,7 +38,7 @@ TDB_KEYWORDS = sorted([
 
 # Reference: Thermo-Calc Console Mode Command Reference, Version 4.1
 TDB_COMMANDS = sorted([
-    'AMEND_PHASE_DESCRIPTION'
+    'AMEND_PHASE_DESCRIPTION',
     'DEFINE_ELEMENTS'
 ])
 
