@@ -10,10 +10,8 @@ if sys.version_info[0] >= 3:
 else:
     string_type = basestring
 
-import itertools
 from sympy import Float, Symbol
-from pyparsing import ParseException
-from pycalphad.io.grammar import chemical_formula
+from pycalphad.io.grammar import parse_chemical_formula
 
 
 class Species(object):
@@ -56,16 +54,13 @@ class Species(object):
             return new_self
 
         if isinstance(arg, string_type):
-            try:
-                parse_list = chemical_formula.parseString(arg.upper())
-            except ParseException:
-                return None
+            parse_list = parse_chemical_formula(arg.upper())
         else:
             parse_list = arg
         new_self.name = name
         new_self.charge = parse_list[1]
         parse_list = parse_list[0]
-        new_self.constituents = {parse_list[i]: parse_list[i+1] for i in range(0, len(parse_list), 2)}
+        new_self.constituents = dict(parse_list)
         return new_self
 
     def __getnewargs__(self):
@@ -143,11 +138,11 @@ class SiteFraction(StateVariable):
     def __getnewargs__(self):
         return self.phase_name, self.sublattice_index, self.species
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
-        return 'y^{'+self.phase_name.replace('_', '-') + \
-            '}_{'+str(self.subl_index)+'},_{'+self.species.escaped_name+'}'
+        return 'y^{\mathrm{'+self.phase_name.replace('_', '-') + \
+            '}}_{'+str(self.sublattice_index)+',\mathrm{'+self.species.escaped_name+'}}'
 
     def __str__(self):
         "String representation."
@@ -171,7 +166,7 @@ class PhaseFraction(StateVariable):
     def __getnewargs__(self):
         return self.phase_name, self.multiplicity
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
         return 'f^{'+self.phase_name.replace('_', '-') + \
@@ -212,7 +207,7 @@ class Composition(StateVariable):
         else:
             return self.species,
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         #pylint: disable=E1101
         if self.phase_name:
@@ -235,7 +230,7 @@ class ChemicalPotential(StateVariable):
     def __getnewargs__(self):
         return self.species,
 
-    def _latex(self):
+    def _latex(self, printer=None):
         "LaTeX representation."
         return '\mu_{'+self.species.escaped_name+'}'
 

@@ -9,7 +9,6 @@ import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 from matplotlib.axes import Axes
 
-
 ALFE_DBF = Database(ALFE_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
 
@@ -26,7 +25,6 @@ def test_eqplot_binary():
     eq = equilibrium(ALFE_DBF, comps, my_phases, conds)
     ax = eqplot(eq)
     assert isinstance(ax, Axes)
-
 
 
 def test_eqplot_ternary():
