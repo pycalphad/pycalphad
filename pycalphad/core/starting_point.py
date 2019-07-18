@@ -1,6 +1,6 @@
 from pycalphad import variables as v
 from pycalphad.core.lower_convex_hull import lower_convex_hull
-from pycalphad.core.equilibrium_result import LightDataset
+from pycalphad.core.light_dataset import LightDataset
 from xarray import Dataset
 import numpy as np
 from collections import OrderedDict

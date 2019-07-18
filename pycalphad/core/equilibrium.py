@@ -13,7 +13,7 @@ from pycalphad.codegen.callables import build_phase_records
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.eqsolver import _solve_eq_at_conditions
 from pycalphad.core.solver import InteriorPointSolver
-from pycalphad.core.equilibrium_result import LightDataset
+from pycalphad.core.light_dataset import LightDataset
 import numpy as np
 from collections import OrderedDict
 from datetime import datetime

@@ -10,7 +10,7 @@ from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
     unpack_components, get_state_variables, instantiate_models
-from pycalphad.core.equilibrium_result import LightDataset
+from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
 import pycalphad.variables as v
