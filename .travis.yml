@@ -58,6 +58,8 @@ script:
       pip install sphinx sphinx_rtd_theme coveralls ipython
       echo "!!! conda list output"
       conda list
+      echo "!!! matplotlib py27 fix"
+      echo 'backend : Agg' > matplotlibrc
       echo "!!! running nosetests"
       nosetests --with-coverage
       echo "!!! Running ci/deploy script"
