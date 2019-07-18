@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8+71.gd9d67eb documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+2.gf784c38
+                0.8+71.gd9d67eb
               </div>
             
           
@@ -224,7 +224,7 @@ Access the underlying function with f.__wrapped__.</p>
 property surface of a system.</p>
 <dl class="function">
 <dt id="pycalphad.core.calculate.calculate">
-<code class="sig-prename descclassname">pycalphad.core.calculate.</code><code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em>, <em class="sig-param">phases</em>, <em class="sig-param">mode=None</em>, <em class="sig-param">output='GM'</em>, <em class="sig-param">fake_points=False</em>, <em class="sig-param">broadcast=True</em>, <em class="sig-param">parameters=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.core.calculate.</code><code class="sig-name descname">calculate</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em>, <em class="sig-param">phases</em>, <em class="sig-param">mode=None</em>, <em class="sig-param">output='GM'</em>, <em class="sig-param">fake_points=False</em>, <em class="sig-param">broadcast=True</em>, <em class="sig-param">parameters=None</em>, <em class="sig-param">to_xarray=True</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/calculate.html#calculate"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.calculate.calculate" title="Permalink to this definition">¶</a></dt>
 <dd><p>Sample the property surface of ‘output’ containing the specified
 components and phases. Model parameters are taken from ‘dbf’ and any
 state variables (T, P, etc.) can be specified as keyword arguments.</p>
@@ -363,36 +363,6 @@ not pickleable. They are used in miscibility gap deteciton.</p>
 <p>The constants module contains some numerical constants for use
 in the module.
 Note that modifying these may yield unpredictable results.</p>
-<dl class="data">
-<dt id="pycalphad.core.constants.CHEMPOT_CONSTRAINT_SCALING">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">CHEMPOT_CONSTRAINT_SCALING</code><em class="property"> = 1.0</em><a class="headerlink" href="#pycalphad.core.constants.CHEMPOT_CONSTRAINT_SCALING" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.core.constants.COMP_DIFFERENCE_TOL">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">COMP_DIFFERENCE_TOL</code><em class="property"> = 0.0001</em><a class="headerlink" href="#pycalphad.core.constants.COMP_DIFFERENCE_TOL" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.core.constants.INTERNAL_CONSTRAINT_SCALING">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">INTERNAL_CONSTRAINT_SCALING</code><em class="property"> = 1000000.0</em><a class="headerlink" href="#pycalphad.core.constants.INTERNAL_CONSTRAINT_SCALING" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.core.constants.MIN_PHASE_FRACTION">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">MIN_PHASE_FRACTION</code><em class="property"> = 1e-06</em><a class="headerlink" href="#pycalphad.core.constants.MIN_PHASE_FRACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.core.constants.MIN_SITE_FRACTION">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">MIN_SITE_FRACTION</code><em class="property"> = 1e-15</em><a class="headerlink" href="#pycalphad.core.constants.MIN_SITE_FRACTION" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.core.constants.MULTIPHASE_CONSTRAINT_SCALING">
-<code class="sig-prename descclassname">pycalphad.core.constants.</code><code class="sig-name descname">MULTIPHASE_CONSTRAINT_SCALING</code><em class="property"> = 1000000.0</em><a class="headerlink" href="#pycalphad.core.constants.MULTIPHASE_CONSTRAINT_SCALING" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-pycalphad.core.constraints">
 <span id="pycalphad-core-constraints-module"></span><h2>pycalphad.core.constraints module<a class="headerlink" href="#module-pycalphad.core.constraints" title="Permalink to this headline">¶</a></h2>
@@ -493,7 +463,7 @@ Note that modifying these may yield unpredictable results.</p>
 calculated phase equilibria.</p>
 <dl class="function">
 <dt id="pycalphad.core.equilibrium.equilibrium">
-<code class="sig-prename descclassname">pycalphad.core.equilibrium.</code><code class="sig-name descname">equilibrium</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em>, <em class="sig-param">phases</em>, <em class="sig-param">conditions</em>, <em class="sig-param">output=None</em>, <em class="sig-param">model=None</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">broadcast=True</em>, <em class="sig-param">calc_opts=None</em>, <em class="sig-param">scheduler='sync'</em>, <em class="sig-param">parameters=None</em>, <em class="sig-param">solver=None</em>, <em class="sig-param">callables=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.core.equilibrium.</code><code class="sig-name descname">equilibrium</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em>, <em class="sig-param">phases</em>, <em class="sig-param">conditions</em>, <em class="sig-param">output=None</em>, <em class="sig-param">model=None</em>, <em class="sig-param">verbose=False</em>, <em class="sig-param">broadcast=True</em>, <em class="sig-param">calc_opts=None</em>, <em class="sig-param">to_xarray=True</em>, <em class="sig-param">scheduler='sync'</em>, <em class="sig-param">parameters=None</em>, <em class="sig-param">solver=None</em>, <em class="sig-param">callables=None</em>, <em class="sig-param">**kwargs</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/equilibrium.html#equilibrium"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.equilibrium.equilibrium" title="Permalink to this definition">¶</a></dt>
 <dd><p>Calculate the equilibrium state of a system containing the specified
 components and phases, under the specified conditions.</p>
 <dl class="field-list simple">
@@ -512,6 +482,7 @@ If False, each condition should be an equal-length list (or single-valued).
 Disabling broadcasting is useful for calculating equilibrium at selected conditions,
 when those conditions don’t comprise a grid.</p></li>
 <li><p><strong>calc_opts</strong> (<em>dict</em><em>, </em><em>optional</em>) – Keyword arguments to pass to <cite>calculate</cite>, the energy/property calculation routine.</p></li>
+<li><p><strong>to_xarray</strong> (<em>bool</em>) – Whether to return an xarray Dataset (True, default) or an EquilibriumResult.</p></li>
 <li><p><strong>scheduler</strong> (<em>Dask scheduler</em><em>, </em><em>optional</em>) – Job scheduler for performing the computation.
 If None, return a Dask graph of the computation instead of actually doing it.</p></li>
 <li><p><strong>parameters</strong> (<em>dict</em><em>, </em><em>optional</em>) – Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</p></li>
@@ -1167,46 +1138,6 @@ cover the same state variable space as specified in the conditions.</p></li>
 <div class="section" id="module-pycalphad.core.utils">
 <span id="pycalphad-core-utils-module"></span><h2>pycalphad.core.utils module<a class="headerlink" href="#module-pycalphad.core.utils" title="Permalink to this headline">¶</a></h2>
 <p>The utils module handles helper routines for equilibrium calculation.</p>
-<dl class="function">
-<dt id="pycalphad.core.utils.broadcast_to">
-<code class="sig-prename descclassname">pycalphad.core.utils.</code><code class="sig-name descname">broadcast_to</code><span class="sig-paren">(</span><em class="sig-param">array</em>, <em class="sig-param">shape</em>, <em class="sig-param">subok=False</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.utils.broadcast_to" title="Permalink to this definition">¶</a></dt>
-<dd><p>Broadcast an array to a new shape.</p>
-<dl class="field-list simple">
-<dt class="field-odd">Parameters</dt>
-<dd class="field-odd"><ul class="simple">
-<li><p><strong>array</strong> (<em>array_like</em>) – The array to broadcast.</p></li>
-<li><p><strong>shape</strong> (<em>tuple</em>) – The shape of the desired array.</p></li>
-<li><p><strong>subok</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, then sub-classes will be passed-through, otherwise
-the returned array will be forced to be a base-class array (default).</p></li>
-</ul>
-</dd>
-<dt class="field-even">Returns</dt>
-<dd class="field-even"><p><strong>broadcast</strong> – A readonly view on the original array with the given shape. It is
-typically not contiguous. Furthermore, more than one element of a
-broadcasted array may refer to a single memory location.</p>
-</dd>
-<dt class="field-odd">Return type</dt>
-<dd class="field-odd"><p>array</p>
-</dd>
-<dt class="field-even">Raises</dt>
-<dd class="field-even"><p><strong>ValueError</strong> – If the array is not compatible with the new shape according to NumPy’s
-    broadcasting rules.</p>
-</dd>
-</dl>
-<p class="rubric">Notes</p>
-<div class="versionadded">
-<p><span class="versionmodified added">New in version 1.10.0.</span></p>
-</div>
-<p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">x</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span><span class="p">])</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">np</span><span class="o">.</span><span class="n">broadcast_to</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="p">(</span><span class="mi">3</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
-<span class="go">array([[1, 2, 3],</span>
-<span class="go">       [1, 2, 3],</span>
-<span class="go">       [1, 2, 3]])</span>
-</pre></div>
-</div>
-</dd></dl>
-
 <dl class="function">
 <dt id="pycalphad.core.utils.endmember_matrix">
 <code class="sig-prename descclassname">pycalphad.core.utils.</code><code class="sig-name descname">endmember_matrix</code><span class="sig-paren">(</span><em class="sig-param">dof</em>, <em class="sig-param">vacancy_indices=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#endmember_matrix"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.endmember_matrix" title="Permalink to this definition">¶</a></dt>

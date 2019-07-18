@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8+71.gd9d67eb documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+2.gf784c38
+                0.8+71.gd9d67eb
               </div>
             
           
@@ -660,11 +660,6 @@ If not specified, randomly generated and saved to self.solution</p></li>
 <div class="section" id="module-pycalphad.variables">
 <span id="pycalphad-variables-module"></span><h2>pycalphad.variables module<a class="headerlink" href="#module-pycalphad.variables" title="Permalink to this headline">¶</a></h2>
 <p>Classes and constants for representing thermodynamic variables.</p>
-<dl class="data">
-<dt id="pycalphad.variables.CONDITIONS_REQUIRING_HESSIANS">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">CONDITIONS_REQUIRING_HESSIANS</code><em class="property"> = {&lt;class 'pycalphad.variables.ChemicalPotential'&gt;, &lt;class 'pycalphad.variables.PhaseFraction'&gt;}</em><a class="headerlink" href="#pycalphad.variables.CONDITIONS_REQUIRING_HESSIANS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="class">
 <dt id="pycalphad.variables.ChemicalPotential">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">ChemicalPotential</code><a class="reference internal" href="../_modules/pycalphad/variables.html#ChemicalPotential"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.ChemicalPotential" title="Permalink to this definition">¶</a></dt>
@@ -706,16 +701,6 @@ and nonnegative.</p>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.ChemicalPotential" title="pycalphad.variables.ChemicalPotential"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.ChemicalPotential</span></code></a></p>
 </dd></dl>
 
-<dl class="data">
-<dt id="pycalphad.variables.N">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">N</code><em class="property"> = N</em><a class="headerlink" href="#pycalphad.variables.N" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.P">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">P</code><em class="property"> = P</em><a class="headerlink" href="#pycalphad.variables.P" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="class">
 <dt id="pycalphad.variables.PhaseFraction">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">PhaseFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#PhaseFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.PhaseFraction" title="Permalink to this definition">¶</a></dt>
@@ -733,16 +718,6 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dd></dd></dl>
 
 </dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.R">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">R</code><em class="property"> = 8.31450000000000</em><a class="headerlink" href="#pycalphad.variables.R" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.S">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">S</code><em class="property"> = S</em><a class="headerlink" href="#pycalphad.variables.S" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="class">
 <dt id="pycalphad.variables.SiteFraction">
@@ -837,16 +812,6 @@ and nonnegative. The constructor handles formatting of the name.</p>
 
 </dd></dl>
 
-<dl class="data">
-<dt id="pycalphad.variables.T">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">T</code><em class="property"> = T</em><a class="headerlink" href="#pycalphad.variables.T" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.V">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">V</code><em class="property"> = V</em><a class="headerlink" href="#pycalphad.variables.V" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="pycalphad.variables.X">
 <code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">X</code><a class="headerlink" href="#pycalphad.variables.X" title="Permalink to this definition">¶</a></dt>
@@ -859,62 +824,15 @@ and nonnegative. The constructor handles formatting of the name.</p>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.SiteFraction</span></code></a></p>
 </dd></dl>
 
-<dl class="data">
-<dt id="pycalphad.variables.entropy">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">entropy</code><em class="property"> = S</em><a class="headerlink" href="#pycalphad.variables.entropy" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.moles">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">moles</code><em class="property"> = N</em><a class="headerlink" href="#pycalphad.variables.moles" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.pressure">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">pressure</code><em class="property"> = P</em><a class="headerlink" href="#pycalphad.variables.pressure" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.si_gas_constant">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">si_gas_constant</code><em class="property"> = 8.31450000000000</em><a class="headerlink" href="#pycalphad.variables.si_gas_constant" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="attribute">
 <dt id="pycalphad.variables.site_fraction">
 <code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">site_fraction</code><a class="headerlink" href="#pycalphad.variables.site_fraction" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.SiteFraction</span></code></a></p>
 </dd></dl>
 
-<dl class="attribute">
-<dt id="pycalphad.variables.string_type">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">string_type</code><a class="headerlink" href="#pycalphad.variables.string_type" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">builtins.str</span></code></p>
-</dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.temperature">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">temperature</code><em class="property"> = T</em><a class="headerlink" href="#pycalphad.variables.temperature" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.variables.volume">
-<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">volume</code><em class="property"> = V</em><a class="headerlink" href="#pycalphad.variables.volume" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-pycalphad">
 <span id="module-contents"></span><h2>Module contents<a class="headerlink" href="#module-pycalphad" title="Permalink to this headline">¶</a></h2>
-<dl class="attribute">
-<dt id="pycalphad.MethodDescriptorType">
-<code class="sig-prename descclassname">pycalphad.</code><code class="sig-name descname">MethodDescriptorType</code><a class="headerlink" href="#pycalphad.MethodDescriptorType" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <code class="xref py py-class docutils literal notranslate"><span class="pre">builtins.method_descriptor</span></code></p>
-</dd></dl>
-
-<dl class="function">
-<dt id="pycalphad.MethodDescriptorWrapper">
-<code class="sig-prename descclassname">pycalphad.</code><code class="sig-name descname">MethodDescriptorWrapper</code><span class="sig-paren">(</span><em class="sig-param">pickler</em>, <em class="sig-param">obj</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.MethodDescriptorWrapper" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 </div>
 

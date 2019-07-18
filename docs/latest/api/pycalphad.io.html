@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.8+71.gd9d67eb documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+2.gf784c38
+                0.8+71.gd9d67eb
               </div>
             
           
@@ -434,13 +434,6 @@ This function is a wrapper for calling <cite>to_file</cite> with StringIO.</p>
 
 </dd></dl>
 
-<dl class="exception">
-<dt id="pycalphad.io.database.FileExistsError">
-<em class="property">exception </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">FileExistsError</code><a class="headerlink" href="#pycalphad.io.database.FileExistsError" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">OSError</span></code></p>
-<p>File already exists.</p>
-</dd></dl>
-
 <dl class="class">
 <dt id="pycalphad.io.database.Phase">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">Phase</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#Phase"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Phase" title="Permalink to this definition">¶</a></dt>
@@ -493,33 +486,13 @@ Hints for major constituents and typedefs (Thermo-Calc) go here.</p>
 
 </dd></dl>
 
-<dl class="data">
-<dt id="pycalphad.io.database.format_registry">
-<code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">format_registry</code><em class="property"> = {'tdb': DatabaseFormat(read=&lt;function read_tdb&gt;, write=&lt;function write_tdb&gt;)}</em><a class="headerlink" href="#pycalphad.io.database.format_registry" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 </div>
 <div class="section" id="module-pycalphad.io.grammar">
 <span id="pycalphad-io-grammar-module"></span><h2>pycalphad.io.grammar module<a class="headerlink" href="#module-pycalphad.io.grammar" title="Permalink to this headline">¶</a></h2>
 <p>“Common pyparsing grammar patterns.</p>
-<dl class="data">
-<dt id="pycalphad.io.grammar.chemical_formula">
-<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">chemical_formula</code><em class="property"> = {Group:({{W:(ABCD...) [Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')]}}...) [{Suppress:(&quot;/&quot;) W:(+-01...)}]}</em><a class="headerlink" href="#pycalphad.io.grammar.chemical_formula" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.grammar.float_number">
-<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">float_number</code><em class="property"> = Re:('[-+]?([0-9]+\\.(?!([0-9]|[eE])))|([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)')</em><a class="headerlink" href="#pycalphad.io.grammar.float_number" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.grammar.pos_neg_int_number">
-<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">pos_neg_int_number</code><em class="property"> = W:(+-01...)</em><a class="headerlink" href="#pycalphad.io.grammar.pos_neg_int_number" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.grammar.regex_after_decimal">
-<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">regex_after_decimal</code><em class="property"> = '([0-9]*\\.?[0-9]+([eE][-+]?[0-9]+)?)'</em><a class="headerlink" href="#pycalphad.io.grammar.regex_after_decimal" title="Permalink to this definition">¶</a></dt>
+<dl class="function">
+<dt id="pycalphad.io.grammar.parse_chemical_formula">
+<code class="sig-prename descclassname">pycalphad.io.grammar.</code><code class="sig-name descname">parse_chemical_formula</code><span class="sig-paren">(</span><em class="sig-param">formula</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/grammar.html#parse_chemical_formula"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.grammar.parse_chemical_formula" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 </div>
@@ -550,16 +523,6 @@ Thermo-Calc TDB format.</p>
 <dd></dd></dl>
 
 </dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.tdb.inv_phase_options">
-<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">inv_phase_options</code><em class="property"> = {'A': 'aqueous', 'B': 'symmetry_BCC_4SL', 'F': 'symmetry_FCC_4SL', 'G': 'gas', 'I': 'charged_phase', 'L': 'liquid', 'Y': 'ionic_liquid_2SL'}</em><a class="headerlink" href="#pycalphad.io.tdb.inv_phase_options" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.tdb.phase_options">
-<code class="sig-prename descclassname">pycalphad.io.tdb.</code><code class="sig-name descname">phase_options</code><em class="property"> = {'aqueous': 'A', 'charged_phase': 'I', 'gas': 'G', 'ionic_liquid_2SL': 'Y', 'liquid': 'L', 'symmetry_BCC_4SL': 'B', 'symmetry_FCC_4SL': 'F'}</em><a class="headerlink" href="#pycalphad.io.tdb.phase_options" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
 
 <dl class="function">
 <dt id="pycalphad.io.tdb.read_tdb">
@@ -638,26 +601,6 @@ The ‘fix’ option will rectify the incompatibilities e.g. through name mangli
 <span id="pycalphad-io-tdb-keywords-module"></span><h2>pycalphad.io.tdb_keywords module<a class="headerlink" href="#module-pycalphad.io.tdb_keywords" title="Permalink to this headline">¶</a></h2>
 <p>This module defines valid Thermo-Calc TDB keywords and handles abbreviations.
 Note that not all of these keywords are fully supported yet.</p>
-<dl class="data">
-<dt id="pycalphad.io.tdb_keywords.TDB_COMMANDS">
-<code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">TDB_COMMANDS</code><em class="property"> = ['AMEND_PHASE_DESCRIPTIONDEFINE_ELEMENTS']</em><a class="headerlink" href="#pycalphad.io.tdb_keywords.TDB_COMMANDS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.tdb_keywords.TDB_KEYWORDS">
-<code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">TDB_KEYWORDS</code><em class="property"> = ['ADD_CONSTITUENT', 'ADD_REFERENCE', 'ALLOTROPIC_PHASE', 'ASSESSED_SYSTEMS', 'CASE', 'COMPOUND_PHASE', 'CONSTITUENT', 'DATABASE_INFORMATION', 'DEFAULT_COMMAND', 'DEFINE_SYSTEM_DEFAULT', 'DIFFUSION', 'ELEMENT', 'ENDCASE', 'FTP_FILE', 'FUNCTION', 'LIST_OF_REFERENCES', 'OPTIONS', 'PARAMETER', 'PHASE', 'REFERENCE_FILE', 'SPECIES', 'TABLE', 'TEMPERATURE_LIMITS', 'TYPE_DEFINITION', 'VERSION_DATA', 'VERSION_DATE', 'ZERO_VOLUME_SPECIES']</em><a class="headerlink" href="#pycalphad.io.tdb_keywords.TDB_KEYWORDS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.tdb_keywords.TDB_PARAM_TYPES">
-<code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">TDB_PARAM_TYPES</code><em class="property"> = ['BMAGN', 'DF', 'DQ', 'G', 'GD', 'L', 'MF', 'MQ', 'NT', 'TC', 'THETA', 'V0', 'VS']</em><a class="headerlink" href="#pycalphad.io.tdb_keywords.TDB_PARAM_TYPES" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="data">
-<dt id="pycalphad.io.tdb_keywords.TDB_PHASE_DESCRIPTIONS">
-<code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">TDB_PHASE_DESCRIPTIONS</code><em class="property"> = ['COMPOSITION_SETS', 'DEBYE_HUCKEL', 'DEFAULT_STABLE', 'DISORDERED_PART', 'EXCESS_MODEL', 'FRACTION_LIMITS', 'GLASS_TRANSITION', 'HKF_ELECTROSTATIC', 'MAGNETIC_ORDERING', 'MAJOR_CONSTITUENT', 'NEW_CONSTITUENT', 'QUASICHEM_FACT00', 'QUASICHEM_IONIC', 'QUASICHEM_IRSID', 'REMOVE_ADDITION', 'RENAME_PHASE', 'SITE_RATIOS', 'STATUS_BITS', 'TERNARY_EXTRAPOLAT', 'ZRO2_TRANSITION']</em><a class="headerlink" href="#pycalphad.io.tdb_keywords.TDB_PHASE_DESCRIPTIONS" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
 <dl class="function">
 <dt id="pycalphad.io.tdb_keywords.expand_keyword">
 <code class="sig-prename descclassname">pycalphad.io.tdb_keywords.</code><code class="sig-name descname">expand_keyword</code><span class="sig-paren">(</span><em class="sig-param">possible</em>, <em class="sig-param">candidate</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/tdb_keywords.html#expand_keyword"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.tdb_keywords.expand_keyword" title="Permalink to this definition">¶</a></dt>

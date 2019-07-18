@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>FAQ &mdash; pycalphad 0.8+2.gf784c38 documentation</title>
+  <title>FAQ &mdash; pycalphad 0.8+71.gd9d67eb documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+2.gf784c38
+                0.8+71.gd9d67eb
               </div>
             
           
@@ -178,30 +178,9 @@
 </div>
 <div class="section" id="is-any-parallelism-supported-in-pycalphad">
 <h2>Is any parallelism supported in pycalphad?<a class="headerlink" href="#is-any-parallelism-supported-in-pycalphad" title="Permalink to this headline">¶</a></h2>
-<p>Equilibrium calculations in pycalphad can be parallelized using <a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a> out of the box.
-Several schedulers are supported in <a class="reference external" href="http://dask.pydata.org/en/latest/scheduler-overview.html">dask</a>
-and some have been <a class="reference external" href="https://github.com/pycalphad/pycalphad/issues/101">benchmarked in pycalphad</a>,
-where the <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler was found to be give a mild performance boost.</p>
-<p>The <code class="docutils literal notranslate"><span class="pre">Client</span></code> scheduler can be used as in an equilibrium calculation as follows</p>
-<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">distributed</span> <span class="kn">import</span> <span class="n">LocalCluster</span><span class="p">,</span> <span class="n">Client</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Database</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
-
-<span class="c1"># this acts like a global variable in the sense that you don&#39;t have to pass it</span>
-<span class="c1"># however, this it will not work if you don&#39;t instantiate it</span>
-<span class="c1"># See the distributed docs for more options:</span>
-<span class="c1"># https://distributed.readthedocs.io/</span>
-<span class="n">scheduler</span> <span class="o">=</span> <span class="n">Client</span><span class="p">()</span>
-
-
-<span class="c1"># set up and run the equilibrium calculation using the Client scheduler</span>
-<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Ti-V.tdb&#39;</span><span class="p">)</span>
-<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;TI&#39;</span><span class="p">,</span> <span class="s1">&#39;V&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
-<span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;BCC_A2&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID&#39;</span><span class="p">]</span>
-<span class="n">conditions</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">300</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)}</span>
-
-<span class="n">eq</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">scheduler</span><span class="o">=</span><span class="s2">&quot;distributed&quot;</span><span class="p">)</span>
-</pre></div>
-</div>
+<p>pycalphad does not support parallelization out of the box since version 0.8,
+however it is possible to use pycalphad in parallel via packages such as
+<a class="reference external" href="http://dask.pydata.org/en/latest/">dask</a>.</p>
 </div>
 <div class="section" id="how-long-should-equilibrium-calculations-take">
 <h2>How long should equilibrium calculations take?<a class="headerlink" href="#how-long-should-equilibrium-calculations-take" title="Permalink to this headline">¶</a></h2>
@@ -215,11 +194,11 @@ grids are required for phase diagram calculations.</p>
 </div>
 <div class="section" id="typeerror-argument-is-not-an-mpz-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">TypeError:</span> <span class="pre">argument</span> <span class="pre">is</span> <span class="pre">not</span> <span class="pre">an</span> <span class="pre">mpz</span></code> during a calculation<a class="headerlink" href="#typeerror-argument-is-not-an-mpz-during-a-calculation" title="Permalink to this headline">¶</a></h2>
-<p>This bug should now be fixed. Please update to pycalphad 0.7.1.</p>
+<p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
 </div>
 <div class="section" id="recursionerror-during-a-calculation">
 <h2><code class="docutils literal notranslate"><span class="pre">RecursionError</span></code> during a calculation<a class="headerlink" href="#recursionerror-during-a-calculation" title="Permalink to this headline">¶</a></h2>
-<p>This bug should now be fixed. Please update to pycalphad 0.7.1.</p>
+<p>This bug should now be fixed. Please update to pycalphad 0.7.1 or later.</p>
 </div>
 <div class="section" id="text-is-sometimes-cut-off-when-saving-figures">
 <h2>Text is sometimes cut off when saving figures<a class="headerlink" href="#text-is-sometimes-cut-off-when-saving-figures" title="Permalink to this headline">¶</a></h2>

@@ -14,32 +14,9 @@ What units does pycalphad use?
 Is any parallelism supported in pycalphad?
 ------------------------------------------
 
-Equilibrium calculations in pycalphad can be parallelized using `dask <http://dask.pydata.org/en/latest/>`_ out of the box.
-Several schedulers are supported in `dask <http://dask.pydata.org/en/latest/scheduler-overview.html>`_
-and some have been `benchmarked in pycalphad <https://github.com/pycalphad/pycalphad/issues/101>`_,
-where the ``Client`` scheduler was found to be give a mild performance boost.
-
-The ``Client`` scheduler can be used as in an equilibrium calculation as follows
-
-.. code-block:: python
-
-    from distributed import LocalCluster, Client
-    from pycalphad import equilibrium, Database, variables as v
-
-    # this acts like a global variable in the sense that you don't have to pass it
-    # however, this it will not work if you don't instantiate it
-    # See the distributed docs for more options:
-    # https://distributed.readthedocs.io/
-    scheduler = Client()
-
-
-    # set up and run the equilibrium calculation using the Client scheduler
-    dbf = Database('Ti-V.tdb')
-    comps = ['TI', 'V', 'VA']
-    phases = ['BCC_A2', 'HCP_A3', 'LIQUID']
-    conditions = {v.P: 101325, v.T: 300, v.X('V'): (0, 1, 0.01)}
-
-    eq = equilibrium(dbf, comps, phases, conditions, scheduler="distributed")
+pycalphad does not support parallelization out of the box since version 0.8,
+however it is possible to use pycalphad in parallel via packages such as
+`dask <http://dask.pydata.org/en/latest/>`_.
 
 
 How long should equilibrium calculations take?
@@ -58,14 +35,13 @@ grids are required for phase diagram calculations.
 ``TypeError: argument is not an mpz`` during a calculation
 ----------------------------------------------------------
 
-This bug should now be fixed. Please update to pycalphad 0.7.1.
+This bug should now be fixed. Please update to pycalphad 0.7.1 or later.
 
 
 ``RecursionError`` during a calculation
 -----------------------------------------
 
-This bug should now be fixed. Please update to pycalphad 0.7.1.
-
+This bug should now be fixed. Please update to pycalphad 0.7.1 or later.
 
 
 Text is sometimes cut off when saving figures
