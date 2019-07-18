@@ -8,7 +8,6 @@ from pycalphad import Database, eqplot, equilibrium
 import pycalphad.variables as v
 from pycalphad.tests.datasets import *
 from matplotlib.axes import Axes
-from pycalphad.plot.binary.map import map_binary
 
 ALFE_DBF = Database(ALFE_TDB)
 ALCOCRNI_DBF = Database(ALCOCRNI_TDB)
@@ -27,20 +26,6 @@ def test_eqplot_binary():
     ax = eqplot(eq)
     assert isinstance(ax, Axes)
 
-def test_binary_mapping():
-    """
-    Binary mapping should return a ZPFBoundarySets object
-    """
-    my_phases = ['LIQUID', 'FCC_A1', 'HCP_A3', 'AL5FE2',
-                 'AL2FE', 'AL13FE4', 'AL5FE4']
-    comps = ['AL', 'FE', 'VA']
-    conds = {v.T: (1200, 1300, 50), v.P: 101325, v.X('AL'): (0, 1, 0.2)}
-    zpf_boundaries = map_binary(ALFE_DBF, comps, my_phases, conds)
-    num_boundaries = len(zpf_boundaries.all_compsets)
-    assert num_boundaries > 0
-    # calling binplot again can add more boundaries
-    map_binary(ALFE_DBF, comps, my_phases, conds, boundary_sets=zpf_boundaries)
-    assert len(zpf_boundaries.all_compsets) == 2*num_boundaries
 
 def test_eqplot_ternary():
     """

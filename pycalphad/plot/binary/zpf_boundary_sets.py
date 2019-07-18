@@ -112,9 +112,6 @@ class ZPFBoundarySets():
         ----------
         compsets : CompsetPair
 
-        Returns
-        -------
-
         """
         self.all_compsets.append(compsets)
         if len(self.two_phase_regions) == 0:
@@ -143,10 +140,6 @@ class ZPFBoundarySets():
         Ttol : float
             See TwoPhaseRegion.compsets_belong_in_region
 
-        Returns
-        -------
-        list
-            List of the rebuilt two_phase_regions
         """
         self.two_phase_regions = []
         previous_all_compsets = self.all_compsets
