@@ -6,12 +6,16 @@ notifications:
 
 matrix:
     include:
-        - python: 2.7
-        - python: 3.6
+        - name: "Python 2.7.15 on Xenial Linux"
+          python: 2.7           # this works for Linux but is ignored on macOS or Windows
+          dist: xenial
+        - name: "Python 3.6.1 on Xenial Linux"
+          python: 3.6           # this works for Linux but is ignored on macOS or Windows
+          dist: xenial
           env: DEPLOY_ENC_LABEL=e64cfe3b4e81
         - name: "Python 3.7.1 on Xenial Linux"
           python: 3.7           # this works for Linux but is ignored on macOS or Windows
-          dist: xenial          # required for Python >= 3.7
+          dist: xenial
         - language: generic
           os: osx
           env: TRAVIS_PYTHON_VERSION=2.7
@@ -34,20 +38,8 @@ install:
       . $HOME/miniconda2/etc/profile.d/conda.sh
       conda deactivate
       conda activate condaenv
-      # Use a conda-forge metachannel for speed, including only dependencies
-      # of pycalphad. See https://github.com/regro/conda-metachannel
-      # For some reason, conda-metachannel is breaking Linux by not picking
-      # up some packages (e.g. libgfortran-ng), which I think come from
-      # defaults. Only use conda metachannel on Mac.
-      if [ "$TRAVIS_OS_NAME" == "osx" ]; then
-        echo "!!! Installing pycalphad dependencies via conda metachannel"
-        conda install  --yes --override-channels -c https://metachannel.conda-forge.org/conda-forge/nose,pycalphad,python-symengine python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib nose pandas sympy pyparsing dask dill xarray cython cyipopt symengine python-symengine
-      else
-        echo "!!! Installing pycalphad dependencies via conda the normal way"
-        # I think the problem is that libgfortran-ng from defaults is not picked up. add those to the metachannel
-        conda install --yes python=$TRAVIS_PYTHON_VERSION gxx_linux-64 numpy scipy matplotlib nose pandas sympy pyparsing dask dill python-symengine
-        conda install --yes xarray cython cyipopt
-      fi
+      echo "!!! Installing pycalphad dependencies via conda"
+      conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
       echo "!!! pip pycalphad as editable"
       pip install -e .
 
@@ -60,8 +52,8 @@ script:
       conda list
       echo "!!! matplotlib py27 fix"
       echo 'backend : Agg' > matplotlibrc
-      echo "!!! running nosetests"
-      nosetests --with-coverage
+      echo "!!! running pytest"
+      pytest --cov=pycalphad
       echo "!!! Running ci/deploy script"
       bash ci/deploy.sh
       coveralls

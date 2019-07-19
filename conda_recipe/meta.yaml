@@ -29,8 +29,7 @@ requirements:
     - setuptools
     - matplotlib
     - pandas
-    - nose
-    - mock
+    - pytest
     - xarray >=0.11.2
     - sympy ==1.4
     - pyparsing

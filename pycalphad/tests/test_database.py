@@ -2,7 +2,7 @@
 The test_database module contains tests for the Database object.
 """
 from __future__ import print_function
-import warnings
+import pytest
 import hashlib
 import os
 from copy import deepcopy
@@ -14,7 +14,6 @@ from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
-import nose.tools
 try:
     # Python 2
     from StringIO import StringIO
@@ -22,7 +21,6 @@ except ImportError:
     # Python 3
     from io import StringIO
 
-warnings.simplefilter("always", UserWarning) # so we can test warnings
 
 #
 # DATABASE LOADING TESTS
@@ -87,36 +85,28 @@ def test_export_import():
 def test_incompatible_db_warns_by_default():
     "Symbol names too long for Thermo-Calc warn and write the database as given by default."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='Ignoring that the following function names are beyond the 8 character TDB limit'):
         invalid_dbf = test_dbf.to_string(fmt='tdb')
-        assert len(w) >= 1
-        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
-@nose.tools.raises(DatabaseExportError)
 def test_incompatible_db_raises_error_with_kwarg_raise():
     "Symbol names too long for Thermo-Calc raise error on write with kwarg raise."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    test_dbf.to_string(fmt='tdb', if_incompatible='raise')
+    with pytest.raises(DatabaseExportError):
+        test_dbf.to_string(fmt='tdb', if_incompatible='raise')
 
 def test_incompatible_db_warns_with_kwarg_warn():
     "Symbol names too long for Thermo-Calc warn and write the database as given."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
+    with pytest.warns(UserWarning, match='Ignoring that the following function names are beyond the 8 character TDB limit'):
         invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='warn')
-        assert len(w) >= 1
-        expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert any([expected_string_fragment in str(warning.message) for warning in w])
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
+@pytest.mark.filterwarnings("error")
 def test_incompatible_db_ignores_with_kwarg_ignore():
     "Symbol names too long for Thermo-Calc are ignored the database written as given."
     test_dbf = Database.from_string(INVALID_TDB_STR, fmt='tdb')
-    with warnings.catch_warnings(record=True) as w:
-        invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='ignore')
-        not_expected_string_fragment = 'Ignoring that the following function names are beyond the 8 character TDB limit'
-        assert all([not_expected_string_fragment not in str(warning.message) for warning in w])
+    invalid_dbf = test_dbf.to_string(fmt='tdb', if_incompatible='ignore')
     assert test_dbf == Database.from_string(invalid_dbf, fmt='tdb')
 
 def test_incompatible_db_mangles_names_with_kwarg_fix():
@@ -158,33 +148,32 @@ def test_tdb_content_after_line_end_is_neglected():
     test_dbf = Database.from_string(tdb_line_ending_str, fmt='tdb')
     assert len(test_dbf._parameters) == 3
 
-def _remove_file_with_name_testwritedb():
+@pytest.fixture
+def _testwritetdb():
     fname = 'testwritedb.tdb'
+    yield fname  # run the test
     os.remove(fname)
 
-@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
-@nose.tools.raises(FileExistsError)
-def test_to_file_defaults_to_raise_if_exists():
+def test_to_file_defaults_to_raise_if_exists(_testwritetdb):
     "Attempting to use Database.to_file should raise by default if it exists"
-    fname = 'testwritedb.tdb'
+    fname = _testwritetdb
     test_dbf = Database(ALNIPT_TDB)
     test_dbf.to_file(fname)  # establish the initial file
-    test_dbf.to_file(fname)  # test if_exists behavior
+    with pytest.raises(FileExistsError):
+        test_dbf.to_file(fname)  # test if_exists behavior
 
-@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
-@nose.tools.raises(FileExistsError)
-def test_to_file_raises_with_bad_if_exists_argument():
+def test_to_file_raises_with_bad_if_exists_argument(_testwritetdb):
     "Database.to_file should raise if a bad behavior string is passed to if_exists"
-    fname = 'testwritedb.tdb'
+    fname = _testwritetdb
     test_dbf = Database(ALNIPT_TDB)
     test_dbf.to_file(fname)  # establish the initial file
-    test_dbf.to_file(fname, if_exists='TEST_BAD_ARGUMENT')  # test if_exists behavior
+    with pytest.raises(FileExistsError):
+        test_dbf.to_file(fname, if_exists='TEST_BAD_ARGUMENT')  # test if_exists behavior
 
-@nose.tools.with_setup(None, _remove_file_with_name_testwritedb)
-def test_to_file_overwrites_with_if_exists_argument():
-    import time
+def test_to_file_overwrites_with_if_exists_argument(_testwritetdb):
     "Database.to_file should overwrite if 'overwrite' is passed to if_exists"
-    fname = 'testwritedb.tdb'
+    import time
+    fname = _testwritetdb
     test_dbf = Database(ALNIPT_TDB)
     test_dbf.to_file(fname)  # establish the initial file
     inital_modification_time = os.path.getmtime(fname)
@@ -193,20 +182,20 @@ def test_to_file_overwrites_with_if_exists_argument():
     overwrite_modification_time = os.path.getmtime(fname)
     assert overwrite_modification_time > inital_modification_time
 
-@nose.tools.raises(ValueError)
 def test_unspecified_format_from_string():
     "from_string: Unspecified string format raises ValueError."
-    Database.from_string(ALCRNI_TDB)
+    with pytest.raises(ValueError):
+        Database.from_string(ALCRNI_TDB)
 
-@nose.tools.raises(NotImplementedError)
 def test_unknown_format_from_string():
     "from_string: Unknown import string format raises NotImplementedError."
-    Database.from_string(ALCRNI_TDB, fmt='_fail_')
+    with pytest.raises(NotImplementedError):
+        Database.from_string(ALCRNI_TDB, fmt='_fail_')
 
-@nose.tools.raises(NotImplementedError)
 def test_unknown_format_to_string():
     "to_string: Unknown export file format raises NotImplementedError."
-    REFERENCE_DBF.to_string(fmt='_fail_')
+    with pytest.raises(NotImplementedError):
+        REFERENCE_DBF.to_string(fmt='_fail_')
 
 def test_load_from_stringio():
     "Test database loading from a file-like object."
@@ -218,25 +207,25 @@ def test_load_from_stringio_from_file():
     test_tdb = Database.from_file(StringIO(ALCRNI_TDB), fmt='tdb')
     assert test_tdb == REFERENCE_DBF
 
-@nose.tools.raises(ValueError)
 def test_unspecified_format_from_file():
     "from_file: Unspecified format for file descriptor raises ValueError."
-    Database.from_file(StringIO(ALCRNI_TDB))
+    with pytest.raises(ValueError):
+        Database.from_file(StringIO(ALCRNI_TDB))
 
-@nose.tools.raises(ValueError)
 def test_unspecified_format_to_file():
     "to_file: Unspecified format for file descriptor raises ValueError."
-    REFERENCE_DBF.to_file(StringIO())
+    with pytest.raises(ValueError):
+        REFERENCE_DBF.to_file(StringIO())
 
-@nose.tools.raises(NotImplementedError)
 def test_unknown_format_from_file():
     "from_string: Unknown import file format raises NotImplementedError."
-    Database.from_string(ALCRNI_TDB, fmt='_fail_')
+    with pytest.raises(NotImplementedError):
+        Database.from_string(ALCRNI_TDB, fmt='_fail_')
 
-@nose.tools.raises(NotImplementedError)
 def test_unknown_format_to_file():
     "to_file: Unknown export file format raises NotImplementedError."
-    REFERENCE_DBF.to_file(StringIO(), fmt='_fail_')
+    with pytest.raises(NotImplementedError):
+        REFERENCE_DBF.to_file(StringIO(), fmt='_fail_')
 
 def test_expand_keyword():
     "expand_keyword expands command abbreviations."
@@ -402,12 +391,12 @@ SPECIES AL2                         AL2!
     assert test_dbf_reread.phases['T2SL'].constituents == ({Species('AL+3')}, {Species('O-2')})
     assert len(test_dbf_reread._parameters.search(where('constituent_array') == ((Species('AL+3'),),(Species('O-2'),)))) == 1
 
-@nose.tools.raises(ParseException)
 def test_tdb_missing_terminator_element():
     tdb_str = """$ Note missing '!' in next line
                ELEMENT ZR   BCT_A5
                FUNCTION EMBCCTI    298.15 -39.72; 6000 N !"""
-    Database(tdb_str)
+    with pytest.raises(ParseException):
+        Database(tdb_str)
 
 
 def test_database_parsing_of_floats_with_no_values_after_decimal():
