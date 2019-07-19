@@ -3,16 +3,15 @@ The energy test module verifies that the Model class produces the
 correct abstract syntax tree for the energy.
 """
 
-import nose.tools
+import pytest
 from sympy import S
-from pycalphad import Database, Model, calculate, ReferenceState
+from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
     CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
-import warnings
 
 DBF = Database(ALCRNI_TDB)
 ALFE_DBF = Database(ALFE_TDB)
@@ -21,12 +20,12 @@ CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 
-@nose.tools.raises(ValueError)
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
     from pycalphad.io.tdb import _sympify_string
     teststr = "().__class__.__base__.__subclasses__()[216]('ls')"
-    _sympify_string(teststr) # should throw ParseException
+    with pytest.raises(ValueError):
+        _sympify_string(teststr)
 
 
 def calculate_output(model, variables, output, mode='sympy'):
@@ -234,12 +233,12 @@ def test_reference_energy_of_unary_twostate_einstein_magnetic_is_zero():
     check_output(m, statevars, 'GMR', 0.0)
 
 
-@nose.tools.raises(DofError)
 def test_underspecified_refstate_raises():
     """A Model cannot be shifted to a new reference state unless references for all pure elements are specified."""
     m = Model(FEMN_DBF, ['FE', 'MN', 'VA'], 'LIQUID')
     refstates = [ReferenceState(v.Species('FE'), 'LIQUID')]
-    m.shift_reference_state(refstates, FEMN_DBF)
+    with pytest.raises(DofError):
+        m.shift_reference_state(refstates, FEMN_DBF)
 
 
 def test_reference_energy_of_binary_twostate_einstein_is_zero():
