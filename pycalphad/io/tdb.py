@@ -640,7 +640,7 @@ def _apply_new_symbol_names(dbf, symbol_name_map):
     dbf.symbols = {name: S(expr).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()}) for name, expr in dbf.symbols.items()}
     # finally propagate through to the parameters
     for p in dbf._parameters.all():
-        dbf._parameters.update({'parameter': S(p['parameter']).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()})}, eids=[p.eid])
+        dbf._parameters.update({'parameter': S(p['parameter']).xreplace({Symbol(s): Symbol(v) for s, v in symbol_name_map.items()})}, doc_ids=[p.doc_id])
 
 
 def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
