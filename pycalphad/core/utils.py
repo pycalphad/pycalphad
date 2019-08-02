@@ -6,13 +6,16 @@ import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
 from sympy.utilities.lambdify import lambdify
-from sympy.printing.lambdarepr import LambdaPrinter
 from sympy import Symbol
 import numpy as np
 import operator
 import functools
 import itertools
 import collections
+try:
+    from collections.abc import Iterable, Mapping
+except ImportError:
+    from collections import Iterable, Mapping
 
 try:
     # Only available in numpy 1.10 and newer
@@ -137,7 +140,7 @@ def unpack_condition(tup):
             return np.arange(tup[0], tup[1], tup[2], dtype=np.float)
         else:
             raise ValueError('Condition tuple is length {}'.format(len(tup)))
-    elif isinstance(tup, collections.Iterable):
+    elif isinstance(tup, Iterable):
         return [float(x) for x in tup]
     else:
         return [float(tup)]
@@ -242,14 +245,14 @@ def unpack_kwarg(kwarg_obj, default_arg=None):
     """
     new_dict = collections.defaultdict(lambda: default_arg)
 
-    if isinstance(kwarg_obj, collections.Mapping):
+    if isinstance(kwarg_obj, Mapping):
         new_dict.update(kwarg_obj)
     # kwarg_obj is a list containing a dict and a default
     # For now at least, we don't treat ndarrays the same as other iterables
     # ndarrays are assumed to be numeric arrays containing "default values", so don't match here
-    elif isinstance(kwarg_obj, collections.Iterable) and not isinstance(kwarg_obj, np.ndarray):
+    elif isinstance(kwarg_obj, Iterable) and not isinstance(kwarg_obj, np.ndarray):
         for element in kwarg_obj:
-            if isinstance(element, collections.Mapping):
+            if isinstance(element, Mapping):
                 new_dict.update(element)
             else:
                 # element=element syntax to silence var-from-loop warning
