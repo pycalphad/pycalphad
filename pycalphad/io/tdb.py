@@ -96,7 +96,13 @@ def _parse_action(func):
     Source: Florian Brucker on StackOverflow
     http://stackoverflow.com/questions/10177276/pyparsing-setparseaction-function-is-getting-no-arguments
     """
-    num_args = len(inspect.getargspec(func).args)
+    if sys.version_info[0] > 2:
+        func_items = inspect.signature(func).parameters.items()
+        func_args = [name for name, param in func_items
+                     if param.kind == param.POSITIONAL_OR_KEYWORD]
+    else:
+        func_args = inspect.getargspec(func).args
+    num_args = len(func_args)
     if num_args > 3:
         raise ValueError('Input function must take at most 3 parameters.')
 
