@@ -11,6 +11,7 @@ import re
 from sympy import sympify, And, Or, Not, Intersection, Union, EmptySet, Interval, Piecewise
 from sympy import Symbol, GreaterThan, StrictGreaterThan, LessThan, StrictLessThan, Complement, S
 from sympy import Mul, Pow, Rational
+from sympy.abc import _clash
 from sympy.printing.str import StrPrinter
 from sympy.core.mul import _keep_coeff
 from sympy.printing.precedence import precedence
@@ -35,6 +36,16 @@ from copy import deepcopy
 _AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
                   ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
                   ast.UAdd, ast.UnaryOp, ast.USub]
+
+# Avoid symbol names clashing with objects in sympy (gh-233)
+clashing_namespace = {}
+clashing_namespace.update(_clash)
+clashing_namespace['CC'] = Symbol('CC')
+clashing_namespace['FF'] = Symbol('FF')
+clashing_namespace['T'] = v.T
+clashing_namespace['P'] = v.P
+clashing_namespace['R'] = v.R
+
 
 def _sympify_string(math_string):
     "Convert math string into SymPy object."
@@ -63,7 +74,8 @@ def _sympify_string(math_string):
         if type(node) not in _AST_WHITELIST: #pylint: disable=W1504
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
-    return sympify(expr_string).xreplace(variable_fixes)
+
+    return sympify(expr_string, locals=clashing_namespace)
 
 def _parse_action(func):
     """
@@ -914,7 +926,7 @@ def read_tdb(dbf, fd):
         try:
             tokens = grammar.parseString(command)
             _TDB_PROCESSOR[tokens[0]](dbf, *tokens[1:])
-        except ParseException:
+        except:
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise

@@ -560,3 +560,8 @@ def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
     sbminus3 = dbf._parameters.search(tinydb.where('constituent_array') == ((species_dict['SB-3'],),))
     assert len(sbminus3) == 1
     assert sbminus3[0]['parameter'].args[0][0] == 10000
+
+
+def test_database_sympy_namespace_clash():
+    """Symbols that clash with sympy special objects are replaced (gh-233)"""
+    Database.from_string("""FUNCTION TEST 0.01 T*LN(CC)+FF; 6000 N TW !""", fmt='tdb')
