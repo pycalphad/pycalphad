@@ -60,12 +60,7 @@ def _sympify_string(math_string):
     expr_string = \
         re.sub(r'(?<!\w)EXP(?!\w)', 'exp', expr_string,
                flags=re.IGNORECASE)
-    # Convert raw variables into StateVariable objects
-    variable_fixes = {
-        Symbol('T'): v.T,
-        Symbol('P'): v.P,
-        Symbol('R'): v.R
-    }
+
     # sympify uses eval, so we need to sanitize the input
     nodes = ast.parse(expr_string)
     nodes = ast.Expression(nodes.body[0].value)
