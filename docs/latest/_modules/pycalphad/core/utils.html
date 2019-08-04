@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.utils &mdash; pycalphad 0.8+4.g74d8917 documentation</title>
+  <title>pycalphad.core.utils &mdash; pycalphad 0.8+5.g38884a2 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+4.g74d8917
+                0.8+5.g38884a2
               </div>
             
           
@@ -163,13 +163,16 @@
 <span class="kn">from</span> <span class="nn">pycalphad.core.halton</span> <span class="k">import</span> <span class="n">halton</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="k">import</span> <span class="n">MIN_SITE_FRACTION</span>
 <span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="k">import</span> <span class="n">lambdify</span>
-<span class="kn">from</span> <span class="nn">sympy.printing.lambdarepr</span> <span class="k">import</span> <span class="n">LambdaPrinter</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 <span class="kn">import</span> <span class="nn">operator</span>
 <span class="kn">import</span> <span class="nn">functools</span>
 <span class="kn">import</span> <span class="nn">itertools</span>
 <span class="kn">import</span> <span class="nn">collections</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="k">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
 
 <span class="k">try</span><span class="p">:</span>
     <span class="c1"># Only available in numpy 1.10 and newer</span>
@@ -294,7 +297,7 @@
             <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Condition tuple is length </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)))</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">]</span>
     <span class="k">else</span><span class="p">:</span>
         <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">)]</span></div>
@@ -399,14 +402,14 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">default_arg</span><span class="p">)</span>
 
-    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
         <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">)</span>
     <span class="c1"># kwarg_obj is a list containing a dict and a default</span>
     <span class="c1"># For now at least, we don&#39;t treat ndarrays the same as other iterables</span>
     <span class="c1"># ndarrays are assumed to be numeric arrays containing &quot;default values&quot;, so don&#39;t match here</span>
-    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
         <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">kwarg_obj</span><span class="p">:</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">collections</span><span class="o">.</span><span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
                 <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
             <span class="k">else</span><span class="p">:</span>
                 <span class="c1"># element=element syntax to silence var-from-loop warning</span>

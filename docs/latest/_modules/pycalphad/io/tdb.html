@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8+4.g74d8917 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8+5.g38884a2 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+4.g74d8917
+                0.8+5.g38884a2
               </div>
             
           
@@ -168,6 +168,7 @@
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">And</span><span class="p">,</span> <span class="n">Or</span><span class="p">,</span> <span class="n">Not</span><span class="p">,</span> <span class="n">Intersection</span><span class="p">,</span> <span class="n">Union</span><span class="p">,</span> <span class="n">EmptySet</span><span class="p">,</span> <span class="n">Interval</span><span class="p">,</span> <span class="n">Piecewise</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">GreaterThan</span><span class="p">,</span> <span class="n">StrictGreaterThan</span><span class="p">,</span> <span class="n">LessThan</span><span class="p">,</span> <span class="n">StrictLessThan</span><span class="p">,</span> <span class="n">Complement</span><span class="p">,</span> <span class="n">S</span>
 <span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Mul</span><span class="p">,</span> <span class="n">Pow</span><span class="p">,</span> <span class="n">Rational</span>
+<span class="kn">from</span> <span class="nn">sympy.abc</span> <span class="k">import</span> <span class="n">_clash</span>
 <span class="kn">from</span> <span class="nn">sympy.printing.str</span> <span class="k">import</span> <span class="n">StrPrinter</span>
 <span class="kn">from</span> <span class="nn">sympy.core.mul</span> <span class="k">import</span> <span class="n">_keep_coeff</span>
 <span class="kn">from</span> <span class="nn">sympy.printing.precedence</span> <span class="k">import</span> <span class="n">precedence</span>
@@ -193,6 +194,16 @@
                   <span class="n">ast</span><span class="o">.</span><span class="n">Load</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Mult</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Name</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Num</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Pow</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">Sub</span><span class="p">,</span>
                   <span class="n">ast</span><span class="o">.</span><span class="n">UAdd</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">UnaryOp</span><span class="p">,</span> <span class="n">ast</span><span class="o">.</span><span class="n">USub</span><span class="p">]</span>
 
+<span class="c1"># Avoid symbol names clashing with objects in sympy (gh-233)</span>
+<span class="n">clashing_namespace</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="n">clashing_namespace</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">_clash</span><span class="p">)</span>
+<span class="n">clashing_namespace</span><span class="p">[</span><span class="s1">&#39;CC&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;CC&#39;</span><span class="p">)</span>
+<span class="n">clashing_namespace</span><span class="p">[</span><span class="s1">&#39;FF&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;FF&#39;</span><span class="p">)</span>
+<span class="n">clashing_namespace</span><span class="p">[</span><span class="s1">&#39;T&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span>
+<span class="n">clashing_namespace</span><span class="p">[</span><span class="s1">&#39;P&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span>
+<span class="n">clashing_namespace</span><span class="p">[</span><span class="s1">&#39;R&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span>
+
+
 <span class="k">def</span> <span class="nf">_sympify_string</span><span class="p">(</span><span class="n">math_string</span><span class="p">):</span>
     <span class="s2">&quot;Convert math string into SymPy object.&quot;</span>
     <span class="c1"># drop pound symbols (&#39;#&#39;) since they denote function names</span>
@@ -206,12 +217,7 @@
     <span class="n">expr_string</span> <span class="o">=</span> \
         <span class="n">re</span><span class="o">.</span><span class="n">sub</span><span class="p">(</span><span class="sa">r</span><span class="s1">&#39;(?&lt;!\w)EXP(?!\w)&#39;</span><span class="p">,</span> <span class="s1">&#39;exp&#39;</span><span class="p">,</span> <span class="n">expr_string</span><span class="p">,</span>
                <span class="n">flags</span><span class="o">=</span><span class="n">re</span><span class="o">.</span><span class="n">IGNORECASE</span><span class="p">)</span>
-    <span class="c1"># Convert raw variables into StateVariable objects</span>
-    <span class="n">variable_fixes</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;T&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span>
-        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;P&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span>
-        <span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;R&#39;</span><span class="p">):</span> <span class="n">v</span><span class="o">.</span><span class="n">R</span>
-    <span class="p">}</span>
+
     <span class="c1"># sympify uses eval, so we need to sanitize the input</span>
     <span class="n">nodes</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">parse</span><span class="p">(</span><span class="n">expr_string</span><span class="p">)</span>
     <span class="n">nodes</span> <span class="o">=</span> <span class="n">ast</span><span class="o">.</span><span class="n">Expression</span><span class="p">(</span><span class="n">nodes</span><span class="o">.</span><span class="n">body</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">value</span><span class="p">)</span>
@@ -220,7 +226,8 @@
         <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">node</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">_AST_WHITELIST</span><span class="p">:</span> <span class="c1">#pylint: disable=W1504</span>
             <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Expression from TDB file not in whitelist: &#39;</span>
                              <span class="s1">&#39;</span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">expr_string</span><span class="p">))</span>
-    <span class="k">return</span> <span class="n">sympify</span><span class="p">(</span><span class="n">expr_string</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">(</span><span class="n">variable_fixes</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">sympify</span><span class="p">(</span><span class="n">expr_string</span><span class="p">,</span> <span class="nb">locals</span><span class="o">=</span><span class="n">clashing_namespace</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_parse_action</span><span class="p">(</span><span class="n">func</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -241,7 +248,13 @@
 <span class="sd">    Source: Florian Brucker on StackOverflow</span>
 <span class="sd">    http://stackoverflow.com/questions/10177276/pyparsing-setparseaction-function-is-getting-no-arguments</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="n">num_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">args</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">sys</span><span class="o">.</span><span class="n">version_info</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="n">func_items</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">signature</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">()</span>
+        <span class="n">func_args</span> <span class="o">=</span> <span class="p">[</span><span class="n">name</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">param</span> <span class="ow">in</span> <span class="n">func_items</span>
+                     <span class="k">if</span> <span class="n">param</span><span class="o">.</span><span class="n">kind</span> <span class="o">==</span> <span class="n">param</span><span class="o">.</span><span class="n">POSITIONAL_OR_KEYWORD</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">func_args</span> <span class="o">=</span> <span class="n">inspect</span><span class="o">.</span><span class="n">getargspec</span><span class="p">(</span><span class="n">func</span><span class="p">)</span><span class="o">.</span><span class="n">args</span>
+    <span class="n">num_args</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">func_args</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">num_args</span> <span class="o">&gt;</span> <span class="mi">3</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Input function must take at most 3 parameters.&#39;</span><span class="p">)</span>
 
@@ -785,7 +798,7 @@
     <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">S</span><span class="p">(</span><span class="n">expr</span><span class="p">)</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symbol_name_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})</span> <span class="k">for</span> <span class="n">name</span><span class="p">,</span> <span class="n">expr</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">symbols</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
     <span class="c1"># finally propagate through to the parameters</span>
     <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">all</span><span class="p">():</span>
-        <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;parameter&#39;</span><span class="p">:</span> <span class="n">S</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symbol_name_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})},</span> <span class="n">eids</span><span class="o">=</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">eid</span><span class="p">])</span>
+        <span class="n">dbf</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;parameter&#39;</span><span class="p">:</span> <span class="n">S</span><span class="p">(</span><span class="n">p</span><span class="p">[</span><span class="s1">&#39;parameter&#39;</span><span class="p">])</span><span class="o">.</span><span class="n">xreplace</span><span class="p">({</span><span class="n">Symbol</span><span class="p">(</span><span class="n">s</span><span class="p">):</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">s</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">symbol_name_map</span><span class="o">.</span><span class="n">items</span><span class="p">()})},</span> <span class="n">doc_ids</span><span class="o">=</span><span class="p">[</span><span class="n">p</span><span class="o">.</span><span class="n">doc_id</span><span class="p">])</span>
 
 
 <div class="viewcode-block" id="write_tdb"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.tdb.write_tdb">[docs]</a><span class="k">def</span> <span class="nf">write_tdb</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">fd</span><span class="p">,</span> <span class="n">groupby</span><span class="o">=</span><span class="s1">&#39;subsystem&#39;</span><span class="p">,</span> <span class="n">if_incompatible</span><span class="o">=</span><span class="s1">&#39;warn&#39;</span><span class="p">):</span>
@@ -1071,7 +1084,7 @@
         <span class="k">try</span><span class="p">:</span>
             <span class="n">tokens</span> <span class="o">=</span> <span class="n">grammar</span><span class="o">.</span><span class="n">parseString</span><span class="p">(</span><span class="n">command</span><span class="p">)</span>
             <span class="n">_TDB_PROCESSOR</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">0</span><span class="p">]](</span><span class="n">dbf</span><span class="p">,</span> <span class="o">*</span><span class="n">tokens</span><span class="p">[</span><span class="mi">1</span><span class="p">:])</span>
-        <span class="k">except</span> <span class="n">ParseException</span><span class="p">:</span>
+        <span class="k">except</span><span class="p">:</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
             <span class="k">raise</span>
