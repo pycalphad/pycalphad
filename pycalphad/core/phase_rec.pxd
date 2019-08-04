@@ -1,37 +1,34 @@
 # distutils: language = c++
 
 cimport cython
-cimport symengine
-from libcpp.vector cimport vector
+from symengine.lib.symengine_wrapper cimport LLVMDouble, LambdaDouble
+import numpy
+cimport numpy
+
+cdef class FastFunction:
+    cdef LambdaDouble lambda_double
+    cdef LLVMDouble  llvm_double
+    cdef void call(self, double *out, double *inp) nogil
 
 @cython.final
 cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordObject]:
-    cdef symengine.LambdaRealDoubleVisitor* _obj
-    cdef symengine.LambdaRealDoubleVisitor* _grad
-    cdef symengine.LambdaRealDoubleVisitor* _hess
-    cdef symengine.LambdaRealDoubleVisitor* _internal_cons
-    cdef symengine.LambdaRealDoubleVisitor* _internal_jac
-    cdef symengine.LambdaRealDoubleVisitor* _internal_cons_hess
-    cdef symengine.LambdaRealDoubleVisitor* _multiphase_cons
-    cdef symengine.LambdaRealDoubleVisitor* _multiphase_jac
-    cdef symengine.LambdaRealDoubleVisitor* _multiphase_cons_hess
-    cdef vector[symengine.LambdaRealDoubleVisitor*] _masses
-    cdef vector[symengine.LambdaRealDoubleVisitor*] _massgrads
-    cdef vector[symengine.LambdaRealDoubleVisitor*] _masshessians
-    cdef public object _ofunc
-    cdef public object _gfunc
-    cdef public object _hfunc
-    cdef public object _intconsfunc
-    cdef public object _intjacfunc
-    cdef public object _intconshessfunc
-    cdef public object _mpconsfunc
-    cdef public object _mpjacfunc
-    cdef public object _mpconshessfunc
+    cdef FastFunction _obj
+    cdef FastFunction _grad
+    cdef FastFunction _hess
+    cdef FastFunction _internal_cons
+    cdef FastFunction _internal_jac
+    cdef FastFunction _internal_cons_hess
+    cdef FastFunction _multiphase_cons
+    cdef FastFunction _multiphase_jac
+    cdef FastFunction _multiphase_cons_hess
+    cdef numpy.ndarray _masses
+    cdef void** _masses_ptr
+    cdef numpy.ndarray _massgrads
+    cdef void** _massgrads_ptr
+    cdef numpy.ndarray _masshessians
+    cdef void** _masshessians_ptr
     cdef public size_t num_internal_cons
     cdef public size_t num_multiphase_cons
-    cdef public object _massfuncs
-    cdef public object _massgradfuncs
-    cdef public object _masshessianfuncs
     cdef public object variables
     cdef public object state_variables
     cdef public object components

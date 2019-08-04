@@ -1,17 +1,27 @@
 # distutils: language = c++
 
 cimport cython
-from cython.operator cimport dereference
 from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 import pycalphad.variables as v
 from symengine.lib.symengine_wrapper cimport LLVMDouble, LambdaDouble
 
-cdef symengine.LambdaRealDoubleVisitor* llvm_double_visitor(LambdaDouble llvm_double_obj):
-    """Use the bytes from calling reduce on an LLVMDouble object to construct an LLVMDoubleVisitor"""
-    cdef symengine.LambdaRealDoubleVisitor *f = &llvm_double_obj.lambda_double[0]
-    return f
+cdef class FastFunction:
+    def __cinit__(self, object func):
+        if isinstance(func, LambdaDouble):
+            self.lambda_double = func
+        elif isinstance(func, LLVMDouble):
+            self.llvm_double = func
+        elif func is None:
+            pass
+        else:
+            raise ValueError('Unknown callable function type: {}'.format(func.__class__))
+    cdef void call(self, double *out, double *inp) nogil:
+        if self.llvm_double is not None:
+            self.llvm_double.unsafe_real_ptr(inp, out)
+        elif self.lambda_double is not None:
+            self.lambda_double.unsafe_real_ptr(inp, out)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -58,9 +68,9 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
-                                 self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
-                                 self._mpconsfunc, self._mpjacfunc, self._mpconshessfunc,
+                                 self._obj, self._grad, self._hess, self._masses, self._massgrads,
+                                 self._masshessians, self._internal_cons, self._internal_jac, self._internal_cons_hess,
+                                 self._multiphase_cons, self._multiphase_jac, self._multiphase_cons_hess,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
@@ -93,47 +103,38 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self.phase_dof += 1
 
         if ofunc is not None:
-            self._ofunc = ofunc
-            self._obj = llvm_double_visitor(ofunc)
+            self._obj = FastFunction(ofunc)
         if gfunc is not None:
-            self._gfunc = gfunc
-            self._grad = llvm_double_visitor(gfunc)
+            self._grad = FastFunction(gfunc)
         if hfunc is not None:
-            self._hfunc = hfunc
-            self._hess = llvm_double_visitor(hfunc)
+            self._hess = FastFunction(hfunc)
         if internal_cons_func is not None:
-            self._intconsfunc = internal_cons_func
-            self._internal_cons = llvm_double_visitor(internal_cons_func)
+            self._internal_cons = FastFunction(internal_cons_func)
         if internal_jac_func is not None:
-            self._intjacfunc = internal_jac_func
-            self._internal_jac = llvm_double_visitor(internal_jac_func)
+            self._internal_jac = FastFunction(internal_jac_func)
         if internal_cons_hess_func is not None:
-            self._intconshessfunc = internal_cons_hess_func
-            self._internal_cons_hess = llvm_double_visitor(internal_cons_hess_func)
+            self._internal_cons_hess = FastFunction(internal_cons_hess_func)
         if multiphase_cons_func is not None:
-            self._mpconsfunc = multiphase_cons_func
-            self._multiphase_cons = llvm_double_visitor(multiphase_cons_func)
+            self._multiphase_cons = FastFunction(multiphase_cons_func)
         if multiphase_jac_func is not None:
-            self._mpjacfunc = multiphase_jac_func
-            self._multiphase_jac = llvm_double_visitor(multiphase_jac_func)
+            self._multiphase_jac = FastFunction(multiphase_jac_func)
         if multiphase_cons_hess_func is not None:
-            self._mpconshessfunc = multiphase_cons_hess_func
-            self._multiphase_cons_hess = llvm_double_visitor(multiphase_cons_hess_func)
+            self._multiphase_cons_hess = FastFunction(multiphase_cons_hess_func)
         if massfuncs is not None:
-            self._massfuncs = massfuncs
-            self._masses.resize(len(nonvacant_elements))
+            self._masses = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._masses[el_idx] = llvm_double_visitor(massfuncs[el_idx])
+                self._masses[el_idx] = FastFunction(massfuncs[el_idx])
+            self._masses_ptr = <void**> self._masses.data
         if massgradfuncs is not None:
-            self._massgradfuncs = massgradfuncs
-            self._massgrads.resize(len(nonvacant_elements))
+            self._massgrads = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._massgrads[el_idx] = llvm_double_visitor(massgradfuncs[el_idx])
+                self._massgrads[el_idx] = FastFunction(massgradfuncs[el_idx])
+            self._massgrads_ptr = <void**> self._massgrads.data
         if masshessianfuncs is not None:
-            self._masshessianfuncs = masshessianfuncs
-            self._masshessians.resize(len(nonvacant_elements))
+            self._masshessians = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._masshessians[el_idx] = llvm_double_visitor(masshessianfuncs[el_idx])
+                self._masshessians[el_idx] = FastFunction(masshessianfuncs[el_idx])
+            self._masshessians_ptr = <void**> self._masshessians.data
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
@@ -220,9 +221,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         cdef int i
         cdef int num_inps = dof.shape[0]
         cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
-        if not self._masses.empty():
-            for i in range(num_inps):
-                self._masses[comp_idx].call(&out[i], &dof_concat[i * num_dof])
+        for i in range(num_inps):
+            (<FastFunction>self._masses_ptr[comp_idx]).call(&out[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
@@ -230,8 +230,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.wraparound(False)
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
         cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        if not self._massgrads.empty():
-            self._massgrads[comp_idx].call(&out[0], &dof_concat[0])
+        (<FastFunction>self._massgrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
@@ -239,7 +238,6 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.wraparound(False)
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
         cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        if not self._masshessians.empty():
-            self._masshessians[comp_idx].call(&out[0,0], &dof_concat[0])
+        (<FastFunction>self._masshessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
