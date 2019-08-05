@@ -5,23 +5,22 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 import pycalphad.variables as v
-from symengine.lib.symengine_wrapper cimport LLVMDouble, LambdaDouble
+import ctypes
 
 cdef class FastFunction:
     def __cinit__(self, object func):
-        if isinstance(func, LambdaDouble):
-            self.lambda_double = func
-        elif isinstance(func, LLVMDouble):
-            self.llvm_double = func
-        elif func is None:
-            pass
-        else:
-            raise ValueError('Unknown callable function type: {}'.format(func.__class__))
+        if func is None:
+            self.f_ptr = NULL
+            self.func_data = NULL
+            return
+        # Preserve reference to object to prevent garbage collection
+        self._objref = func
+        addr1, addr2 = func.as_ctypes()
+        self.f_ptr = (<math_function_t*><size_t>ctypes.addressof(addr1))[0]
+        self.func_data =  (<void**><size_t>ctypes.addressof(addr2))[0]
     cdef void call(self, double *out, double *inp) nogil:
-        if self.llvm_double is not None:
-            self.llvm_double.unsafe_real_ptr(inp, out)
-        elif self.lambda_double is not None:
-            self.lambda_double.unsafe_real_ptr(inp, out)
+        if self.f_ptr != NULL:
+            self.f_ptr(out, inp, self.func_data)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)

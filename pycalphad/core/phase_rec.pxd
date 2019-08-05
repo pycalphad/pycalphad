@@ -1,13 +1,15 @@
 # distutils: language = c++
 
 cimport cython
-from symengine.lib.symengine_wrapper cimport LLVMDouble, LambdaDouble
 import numpy
 cimport numpy
 
+ctypedef void (*math_function_t)(double*, const double*, void* user_data) nogil
+
 cdef class FastFunction:
-    cdef LambdaDouble lambda_double
-    cdef LLVMDouble  llvm_double
+    cdef readonly object _objref
+    cdef math_function_t f_ptr
+    cdef void *func_data
     cdef void call(self, double *out, double *inp) nogil
 
 @cython.final
