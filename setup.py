@@ -26,9 +26,6 @@ setup(
     author_email='richard.otis@outlook.com',
     description='CALPHAD tools for designing thermodynamic models, calculating phase diagrams and investigating phase equilibria.',
     packages=['pycalphad', 'pycalphad.codegen', 'pycalphad.core', 'pycalphad.io', 'pycalphad.plot'],
-    # The includes here are to pick up the *.pyx files
-    # We might be able to get around these includes if symengine uses zip_safe=False
-    # see: https://cython.readthedocs.io/en/latest/src/userguide/sharing_declarations.html
     # "error: '::hypot' has not been declared when compiling with MingGW64"
     # https://github.com/Theano/Theano/issues/4926
     ext_modules=cythonize([Extension('pycalphad.core.hyperplane',
