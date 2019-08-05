@@ -18,6 +18,8 @@ cdef class FastFunction:
         addr1, addr2 = func.as_ctypes()
         self.f_ptr = (<math_function_t*><size_t>ctypes.addressof(addr1))[0]
         self.func_data =  (<void**><size_t>ctypes.addressof(addr2))[0]
+    def __reduce__(self):
+        return FastFunction, (self._objref,)
     cdef void call(self, double *out, double *inp) nogil:
         if self.f_ptr != NULL:
             self.f_ptr(out, inp, self.func_data)
