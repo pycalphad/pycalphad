@@ -13,11 +13,11 @@ cdef class FastFunction:
             self.f_ptr = NULL
             self.func_data = NULL
             return
-        # Preserve reference to object to prevent garbage collection
+        # Preserve reference to objects to prevent garbage collection
         self._objref = func
-        addr1, addr2 = func.as_ctypes()
-        self.f_ptr = (<math_function_t*><size_t>ctypes.addressof(addr1))[0]
-        self.func_data =  (<void**><size_t>ctypes.addressof(addr2))[0]
+        self._addr1, self._addr2 = func.as_ctypes()
+        self.f_ptr = (<math_function_t*><size_t>ctypes.addressof(self._addr1))[0]
+        self.func_data =  (<void**><size_t>ctypes.addressof(self._addr2))[0]
     cdef void call(self, double *out, double *inp) nogil:
         if self.f_ptr != NULL:
             self.f_ptr(out, inp, self.func_data)

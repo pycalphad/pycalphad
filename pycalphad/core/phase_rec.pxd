@@ -7,7 +7,7 @@ cimport numpy
 ctypedef void (*math_function_t)(double*, const double*, void* user_data) nogil
 
 cdef class FastFunction:
-    cdef readonly object _objref
+    cdef readonly object _objref, _addr1, _addr2
     cdef math_function_t f_ptr
     cdef void *func_data
     cdef void call(self, double *out, double *inp) nogil
