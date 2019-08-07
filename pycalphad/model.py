@@ -4,7 +4,7 @@ calculations under specified conditions.
 """
 from __future__ import division
 import copy
-from sympy import exp, log, Abs, Add, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
+from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
 import pycalphad.variables as v
 from pycalphad.core.errors import DofError
@@ -719,20 +719,30 @@ class Model(object):
         self.TC = self.curie_temperature = tc
         #print(tc)
         # 0.01 used to prevent singularity
-        tau = v.T / (tc + 1e-9)
+        tau_positive_tc = v.T / (curie_temp + 1e-9)
+        tau_negative_tc = v.T / ((curie_temp/afm_factor) + 1e-9)
 
         # define model parameters
         p = phase.model_hints['ihj_magnetic_structure_factor']
         A = 518/1125 + (11692/15975)*(1/p - 1)
-        # factor when tau < 1
-        sub_tau = 1 - (1/A) * ((79/(140*p))*(tau**(-1)) + (474/497)*(1/p - 1) \
-            * ((tau**3)/6 + (tau**9)/135 + (tau**15)/600)
+        # factor when tau < 1 and tc < 0
+        sub_tau_neg_tc = 1 - (1/A) * ((79/(140*p))*(tau_negative_tc**(-1)) + (474/497)*(1/p - 1) \
+            * ((tau_negative_tc**3)/6 + (tau_negative_tc**9)/135 + (tau_negative_tc**15)/600)
                               )
-        # factor when tau >= 1
-        super_tau = -(1/A) * ((tau**-5)/10 + (tau**-15)/315 + (tau**-25)/1500)
+        # factor when tau < 1 and tc > 0
+        sub_tau_pos_tc = 1 - (1/A) * ((79/(140*p))*(tau_positive_tc**(-1)) + (474/497)*(1/p - 1) \
+            * ((tau_positive_tc**3)/6 + (tau_positive_tc**9)/135 + (tau_positive_tc**15)/600)
+                              )
+        # factor when tau >= 1 and tc > 0
+        super_tau_pos_tc = -(1/A) * ((tau_positive_tc**-5)/10 + (tau_positive_tc**-15)/315 + (tau_positive_tc**-25)/1500)
+        # factor when tau >= 1 and tc < 0
+        super_tau_neg_tc = -(1/A) * ((tau_negative_tc**-5)/10 + (tau_negative_tc**-15)/315 + (tau_negative_tc**-25)/1500)
 
-        expr_cond_pairs = [(sub_tau, tau < 1),
-                           (super_tau, True)
+        expr_cond_pairs = [(sub_tau_neg_tc, curie_temp/afm_factor > v.T),
+                           (sub_tau_pos_tc, curie_temp > v.T),
+                           (super_tau_pos_tc, And(curie_temp < v.T, curie_temp > 0)),
+                           (super_tau_neg_tc, And(curie_temp/afm_factor < v.T, curie_temp < 0)),
+                           (0, True)
                            ]
         g_term = Piecewise(*expr_cond_pairs, evaluate=False)
 
