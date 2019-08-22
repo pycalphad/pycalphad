@@ -317,8 +317,8 @@ cdef class Problem:
         constraint_offset += compset.phase_record.num_multiphase_cons
 
         # Fourth: Chemical potential constraints
-        if len(self.fixed_chempot_indices) > 0:
-            raise NotImplementedError('Chemical potential Hessian not implemented yet')
+        #if len(self.fixed_chempot_indices) > 0:
+        #    raise NotImplementedError('Chemical potential Hessian not implemented yet')
         result = np.array(hess)[np.tril_indices(hess.shape[0])]
         return result
 
@@ -406,10 +406,12 @@ cdef class Problem:
         # mu' = (A+)' grad + (A+) hess
         jac = self.mass_jacobian(x_in).T
         jac_pinv = np.linalg.pinv(jac)
-        #mass_hess = np.swapaxes(self.mass_cons_hessian(x_in), 0, 1)
+        # Axes swap needed for compatibility with _pinv_derivative
+        mass_hess = np.swapaxes(self.mass_cons_hessian(x_in), 0, 1)
         hess = self.obj_hessian(x_in)
-        #jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
-        mu_prime = np.dot(jac_pinv, hess)
+        grad = self.gradient(x_in)
+        jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
+        mu_prime = np.dot(jac_pinv, hess) + np.einsum('ijk,k->ij', jac_pinv_prime, grad)
         return mu_prime[-len(self.nonvacant_elements):]
 
     def mass_cons_hessian(self, x_in):
@@ -420,7 +422,7 @@ cdef class Problem:
         cdef double[:, :, ::1] mass_cons_hess = np.zeros((self.num_internal_constraints + num_active_ineq + len(self.nonvacant_elements),
                                                           self.num_vars, self.num_vars))
         cdef double[::1] mass_cons_hess_tmp = np.zeros((self.num_internal_constraints + len(self.nonvacant_elements) *
-                                                        self.num_vars * self.num_vars))
+                                                        self.num_vars) * self.num_vars)
         cdef double[::1] mass_grad_tmp = np.zeros(self.num_vars)
         cdef double[:, :, ::1] mass_cons_hess_tmp_view
         cdef double[:, ::1] mass_hess_tmp_view
