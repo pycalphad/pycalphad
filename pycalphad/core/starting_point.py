@@ -68,20 +68,20 @@ def starting_point(conditions, state_variables, phase_records, grid, given_start
     if given_starting_point is None:
         result = lower_convex_hull(grid, state_variables, result)
     else:
-        out_energy = np.zeros(len(given_starting_point))
+        out_energy = np.zeros((len(given_starting_point), 1))
         out_moles = np.zeros((len(given_starting_point), 1, len(nonvacant_elements)))
         for phase_idx, (phase_name, phase_dof) in enumerate(given_starting_point):
             phase_dof_without_statevars = phase_dof[len(state_variables):]
             result['NP'][..., phase_idx] = 1./len(given_starting_point)
             phase_records[phase_name].obj(out_energy[phase_idx], np.atleast_2d(phase_dof))
             for comp_idx in range(len(nonvacant_elements)):
-                phase_records[phase_name].mass_obj(out_moles[phase_idx], np.atleast_2d(phase_dof), comp_idx)
+                phase_records[phase_name].mass_obj(out_moles[phase_idx, :, comp_idx], np.atleast_2d(phase_dof), comp_idx)
             result['Phase'][..., phase_idx] = phase_name
+            result['X'][..., phase_idx, :] = out_moles[phase_idx, 0]
             result['Y'][..., phase_idx, :len(phase_dof_without_statevars)] = phase_dof_without_statevars
             result['Y'][..., phase_idx, len(phase_dof_without_statevars):] = np.nan
             out_energy[:] = 0
             out_moles[:, :] = 0
-        result['X'][...] = out_moles[:, 0, :]
         result['GM'][...] = out_energy.mean()
         result['MU'][...] = out_energy.mean()
         result.remove('points')
