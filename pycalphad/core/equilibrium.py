@@ -133,6 +133,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
 def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
                 scheduler='sync', parameters=None, solver=None, callables=None,
+                global_min=True, user_starting_point=None,
                 **kwargs):
     """
     Calculate the equilibrium state of a system containing the specified
@@ -174,6 +175,11 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         Defaults to a pycalphad.core.solver.InteriorPointSolver.
     callables : dict, optional
         Pre-computed callable functions for equilibrium calculation.
+    global_min : bool, optional
+        Automatic miscibility gap detection ('global minimization').
+    user_starting_point : list of (phase name, dof) tuple
+        User-specified starting point for the calculation.
+        dof should include all state variables, in alphabetical order, and site fractions.
 
     Returns
     -------
@@ -251,10 +257,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
-    properties = starting_point(conds, state_variables, phase_records, grid)
+    properties = starting_point(conds, state_variables, phase_records, grid, given_starting_point=user_starting_point)
     properties = _solve_eq_at_conditions(comps, properties, phase_records, grid,
                                          list(str_conds.keys()), state_variables,
-                                         verbose, solver=solver)
+                                         global_min, verbose, solver=solver)
 
     # Compute equilibrium values of any additional user-specified properties
     # We already computed these properties so don't recompute them

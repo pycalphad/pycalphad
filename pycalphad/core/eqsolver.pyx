@@ -181,7 +181,7 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
             phase_idx += 1
     return result
 
-def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
+def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, global_min, verbose,
                             problem=Problem, solver=None):
     """
     Compute equilibrium for the given conditions.
@@ -201,6 +201,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         Sample of energy landscape of the system.
     conds_keys : list of str
         List of conditions axes in dimension order.
+    global_min : bool
+        Automatic miscibility gap detection.
     verbose : bool
         Print details.
     problem : pycalphad.core.problem.Problem
@@ -302,6 +304,8 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
 
             if result.converged:
                 chemical_potentials[:] = result.chemical_potentials
+            if not global_min:
+                break
             changed_phases = add_new_phases(composition_sets, removed_compsets, phase_records,
                                             grid, curr_idx, chemical_potentials, state_variable_values,
                                             1e-4, verbose)
