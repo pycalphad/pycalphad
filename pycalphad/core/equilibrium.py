@@ -191,6 +191,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
+    if (not global_min) and (user_starting_point is None):
+        raise EquilibriumError('User starting point must be specified when global minimization is disabled')
     comps = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
@@ -245,15 +247,18 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if verbose:
         print('[done]', end='\n')
 
-    # 'calculate' accepts conditions through its keyword arguments
-    grid_opts = calc_opts.copy()
-    statevar_strings = [str(x) for x in state_variables]
-    grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
-    if 'pdens' not in grid_opts:
-        grid_opts['pdens'] = 500
-    grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
-                     callables=callables, output='GM', parameters=parameters, 
-                     to_xarray=False, **grid_opts)
+    if global_min:
+        # 'calculate' accepts conditions through its keyword arguments
+        grid_opts = calc_opts.copy()
+        statevar_strings = [str(x) for x in state_variables]
+        grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
+        if 'pdens' not in grid_opts:
+            grid_opts['pdens'] = 500
+        grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
+                         callables=callables, output='GM', parameters=parameters,
+                         to_xarray=False, **grid_opts)
+    else:
+        grid = None
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
