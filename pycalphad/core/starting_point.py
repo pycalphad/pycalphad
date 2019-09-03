@@ -70,6 +70,12 @@ def starting_point(conditions, state_variables, phase_records, grid, given_start
     else:
         out_energy = np.zeros((len(given_starting_point), 1))
         out_moles = np.zeros((len(given_starting_point), 1, len(nonvacant_elements)))
+        result['Phase'][...] = ''
+        result['X'][...] = np.nan
+        result['Y'][...] = np.nan
+        result['GM'][...] = np.nan
+        result['MU'][...] = np.nan
+        result['NP'][...] = np.nan
         for phase_idx, (phase_name, phase_dof) in enumerate(given_starting_point):
             phase_dof_without_statevars = phase_dof[len(state_variables):]
             result['NP'][..., phase_idx] = 1./len(given_starting_point)
