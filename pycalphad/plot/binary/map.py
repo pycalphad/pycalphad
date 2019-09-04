@@ -9,7 +9,7 @@ from pycalphad.core.equilibrium import _adjust_conditions
 from pycalphad.core.starting_point import starting_point
 from pycalphad.core.utils import instantiate_models, get_state_variables, \
     unpack_components, unpack_condition, get_pure_elements
-from .compsets import get_compsets, find_two_phase_region_compsets
+from .compsets import get_compsets, find_two_phase_region_compsets, BinaryCompset
 from .zpf_boundary_sets import ZPFBoundarySets
 
 def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
@@ -64,6 +64,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     species = unpack_components(dbf, comps)
     parameters = eq_kwargs.get('parameters', {})
     models = eq_kwargs.get('model')
+    use_global_min = eq_kwargs.get('global_min', True)
     statevars = get_state_variables(models=models, conds=conds)
     if models is None:
         models = instantiate_models(dbf, comps, phases, model=eq_kwargs.get('model'),
@@ -112,6 +113,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
         convex_hulls_calculated += 1
+        previous_single_phase_result = None
         while Xmax_visited < Xmax:
             hull_compsets = find_two_phase_region_compsets(hull, T, indep_comp, indep_comp_idx, minimum_composition=Xmax_visited, misc_gap_tol=2*dX)
             if hull_compsets is None:
@@ -121,8 +123,10 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
             Xeq = hull_compsets.mean_composition
             eq_conds[comp_cond] = [float(Xeq)]
             eq_time = time.time()
-            start_point = starting_point(eq_conds, statevars, prxs, grid)
-            eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
+
+            start_point = starting_point(eq_conds, statevars, prxs, grid,
+                                         given_starting_point=previous_single_phase_result)
+            eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, use_global_min, False)
             equilibrium_time += time.time() - eq_time
             equilibria_calculated += 1
             iter_equilibria += 1
@@ -132,24 +136,37 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
             if verbose:
                 print("== Convex hull: max visited = {:0.4f} - hull compsets: {} equilibrium compsets: {} ==".format(Xmax_visited, hull_compsets, compsets))
             if compsets is None:
+                # In a single-phase region, the next eq is very likely to be similar to the previous
+                extracted_compsets = BinaryCompset.from_dataset_vertices(eq_ds, indep_comp, indep_comp_idx, 3)
+                previous_single_phase_result = []
+                for compset in extracted_compsets:
+                    previous_single_phase_result.append((compset.phase_name,
+                                                         np.r_[1.0, grid_conds[v.P], compset.temperature, compset.site_fracs]))
                 # equilibrium calculation, didn't find a valid multiphase composition set
                 # we need to find the next feasible one from the convex hull.
                 Xmax_visited += dX
                 continue
             else:
+                previous_single_phase_result = None
                 boundary_sets.add_compsets(compsets, Xtol=0.10, Ttol=2*dT)
                 if compsets.max_composition > Xmax_visited:
                     Xmax_visited = compsets.max_composition
             # this seems kind of sloppy, but captures the effect that we want to
             # keep doing equilibrium calculations, if possible.
+            previous_result = None
             while Xmax_visited < Xmax and compsets is not None:
                 eq_conds[comp_cond] = [float(Xmax_visited + dX)]
                 eq_time = time.time()
-                # TODO: starting point could be improved by basing it off the previous calculation
-                start_point = starting_point(eq_conds, statevars, prxs, grid)
-                eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, False)
+                start_point = starting_point(eq_conds, statevars, prxs, grid,
+                                             given_starting_point=previous_result)
+                eq_ds = _solve_eq_at_conditions(species, start_point, prxs, grid, str_conds, statevars, use_global_min, False)
                 equilibrium_time += time.time() - eq_time
                 equilibria_calculated += 1
+                extracted_compsets = BinaryCompset.from_dataset_vertices(eq_ds, indep_comp, indep_comp_idx, 3)
+                previous_result = []
+                for compset in extracted_compsets:
+                    previous_result.append((compset.phase_name,
+                                            np.r_[1.0, grid_conds[v.P], compset.temperature, compset.site_fracs]))
                 compsets = get_compsets(eq_ds, indep_comp, indep_comp_idx)
                 if compsets is not None:
                     Xmax_visited = compsets.max_composition
