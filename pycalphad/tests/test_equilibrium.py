@@ -129,6 +129,21 @@ def test_eq_illcond_magnetic_hessian():
     assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], rtol=1e-4)
 
 
+def test_eq_user_starting_point():
+    """
+    Check equilibrium of a system with a poor user-defined starting point.
+    """
+    eq = equilibrium(ALFE_DBF, ['AL', 'FE', 'VA'], ['FCC_A1', 'AL13FE4'],
+                     {v.X('AL'): 0.8, v.T: 300, v.P: 1e5},
+                     user_starting_point=[('FCC_A1', [1, 1e5, 300, 0.5, 0.5, 1.0])],
+                     verbose=True)
+    assert_allclose(np.squeeze(eq.GM.values), -31414.46677)
+    # These chemical potentials have a strong dependence on MIN_SITE_FRACTION
+    # Smaller values tend to shift the potentials +- 1 J/mol
+    # Numbers below based on MIN_SITE_FRACTION=1e-12 (TC's default setting)
+    assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], rtol=1e-4)
+
+
 def test_eq_composition_cond_sorting():
     """
     Composition conditions are correctly constructed when the dependent component does not
