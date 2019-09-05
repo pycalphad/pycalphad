@@ -144,6 +144,26 @@ def test_eq_user_starting_point():
     assert_allclose(np.squeeze(eq.MU.values), [-8490.140, -123111.773], rtol=1e-4)
 
 
+def test_eq_no_global_min_miscibility_gap():
+    """
+    Compute equilibrium inside a miscibility gap with disabled global minimization.
+    """
+    TDB = """
+     ELEMENT A    GRAPHITE                   12.011     1054.0      5.7423 !
+     ELEMENT B   BCC_A2                     55.847     4489.0     27.2797 !
+     TYPE_DEFINITION % SEQ * !
+     PHASE TEST % 1 1 !
+     CONSTITUENT TEST : A,B: !
+     PARAMETER G(TEST,A,B;0)       298.15  10000;   6000 N !
+    """
+    conds = dict({v.T: 1000, v.P: 101325, v.N: 1})
+    conds[v.X('A')] = 0.5
+    eq = equilibrium(Database(TDB), ['A', 'B'], ['TEST'], conds,
+                     user_starting_point=[('TEST', [1, 1e5, 1000, 0.5, 0.5])],
+                     global_min=False)
+    assert_allclose(np.squeeze(eq.GM.values), 8.3145*1000*np.log(0.5) + 0.5*0.5*10000)
+
+
 def test_eq_composition_cond_sorting():
     """
     Composition conditions are correctly constructed when the dependent component does not
