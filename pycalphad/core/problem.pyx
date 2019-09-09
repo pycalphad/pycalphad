@@ -411,7 +411,7 @@ cdef class Problem:
         hess = self.obj_hessian(x_in)
         grad = self.gradient(x_in)
         jac_pinv_prime = _pinv_derivative(jac, jac_pinv, mass_hess)
-        mu_prime = np.dot(jac_pinv, hess) + np.einsum('ijk,k->ij', jac_pinv_prime, grad)
+        mu_prime = np.dot(jac_pinv, hess) + np.einsum('ijk,j->ik', jac_pinv_prime, grad)
         return mu_prime[-len(self.nonvacant_elements):]
 
     def mass_cons_hessian(self, x_in):
