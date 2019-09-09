@@ -470,7 +470,7 @@ cdef class Problem:
         # Second: Active inequality constraints (Linear)
         constraint_offset += num_active_ineq
         # Third: Mass constraints for pure elements
-        var_idx = 0
+        var_idx = num_statevars
         for phase_idx in range(self.num_phases):
             compset = self.composition_sets[phase_idx]
             x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
