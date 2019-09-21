@@ -1097,7 +1097,3 @@ class TestModel(Model):
                                                                 for j in range(kmax)]))**2
                       for i in range(kmax)])
         self.models['test'] = scale_factor * Add(*[(varname - sol)**2 for varname, sol in self.solution.items()]) + polys
-
-
-
-#%%
