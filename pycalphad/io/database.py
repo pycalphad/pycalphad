@@ -103,6 +103,7 @@ class Database(object): #pylint: disable=R0902
             obj.elements = set()
             obj.species = set()
             obj.phases = {}
+            obj.refstates = {}
             obj._structure_dict = {} # System-local phase names to global IDs
             obj._parameters = TinyDB(storage=MemoryStorage)
             obj.symbols = {}
