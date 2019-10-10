@@ -19,7 +19,7 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
     dbf : Database
         A Database object
     comps : list
-        List of component names
+        List of component names or species instancies
     phases : list
         List of phase names
     models : dict
@@ -70,8 +70,8 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
     additional_statevars = set(additional_statevars) if additional_statevars is not None else set()
     parameter_symbols = parameter_symbols if parameter_symbols is not None else []
     parameter_symbols = sorted([wrap_symbol(x) for x in parameter_symbols], key=str)
-    comps = sorted(unpack_components(dbf, comps))
-    pure_elements = get_pure_elements(dbf, comps)
+    species = sorted(unpack_components(dbf, comps))
+    pure_elements = get_pure_elements(dbf, species)
 
     _callables = {
         'massfuncs': {},

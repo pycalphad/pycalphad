@@ -62,7 +62,7 @@ def _generate_fake_points(components, statevar_dict, energy_limit, output, maxim
 
 
 @cacheit
-def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, comps,
+def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, species,
                                variables, sampler, fixed_grid, pdens):
     """
     Sample the internal degrees of freedom of a phase.
@@ -72,7 +72,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     phase_name
     phase_constituents
     sublattice_dof
-    comps
+    species
     variables
     sampler
     fixed_grid
@@ -85,7 +85,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     # Eliminate pure vacancy endmembers from the calculation
     vacancy_indices = list()
     for idx, sublattice in enumerate(phase_constituents):
-        active_in_subl = sorted(set(phase_constituents[idx]).intersection(comps))
+        active_in_subl = sorted(set(phase_constituents[idx]).intersection(species))
         is_vacancy = [spec.number_of_atoms == 0 for spec in active_in_subl]
         subl_va_indices = list(idx for idx, x in enumerate(is_vacancy) if x == True)
         vacancy_indices.append(subl_va_indices)
@@ -118,7 +118,7 @@ def _sample_phase_constitution(phase_name, phase_constituents, sublattice_dof, c
     return points
 
 
-def _compute_phase_values(components, statevar_dict,
+def _compute_phase_values(species, statevar_dict,
                           points, phase_record, output, maximum_internal_dof, broadcast=True, fake_points=False,
                           largest_energy=None):
     """
@@ -126,8 +126,8 @@ def _compute_phase_values(components, statevar_dict,
 
     Parameters
     ----------
-    components : list
-        Names of components to consider in the calculation.
+    Species : list
+        Species to consider in the calculation.
     statevar_dict : OrderedDict {str -> float or sequence}
         Mapping of state variables to desired values. This will broadcast if necessary.
     points : ndarray
@@ -173,7 +173,7 @@ def _compute_phase_values(components, statevar_dict,
                                  'broadcast=False.')
             statevars_.append(statevar)
         statevars = statevars_
-    pure_elements = [list(x.constituents.keys()) for x in components]
+    pure_elements = [list(x.constituents.keys()) for x in species]
     pure_elements = sorted(set([el.upper() for constituents in pure_elements for el in constituents]))
     pure_elements = [x for x in pure_elements if x != 'VA']
     # func may only have support for vectorization along a single axis (no broadcasting)
@@ -254,7 +254,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     dbf : Database
         Thermodynamic database containing the relevant parameters.
     comps : str or sequence
-        Names of components to consider in the calculation.
+        Names of components to consider in the calculation or species instancies.
     phases : str or sequence
         Names of phases to consider in the calculation.
     mode : string, optional
@@ -307,16 +307,16 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         phases = [phases]
     if isinstance(comps, (str, v.Species)):
         comps = [comps]
-    comps = sorted(unpack_components(dbf, comps))
+    species = sorted(unpack_components(dbf, comps))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
-    nonvacant_components = [x for x in sorted(comps) if x.number_of_atoms > 0]
+    nonvacant_species = [x for x in sorted(species) if x.number_of_atoms > 0]
 
     all_phase_data = []
     largest_energy = 1e10
 
     # Consider only the active phases
-    list_of_possible_phases = filter_phases(dbf, comps)
+    list_of_possible_phases = filter_phases(dbf, species)
     active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
     active_phases = {name: dbf.phases[name] for name in active_phases}
     if len(list_of_possible_phases) == 0:
@@ -325,7 +325,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
                              .format(phases, list_of_possible_phases))
 
-    models = instantiate_models(dbf, comps, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
+    models = instantiate_models(dbf, species, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
 
     if isinstance(output, (list, tuple, set)):
         raise NotImplementedError('Only one property can be specified in calculate() at a time')
@@ -343,7 +343,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = dict((v.StateVariable(key), unpack_condition(value)) for key, value in kwargs.items() if key in statevar_strings)
     # Sort after default state variable check to fix gh-116
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
-    phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
+    phase_records = build_phase_records(dbf, species, active_phases, statevar_dict,
                                    models=models, parameters=parameters,
                                    output=output, callables=callables,
                                    verbose=kwargs.pop('verbose', False))
@@ -354,15 +354,15 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         mod = models[phase_name]
         phase_record = phase_records[phase_name]
         points = points_dict[phase_name]
-        variables, sublattice_dof = generate_dof(phase_obj, mod.components)
+        variables, sublattice_dof = generate_dof(phase_obj, mod.species)
         if points is None:
-            points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, comps,
+            points = _sample_phase_constitution(phase_name, phase_obj.constituents, sublattice_dof, species,
                                                 tuple(variables), sampler_dict[phase_name] or point_sample,
                                                 fixedgrid_dict[phase_name], pdens_dict[phase_name])
         points = np.atleast_2d(points)
 
         fp = fake_points and (phase_name == sorted(active_phases.keys())[0])
-        phase_ds = _compute_phase_values(nonvacant_components, str_statevar_dict,
+        phase_ds = _compute_phase_values(nonvacant_species, str_statevar_dict,
                                          points, phase_record, output,
                                          maximum_internal_dof, broadcast=broadcast,
                                          largest_energy=float(largest_energy), fake_points=fp)

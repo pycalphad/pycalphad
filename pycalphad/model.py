@@ -102,15 +102,15 @@ class Model(object):
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
         self._reference_model = None
-        self.components = set()
+        self.species = set()
         self.constituents = []
         self.phase_name = phase_name.upper()
         phase = dbe.phases[self.phase_name]
         self.site_ratios = list(phase.sublattices)
         active_species = unpack_components(dbe, comps)
         for idx, sublattice in enumerate(phase.constituents):
-            subl_comps = set(sublattice).intersection(active_species)
-            self.components |= subl_comps
+            subl_species = set(sublattice).intersection(active_species)
+            self.species |= subl_species
             # Support for variable site ratios in ionic liquid model
             if phase.model_hints.get('ionic_liquid_2SL', False):
                 if idx == 0:
@@ -119,13 +119,13 @@ class Model(object):
                     subl_idx = 0
                 else:
                     raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
-                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_comps])
+                self.site_ratios[subl_idx] = Add(*[v.SiteFraction(self.phase_name, idx, spec) * abs(spec.charge) for spec in subl_species])
         if phase.model_hints.get('ionic_liquid_2SL', False):
             # Special treatment of "neutral" vacancies in 2SL ionic liquid
             # These are treated as having variable valence
             for idx, sublattice in enumerate(phase.constituents):
-                subl_comps = set(sublattice).intersection(active_species)
-                if v.Species('VA') in subl_comps:
+                subl_species = set(sublattice).intersection(active_species)
+                if v.Species('VA') in subl_species:
                     if idx == 0:
                         subl_idx = 1
                     elif idx == 1:
@@ -138,7 +138,7 @@ class Model(object):
         # Verify that this phase is still possible to build
         is_pure_VA = set()
         for sublattice in phase.constituents:
-            sublattice_comps = set(sublattice).intersection(self.components)
+            sublattice_comps = set(sublattice).intersection(self.species)
             if len(sublattice_comps) == 0:
                 # None of the components in a sublattice are active
                 # We cannot build a model of this phase
@@ -146,7 +146,7 @@ class Model(object):
                     '{0}: Sublattice {1} of {2} has no components in {3}' \
                     .format(self.phase_name, sublattice,
                             phase.constituents,
-                            self.components))
+                            self.species))
             is_pure_VA.add(sum(set(map(lambda s : getattr(s, 'number_of_atoms'),sublattice_comps))))
             self.constituents.append(sublattice_comps)
         if sum(is_pure_VA) == 0:
@@ -155,8 +155,8 @@ class Model(object):
             raise DofError(
                 '{0}: Sublattices of {1} contains only VA (VACUUM) constituents' \
                 .format(self.phase_name, phase.constituents))
-        self.components = sorted(self.components)
-        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.components]
+        self.species = sorted(self.species)
+        desired_active_pure_elements = [list(x.constituents.keys()) for x in self.species]
         desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements
                                         for el in constituents]
         self.pure_elements = sorted(set(desired_active_pure_elements))
@@ -239,7 +239,7 @@ class Model(object):
         if is_pure_element:
             element = list(species.constituents.keys())[0]
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection(self.components)
+                active = set(sublattice).intersection(self.species)
                 result += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * spec.constituents.get(element, 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
@@ -273,21 +273,21 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = set(sublattice).intersection(self.species)
             subl_content = sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
 
         site_ratios = [c/site_ratio_normalization for c in self.site_ratios]
-        for comp in self.components:
+        for comp in self.species:
             if comp.number_of_atoms == 0:
                 continue
             comp_result = S.Zero
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection(set(self.components))
+                active = set(sublattice).intersection(set(self.species))
                 if comp in active:
                     comp_result += site_ratios[idx] * Abs(v.SiteFraction(self.phase_name, idx, comp) - self.moles(comp)) / self.moles(comp)
             result += comp_result
-        return result / sum(int(spec.number_of_atoms > 0) for spec in self.components)
+        return result / sum(int(spec.number_of_atoms > 0) for spec in self.species)
     DOO = degree_of_ordering
 
     # Can be defined as a list of pre-computed first derivatives
@@ -371,7 +371,7 @@ class Model(object):
         """
         endmember_only_dbe = copy.deepcopy(self._dbe)
         endmember_only_dbe._parameters.remove(where('constituent_array').test(self._interaction_test))
-        mod_endmember_only = self.__class__(endmember_only_dbe, self.components, self.phase_name, parameters=self._parameters_arg)
+        mod_endmember_only = self.__class__(endmember_only_dbe, self.species, self.phase_name, parameters=self._parameters_arg)
         if preserve_ideal:
             mod_endmember_only.models['idmix'] = 0
         self._reference_model = mod_endmember_only
@@ -429,7 +429,7 @@ class Model(object):
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
-            if (sublattice[0] not in self.components) and \
+            if (sublattice[0] not in self.species) and \
                 (sublattice[0] != v.Species('*')):
                 return False
         return True
@@ -441,7 +441,7 @@ class Model(object):
         if len(constituent_array) != len(self.constituents):
             return False
         for sublattice in constituent_array:
-            valid = set(sublattice).issubset(self.components) \
+            valid = set(sublattice).issubset(self.species) \
                 or sublattice[0] == v.Species('*')
             if not valid:
                 return False
@@ -457,7 +457,7 @@ class Model(object):
             return False
         for sublattice in constituent_array:
             # check if all elements involved are also active
-            valid = set(sublattice).issubset(self.components) \
+            valid = set(sublattice).issubset(self.species) \
                 or sublattice[0] == v.Species('*')
             if len(sublattice) > 1 and valid:
                 result = True
@@ -475,7 +475,7 @@ class Model(object):
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
-            active = set(sublattice).intersection(self.components)
+            active = set(sublattice).intersection(self.species)
             subl_content = sum(spec.number_of_atoms * v.SiteFraction(self.phase_name, idx, spec) for spec in active)
             site_ratio_normalization += self.site_ratios[idx] * subl_content
         return site_ratio_normalization
@@ -529,7 +529,7 @@ class Model(object):
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
                             for comp in sorted(set(phase.constituents[subl_index])\
-                                .intersection(self.components))
+                                .intersection(self.species))
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
@@ -641,7 +641,7 @@ class Model(object):
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
         for subl_index, sublattice in enumerate(phase.constituents):
-            active_comps = set(sublattice).intersection(self.components)
+            active_comps = set(sublattice).intersection(self.species)
             ratio = site_ratios[subl_index]
             for comp in active_comps:
                 sitefrac = \
@@ -913,9 +913,9 @@ class Model(object):
         disordered_phase_name = phase.model_hints.get('disordered_phase', None)
         if phase.name != ordered_phase_name:
             return S.Zero
-        disordered_model = self.__class__(dbe, sorted(self.components),
+        disordered_model = self.__class__(dbe, sorted(self.species),
                                           disordered_phase_name)
-        constituents = [sorted(set(c).intersection(self.components)) \
+        constituents = [sorted(set(c).intersection(self.species)) \
                 for c in dbe.phases[ordered_phase_name].constituents]
 
         # Fix variable names
@@ -1003,7 +1003,7 @@ class Model(object):
         """
         # Error checking
         # We ignore the case that the ref states are overspecified (same ref states can be used in different models w/ different active pure elements)
-        model_pure_elements = set(get_pure_elements(dbe, self.components))
+        model_pure_elements = set(get_pure_elements(dbe, self.species))
         refstate_pure_elements_list = get_pure_elements(dbe, [r.species for r in reference_states])
         refstate_pure_elements = set(refstate_pure_elements_list)
         if len(refstate_pure_elements_list) != len(refstate_pure_elements):
@@ -1027,7 +1027,7 @@ class Model(object):
         endmember_only_dbe._parameters.remove(~where('constituent_array').test(_pure_element_test))
         reference_dict = {out: [] for out in output}  # output: terms list
         for ref_state in reference_states:
-            if ref_state.species not in self.components:
+            if ref_state.species not in self.species:
                 continue
             mod_pure = self.__class__(endmember_only_dbe, [ref_state.species, v.Species('VA')], ref_state.phase_name, parameters=self._parameters_arg)
             # apply the modifications to the Models

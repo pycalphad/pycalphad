@@ -286,8 +286,8 @@ def unpack_components(dbf, comps):
     # We want to add all the species which can be created by a combination of
     # the user-specified pure elements
     species_dict = {s.name: s for s in dbf.species}
-    possible_comps = {v.Species(species_dict.get(x, x)) for x in comps}
-    desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_comps]
+    possible_species = {v.Species(species_dict.get(x, x)) for x in comps}
+    desired_active_pure_elements = [list(x.constituents.keys()) for x in possible_species]
     # Flatten nested list
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     eligible_species_from_database = {x for x in dbf.species if
@@ -319,7 +319,7 @@ def get_pure_elements(dbf, comps):
     return pure_elements
 
 
-def filter_phases(dbf, comps):
+def filter_phases(dbf, species):
     """Return phases that are valid for equilibrium calculations for the given database and components
 
     Filters out phases that
@@ -330,8 +330,8 @@ def filter_phases(dbf, comps):
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
+    species : list
+        Species objects to consider in the calculation.
 
     Returns
     -------
@@ -340,15 +340,15 @@ def filter_phases(dbf, comps):
     """
     # TODO: filter phases that can not charge balance
 
-    def all_sublattices_active(comps, phase):
-        active_sublattices = [len(set(comps).intersection(subl)) > 0 for
+    def all_sublattices_active(species, phase):
+        active_sublattices = [len(set(species).intersection(subl)) > 0 for
                               subl in phase.constituents]
         return all(active_sublattices)
 
     candidate_phases = dbf.phases.keys()
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
+                all_sublattices_active(species, dbf.phases[phase]) and
                 phase not in disordered_phases]
     return sorted(phases)
 
@@ -377,15 +377,15 @@ def extract_parameters(parameters):
     return param_symbols, param_values
 
 
-def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_only=True):
+def instantiate_models(dbf, species, phases, model=None, parameters=None, symbols_only=True):
     """
 
     Parameters
     ----------
     dbf : Database
         Database used to construct the Model instances.
-    comps : Iterable
-        Names of components to consider in the calculation.
+    species : Iterable
+        Species instancies to consider in the calculation.
     phases : Iterable
         Names of phases to consider in the calculation.
     model : Model class, a dict of phase names to Model, or a Iterable of both
@@ -417,7 +417,7 @@ def instantiate_models(dbf, comps, phases, model=None, parameters=None, symbols_
     for name in phases:
         mod = models_defaultdict[name]
         if isinstance(mod, type):
-            models_dict[name] = mod(dbf, comps, name, parameters=parameters)
+            models_dict[name] = mod(dbf, species, name, parameters=parameters)
         else:
             models_dict[name] = mod
     return models_dict

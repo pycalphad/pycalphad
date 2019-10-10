@@ -185,26 +185,26 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
-    comps = sorted(unpack_components(dbf, comps))
+    species = sorted(unpack_components(dbf, comps))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     # remove phases that cannot be active
-    list_of_possible_phases = filter_phases(dbf, comps)
+    list_of_possible_phases = filter_phases(dbf, species)
     active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
-    if isinstance(comps, (str, v.Species)):
-        comps = [comps]
-    if len(set(comps) - set(dbf.species)) > 0:
+    if isinstance(species, (str, v.Species)):
+        species = [species]
+    if len(set(species) - set(dbf.species)) > 0:
         raise EquilibriumError('Components not found in database: {}'
-                               .format(','.join([c.name for c in (set(comps) - set(dbf.species))])))
+                               .format(','.join([c.name for c in (set(species) - set(dbf.species))])))
     calc_opts = calc_opts if calc_opts is not None else dict()
     solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
     parameters = parameters if parameters is not None else dict()
     if isinstance(parameters, dict):
         parameters = OrderedDict(sorted(parameters.items(), key=str))
-    models = instantiate_models(dbf, comps, active_phases, model=model, parameters=parameters)
+    models = instantiate_models(dbf, species, active_phases, model=model, parameters=parameters)
     # Temporary solution until constraint system improves
     if conditions.get(v.N) is None:
         conditions[v.N] = 1
@@ -215,16 +215,16 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     conds = _adjust_conditions(conditions)
 
     for cond in conds.keys():
-        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
+        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in species:
             raise ConditionError('{} refers to non-existent component'.format(cond))
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
-    components = [x for x in sorted(comps)]
+    components = [x for x in sorted(species)]
     desired_active_pure_elements = [list(x.constituents.keys()) for x in components]
     desired_active_pure_elements = [el.upper() for constituents in desired_active_pure_elements for el in constituents]
     pure_elements = sorted(set([x for x in desired_active_pure_elements if x != 'VA']))
     if verbose:
-        print('Components:', ' '.join([str(x) for x in comps]))
+        print('Components:', ' '.join([str(x) for x in species]))
         print('Phases:', end=' ')
     output = output if output is not None else 'GM'
     output = output if isinstance(output, (list, tuple, set)) else [output]
@@ -232,7 +232,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output |= {'GM'}
     output = sorted(output)
     need_hessians = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
-    phase_records = build_phase_records(dbf, comps, active_phases, conds, models,
+    phase_records = build_phase_records(dbf, species, active_phases, conds, models,
                                         output='GM', callables=callables,
                                         parameters=parameters, verbose=verbose,
                                         build_gradients=True, build_hessians=need_hessians)
@@ -245,14 +245,14 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     grid_opts.update({key: value for key, value in str_conds.items() if key in statevar_strings})
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
-    grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
+    grid = calculate(dbf, species, active_phases, model=models, fake_points=True,
                      callables=callables, output='GM', parameters=parameters, 
                      to_xarray=False, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
     coord_dict['component'] = pure_elements
     properties = starting_point(conds, state_variables, phase_records, grid)
-    properties = _solve_eq_at_conditions(comps, properties, phase_records, grid,
+    properties = _solve_eq_at_conditions(species, properties, phase_records, grid,
                                          list(str_conds.keys()), state_variables,
                                          verbose, solver=solver)
 
@@ -268,7 +268,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
             per_phase = True
         else:
             per_phase = False
-        eqcal = _eqcalculate(dbf, comps, active_phases, conditions, out,
+        eqcal = _eqcalculate(dbf, species, active_phases, conditions, out,
                              data=properties, per_phase=per_phase, model=models,
                              callables=callables, parameters=parameters, **calc_opts)
         properties = properties.merge(eqcal, inplace=True, compat='equals')
