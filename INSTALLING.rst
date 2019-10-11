@@ -40,7 +40,7 @@ Installing
 To install the latest development version of pycalphad, run from the Anaconda
 Prompt (Windows) or a terminal emulator (macOS or Linux):
 
-1. Install pycalphad and the conda-forge C and C++ compilers ``conda create -c pycalphad -c conda-forge c-compiler cxx-compiler pycalphad``
+1. Install pycalphad and the conda-forge C and C++ compilers ``conda install -c pycalphad -c conda-forge c-compiler cxx-compiler pycalphad``
 #. Remove the installed pycalphad package so the development version can be installed ``conda remove --force pycalphad``
 #. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
 #. Go to the top level directory of the package ``cd pycalphad``
