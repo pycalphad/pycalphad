@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.utils &mdash; pycalphad 0.8+9.ge5d033c documentation</title>
+  <title>pycalphad.plot.utils &mdash; pycalphad 0.8+10.g64c1157 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+9.ge5d033c
+                0.8+10.g64c1157
               </div>
             
           
@@ -182,25 +182,24 @@
 <span class="sd">    &gt;&gt;&gt; legend_handles, colors = phase_legend([&#39;FCC_A1&#39;, &#39;BCC_A2&#39;, &#39;LIQUID&#39;])</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">colorlist</span> <span class="o">=</span> <span class="p">{}</span>
-    <span class="c1"># colors from Junwei Huang, March 21 2013</span>
+    <span class="c1"># colors from HU1SUN, August 5 2018, ordered by igorjrd, issue #97</span>
     <span class="c1"># exclude green and red because of their special meaning on the diagram</span>
-    <span class="n">colorvalues</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;0000FF&quot;</span><span class="p">,</span> <span class="s2">&quot;008000&quot;</span><span class="p">,</span> <span class="s2">&quot;C00000&quot;</span><span class="p">,</span> <span class="s2">&quot;000000&quot;</span><span class="p">,</span> <span class="s2">&quot;FF8D00&quot;</span><span class="p">,</span> <span class="s2">&quot;FF00FF&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;00FFFF&quot;</span><span class="p">,</span> <span class="s2">&quot;808080&quot;</span><span class="p">,</span> <span class="s2">&quot;800080&quot;</span><span class="p">,</span> <span class="s2">&quot;000080&quot;</span><span class="p">,</span> <span class="s2">&quot;808000&quot;</span><span class="p">,</span> <span class="s2">&quot;008080&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;800000&quot;</span><span class="p">,</span> <span class="s2">&quot;00C000&quot;</span><span class="p">,</span> <span class="s2">&quot;0000C0&quot;</span><span class="p">,</span> <span class="s2">&quot;C0C000&quot;</span><span class="p">,</span> <span class="s2">&quot;C000C0&quot;</span><span class="p">,</span> <span class="s2">&quot;00C0C0&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;C0C0C0&quot;</span><span class="p">,</span> <span class="s2">&quot;400000&quot;</span><span class="p">,</span> <span class="s2">&quot;004000&quot;</span><span class="p">,</span> <span class="s2">&quot;000040&quot;</span><span class="p">,</span> <span class="s2">&quot;404000&quot;</span><span class="p">,</span> <span class="s2">&quot;400040&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;004040&quot;</span><span class="p">,</span> <span class="s2">&quot;404040&quot;</span><span class="p">,</span> <span class="s2">&quot;200000&quot;</span><span class="p">,</span> <span class="s2">&quot;002000&quot;</span><span class="p">,</span> <span class="s2">&quot;000020&quot;</span><span class="p">,</span> <span class="s2">&quot;202000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;200020&quot;</span><span class="p">,</span> <span class="s2">&quot;002020&quot;</span><span class="p">,</span> <span class="s2">&quot;202020&quot;</span><span class="p">,</span> <span class="s2">&quot;600000&quot;</span><span class="p">,</span> <span class="s2">&quot;006000&quot;</span><span class="p">,</span> <span class="s2">&quot;000060&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;606000&quot;</span><span class="p">,</span> <span class="s2">&quot;600060&quot;</span><span class="p">,</span> <span class="s2">&quot;006060&quot;</span><span class="p">,</span> <span class="s2">&quot;606060&quot;</span><span class="p">,</span> <span class="s2">&quot;A00000&quot;</span><span class="p">,</span> <span class="s2">&quot;00A000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;0000A0&quot;</span><span class="p">,</span> <span class="s2">&quot;A0A000&quot;</span><span class="p">,</span> <span class="s2">&quot;A000A0&quot;</span><span class="p">,</span> <span class="s2">&quot;00A0A0&quot;</span><span class="p">,</span> <span class="s2">&quot;A0A0A0&quot;</span><span class="p">,</span> <span class="s2">&quot;E00000&quot;</span><span class="p">,</span>
-                   <span class="s2">&quot;00E000&quot;</span><span class="p">,</span> <span class="s2">&quot;0000E0&quot;</span><span class="p">,</span> <span class="s2">&quot;E0E000&quot;</span><span class="p">,</span> <span class="s2">&quot;E000E0&quot;</span><span class="p">,</span> <span class="s2">&quot;00E0E0&quot;</span><span class="p">,</span> <span class="s2">&quot;E0E0E0&quot;</span><span class="p">]</span>
+    <span class="n">colorvalues</span> <span class="o">=</span> <span class="p">[</span>
+        <span class="s1">&#39;00538A&#39;</span><span class="p">,</span> <span class="s1">&#39;F4C800&#39;</span><span class="p">,</span> <span class="s1">&#39;F13A13&#39;</span><span class="p">,</span> <span class="s1">&#39;C10020&#39;</span><span class="p">,</span> <span class="s1">&#39;D2F300&#39;</span><span class="p">,</span> <span class="s1">&#39;53377A&#39;</span><span class="p">,</span> <span class="s1">&#39;7BD1EC&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;232C16&#39;</span><span class="p">,</span> <span class="s1">&#39;FE4262&#39;</span><span class="p">,</span> <span class="s1">&#39;C0DE00&#39;</span><span class="p">,</span> <span class="s1">&#39;704AA4&#39;</span><span class="p">,</span> <span class="s1">&#39;FFB300&#39;</span><span class="p">,</span> <span class="s1">&#39;176136&#39;</span><span class="p">,</span> <span class="s1">&#39;7F180D&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;93AA00&#39;</span><span class="p">,</span> <span class="s1">&#39;2B85EB&#39;</span><span class="p">,</span> <span class="s1">&#39;F6768E&#39;</span><span class="p">,</span> <span class="s1">&#39;007D34&#39;</span><span class="p">,</span> <span class="s1">&#39;803E75&#39;</span><span class="p">,</span> <span class="s1">&#39;4A7C01&#39;</span><span class="p">,</span> <span class="s1">&#39;FF8E00&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;EC1840&#39;</span><span class="p">,</span> <span class="s1">&#39;178D39&#39;</span><span class="p">,</span> <span class="s1">&#39;B32851&#39;</span><span class="p">,</span> <span class="s1">&#39;577C23&#39;</span><span class="p">,</span> <span class="s1">&#39;A6BDD7&#39;</span><span class="p">,</span> <span class="s1">&#39;FD522B&#39;</span><span class="p">,</span> <span class="s1">&#39;526B2E&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;90324E&#39;</span><span class="p">,</span> <span class="s1">&#39;593315&#39;</span><span class="p">,</span> <span class="s1">&#39;B6A0D4&#39;</span><span class="p">,</span> <span class="s1">&#39;FF6800&#39;</span><span class="p">,</span> <span class="s1">&#39;CEA262&#39;</span><span class="p">,</span> <span class="s1">&#39;9A7CC4&#39;</span><span class="p">,</span> <span class="s1">&#39;91250B&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;7B3D0B&#39;</span><span class="p">,</span> <span class="s1">&#39;FF7A5C&#39;</span><span class="p">,</span> <span class="s1">&#39;C01F3D&#39;</span><span class="p">,</span> <span class="s1">&#39;D39336&#39;</span><span class="p">,</span> <span class="s1">&#39;817066&#39;</span><span class="p">,</span> <span class="s1">&#39;96541F&#39;</span><span class="p">,</span> <span class="s1">&#39;EB9867&#39;</span><span class="p">,</span>
+        <span class="s1">&#39;B15106&#39;</span><span class="p">,</span> <span class="s1">&#39;EE8548&#39;</span><span class="p">,</span> <span class="s1">&#39;97691C&#39;</span><span class="p">,</span> <span class="s1">&#39;DF6B10&#39;</span><span class="p">,</span> <span class="s1">&#39;987155&#39;</span><span class="p">,</span> <span class="s1">&#39;C76F32&#39;</span><span class="p">,</span> <span class="s1">&#39;B37347&#39;</span><span class="p">,</span>
+    <span class="p">]</span>
     <span class="n">mxx</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">colorvalues</span><span class="p">)</span>
     <span class="n">phasecount</span> <span class="o">=</span> <span class="mi">0</span>
     <span class="n">legend_handles</span> <span class="o">=</span> <span class="p">[]</span>
     <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
         <span class="n">phase</span> <span class="o">=</span> <span class="n">phase</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span> <span class="o">=</span> <span class="s2">&quot;#&quot;</span><span class="o">+</span><span class="n">colorvalues</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">mod</span><span class="p">(</span><span class="n">phasecount</span><span class="p">,</span> <span class="n">mxx</span><span class="p">)]</span>
-        <span class="n">legend_handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span>
-                                             <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">))</span>
+        <span class="n">legend_handles</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">mpatches</span><span class="o">.</span><span class="n">Patch</span><span class="p">(</span><span class="n">color</span><span class="o">=</span><span class="n">colorlist</span><span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="n">label</span><span class="o">=</span><span class="n">phase</span><span class="p">))</span>
         <span class="n">phasecount</span> <span class="o">=</span> <span class="n">phasecount</span> <span class="o">+</span> <span class="mi">1</span>
     <span class="k">return</span> <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colorlist</span></div>
 </pre></div>
