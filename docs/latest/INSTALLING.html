@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Installation Instructions &mdash; pycalphad 0.8+8.gabccdf5 documentation</title>
+  <title>Installation Instructions &mdash; pycalphad 0.8+9.ge5d033c documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+8.gabccdf5
+                0.8+9.ge5d033c
               </div>
             
           
@@ -90,11 +90,10 @@
             
               <ul class="current">
 <li class="toctree-l1 current"><a class="current reference internal" href="#">Installation Instructions</a><ul>
-<li class="toctree-l2"><a class="reference internal" href="#anaconda-recommended">Anaconda (recommended)</a></li>
-<li class="toctree-l2"><a class="reference internal" href="#pypi">PyPI</a></li>
+<li class="toctree-l2"><a class="reference internal" href="#anaconda">Anaconda</a></li>
 <li class="toctree-l2"><a class="reference internal" href="#development-versions-advanced-users">Development Versions (Advanced Users)</a><ul>
-<li class="toctree-l3"><a class="reference internal" href="#anaconda">Anaconda</a></li>
-<li class="toctree-l3"><a class="reference internal" href="#id1">PyPI</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#installing">Installing</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#updating">Updating</a></li>
 </ul>
 </li>
 <li class="toctree-l2"><a class="reference internal" href="#troubleshooting">Troubleshooting</a><ul>
@@ -180,64 +179,61 @@
             
   <div class="section" id="installation-instructions">
 <h1>Installation Instructions<a class="headerlink" href="#installation-instructions" title="Permalink to this headline">¶</a></h1>
-<p>This page will guide you through installing pycalphad and the <a class="reference external" href="http://jupyter.readthedocs.io/en/latest/index.html">Jupyter Notebook</a>
-application, which is suggested for running pycalphad interactively.</p>
-<div class="section" id="anaconda-recommended">
-<h2>Anaconda (recommended)<a class="headerlink" href="#anaconda-recommended" title="Permalink to this headline">¶</a></h2>
+<p>Pycalphad is best installed by using <a class="reference external" href="https://anaconda.com/download">Anaconda</a>. Release versions of pycalphad
+are available on PyPI, however pycalphad depends on the externally developed
+<a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a> and <a class="reference external" href="https://github.com/symengine/symengine">SymEngine</a> libraries for numerical optimization and symbolic
+calculations and must be installed separately in order to install pycalphad
+from PyPI. For this reason, it is <em>strongly</em> recommended to use the Anaconda
+Python distribution to install pycalphad, rather than using <code class="docutils literal notranslate"><span class="pre">pip</span></code>.</p>
+<div class="section" id="anaconda">
+<h2>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h2>
 <p>For all Windows, macOS and Linux platforms, it is recommended to use <a class="reference external" href="https://anaconda.com/download">Anaconda</a>
 to install the latest release of pycalphad. Anaconda is a scientific Python
-distribution by Anaconda, Inc. It provides good support for various
-scientific packages and otherwise challenging to install packages.</p>
+distribution by Anaconda, Inc. It provides good support for various scientific
+packages and otherwise challenging to install packages.</p>
 <p>To install pycalphad from Anaconda</p>
 <ol class="arabic simple">
 <li><p>Download and install <a class="reference external" href="https://anaconda.com/download">Anaconda</a></p></li>
-<li><p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">pycalphad</span></code></p></li>
-</ol>
-</div>
-<div class="section" id="pypi">
-<h2>PyPI<a class="headerlink" href="#pypi" title="Permalink to this headline">¶</a></h2>
-<p>Release versions of pycalphad are available on PyPI. As of pycalphad 0.6,
-the <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a> library is used for numerical optimization and must be installed
-separately in order to install pycalphad from PyPI. Instructions for downloading
-and installing Ipopt are found at <a class="reference external" href="https://www.coin-or.org/Ipopt/documentation/node10.html">https://www.coin-or.org/Ipopt/documentation/node10.html</a>.</p>
-<p>NumPy, SciPy and Cython are all <em>build</em> requirements of pycalphad and must be
-installed before you install pycalphad.</p>
-<p>To install pycalphad from PyPI using pip:</p>
-<ol class="arabic simple">
-<li><p>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></p></li>
-<li><p>Run the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code> command in a terminal emulator</p></li>
-<li><p>Run the <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">pycalphad</span></code> command to install pycalphad</p></li>
-<li><p>(Optional) run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">jupyter</span></code> to install the Jupyter Notebook application</p></li>
+<li><p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">pycalphad</span></code></p></li>
 </ol>
 </div>
 <div class="section" id="development-versions-advanced-users">
 <h2>Development Versions (Advanced Users)<a class="headerlink" href="#development-versions-advanced-users" title="Permalink to this headline">¶</a></h2>
-<p>To install a development version of pycalphad, you can use either an Anaconda or
-vanilla Python distribution.</p>
-<div class="section" id="anaconda">
-<h3>Anaconda<a class="headerlink" href="#anaconda" title="Permalink to this headline">¶</a></h3>
-<p>These instructions will walk you through installing pycalphad in a virtual
-environment called <code class="docutils literal notranslate"><span class="pre">pycalphad-dev</span></code>. From the Anaconda Prompt (Windows) or a
-terminal emulator (macOS or Linux)</p>
+<p>Installing a development version of pycalphad will allow the latest changes and
+features in pycalphad to be used by running the bleeding edge version of the
+code, even if those changes have not been released in a tagged version to PyPI
+or Anaconda.</p>
+<p>Running the development versions allows pycalphad to be run directly from the
+modifiable source code, so you can add new features and contribute them back to
+the project.</p>
+<div class="section" id="installing">
+<h3>Installing<a class="headerlink" href="#installing" title="Permalink to this headline">¶</a></h3>
+<p>To install the latest development version of pycalphad, run from the Anaconda
+Prompt (Windows) or a terminal emulator (macOS or Linux):</p>
 <ol class="arabic simple">
-<li><p>Create the virtual environment and install pycalphad into it <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">create</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">msys2</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></p></li>
-<li><p>Remove the installed pycalphad package so the development version can be installed <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">-n</span> <span class="pre">pycalphad-dev</span> <span class="pre">pycalphad</span></code></p></li>
-<li><p>Activate the environment <code class="docutils literal notranslate"><span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (Windows) or <code class="docutils literal notranslate"><span class="pre">source</span> <span class="pre">activate</span> <span class="pre">pycalphad-dev</span></code> (macOS or Linux)</p></li>
+<li><p>Install pycalphad and the conda-forge C and C++ compilers <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">install</span> <span class="pre">-c</span> <span class="pre">pycalphad</span> <span class="pre">-c</span> <span class="pre">conda-forge</span> <span class="pre">c-compiler</span> <span class="pre">cxx-compiler</span> <span class="pre">pycalphad</span></code></p></li>
+<li><p>Remove the installed pycalphad package so the development version can be installed <code class="docutils literal notranslate"><span class="pre">conda</span> <span class="pre">remove</span> <span class="pre">--force</span> <span class="pre">pycalphad</span></code></p></li>
 <li><p>Get the pycalphad source <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code> (or download from <a class="reference external" href="https://github.com/pycalphad/pycalphad">https://github.com/pycalphad/pycalphad</a>)</p></li>
 <li><p>Go to the top level directory of the package <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></p></li>
 <li><p>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></p></li>
 </ol>
 </div>
-<div class="section" id="id1">
-<h3>PyPI<a class="headerlink" href="#id1" title="Permalink to this headline">¶</a></h3>
-<p>From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)</p>
-<ol class="arabic simple">
-<li><p>Download and install <a class="reference external" href="https://projects.coin-or.org/Ipopt">Ipopt</a></p></li>
-<li><p>Install the build requirements <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">numpy</span> <span class="pre">scipy</span> <span class="pre">cython</span></code></p></li>
-<li><p>Get the pycalphad source <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">clone</span> <span class="pre">https://github.com/pycalphad/pycalphad.git</span> <span class="pre">pycalphad/</span></code></p></li>
-<li><p>Go to the top level directory of the package <code class="docutils literal notranslate"><span class="pre">cd</span> <span class="pre">pycalphad</span></code></p></li>
-<li><p>Run <code class="docutils literal notranslate"><span class="pre">pip</span> <span class="pre">install</span> <span class="pre">-e</span> <span class="pre">.</span></code></p></li>
-</ol>
+<div class="section" id="updating">
+<h3>Updating<a class="headerlink" href="#updating" title="Permalink to this headline">¶</a></h3>
+<p>By default, the development version installed will track the latest changes in
+the <code class="docutils literal notranslate"><span class="pre">develop</span></code> branch of pycalphad, tracked on
+<a class="reference external" href="https://github.com/pycalphad/pycalphad/tree/develop">GitHub</a>.
+Two steps need to be performed to update the code: modifying/updating the source
+code and compiling any changes in the Cython files.</p>
+<p>To update the code in the current branch to the latest changes on GitHub, the
+changes are pulled from GitHub by running <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">pull</span></code> from the Anaconda Prompt
+or terminal emulator.</p>
+<p>To switch to a different branch, e.g. <code class="docutils literal notranslate"><span class="pre">master</span></code> (which tracks the latest
+released version) or another feature branch, run <code class="docutils literal notranslate"><span class="pre">git</span> <span class="pre">checkout</span> <span class="pre">&lt;branch&gt;</span></code>,
+where <code class="docutils literal notranslate"><span class="pre">&lt;branch&gt;</span></code> is the name of the branch to checkout, such as <code class="docutils literal notranslate"><span class="pre">master</span></code>
+(without the brackets <code class="docutils literal notranslate"><span class="pre">&lt;</span></code> and <code class="docutils literal notranslate"><span class="pre">&gt;</span></code>).</p>
+<p>The Cython files can be recompiled by running <code class="docutils literal notranslate"><span class="pre">python</span> <span class="pre">setup.py</span> <span class="pre">build_ext</span> <span class="pre">--inplace</span></code>
+from the top level <code class="docutils literal notranslate"><span class="pre">pycalphad</span></code> directory which contains the <code class="docutils literal notranslate"><span class="pre">setup.py</span></code> file.</p>
 </div>
 </div>
 <div class="section" id="troubleshooting">
