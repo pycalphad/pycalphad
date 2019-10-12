@@ -20,9 +20,6 @@ CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
 
-def test_junk():
-    assert 1 == 2
-
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
     from pycalphad.io.tdb import _sympify_string
