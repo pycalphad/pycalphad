@@ -9,7 +9,7 @@ from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof
 from pycalphad.core.utils import endmember_matrix, unpack_kwarg
 from pycalphad.core.utils import broadcast_to, filter_phases, unpack_condition,\
-    unpack_components, get_state_variables, instantiate_models
+    unpack_components, get_state_variables, instantiate_models, check_order_disorder
 from pycalphad.core.light_dataset import LightDataset
 from pycalphad.core.cache import cacheit
 from pycalphad.core.phase_rec import PhaseRecord
@@ -318,6 +318,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     # Consider only the active phases
     list_of_possible_phases = filter_phases(dbf, comps)
     active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
+    active_phases = check_order_disorder(dbf, active_phases)
     active_phases = {name: dbf.phases[name] for name in active_phases}
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))

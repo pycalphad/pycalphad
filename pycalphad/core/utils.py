@@ -346,11 +346,23 @@ def filter_phases(dbf, comps):
         return all(active_sublattices)
 
     candidate_phases = dbf.phases.keys()
-    disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
+    #disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
-                phase not in disordered_phases]
+                all_sublattices_active(comps, dbf.phases[phase])]
     return sorted(phases)
+
+
+def check_order_disorder(dbf, phases):
+    active_phases = phases.copy()
+    to_remove = []
+    for phase in active_phases:
+        ordered = getattr(dbf.phases[phase],'model_hints').get('ordered_phase')
+        if phase != ordered and ordered in phases:
+            to_remove.append(phase)
+    if len(to_remove) > 0:
+        for phase in to_remove:
+            active_phases.remove(phase)
+    return active_phases
 
 
 def extract_parameters(parameters):
