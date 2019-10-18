@@ -346,7 +346,6 @@ def filter_phases(dbf, comps):
         return all(active_sublattices)
 
     candidate_phases = dbf.phases.keys()
-    #disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(comps, dbf.phases[phase])]
     return sorted(phases)
