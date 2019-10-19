@@ -352,7 +352,7 @@ def filter_phases(dbf, comps):
 
 
 def check_order_disorder(dbf, phases):
-    active_phases = phases.copy()
+    active_phases = phases[:]
     to_remove = []
     for phase in active_phases:
         ordered = getattr(dbf.phases[phase],'model_hints').get('ordered_phase')
