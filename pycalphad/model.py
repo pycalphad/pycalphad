@@ -319,7 +319,7 @@ class Model(object):
         The reference_model AST can be modified in the same way as the current Model.
 
         Ideal mixing is always added to the AST, we need to set it to zero here
-        so that it's not subtracted out of the reference however, we have this
+        so that it's not subtracted out of the reference. However, we have this
         option so users can just see the mixing properties in terms of the
         parameters.
 
