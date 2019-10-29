@@ -38,6 +38,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef public object nonvacant_elements
     cdef public double[::1] parameters
     cdef public int phase_dof
+    cdef public int num_statevars
     cdef public unicode phase_name
     cpdef void obj(self, double[::1] out, double[:, ::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
@@ -47,7 +48,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void internal_cons_hessian(self, double[:,:,::1] out, double[::1] dof) nogil
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof_with_phasefrac) nogil
     cpdef void multiphase_jacobian(self, double[:,::1] out, double[::1] dof_with_phasefrac) nogil
-    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil
+    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof_with_phasefrac) nogil
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil

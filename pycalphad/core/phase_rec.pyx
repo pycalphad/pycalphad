@@ -90,6 +90,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
         self.variables = variables
         self.state_variables = state_variables
+        self.num_statevars = len(state_variables)
         self.pure_elements = pure_elements
         self.nonvacant_elements = nonvacant_elements
         self.phase_dof = 0
@@ -140,11 +141,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
         cdef int num_inps = dof.shape[0]
-        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
-
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
         for i in range(num_inps):
             self._obj.call(&outp[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
@@ -153,7 +154,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._grad.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -161,7 +163,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._hess.call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -170,7 +173,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -178,7 +182,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -186,7 +191,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void internal_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -194,7 +200,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
         self._multiphase_cons.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -202,7 +209,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
         self._multiphase_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -210,7 +218,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
         self._multiphase_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -218,10 +227,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
         cdef int num_inps = dof.shape[0]
-        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
         for i in range(num_inps):
             (<FastFunction>self._masses_ptr[comp_idx]).call(&out[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
@@ -230,7 +240,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._massgrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -238,7 +249,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         (<FastFunction>self._masshessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
