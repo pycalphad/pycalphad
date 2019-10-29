@@ -3,8 +3,10 @@ The test_model module contains unit tests for the Model object.
 """
 from __future__ import print_function
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB
+from pycalphad.core.errors import DofError
 import numpy as np
+import pytest
 
 ALCRNI_DBF = Database(ALCRNI_TDB)
 ALNIPT_DBF = Database(ALNIPT_TDB)
@@ -61,3 +63,9 @@ def test_degree_of_ordering():
     eqx = equilibrium(ALFE_DBF, comps, my_phases, conds, output='degree_of_ordering', verbose=True)
     print('Degree of ordering: {}'.format(eqx.degree_of_ordering.sel(vertex=0).values.flatten()))
     assert np.isclose(eqx.degree_of_ordering.sel(vertex=0).values.flatten(), np.array([0.66663873]))
+
+def test_detect_pure_vacancy_phases():
+    "Detecting a pure vacancy phase"
+    dbf = Database(ZRO2_CUBIC_BCC_TDB)
+    with pytest.raises(DofError):
+        Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
