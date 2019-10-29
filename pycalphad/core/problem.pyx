@@ -31,7 +31,7 @@ def _pinv_derivative(a, a_pinv, a_prime):
     for dof_idx in range(a_prime.shape[2]):
         result[:,:, dof_idx] = -np.matmul(np.matmul(a_pinv, a_prime[:, :, dof_idx]), a_pinv)
         result[:,:, dof_idx] += np.matmul(np.matmul(np.matmul(a_pinv, a_pinv.T), a_prime.T[dof_idx]),
-                                          (np.eye(a.shape[0]) - a @ a_pinv))
+                                          (np.eye(a.shape[0]) - np.matmul(a, a_pinv)))
         result[:,:, dof_idx] += np.matmul(np.matmul(np.matmul((np.eye(a.shape[1]) - np.matmul(a_pinv, a)),
                                                               a_prime.T[dof_idx]), a_pinv.T), a_pinv)
     return result
