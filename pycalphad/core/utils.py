@@ -5,6 +5,7 @@ from __future__ import division
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
+from pycalphad import ConditionError
 from sympy.utilities.lambdify import lambdify
 from sympy import Symbol
 import numpy as np
@@ -345,14 +346,26 @@ def filter_phases(dbf, comps, candidate_phases=None):
         active_sublattices = [len(set(comps).intersection(subl)) > 0 for
                               subl in phase.constituents]
         return all(active_sublattices)
+    dbf_phases = dbf.phases.keys()
     if candidate_phases == None:
-        candidate_phases = dbf.phases.keys()
-    disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
-    phases = [phase for phase in candidate_phases if
-                all_sublattices_active(comps, dbf.phases[phase]) and
+        phases = dbf_phases
+    else:
+        phases = sorted(set(candidate_phases).intersection(dbf_phases))
+        if len(phases) == 0:
+            raise ConditionError('None of the candidate phases ({0}) are defined in the Database'
+                                .format(candidate_phases))
+    disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in phases]
+    possible_phases = [phase for phase in phases if
+                all_sublattices_active(comps, dbf.phases[phase])]
+    if len(possible_phases) == 0:
+        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    active_phases = [phase for phase in possible_phases if
                 (phase not in disordered_phases or (phase in disordered_phases and 
-                dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
-    return sorted(phases)
+                dbf.phases[phase].model_hints.get('ordered_phase') not in phases))]
+    if len(active_phases) == 0:
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
+                            .format(candidate_phases, dbf_phases))
+    return sorted(active_phases)
 
 
 def extract_parameters(parameters):

@@ -2,7 +2,8 @@
 The utils test module contains tests for pycalphad utilities.
 """
 
-from pycalphad import Database, Model
+import pytest
+from pycalphad import Database, Model, ConditionError
 from pycalphad.core.utils import filter_phases, unpack_components, instantiate_models
 
 from pycalphad.tests.datasets import ALNIPT_TDB, ALCRNI_TDB
@@ -30,6 +31,13 @@ def test_filter_phases_removes_phases_with_inactive_sublattices():
     all_phases = set(ALNIPT_DBF.phases.keys())
     filtered_phases = set(filter_phases(ALNIPT_DBF, unpack_components(ALNIPT_DBF, ['AL', 'NI', 'VA'])))
     assert all_phases.difference(filtered_phases) == {'FCC_A1', 'PT8AL21', 'PT5AL21', 'PT2AL', 'PT2AL3', 'PT5AL3', 'ALPT2'}
+
+
+def test_filter_phases_raising_error_when_candidate_phases_not_in_database():
+    comps = unpack_components(ALNIPT_DBF, ['AL', 'NI', 'VA'])
+    candidate_phases = ['SIGMA', 'CHI']
+    with pytest.raises(ConditionError):
+        set(filter_phases(ALNIPT_DBF, comps, candidate_phases))
 
 
 def test_instantiate_models_only_returns_desired_phases():
