@@ -48,16 +48,14 @@ def build_constraints(mod, variables, conds, parameters=None):
     internal_constraints = [INTERNAL_CONSTRAINT_SCALING*x for x in internal_constraints]
     multiphase_constraints = mod.get_multiphase_constraints(conds)
     multiphase_constraints = [MULTIPHASE_CONSTRAINT_SCALING*x for x in multiphase_constraints]
-    # TODO: Conditions needing Hessians should probably have a 'second-order' tag or something
-    need_hess = True#any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
     cf_output = _build_constraint_functions(variables, internal_constraints,
-                                            include_hess=need_hess, parameters=parameters)
+                                            include_hess=True, parameters=parameters)
     internal_cons = cf_output.cons_func
     internal_jac = cf_output.cons_jac
     internal_cons_hess = cf_output.cons_hess
 
     result_build = _build_constraint_functions(variables + [Symbol('NP')],
-                                               multiphase_constraints, include_hess=need_hess,
+                                               multiphase_constraints, include_hess=True,
                                                parameters=parameters)
     multiphase_cons = result_build.cons_func
     multiphase_jac = result_build.cons_jac
