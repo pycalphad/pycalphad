@@ -70,15 +70,15 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
                                  self._obj, self._grad, self._hess, self._masses, self._massgrads,
-                                 self._masshessians, self._internal_cons, self._internal_jac, self._internal_cons_hess,
-                                 self._multiphase_cons, self._multiphase_jac, self._multiphase_cons_hess,
+                                 self._masshessians, self._internal_cons_func, self._internal_cons_jac, self._internal_cons_hess,
+                                 self._multiphase_cons_func, self._multiphase_cons_jac, self._multiphase_cons_hess,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
                   double[::1] parameters, object ofunc, object gfunc, object hfunc,
                   object massfuncs, object massgradfuncs, object masshessianfuncs,
-                  object internal_cons_func, object internal_jac_func, object internal_cons_hess_func,
-                  object multiphase_cons_func, object multiphase_jac_func, object multiphase_cons_hess_func,
+                  object internal_cons_func, object internal_cons_jac, object internal_cons_hess,
+                  object multiphase_cons_func, object multiphase_cons_jac, object multiphase_cons_hess,
                   size_t num_internal_cons, size_t num_multiphase_cons):
         cdef:
             int var_idx, el_idx
@@ -111,17 +111,17 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
         if hfunc is not None:
             self._hess = FastFunction(hfunc)
         if internal_cons_func is not None:
-            self._internal_cons = FastFunction(internal_cons_func)
-        if internal_jac_func is not None:
-            self._internal_jac = FastFunction(internal_jac_func)
-        if internal_cons_hess_func is not None:
-            self._internal_cons_hess = FastFunction(internal_cons_hess_func)
+            self._internal_cons_func = FastFunction(internal_cons_func)
+        if internal_cons_jac is not None:
+            self._internal_cons_jac = FastFunction(internal_cons_jac)
+        if internal_cons_hess is not None:
+            self._internal_cons_hess = FastFunction(internal_cons_hess)
         if multiphase_cons_func is not None:
-            self._multiphase_cons = FastFunction(multiphase_cons_func)
-        if multiphase_jac_func is not None:
-            self._multiphase_jac = FastFunction(multiphase_jac_func)
-        if multiphase_cons_hess_func is not None:
-            self._multiphase_cons_hess = FastFunction(multiphase_cons_hess_func)
+            self._multiphase_cons_func = FastFunction(multiphase_cons_func)
+        if multiphase_cons_jac is not None:
+            self._multiphase_cons_jac = FastFunction(multiphase_cons_jac)
+        if multiphase_cons_hess is not None:
+            self._multiphase_cons_hess = FastFunction(multiphase_cons_hess)
         if massfuncs is not None:
             self._masses = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
@@ -172,25 +172,25 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._internal_cons.call(&out[0], &dof_concat[0])
+        self._internal_cons_func.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
-        self._internal_jac.call(&out[0, 0], &dof_concat[0])
+        self._internal_cons_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
+    cpdef void internal_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
@@ -199,25 +199,25 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
+    cpdef void multiphase_cons_func(self, double[::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
-        self._multiphase_cons.call(&out[0], &dof_concat[0])
+        self._multiphase_cons_func.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
+    cpdef void multiphase_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
-        self._multiphase_jac.call(&out[0, 0], &dof_concat[0])
+        self._multiphase_cons_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
+    cpdef void multiphase_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
         # dof.shape[0] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
         self._multiphase_cons_hess.call(&out[0, 0, 0], &dof_concat[0])

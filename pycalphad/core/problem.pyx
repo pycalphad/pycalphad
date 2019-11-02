@@ -255,7 +255,7 @@ cdef class Problem:
             constraint_hess_tmp_view = <double[:compset.phase_record.num_internal_cons,
                                                :num_statevars+compset.phase_record.phase_dof,
                                                :num_statevars+compset.phase_record.phase_dof]>&constraint_hess_tmp[0]
-            compset.phase_record.internal_cons_hessian(constraint_hess_tmp_view, x_tmp)
+            compset.phase_record.internal_cons_hess(constraint_hess_tmp_view, x_tmp)
             for cons_idx in range(compset.phase_record.num_internal_cons):
                 for idx_row in range(num_statevars):
                     for idx_col in range(idx_row, num_statevars):
@@ -288,7 +288,7 @@ cdef class Problem:
             constraint_hess_tmp_view = <double[:compset.phase_record.num_multiphase_cons,
                                                :num_statevars+1+compset.phase_record.phase_dof,
                                                :num_statevars+1+compset.phase_record.phase_dof]>&constraint_hess_tmp[0]
-            compset.phase_record.multiphase_cons_hessian(constraint_hess_tmp_view, x_tmp)
+            compset.phase_record.multiphase_cons_hess(constraint_hess_tmp_view, x_tmp)
             for cons_idx in range(compset.phase_record.num_multiphase_cons):
                 for idx_row in range(num_statevars):
                     for idx_col in range(idx_row, num_statevars):
@@ -371,7 +371,7 @@ cdef class Problem:
             x_tmp = np.r_[x[:num_statevars], x[var_idx:var_idx+compset.phase_record.phase_dof]]
             mass_jac_tmp_view = <double[:compset.phase_record.num_internal_cons,
                                               :num_statevars+compset.phase_record.phase_dof]>&mass_jac_tmp[0,0]
-            compset.phase_record.internal_jacobian(mass_jac_tmp_view, x_tmp)
+            compset.phase_record.internal_cons_jac(mass_jac_tmp_view, x_tmp)
             mass_jac[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
                                var_idx:var_idx+compset.phase_record.phase_dof] = \
                 mass_jac_tmp_view[:compset.phase_record.num_internal_cons, num_statevars:num_statevars+compset.phase_record.phase_dof]
@@ -443,7 +443,7 @@ cdef class Problem:
             mass_cons_hess_tmp_view = <double[:compset.phase_record.num_internal_cons,
                                               :num_statevars+compset.phase_record.phase_dof,
                                               :num_statevars+compset.phase_record.phase_dof]>&mass_cons_hess_tmp[0]
-            compset.phase_record.internal_cons_hessian(mass_cons_hess_tmp_view, x_tmp)
+            compset.phase_record.internal_cons_hess(mass_cons_hess_tmp_view, x_tmp)
             mass_cons_hess[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
                            var_idx:var_idx+compset.phase_record.phase_dof,
                            var_idx:var_idx+compset.phase_record.phase_dof] = \
@@ -534,7 +534,7 @@ cdef class Problem:
             compset = self.composition_sets[phase_idx]
             x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
                 x[var_idx:var_idx+compset.phase_record.phase_dof]
-            compset.phase_record.internal_constraints(
+            compset.phase_record.internal_cons_func(
                 l_constraints[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons],
                 x_tmp
             )
@@ -550,7 +550,7 @@ cdef class Problem:
             x_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof] = \
                 x[var_offset:var_offset+compset.phase_record.phase_dof]
             x_tmp[num_statevars+compset.phase_record.phase_dof] = x[spidx]
-            compset.phase_record.multiphase_constraints(l_constraints_tmp, x_tmp)
+            compset.phase_record.multiphase_cons_func(l_constraints_tmp, x_tmp)
             for c_idx in range(compset.phase_record.num_multiphase_cons):
                 l_constraints[constraint_offset + c_idx] += l_constraints_tmp[c_idx]
             x_tmp[num_statevars:] = 0
@@ -595,7 +595,7 @@ cdef class Problem:
                 x[var_idx:var_idx+compset.phase_record.phase_dof]
             constraint_jac_tmp_view = <double[:compset.phase_record.num_internal_cons,
                                               :num_statevars+compset.phase_record.phase_dof]>&constraint_jac_tmp[0,0]
-            compset.phase_record.internal_jacobian(constraint_jac_tmp_view, x_tmp)
+            compset.phase_record.internal_cons_jac(constraint_jac_tmp_view, x_tmp)
             constraint_jac[constraint_offset:constraint_offset + compset.phase_record.num_internal_cons,
                                var_idx:var_idx+compset.phase_record.phase_dof] = \
                 constraint_jac_tmp_view[:compset.phase_record.num_internal_cons, num_statevars:num_statevars+compset.phase_record.phase_dof]
@@ -618,7 +618,7 @@ cdef class Problem:
             x_tmp[num_statevars+compset.phase_record.phase_dof] = x[spidx]
             constraint_jac_tmp_view = <double[:compset.phase_record.num_multiphase_cons,
                                               :num_statevars+1+compset.phase_record.phase_dof]>&constraint_jac_tmp[0,0]
-            compset.phase_record.multiphase_jacobian(constraint_jac_tmp_view, x_tmp)
+            compset.phase_record.multiphase_cons_jac(constraint_jac_tmp_view, x_tmp)
             for idx in range(compset.phase_record.num_multiphase_cons):
                 for iter_idx in range(compset.phase_record.phase_dof):
                     constraint_jac[constraint_offset+idx, var_offset+iter_idx] = constraint_jac_tmp_view[idx, num_statevars+iter_idx]

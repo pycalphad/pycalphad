@@ -30,8 +30,8 @@ def _build_constraint_functions(variables, constraints, parameters=None, cse=Tru
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
 
 
-ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons', 'internal_jac', 'internal_cons_hess',
-                                                 'multiphase_cons', 'multiphase_jac', 'multiphase_cons_hess',
+ConstraintTuple = namedtuple('ConstraintTuple', ['internal_cons_func', 'internal_cons_jac', 'internal_cons_hess',
+                                                 'multiphase_cons_func', 'multiphase_cons_jac', 'multiphase_cons_hess',
                                                  'num_internal_cons', 'num_multiphase_cons'])
 
 
@@ -50,18 +50,20 @@ def build_constraints(mod, variables, conds, parameters=None):
     multiphase_constraints = [MULTIPHASE_CONSTRAINT_SCALING*x for x in multiphase_constraints]
     cf_output = _build_constraint_functions(variables, internal_constraints,
                                             parameters=parameters)
-    internal_cons = cf_output.cons_func
-    internal_jac = cf_output.cons_jac
+    internal_cons_func = cf_output.cons_func
+    internal_cons_jac = cf_output.cons_jac
     internal_cons_hess = cf_output.cons_hess
 
     result_build = _build_constraint_functions(variables + [Symbol('NP')],
                                                multiphase_constraints,
                                                parameters=parameters)
-    multiphase_cons = result_build.cons_func
-    multiphase_jac = result_build.cons_jac
+    multiphase_cons_func = result_build.cons_func
+    multiphase_cons_jac = result_build.cons_jac
     multiphase_cons_hess = result_build.cons_hess
-    return ConstraintTuple(internal_cons=internal_cons, internal_jac=internal_jac, internal_cons_hess=internal_cons_hess,
-                           multiphase_cons=multiphase_cons, multiphase_jac=multiphase_jac, multiphase_cons_hess=multiphase_cons_hess,
+    return ConstraintTuple(internal_cons_func=internal_cons_func, internal_cons_jac=internal_cons_jac,
+                           internal_cons_hess=internal_cons_hess,
+                           multiphase_cons_func=multiphase_cons_func, multiphase_cons_jac=multiphase_cons_jac,
+                           multiphase_cons_hess=multiphase_cons_hess,
                            num_internal_cons=len(internal_constraints), num_multiphase_cons=len(multiphase_constraints))
 
 

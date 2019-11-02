@@ -17,11 +17,11 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cdef FastFunction _obj
     cdef FastFunction _grad
     cdef FastFunction _hess
-    cdef FastFunction _internal_cons
-    cdef FastFunction _internal_jac
+    cdef FastFunction _internal_cons_func
+    cdef FastFunction _internal_cons_jac
     cdef FastFunction _internal_cons_hess
-    cdef FastFunction _multiphase_cons
-    cdef FastFunction _multiphase_jac
+    cdef FastFunction _multiphase_cons_func
+    cdef FastFunction _multiphase_cons_jac
     cdef FastFunction _multiphase_cons_hess
     cdef numpy.ndarray _masses
     cdef void** _masses_ptr
@@ -43,12 +43,12 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     cpdef void obj(self, double[::1] out, double[:, ::1] dof) nogil
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil
     cpdef void hess(self, double[:,::1] out, double[::1] dof) nogil
-    cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil
-    cpdef void internal_jacobian(self, double[:,::1] out, double[::1] dof) nogil
-    cpdef void internal_cons_hessian(self, double[:,:,::1] out, double[::1] dof) nogil
-    cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof_with_phasefrac) nogil
-    cpdef void multiphase_jacobian(self, double[:,::1] out, double[::1] dof_with_phasefrac) nogil
-    cpdef void multiphase_cons_hessian(self, double[:, :, ::1] out, double[::1] dof_with_phasefrac) nogil
+    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil
+    cpdef void internal_cons_jac(self, double[:,::1] out, double[::1] dof) nogil
+    cpdef void internal_cons_hess(self, double[:,:,::1] out, double[::1] dof) nogil
+    cpdef void multiphase_cons_func(self, double[::1] out, double[::1] dof_with_phasefrac) nogil
+    cpdef void multiphase_cons_jac(self, double[:,::1] out, double[::1] dof_with_phasefrac) nogil
+    cpdef void multiphase_cons_hess(self, double[:, :, ::1] out, double[::1] dof_with_phasefrac) nogil
     cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil
