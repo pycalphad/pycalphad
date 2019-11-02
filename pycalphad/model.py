@@ -747,6 +747,7 @@ class Model(object):
         # factor when tau >= 1 and tc < 0
         super_tau_neg_tc = -(1/A) * ((tau_negative_tc**-5)/10 + (tau_negative_tc**-15)/315 + (tau_negative_tc**-25)/1500)
 
+        # This is an optimization to reduce the complexity of the compile-time expression
         expr_cond_pairs = [(sub_tau_neg_tc, curie_temp/afm_factor > v.T),
                            (sub_tau_pos_tc, curie_temp > v.T),
                            (super_tau_pos_tc, And(curie_temp < v.T, curie_temp > 0)),
