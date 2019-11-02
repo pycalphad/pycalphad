@@ -10,7 +10,7 @@ ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac'
 
 
 @cacheit
-def _build_constraint_functions(variables, constraints, include_hess=False, parameters=None, cse=True):
+def _build_constraint_functions(variables, constraints, parameters=None, cse=True):
     if parameters is None:
         parameters = []
     else:
@@ -24,9 +24,9 @@ def _build_constraint_functions(variables, constraints, include_hess=False, para
     constraint_func = lambdify(inp, [graph], backend='lambda', cse=cse)
     grad_graphs = list(list(c.diff(w) for w in wrt) for c in graph)
     jacobian_func = lambdify(inp, grad_graphs, backend='lambda', cse=cse)
-    if include_hess:
-        hess_graphs = list(list(list(g.diff(w) for w in wrt) for g in c) for c in grad_graphs)
-        hessian_func = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
+
+    hess_graphs = list(list(list(g.diff(w) for w in wrt) for g in c) for c in grad_graphs)
+    hessian_func = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
 
 
@@ -49,13 +49,13 @@ def build_constraints(mod, variables, conds, parameters=None):
     multiphase_constraints = mod.get_multiphase_constraints(conds)
     multiphase_constraints = [MULTIPHASE_CONSTRAINT_SCALING*x for x in multiphase_constraints]
     cf_output = _build_constraint_functions(variables, internal_constraints,
-                                            include_hess=True, parameters=parameters)
+                                            parameters=parameters)
     internal_cons = cf_output.cons_func
     internal_jac = cf_output.cons_jac
     internal_cons_hess = cf_output.cons_hess
 
     result_build = _build_constraint_functions(variables + [Symbol('NP')],
-                                               multiphase_constraints, include_hess=True,
+                                               multiphase_constraints,
                                                parameters=parameters)
     multiphase_cons = result_build.cons_func
     multiphase_jac = result_build.cons_jac
