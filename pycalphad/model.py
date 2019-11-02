@@ -726,8 +726,8 @@ class Model(object):
             evaluate=False
             )
         self.TC = self.curie_temperature = tc
-        #print(tc)
-        # 0.01 used to prevent singularity
+
+        # Used to prevent singularity
         tau_positive_tc = v.T / (curie_temp + 1e-9)
         tau_negative_tc = v.T / ((curie_temp/afm_factor) + 1e-9)
 
