@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8+11.g6aa5f1f documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8+12.g05ff0cf documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+11.g6aa5f1f
+                0.8+12.g05ff0cf
               </div>
             
           
@@ -392,11 +392,11 @@ Note that modifying these may yield unpredictable results.</p>
 
 <dl class="class">
 <dt id="pycalphad.core.constraints.ConstraintTuple">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.core.constraints.</code><code class="sig-name descname">ConstraintTuple</code><span class="sig-paren">(</span><em class="sig-param">internal_cons</em>, <em class="sig-param">internal_jac</em>, <em class="sig-param">internal_cons_hess</em>, <em class="sig-param">multiphase_cons</em>, <em class="sig-param">multiphase_jac</em>, <em class="sig-param">num_internal_cons</em>, <em class="sig-param">num_multiphase_cons</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple" title="Permalink to this definition">¶</a></dt>
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.core.constraints.</code><code class="sig-name descname">ConstraintTuple</code><span class="sig-paren">(</span><em class="sig-param">internal_cons_func</em>, <em class="sig-param">internal_cons_jac</em>, <em class="sig-param">internal_cons_hess</em>, <em class="sig-param">multiphase_cons_func</em>, <em class="sig-param">multiphase_cons_jac</em>, <em class="sig-param">multiphase_cons_hess</em>, <em class="sig-param">num_internal_cons</em>, <em class="sig-param">num_multiphase_cons</em><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">tuple</span></code></p>
 <dl class="method">
-<dt id="pycalphad.core.constraints.ConstraintTuple.internal_cons">
-<em class="property">property </em><code class="sig-name descname">internal_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_cons" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.constraints.ConstraintTuple.internal_cons_func">
+<em class="property">property </em><code class="sig-name descname">internal_cons_func</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_cons_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 0</p>
 </dd></dl>
 
@@ -407,33 +407,39 @@ Note that modifying these may yield unpredictable results.</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.constraints.ConstraintTuple.internal_jac">
-<em class="property">property </em><code class="sig-name descname">internal_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_jac" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.constraints.ConstraintTuple.internal_cons_jac">
+<em class="property">property </em><code class="sig-name descname">internal_cons_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.internal_cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 1</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons">
-<em class="property">property </em><code class="sig-name descname">multiphase_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_func">
+<em class="property">property </em><code class="sig-name descname">multiphase_cons_func</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_func" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 3</p>
 </dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_jac">
-<em class="property">property </em><code class="sig-name descname">multiphase_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_jac" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_hess">
+<em class="property">property </em><code class="sig-name descname">multiphase_cons_hess</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_hess" title="Permalink to this definition">¶</a></dt>
+<dd><p>Alias for field number 5</p>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.constraints.ConstraintTuple.multiphase_cons_jac">
+<em class="property">property </em><code class="sig-name descname">multiphase_cons_jac</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.multiphase_cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd><p>Alias for field number 4</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.core.constraints.ConstraintTuple.num_internal_cons">
 <em class="property">property </em><code class="sig-name descname">num_internal_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_internal_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 5</p>
+<dd><p>Alias for field number 6</p>
 </dd></dl>
 
 <dl class="method">
 <dt id="pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons">
 <em class="property">property </em><code class="sig-name descname">num_multiphase_cons</code><a class="headerlink" href="#pycalphad.core.constraints.ConstraintTuple.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
-<dd><p>Alias for field number 6</p>
+<dd><p>Alias for field number 7</p>
 </dd></dl>
 
 </dd></dl>
@@ -684,6 +690,12 @@ Degenerate simplices will manifest with duplicate or NaN indices.</p>
 <div class="section" id="module-pycalphad.core.phase_rec">
 <span id="pycalphad-core-phase-rec-module"></span><h2>pycalphad.core.phase_rec module<a class="headerlink" href="#module-pycalphad.core.phase_rec" title="Permalink to this headline">¶</a></h2>
 <dl class="class">
+<dt id="pycalphad.core.phase_rec.FastFunction">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.core.phase_rec.</code><code class="sig-name descname">FastFunction</code><a class="headerlink" href="#pycalphad.core.phase_rec.FastFunction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
+</dd></dl>
+
+<dl class="class">
 <dt id="pycalphad.core.phase_rec.PhaseRecord">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.core.phase_rec.</code><code class="sig-name descname">PhaseRecord</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
@@ -705,18 +717,18 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_cons_hessian">
-<code class="sig-name descname">internal_cons_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_cons_hessian" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_cons_func">
+<code class="sig-name descname">internal_cons_func</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_cons_func" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_constraints">
-<code class="sig-name descname">internal_constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_constraints" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_cons_hess">
+<code class="sig-name descname">internal_cons_hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_cons_hess" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_jacobian">
-<code class="sig-name descname">internal_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_jacobian" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.internal_cons_jac">
+<code class="sig-name descname">internal_cons_jac</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.internal_cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
@@ -735,13 +747,23 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_constraints">
-<code class="sig-name descname">multiphase_constraints</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_constraints" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.mass_obj_2d">
+<code class="sig-name descname">mass_obj_2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.mass_obj_2d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">
-<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_jacobian">
-<code class="sig-name descname">multiphase_jacobian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_jacobian" title="Permalink to this definition">¶</a></dt>
+<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func">
+<code class="sig-name descname">multiphase_cons_func</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_func" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess">
+<code class="sig-name descname">multiphase_cons_hess</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_hess" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac">
+<code class="sig-name descname">multiphase_cons_jac</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.multiphase_cons_jac" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -759,9 +781,19 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <code class="sig-name descname">num_multiphase_cons</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_multiphase_cons" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
+<dl class="attribute">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.num_statevars">
+<code class="sig-name descname">num_statevars</code><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.num_statevars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 <dl class="method">
 <dt id="pycalphad.core.phase_rec.PhaseRecord.obj">
 <code class="sig-name descname">obj</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.obj" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.phase_rec.PhaseRecord.obj_2d">
+<code class="sig-name descname">obj_2d</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.phase_rec.PhaseRecord.obj_2d" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="attribute">
@@ -914,6 +946,11 @@ between Model implementations. PhaseRecords are immutable after initialization.<
 <dl class="attribute">
 <dt id="pycalphad.core.problem.Problem.num_vars">
 <code class="sig-name descname">num_vars</code><a class="headerlink" href="#pycalphad.core.problem.Problem.num_vars" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.core.problem.Problem.obj_hessian">
+<code class="sig-name descname">obj_hessian</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="headerlink" href="#pycalphad.core.problem.Problem.obj_hessian" title="Permalink to this definition">¶</a></dt>
 <dd></dd></dl>
 
 <dl class="method">

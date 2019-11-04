@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8+11.g6aa5f1f documentation</title>
+  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8+12.g05ff0cf documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+11.g6aa5f1f
+                0.8+12.g05ff0cf
               </div>
             
           
@@ -160,11 +160,13 @@
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">wrap_symbol_symengine</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">count_ops</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
 
 
 <span class="n">BuildFunctionsResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BuildFunctionsResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">])</span>
+
+<span class="n">BACKEND_OPS_THRESHOLD</span> <span class="o">=</span> <span class="mi">50000</span>
 
 
 <div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_functions">[docs]</a><span class="nd">@cacheit</span>
@@ -180,16 +182,26 @@
     <span class="n">func</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">hess</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">)</span>
     <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">count_ops</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">BACKEND_OPS_THRESHOLD</span><span class="p">:</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;lambda&#39;</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
     <span class="c1"># TODO: did not replace zoo with oo</span>
     <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
-        <span class="n">func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;llvm&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+        <span class="n">func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">include_grad</span> <span class="ow">or</span> <span class="n">include_hess</span><span class="p">:</span>
         <span class="n">grad_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span>
+        <span class="n">grad_ops</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">count_ops</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">grad_ops</span> <span class="o">&gt;</span> <span class="n">BACKEND_OPS_THRESHOLD</span><span class="p">:</span>
+            <span class="n">grad_backend</span> <span class="o">=</span> <span class="s1">&#39;lambda&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">grad_backend</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
         <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
-            <span class="n">grad</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;llvm&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">grad_backend</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
         <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
             <span class="n">hess_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
-            <span class="n">hess</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;llvm&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+            <span class="c1"># Hessians are hard-coded to always use the lambda backend, for performance</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
     <span class="k">return</span> <span class="n">BuildFunctionsResult</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="n">grad</span><span class="p">,</span> <span class="n">hess</span><span class="o">=</span><span class="n">hess</span><span class="p">)</span></div>
 </pre></div>
 

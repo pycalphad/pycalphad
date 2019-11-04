@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8+11.g6aa5f1f documentation</title>
+  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8+12.g05ff0cf documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+11.g6aa5f1f
+                0.8+12.g05ff0cf
               </div>
             
           
@@ -237,11 +237,12 @@
         <span class="s1">&#39;callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;grad_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;hess_callables&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;internal_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;internal_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;mp_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;mp_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">:</span> <span class="p">{}</span>
     <span class="p">}</span>
 
     <span class="n">state_variables</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">)</span>
@@ -341,11 +342,12 @@
     <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">callables</span> <span class="o">=</span> <span class="n">callables</span> <span class="k">if</span> <span class="n">callables</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
     <span class="n">_constraints</span> <span class="o">=</span> <span class="p">{</span>
-        <span class="s1">&#39;internal_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;internal_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
         <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;mp_cons&#39;</span><span class="p">:</span> <span class="p">{},</span>
-        <span class="s1">&#39;mp_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">:</span> <span class="p">{},</span>
+        <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">:</span> <span class="p">{}</span>
     <span class="p">}</span>
     <span class="n">phase_records</span> <span class="o">=</span> <span class="p">{}</span>
     <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="n">conds</span><span class="p">),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
@@ -363,11 +365,12 @@
         <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">site_fractions</span>
         <span class="c1"># build constraint functions</span>
         <span class="n">cfuncs</span> <span class="o">=</span> <span class="n">build_constraints</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">state_variables</span> <span class="o">+</span> <span class="n">site_fracs</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">param_symbols</span><span class="p">)</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_jac</span>
+        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_func</span>
+        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_jac</span>
         <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">internal_cons_hess</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;mp_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons</span>
-        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;mp_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_jac</span>
+        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_func</span>
+        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_jac</span>
+        <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">multiphase_cons_hess</span>
         <span class="n">num_internal_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_internal_cons</span>
         <span class="n">num_multiphase_cons</span> <span class="o">=</span> <span class="n">cfuncs</span><span class="o">.</span><span class="n">num_multiphase_cons</span>
 
@@ -378,11 +381,12 @@
                                                   <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;massfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;massgradfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">callables</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="s1">&#39;masshessfuncs&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;mp_cons&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
-                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;mp_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
+                                                  <span class="n">_constraints</span><span class="p">[</span><span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">][</span><span class="n">name</span><span class="p">],</span>
                                                   <span class="n">num_internal_cons</span><span class="p">,</span>
                                                   <span class="n">num_multiphase_cons</span><span class="p">)</span>
 
