@@ -183,9 +183,9 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    phase_record.obj(phase_output, dof)
+    phase_record.obj_2d(phase_output, dof)
     for el_idx in range(len(pure_elements)):
-        phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
+        phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
     max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):

@@ -119,15 +119,13 @@ cdef class Problem:
         cdef double[::1] x = np.array(x_in)
         cdef double tmp = 0
         cdef double mass_tmp = 0
-        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
         compset = self.composition_sets[0]
         var_offset = len(compset.phase_record.state_variables)
 
         for compset in self.composition_sets:
             x = np.r_[x_in[:len(compset.phase_record.state_variables)], x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
-            dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
-            compset.phase_record.obj(energy_2d_view, dof_2d_view)
+            compset.phase_record.obj(energy_2d_view, x)
             idx = 0
             total_obj += x_in[self.num_vars-self.num_phases+phase_idx] * tmp
             phase_idx += 1
@@ -146,7 +144,6 @@ cdef class Problem:
         cdef double[::1] x = np.array(x_in)
         cdef double tmp = 0
         cdef double mass_obj_tmp = 0
-        cdef double[:,::1] dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
         cdef double[::1] energy_2d_view = <double[:1]>&tmp
         cdef double[::1] grad_tmp = np.zeros(x.shape[0])
         cdef double[::1] out_mass_tmp = np.zeros(self.num_vars)
@@ -154,8 +151,7 @@ cdef class Problem:
 
         for compset in self.composition_sets:
             x = np.r_[x_in[:num_statevars], x_in[var_offset:var_offset+compset.phase_record.phase_dof]]
-            dof_2d_view = <double[:1,:x.shape[0]]>&x[0]
-            compset.phase_record.obj(energy_2d_view, dof_2d_view)
+            compset.phase_record.obj(energy_2d_view, x)
             compset.phase_record.grad(grad_tmp, x)
             for dof_x_idx in range(num_statevars):
                 gradient_term[dof_x_idx] += x_in[self.num_vars-self.num_phases+phase_idx] * grad_tmp[dof_x_idx]
@@ -329,20 +325,18 @@ cdef class Problem:
         cdef int phase_idx, comp_idx, dof_idx, spidx
         cdef double[::1] x = np.array(x_in)
         cdef double[::1] x_tmp, out_phase_mass
-        cdef double[:,::1] x_tmp_2d_view
         cdef double[::1] out_tmp = np.zeros(self.num_vars)
         var_idx = num_statevars
         for phase_idx in range(mass_gradient_matrix.shape[0]):
             compset = self.composition_sets[phase_idx]
             spidx = self.num_vars - self.num_phases + phase_idx
             x_tmp = np.r_[x[:num_statevars], x[var_idx:var_idx+compset.phase_record.phase_dof]]
-            x_tmp_2d_view = <double[:1,:num_statevars+compset.phase_record.phase_dof]>&x_tmp[0]
             for comp_idx in range(mass_gradient_matrix.shape[1]):
                 compset.phase_record.mass_grad(out_tmp, x_tmp, comp_idx)
                 mass_gradient_matrix[phase_idx, comp_idx, var_idx:var_idx+compset.phase_record.phase_dof] = out_tmp[num_statevars:num_statevars+compset.phase_record.phase_dof]
                 mass_gradient_matrix[phase_idx, comp_idx, :num_statevars] = out_tmp[:num_statevars]
                 out_phase_mass = <double[:1]>&mass_gradient_matrix[phase_idx, comp_idx, spidx]
-                compset.phase_record.mass_obj(out_phase_mass, x_tmp_2d_view, comp_idx)
+                compset.phase_record.mass_obj(out_phase_mass, x_tmp, comp_idx)
                 mass_gradient_matrix[phase_idx, comp_idx, spidx] = out_phase_mass[0]
                 out_tmp[:] = 0
                 for dof_idx in range(compset.phase_record.phase_dof):

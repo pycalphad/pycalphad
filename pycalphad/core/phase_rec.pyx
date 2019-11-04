@@ -140,7 +140,17 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
+    cpdef void obj(self, double[::1] outp, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        self._obj.call(&outp[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void obj_2d(self, double[::1] outp, double[:, ::1] dof) nogil:
         # dof.shape[1] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
@@ -226,7 +236,16 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
+    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self._masses_ptr[comp_idx]).call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
         # dof.shape[1] may be oversized by the caller; do not trust it
         cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
