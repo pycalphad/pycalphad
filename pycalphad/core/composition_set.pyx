@@ -19,7 +19,6 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.zero_seen = 0
         self.dof = np.zeros(len(self.phase_record.variables)+len(self.phase_record.state_variables))
         self.X = np.zeros(len(self.phase_record.nonvacant_elements))
-        self._dof_2d_view = <double[:1,:self.dof.shape[0]]>&self.dof[0]
         self._X_2d_view = <double[:self.X.shape[0],:1]>&self.X[0]
         self.energy = 0
         self.NP = 0
@@ -68,11 +67,11 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self.energy = 0
         memset(&self.grad[0], 0, self.grad.shape[0] * sizeof(double))
         memset(&self.X[0], 0, self.X.shape[0] * sizeof(double))
-        self.phase_record.obj(self._energy_2d_view, self._dof_2d_view)
+        self.phase_record.obj(self._energy_2d_view, self.dof)
         if not skip_derivatives:
             self.phase_record.grad(self.grad, self.dof)
         for comp_idx in range(self.X.shape[0]):
-            self.phase_record.mass_obj(self._X_2d_view[comp_idx], self._dof_2d_view, comp_idx)
+            self.phase_record.mass_obj(self._X_2d_view[comp_idx], self.dof, comp_idx)
         if not skip_derivatives:
             if self._first_iteration == True:
                 self._prev_dof[:] = self.dof

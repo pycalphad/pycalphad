@@ -80,11 +80,12 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
         'callables': {},
         'grad_callables': {},
         'hess_callables': {},
-        'internal_cons': {},
-        'internal_jac': {},
+        'internal_cons_func': {},
+        'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'mp_cons': {},
-        'mp_jac': {},
+        'multiphase_cons_func': {},
+        'multiphase_cons_jac': {},
+        'multiphase_cons_hess': {}
     }
 
     state_variables = get_state_variables(models=models)
@@ -184,11 +185,12 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
     parameters = parameters if parameters is not None else {}
     callables = callables if callables is not None else {}
     _constraints = {
-        'internal_cons': {},
-        'internal_jac': {},
+        'internal_cons_func': {},
+        'internal_cons_jac': {},
         'internal_cons_hess': {},
-        'mp_cons': {},
-        'mp_jac': {},
+        'multiphase_cons_func': {},
+        'multiphase_cons_jac': {},
+        'multiphase_cons_hess': {}
     }
     phase_records = {}
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
@@ -206,11 +208,12 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
         site_fracs = mod.site_fractions
         # build constraint functions
         cfuncs = build_constraints(mod, state_variables + site_fracs, conds, parameters=param_symbols)
-        _constraints['internal_cons'][name] = cfuncs.internal_cons
-        _constraints['internal_jac'][name] = cfuncs.internal_jac
+        _constraints['internal_cons_func'][name] = cfuncs.internal_cons_func
+        _constraints['internal_cons_jac'][name] = cfuncs.internal_cons_jac
         _constraints['internal_cons_hess'][name] = cfuncs.internal_cons_hess
-        _constraints['mp_cons'][name] = cfuncs.multiphase_cons
-        _constraints['mp_jac'][name] = cfuncs.multiphase_jac
+        _constraints['multiphase_cons_func'][name] = cfuncs.multiphase_cons_func
+        _constraints['multiphase_cons_jac'][name] = cfuncs.multiphase_cons_jac
+        _constraints['multiphase_cons_hess'][name] = cfuncs.multiphase_cons_hess
         num_internal_cons = cfuncs.num_internal_cons
         num_multiphase_cons = cfuncs.num_multiphase_cons
 
@@ -221,11 +224,12 @@ def build_phase_records(dbf, comps, phases, conds, models, output='GM',
                                                   callables[output]['massfuncs'][name],
                                                   callables[output]['massgradfuncs'][name],
                                                   callables[output]['masshessfuncs'][name],
-                                                  _constraints['internal_cons'][name],
-                                                  _constraints['internal_jac'][name],
+                                                  _constraints['internal_cons_func'][name],
+                                                  _constraints['internal_cons_jac'][name],
                                                   _constraints['internal_cons_hess'][name],
-                                                  _constraints['mp_cons'][name],
-                                                  _constraints['mp_jac'][name],
+                                                  _constraints['multiphase_cons_func'][name],
+                                                  _constraints['multiphase_cons_jac'][name],
+                                                  _constraints['multiphase_cons_hess'][name],
                                                   num_internal_cons,
                                                   num_multiphase_cons)
 

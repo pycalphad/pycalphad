@@ -5,13 +5,24 @@ from libc.stdlib cimport malloc, free
 import numpy as np
 cimport numpy as np
 import pycalphad.variables as v
+import ctypes
 
-cdef symengine.LLVMDoubleVisitor llvm_double_visitor(llvm_double_obj):
-    """Use the bytes from calling reduce on an LLVMDouble object to construct an LLVMDoubleVisitor"""
-    cdef symengine.LLVMDoubleVisitor f = symengine.LLVMDoubleVisitor()
-    if llvm_double_obj is not None:
-        f.loads(llvm_double_obj.__reduce__()[-1][-1])
-    return f
+cdef class FastFunction:
+    def __cinit__(self, object func):
+        if func is None:
+            self.f_ptr = NULL
+            self.func_data = NULL
+            return
+        # Preserve reference to object to prevent garbage collection
+        self._objref = func
+        addr1, addr2 = func.as_ctypes()
+        self.f_ptr = (<math_function_t*><size_t>ctypes.addressof(addr1))[0]
+        self.func_data =  (<void**><size_t>ctypes.addressof(addr2))[0]
+    def __reduce__(self):
+        return FastFunction, (self._objref,)
+    cdef void call(self, double *out, double *inp) nogil:
+        if self.f_ptr != NULL:
+            self.f_ptr(out, inp, self.func_data)
 
 @cython.boundscheck(False)
 @cython.wraparound(False)
@@ -58,16 +69,16 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     """
     def __reduce__(self):
             return PhaseRecord, (self.components, self.state_variables, self.variables, np.array(self.parameters),
-                                 self._ofunc, self._gfunc, self._hfunc, self._massfuncs, self._massgradfuncs,
-                                 self._masshessianfuncs, self._intconsfunc, self._intjacfunc, self._intconshessfunc,
-                                 self._mpconsfunc, self._mpjacfunc,
+                                 self._obj, self._grad, self._hess, self._masses, self._massgrads,
+                                 self._masshessians, self._internal_cons_func, self._internal_cons_jac, self._internal_cons_hess,
+                                 self._multiphase_cons_func, self._multiphase_cons_jac, self._multiphase_cons_hess,
                                  self.num_internal_cons, self.num_multiphase_cons)
 
     def __cinit__(self, object comps, object state_variables, object variables,
                   double[::1] parameters, object ofunc, object gfunc, object hfunc,
                   object massfuncs, object massgradfuncs, object masshessianfuncs,
-                  object internal_cons_func, object internal_jac_func, object internal_cons_hess_func,
-                  object multiphase_cons_func, object multiphase_jac_func,
+                  object internal_cons_func, object internal_cons_jac, object internal_cons_hess,
+                  object multiphase_cons_func, object multiphase_cons_jac, object multiphase_cons_hess,
                   size_t num_internal_cons, size_t num_multiphase_cons):
         cdef:
             int var_idx, el_idx
@@ -79,6 +90,7 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
         self.variables = variables
         self.state_variables = state_variables
+        self.num_statevars = len(state_variables)
         self.pure_elements = pure_elements
         self.nonvacant_elements = nonvacant_elements
         self.phase_dof = 0
@@ -93,53 +105,57 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
             self.phase_dof += 1
 
         if ofunc is not None:
-            self._ofunc = ofunc
-            self._obj = llvm_double_visitor(ofunc)
+            self._obj = FastFunction(ofunc)
         if gfunc is not None:
-            self._gfunc = gfunc
-            self._grad = llvm_double_visitor(gfunc)
+            self._grad = FastFunction(gfunc)
         if hfunc is not None:
-            self._hfunc = hfunc
-            self._hess = llvm_double_visitor(hfunc)
+            self._hess = FastFunction(hfunc)
         if internal_cons_func is not None:
-            self._intconsfunc = internal_cons_func
-            self._internal_cons = llvm_double_visitor(internal_cons_func)
-        if internal_jac_func is not None:
-            self._intjacfunc = internal_jac_func
-            self._internal_jac = llvm_double_visitor(internal_jac_func)
-        if internal_cons_hess_func is not None:
-            self._intconshessfunc = internal_cons_hess_func
-            self._internal_cons_hess = llvm_double_visitor(internal_cons_hess_func)
+            self._internal_cons_func = FastFunction(internal_cons_func)
+        if internal_cons_jac is not None:
+            self._internal_cons_jac = FastFunction(internal_cons_jac)
+        if internal_cons_hess is not None:
+            self._internal_cons_hess = FastFunction(internal_cons_hess)
         if multiphase_cons_func is not None:
-            self._mpconsfunc = multiphase_cons_func
-            self._multiphase_cons = llvm_double_visitor(multiphase_cons_func)
-        if multiphase_jac_func is not None:
-            self._mpjacfunc = multiphase_jac_func
-            self._multiphase_jac = llvm_double_visitor(multiphase_jac_func)
+            self._multiphase_cons_func = FastFunction(multiphase_cons_func)
+        if multiphase_cons_jac is not None:
+            self._multiphase_cons_jac = FastFunction(multiphase_cons_jac)
+        if multiphase_cons_hess is not None:
+            self._multiphase_cons_hess = FastFunction(multiphase_cons_hess)
         if massfuncs is not None:
-            self._massfuncs = massfuncs
-            self._masses.resize(len(nonvacant_elements))
+            self._masses = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._masses[el_idx] = llvm_double_visitor(massfuncs[el_idx])
+                self._masses[el_idx] = FastFunction(massfuncs[el_idx])
+            self._masses_ptr = <void**> self._masses.data
         if massgradfuncs is not None:
-            self._massgradfuncs = massgradfuncs
-            self._massgrads.resize(len(nonvacant_elements))
+            self._massgrads = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._massgrads[el_idx] = llvm_double_visitor(massgradfuncs[el_idx])
+                self._massgrads[el_idx] = FastFunction(massgradfuncs[el_idx])
+            self._massgrads_ptr = <void**> self._massgrads.data
         if masshessianfuncs is not None:
-            self._masshessianfuncs = masshessianfuncs
-            self._masshessians.resize(len(nonvacant_elements))
+            self._masshessians = np.empty(len(nonvacant_elements), dtype='object')
             for el_idx in range(len(nonvacant_elements)):
-                self._masshessians[el_idx] = llvm_double_visitor(masshessianfuncs[el_idx])
+                self._masshessians[el_idx] = FastFunction(masshessianfuncs[el_idx])
+            self._masshessians_ptr = <void**> self._masshessians.data
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void obj(self, double[::1] outp, double[:, ::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+    cpdef void obj(self, double[::1] outp, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        self._obj.call(&outp[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void obj_2d(self, double[::1] outp, double[:, ::1] dof) nogil:
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
         cdef int num_inps = dof.shape[0]
-        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
-
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
         for i in range(num_inps):
             self._obj.call(&outp[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
@@ -148,7 +164,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void grad(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._grad.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -156,7 +173,8 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void hess(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._hess.call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
@@ -164,71 +182,94 @@ cdef public class PhaseRecord(object)[type PhaseRecordType, object PhaseRecordOb
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_constraints(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        self._internal_cons.call(&out[0], &dof_concat[0])
+    cpdef void internal_cons_func(self, double[::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        self._internal_cons_func.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        self._internal_jac.call(&out[0, 0], &dof_concat[0])
+    cpdef void internal_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        self._internal_cons_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void internal_cons_hessian(self, double[:, :, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
+    cpdef void internal_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
         self._internal_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_constraints(self, double[::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        self._multiphase_cons.call(&out[0], &dof_concat[0])
+    cpdef void multiphase_cons_func(self, double[::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
+        self._multiphase_cons_func.call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void multiphase_jacobian(self, double[:, ::1] out, double[::1] dof) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        self._multiphase_jac.call(&out[0, 0], &dof_concat[0])
+    cpdef void multiphase_cons_jac(self, double[:, ::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
+        self._multiphase_cons_jac.call(&out[0, 0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
-    cpdef void mass_obj(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof, self.parameters)
+    cpdef void multiphase_cons_hess(self, double[:, :, ::1] out, double[::1] dof) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof+1], self.parameters)
+        self._multiphase_cons_hess.call(&out[0, 0, 0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_obj(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self._masses_ptr[comp_idx]).call(&out[0], &dof_concat[0])
+        if self.parameters.shape[0] > 0:
+            free(dof_concat)
+
+    @cython.boundscheck(False)
+    @cython.wraparound(False)
+    cpdef void mass_obj_2d(self, double[::1] out, double[:, ::1] dof, int comp_idx) nogil:
+        # dof.shape[1] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters_vectorized(dof[:, :self.num_statevars+self.phase_dof], self.parameters)
         cdef int i
         cdef int num_inps = dof.shape[0]
-        cdef int num_dof = dof.shape[1] + self.parameters.shape[0]
-        if not self._masses.empty():
-            for i in range(num_inps):
-                self._masses[comp_idx].call(&out[i], &dof_concat[i * num_dof])
+        cdef int num_dof = self.num_statevars + self.phase_dof + self.parameters.shape[0]
+        for i in range(num_inps):
+            (<FastFunction>self._masses_ptr[comp_idx]).call(&out[i], &dof_concat[i * num_dof])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_grad(self, double[::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        if not self._massgrads.empty():
-            self._massgrads[comp_idx].call(&out[0], &dof_concat[0])
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self._massgrads_ptr[comp_idx]).call(&out[0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
     cpdef void mass_hess(self, double[:,::1] out, double[::1] dof, int comp_idx) nogil:
-        cdef double* dof_concat = alloc_dof_with_parameters(dof, self.parameters)
-        if not self._masshessians.empty():
-            self._masshessians[comp_idx].call(&out[0,0], &dof_concat[0])
+        # dof.shape[0] may be oversized by the caller; do not trust it
+        cdef double* dof_concat = alloc_dof_with_parameters(dof[:self.num_statevars+self.phase_dof], self.parameters)
+        (<FastFunction>self._masshessians_ptr[comp_idx]).call(&out[0,0], &dof_concat[0])
         if self.parameters.shape[0] > 0:
             free(dof_concat)

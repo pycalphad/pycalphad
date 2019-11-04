@@ -183,9 +183,9 @@ def _compute_phase_values(components, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    phase_record.obj(phase_output, dof)
+    phase_record.obj_2d(phase_output, dof)
     for el_idx in range(len(pure_elements)):
-        phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
+        phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
     max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):
@@ -345,7 +345,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     phase_records = build_phase_records(dbf, comps, active_phases, statevar_dict,
                                    models=models, parameters=parameters,
-                                   output=output, callables=callables,
+                                   output=output, callables=callables, build_gradients=False, build_hessians=False,
                                    verbose=kwargs.pop('verbose', False))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())
