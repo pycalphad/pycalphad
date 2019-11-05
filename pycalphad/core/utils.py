@@ -319,7 +319,7 @@ def get_pure_elements(dbf, comps):
     return pure_elements
 
 
-def filter_phases(dbf, comps):
+def filter_phases(dbf, comps, candidate_phases=None):
     """Return phases that are valid for equilibrium calculations for the given database and components
 
     Filters out phases that
@@ -332,7 +332,8 @@ def filter_phases(dbf, comps):
         Thermodynamic database containing the relevant parameters.
     comps : list
         Names of components to consider in the calculation.
-
+    candidate_phases : list
+        Names of phases to consider in the calculation, if not passed all phases from DBF will be considered
     Returns
     -------
     list
@@ -344,12 +345,15 @@ def filter_phases(dbf, comps):
         active_sublattices = [len(set(comps).intersection(subl)) > 0 for
                               subl in phase.constituents]
         return all(active_sublattices)
-
-    candidate_phases = dbf.phases.keys()
+    if candidate_phases == None:
+        candidate_phases = dbf.phases.keys()
+    else:
+        candidate_phases = set(candidate_phases).intersection(dbf.phases.keys())
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(comps, dbf.phases[phase]) and
-                phase not in disordered_phases]
+                (phase not in disordered_phases or (phase in disordered_phases and 
+                dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     return sorted(phases)
 
 

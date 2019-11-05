@@ -317,13 +317,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
     # Consider only the active phases
     list_of_possible_phases = filter_phases(dbf, comps)
-    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
-    active_phases = {name: dbf.phases[name] for name in active_phases}
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    active_phases = {name: dbf.phases[name] for name in filter_phases(dbf, comps, phases)}
     if len(active_phases) == 0:
-        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
-                             .format(phases, list_of_possible_phases))
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
 
     models = instantiate_models(dbf, comps, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
 
