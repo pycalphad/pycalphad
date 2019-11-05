@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.calculate &mdash; pycalphad 0.8+12.g05ff0cf documentation</title>
+  <title>pycalphad.core.calculate &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+12.g05ff0cf
+                0.8+13.g6722a58
               </div>
             
           
@@ -474,13 +474,11 @@
 
     <span class="c1"># Consider only the active phases</span>
     <span class="n">list_of_possible_phases</span> <span class="o">=</span> <span class="n">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">)</span>
-    <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">list_of_possible_phases</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">phases</span><span class="p">)))</span>
-    <span class="n">active_phases</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">list_of_possible_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
         <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;There are no phases in the Database that can be active with components </span><span class="si">{0}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">comps</span><span class="p">))</span>
+    <span class="n">active_phases</span> <span class="o">=</span> <span class="p">{</span><span class="n">name</span><span class="p">:</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">)}</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">active_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;None of the passed phases (</span><span class="si">{0}</span><span class="s1">) are active. List of possible phases: </span><span class="si">{1}</span><span class="s1">.&#39;</span>
-                             <span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">list_of_possible_phases</span><span class="p">))</span>
+        <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s1">&#39;None of the passed phases (</span><span class="si">{0}</span><span class="s1">) are active. List of possible phases: </span><span class="si">{1}</span><span class="s1">.&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">list_of_possible_phases</span><span class="p">))</span>
 
     <span class="n">models</span> <span class="o">=</span> <span class="n">instantiate_models</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="nb">list</span><span class="p">(</span><span class="n">active_phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()),</span> <span class="n">model</span><span class="o">=</span><span class="n">kwargs</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="s1">&#39;model&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">),</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
 

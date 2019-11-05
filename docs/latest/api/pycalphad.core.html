@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core package &mdash; pycalphad 0.8+12.g05ff0cf documentation</title>
+  <title>pycalphad.core package &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+12.g05ff0cf
+                0.8+13.g6722a58
               </div>
             
           
@@ -1213,7 +1213,7 @@ in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p>
 
 <dl class="function">
 <dt id="pycalphad.core.utils.filter_phases">
-<code class="sig-prename descclassname">pycalphad.core.utils.</code><code class="sig-name descname">filter_phases</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#filter_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.filter_phases" title="Permalink to this definition">¶</a></dt>
+<code class="sig-prename descclassname">pycalphad.core.utils.</code><code class="sig-name descname">filter_phases</code><span class="sig-paren">(</span><em class="sig-param">dbf</em>, <em class="sig-param">comps</em>, <em class="sig-param">candidate_phases=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/core/utils.html#filter_phases"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.core.utils.filter_phases" title="Permalink to this definition">¶</a></dt>
 <dd><p>Return phases that are valid for equilibrium calculations for the given database and components</p>
 <p>Filters out phases that
 * Have no active components in any sublattice of a phase
@@ -1223,6 +1223,7 @@ in each sublattice to ensure the “pure vacancy” endmembers are excluded.</p>
 <dd class="field-odd"><ul class="simple">
 <li><p><strong>dbf</strong> (<a class="reference internal" href="pycalphad.io.html#pycalphad.io.database.Database" title="pycalphad.io.database.Database"><em>Database</em></a>) – Thermodynamic database containing the relevant parameters.</p></li>
 <li><p><strong>comps</strong> (<em>list</em>) – Names of components to consider in the calculation.</p></li>
+<li><p><strong>candidate_phases</strong> (<em>list</em>) – Names of phases to consider in the calculation, if not passed all phases from DBF will be considered</p></li>
 </ul>
 </dd>
 <dt class="field-even">Returns</dt>
