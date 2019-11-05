@@ -186,6 +186,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
     comps = sorted(unpack_components(dbf, comps))
+    phases = unpack_phases(phases) or sorted(dbf.phases.keys())
     list_of_possible_phases = filter_phases(dbf, comps)
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
