@@ -162,6 +162,9 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+cpdef pointsolve(composition_sets, comps, cur_conds, problem, iter_solver):
+    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
 
 cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
