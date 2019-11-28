@@ -1,6 +1,22 @@
 What's New
 ==========
 
+0.8.1 (2019-11-28)
+------------------
+
+This is a minor release with bug fixes and performance improvements.
+
+* ENH: Calculation speed and accuracy improvements via exact Hessians and the SymEngine lambda backend ( :issue:`249` )
+* ENH: Faster binary phase diagram mapping ( :issue:`209` )
+* FIX: Calculating disordered phase only if respective ordered phase inactive. Thanks @igorjrd ( :issue:`248` )
+* ENH: Use better colors in phase_legend(). Thanks @igorjrd ( :issue: `242` )
+* FIX: Suspend a phase if only a pure-vacancy endmember would be active. Thanks @igorjrd ( :issue:`239` )
+* ENH: Add element reference data reading/writing to TDB parser ( :issue:`240` )
+* DOC: Typo in documentation. Thanks @jwsiegel2150 ( :issue:`237` )
+* FIX: SymPy namespace clash with TDBs, and other deprecation fixes ( :issue:`234` )
+* DOC: Update installation instructions ( :issue:`241` )
+* MNT: Relax dask requirements to the minimum required for `scheduler=` syntax ( :issue:`223` )
+
 0.8 (2019-05-31)
 ----------------
 
