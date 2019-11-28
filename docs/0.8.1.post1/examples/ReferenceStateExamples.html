@@ -1,0 +1,378 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Calculations with Reference States &mdash; pycalphad 0.8.1.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../_static/jquery.js"></script>
+        <script type="text/javascript" src="../_static/underscore.js"></script>
+        <script type="text/javascript" src="../_static/doctools.js"></script>
+        <script type="text/javascript" src="../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Calculate and Plot Activity" href="PlotActivity.html" />
+    <link rel="prev" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" href="TernaryExamples.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.1.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a></li>
+<li class="toctree-l2"><a class="reference internal" href="BinaryExamples.html#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Calculations with Reference States</a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#experimental-reference-states-formation-and-mixing-energy">Experimental Reference States: Formation and Mixing Energy</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#enthalpy-of-mixing">Enthalpy of mixing</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#enthalpy-of-formation-convex-hull">Enthalpy of formation - convex hull</a></li>
+</ul>
+</li>
+<li class="toctree-l3"><a class="reference internal" href="#special-mix-reference-state">Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State</a></li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Calculations with Reference States</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/ReferenceStateExamples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="calculations-with-reference-states">
+<h1>Calculations with Reference States<a class="headerlink" href="#calculations-with-reference-states" title="Permalink to this headline">¶</a></h1>
+<div class="section" id="experimental-reference-states-formation-and-mixing-energy">
+<h2>Experimental Reference States: Formation and Mixing Energy<a class="headerlink" href="#experimental-reference-states-formation-and-mixing-energy" title="Permalink to this headline">¶</a></h2>
+<p>By default, energies calculated with pycalphad (e.g. <code class="docutils literal notranslate"><span class="pre">GM</span></code>, <code class="docutils literal notranslate"><span class="pre">HM</span></code>,
+etc.) are the absolute energies as defined in the database and are not
+calculated with respect to any reference state.</p>
+<p>pycalphad <code class="docutils literal notranslate"><span class="pre">Model</span></code> objects allow the reference for the pure components
+to be set to arbitrary phases and temperature/pressure conditions
+through the <code class="docutils literal notranslate"><span class="pre">shift_reference_state</span></code> method, which creates new
+properties for the energies that are referenced to the new reference
+state, <code class="docutils literal notranslate"><span class="pre">GMR</span></code>, <code class="docutils literal notranslate"><span class="pre">HMR</span></code>, <code class="docutils literal notranslate"><span class="pre">SMR</span></code>, and <code class="docutils literal notranslate"><span class="pre">CPMR</span></code>.</p>
+<div class="section" id="enthalpy-of-mixing">
+<h3>Enthalpy of mixing<a class="headerlink" href="#enthalpy-of-mixing" title="Permalink to this headline">¶</a></h3>
+<p>The enthalpy of mixing in the liquid, analogous to what would be
+measured experimentally, is calculated and plotted below with the
+reference states of the pure elements both set to the liquid phase. No
+temperature and pressure are specified as we would like the reference
+state to be calculated with respect to the calculation temperature.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+</pre></div>
+</div>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;nbre_liu.tdb&quot;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NB&quot;</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
+
+<span class="c1"># Create reference states</span>
+<span class="n">Nb_ref</span> <span class="o">=</span> <span class="n">ReferenceState</span><span class="p">(</span><span class="s2">&quot;NB&quot;</span><span class="p">,</span> <span class="s2">&quot;LIQUID_RENB&quot;</span><span class="p">)</span>
+<span class="n">Re_ref</span> <span class="o">=</span> <span class="n">ReferenceState</span><span class="p">(</span><span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="s2">&quot;LIQUID_RENB&quot;</span><span class="p">)</span>
+<span class="n">liq_refstates</span> <span class="o">=</span> <span class="p">[</span><span class="n">Nb_ref</span><span class="p">,</span> <span class="n">Re_ref</span><span class="p">]</span>
+
+<span class="c1"># Create the model and shift the reference state</span>
+<span class="n">mod_liq</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s2">&quot;LIQUID_RENB&quot;</span><span class="p">)</span>
+<span class="n">mod_liq</span><span class="o">.</span><span class="n">shift_reference_state</span><span class="p">(</span><span class="n">liq_refstates</span><span class="p">,</span> <span class="n">dbf</span><span class="p">)</span>
+<span class="n">calc_models</span> <span class="o">=</span> <span class="p">{</span><span class="s2">&quot;LIQUID_RENB&quot;</span><span class="p">:</span> <span class="n">mod_liq</span><span class="p">}</span>
+
+<span class="c1"># Calculate HMR for the liquid at 2800 K from X(RE)=0 to X(RE)=1</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2800</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;RE&quot;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s2">&quot;LIQUID_RENB&quot;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">2800</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;HMR&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">calc_models</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;RE&#39;</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">HMR</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(RE)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Nb-Re CHI Mixing Enthalpy&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/ReferenceStateExamples_2_0.png" src="../_images/ReferenceStateExamples_2_0.png" />
+</div>
+<div class="section" id="enthalpy-of-formation-convex-hull">
+<h3>Enthalpy of formation - convex hull<a class="headerlink" href="#enthalpy-of-formation-convex-hull" title="Permalink to this headline">¶</a></h3>
+<p>Formation enthalpies are often reported in the literature with respect
+to the pure elements in their stable phase at 298.15 K. The enthalpy of
+formation of the phases in equilibrium, analogous to what would be
+measured experimentally, is calculated and plotted below for T=2800 K,
+with the reference states of the pure elements both set to the stable
+phases and fixed at 298.15 K and 1 atm.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">equilibrium</span><span class="p">,</span> <span class="n">Model</span><span class="p">,</span> <span class="n">ReferenceState</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;nbre_liu.tdb&quot;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NB&quot;</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="c1"># Create reference states</span>
+<span class="n">Nb_ref</span> <span class="o">=</span> <span class="n">ReferenceState</span><span class="p">(</span><span class="s2">&quot;NB&quot;</span><span class="p">,</span> <span class="s2">&quot;BCC_RENB&quot;</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">})</span>
+<span class="n">Re_ref</span> <span class="o">=</span> <span class="n">ReferenceState</span><span class="p">(</span><span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="s2">&quot;HCP_RENB&quot;</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mf">298.15</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">})</span>
+
+<span class="c1"># Create the models for each phase and shift them all by the same reference states.</span>
+<span class="n">eq_models</span> <span class="o">=</span> <span class="p">{}</span>
+<span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+    <span class="n">mod</span> <span class="o">=</span> <span class="n">Model</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">)</span>
+    <span class="n">mod</span><span class="o">.</span><span class="n">shift_reference_state</span><span class="p">([</span><span class="n">Nb_ref</span><span class="p">,</span> <span class="n">Re_ref</span><span class="p">],</span> <span class="n">dbf</span><span class="p">)</span>
+    <span class="n">eq_models</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span>
+
+<span class="c1"># Calculate HMR at 2800 K from X(RE)=0 to X(RE)=1</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="mi">2800</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s2">&quot;RE&quot;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.01</span><span class="p">)}</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">equilibrium</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s2">&quot;HMR&quot;</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">eq_models</span><span class="p">)</span>
+
+<span class="c1"># Find the groups of unique phases in equilibrium e.g. [CHI_RENB] and [CHI_RENB, HCP_RENB]</span>
+<span class="n">unique_phase_sets</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">unique</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+<span class="k">for</span> <span class="n">phase_set</span> <span class="ow">in</span> <span class="n">unique_phase_sets</span><span class="p">:</span>
+    <span class="n">label</span> <span class="o">=</span> <span class="s1">&#39;+&#39;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="n">ph</span> <span class="k">for</span> <span class="n">ph</span> <span class="ow">in</span> <span class="n">phase_set</span> <span class="k">if</span> <span class="n">ph</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">])</span>
+    <span class="c1"># composition indices with the same unique phase</span>
+    <span class="n">unique_phase_idx</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span> <span class="o">==</span> <span class="n">phase_set</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="n">masked_result</span> <span class="o">=</span> <span class="n">result</span><span class="o">.</span><span class="n">isel</span><span class="p">(</span><span class="n">X_RE</span><span class="o">=</span><span class="n">unique_phase_idx</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">plot</span><span class="p">(</span><span class="n">masked_result</span><span class="o">.</span><span class="n">X_RE</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">masked_result</span><span class="o">.</span><span class="n">HMR</span><span class="o">.</span><span class="n">squeeze</span><span class="p">(),</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="n">label</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(RE)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;HM_FORM&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Nb-Re Formation Enthalpy (T=2800 K)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/ReferenceStateExamples_4_0.png" src="../_images/ReferenceStateExamples_4_0.png" />
+</div>
+</div>
+<div class="section" id="special-mix-reference-state">
+<h2>Special <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> Reference State<a class="headerlink" href="#special-mix-reference-state" title="Permalink to this headline">¶</a></h2>
+<p>pycalphad also includes special mixing reference state that is
+referenced to the endmembers for that phase with the <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> suffix
+(<code class="docutils literal notranslate"><span class="pre">GM_MIX</span></code>, <code class="docutils literal notranslate"><span class="pre">HM_MIX</span></code>, <code class="docutils literal notranslate"><span class="pre">SM_MIX</span></code>, <code class="docutils literal notranslate"><span class="pre">CPM_MIX</span></code>). This is particularly
+useful for seeing how the mixing contributions from physical or excess
+models affect the energy. The <code class="docutils literal notranslate"><span class="pre">_MIX</span></code> properties are set by default and
+no instantiation of <code class="docutils literal notranslate"><span class="pre">Model</span></code> objects and calling
+<code class="docutils literal notranslate"><span class="pre">shift_reference_state</span></code> is required.</p>
+<p>Below is an example for calculating this endmember-referenced mixing
+enthalpy for the <span class="math notranslate nohighlight">\(\chi\)</span> phase in Nb-Re. Notice that the four
+endmembers have a mixing enthalpy of zero.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span>
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s2">&quot;nbre_liu.tdb&quot;</span><span class="p">)</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s2">&quot;NB&quot;</span><span class="p">,</span> <span class="s2">&quot;RE&quot;</span><span class="p">,</span> <span class="s2">&quot;VA&quot;</span><span class="p">]</span>
+
+<span class="c1"># Calculate HMR for the Chi at 2800 K from X(RE)=0 to X(RE)=1</span>
+<span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="s2">&quot;CHI_RENB&quot;</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">2800</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">)</span>
+
+<span class="c1"># Plot</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;RE&#39;</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">HM_MIX</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">label</span><span class="o">=</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(RE)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;HM_MIX&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_title</span><span class="p">(</span><span class="s1">&#39;Nb-Re CHI Mixing Enthalpy&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">()</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/ReferenceStateExamples_6_0.png" src="../_images/ReferenceStateExamples_6_0.png" />
+</div>
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="PlotActivity.html" class="btn btn-neutral float-right" title="Calculate and Plot Activity" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="TernaryExamples.html" class="btn btn-neutral float-left" title="Plotting Ternary Phase Diagrams and Using Triangular Axes" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

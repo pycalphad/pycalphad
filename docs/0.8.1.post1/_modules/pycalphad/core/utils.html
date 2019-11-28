@@ -1,0 +1,680 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.utils &mdash; pycalphad 0.8.1.post1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.1.post1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.utils</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.utils</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The utils module handles helper routines for equilibrium calculation.</span>
+<span class="sd">&quot;&quot;&quot;</span>
+<span class="kn">from</span> <span class="nn">__future__</span> <span class="kn">import</span> <span class="n">division</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.halton</span> <span class="kn">import</span> <span class="n">halton</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">MIN_SITE_FRACTION</span>
+<span class="kn">from</span> <span class="nn">sympy.utilities.lambdify</span> <span class="kn">import</span> <span class="n">lambdify</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">operator</span>
+<span class="kn">import</span> <span class="nn">functools</span>
+<span class="kn">import</span> <span class="nn">itertools</span>
+<span class="kn">import</span> <span class="nn">collections</span>
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="c1"># Only available in numpy 1.10 and newer</span>
+    <span class="kn">from</span> <span class="nn">numpy</span> <span class="kn">import</span> <span class="n">broadcast_to</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="k">def</span> <span class="nf">broadcast_to</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">shape</span><span class="p">):</span>
+        <span class="s2">&quot;Broadcast an array to a desired shape. Returns a view.&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">broadcast_arrays</span><span class="p">(</span><span class="n">arr</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">shape</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">bool</span><span class="p">))[</span><span class="mi">0</span><span class="p">]</span>
+
+
+<div class="viewcode-block" id="point_sample"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.point_sample">[docs]</a><span class="k">def</span> <span class="nf">point_sample</span><span class="p">(</span><span class="n">comp_count</span><span class="p">,</span> <span class="n">pdof</span><span class="o">=</span><span class="mi">10</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Sample &#39;pdof * (sum(comp_count) - len(comp_count))&#39; points in</span>
+<span class="sd">    composition space for the sublattice configuration specified</span>
+<span class="sd">    by &#39;comp_count&#39;. Points are sampled quasi-randomly from a Halton sequence.</span>
+<span class="sd">    A Halton sequence is like a uniform random distribution, but the</span>
+<span class="sd">    result will always be the same for a given &#39;comp_count&#39; and &#39;pdof&#39;.</span>
+<span class="sd">    Note: For systems with only one component, only one point will be</span>
+<span class="sd">    returned, regardless of &#39;pdof&#39;. This is because the degrees of freedom</span>
+<span class="sd">    are zero for that case.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    comp_count : list</span>
+<span class="sd">        Number of components in each sublattice.</span>
+<span class="sd">    pdof : int</span>
+<span class="sd">        Number of points to sample per degree of freedom.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ndarray of generated points satisfying the mass balance.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; comps = [8,1] # 8 components in sublattice 1; only 1 in sublattice 2</span>
+<span class="sd">    &gt;&gt;&gt; pts = point_sample(comps, pdof=20) # 7 d.o.f, returns a 140x7 ndarray</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Generate Halton sequence with appropriate dimensions and size</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="n">halton</span><span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">comp_count</span><span class="p">),</span>
+                 <span class="n">pdof</span> <span class="o">*</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="n">comp_count</span><span class="p">)</span> <span class="o">-</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_count</span><span class="p">)),</span> <span class="n">scramble</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+    <span class="c1"># Convert low-discrepancy sequence to normalized exponential</span>
+    <span class="c1"># This will be uniformly distributed over the simplices</span>
+    <span class="n">pts</span> <span class="o">=</span> <span class="o">-</span><span class="n">np</span><span class="o">.</span><span class="n">log</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span>
+    <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="n">comp_count</span><span class="p">:</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">cur_idx</span> <span class="o">+</span> <span class="n">ctx</span>
+        <span class="n">pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">pts</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">end_idx</span>
+
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">pts</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">pts</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">atleast_2d</span><span class="p">([</span><span class="mi">1</span><span class="p">]</span> <span class="o">*</span> <span class="nb">len</span><span class="p">(</span><span class="n">comp_count</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">pts</span></div>
+
+<div class="viewcode-block" id="make_callable"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.make_callable">[docs]</a><span class="k">def</span> <span class="nf">make_callable</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">mode</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Take a SymPy object and create a callable function.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    model, SymPy object</span>
+<span class="sd">        Abstract representation of function</span>
+<span class="sd">    variables, list</span>
+<span class="sd">        Input variables, ordered in the way the return function will expect</span>
+<span class="sd">    mode, [&#39;numpy&#39;, &#39;numba&#39;, &#39;sympy&#39;], optional</span>
+<span class="sd">        Method to use when &#39;compiling&#39; the function. SymPy mode is</span>
+<span class="sd">        slow and should only be used for debugging. If Numba is installed,</span>
+<span class="sd">        it can offer speed-ups when calling the energy function many</span>
+<span class="sd">        times on multi-core CPUs.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Function that takes arguments in the same order as &#39;variables&#39;</span>
+<span class="sd">    and returns the energy according to &#39;model&#39;.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    None yet.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">energy</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="n">mode</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">mode</span> <span class="o">=</span> <span class="s1">&#39;numpy&#39;</span>
+
+    <span class="k">if</span> <span class="n">mode</span> <span class="o">==</span> <span class="s1">&#39;sympy&#39;</span><span class="p">:</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="k">lambda</span> <span class="o">*</span><span class="n">vs</span><span class="p">:</span> <span class="n">model</span><span class="o">.</span><span class="n">subs</span><span class="p">(</span><span class="nb">zip</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">vs</span><span class="p">))</span><span class="o">.</span><span class="n">evalf</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">energy</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">),</span> <span class="n">model</span><span class="p">,</span> <span class="n">dummify</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span>
+                          <span class="n">modules</span><span class="o">=</span><span class="n">mode</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">energy</span></div>
+
+<div class="viewcode-block" id="sizeof_fmt"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.sizeof_fmt">[docs]</a><span class="k">def</span> <span class="nf">sizeof_fmt</span><span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">suffix</span><span class="o">=</span><span class="s1">&#39;B&#39;</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Human-readable string for a number of bytes.</span>
+<span class="sd">    http://stackoverflow.com/questions/1094841/reusable-library-to-get-human-readable-version-of-file-size</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">for</span> <span class="n">unit</span> <span class="ow">in</span> <span class="p">[</span><span class="s1">&#39;&#39;</span><span class="p">,</span> <span class="s1">&#39;K&#39;</span><span class="p">,</span> <span class="s1">&#39;M&#39;</span><span class="p">,</span> <span class="s1">&#39;G&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;E&#39;</span><span class="p">,</span> <span class="s1">&#39;Z&#39;</span><span class="p">]:</span>
+        <span class="k">if</span> <span class="nb">abs</span><span class="p">(</span><span class="n">num</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mf">1000.0</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%3.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="n">unit</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span>
+        <span class="n">num</span> <span class="o">/=</span> <span class="mf">1000.0</span>
+    <span class="k">return</span> <span class="s2">&quot;</span><span class="si">%.1f%s%s</span><span class="s2">&quot;</span> <span class="o">%</span> <span class="p">(</span><span class="n">num</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="n">suffix</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="unpack_condition"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_condition">[docs]</a><span class="k">def</span> <span class="nf">unpack_condition</span><span class="p">(</span><span class="n">tup</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Convert a condition to a list of values.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Rules for keys of conditions dicts:</span>
+<span class="sd">    (1) If it&#39;s numeric, treat as a point value</span>
+<span class="sd">    (2) If it&#39;s a tuple with one element, treat as a point value</span>
+<span class="sd">    (3) If it&#39;s a tuple with two elements, treat as lower/upper limits and guess a step size.</span>
+<span class="sd">    (4) If it&#39;s a tuple with three elements, treat as lower/upper/step</span>
+<span class="sd">    (5) If it&#39;s a list, ndarray or other non-tuple ordered iterable, use those values directly.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">])]</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span> <span class="o">==</span> <span class="mi">3</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">tup</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">1</span><span class="p">],</span> <span class="n">tup</span><span class="p">[</span><span class="mi">2</span><span class="p">],</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Condition tuple is length </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">tup</span><span class="p">)))</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">tup</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">tup</span><span class="p">]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="p">[</span><span class="nb">float</span><span class="p">(</span><span class="n">tup</span><span class="p">)]</span></div>
+
+<div class="viewcode-block" id="unpack_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_phases">[docs]</a><span class="k">def</span> <span class="nf">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">):</span>
+    <span class="s2">&quot;Convert a phases list/dict into a sorted list.&quot;</span>
+    <span class="n">active_phases</span> <span class="o">=</span> <span class="kc">None</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="p">(</span><span class="nb">list</span><span class="p">,</span> <span class="nb">tuple</span><span class="p">,</span> <span class="nb">set</span><span class="p">)):</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="nb">dict</span><span class="p">):</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">([</span><span class="n">phn</span> <span class="k">for</span> <span class="n">phn</span><span class="p">,</span> <span class="n">status</span> <span class="ow">in</span> <span class="n">phases</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> \
+            <span class="k">if</span> <span class="n">status</span> <span class="o">==</span> <span class="s1">&#39;entered&#39;</span><span class="p">])</span>
+    <span class="k">elif</span> <span class="nb">type</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="ow">is</span> <span class="nb">str</span><span class="p">:</span>
+        <span class="n">active_phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phases</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">active_phases</span></div>
+
+<div class="viewcode-block" id="generate_dof"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.generate_dof">[docs]</a><span class="k">def</span> <span class="nf">generate_dof</span><span class="p">(</span><span class="n">phase</span><span class="p">,</span> <span class="n">active_comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accept a Phase object and a set() of the active components.</span>
+<span class="sd">    Return a tuple of variable names and the sublattice degrees of freedom.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="n">sublattice_dof</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">for</span> <span class="n">idx</span><span class="p">,</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="nb">enumerate</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
+        <span class="n">dof</span> <span class="o">=</span> <span class="mi">0</span>
+        <span class="k">for</span> <span class="n">component</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">active_comps</span><span class="p">)):</span>
+            <span class="n">variables</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">idx</span><span class="p">,</span> <span class="n">component</span><span class="p">))</span>
+            <span class="n">dof</span> <span class="o">+=</span> <span class="mi">1</span>
+        <span class="n">sublattice_dof</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">dof</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">variables</span><span class="p">,</span> <span class="n">sublattice_dof</span></div>
+
+<div class="viewcode-block" id="endmember_matrix"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.endmember_matrix">[docs]</a><span class="k">def</span> <span class="nf">endmember_matrix</span><span class="p">(</span><span class="n">dof</span><span class="p">,</span> <span class="n">vacancy_indices</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Accept the number of components in each sublattice.</span>
+<span class="sd">    Return a matrix corresponding to the compositions of all endmembers.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dof : list of int</span>
+<span class="sd">        Number of components in each sublattice.</span>
+<span class="sd">    vacancy_indices, list of list of int, optional</span>
+<span class="sd">        If vacancies are present in every sublattice, specify their indices</span>
+<span class="sd">        in each sublattice to ensure the &quot;pure vacancy&quot; endmembers are excluded.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    Sublattice configuration like: `(AL, NI, VA):(AL, NI, VA):(VA)`</span>
+<span class="sd">    &gt;&gt;&gt; endmember_matrix([3,3,1], vacancy_indices=[[2], [2], [0]])</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">total_endmembers</span> <span class="o">=</span> <span class="n">functools</span><span class="o">.</span><span class="n">reduce</span><span class="p">(</span><span class="n">operator</span><span class="o">.</span><span class="n">mul</span><span class="p">,</span> <span class="n">dof</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+    <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">((</span><span class="n">total_endmembers</span><span class="p">,</span> <span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">)),</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float</span><span class="p">)</span>
+    <span class="n">dof_arrays</span> <span class="o">=</span> <span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">eye</span><span class="p">(</span><span class="n">d</span><span class="p">)</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span> <span class="k">for</span> <span class="n">d</span> <span class="ow">in</span> <span class="n">dof</span><span class="p">]</span>
+    <span class="n">row_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="k">for</span> <span class="n">row</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">dof_arrays</span><span class="p">):</span>
+        <span class="n">res_matrix</span><span class="p">[</span><span class="n">row_idx</span><span class="p">,</span> <span class="p">:]</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">concatenate</span><span class="p">(</span><span class="n">row</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+        <span class="n">row_idx</span> <span class="o">+=</span> <span class="mi">1</span>
+    <span class="k">if</span> <span class="n">vacancy_indices</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">vacancy_indices</span><span class="p">)</span> <span class="o">==</span> <span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">):</span>
+        <span class="n">dof_adj</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="nb">sum</span><span class="p">(</span><span class="n">dof</span><span class="p">[</span><span class="mi">0</span><span class="p">:</span><span class="n">i</span><span class="p">])</span> <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">dof</span><span class="p">))])</span>
+        <span class="k">for</span> <span class="n">vacancy_em</span> <span class="ow">in</span> <span class="n">itertools</span><span class="o">.</span><span class="n">product</span><span class="p">(</span><span class="o">*</span><span class="n">vacancy_indices</span><span class="p">):</span>
+            <span class="n">indices</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">vacancy_em</span><span class="p">)</span> <span class="o">+</span> <span class="n">dof_adj</span>
+            <span class="n">row_idx_to_delete</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">where</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">indices</span><span class="p">]</span> <span class="o">==</span> <span class="mi">1</span><span class="p">,</span>
+                                                <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">))</span>
+            <span class="n">res_matrix</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">delete</span><span class="p">(</span><span class="n">res_matrix</span><span class="p">,</span> <span class="p">(</span><span class="n">row_idx_to_delete</span><span class="p">),</span> <span class="n">axis</span><span class="o">=</span><span class="mi">0</span><span class="p">)</span>
+    <span class="c1"># Adjust site fractions to the numerical limit</span>
+    <span class="n">cur_idx</span> <span class="o">=</span> <span class="mi">0</span>
+    <span class="n">res_matrix</span><span class="p">[</span><span class="n">res_matrix</span> <span class="o">==</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">MIN_SITE_FRACTION</span>
+    <span class="k">for</span> <span class="n">ctx</span> <span class="ow">in</span> <span class="n">dof</span><span class="p">:</span>
+        <span class="n">end_idx</span> <span class="o">=</span> <span class="n">cur_idx</span> <span class="o">+</span> <span class="n">ctx</span>
+        <span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span> <span class="o">/=</span> <span class="n">res_matrix</span><span class="p">[:,</span> <span class="n">cur_idx</span><span class="p">:</span><span class="n">end_idx</span><span class="p">]</span><span class="o">.</span><span class="n">sum</span><span class="p">(</span><span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)[:,</span> <span class="kc">None</span><span class="p">]</span>
+        <span class="n">cur_idx</span> <span class="o">=</span> <span class="n">end_idx</span>
+    <span class="k">return</span> <span class="n">res_matrix</span></div>
+
+<div class="viewcode-block" id="unpack_kwarg"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_kwarg">[docs]</a><span class="k">def</span> <span class="nf">unpack_kwarg</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">default_arg</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Keyword arguments in pycalphad can be passed as a constant value, a</span>
+<span class="sd">    dict of phase names and values, or a list containing both of these. If</span>
+<span class="sd">    the latter, then the dict is checked first; if the phase of interest is not</span>
+<span class="sd">    there, then the constant value is used.</span>
+
+<span class="sd">    This function is a way to construct defaultdicts out of keyword arguments.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    kwarg_obj : dict, iterable, or None</span>
+<span class="sd">        Argument to unpack into a defaultdict</span>
+<span class="sd">    default_arg : object</span>
+<span class="sd">        Default value to use if iterable isn&#39;t specified</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    defaultdict for the keyword argument of interest</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; test_func = lambda **kwargs: print(unpack_kwarg(&#39;opt&#39;))</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt=100)</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt={&#39;FCC_A1&#39;: 50, &#39;BCC_B2&#39;: 10})</span>
+<span class="sd">    &gt;&gt;&gt; test_func(opt=[{&#39;FCC_A1&#39;: 30}, 200])</span>
+<span class="sd">    &gt;&gt;&gt; test_func()</span>
+<span class="sd">    &gt;&gt;&gt; test_func2 = lambda **kwargs: print(unpack_kwarg(&#39;opt&#39;, default_arg=1))</span>
+<span class="sd">    &gt;&gt;&gt; test_func2()</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">default_arg</span><span class="p">)</span>
+
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+        <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">)</span>
+    <span class="c1"># kwarg_obj is a list containing a dict and a default</span>
+    <span class="c1"># For now at least, we don&#39;t treat ndarrays the same as other iterables</span>
+    <span class="c1"># ndarrays are assumed to be numeric arrays containing &quot;default values&quot;, so don&#39;t match here</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">)</span> <span class="ow">and</span> <span class="ow">not</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">kwarg_obj</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">):</span>
+        <span class="k">for</span> <span class="n">element</span> <span class="ow">in</span> <span class="n">kwarg_obj</span><span class="p">:</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">element</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+                <span class="n">new_dict</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">element</span><span class="p">)</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># element=element syntax to silence var-from-loop warning</span>
+                <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span>
+                    <span class="k">lambda</span> <span class="n">element</span><span class="o">=</span><span class="n">element</span><span class="p">:</span> <span class="n">element</span><span class="p">,</span> <span class="n">new_dict</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="n">kwarg_obj</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">pass</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">new_dict</span> <span class="o">=</span> <span class="n">collections</span><span class="o">.</span><span class="n">defaultdict</span><span class="p">(</span><span class="k">lambda</span><span class="p">:</span> <span class="n">kwarg_obj</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">new_dict</span></div>
+
+
+<div class="viewcode-block" id="unpack_components"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.unpack_components">[docs]</a><span class="k">def</span> <span class="nf">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Thermodynamic database containing elements and species.</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    set</span>
+<span class="sd">        Set of Species objects</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># Constrain possible components to those within phase&#39;s d.o.f</span>
+    <span class="c1"># Assume for the moment that comps contains a list of pure element strings</span>
+    <span class="c1"># We want to add all the species which can be created by a combination of</span>
+    <span class="c1"># the user-specified pure elements</span>
+    <span class="n">species_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">s</span><span class="o">.</span><span class="n">name</span><span class="p">:</span> <span class="n">s</span> <span class="k">for</span> <span class="n">s</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">species</span><span class="p">}</span>
+    <span class="n">possible_comps</span> <span class="o">=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="n">species_dict</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="n">x</span><span class="p">,</span> <span class="n">x</span><span class="p">))</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">}</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">possible_comps</span><span class="p">]</span>
+    <span class="c1"># Flatten nested list</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">]</span>
+    <span class="n">eligible_species_from_database</span> <span class="o">=</span> <span class="p">{</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">species</span> <span class="k">if</span>
+                                      <span class="nb">set</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="n">desired_active_pure_elements</span><span class="p">)}</span>
+    <span class="k">return</span> <span class="n">eligible_species_from_database</span></div>
+
+
+<div class="viewcode-block" id="get_pure_elements"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.get_pure_elements">[docs]</a><span class="k">def</span> <span class="nf">get_pure_elements</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a list of pure elements in the system.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        A Database object</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        A list of component names (species and pure elements)</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        A list of pure elements in the Database</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">comps</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">unpack_components</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">))</span>
+    <span class="n">components</span> <span class="o">=</span> <span class="p">[</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">comps</span><span class="p">]</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="nb">list</span><span class="p">(</span><span class="n">x</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">components</span><span class="p">]</span>
+    <span class="n">desired_active_pure_elements</span> <span class="o">=</span> <span class="p">[</span><span class="n">el</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">constituents</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">for</span> <span class="n">el</span> <span class="ow">in</span> <span class="n">constituents</span><span class="p">]</span>
+    <span class="n">pure_elements</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="nb">set</span><span class="p">([</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">desired_active_pure_elements</span> <span class="k">if</span> <span class="n">x</span> <span class="o">!=</span> <span class="s1">&#39;VA&#39;</span><span class="p">]))</span>
+    <span class="k">return</span> <span class="n">pure_elements</span></div>
+
+
+<div class="viewcode-block" id="filter_phases"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.filter_phases">[docs]</a><span class="k">def</span> <span class="nf">filter_phases</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">candidate_phases</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Return phases that are valid for equilibrium calculations for the given database and components</span>
+
+<span class="sd">    Filters out phases that</span>
+<span class="sd">    * Have no active components in any sublattice of a phase</span>
+<span class="sd">    * Are disordered phases in an order-disorder model</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Thermodynamic database containing the relevant parameters.</span>
+<span class="sd">    comps : list</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+<span class="sd">    candidate_phases : list</span>
+<span class="sd">        Names of phases to consider in the calculation, if not passed all phases from DBF will be considered</span>
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    list</span>
+<span class="sd">        Sorted list of phases that are valid for the Database and components</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># TODO: filter phases that can not charge balance</span>
+
+    <span class="k">def</span> <span class="nf">all_sublattices_active</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">phase</span><span class="p">):</span>
+        <span class="n">active_sublattices</span> <span class="o">=</span> <span class="p">[</span><span class="nb">len</span><span class="p">(</span><span class="nb">set</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">subl</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">0</span> <span class="k">for</span>
+                              <span class="n">subl</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">]</span>
+        <span class="k">return</span> <span class="nb">all</span><span class="p">(</span><span class="n">active_sublattices</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">candidate_phases</span> <span class="o">==</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">candidate_phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">candidate_phases</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">candidate_phases</span><span class="p">)</span><span class="o">.</span><span class="n">intersection</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+    <span class="n">disordered_phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">)</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span><span class="p">]</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">phase</span> <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">candidate_phases</span> <span class="k">if</span>
+                <span class="n">all_sublattices_active</span><span class="p">(</span><span class="n">comps</span><span class="p">,</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">])</span> <span class="ow">and</span>
+                <span class="p">(</span><span class="n">phase</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">disordered_phases</span> <span class="ow">or</span> <span class="p">(</span><span class="n">phase</span> <span class="ow">in</span> <span class="n">disordered_phases</span> <span class="ow">and</span> 
+                <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">)</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">candidate_phases</span><span class="p">))]</span>
+    <span class="k">return</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="extract_parameters"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.extract_parameters">[docs]</a><span class="k">def</span> <span class="nf">extract_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Extract symbols and values from parameters.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    parameters : dict</span>
+<span class="sd">        Dictionary of parameters</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    tuple</span>
+<span class="sd">        Tuple of parameter symbols and parameter values</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">param_symbols</span><span class="p">,</span> <span class="n">param_values</span> <span class="o">=</span> <span class="nb">zip</span><span class="p">(</span><span class="o">*</span><span class="p">[(</span><span class="n">wrap_symbol</span><span class="p">(</span><span class="n">key</span><span class="p">),</span> <span class="n">val</span><span class="p">)</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">val</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">parameters</span><span class="o">.</span><span class="n">items</span><span class="p">(),</span>
+                                                                              <span class="n">key</span><span class="o">=</span><span class="n">operator</span><span class="o">.</span><span class="n">itemgetter</span><span class="p">(</span><span class="mi">0</span><span class="p">))])</span>
+        <span class="n">param_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">param_values</span><span class="p">,</span> <span class="n">dtype</span><span class="o">=</span><span class="n">np</span><span class="o">.</span><span class="n">float64</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">param_symbols</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">param_values</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="mi">0</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">param_symbols</span><span class="p">,</span> <span class="n">param_values</span></div>
+
+
+<div class="viewcode-block" id="instantiate_models"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.instantiate_models">[docs]</a><span class="k">def</span> <span class="nf">instantiate_models</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">symbols_only</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    dbf : Database</span>
+<span class="sd">        Database used to construct the Model instances.</span>
+<span class="sd">    comps : Iterable</span>
+<span class="sd">        Names of components to consider in the calculation.</span>
+<span class="sd">    phases : Iterable</span>
+<span class="sd">        Names of phases to consider in the calculation.</span>
+<span class="sd">    model : Model class, a dict of phase names to Model, or a Iterable of both</span>
+<span class="sd">        Model class to use for each phase.</span>
+<span class="sd">    parameters : dict, optional</span>
+<span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in</span>
+<span class="sd">        the Database.</span>
+<span class="sd">    symbols_only : bool</span>
+<span class="sd">        If True, symbols will be extracted from the parameters dict and used to</span>
+<span class="sd">        construct the Model instances.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    dict</span>
+<span class="sd">        Dictionary of Model instances corresponding to the passed phases.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Model</span>  <span class="c1"># avoid cyclic imports</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="n">parameters</span> <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="p">{}</span>
+    <span class="k">if</span> <span class="n">symbols_only</span><span class="p">:</span>
+        <span class="n">parameters</span><span class="p">,</span> <span class="n">_</span> <span class="o">=</span> <span class="n">extract_parameters</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Model</span><span class="p">):</span>  <span class="c1"># Check that this instance is compatible with phases</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot instantiate models for multiple phases (</span><span class="si">{}</span><span class="s2">) using a Model instance (</span><span class="si">{}</span><span class="s2">, phase: </span><span class="si">{}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases</span><span class="p">,</span> <span class="n">model</span><span class="p">,</span> <span class="n">model</span><span class="o">.</span><span class="n">phase_name</span><span class="p">))</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">if</span> <span class="n">phases</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">!=</span> <span class="n">model</span><span class="o">.</span><span class="n">phase_name</span><span class="p">:</span>
+                <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s2">&quot;Cannot instantiate models because the desired </span><span class="si">{}</span><span class="s2"> phase does not match the Model instance () </span><span class="si">{}</span><span class="s2"> phase.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">phases</span><span class="p">[</span><span class="mi">0</span><span class="p">],</span> <span class="n">model</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">model</span><span class="p">))</span>
+    <span class="n">models_defaultdict</span> <span class="o">=</span> <span class="n">unpack_kwarg</span><span class="p">(</span><span class="n">model</span><span class="p">,</span> <span class="n">Model</span><span class="p">)</span>
+    <span class="n">models_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
+        <span class="n">mod</span> <span class="o">=</span> <span class="n">models_defaultdict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="nb">type</span><span class="p">):</span>
+            <span class="n">models_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">models_dict</span><span class="p">[</span><span class="n">name</span><span class="p">]</span> <span class="o">=</span> <span class="n">mod</span>
+    <span class="k">return</span> <span class="n">models_dict</span></div>
+
+
+<div class="viewcode-block" id="get_state_variables"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.get_state_variables">[docs]</a><span class="k">def</span> <span class="nf">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">conds</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a set of StateVariables defined Model instances and/or conditions.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    models : dict, optional</span>
+<span class="sd">        Dictionary mapping phase names to instances of Model objects</span>
+<span class="sd">    conds : dict, optional</span>
+<span class="sd">        Dictionary mapping pycalphad StateVariables to values</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    set</span>
+<span class="sd">        State variables that are defined in the models and or conditions.</span>
+
+<span class="sd">    Examples</span>
+<span class="sd">    --------</span>
+<span class="sd">    &gt;&gt;&gt; from pycalphad import variables as v</span>
+<span class="sd">    &gt;&gt;&gt; from pycalphad.core.utils import get_state_variables</span>
+<span class="sd">    &gt;&gt;&gt; get_state_variables(conds={v.P: 101325, v.N: 1, v.X(&#39;AL&#39;): 0.2}) == {v.P, v.N, v.T}</span>
+<span class="sd">    True</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">state_vars</span> <span class="o">=</span> <span class="nb">set</span><span class="p">()</span>
+    <span class="k">if</span> <span class="n">models</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">mod</span> <span class="ow">in</span> <span class="n">models</span><span class="o">.</span><span class="n">values</span><span class="p">():</span>
+            <span class="n">state_vars</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">mod</span><span class="o">.</span><span class="n">state_variables</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">conds</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
+            <span class="c1"># StateVariable instances are ok (e.g. P, T, N, V, S),</span>
+            <span class="c1"># however, subclasses (X, Y, MU, NP) are not ok.</span>
+            <span class="k">if</span> <span class="nb">type</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="ow">is</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">:</span>
+                <span class="n">state_vars</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">c</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">state_vars</span></div>
+
+
+<div class="viewcode-block" id="wrap_symbol"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.wrap_symbol">[docs]</a><span class="k">def</span> <span class="nf">wrap_symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="wrap_symbol_symengine"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.utils.wrap_symbol_symengine">[docs]</a><span class="k">def</span> <span class="nf">wrap_symbol_symengine</span><span class="p">(</span><span class="n">obj</span><span class="p">):</span>
+    <span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span><span class="p">,</span> <span class="n">sympify</span>
+    <span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Symbol</span> <span class="k">as</span> <span class="n">Symbol_sympy</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">obj</span>
+    <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">obj</span><span class="p">,</span> <span class="n">Symbol_sympy</span><span class="p">):</span>
+        <span class="k">return</span> <span class="n">sympify</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">Symbol</span><span class="p">(</span><span class="n">obj</span><span class="p">)</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
