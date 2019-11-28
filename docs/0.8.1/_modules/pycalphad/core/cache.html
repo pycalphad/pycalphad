@@ -1,0 +1,394 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.cache &mdash; pycalphad 0.8.1 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.1
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.cache</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.cache</h1><div class="highlight"><pre>
+<span></span><span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">The cache module handles caching of expensive function calls.</span>
+
+<span class="sd">Based on Raymond Hettinger&#39;s backport of lru_cache</span>
+<span class="sd">The difference is _HashedSeq has been modified to use a custom hash function.</span>
+<span class="sd">http://code.activestate.com/recipes/578078-py26-and-py30-backport-of-python-33s-lru-cache/</span>
+<span class="sd">&quot;&quot;&quot;</span>
+
+<span class="k">try</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections.abc</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="k">except</span> <span class="ne">ImportError</span><span class="p">:</span>
+    <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">Iterable</span><span class="p">,</span> <span class="n">Mapping</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">threading</span> <span class="kn">import</span> <span class="n">RLock</span>
+<span class="kn">from</span> <span class="nn">functools</span> <span class="kn">import</span> <span class="n">update_wrapper</span>
+
+
+<div class="viewcode-block" id="fhash"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.cache.fhash">[docs]</a><span class="k">def</span> <span class="nf">fhash</span><span class="p">(</span><span class="n">thing</span><span class="p">):</span>
+    <span class="s2">&quot;Compute a hash of an object. Works on dicts and lists.&quot;</span>
+    <span class="k">try</span><span class="p">:</span>
+        <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="n">thing</span><span class="p">)</span>
+    <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span>
+        <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thing</span><span class="p">,</span> <span class="n">Mapping</span><span class="p">):</span>
+            <span class="k">return</span> <span class="n">fhash</span><span class="p">(</span><span class="nb">sorted</span><span class="p">(</span><span class="n">thing</span><span class="o">.</span><span class="n">items</span><span class="p">()))</span>
+        <span class="k">elif</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">thing</span><span class="p">,</span> <span class="n">Iterable</span><span class="p">):</span>
+            <span class="k">try</span><span class="p">:</span>
+                <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">fhash</span><span class="p">(</span><span class="n">t</span><span class="p">)</span> <span class="k">for</span> <span class="n">t</span> <span class="ow">in</span> <span class="n">thing</span><span class="p">))</span>
+            <span class="k">except</span> <span class="ne">TypeError</span><span class="p">:</span> <span class="c1"># iteration over 0-d array</span>
+                <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">thing</span><span class="p">))</span>
+        <span class="k">raise</span></div>
+
+
+<span class="n">_CacheInfo</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s2">&quot;CacheInfo&quot;</span><span class="p">,</span> <span class="p">[</span><span class="s2">&quot;hits&quot;</span><span class="p">,</span> <span class="s2">&quot;misses&quot;</span><span class="p">,</span> <span class="s2">&quot;maxsize&quot;</span><span class="p">,</span> <span class="s2">&quot;currsize&quot;</span><span class="p">])</span>
+
+<span class="k">class</span> <span class="nc">_HashedSeq</span><span class="p">(</span><span class="nb">list</span><span class="p">):</span>
+    <span class="vm">__slots__</span> <span class="o">=</span> <span class="s1">&#39;hashvalue&#39;</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">tup</span><span class="p">,</span> <span class="nb">hash</span><span class="o">=</span><span class="n">fhash</span><span class="p">):</span>
+        <span class="bp">self</span><span class="p">[:]</span> <span class="o">=</span> <span class="n">tup</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">hashvalue</span> <span class="o">=</span> <span class="nb">hash</span><span class="p">(</span><span class="n">tup</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">hashvalue</span>
+
+<span class="k">def</span> <span class="nf">_make_key</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwds</span><span class="p">,</span> <span class="n">typed</span><span class="p">,</span>
+             <span class="n">kwd_mark</span> <span class="o">=</span> <span class="p">(</span><span class="nb">object</span><span class="p">(),),</span>
+             <span class="n">fasttypes</span> <span class="o">=</span> <span class="p">{</span><span class="nb">int</span><span class="p">,</span> <span class="nb">str</span><span class="p">,</span> <span class="nb">frozenset</span><span class="p">,</span> <span class="nb">type</span><span class="p">(</span><span class="kc">None</span><span class="p">)},</span>
+             <span class="nb">sorted</span><span class="o">=</span><span class="nb">sorted</span><span class="p">,</span> <span class="nb">tuple</span><span class="o">=</span><span class="nb">tuple</span><span class="p">,</span> <span class="nb">type</span><span class="o">=</span><span class="nb">type</span><span class="p">,</span> <span class="nb">len</span><span class="o">=</span><span class="nb">len</span><span class="p">):</span>
+    <span class="s2">&quot;Make a cache key from optionally typed positional and keyword arguments.&quot;</span>
+    <span class="n">key</span> <span class="o">=</span> <span class="n">args</span>
+    <span class="k">if</span> <span class="n">kwds</span><span class="p">:</span>
+        <span class="n">sorted_items</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">kwds</span><span class="o">.</span><span class="n">items</span><span class="p">())</span>
+        <span class="n">key</span> <span class="o">+=</span> <span class="n">kwd_mark</span>
+        <span class="k">for</span> <span class="n">item</span> <span class="ow">in</span> <span class="n">sorted_items</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">+=</span> <span class="n">item</span>
+    <span class="k">if</span> <span class="n">typed</span><span class="p">:</span>
+        <span class="n">key</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">args</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">kwds</span><span class="p">:</span>
+            <span class="n">key</span> <span class="o">+=</span> <span class="nb">tuple</span><span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">v</span><span class="p">)</span> <span class="k">for</span> <span class="n">k</span><span class="p">,</span> <span class="n">v</span> <span class="ow">in</span> <span class="n">sorted_items</span><span class="p">)</span>
+    <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span> <span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span> <span class="ow">in</span> <span class="n">fasttypes</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">key</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+    <span class="k">return</span> <span class="n">_HashedSeq</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+
+<div class="viewcode-block" id="lru_cache"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.cache.lru_cache">[docs]</a><span class="k">def</span> <span class="nf">lru_cache</span><span class="p">(</span><span class="n">maxsize</span><span class="o">=</span><span class="mi">100</span><span class="p">,</span> <span class="n">typed</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Least-recently-used cache decorator.</span>
+
+<span class="sd">    If *maxsize* is set to None, the LRU features are disabled and the cache</span>
+<span class="sd">    can grow without bound.</span>
+
+<span class="sd">    If *typed* is True, arguments of different types will be cached separately.</span>
+<span class="sd">    For example, f(3.0) and f(3) will be treated as distinct calls with</span>
+<span class="sd">    distinct results.</span>
+
+<span class="sd">    Arguments to the cached function must be hashable.</span>
+
+<span class="sd">    View the cache statistics named tuple (hits, misses, maxsize, currsize) with</span>
+<span class="sd">    f.cache_info().  Clear the cache and statistics with f.cache_clear().</span>
+<span class="sd">    Access the underlying function with f.__wrapped__.</span>
+
+<span class="sd">    See:  http://en.wikipedia.org/wiki/Cache_algorithms#Least_Recently_Used</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+
+    <span class="c1"># Users should only access the lru_cache through its public API:</span>
+    <span class="c1">#       cache_info, cache_clear, and f.__wrapped__</span>
+    <span class="c1"># The internals of the lru_cache are encapsulated for thread safety and</span>
+    <span class="c1"># to allow the implementation to change (including a possible C version).</span>
+
+    <span class="k">def</span> <span class="nf">decorating_function</span><span class="p">(</span><span class="n">user_function</span><span class="p">):</span>
+
+        <span class="n">cache</span> <span class="o">=</span> <span class="nb">dict</span><span class="p">()</span>
+        <span class="n">stats</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>                  <span class="c1"># make statistics updateable non-locally</span>
+        <span class="n">HITS</span><span class="p">,</span> <span class="n">MISSES</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span>             <span class="c1"># names for the stats fields</span>
+        <span class="n">make_key</span> <span class="o">=</span> <span class="n">_make_key</span>
+        <span class="n">cache_get</span> <span class="o">=</span> <span class="n">cache</span><span class="o">.</span><span class="n">get</span>           <span class="c1"># bound method to lookup key or return None</span>
+        <span class="n">_len</span> <span class="o">=</span> <span class="nb">len</span>                      <span class="c1"># localize the global len() function</span>
+        <span class="n">lock</span> <span class="o">=</span> <span class="n">RLock</span><span class="p">()</span>                  <span class="c1"># because linkedlist updates aren&#39;t threadsafe</span>
+        <span class="n">root</span> <span class="o">=</span> <span class="p">[]</span>                       <span class="c1"># root of the circular doubly linked list</span>
+        <span class="n">root</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>      <span class="c1"># initialize by pointing to self</span>
+        <span class="n">nonlocal_root</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="p">]</span>                  <span class="c1"># make updateable non-locally</span>
+        <span class="n">PREV</span><span class="p">,</span> <span class="n">NEXT</span><span class="p">,</span> <span class="n">KEY</span><span class="p">,</span> <span class="n">RESULT</span> <span class="o">=</span> <span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mi">2</span><span class="p">,</span> <span class="mi">3</span>    <span class="c1"># names for the link fields</span>
+
+        <span class="k">if</span> <span class="n">maxsize</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+                <span class="c1"># no caching, just do a statistics update after a successful call</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">user_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+                <span class="n">stats</span><span class="p">[</span><span class="n">MISSES</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">elif</span> <span class="n">maxsize</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+                <span class="c1"># simple caching without ordering or size limit</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">make_key</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwds</span><span class="p">,</span> <span class="n">typed</span><span class="p">)</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">cache_get</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">root</span><span class="p">)</span>   <span class="c1"># root used here as a unique not-found sentinel</span>
+                <span class="k">if</span> <span class="n">result</span> <span class="ow">is</span> <span class="ow">not</span> <span class="n">root</span><span class="p">:</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="n">HITS</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                    <span class="k">return</span> <span class="n">result</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">user_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+                <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+                <span class="n">stats</span><span class="p">[</span><span class="n">MISSES</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">else</span><span class="p">:</span>
+
+            <span class="k">def</span> <span class="nf">wrapper</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">):</span>
+                <span class="c1"># size limited caching that tracks accesses by recency</span>
+                <span class="n">key</span> <span class="o">=</span> <span class="n">make_key</span><span class="p">(</span><span class="n">args</span><span class="p">,</span> <span class="n">kwds</span><span class="p">,</span> <span class="n">typed</span><span class="p">)</span>
+                <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                    <span class="n">link</span> <span class="o">=</span> <span class="n">cache_get</span><span class="p">(</span><span class="n">key</span><span class="p">)</span>
+                    <span class="k">if</span> <span class="n">link</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+                        <span class="c1"># record recent use of the key by moving it to the front of the list</span>
+                        <span class="n">root</span><span class="p">,</span> <span class="o">=</span> <span class="n">nonlocal_root</span>
+                        <span class="n">link_prev</span><span class="p">,</span> <span class="n">link_next</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">result</span> <span class="o">=</span> <span class="n">link</span>
+                        <span class="n">link_prev</span><span class="p">[</span><span class="n">NEXT</span><span class="p">]</span> <span class="o">=</span> <span class="n">link_next</span>
+                        <span class="n">link_next</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span> <span class="o">=</span> <span class="n">link_prev</span>
+                        <span class="n">last</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span>
+                        <span class="n">last</span><span class="p">[</span><span class="n">NEXT</span><span class="p">]</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+                        <span class="n">link</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span> <span class="o">=</span> <span class="n">last</span>
+                        <span class="n">link</span><span class="p">[</span><span class="n">NEXT</span><span class="p">]</span> <span class="o">=</span> <span class="n">root</span>
+                        <span class="n">stats</span><span class="p">[</span><span class="n">HITS</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                        <span class="k">return</span> <span class="n">result</span>
+                <span class="n">result</span> <span class="o">=</span> <span class="n">user_function</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwds</span><span class="p">)</span>
+                <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                    <span class="n">root</span><span class="p">,</span> <span class="o">=</span> <span class="n">nonlocal_root</span>
+                    <span class="k">if</span> <span class="n">key</span> <span class="ow">in</span> <span class="n">cache</span><span class="p">:</span>
+                        <span class="c1"># getting here means that this same key was added to the</span>
+                        <span class="c1"># cache while the lock was released.  since the link</span>
+                        <span class="c1"># update is already done, we need only return the</span>
+                        <span class="c1"># computed result and update the count of misses.</span>
+                        <span class="k">pass</span>
+                    <span class="k">elif</span> <span class="n">_len</span><span class="p">(</span><span class="n">cache</span><span class="p">)</span> <span class="o">&gt;=</span> <span class="n">maxsize</span><span class="p">:</span>
+                        <span class="c1"># use the old root to store the new key and result</span>
+                        <span class="n">oldroot</span> <span class="o">=</span> <span class="n">root</span>
+                        <span class="n">oldroot</span><span class="p">[</span><span class="n">KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">key</span>
+                        <span class="n">oldroot</span><span class="p">[</span><span class="n">RESULT</span><span class="p">]</span> <span class="o">=</span> <span class="n">result</span>
+                        <span class="c1"># empty the oldest link and make it the new root</span>
+                        <span class="n">root</span> <span class="o">=</span> <span class="n">nonlocal_root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">oldroot</span><span class="p">[</span><span class="n">NEXT</span><span class="p">]</span>
+                        <span class="n">oldkey</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">KEY</span><span class="p">]</span>
+                        <span class="n">oldvalue</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">RESULT</span><span class="p">]</span>
+                        <span class="n">root</span><span class="p">[</span><span class="n">KEY</span><span class="p">]</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">RESULT</span><span class="p">]</span> <span class="o">=</span> <span class="kc">None</span>
+                        <span class="c1"># now update the cache dictionary for the new links</span>
+                        <span class="k">del</span> <span class="n">cache</span><span class="p">[</span><span class="n">oldkey</span><span class="p">]</span>
+                        <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">oldroot</span>
+                    <span class="k">else</span><span class="p">:</span>
+                        <span class="c1"># put result in a new link at the front of the list</span>
+                        <span class="n">last</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span>
+                        <span class="n">link</span> <span class="o">=</span> <span class="p">[</span><span class="n">last</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="n">key</span><span class="p">,</span> <span class="n">result</span><span class="p">]</span>
+                        <span class="n">last</span><span class="p">[</span><span class="n">NEXT</span><span class="p">]</span> <span class="o">=</span> <span class="n">root</span><span class="p">[</span><span class="n">PREV</span><span class="p">]</span> <span class="o">=</span> <span class="n">cache</span><span class="p">[</span><span class="n">key</span><span class="p">]</span> <span class="o">=</span> <span class="n">link</span>
+                    <span class="n">stats</span><span class="p">[</span><span class="n">MISSES</span><span class="p">]</span> <span class="o">+=</span> <span class="mi">1</span>
+                <span class="k">return</span> <span class="n">result</span>
+
+        <span class="k">def</span> <span class="nf">cache_info</span><span class="p">():</span>
+            <span class="s2">&quot;Report cache statistics.&quot;</span>
+            <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">_CacheInfo</span><span class="p">(</span><span class="n">stats</span><span class="p">[</span><span class="n">HITS</span><span class="p">],</span> <span class="n">stats</span><span class="p">[</span><span class="n">MISSES</span><span class="p">],</span> <span class="n">maxsize</span><span class="p">,</span> <span class="nb">len</span><span class="p">(</span><span class="n">cache</span><span class="p">))</span>
+
+        <span class="k">def</span> <span class="nf">cache_clear</span><span class="p">():</span>
+            <span class="s2">&quot;Clear the cache and cache statistics.&quot;</span>
+            <span class="k">with</span> <span class="n">lock</span><span class="p">:</span>
+                <span class="n">cache</span><span class="o">.</span><span class="n">clear</span><span class="p">()</span>
+                <span class="n">root</span> <span class="o">=</span> <span class="n">nonlocal_root</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+                <span class="n">root</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="n">root</span><span class="p">,</span> <span class="n">root</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">]</span>
+                <span class="n">stats</span><span class="p">[:]</span> <span class="o">=</span> <span class="p">[</span><span class="mi">0</span><span class="p">,</span> <span class="mi">0</span><span class="p">]</span>
+
+        <span class="n">wrapper</span><span class="o">.</span><span class="n">__wrapped__</span> <span class="o">=</span> <span class="n">user_function</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="n">cache_info</span> <span class="o">=</span> <span class="n">cache_info</span>
+        <span class="n">wrapper</span><span class="o">.</span><span class="n">cache_clear</span> <span class="o">=</span> <span class="n">cache_clear</span>
+        <span class="k">return</span> <span class="n">update_wrapper</span><span class="p">(</span><span class="n">wrapper</span><span class="p">,</span> <span class="n">user_function</span><span class="p">)</span>
+
+    <span class="k">return</span> <span class="n">decorating_function</span></div>
+
+
+<span class="n">cacheit</span> <span class="o">=</span> <span class="n">lru_cache</span><span class="p">()</span>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
