@@ -39,7 +39,7 @@ requirements:
     - cython >=0.24
     - cyipopt
     - python-symengine ==0.5.1
-    - symengine ==0.5.1
+    - symengine ==0.5.0
 
   run:
     - python
@@ -54,7 +54,7 @@ requirements:
     - cython >=0.24
     - cyipopt
     - python-symengine ==0.5.1
-    - symengine ==0.5.1
+    - symengine ==0.5.0
 
 build:
   script: python setup.py build_ext && python setup.py install --single-version-externally-managed --record=record.txt
