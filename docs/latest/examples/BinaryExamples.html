@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -186,7 +186,7 @@ calculate isobaric binary phase diagrams.</p>
 are not drawn on the diagram.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
 <span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
 <span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
 </pre></div>
 </div>
@@ -262,8 +262,8 @@ function of composition at a given temperature (2800 K).</p>
 which allow it to take on multiple states for a given overall
 composition. Only the low-energy states are relevant to calculating the
 equilibrium phase diagram.</p>
-<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="k">import</span> <span class="n">phase_legend</span>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
 <span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
 
 <span class="n">legend_handles</span><span class="p">,</span> <span class="n">colorlist</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">my_phases_nbre</span><span class="p">)</span>

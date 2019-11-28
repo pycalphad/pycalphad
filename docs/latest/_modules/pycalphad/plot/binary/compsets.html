@@ -1,0 +1,506 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.plot.binary.compsets &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../../" src="../../../../_static/documentation_options.js"></script>
+        <script type="text/javascript" src="../../../../_static/jquery.js"></script>
+        <script type="text/javascript" src="../../../../_static/underscore.js"></script>
+        <script type="text/javascript" src="../../../../_static/doctools.js"></script>
+        <script type="text/javascript" src="../../../../_static/language_data.js"></script>
+        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8+14.g1a2d627
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.plot.binary.compsets</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.plot.binary.compsets</h1><div class="highlight"><pre>
+<span></span><span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+<span class="kn">import</span> <span class="nn">warnings</span>
+
+<div class="viewcode-block" id="BinaryCompset"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.BinaryCompset">[docs]</a><span class="k">class</span> <span class="nc">BinaryCompset</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Composition set for representations of a phase equilibria in a two</span>
+<span class="sd">    component system with a temperature condition.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    phase_name : str</span>
+<span class="sd">        Name of phase</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Temperature corresponding the the calculation</span>
+<span class="sd">    indep_comp : str</span>
+<span class="sd">        Name of the independent component</span>
+<span class="sd">    composition : float</span>
+<span class="sd">        Composition of the independent component</span>
+<span class="sd">    site_fracs : np.ndarray</span>
+<span class="sd">        Array of floats corresponding to the site fractions.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    In the future, this representation could be phased out if `equilibrium` returned composition sets.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="c1"># tolerances for defining equality between composition sets</span>
+    <span class="n">SITE_FRAC_ATOL</span> <span class="o">=</span> <span class="mf">0.001</span>
+    <span class="n">TEMPERATURE_ATOL</span> <span class="o">=</span> <span class="mf">0.1</span>
+
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">composition</span><span class="p">,</span> <span class="n">site_fracs</span><span class="p">):</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">temperature</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span> <span class="o">=</span> <span class="n">indep_comp</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">composition</span> <span class="o">=</span> <span class="n">composition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span> <span class="o">=</span> <span class="n">site_fracs</span>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="s2">&quot;&lt;BinaryCompset(</span><span class="si">{0}</span><span class="s2">, T=</span><span class="si">{1:0.3f}</span><span class="s2">, X(</span><span class="si">{2}</span><span class="s2">)=</span><span class="si">{3:0.3f}</span><span class="s2">)&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="k">if</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;phase_name&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;site_fracs&#39;</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">hasattr</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="s1">&#39;temperature&#39;</span><span class="p">):</span>
+            <span class="n">same_phase</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">phase_name</span>
+            <span class="n">site_frac_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">SITE_FRAC_ATOL</span><span class="p">))</span>
+            <span class="n">temp_close</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">isclose</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">other</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">atol</span><span class="o">=</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="n">TEMPERATURE_ATOL</span><span class="p">)</span>
+            <span class="k">return</span> <span class="n">same_phase</span> <span class="ow">and</span> <span class="n">site_frac_close</span> <span class="ow">and</span> <span class="n">temp_close</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="kc">False</span>
+
+<div class="viewcode-block" id="BinaryCompset.from_dataset_vertices"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.BinaryCompset.from_dataset_vertices">[docs]</a>    <span class="nd">@classmethod</span>
+    <span class="k">def</span> <span class="nf">from_dataset_vertices</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">ds</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">num_vertex</span><span class="p">):</span>
+        <span class="n">compsets</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="n">Phase</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;Phase&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">T</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">(</span><span class="n">ds</span><span class="p">[</span><span class="s2">&quot;T&quot;</span><span class="p">])</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">X</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;X&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="n">Y</span> <span class="o">=</span> <span class="n">ds</span><span class="p">[</span><span class="s2">&quot;Y&quot;</span><span class="p">]</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="n">num_vertex</span><span class="p">):</span>
+            <span class="n">phase_name</span> <span class="o">=</span> <span class="n">Phase</span><span class="p">[</span><span class="n">i</span><span class="p">]</span>
+            <span class="k">if</span> <span class="n">phase_name</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">compsets</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="bp">cls</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">phase_name</span><span class="p">),</span>
+                                    <span class="n">T</span><span class="p">,</span>
+                                    <span class="n">indep_comp</span><span class="p">,</span>
+                                    <span class="n">X</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">],</span>
+                                    <span class="n">Y</span><span class="p">[</span><span class="n">i</span><span class="p">,</span> <span class="p">:],</span>
+                                    <span class="p">))</span>
+        <span class="k">return</span> <span class="n">compsets</span></div></div>
+
+
+<div class="viewcode-block" id="CompsetPair"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair">[docs]</a><span class="k">class</span> <span class="nc">CompsetPair</span><span class="p">():</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Pair of binary composition sets that make up an equilibrium</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    compsets : list of BinaryCompset</span>
+
+<span class="sd">    Attributes</span>
+<span class="sd">    ----------</span>
+<span class="sd">    compsets : list of BinaryCompset</span>
+<span class="sd">        CompSets sorted by composition</span>
+<span class="sd">    a : BinaryCompset</span>
+<span class="sd">        Composition set in the pair with the lower composition</span>
+<span class="sd">    b : BinaryCompset</span>
+<span class="sd">        Composition set in the pair with the higher composition</span>
+<span class="sd">    phases : list of str</span>
+<span class="sd">        List of phase names, sorted by composition</span>
+<span class="sd">    unique_phases : set of str</span>
+<span class="sd">        Set of phase names</span>
+<span class="sd">    compositions : np.ndarray</span>
+<span class="sd">        Array of compositions, sorted</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Temperature of the 2D compsets</span>
+<span class="sd">    same_phase : bool</span>
+<span class="sd">        Whether the composition sets are for the same phase</span>
+<span class="sd">    mean_composition : float</span>
+<span class="sd">        Mean composition of the CompSets</span>
+<span class="sd">    max_composition : float</span>
+<span class="sd">        Max composition of the CompSets</span>
+<span class="sd">    min_composition : float</span>
+<span class="sd">        Min composition of the CompSets</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">compsets</span><span class="p">):</span>
+        <span class="n">_composition_key_func</span> <span class="o">=</span> <span class="k">lambda</span> <span class="n">c</span><span class="p">:</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span>
+        <span class="n">sorted_compsets</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">compsets</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="n">_composition_key_func</span><span class="p">)</span>
+        <span class="n">phases</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sorted_compsets</span><span class="p">]</span>
+        <span class="n">compositions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">array</span><span class="p">([</span><span class="n">c</span><span class="o">.</span><span class="n">composition</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">sorted_compsets</span><span class="p">])</span>
+        <span class="n">a</span> <span class="o">=</span> <span class="n">sorted_compsets</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span>
+        <span class="n">b</span> <span class="o">=</span> <span class="n">sorted_compsets</span><span class="p">[</span><span class="mi">1</span><span class="p">]</span>
+
+        <span class="bp">self</span><span class="o">.</span><span class="n">_orig_compsets</span> <span class="o">=</span> <span class="n">compsets</span>  <span class="c1"># with original sorting</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span> <span class="o">=</span> <span class="n">sorted_compsets</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">phases</span> <span class="o">=</span> <span class="n">phases</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">unique_phases</span> <span class="o">=</span> <span class="nb">frozenset</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">a</span> <span class="o">=</span> <span class="n">a</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">b</span> <span class="o">=</span> <span class="n">b</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">same_phase</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">==</span> <span class="n">b</span><span class="o">.</span><span class="n">phase_name</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">compositions</span> <span class="o">=</span> <span class="n">compositions</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">mean_composition</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">mean</span><span class="p">(</span><span class="n">compositions</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">min_composition</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">composition</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">max_composition</span> <span class="o">=</span> <span class="n">b</span><span class="o">.</span><span class="n">composition</span>
+        <span class="k">if</span> <span class="n">a</span><span class="o">.</span><span class="n">temperature</span> <span class="o">==</span> <span class="n">b</span><span class="o">.</span><span class="n">temperature</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">temperature</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;Temperatures are different for CompSet objects </span><span class="si">{}</span><span class="s2">. Assuming that the pair temperature is &quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">sorted_compsets</span><span class="p">,</span> <span class="n">a</span><span class="o">.</span><span class="n">temperature</span><span class="p">))</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">=</span> <span class="n">a</span><span class="o">.</span><span class="n">temperature</span>
+
+<div class="viewcode-block" id="CompsetPair.xdiscrepancy"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.xdiscrepancy">[docs]</a>    <span class="k">def</span> <span class="nf">xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">ignore_phase</span><span class="o">=</span><span class="kc">False</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the composition discrepancy (absolute difference) between this</span>
+<span class="sd">        composition set and another.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        ignore_phase : bool</span>
+<span class="sd">            If False, unlike phases will give infinite discrepancy. If True, we</span>
+<span class="sd">            only care about the composition and the real discrepancy will be returned.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.float64</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">same_phase</span> <span class="ow">or</span> <span class="n">ignore_phase</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">composition</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span></div>
+
+<div class="viewcode-block" id="CompsetPair.ydiscrepancy"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy">[docs]</a>    <span class="k">def</span> <span class="nf">ydiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the discrepancy (absolute differences) between the site</span>
+<span class="sd">        fractions of the composition sets as an array of discrepancies.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        Array of np.float64</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The phases must match for this to be meaningful.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">same_phase</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">a</span><span class="o">.</span><span class="n">site_fracs</span> <span class="o">-</span> <span class="bp">self</span><span class="o">.</span><span class="n">b</span><span class="o">.</span><span class="n">site_fracs</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span></div>
+
+<div class="viewcode-block" id="CompsetPair.ydiscrepancy_max"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.ydiscrepancy_max">[docs]</a>    <span class="k">def</span> <span class="nf">ydiscrepancy_max</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the maximum discrepancy (absolute difference) between the site</span>
+<span class="sd">        fractions of the composition sets.</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.float64</span>
+
+<span class="sd">        Notes</span>
+<span class="sd">        -----</span>
+<span class="sd">        The phases must match for this to be meaningful.</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">max</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">ydiscrepancy</span><span class="p">()))</span></div>
+
+<div class="viewcode-block" id="CompsetPair.Tdiscrepancy"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.Tdiscrepancy">[docs]</a>    <span class="k">def</span> <span class="nf">Tdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Calculate the temperature discrepancy (absolute difference) between this</span>
+<span class="sd">        pair of composition sets and another.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : CompsetPair</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        np.float64</span>
+
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">temperature</span><span class="p">)</span></div>
+
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="n">compset_strs</span> <span class="o">=</span> <span class="s2">&quot;, &quot;</span><span class="o">.</span><span class="n">join</span><span class="p">([</span><span class="s2">&quot;</span><span class="si">{0}</span><span class="s2">:&lt;X(</span><span class="si">{1}</span><span class="s2">)=</span><span class="si">{2:0.3f}</span><span class="s2">&gt;&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">indep_comp</span><span class="p">,</span> <span class="n">c</span><span class="o">.</span><span class="n">composition</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">compsets</span><span class="p">])</span>
+        <span class="k">return</span> <span class="s2">&quot;CompSet2D(T=</span><span class="si">{0:0.3f}</span><span class="s2">: (</span><span class="si">{1}</span><span class="s2">)&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">temperature</span><span class="p">,</span> <span class="n">compset_strs</span><span class="p">)</span>
+
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">,):</span>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__repr__</span><span class="p">()</span>
+
+<div class="viewcode-block" id="CompsetPair.pairwise_xdiscrepancy"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.CompsetPair.pairwise_xdiscrepancy">[docs]</a>    <span class="k">def</span> <span class="nf">pairwise_xdiscrepancy</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Compute the ordered composition discrepancy between this and another</span>
+<span class="sd">        pair of CompSet2D objects.</span>
+
+<span class="sd">        Parameters</span>
+<span class="sd">        ----------</span>
+<span class="sd">        other : CompsetPair</span>
+
+<span class="sd">        Returns</span>
+<span class="sd">        -------</span>
+<span class="sd">        float</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phases</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">abs</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compositions</span> <span class="o">-</span> <span class="n">other</span><span class="o">.</span><span class="n">compositions</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="n">np</span><span class="o">.</span><span class="n">full</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">compositions</span><span class="o">.</span><span class="n">shape</span><span class="p">,</span> <span class="n">np</span><span class="o">.</span><span class="n">infty</span><span class="p">)</span></div></div>
+
+
+<div class="viewcode-block" id="get_compsets"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.get_compsets">[docs]</a><span class="k">def</span> <span class="nf">get_compsets</span><span class="p">(</span><span class="n">eq_dataset</span><span class="p">,</span> <span class="n">indep_comp</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">indep_comp_index</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a CompSet2D object if a pair of composition sets is found in an</span>
+<span class="sd">    equilibrium dataset. Otherwise return None.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    eq_dataset :</span>
+<span class="sd">    indep_comp :</span>
+<span class="sd">    indep_comp_index :</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    CompsetPair</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">indep_comp</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">indep_comp</span> <span class="o">=</span> <span class="p">[</span><span class="n">c</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">eq_dataset</span><span class="o">.</span><span class="n">coords</span> <span class="k">if</span> <span class="s1">&#39;X_&#39;</span> <span class="ow">in</span> <span class="n">c</span><span class="p">][</span><span class="mi">0</span><span class="p">][</span><span class="mi">2</span><span class="p">:]</span>
+    <span class="k">if</span> <span class="n">indep_comp_index</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">indep_comp_index</span> <span class="o">=</span> <span class="n">eq_dataset</span><span class="o">.</span><span class="n">component</span><span class="o">.</span><span class="n">values</span><span class="o">.</span><span class="n">tolist</span><span class="p">()</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="n">indep_comp</span><span class="p">)</span>
+    <span class="n">extracted_compsets</span> <span class="o">=</span> <span class="n">BinaryCompset</span><span class="o">.</span><span class="n">from_dataset_vertices</span><span class="p">(</span><span class="n">eq_dataset</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_index</span><span class="p">,</span> <span class="mi">3</span><span class="p">)</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">extracted_compsets</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+        <span class="k">return</span> <span class="n">CompsetPair</span><span class="p">(</span><span class="n">extracted_compsets</span><span class="p">)</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">None</span></div>
+
+
+<div class="viewcode-block" id="find_two_phase_region_compsets"><a class="viewcode-back" href="../../../../api/pycalphad.plot.binary.html#pycalphad.plot.binary.compsets.find_two_phase_region_compsets">[docs]</a><span class="k">def</span> <span class="nf">find_two_phase_region_compsets</span><span class="p">(</span><span class="n">hull</span><span class="p">,</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">,</span> <span class="n">misc_gap_tol</span><span class="o">=</span><span class="mf">0.1</span><span class="p">,</span> <span class="n">minimum_composition</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    From a 1D convex hull at constant T and P, return the composition sets for</span>
+<span class="sd">    a two phase region or that have the smallest index composition coordinate</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    hull : EquilibriumResult</span>
+<span class="sd">        Equilibrium-like from pycalphad that has a `Phase` Data variable.</span>
+<span class="sd">    temperature : float</span>
+<span class="sd">        Temperature that the calculation was performed at</span>
+<span class="sd">    indep_comp : str</span>
+<span class="sd">        Name of the independent component</span>
+<span class="sd">    indep_comp_idx : str</span>
+<span class="sd">        Index of the independent component in the the sorted pure elements</span>
+<span class="sd">    misc_gap_tol : float</span>
+<span class="sd">        If any site fractions are different by at least this amount, the</span>
+<span class="sd">        composition sets are considered distinct and in a miscibility gap.</span>
+<span class="sd">    minimum_composition : float</span>
+<span class="sd">        Minimum composition in the convex hull to search for composition sets</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    CompsetPair</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">phases</span> <span class="o">=</span> <span class="n">hull</span><span class="o">.</span><span class="n">Phase</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">compositions</span> <span class="o">=</span> <span class="n">hull</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">site_fracs</span> <span class="o">=</span> <span class="n">hull</span><span class="o">.</span><span class="n">Y</span><span class="o">.</span><span class="n">squeeze</span><span class="p">()</span>
+    <span class="n">grid_shape</span> <span class="o">=</span> <span class="n">phases</span><span class="o">.</span><span class="n">shape</span><span class="p">[:</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">num_phases</span> <span class="o">=</span> <span class="n">phases</span><span class="o">.</span><span class="n">shape</span><span class="p">[</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span>
+    <span class="n">it</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nditer</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">empty</span><span class="p">(</span><span class="n">grid_shape</span><span class="p">),</span> <span class="n">flags</span><span class="o">=</span><span class="p">[</span><span class="s1">&#39;multi_index&#39;</span><span class="p">])</span>  <span class="c1"># empty grid for indexing</span>
+    <span class="k">while</span> <span class="ow">not</span> <span class="n">it</span><span class="o">.</span><span class="n">finished</span><span class="p">:</span>
+        <span class="n">idx</span> <span class="o">=</span> <span class="n">it</span><span class="o">.</span><span class="n">multi_index</span>
+        <span class="n">cs</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="c1"># TODO: assumption of only two phases, seems like the third phase index can have bad points</span>
+        <span class="c1"># Three phases is probably an error anyways...</span>
+        <span class="k">if</span> <span class="n">minimum_composition</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="ow">and</span> <span class="n">np</span><span class="o">.</span><span class="n">all</span><span class="p">(</span><span class="n">compositions</span><span class="p">[</span><span class="n">idx</span><span class="p">][:,</span> <span class="n">indep_comp_idx</span><span class="p">][:</span><span class="mi">2</span><span class="p">]</span> <span class="o">&lt;</span> <span class="n">minimum_composition</span><span class="p">):</span>
+            <span class="n">it</span><span class="o">.</span><span class="n">iternext</span><span class="p">()</span>
+            <span class="k">continue</span>
+        <span class="k">for</span> <span class="n">i</span> <span class="ow">in</span> <span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">num_phases</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">str</span><span class="p">(</span><span class="n">phases</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">i</span><span class="p">])</span> <span class="o">!=</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
+                <span class="n">stable_composition_sets</span> <span class="o">=</span> <span class="n">BinaryCompset</span><span class="p">(</span><span class="nb">str</span><span class="p">(</span><span class="n">phases</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">i</span><span class="p">]),</span> <span class="n">temperature</span><span class="p">,</span> <span class="n">indep_comp</span><span class="p">,</span> <span class="n">compositions</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="n">indep_comp_idx</span><span class="p">],</span> <span class="n">site_fracs</span><span class="p">[</span><span class="n">idx</span><span class="p">][</span><span class="n">i</span><span class="p">,</span> <span class="p">:])</span>
+                <span class="n">cs</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">stable_composition_sets</span><span class="p">)</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="n">compsets</span> <span class="o">=</span> <span class="n">CompsetPair</span><span class="p">(</span><span class="n">cs</span><span class="p">)</span>
+            <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">compsets</span><span class="o">.</span><span class="n">unique_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+                <span class="k">return</span> <span class="n">compsets</span>  <span class="c1"># found a multiphase region</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="c1"># Same phase, either single phase region or a miscibility gap.</span>
+                <span class="n">y_discrep</span> <span class="o">=</span> <span class="n">compsets</span><span class="o">.</span><span class="n">ydiscrepancy</span><span class="p">()</span>
+                <span class="k">if</span> <span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">y_discrep</span><span class="p">[</span><span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">isnan</span><span class="p">(</span><span class="n">y_discrep</span><span class="p">)]</span> <span class="o">&gt;</span> <span class="n">misc_gap_tol</span><span class="p">):</span>
+                    <span class="k">return</span> <span class="n">compsets</span>  <span class="c1"># miscibility gap</span>
+        <span class="n">it</span><span class="o">.</span><span class="n">iternext</span><span class="p">()</span>
+    <span class="k">return</span> <span class="kc">None</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>

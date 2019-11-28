@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.variables &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>pycalphad.variables &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -167,8 +167,8 @@
 <span class="k">else</span><span class="p">:</span>
     <span class="n">string_type</span> <span class="o">=</span> <span class="n">basestring</span>
 
-<span class="kn">from</span> <span class="nn">sympy</span> <span class="k">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span>
-<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="k">import</span> <span class="n">parse_chemical_formula</span>
+<span class="kn">from</span> <span class="nn">sympy</span> <span class="kn">import</span> <span class="n">Float</span><span class="p">,</span> <span class="n">Symbol</span>
+<span class="kn">from</span> <span class="nn">pycalphad.io.grammar</span> <span class="kn">import</span> <span class="n">parse_chemical_formula</span>
 
 
 <div class="viewcode-block" id="Species"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.Species">[docs]</a><span class="k">class</span> <span class="nc">Species</span><span class="p">(</span><span class="nb">object</span><span class="p">):</span>
@@ -184,7 +184,7 @@
 <span class="sd">    charge : int</span>
 <span class="sd">        Integer charge. Can be positive or negative.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">constituents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">constituents</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">charge</span><span class="o">=</span><span class="mi">0</span><span class="p">):</span>
         <span class="k">if</span> <span class="n">constituents</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">new_self</span> <span class="o">=</span> <span class="nb">object</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">)</span>
             <span class="n">new_self</span><span class="o">.</span><span class="n">name</span> <span class="o">=</span> <span class="n">name</span>
@@ -223,20 +223,20 @@
     <span class="k">def</span> <span class="nf">__getnewargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge</span>
 
-    <span class="k">def</span> <span class="nf">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__eq__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;Two species are the same if their names and constituents are the same.&quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">other</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="p">):</span>
             <span class="k">return</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span><span class="p">)</span> <span class="ow">and</span> <span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span> <span class="o">==</span> <span class="n">other</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="kc">False</span>
 
-    <span class="k">def</span> <span class="nf">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__ne__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="ow">not</span> <span class="bp">self</span><span class="o">.</span><span class="fm">__eq__</span><span class="p">(</span><span class="n">other</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__lt__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">other</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">&lt;</span> <span class="n">other</span><span class="o">.</span><span class="n">name</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span>
 
     <span class="nd">@property</span>
@@ -254,7 +254,7 @@
         <span class="s2">&quot;Number of grams per formula unit.&quot;</span>
         <span class="k">return</span> <span class="ne">NotImplementedError</span>
 
-    <span class="k">def</span> <span class="nf">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__repr__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;*&#39;</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;*&#39;</span>
         <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">name</span> <span class="o">==</span> <span class="s1">&#39;&#39;</span><span class="p">:</span>
@@ -267,7 +267,7 @@
             <span class="n">repr_str</span> <span class="o">=</span> <span class="s2">&quot;(</span><span class="se">\&#39;</span><span class="si">{0}</span><span class="se">\&#39;</span><span class="s2">, </span><span class="se">\&#39;</span><span class="si">{1}</span><span class="se">\&#39;</span><span class="s2">, charge=</span><span class="si">{2}</span><span class="s2">)&quot;</span>
         <span class="k">return</span> <span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="vm">__class__</span><span class="o">.</span><span class="vm">__name__</span><span class="p">)</span><span class="o">+</span><span class="n">repr_str</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">species_constituents</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">charge</span><span class="p">)</span>
 
-    <span class="k">def</span> <span class="nf">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__hash__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="k">return</span> <span class="nb">hash</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">name</span><span class="p">)</span></div>
 
 
@@ -275,7 +275,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    State variables are symbols with built-in assumptions of being real.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span>
         <span class="k">return</span> <span class="n">Symbol</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span> <span class="n">real</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">)</span></div>
 
 <div class="viewcode-block" id="SiteFraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.SiteFraction">[docs]</a><span class="k">class</span> <span class="nc">SiteFraction</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
@@ -283,7 +283,7 @@
 <span class="sd">    Site fractions are symbols with built-in assumptions of being real</span>
 <span class="sd">    and nonnegative. The constructor handles formatting of the name.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">species</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
         <span class="n">varname</span> <span class="o">=</span> <span class="n">phase_name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">subl_index</span><span class="p">)</span> <span class="o">+</span> <span class="n">Species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span><span class="o">.</span><span class="n">escaped_name</span>
         <span class="c1">#pylint: disable=E1121</span>
         <span class="n">new_self</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -301,7 +301,7 @@
         <span class="k">return</span> <span class="s1">&#39;y^{\mathrm{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \
             <span class="s1">&#39;}}_{&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">sublattice_index</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;,\mathrm{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}}&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;String representation.&quot;</span>
         <span class="c1">#pylint: disable=E1101</span>
         <span class="k">return</span> <span class="s1">&#39;Y(</span><span class="si">%s</span><span class="s1">,</span><span class="si">%d</span><span class="s1">,</span><span class="si">%s</span><span class="s1">)&#39;</span> <span class="o">%</span> \
@@ -312,7 +312,7 @@
 <span class="sd">    Phase fractions are symbols with built-in assumptions of being real</span>
 <span class="sd">    and nonnegative. The constructor handles formatting of the name.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">multiplicity</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
         <span class="n">varname</span> <span class="o">=</span> <span class="n">phase_name</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">multiplicity</span><span class="p">)</span>
         <span class="c1">#pylint: disable=E1121</span>
         <span class="n">new_self</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -334,7 +334,7 @@
 <span class="sd">    Compositions are symbols with built-in assumptions of being real</span>
 <span class="sd">    and nonnegative.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
         <span class="n">new_self</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">varname</span> <span class="o">=</span> <span class="kc">None</span>
         <span class="n">phase_name</span> <span class="o">=</span> <span class="kc">None</span>
@@ -377,7 +377,7 @@
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    Chemical potentials are symbols with built-in assumptions of being real.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
-    <span class="k">def</span> <span class="nf">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">species</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">):</span>
         <span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">species</span><span class="p">)</span>
         <span class="n">varname</span> <span class="o">=</span> <span class="s1">&#39;MU_&#39;</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="n">new_self</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="o">**</span><span class="n">assumptions</span><span class="p">)</span>
@@ -391,7 +391,7 @@
         <span class="s2">&quot;LaTeX representation.&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;\mu_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__str__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
         <span class="s2">&quot;String representation.&quot;</span>
         <span class="k">return</span> <span class="s1">&#39;MU_</span><span class="si">%s</span><span class="s1">&#39;</span> <span class="o">%</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">name</span></div>
 

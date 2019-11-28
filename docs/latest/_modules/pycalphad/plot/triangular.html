@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>pycalphad.plot.triangular &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -155,11 +155,11 @@
            <div itemprop="articleBody">
             
   <h1>Source code for pycalphad.plot.triangular</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="k">import</span> <span class="n">Axes</span>
-<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="k">import</span> <span class="n">Polygon</span>
-<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="k">import</span> <span class="n">NullLocator</span><span class="p">,</span> <span class="n">Formatter</span><span class="p">,</span> <span class="n">FixedLocator</span>
-<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="k">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span><span class="p">,</span> <span class="n">IdentityTransform</span>
-<span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="k">import</span> <span class="n">register_projection</span>
+<span></span><span class="kn">from</span> <span class="nn">matplotlib.axes</span> <span class="kn">import</span> <span class="n">Axes</span>
+<span class="kn">from</span> <span class="nn">matplotlib.patches</span> <span class="kn">import</span> <span class="n">Polygon</span>
+<span class="kn">from</span> <span class="nn">matplotlib.ticker</span> <span class="kn">import</span> <span class="n">NullLocator</span><span class="p">,</span> <span class="n">Formatter</span><span class="p">,</span> <span class="n">FixedLocator</span>
+<span class="kn">from</span> <span class="nn">matplotlib.transforms</span> <span class="kn">import</span> <span class="n">Affine2D</span><span class="p">,</span> <span class="n">BboxTransformTo</span><span class="p">,</span> <span class="n">IdentityTransform</span>
+<span class="kn">from</span> <span class="nn">matplotlib.projections</span> <span class="kn">import</span> <span class="n">register_projection</span>
 <span class="kn">import</span> <span class="nn">matplotlib.spines</span> <span class="k">as</span> <span class="nn">mspines</span>
 <span class="kn">import</span> <span class="nn">matplotlib.axis</span> <span class="k">as</span> <span class="nn">maxis</span>
 
@@ -172,7 +172,7 @@
 
     <span class="n">name</span> <span class="o">=</span> <span class="s1">&#39;triangular&#39;</span>
 
-    <span class="k">def</span> <span class="nf">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
+    <span class="k">def</span> <span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
         <span class="n">Axes</span><span class="o">.</span><span class="fm">__init__</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">set_aspect</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="n">adjustable</span><span class="o">=</span><span class="s1">&#39;box&#39;</span><span class="p">,</span> <span class="n">anchor</span><span class="o">=</span><span class="s1">&#39;SW&#39;</span><span class="p">)</span>
         <span class="bp">self</span><span class="o">.</span><span class="n">cla</span><span class="p">()</span>

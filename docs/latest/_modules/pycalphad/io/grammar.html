@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.grammar &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>pycalphad.io.grammar &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -157,8 +157,8 @@
   <h1>Source code for pycalphad.io.grammar</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;&quot;Common pyparsing grammar patterns.&quot;&quot;&quot;</span>
 
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
-<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="k">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Regex</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">Word</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">alphas</span><span class="p">,</span> <span class="n">nums</span>
+<span class="kn">from</span> <span class="nn">pyparsing</span> <span class="kn">import</span> <span class="n">Group</span><span class="p">,</span> <span class="n">OneOrMore</span><span class="p">,</span> <span class="n">Optional</span><span class="p">,</span> <span class="n">Regex</span><span class="p">,</span> <span class="n">Suppress</span><span class="p">,</span> <span class="n">Word</span>
 <span class="kn">import</span> <span class="nn">re</span>
 
 <span class="n">pos_neg_int_number</span> <span class="o">=</span> <span class="n">Word</span><span class="p">(</span><span class="s1">&#39;+-&#39;</span> <span class="o">+</span> <span class="n">nums</span><span class="p">)</span><span class="o">.</span><span class="n">setParseAction</span><span class="p">(</span><span class="k">lambda</span> <span class="n">t</span><span class="p">:</span> <span class="p">[</span><span class="nb">int</span><span class="p">(</span><span class="n">t</span><span class="p">[</span><span class="mi">0</span><span class="p">])])</span>  <span class="c1"># &#39;+3&#39; or &#39;-2&#39; are examples</span>

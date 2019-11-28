@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -158,10 +158,10 @@
 <span></span><span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">This module constructs gradient functions for Models.</span>
 <span class="sd">&quot;&quot;&quot;</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="k">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="k">import</span> <span class="n">wrap_symbol_symengine</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="k">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">count_ops</span>
-<span class="kn">from</span> <span class="nn">collections</span> <span class="k">import</span> <span class="n">namedtuple</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">cacheit</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">wrap_symbol_symengine</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">count_ops</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 
 
 <span class="n">BuildFunctionsResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BuildFunctionsResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">])</span>

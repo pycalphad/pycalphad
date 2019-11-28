@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8+13.g6722a58 documentation</title>
+  <title>Plotting Ternary Phase Diagrams and Using Triangular Axes &mdash; pycalphad 0.8+14.g1a2d627 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8+13.g6722a58
+                0.8+14.g1a2d627
               </div>
             
           
@@ -193,8 +193,8 @@ Zhang et al. <a class="reference external" href="https://doi.org/10.1016/j.calph
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">ternplot</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
 
 <span class="n">db_al_cu_y</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Cu-Y.tdb&#39;</span><span class="p">)</span>
 <span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;CU&#39;</span><span class="p">,</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
@@ -220,8 +220,8 @@ phase in our Al-Cu-Y system. Then we will the triangular projection to
 plot the calculated points as a colored scatterplot on the triangular
 axes.</p>
 <div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
-<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="k">import</span> <span class="n">triangular</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="k">import</span> <span class="n">calculate</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot</span> <span class="kn">import</span> <span class="n">triangular</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">calculate</span>
 
 <span class="c1"># some sample data, these could be from an equilibrium calculation or a property model.</span>
 <span class="c1"># here we are calculating the mixing enthlapy of the FCC_A1 phase at 830K.</span>
