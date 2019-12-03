@@ -455,7 +455,7 @@ class TCPrinter(StrPrinter):
         # Need to verify that each cond's highlim equals the next cond's lowlim
         # to_interval() is used instead of sympy.Relational.as_set() for performance reasons
         intervals = [to_interval(i.cond) for i in filtered_args]
-        if (len(intervals) > 1) and Intersection(*intervals) != EmptySet():
+        if (len(intervals) > 1) and not Intersection(*intervals) is EmptySet:
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
         if not isinstance(Union(*intervals), Interval):
             raise ValueError('Piecewise intervals must be continuous')
