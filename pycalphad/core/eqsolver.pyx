@@ -162,14 +162,12 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
-cpdef pointsolve(composition_sets, comps, cur_conds, problem, iter_solver):
+cpdef pointsolve(composition_sets, comps, cur_conds, prob, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    return _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver)
+    return _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver)
 
-cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
-    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+cdef _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver):
     cdef CompositionSet compset
-    prob = problem(composition_sets, comps, cur_conds)
     result = iter_solver.solve(prob)
     composition_sets = prob.composition_sets
     if result.converged:
@@ -183,6 +181,12 @@ cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem,
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
     return result
+
+
+cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
+    "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
+    prob = problem(composition_sets, comps, cur_conds)
+    return _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver)
 
 def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, state_variables, verbose,
                             problem=Problem, solver=None):
