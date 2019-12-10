@@ -172,9 +172,9 @@ class PhaseFraction(StateVariable):
         return 'f^{'+self.phase_name.replace('_', '-') + \
             '}_{'+str(self.multiplicity)+'}'
 
-class Composition(StateVariable):
+class MoleFraction(StateVariable):
     """
-    Compositions are symbols with built-in assumptions of being real
+    MoleFractions are symbols with built-in assumptions of being real
     and nonnegative.
     """
     def __new__(cls, *args): #pylint: disable=W0221
@@ -193,7 +193,7 @@ class Composition(StateVariable):
             varname = 'X_' + phase_name + '_' + species.escaped_name.upper()
         else:
             # not defined
-            raise ValueError('Composition not defined for args: '+args)
+            raise ValueError('MoleFraction not defined for args: '+args)
 
         #pylint: disable=E1121
         new_self = StateVariable.__new__(cls, varname, nonnegative=True)
@@ -244,7 +244,7 @@ pressure = P = StateVariable('P')
 volume = V = StateVariable('V')
 moles = N = StateVariable('N')
 site_fraction = Y = SiteFraction
-X = Composition
+X = MoleFraction
 MU = ChemicalPotential
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 

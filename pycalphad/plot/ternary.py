@@ -24,10 +24,10 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_k
     conds : dict
         Maps StateVariables to values and/or iterables of values.
         For ternplot only one changing composition and one potential coordinate each is supported.
-    x : Composition
+    x : v.MoleFraction
         instance of a pycalphad.variables.composition to plot on the x-axis.
         Must correspond to an independent condition.
-    y : Composition
+    y : v.MoleFraction
         instance of a pycalphad.variables.composition to plot on the y-axis.
         Must correspond to an independent condition.
     eq_kwargs : optional
@@ -44,7 +44,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_k
     None yet.
     """
     eq_kwargs = eq_kwargs if eq_kwargs is not None else dict()
-    indep_comps = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
+    indep_comps = [key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(np.atleast_1d(value)) > 1]
     indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 2) or (len(indep_pots) != 0):
         raise ValueError('ternplot() requires exactly two composition coordinates')

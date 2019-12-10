@@ -15,7 +15,7 @@ class BinaryCompset():
     indep_comp : str
         Name of the independent component
     composition : float
-        Composition of the independent component
+        Mole fraction of the independent component
     site_fracs : np.ndarray
         Array of floats corresponding to the site fractions.
 

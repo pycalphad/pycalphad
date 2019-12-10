@@ -25,7 +25,7 @@ def _adjust_conditions(conds):
     for key, value in sorted(conds.items(), key=str):
         if key == str(key):
             key = getattr(v, key, key)
-        if isinstance(key, v.Composition):
+        if isinstance(key, v.MoleFraction):
             new_conds[key] = [max(val, MIN_SITE_FRACTION*1000) for val in unpack_condition(value)]
         else:
             new_conds[key] = unpack_condition(value)
@@ -214,7 +214,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     conds = _adjust_conditions(conditions)
 
     for cond in conds.keys():
-        if isinstance(cond, (v.Composition, v.ChemicalPotential)) and cond.species not in comps:
+        if isinstance(cond, (v.MoleFraction, v.ChemicalPotential)) and cond.species not in comps:
             raise ConditionError('{} refers to non-existent component'.format(cond))
     state_variables = sorted(get_state_variables(models=models, conds=conds), key=str)
     str_conds = OrderedDict((str(key), value) for key, value in conds.items())
@@ -244,7 +244,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
-                     callables=callables, output='GM', parameters=parameters, 
+                     callables=callables, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions
