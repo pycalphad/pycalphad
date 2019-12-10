@@ -4,6 +4,7 @@ Classes and constants for representing thermodynamic variables.
 """
 
 import sys
+import copy
 # Python 2 vs 3 string types in isinstance
 if sys.version_info[0] >= 3:
     string_type = str
@@ -216,6 +217,165 @@ class MoleFraction(StateVariable):
         else:
             return 'x_{'+self.species.escaped_name+'}'
 
+
+class MassFraction(StateVariable):
+    """
+    Weight fractions are symbols with built-in assumptions of being real and nonnegative.
+    """
+    def __new__(cls, *args):  # pylint: disable=W0221
+        new_self = None
+        varname = None
+        phase_name = None
+        species = None
+        if len(args) == 1:
+            # this is an overall composition variable
+            species = Species(args[0])
+            varname = 'W_' + species.escaped_name.upper()
+        elif len(args) == 2:
+            # this is a phase-specific composition variable
+            phase_name = args[0].upper()
+            species = Species(args[1])
+            varname = 'W_' + phase_name + '_' + species.escaped_name.upper()
+        else:
+            # not defined
+            raise ValueError('Weight fraction not defined for args: '+args)
+
+        # pylint: disable=E1121
+        new_self = StateVariable.__new__(cls, varname, nonnegative=True)
+        new_self.phase_name = phase_name
+        new_self.species = species
+        return new_self
+
+    def __getnewargs__(self):
+        if self.phase_name is not None:
+            return self.phase_name, self.species
+        else:
+            return self.species,
+
+    def _latex(self, printer=None):
+        "LaTeX representation."
+        # pylint: disable=E1101
+        if self.phase_name:
+            return 'w^{'+self.phase_name.replace('_', '-') + \
+                '}_{'+self.species.escaped_name+'}'
+        else:
+            return 'w_{'+self.species.escaped_name+'}'
+
+
+class Composition():
+    """Convenience object to facilitiate operating in multicomponent composition spaces
+
+    Parameters
+    ----------
+    masses : Union[Dict[str, float], Database]
+        Element to mass dictionary or database to retrive the masses from.
+    composition : Dict[Union[v.MoleFraction, v.MassFraction], float]
+        Mapping of MoleFraction/MassFraction objects to values.
+    dependent_component: str
+        Pure element that is not specified in the composition, but known
+        because the sum of fractions must be one.
+
+    Attributes
+    ----------
+    masses : Dict[str, float]
+    """
+
+    def __init__(self, masses, composition, dependent_component):
+        # TODO: check degree of freedom (ncomps, n-1 independent compositions)
+        # TODO: convert any complex  species into pure element composition
+        self.components = {dependent_component}
+        for xw_fraction in composition.keys():
+            self.components |= xw_fraction.species.constituents.keys()
+        if all([isinstance(k, MoleFraction) for k in composition.keys()]):
+            self._mode = MoleFraction
+        elif all([isinstance(k, MassFraction) for k in composition.keys()]):
+            self._mode = MassFraction
+        else:
+            raise ValueError(f'Mixed MoleFraction and MassFraction compositions not supported (got {composition}).')
+        from pycalphad import Database  # Imported here to avoid circular import
+        if isinstance(masses, Database):
+            self.masses = {c: masses.refstates[c]['mass'] for c in self.components}
+        else:  # Assume masses is a dict mapping components to mass
+            self.masses = masses
+        self._composition = copy.deepcopy(composition)
+        self.dependent_component = dependent_component
+
+    @property
+    def composition(self):
+        return self._composition
+
+    @property
+    def mass_fractions(self):
+        if issubclass(self._mode, MassFraction):
+            return self._composition
+        else:
+            comp_names = {w.species.name for w in self._composition}
+            mass = {MassFraction(comp): self._composition[MoleFraction(comp)]*self.masses[comp] for comp in comp_names}
+            dep_comp_mass = (1-sum(self._composition.values()))*self.masses[self.dependent_component]
+            total_mass = sum(mass.values()) + dep_comp_mass
+            mass_fracs = {component: mass_amnt/total_mass for component, mass_amnt in mass.items()}
+            return mass_fracs
+
+    @property
+    def mole_fractions(self):
+        if issubclass(self._mode, MoleFraction):
+            return self._composition
+        else:
+            comp_names = {w.species.name for w in self._composition}
+            moles = {MoleFraction(comp): self._composition[MassFraction(comp)]/self.masses[comp] for comp in comp_names}
+            dep_comp_moles = (1-sum(self._composition.values()))/self.masses[self.dependent_component]
+            total_moles = sum(moles.values()) + dep_comp_moles
+            mole_fracs = {component: mole_amnt/total_moles for component, mole_amnt in moles.items()}
+            return mole_fracs
+
+    def to_mole_fractions(self):
+        """Return a new Composition object converted to mole fractions"""
+        return Composition(self.masses, self.mole_fractions, self.dependent_component)
+
+    def to_mass_fractions(self):
+        """Return a new Composition object converted to mass fractions"""
+        return Composition(self.masses, self.mass_fractions, self.dependent_component)
+
+    def set_dependent_component(self, component):
+        """Change the dependent component
+
+        component : str
+
+        Examples
+        --------
+        >>> raise NotImplemented
+        """
+        if self.dependent_component != component:
+            self._composition[self._mode(self.dependent_component)] = (1-sum(self._composition.values()))
+            del self._composition[self._mode(component)]
+            self.dependent_component = component
+        return self
+
+    def interpolate(self, composition, mix):
+        """
+        Parameters
+        ----------
+        composition : Composition
+            Composition to interpolate between.
+        mix : float
+            Amount to mix between two compositions between 0 (don't add any new), 1 (don't keep any old).
+            ``mix=0.5`` would be halfway between.
+        """
+        if self.components != composition.components:
+            raise ValueError("Compositions must interpolate between the same components "
+                             f"(got {sorted(self.components)} and {sorted(composition.components)})")
+        # Make the end_comp here with a new instance so we don't modify the original
+        if issubclass(self._mode, MoleFraction):
+            end = composition.to_mole_fractions().set_dependent_component(self.dependent_component)
+        else:  # Assume mass fractions
+            end = composition.to_mass_fractions().set_dependent_component(self.dependent_component)
+        start = self.composition
+        interpolated = {}
+        for c in start.keys():
+            interpolated[c] = start[c] + (end[c] - start[c])*mix
+        return Composition(self.masses, interpolated, self.dependent_component)
+
+
 class ChemicalPotential(StateVariable):
     """
     Chemical potentials are symbols with built-in assumptions of being real.
@@ -245,6 +405,7 @@ volume = V = StateVariable('V')
 moles = N = StateVariable('N')
 site_fraction = Y = SiteFraction
 X = MoleFraction
+W = MassFraction
 MU = ChemicalPotential
 si_gas_constant = R = Float(8.3145) # ideal gas constant
 
