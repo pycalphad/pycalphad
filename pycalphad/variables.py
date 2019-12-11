@@ -284,7 +284,9 @@ class Composition():
     >>> from pycalphad import variables as v
     >>> c = Composition({'AL': 26.98, 'NI': 58.69, 'CR': 52.00}, {v.W('AL'): 0.1, v.W('CR'): 0.2}, 'NI')
     >>> new_c = c.to_mole_fractions().to_mass_fractions()
-    >>> all([np.isclose(c[comp], new_c[comp]) for comp in c.composition.keys()])
+    >>> new_c is c
+    False
+    >>> new_c == c
     True
 
     """
@@ -475,6 +477,46 @@ class Composition():
 
         """
         return self.composition.get(item, default)
+
+    def __eq__(self, other):
+        """
+        Check that the compositions of two Composition objects are equal
+
+        Parameters
+        ----------
+        other : Composition
+
+        Returns
+        -------
+        bool
+
+        """
+        if not isinstance(other, Composition):
+            return False
+        if self.components != other.components:
+            return False
+        other = self._normalize(other)
+        return all([np.isclose(self[comp], other[comp]) for comp in self.composition.keys()])
+
+    def _normalize(self, other):
+        """Return a new object for other, normalized to this object's mode and dependent component.
+
+        Parameters
+        ----------
+        other : Composition
+
+        Returns
+        -------
+        Composition
+
+        """
+        if self.components != other.components:
+            raise ValueError("Composition to normalize must have the same components "
+                             f"(got {sorted(self.components)} and {sorted(other.components)})")
+        if issubclass(self._mode, MoleFraction):
+            return other.to_mole_fractions().set_dependent_component(self.dependent_component)
+        else:  # Assume mass fractions
+            return other.to_mass_fractions().set_dependent_component(self.dependent_component)
 
 
 class ChemicalPotential(StateVariable):
