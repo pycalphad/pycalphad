@@ -390,6 +390,10 @@ class Composition():
         >>> from pycalphad import variables as v
         >>> c1 = v.Composition({}, {v.X('A'): 0.25}, 'B')
         >>> c2 = v.Composition({}, {v.X('A'): 0.75}, 'B')
+        >>> c1.mix(c2, 0.0) == c1
+        True
+        >>> c1.mix(c2, 1.0) == c2
+        True
         >>> c1.mix(c2, 0.5)[v.X('A')]
         0.5
         >>> c3 = v.Composition({}, {v.X('B'): 0.25}, 'A')
@@ -401,10 +405,7 @@ class Composition():
             raise ValueError("Compositions to mix must have the same components "
                              f"(got {sorted(self.components)} and {sorted(composition.components)})")
         # Make the end_comp here with a new instance so we don't modify the original
-        if issubclass(self._mode, MoleFraction):
-            end = composition.to_mole_fractions().set_dependent_component(self.dependent_component)
-        else:  # Assume mass fractions
-            end = composition.to_mass_fractions().set_dependent_component(self.dependent_component)
+        end = self._normalize(composition)
         interpolated = {}
         for c in self.composition.keys():
             interpolated[c] = self[c] + (end[c] - self[c])*amount
@@ -489,6 +490,18 @@ class Composition():
         Returns
         -------
         bool
+
+        Examples
+        --------
+        >>> from pycalphad import variables as v
+        >>> c1 = v.Composition({}, {v.X('A'): 0.25}, 'B')
+        >>> c2 = v.Composition({}, {v.X('A'): 0.75}, 'B')
+        >>> c1 == c1
+        True
+        >>> c2 == c2
+        True
+        >>> c1 == c2
+        False
 
         """
         if not isinstance(other, Composition):
