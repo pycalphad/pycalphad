@@ -10,7 +10,7 @@ if sys.version_info[0] >= 3:
     string_type = str
 else:
     string_type = basestring
-
+import numpy as np
 from sympy import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 
@@ -343,7 +343,7 @@ class Composition():
 
         Examples
         --------
-        >>> raise NotImplemented
+        >>> raise NotImplementedError()
         """
         if self.dependent_component != component:
             self._composition[self._mode(self.dependent_component)] = (1-sum(self._composition.values()))
@@ -351,29 +351,86 @@ class Composition():
             self.dependent_component = component
         return self
 
-    def interpolate(self, composition, mix):
-        """
+    def mix(self, composition, amount):
+        """Linearly mix two Compositions to create a new composition.
+
         Parameters
         ----------
         composition : Composition
-            Composition to interpolate between.
-        mix : float
-            Amount to mix between two compositions between 0 (don't add any new), 1 (don't keep any old).
-            ``mix=0.5`` would be halfway between.
+            Composition to endpoint to mix with.
+        amount : float
+            Fraction to mix between two compositions. Between 0 (don't add any
+            new), 1 (don't keep any old). ``amount=0.5`` would be halfway between.
+
+        Examples
+        --------
+        >>> from pycalphad import variables as v
+        >>> c1 = v.Composition({}, {v.X('A'): 0.25}, 'B')
+        >>> c2 = v.Composition({}, {v.X('A'): 0.75}, 'B')
+        >>> c1.mix(c2, 0.5)[v.X('A')]
+        0.5
+        >>> c3 = v.Composition({}, {v.X('B'): 0.25}, 'A')
+        >>> c1.mix(c2, 0.5)[v.X('A')]
+        0.5
+
         """
         if self.components != composition.components:
-            raise ValueError("Compositions must interpolate between the same components "
+            raise ValueError("Compositions to mix must have the same components "
                              f"(got {sorted(self.components)} and {sorted(composition.components)})")
         # Make the end_comp here with a new instance so we don't modify the original
         if issubclass(self._mode, MoleFraction):
             end = composition.to_mole_fractions().set_dependent_component(self.dependent_component)
         else:  # Assume mass fractions
             end = composition.to_mass_fractions().set_dependent_component(self.dependent_component)
-        start = self.composition
         interpolated = {}
-        for c in start.keys():
-            interpolated[c] = start[c] + (end[c] - start[c])*mix
+        for c in self.composition.keys():
+            interpolated[c] = self[c] + (end[c] - self[c])*amount
         return Composition(self.masses, interpolated, self.dependent_component)
+
+    def interpolate_composition(self, composition, num):
+        """Return the composition of a path between two compositions with ``num`` compositions.
+
+        Parameters
+        ----------
+        composition : Composition
+            Composition to endpoint to interpolate between.
+        num : int
+            Number of samples to generate.
+
+        Returns
+        -------
+        Dict[Union[MoleFraction, MassFraction], List[float]]
+
+        Examples
+        --------
+        >>>
+        """
+        c1 = self
+        c2 = composition
+        pth_l = []
+        for mix in np.linspace(0, 1, num):
+            pth_l.append(c1.mix(c2, mix))
+        # Unzip list of dict to dict of list
+        comp_keys = pth_l[0].composition.keys()
+        pth = {comp: [] for comp in comp_keys}
+        for comp_dict in pth_l:
+            for comp in comp_keys:
+                pth[comp].append(comp_dict[comp])
+        return pth
+
+    def __getitem__(self, item):
+        """Return a composition for an element
+
+        Parameters
+        ----------
+        item : Union[MoleFraction, MassFraction]
+
+        Returns
+        -------
+        float
+
+        """
+        return self.composition[item]
 
 
 class ChemicalPotential(StateVariable):
