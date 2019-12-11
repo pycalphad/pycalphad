@@ -278,6 +278,15 @@ class Composition():
     Attributes
     ----------
     masses : Dict[str, float]
+
+    Examples
+    --------
+    >>> from pycalphad import variables as v
+    >>> c = Composition({'AL': 26.98, 'NI': 58.69, 'CR': 52.00}, {v.W('AL'): 0.1, v.W('CR'): 0.2}, 'NI')
+    >>> new_c = c.to_mole_fractions().to_mass_fractions()
+    >>> all([np.isclose(c[comp], new_c[comp]) for comp in c.composition.keys()])
+    True
+
     """
 
     def __init__(self, masses, composition, dependent_component):
