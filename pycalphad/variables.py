@@ -343,7 +343,19 @@ class Composition():
 
         Examples
         --------
-        >>> raise NotImplementedError()
+        >>> import numpy as np
+        >>> from pycalphad import variables as v
+        >>> c = v.Composition({}, {v.X('B'): 0.5, v.X('C'): 0.3}, 'A')
+        >>> new_c = c.set_dependent_component('C')
+        >>> new_c is c
+        True
+        >>> np.isclose(c[v.X('A')], 0.2)
+        True
+        >>> np.isclose(c[v.X('B')], 0.5)
+        True
+        >>> c.get(v.X('C')) is None
+        True
+
         """
         if self.dependent_component != component:
             self._composition[self._mode(self.dependent_component)] = (1-sum(self._composition.values()))
@@ -428,6 +440,8 @@ class Composition():
     def __getitem__(self, item):
         """Return a composition for an element
 
+        Alias for self.composition[item]
+
         Parameters
         ----------
         item : Union[MoleFraction, MassFraction]
@@ -438,6 +452,20 @@ class Composition():
 
         """
         return self.composition[item]
+
+    def get(self, item, default=None):
+        """Alias for self.composition.get(item)
+
+        Parameters
+        ----------
+        item : Union[MoleFraction, MassFraction]
+
+        Returns
+        -------
+        Union[float, Any]
+
+        """
+        return self.composition.get(item, default)
 
 
 class ChemicalPotential(StateVariable):
