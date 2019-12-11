@@ -403,7 +403,14 @@ class Composition():
 
         Examples
         --------
-        >>>
+        >>> import numpy as np
+        >>> from pycalphad import variables as v
+        >>> c1 = v.Composition({}, {v.X('B'): 0.0}, 'A')
+        >>> c2 = v.Composition({}, {v.X('B'): 1.0}, 'A')
+        >>> path = c1.interpolate_composition(c2, 5)
+        >>> np.all(np.isclose(path[v.X('B')], [0, 0.25, 0.5, 0.75, 1]))
+        True
+
         """
         c1 = self
         c2 = composition
