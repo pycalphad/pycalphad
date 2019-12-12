@@ -162,9 +162,23 @@ cdef bint add_new_phases(object composition_sets, object removed_compsets, objec
         return True
     return False
 
+cpdef globalmin_solve(composition_sets, comps, cur_conds, prob, state_variables, sample_points, iter_solver):
+    return _globalmin_solve(composition_sets, comps, cur_conds, prob, state_variables, sample_points, iter_solver)
+
+cdef _globalmin_solve(composition_sets, comps, cur_conds, prob, state_variables, sample_points, iter_solver):
+    "Finds the minimum energy among sample points and starts optimization from there. Assumes that only one phase is being considered."
+    obj_values = np.apply_along_axis(prob.objective, 0,
+                                     np.concatenate((np.broadcast_to(state_variables, (sample_points.shape[0], state_variables.size)),
+                                                    sample_points, np.ones((sample_points.shape[0], 1))), axis=1))
+    min_ind = np.argmin(obj_values)
+    for compset in prob.composition_sets:
+      compset.py_update(sample_points[min_ind,:], np.array([1.0]), state_variables, False)
+    return pointsolve(composition_sets, comps, cur_conds, prob, iter_solver)
+
 cpdef pointsolve(composition_sets, comps, cur_conds, prob, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."
-    return _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver)
+    result = _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver)
+    return result
 
 cdef _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_solver):
     cdef CompositionSet compset
@@ -181,7 +195,6 @@ cdef _solve_and_update_problem(composition_sets, comps, cur_conds, prob, iter_so
             var_offset += compset.phase_record.phase_dof
             phase_idx += 1
     return result
-
 
 cdef _solve_and_update_if_converged(composition_sets, comps, cur_conds, problem, iter_solver):
     "Mutates composititon_sets with updated values if it converges. Returns SolverResult."

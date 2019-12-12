@@ -15,4 +15,5 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
     cdef readonly double[::1] _prev_grad
     cdef readonly bint _first_iteration
     cdef void reset(self)
+    cpdef void py_update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives)
     cdef void update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives) nogil

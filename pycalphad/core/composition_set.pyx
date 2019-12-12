@@ -56,6 +56,8 @@ cdef public class CompositionSet(object)[type CompositionSetType, object Composi
         self._prev_grad[:] = 0
         self._first_iteration = True
 
+    cpdef void py_update(self, double[::1] site_fracs, double phase_amt, double[::1] state_variables, bint skip_derivatives):
+        self.update(site_fracs, phase_amt, state_variables, skip_derivatives)
 
     @cython.boundscheck(False)
     @cython.wraparound(False)
