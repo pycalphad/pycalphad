@@ -303,6 +303,10 @@ class Composition():
             self._mode = MassFraction
         else:
             raise ValueError(f'Mixed MoleFraction and MassFraction compositions not supported (got {composition}).')
+        if any(np.array(list(composition.values())) < 0):
+            raise ValueError(f'All composition fractions must be greater than zero (got {list(composition.values())}).')
+        if sum(composition.keys()) > 1:
+            raise ValueError(f'Sum of composition fractions cannot be greater than 1 (got {sum(composition.values())}).')
         from pycalphad import Database  # Imported here to avoid circular import
         if isinstance(masses, Database):
             self.masses = {c: masses.refstates[c]['mass'] for c in self.components}
