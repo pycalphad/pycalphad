@@ -93,7 +93,7 @@ class Database(object): #pylint: disable=R0902
     --------
     >>> mydb = Database(open('crfeni_mie.tdb'))
     >>> mydb = Database('crfeni_mie.tdb')
-    >>> f = StringIO(u'$a complete TDB file as a string\n')
+    >>> f = StringIO(u'$a complete TDB file as a string\\n')
     >>> mydb = Database(f)
     """
     def __new__(cls, *args):

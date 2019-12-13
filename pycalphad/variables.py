@@ -293,7 +293,7 @@ class Composition():
 
     def __init__(self, masses, composition, dependent_component):
         # TODO: check degree of freedom (ncomps, n-1 independent compositions)
-        # TODO: convert any complex  species into pure element composition
+        # TODO: convert any complex species into pure element composition
         self.components = {dependent_component}
         for xw_fraction in composition.keys():
             self.components |= xw_fraction.species.constituents.keys()
@@ -305,7 +305,7 @@ class Composition():
             raise ValueError(f'Mixed MoleFraction and MassFraction compositions not supported (got {composition}).')
         if any(np.array(list(composition.values())) < 0):
             raise ValueError(f'All composition fractions must be greater than zero (got {list(composition.values())}).')
-        if sum(composition.keys()) > 1:
+        if sum(composition.values()) > 1:
             raise ValueError(f'Sum of composition fractions cannot be greater than 1 (got {sum(composition.values())}).')
         from pycalphad import Database  # Imported here to avoid circular import
         if isinstance(masses, Database):
