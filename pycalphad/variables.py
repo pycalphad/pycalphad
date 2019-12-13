@@ -415,6 +415,18 @@ class Composition():
             interpolated[c] = self[c] + (end[c] - self[c])*amount
         return Composition(self.masses, interpolated, self.dependent_component)
 
+    def distance(self, composition):
+        """Compute the euclidean distance between two compositions"""
+        if self.components != composition.components:
+            raise ValueError("Compositions to mix must have the same components "
+                             f"(got {sorted(self.components)} and {sorted(composition.components)})")
+        # Make the end_comp here with a new instance so we don't modify the original
+        other = self._normalize(composition)
+        component_distances = []
+        for c in self.composition.keys():
+            component_distances.append((self[c] - other[c]))
+        return np.sqrt(np.sum(np.square(component_distances)))
+
     def interpolate_composition(self, composition, num):
         """Return the composition of a path between two compositions with ``num`` compositions.
 
