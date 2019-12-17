@@ -8,7 +8,7 @@ import pycalphad.variables as v
 from pycalphad.plot.eqplot import eqplot
 
 
-def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_kwargs):
+def ternplot(dbf, species, phases, conds, x=None, y=None, eq_kwargs=None, **plot_kwargs):
     """
     Calculate the ternary isothermal, isobaric phase diagram.
     This function is a convenience wrapper around equilibrium() and eqplot().
@@ -17,8 +17,8 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_k
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
+    species : list
+        Names of species or components to consider in the calculation.
     phases : list
         Names of phases to consider in the calculation.
     conds : dict
@@ -48,7 +48,7 @@ def ternplot(dbf, comps, phases, conds, x=None, y=None, eq_kwargs=None, **plot_k
     indep_pots = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comps) != 2) or (len(indep_pots) != 0):
         raise ValueError('ternplot() requires exactly two composition coordinates')
-    full_eq = equilibrium(dbf, comps, phases, conds, **eq_kwargs)
+    full_eq = equilibrium(dbf, species, phases, conds, **eq_kwargs)
     # TODO: handle x and y as strings with #87
     x = x if x in indep_comps else indep_comps[0]
     y = y if y in indep_comps else indep_comps[1]

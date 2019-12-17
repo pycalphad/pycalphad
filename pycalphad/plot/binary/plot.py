@@ -62,7 +62,7 @@ def plot_boundaries(zpf_boundary_sets, tielines=True, scatter=True, ax=None, gri
     return ax
 
 
-def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kwargs):
+def binplot(database, species, phases, conditions, plot_kwargs=None, **map_kwargs):
     """
     Calculate the binary isobaric phase diagram.
 
@@ -72,8 +72,8 @@ def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kw
     ----------
     database : Database
         Thermodynamic database containing the relevant parameters.
-    components : list
-        Names of components to consider in the calculation.
+    species : list
+        Names of species or components to consider in the calculation.
     phases : list
         Names of phases to consider in the calculation.
     conditions : dict
@@ -97,6 +97,6 @@ def binplot(database, components, phases, conditions, plot_kwargs=None, **map_kw
     None yet.
     """
     plot_kwargs = plot_kwargs if plot_kwargs is not None else dict()
-    zpf_boundaries = map_binary(database, components, phases, conditions, **map_kwargs)
+    zpf_boundaries = map_binary(database, species, phases, conditions, **map_kwargs)
     ax = plot_boundaries(zpf_boundaries, **plot_kwargs)
     return ax
