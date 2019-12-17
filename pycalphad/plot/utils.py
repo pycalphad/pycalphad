@@ -25,24 +25,23 @@ def phase_legend(phases):
     >>> legend_handles, colors = phase_legend(['FCC_A1', 'BCC_A2', 'LIQUID'])
     """
     colorlist = {}
-    # colors from Junwei Huang, March 21 2013
+    # colors from HU1SUN, August 5 2018, ordered by igorjrd, issue #97
     # exclude green and red because of their special meaning on the diagram
-    colorvalues = ["0000FF", "008000", "C00000", "000000", "FF8D00", "FF00FF",
-                   "00FFFF", "808080", "800080", "000080", "808000", "008080",
-                   "800000", "00C000", "0000C0", "C0C000", "C000C0", "00C0C0",
-                   "C0C0C0", "400000", "004000", "000040", "404000", "400040",
-                   "004040", "404040", "200000", "002000", "000020", "202000",
-                   "200020", "002020", "202020", "600000", "006000", "000060",
-                   "606000", "600060", "006060", "606060", "A00000", "00A000",
-                   "0000A0", "A0A000", "A000A0", "00A0A0", "A0A0A0", "E00000",
-                   "00E000", "0000E0", "E0E000", "E000E0", "00E0E0", "E0E0E0"]
+    colorvalues = [
+        '00538A', 'F4C800', 'F13A13', 'C10020', 'D2F300', '53377A', '7BD1EC',
+        '232C16', 'FE4262', 'C0DE00', '704AA4', 'FFB300', '176136', '7F180D',
+        '93AA00', '2B85EB', 'F6768E', '007D34', '803E75', '4A7C01', 'FF8E00',
+        'EC1840', '178D39', 'B32851', '577C23', 'A6BDD7', 'FD522B', '526B2E',
+        '90324E', '593315', 'B6A0D4', 'FF6800', 'CEA262', '9A7CC4', '91250B',
+        '7B3D0B', 'FF7A5C', 'C01F3D', 'D39336', '817066', '96541F', 'EB9867',
+        'B15106', 'EE8548', '97691C', 'DF6B10', '987155', 'C76F32', 'B37347',
+    ]
     mxx = len(colorvalues)
     phasecount = 0
     legend_handles = []
     for phase in phases:
         phase = phase.upper()
         colorlist[phase] = "#"+colorvalues[np.mod(phasecount, mxx)]
-        legend_handles.append(mpatches.Patch(color=colorlist[phase],
-                                             label=phase))
+        legend_handles.append(mpatches.Patch(color=colorlist[phase], label=phase))
         phasecount = phasecount + 1
     return legend_handles, colorlist

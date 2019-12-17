@@ -183,9 +183,9 @@ def _compute_phase_values(species, statevar_dict,
     dof = np.ascontiguousarray(np.concatenate((bc_statevars.T, pts), axis=1))
     phase_output = np.zeros(dof.shape[0], order='C')
     phase_compositions = np.zeros((dof.shape[0], len(pure_elements)), order='F')
-    phase_record.obj(phase_output, dof)
+    phase_record.obj_2d(phase_output, dof)
     for el_idx in range(len(pure_elements)):
-        phase_record.mass_obj(phase_compositions[:,el_idx], dof, el_idx)
+        phase_record.mass_obj_2d(phase_compositions[:, el_idx], dof, el_idx)
 
     max_tieline_vertices = len(pure_elements)
     if isinstance(phase_output, (float, int)):
@@ -243,7 +243,7 @@ def _compute_phase_values(species, statevar_dict,
     return LightDataset(data_arrays, coords=coordinate_dict)
 
 
-def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
+def calculate(dbf, species, phases, mode=None, output='GM', fake_points=False, broadcast=True, parameters=None, to_xarray=True, **kwargs):
     """
     Sample the property surface of 'output' containing the specified
     components and phases. Model parameters are taken from 'dbf' and any
@@ -253,8 +253,8 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : str or sequence
-        Names of components to consider in the calculation or species instancies.
+    species : str or sequence
+        Names of species or components to consider in the calculation or species instancies.
     phases : str or sequence
         Names of phases to consider in the calculation.
     mode : string, optional
@@ -305,9 +305,9 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
         parameters = OrderedDict(sorted(parameters.items(), key=str))
     if isinstance(phases, str):
         phases = [phases]
-    if isinstance(comps, (str, v.Species)):
-        comps = [comps]
-    species = sorted(unpack_components(dbf, comps))
+    if isinstance(species, (str, v.Species)):
+        species = [species]
+    species = sorted(unpack_components(dbf, species))
     if points_dict is None and broadcast is False:
         raise ValueError('The \'points\' keyword argument must be specified if broadcast=False is also given.')
     nonvacant_species = [x for x in sorted(species) if x.number_of_atoms > 0]
@@ -317,13 +317,11 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
 
     # Consider only the active phases
     list_of_possible_phases = filter_phases(dbf, species)
-    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
-    active_phases = {name: dbf.phases[name] for name in active_phases}
     if len(list_of_possible_phases) == 0:
         raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+    active_phases = {name: dbf.phases[name] for name in filter_phases(dbf, species, phases)}
     if len(active_phases) == 0:
-        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'
-                             .format(phases, list_of_possible_phases))
+        raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
 
     models = instantiate_models(dbf, species, list(active_phases.keys()), model=kwargs.pop('model', None), parameters=parameters)
 
@@ -345,7 +343,7 @@ def calculate(dbf, comps, phases, mode=None, output='GM', fake_points=False, bro
     statevar_dict = collections.OrderedDict(sorted(statevar_dict.items(), key=lambda x: str(x[0])))
     phase_records = build_phase_records(dbf, species, active_phases, statevar_dict,
                                    models=models, parameters=parameters,
-                                   output=output, callables=callables,
+                                   output=output, callables=callables, build_gradients=False, build_hessians=False,
                                    verbose=kwargs.pop('verbose', False))
     str_statevar_dict = collections.OrderedDict((str(key), unpack_condition(value)) \
                                                 for (key, value) in statevar_dict.items())

@@ -1,73 +1,71 @@
 Installation Instructions
 =========================
 
+Pycalphad is best installed by using Anaconda_. Release versions of pycalphad
+are available on PyPI, however pycalphad depends on the externally developed
+`Ipopt`_ and `SymEngine`_ libraries for numerical optimization and symbolic
+calculations and must be installed separately in order to install pycalphad
+from PyPI. For this reason, it is *strongly* recommended to use the Anaconda
+Python distribution to install pycalphad, rather than using ``pip``.
 
-This page will guide you through installing pycalphad and the `Jupyter Notebook`_
-application, which is suggested for running pycalphad interactively.
-
-Anaconda (recommended)
-----------------------
+Anaconda
+--------
 
 For all Windows, macOS and Linux platforms, it is recommended to use Anaconda_
 to install the latest release of pycalphad. Anaconda is a scientific Python
-distribution by Anaconda, Inc. It provides good support for various
-scientific packages and otherwise challenging to install packages.
+distribution by Anaconda, Inc. It provides good support for various scientific
+packages and otherwise challenging to install packages.
 
 To install pycalphad from Anaconda
 
 1. Download and install Anaconda_
-2. From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run ``conda install -c pycalphad -c msys2 -c conda-forge pycalphad``
-
-PyPI
-----
-
-Release versions of pycalphad are available on PyPI. As of pycalphad 0.6,
-the `Ipopt`_ library is used for numerical optimization and must be installed
-separately in order to install pycalphad from PyPI. Instructions for downloading
-and installing Ipopt are found at https://www.coin-or.org/Ipopt/documentation/node10.html.
-
-NumPy, SciPy and Cython are all *build* requirements of pycalphad and must be
-installed before you install pycalphad.
-
-To install pycalphad from PyPI using pip:
-
-1. Download and install `Ipopt`_
-2. Run the ``pip install numpy scipy cython`` command in a terminal emulator
-3. Run the ``pip install pycalphad`` command to install pycalphad
-4. (Optional) run ``pip install jupyter`` to install the Jupyter Notebook application
+2. From the Anaconda Prompt (Windows) or a terminal emulator (macOS and Linux) run ``conda install -c pycalphad -c conda-forge pycalphad``
 
 
 Development Versions (Advanced Users)
 -------------------------------------
 
-To install a development version of pycalphad, you can use either an Anaconda or
-vanilla Python distribution.
+Installing a development version of pycalphad will allow the latest changes and
+features in pycalphad to be used by running the bleeding edge version of the
+code, even if those changes have not been released in a tagged version to PyPI
+or Anaconda.
 
+Running the development versions allows pycalphad to be run directly from the
+modifiable source code, so you can add new features and contribute them back to
+the project.
 
-Anaconda
+Installing
+~~~~~~~~~~
+
+To install the latest development version of pycalphad, run from the Anaconda
+Prompt (Windows) or a terminal emulator (macOS or Linux):
+
+1. Install pycalphad and the conda-forge C and C++ compilers ``conda install -c pycalphad -c conda-forge c-compiler cxx-compiler pycalphad``
+#. Remove the installed pycalphad package so the development version can be installed ``conda remove --force pycalphad``
+#. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
+#. Go to the top level directory of the package ``cd pycalphad``
+#. Run ``pip install -e .``
+
+Updating
 ~~~~~~~~
 
-These instructions will walk you through installing pycalphad in a virtual
-environment called ``pycalphad-dev``. From the Anaconda Prompt (Windows) or a
-terminal emulator (macOS or Linux)
+By default, the development version installed will track the latest changes in
+the ``develop`` branch of pycalphad, tracked on
+`GitHub <https://github.com/pycalphad/pycalphad/tree/develop>`_.
+Two steps need to be performed to update the code: modifying/updating the source
+code and compiling any changes in the Cython files.
 
-1. Create the virtual environment and install pycalphad into it ``conda create -c pycalphad -c msys2 -c conda-forge -n pycalphad-dev pycalphad``
-2. Remove the installed pycalphad package so the development version can be installed ``conda remove --force -n pycalphad-dev pycalphad``
-3. Activate the environment ``activate pycalphad-dev`` (Windows) or ``source activate pycalphad-dev`` (macOS or Linux)
-4. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/`` (or download from https://github.com/pycalphad/pycalphad)
-5. Go to the top level directory of the package ``cd pycalphad``
-6. Run ``pip install -e .``
+To update the code in the current branch to the latest changes on GitHub, the
+changes are pulled from GitHub by running ``git pull`` from the Anaconda Prompt
+or terminal emulator.
 
-PyPI
-~~~~
+To switch to a different branch, e.g. ``master`` (which tracks the latest
+released version) or another feature branch, run ``git checkout <branch>``,
+where ``<branch>`` is the name of the branch to checkout, such as ``master``
+(without the brackets ``<`` and ``>``).
 
-From the Anaconda Prompt (Windows) or a terminal emulator (macOS or Linux)
-
-1. Download and install `Ipopt`_
-2. Install the build requirements ``pip install numpy scipy cython``
-3. Get the pycalphad source ``git clone https://github.com/pycalphad/pycalphad.git pycalphad/``
-4. Go to the top level directory of the package ``cd pycalphad``
-5. Run ``pip install -e .``
+The Cython files can be recompiled by running ``python setup.py build_ext --inplace``
+from the top level ``pycalphad`` directory which contains the ``setup.py`` file.
 
 Troubleshooting
 ---------------
@@ -115,3 +113,4 @@ environment variable ``MPMATH_NOGMPY`` to a non-zero value will fix the error.
 .. _Anaconda: https://anaconda.com/download
 .. _`Jupyter Notebook`: http://jupyter.readthedocs.io/en/latest/index.html
 .. _Ipopt: https://projects.coin-or.org/Ipopt
+.. _SymEngine: https://github.com/symengine/symengine

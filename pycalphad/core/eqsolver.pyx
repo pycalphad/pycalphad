@@ -232,7 +232,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
             phase_records[key] = PhaseRecord(comps, value.state_variables, value.variables,
                                              value.parameters, value.obj, value.grad,
                                              value.mass_obj, value.mass_grad,
-                                             value.internal_cons, value.internal_jac,
+                                             value.internal_cons_func, value.internal_jac,
                                              value.multiphase_cons, value.multiphase_jac,
                                              value.num_internal_cons, value.num_multiphase_cons)
 

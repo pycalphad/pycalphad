@@ -53,4 +53,4 @@ install:
 build: false
 
 test_script:
-  - "python -c \"import pytest ; pytest.main()\" -s -v pycalphad"
+  - "python -c \"import pytest ; exit(pytest.main())\" -s -v pycalphad"

@@ -27,6 +27,7 @@ TOUGH_CHEMPOT_DBF = Database(ALNI_TOUGH_CHEMPOT_TDB)
 CUO_DBF = Database(CUO_TDB)
 PBSN_DBF = Database(PBSN_TDB)
 AL_PARAMETER_DBF = Database(AL_PARAMETER_TDB)
+CUMG_PARAMETERS_DBF = Database(CUMG_PARAMETERS_TDB)
 
 
 # ROSE DIAGRAM TEST
@@ -490,3 +491,14 @@ def test_eq_magnetic_chempot_cond():
                      {v.MU('FE'): -123110, v.T: 300, v.P: 1e5}, verbose=True)
     assert_allclose(np.squeeze(eq.GM.values), -35427.1, atol=0.1)
     assert_allclose(np.squeeze(eq.MU.values), [-8490.7, -123110], atol=0.1)
+
+def test_eq_calculation_with_parameters():
+    parameters = {'VV0000': -33134.699474175846, 'VV0001': 7734.114029426941, 'VV0002': -13498.542175596054,
+                  'VV0003': -26555.048975092268, 'VV0004': 20777.637577083482, 'VV0005': 41915.70425630003,
+                  'VV0006': -34525.21964215504, 'VV0007': 95457.14639216446, 'VV0008': 21139.578967453144,
+                  'VV0009': 19047.833726419598, 'VV0010': 20468.91829601273, 'VV0011': 19601.617855958328,
+                  'VV0012': -4546.9325861738, 'VV0013': -1640.6354331231278, 'VV0014': -35682.950005357634}
+    eq = equilibrium(CUMG_PARAMETERS_DBF, ['CU', 'MG'], ['HCP_A3'],
+                     {v.X('CU'): 0.0001052, v.P: 101325.0, v.T: 743.15, v.N: 1},
+                     parameters=parameters, verbose=True)
+    assert_allclose(eq.GM.values, -30374.196034, atol=0.1)

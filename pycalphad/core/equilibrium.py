@@ -130,7 +130,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     return result
 
 
-def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
+def equilibrium(dbf, species, phases, conditions, output=None, model=None,
                 verbose=False, broadcast=True, calc_opts=None, to_xarray=True,
                 scheduler='sync', parameters=None, solver=None, callables=None,
                 **kwargs):
@@ -142,8 +142,8 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
+    species : list
+        Names of species or components to consider in the calculation.
     phases : list or dict
         Names of phases to consider in the calculation.
     conditions : dict or (list of dict)
@@ -185,13 +185,12 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     """
     if not broadcast:
         raise NotImplementedError('Broadcasting cannot yet be disabled')
-    species = sorted(unpack_components(dbf, comps))
+    species = sorted(unpack_components(dbf, species))
     phases = unpack_phases(phases) or sorted(dbf.phases.keys())
-    # remove phases that cannot be active
     list_of_possible_phases = filter_phases(dbf, species)
-    active_phases = sorted(set(list_of_possible_phases).intersection(set(phases)))
     if len(list_of_possible_phases) == 0:
-        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(comps))
+        raise ConditionError('There are no phases in the Database that can be active with components {0}'.format(species))
+    active_phases = {name: dbf.phases[name] for name in filter_phases(dbf, species, phases)}
     if len(active_phases) == 0:
         raise ConditionError('None of the passed phases ({0}) are active. List of possible phases: {1}.'.format(phases, list_of_possible_phases))
     if isinstance(species, (str, v.Species)):
@@ -231,11 +230,10 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     output = set(output)
     output |= {'GM'}
     output = sorted(output)
-    need_hessians = any(type(c) in v.CONDITIONS_REQUIRING_HESSIANS for c in conds.keys())
     phase_records = build_phase_records(dbf, species, active_phases, conds, models,
                                         output='GM', callables=callables,
                                         parameters=parameters, verbose=verbose,
-                                        build_gradients=True, build_hessians=need_hessians)
+                                        build_gradients=True, build_hessians=True)
     if verbose:
         print('[done]', end='\n')
 
