@@ -33,9 +33,11 @@ import warnings
 import hashlib
 from copy import deepcopy
 
-_AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
-                  ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
-                  ast.UAdd, ast.UnaryOp, ast.USub]
+# ast.Num is deprecated in Python 3.8 in favor of as ast.Constant
+# Both are whitelisted for compatability across versions
+_AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
+                  ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
+                  ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
 # Avoid symbol names clashing with objects in sympy (gh-233)
 clashing_namespace = {}
