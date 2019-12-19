@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.binary package &mdash; pycalphad 0.8.1.post1 documentation</title>
+  <title>pycalphad.plot.binary package &mdash; pycalphad 0.8.1.post1+1.gd711006 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1
+                0.8.1.post1+1.gd711006
               </div>
             
           
@@ -728,7 +728,7 @@ tolerance. If <cite>None</cite> is passed, do not close the gap.</p>
 <p>For now, we will not support connecting regions with lines, so this
 function returns a tuple of scatter_dict and a tineline_collection.</p>
 <p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">boundary_collection</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span> <span class="o">=</span> <span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">get_line_plot_boundaries</span><span class="p">()</span>  
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">boundary_collection</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span> <span class="o">=</span> <span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">get_line_plot_boundaries</span><span class="p">()</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">boundary_collection</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">tieline_collection</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">)</span>  
@@ -758,7 +758,7 @@ function returns a tuple of scatter_dict and a tineline_collection.</p>
 <p>For now, we will not support connecting regions with lines, so this
 function returns a tuple of scatter_dict and a tineline_collection.</p>
 <p class="rubric">Examples</p>
-<div class="highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scatter_dict</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span> <span class="o">=</span> <span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">get_scatter_plot_boundaries</span><span class="p">()</span>  
+<div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">scatter_dict</span><span class="p">,</span> <span class="n">tieline_collection</span><span class="p">,</span> <span class="n">legend_handles</span> <span class="o">=</span> <span class="n">zpf_boundary_sets</span><span class="o">.</span><span class="n">get_scatter_plot_boundaries</span><span class="p">()</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="o">**</span><span class="n">scatter_dict</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">add_collection</span><span class="p">(</span><span class="n">tieline_collection</span><span class="p">)</span>  
 <span class="gp">&gt;&gt;&gt; </span><span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">)</span>  
