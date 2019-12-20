@@ -422,15 +422,18 @@ class Model(object):
     def _purity_test(self, constituent_array):
         """
         Check if constituent array only has one species in its array
-        This species must also be an active species
+        This species must also be an active species and contained in model sublattice
         """
         if len(constituent_array) != len(self.constituents):
             return False
-        for sublattice in constituent_array:
-            if len(sublattice) != 1:
+        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
+            if len(param_sublattice) != 1:
                 return False
-            if (sublattice[0] not in self.components) and \
-                (sublattice[0] != v.Species('*')):
+            if (param_sublattice[0] not in self.components) and \
+                param_sublattice[0] not in model_sublattice and \
+                (param_sublattice[0] != v.Species('*')):
+                return False
+            if param_sublattice[0] not in model_sublattice:
                 return False
         return True
 
