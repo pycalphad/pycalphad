@@ -424,14 +424,10 @@ class Model(object):
         Check if constituent array only has one species in its array
         This species must also be an active species and contained in model sublattice
         """
-        if len(constituent_array) != len(self.constituents):
+        if not self._array_validity(constituent_array):
             return False
         for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
             if len(param_sublattice) != 1:
-                return False
-            if (param_sublattice[0] not in self.components) and \
-                param_sublattice[0] not in model_sublattice and \
-                (param_sublattice[0] != v.Species('*')):
                 return False
             if param_sublattice[0] not in model_sublattice:
                 return False
@@ -455,19 +451,11 @@ class Model(object):
         Check if constituent array has more than one active species in
         its array for at least one sublattice.
         """
-        result = False
-        if len(constituent_array) != len(self.constituents):
+        if not self._array_validity(constituent_array):
             return False
-        for sublattice in constituent_array:
-            # check if all elements involved are also active
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if len(sublattice) > 1 and valid:
-                result = True
-            if not valid:
-                result = False
-                break
-        return result
+        if True in [True for sublattice in constituent_array if len(sublattice) > 1]:
+            return True
+        return False
 
     @property
     def _site_ratio_normalization(self):
