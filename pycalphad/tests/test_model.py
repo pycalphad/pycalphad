@@ -3,8 +3,9 @@ The test_model module contains unit tests for the Model object.
 """
 from __future__ import print_function
 from pycalphad import Database, Model, variables as v, equilibrium
-from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB
+from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
+from tinydb import where
 import numpy as np
 import pytest
 
@@ -69,3 +70,30 @@ def test_detect_pure_vacancy_phases():
     dbf = Database(ZRO2_CUBIC_BCC_TDB)
     with pytest.raises(DofError):
         Model(dbf,['AL','CU','VA'],'ZRO2_CUBIC')
+
+def test_bad_constituents_not_in_model():
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    mod = Model(dbf, ['A', 'B'], 'ALPHA')
+    assert v.SiteFraction('ALPHA', 0, 'B') not in mod.ast.free_symbols
+
+def test_bad_constituents_do_not_affect_equilibrium():
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    assert np.isclose(equilibrium(dbf, ['A', 'B'], ['ALPHA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('B'): 0.5}).GM.values.squeeze(), -10.0)
+
+def test_interation_test_method():
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    interacting_consts = dbf.search(
+        where('parameter'))[4]['constituent_array']
+    non_interacing_consts = dbf.search(
+        where('parameter'))[1]['constituent_array']
+    assert Model(dbf,['B','C'],'BETA')._interaction_test(interacting_consts) == True
+    assert Model(dbf, ['A','B'],'ALPHA')._interaction_test(non_interacing_consts) == False
+
+def test_params_array_validity():
+    dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    bad_comp_param = dbf.search(
+        where('parameter'))[5]['constituent_array']
+    extra_subl_param = dbf.search(
+        where('parameter'))[6]['constituent_array']
+    assert Model(dbf,['B','C'],'BETA')._interaction_test(bad_comp_param) == False
+    assert Model(dbf,['B','C'],'BETA')._interaction_test(extra_subl_param) == False

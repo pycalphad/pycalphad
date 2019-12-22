@@ -4467,3 +4467,33 @@ ZRO2_CUBIC_BCC_TDB = """
  PHASE ZRO2_CUBIC  %  2 1   2 !
     CONSTITUENT ZRO2_CUBIC  :VA,ZR% : O%,VA :  !
 """
+
+TDB_PARAMETER_FILTERS_TEST = """
+ELEMENT A BLANK 0 0 0 !
+ELEMENT B BLANK 0 0 0 !
+ELEMENT C BLANK 0 0 0 !
+
+TYPE_DEFINITION % SEQ * !
+DEFINE_SYSTEM_DEFAULT ELEMENT 2 !
+
+PHASE ALPHA %  2 0.5 0.5 !
+CONSTITUENT ALPHA :A: A,B :  !
+
+$  ALPHA  $
+PARAMETER G(ALPHA,A:A;0) 1 -10; 10000 N !
+PARAMETER G(ALPHA,A:B;0) 1 -10; 10000 N !
+
+$ Erroneous parameter! B is not in the first sublattice
+PARAMETER G(ALPHA,B:A;0) 1 1e5; 10000 N !
+
+PHASE BETA % 2 0.5 0.5 !
+CONSTITUENT BETA :B: B,C :  !
+
+PARAMETER G(BETA,B:B;0) 1 -10; 10000 N !
+$Parameter to check if interaction_test is working well 
+PARAMETER G(BETA,B:B,C;0) 1 -10; 10000 N !
+$Erroneous parameter! _array_validity should filter bad comps params
+PARAMETER G(BETA,B:D;0) 1 -10; 10000 N !
+$Erroneous parameter! _array_validity should filter extra sublattice params
+PARAMETER G(BETA,B:B:C;0) 1 -10; 10000 N !
+"""
