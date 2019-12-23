@@ -282,7 +282,7 @@ class Composition():
     Examples
     --------
     >>> from pycalphad import variables as v
-    >>> c = Composition({'AL': 26.98, 'NI': 58.69, 'CR': 52.00}, {v.W('AL'): 0.1, v.W('CR'): 0.2}, 'NI')
+    >>> c = Composition({v.W('AL'): 0.1, v.W('CR'): 0.2}, 'NI', masses={'AL': 26.98, 'NI': 58.69, 'CR': 52.00})
     >>> new_c = c.to_mole_fractions().to_mass_fractions()
     >>> new_c is c
     False
@@ -291,7 +291,7 @@ class Composition():
 
     """
 
-    def __init__(self, masses, composition, dependent_component):
+    def __init__(self, composition, dependent_component, masses=None):
         # TODO: check degree of freedom (ncomps, n-1 independent compositions)
         # TODO: convert any complex species into pure element composition
         self.components = {dependent_component}
@@ -307,13 +307,24 @@ class Composition():
             raise ValueError(f'All composition fractions must be greater than zero (got {list(composition.values())}).')
         if sum(composition.values()) > 1:
             raise ValueError(f'Sum of composition fractions cannot be greater than 1 (got {sum(composition.values())}).')
+        if masses is None:
+            self.masses = None
+        else:
+            self.set_masses(masses)
+        self._composition = copy.deepcopy(composition)
+        self.dependent_component = dependent_component
+
+    def set_masses(self, masses):
+        """Set the masses attribute"""
         from pycalphad import Database  # Imported here to avoid circular import
         if isinstance(masses, Database):
             self.masses = {c: masses.refstates[c]['mass'] for c in self.components}
         else:  # Assume masses is a dict mapping components to mass
             self.masses = masses
-        self._composition = copy.deepcopy(composition)
-        self.dependent_component = dependent_component
+
+    def _check_masses(self):
+        if self.masses is None:
+            raise ValueError("The `masses` attribute must be set to convert between mass and mole fractions. Use the `Composition.set_masses` method.")
 
     @property
     def composition(self):
@@ -324,6 +335,7 @@ class Composition():
         if issubclass(self._mode, MassFraction):
             return self._composition
         else:
+            self._check_masses()
             comp_names = {w.species.name for w in self._composition}
             mass = {MassFraction(comp): self._composition[MoleFraction(comp)]*self.masses[comp] for comp in comp_names}
             dep_comp_mass = (1-sum(self._composition.values()))*self.masses[self.dependent_component]
@@ -336,6 +348,7 @@ class Composition():
         if issubclass(self._mode, MoleFraction):
             return self._composition
         else:
+            self._check_masses()
             comp_names = {w.species.name for w in self._composition}
             moles = {MoleFraction(comp): self._composition[MassFraction(comp)]/self.masses[comp] for comp in comp_names}
             dep_comp_moles = (1-sum(self._composition.values()))/self.masses[self.dependent_component]
@@ -343,13 +356,15 @@ class Composition():
             mole_fracs = {component: mole_amnt/total_moles for component, mole_amnt in moles.items()}
             return mole_fracs
 
-    def to_mole_fractions(self):
+    def to_mole_fractions(self, masses=None):
         """Return a new Composition object converted to mole fractions"""
-        return Composition(self.masses, self.mole_fractions, self.dependent_component)
+        new_masses = masses if masses is not None else self.masses
+        return Composition(self.mole_fractions, self.dependent_component, masses=new_masses)
 
-    def to_mass_fractions(self):
+    def to_mass_fractions(self, masses=None):
         """Return a new Composition object converted to mass fractions"""
-        return Composition(self.masses, self.mass_fractions, self.dependent_component)
+        new_masses = masses if masses is not None else self.masses
+        return Composition(self.mass_fractions, self.dependent_component, masses=new_masses)
 
     def set_dependent_component(self, component):
         """Change the dependent component
@@ -360,7 +375,7 @@ class Composition():
         --------
         >>> import numpy as np
         >>> from pycalphad import variables as v
-        >>> c = v.Composition({}, {v.X('B'): 0.5, v.X('C'): 0.3}, 'A')
+        >>> c = v.Composition({v.X('B'): 0.5, v.X('C'): 0.3}, 'A')
         >>> new_c = c.set_dependent_component('C')
         >>> new_c is c
         True
@@ -392,15 +407,15 @@ class Composition():
         Examples
         --------
         >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({}, {v.X('A'): 0.25}, 'B')
-        >>> c2 = v.Composition({}, {v.X('A'): 0.75}, 'B')
+        >>> c1 = v.Composition({v.X('A'): 0.25}, 'B')
+        >>> c2 = v.Composition({v.X('A'): 0.75}, 'B')
         >>> c1.mix(c2, 0.0) == c1
         True
         >>> c1.mix(c2, 1.0) == c2
         True
         >>> c1.mix(c2, 0.5)[v.X('A')]
         0.5
-        >>> c3 = v.Composition({}, {v.X('B'): 0.25}, 'A')
+        >>> c3 = v.Composition({v.X('B'): 0.25}, 'A')
         >>> c1.mix(c2, 0.5)[v.X('A')]
         0.5
 
@@ -413,7 +428,7 @@ class Composition():
         interpolated = {}
         for c in self.composition.keys():
             interpolated[c] = self[c] + (end[c] - self[c])*amount
-        return Composition(self.masses, interpolated, self.dependent_component)
+        return Composition(interpolated, self.dependent_component, masses=self.masses)
 
     def distance(self, composition):
         """Compute the euclidean distance between two compositions"""
@@ -445,8 +460,8 @@ class Composition():
         --------
         >>> import numpy as np
         >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({}, {v.X('B'): 0.0}, 'A')
-        >>> c2 = v.Composition({}, {v.X('B'): 1.0}, 'A')
+        >>> c1 = v.Composition({v.X('B'): 0.0}, 'A')
+        >>> c2 = v.Composition({v.X('B'): 1.0}, 'A')
         >>> path = c1.interpolate_composition(c2, 5)
         >>> np.all(np.isclose(path[v.X('B')], [0, 0.25, 0.5, 0.75, 1]))
         True
@@ -510,8 +525,8 @@ class Composition():
         Examples
         --------
         >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({}, {v.X('A'): 0.25}, 'B')
-        >>> c2 = v.Composition({}, {v.X('A'): 0.75}, 'B')
+        >>> c1 = v.Composition({v.X('A'): 0.25}, 'B')
+        >>> c2 = v.Composition({v.X('A'): 0.75}, 'B')
         >>> c1 == c1
         True
         >>> c2 == c2
