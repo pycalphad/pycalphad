@@ -2,6 +2,7 @@
 The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
+from io import StringIO
 from tinydb import TinyDB
 from tinydb.storages import MemoryStorage
 from datetime import datetime
@@ -9,20 +10,7 @@ from collections import namedtuple
 import os
 from pycalphad.variables import Species
 from pycalphad.core.cache import fhash
-try:
-    # Python 2
-    from StringIO import StringIO
-except ImportError:
-    # Python 3
-    from io import StringIO
 
-# handle missing FileExistsError in Python2
-try:
-    FileExistsError = FileExistsError
-except NameError:
-    class FileExistsError(OSError):
-        """Python 2 backported FileExistsError wrapping OSError"""
-        pass
 
 class DatabaseExportError(Exception):
     """Raised when a database cannot be written."""

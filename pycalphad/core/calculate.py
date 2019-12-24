@@ -3,7 +3,6 @@ The calculate module contains a routine for calculating the
 property surface of a system.
 """
 
-from __future__ import division
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad import ConditionError
 from pycalphad.core.utils import point_sample, generate_dof

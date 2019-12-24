@@ -1,7 +1,7 @@
 """
 The test_database module contains tests for the Database object.
 """
-from __future__ import print_function
+from io import StringIO
 import pytest
 import hashlib
 import os
@@ -10,16 +10,9 @@ from pyparsing import ParseException
 from sympy import Symbol, Piecewise, And
 from pycalphad import Database, Model, variables as v
 from pycalphad.variables import Species
-from pycalphad.io.database import FileExistsError
 from pycalphad.io.tdb import expand_keyword
 from pycalphad.io.tdb import _apply_new_symbol_names, DatabaseExportError
 from pycalphad.tests.datasets import ALCRNI_TDB, ALFE_TDB, ALNIPT_TDB, ROSE_TDB, DIFFUSION_TDB
-try:
-    # Python 2
-    from StringIO import StringIO
-except ImportError:
-    # Python 3
-    from io import StringIO
 
 
 #

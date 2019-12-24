@@ -2,7 +2,6 @@
 The halton module allows the construction of multi-dimensional
 scrambled Halton sequences.
 """
-from __future__ import division
 import numpy as np
 from collections import OrderedDict, defaultdict
 

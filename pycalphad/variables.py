@@ -4,12 +4,6 @@ Classes and constants for representing thermodynamic variables.
 """
 
 import sys
-# Python 2 vs 3 string types in isinstance
-if sys.version_info[0] >= 3:
-    string_type = str
-else:
-    string_type = basestring
-
 from sympy import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 
@@ -53,7 +47,7 @@ class Species(object):
             new_self.charge = 0
             return new_self
 
-        if isinstance(arg, string_type):
+        if isinstance(arg, str):
             parse_list = parse_chemical_formula(arg.upper())
         else:
             parse_list = arg

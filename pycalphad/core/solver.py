@@ -2,7 +2,6 @@ import ipopt
 ipopt.setLoggingLevel(50)
 import numpy as np
 from collections import namedtuple
-from pycalphad.variables import string_type
 from pycalphad.core.constants import MIN_SITE_FRACTION
 
 SolverResult = namedtuple('SolverResult', ['converged', 'x', 'chemical_potentials'])
@@ -98,7 +97,7 @@ class InteriorPointSolver(SolverBase):
         Strings are encoded to byte strings.
         """
         for option, value in self.ipopt_options.items():
-            if isinstance(value, string_type):
+            if isinstance(value, str):
                 problem.addOption(option.encode(), value.encode())
             else:
                 problem.addOption(option.encode(), value)
