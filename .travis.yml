@@ -7,9 +7,6 @@ notifications:
 matrix:
     include:
         # "python" version works for Linux, but is an error on macOS
-        - name: "Python 2.7 on Xenial Linux"
-          python: 2.7
-          dist: xenial
         - name: "Python 3.6 on Xenial Linux"
           python: 3.6
           dist: xenial
@@ -20,10 +17,6 @@ matrix:
         - name: "Python 3.8 on Xenial Linux"
           python: 3.8
           dist: xenial
-        - name: "Python 2.7 on macOS"
-          language: generic
-          os: osx
-          env: TRAVIS_PYTHON_VERSION=2.7
         - name: "Python 3.6 on macOS"
           language: generic
           os: osx
