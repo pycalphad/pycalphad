@@ -46,7 +46,8 @@ install:
       echo "!!! Installing pycalphad dependencies via conda"
       conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
       echo "!!! conda installing test packages"
-      conda install --yes sphinx sphinx_rtd_theme coveralls ipython
+      # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
+      conda install --yes sphinx sphinx_rtd_theme coveralls "coverage<5" ipython
       echo "!!! pip pycalphad as editable"
       pip install -e .
 
