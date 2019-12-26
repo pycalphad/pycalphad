@@ -1,7 +1,6 @@
 """
 The test_model module contains unit tests for the Model object.
 """
-from __future__ import print_function
 from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB
 from pycalphad.core.errors import DofError

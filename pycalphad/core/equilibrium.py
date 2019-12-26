@@ -2,7 +2,6 @@
 The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
-from __future__ import print_function
 import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
@@ -244,7 +243,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
     if 'pdens' not in grid_opts:
         grid_opts['pdens'] = 500
     grid = calculate(dbf, comps, active_phases, model=models, fake_points=True,
-                     callables=callables, output='GM', parameters=parameters, 
+                     callables=callables, output='GM', parameters=parameters,
                      to_xarray=False, **grid_opts)
     coord_dict = str_conds.copy()
     coord_dict['vertex'] = np.arange(len(pure_elements) + 1)  # +1 is to accommodate the degenerate degree of freedom at the invariant reactions

@@ -3,15 +3,10 @@ The calculate test module verifies that calculate() calculates
 Model quantities correctly.
 """
 
+from io import StringIO
 import pytest
 from pycalphad import Database, calculate, Model
 import numpy as np
-try:
-    # Python 2
-    from StringIO import StringIO
-except ImportError:
-    # Python 3
-    from io import StringIO
 from pycalphad import ConditionError
 from pycalphad.tests.datasets import ALCRNI_TDB as TDB_TEST_STRING, ALFE_TDB
 

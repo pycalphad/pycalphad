@@ -33,9 +33,11 @@ import warnings
 import hashlib
 from copy import deepcopy
 
-_AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Div, ast.Expression,
-                  ast.Load, ast.Mult, ast.Name, ast.Num, ast.Pow, ast.Sub,
-                  ast.UAdd, ast.UnaryOp, ast.USub]
+# ast.Num is deprecated in Python 3.8 in favor of as ast.Constant
+# Both are whitelisted for compatability across versions
+_AST_WHITELIST = [ast.Add, ast.BinOp, ast.Call, ast.Constant, ast.Div,
+                  ast.Expression, ast.Load, ast.Mult, ast.Name, ast.Num,
+                  ast.Pow, ast.Sub, ast.UAdd, ast.UnaryOp, ast.USub]
 
 # Avoid symbol names clashing with objects in sympy (gh-233)
 clashing_namespace = {}
@@ -91,12 +93,9 @@ def _parse_action(func):
     Source: Florian Brucker on StackOverflow
     http://stackoverflow.com/questions/10177276/pyparsing-setparseaction-function-is-getting-no-arguments
     """
-    if sys.version_info[0] > 2:
-        func_items = inspect.signature(func).parameters.items()
-        func_args = [name for name, param in func_items
-                     if param.kind == param.POSITIONAL_OR_KEYWORD]
-    else:
-        func_args = inspect.getargspec(func).args
+    func_items = inspect.signature(func).parameters.items()
+    func_args = [name for name, param in func_items
+                 if param.kind == param.POSITIONAL_OR_KEYWORD]
     num_args = len(func_args)
     if num_args > 3:
         raise ValueError('Input function must take at most 3 parameters.')
@@ -930,7 +929,7 @@ def read_tdb(dbf, fd):
 
     # Temporary storage while we process type definitions
     dbf.tdbtypedefs = {}
-    
+
     grammar = _tdb_grammar()
 
     for command in commands:
