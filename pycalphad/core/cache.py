@@ -6,10 +6,7 @@ The difference is _HashedSeq has been modified to use a custom hash function.
 http://code.activestate.com/recipes/578078-py26-and-py30-backport-of-python-33s-lru-cache/
 """
 
-try:
-    from collections.abc import Iterable, Mapping
-except ImportError:
-    from collections import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 from collections import namedtuple
 from threading import RLock
 from functools import update_wrapper

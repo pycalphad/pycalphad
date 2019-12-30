@@ -7,9 +7,6 @@ notifications:
 matrix:
     include:
         # "python" version works for Linux, but is an error on macOS
-        - name: "Python 2.7 on Xenial Linux"
-          python: 2.7
-          dist: xenial
         - name: "Python 3.6 on Xenial Linux"
           python: 3.6
           dist: xenial
@@ -20,10 +17,6 @@ matrix:
         - name: "Python 3.8 on Xenial Linux"
           python: 3.8
           dist: xenial
-        - name: "Python 2.7 on macOS"
-          language: generic
-          os: osx
-          env: TRAVIS_PYTHON_VERSION=2.7
         - name: "Python 3.6 on macOS"
           language: generic
           os: osx
@@ -53,7 +46,8 @@ install:
       echo "!!! Installing pycalphad dependencies via conda"
       conda install --yes python=$TRAVIS_PYTHON_VERSION numpy scipy matplotlib pytest pytest-cov pandas sympy pyparsing dask dill python-symengine xarray cython cyipopt
       echo "!!! conda installing test packages"
-      conda install --yes sphinx sphinx_rtd_theme coveralls ipython
+      # coverage<5, see https://github.com/coveralls-clients/coveralls-python/issues/213
+      conda install --yes sphinx sphinx_rtd_theme coveralls "coverage<5" ipython
       echo "!!! pip pycalphad as editable"
       pip install -e .
 

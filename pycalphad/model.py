@@ -2,7 +2,6 @@
 The model module provides support for using a Database to perform
 calculations under specified conditions.
 """
-from __future__ import division
 import copy
 from sympy import exp, log, Abs, Add, And, Float, Mul, Piecewise, Pow, S, sin, StrictGreaterThan, Symbol, zoo, oo, nan
 from tinydb import where
