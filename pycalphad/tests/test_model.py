@@ -4,6 +4,7 @@ The test_model module contains unit tests for the Model object.
 from pycalphad import Database, Model, variables as v, equilibrium
 from pycalphad.tests.datasets import ALCRNI_TDB, ALNIPT_TDB, ALFE_TDB, ZRO2_CUBIC_BCC_TDB, TDB_PARAMETER_FILTERS_TEST
 from pycalphad.core.errors import DofError
+from pycalphad.core.utils import unpack_components
 from tinydb import where
 import numpy as np
 import pytest
@@ -81,18 +82,31 @@ def test_bad_constituents_do_not_affect_equilibrium():
 
 def test_interation_test_method():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    A = unpack_components(dbf, ['A'])
+    B = unpack_components(dbf, ['B'])
+    C = unpack_components(dbf, ['C'])
     interacting_consts = dbf.search(
-        where('parameter'))[4]['constituent_array']
+        where('parameter') and \
+        where('constituent_array').test(lambda s:(
+            (s[0][0] in B) and (B.union(C).issubset(s[1])))))[0]['constituent_array']
     non_interacing_consts = dbf.search(
-        where('parameter'))[1]['constituent_array']
+        where('parameter') and \
+        where('constituent_array').test(lambda s:(
+            s[0][0] in B and s[1][0] in A)))[0]['constituent_array']
     assert Model(dbf,['B','C'],'BETA')._interaction_test(interacting_consts) == True
     assert Model(dbf, ['A','B'],'ALPHA')._interaction_test(non_interacing_consts) == False
 
 def test_params_array_validity():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
+    D = v.Species('D')
+    C = unpack_components(dbf, ['C'])
     bad_comp_param = dbf.search(
-        where('parameter'))[5]['constituent_array']
+        where('parameter') and \
+        where('constituent_array').test(lambda s:(
+            s[1][0] == D)))
     extra_subl_param = dbf.search(
-        where('parameter'))[6]['constituent_array']
+        where('parameter') and \
+        where('constituent_array').test(lambda s:(
+            True if (len(s) == 3 and s[2][0] == C) else False)))
     assert Model(dbf,['B','C'],'BETA')._interaction_test(bad_comp_param) == False
     assert Model(dbf,['B','C'],'BETA')._interaction_test(extra_subl_param) == False
