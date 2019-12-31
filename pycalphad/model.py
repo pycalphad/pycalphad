@@ -425,12 +425,7 @@ class Model(object):
         """
         if not self._array_validity(constituent_array):
             return False
-        for param_sublattice, model_sublattice in zip(constituent_array, self.constituents):
-            if len(param_sublattice) != 1:
-                return False
-            if param_sublattice[0] not in model_sublattice:
-                return False
-        return True
+        return not any(len(sublattice) != 1 for sublattice in constituent_array)
 
     def _array_validity(self, constituent_array):
         """
@@ -438,10 +433,9 @@ class Model(object):
         """
         if len(constituent_array) != len(self.constituents):
             return False
-        for sublattice in constituent_array:
-            valid = set(sublattice).issubset(self.components) \
-                or sublattice[0] == v.Species('*')
-            if not valid:
+        for param_sublattice, model_sublattice in zip(constituent_array,self.constituents):
+            if not (set(param_sublattice).issubset(model_sublattice) \
+                or (param_sublattice[0] == v.Species('*'))):
                 return False
         return True
 
@@ -452,9 +446,7 @@ class Model(object):
         """
         if not self._array_validity(constituent_array):
             return False
-        if True in [True for sublattice in constituent_array if len(sublattice) > 1]:
-            return True
-        return False
+        return any([len(sublattice) > 1 for sublattice in constituent_array])
 
     @property
     def _site_ratio_normalization(self):
