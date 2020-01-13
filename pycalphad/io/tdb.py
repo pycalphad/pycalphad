@@ -277,7 +277,8 @@ def _process_typedef(targetdb, typechar, line):
     tokens = line.replace(',', '').split()
     if len(tokens) < 4:
         return
-    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
+    keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC',
+                              'QUASICHEM_FACT00', 'EXCESS_MODEL'], tokens[3].upper())[0]
     if len(keyword) == 0:
         raise ValueError('Unknown keyword: {}'.format(tokens[3]))
     if keyword == 'MAGNETIC':
@@ -302,6 +303,27 @@ def _process_typedef(targetdb, typechar, line):
             targetdb.phases[tokens[2].upper()].model_hints.update(
                 targetdb.tdbtypedefs[typechar]
             )
+    # GES A_P_D LIQUID QUA-FACT00
+    if keyword == 'QUASICHEM_FACT00':
+        # quasichemical model developed by Kongoli et al (TC examples 49 and 50)
+        targetdb.tdbtypedefs[typechar] = {'quasichem_fact00': True}
+        if tokens[2].upper() in targetdb.phases:
+            # Since TDB files do not enforce any kind of ordering on
+            # the specification of phases, we need to handle the case
+            # where the PHASE is specified before the TYPE_DEF.
+            # For the other case, we catch it in _process_phase().
+            targetdb.phases[tokens[2].upper()].model_hints.update(
+                targetdb.tdbtypedefs[typechar]
+            )
+    #  AFTER AMEND_PHASE_DESCRIPTION QUASI EXCESS MIXED
+    #  SQ COQS POLYNOM
+    #  CUQ CUQS LEGENDRE
+    #  SQ FEQS POLYNOM
+    #  SQ NIQS POLYNOM
+    #  NONE !
+    if keyword == 'EXCESS_MODEL':
+        # TODO
+        pass
 
 
 phase_options = {'ionic_liquid_2SL': 'Y',
@@ -344,6 +366,8 @@ def _process_phase(targetdb, name, typedefs, subls):
                     targetdb.phases[model_hints['disordered_phase']]\
                         .model_hints.update({'ordered_phase': model_hints['ordered_phase'],
                                              'disordered_phase': model_hints['disordered_phase']})
+            if 'quasichem_fact00' in targetdb.tdbtypedefs[typedef].keys():
+                model_hints['quasichem_fact00'] = True
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
@@ -790,6 +814,11 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
                         model_hints['ihj_magnetic_structure_factor'])
             del model_hints['ihj_magnetic_afm_factor']
             del model_hints['ihj_magnetic_structure_factor']
+        if 'quasichem_fact00' in model_hints.keys():
+            new_char = typedef_chars.pop()
+            typedefs[name].append(new_char)
+            output += 'TYPE_DEFINITION {} GES AMEND_PHASE_DESCRIPTION QUASICHEM_FACT00 ! \n'\
+                .format(new_char, name.upper())
         if len(model_hints) > 0:
             # Some model hints were not properly consumed
             raise ValueError('Not all model hints are supported: {}'.format(model_hints))
