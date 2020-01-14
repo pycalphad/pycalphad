@@ -247,10 +247,10 @@ class Model(object):
                         for spec in active)
         else:
             for idx, sublattice in enumerate(self.constituents):
-                active = set(sublattice).intersection({species})
+                active = set(sublattice).intersection(self.components)
                 if len(active) == 0:
                     continue
-                result += self.site_ratios[idx] * sum(v.SiteFraction(self.phase_name, idx, spec) for spec in active)
+                result += self.site_ratios[idx] * v.SiteFraction(self.phase_name, idx, species)
                 normalization += self.site_ratios[idx] * \
                     sum(int(spec.number_of_atoms > 0) * v.SiteFraction(self.phase_name, idx, spec)
                         for spec in active)
@@ -627,6 +627,34 @@ class Model(object):
                                                    pure_param_query)
         return pure_energy_term / self._site_ratio_normalization
 
+    def _get_coordination_number(self, dbe, el):
+        """
+        Returns the coordination number (Z) of an element in symbolic form.
+        For quasichemical models.
+        """
+        # TC TDBs store the coordination number in the "VK" parameter type
+        z_param_query = (
+            (where('phase_name') == self.phase_name) &
+            (where('parameter_order') == 0) &
+            (where('parameter_type') == "VK") &
+            (where('constituent_array').test(self._purity_test))
+        )
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+        z_term = self.redlich_kister_sum(phase, param_search, z_param_query)
+        replace_dict = {}
+        # Only return terms for the desired element
+        for subl_index, sublattice in enumerate(phase.constituents):
+            active_comps = set(sublattice).intersection(self.components)
+            for comp in active_comps:
+                sitefrac = \
+                    v.SiteFraction(phase.name, subl_index, comp)
+                if comp.constituents.get(el, 0) != 0:
+                    replace_dict[sitefrac] = 1
+                else:
+                    replace_dict[sitefrac] = 0
+        return z_term.xreplace(replace_dict)
+
     def ideal_mixing_energy(self, dbe):
         #pylint: disable=W0613
         """
@@ -639,6 +667,15 @@ class Model(object):
         site_ratios = [c/site_ratio_normalization for c in site_ratios]
         ideal_mixing_term = S.Zero
         sitefrac_limit = Float(MIN_SITE_FRACTION/10.)
+        coord_equiv_y_fractions = {}
+        if phase.model_hints.get('quasichem_fact00', False):
+            # Species constituent amounts are m/z, where m is the multiplicity and z is the coordination number
+            # This is consistent with the idea that, formally, quasichemical models behave like associate models
+            # with associates defined with molar ratios of m/z (but the entropy differs)
+            for el in self.nonvacant_elements:
+                coord_number = self._get_coordination_number(dbe, el)
+                coord_equiv_y_fractions[el] = sum([((coord_number * v.Species(c).constituents.get(el, 0) / 2) * self.moles(c))
+                                                  for c in self.components])
         for subl_index, sublattice in enumerate(phase.constituents):
             active_comps = set(sublattice).intersection(self.components)
             ratio = site_ratios[subl_index]
@@ -650,7 +687,31 @@ class Model(object):
                 mixing_term = Piecewise((sitefrac*log(sitefrac),
                                          StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
                                         evaluate=False)
+                if phase.model_hints.get('quasichem_fact00', False):
+                    constituents = comp.constituents.keys()
+                    if len(constituents) == 1:
+                        # This is an A-A pair
+                        constit_element = list(constituents)[0]
+                        mixing_term -= Piecewise((2*sitefrac*log(coord_equiv_y_fractions[constit_element]),
+                                                 StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
+                                                 evaluate=False)
+                    elif len(constituents) == 2:
+                        # This is an A-B pair
+                        constit_elements = list(constituents)
+                        mul_y = Mul(*[coord_equiv_y_fractions[el] for el in constit_elements])
+                        mixing_term -= Piecewise((sitefrac*log(2*mul_y),
+                                                 StrictGreaterThan(sitefrac, sitefrac_limit, evaluate=False)), (0, True),
+                                                 evaluate=False)
+                    else:
+                        raise ValueError('Only pairwise quasichemical models are supported')
                 ideal_mixing_term += (mixing_term*ratio)
+        if phase.model_hints.get('quasichem_fact00', False):
+            for el in self.nonvacant_elements:
+                el_moles = self.moles(el)
+                mixing_term = Piecewise((el_moles*log(el_moles),
+                                         StrictGreaterThan(el_moles, sitefrac_limit, evaluate=False)), (0, True),
+                                        evaluate=False)
+                ideal_mixing_term += mixing_term
         ideal_mixing_term *= (v.R * v.T)
         return ideal_mixing_term
 
