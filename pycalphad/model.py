@@ -537,6 +537,17 @@ class Model(object):
                             v.SiteFraction(phase.name, subl_index, comp)
                             for comp in comps
                         ]
+                    if phase.model_hints.get('quasichem_fact00', False):
+                        # TODO: Only pair model supported here
+                        if len(comps) == 2:
+                            comp_symbols = \
+                                [
+                                    v.SiteFraction(phase.name, subl_index, comp)
+                                    for comp in comps if len(comp.constituents.keys()) == 2
+                                ]
+                            if len(comp_symbols) > 1:
+                                raise ValueError('Unsupported quasichemical interaction parameter: ' + str(param))
+                            mixing_term /= 2
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
