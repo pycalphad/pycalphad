@@ -588,8 +588,24 @@ class Model(object):
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
-                    mixing_term *= Pow(comp_symbols[0] - \
-                        comp_symbols[1], param['parameter_order'])
+                    mixing_species = frozenset((comp_symbols[0].species, comp_symbols[1].species))
+                    excess_model = self.binary_excess_models[mixing_species]
+                    if excess_model == 'REDLICH-KISTER':
+                        mixing_term *= Pow(comp_symbols[0] - \
+                            comp_symbols[1], param['parameter_order'])
+                    elif excess_model == 'POLYNOM':
+                        if phase.model_hints.get('quasichem_fact00', False):
+                            # TODO: Only pair model supported here
+                            power_term = S.Zero
+                            for comp in comp_symbols:
+                                power_term += comp * 2 / len(comp.species.constituents.keys())
+                            power_term /= 2
+                        else:
+                            # TODO: Use independent component in the order specified by the mixed excess model typedef
+                            power_term = comp_symbols[1]
+                        mixing_term *= Pow(power_term, param['parameter_order'])
+                    else:
+                        raise ValueError('Unknown binary excess model: ' + str(self.binary_excess_models[mixing_species]))
                 if len(comps) == 3:
                     # 'parameter_order' is an index to a variable when
                     # we are in the ternary interaction parameter case
