@@ -322,8 +322,25 @@ def _process_typedef(targetdb, typechar, line):
     #  SQ NIQS POLYNOM
     #  NONE !
     if keyword == 'EXCESS_MODEL':
-        # TODO
-        pass
+        excess_model_type = tokens[4].upper()
+        if excess_model_type == 'MIXED':
+            # Separate into sublists of triplets, e.g., SQ COQS POLYNOM
+            excess_model_entries = [tokens[5:][i:i+3] for i in range(0, len(tokens[5:]), 3)]
+            excess_model_data = {}
+            for entry in excess_model_entries:
+                if entry[0].upper() == 'NONE':
+                    break
+                excess_model_data[frozenset([entry[0].upper(), entry[1].upper()])] = entry[2].upper()
+        else:
+            excess_model_data = excess_model_type
+        targetdb.tdbtypedefs[typechar] = {'excess_model': excess_model_data}
+        # Since TDB files do not enforce any kind of ordering on
+        # the specification of phases, we need to handle the case
+        # where the PHASE is specified before the TYPE_DEF.
+        # For the other case, we catch it in _process_phase().
+        targetdb.phases[tokens[2].upper()].model_hints.update(
+            targetdb.tdbtypedefs[typechar]
+        )
 
 
 phase_options = {'ionic_liquid_2SL': 'Y',
@@ -367,7 +384,9 @@ def _process_phase(targetdb, name, typedefs, subls):
                         .model_hints.update({'ordered_phase': model_hints['ordered_phase'],
                                              'disordered_phase': model_hints['disordered_phase']})
             if 'quasichem_fact00' in targetdb.tdbtypedefs[typedef].keys():
-                model_hints['quasichem_fact00'] = True
+                model_hints['quasichem_fact00'] = targetdb.tdbtypedefs[typedef]['quasichem_fact00']
+            if 'excess_model' in targetdb.tdbtypedefs[typedef].keys():
+                model_hints['excess_model'] = targetdb.tdbtypedefs[typedef]['excess_model']
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
