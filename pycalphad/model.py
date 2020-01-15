@@ -162,11 +162,25 @@ class Model(object):
         self.pure_elements = sorted(set(desired_active_pure_elements))
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
-        # Defines the mixing model to use between any two elements (default: Redlich-Kister)
+        # Defines the mixing model to use between any two elements
         self.binary_excess_models = {}
+        default_excess_model = 'REDLICH-KISTER'
+        user_excess_model = phase.model_hints.get('excess_model', None)
+        if (user_excess_model is not None) and (not isinstance(user_excess_model, dict)):
+            default_excess_model = user_excess_model
         for pair in itertools.combinations(self.pure_elements, 2):
-            self.binary_excess_models[frozenset(pair)] = 'redlich-kister'
-        # TODO: EXCESS MIXED model hints for overriding this go here
+            pair = frozenset([v.Species(pair[0]), v.Species(pair[1])])
+            self.binary_excess_models[pair] = default_excess_model
+        if isinstance(user_excess_model, dict):
+            for pair, excess_model in user_excess_model.items():
+                p1, p2 = pair
+                # Convert string of species name into the Species object
+                p1 = [i for i in dbe.species if i.name == p1][0]
+                p2 = [i for i in dbe.species if i.name == p2][0]
+                pair = frozenset([p1, p2])
+                if not pair.issubset(self.components):
+                    continue
+                self.binary_excess_models[pair] = excess_model
 
         coord_equiv_y_fractions = {}
         if phase.model_hints.get('quasichem_fact00', False):
