@@ -162,10 +162,10 @@ class Model(object):
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
         # Defines the mixing model to use between any two elements
-        self.binary_excess_models = defaultdict(lambda: 'REDLICH-KISTER')
+        self.binary_excess_models = defaultdict(lambda: ['REDLICH-KISTER', None, None])
         user_excess_model = phase.model_hints.get('excess_model', None)
         if (user_excess_model is not None) and (not isinstance(user_excess_model, dict)):
-            self.binary_excess_models = defaultdict(lambda: user_excess_model)
+            self.binary_excess_models = defaultdict(lambda: [user_excess_model, None, None])
         if isinstance(user_excess_model, dict):
             for pair, excess_model in user_excess_model.items():
                 p1, p2 = pair
@@ -584,7 +584,11 @@ class Model(object):
                 if len(comps) == 2 and param['parameter_order'] > 0:
                     # interacting sublattice, add the interaction polynomial
                     mixing_species = frozenset((comp_symbols[0].species, comp_symbols[1].species))
-                    excess_model = self.binary_excess_models[mixing_species]
+                    excess_model, independent_component, dependent_component = self.binary_excess_models[mixing_species]
+                    if independent_component is None:
+                        independent_component = comp_symbols[0].species
+                    if dependent_component is None:
+                        dependent_component = comp_symbols[1].species
                     if excess_model == 'REDLICH-KISTER':
                         mixing_term *= Pow(comp_symbols[0] - \
                             comp_symbols[1], param['parameter_order'])
@@ -593,11 +597,10 @@ class Model(object):
                             # TODO: Only pair model supported here
                             power_term = S.Zero
                             for comp in comp_symbols:
-                                power_term += comp * 2 / len(comp.species.constituents.keys())
-                            power_term /= 2
+                                power_term += comp / len(comp.species.constituents.keys())
                         else:
-                            # TODO: Use independent component in the order specified by the mixed excess model typedef
-                            power_term = comp_symbols[1]
+                            independent_symbol = [x for x in comp_symbols if x.species == independent_component][0]
+                            power_term = independent_symbol
                         mixing_term *= Pow(power_term, param['parameter_order'])
                     else:
                         raise ValueError('Unknown binary excess model: ' + str(self.binary_excess_models[mixing_species]))

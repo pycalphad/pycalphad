@@ -330,7 +330,9 @@ def _process_typedef(targetdb, typechar, line):
             for entry in excess_model_entries:
                 if entry[0].upper() == 'NONE':
                     break
-                excess_model_data[frozenset([entry[0].upper(), entry[1].upper()])] = entry[2].upper()
+                # Order of entries needs to be preserved, for use by downstream models
+                excess_model_data[frozenset([entry[0].upper(), entry[1].upper()])] = \
+                    [entry[2].upper(), entry[0].upper(), entry[1].upper()]
         else:
             excess_model_data = excess_model_type
         targetdb.tdbtypedefs[typechar] = {'excess_model': excess_model_data}
