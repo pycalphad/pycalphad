@@ -8,7 +8,7 @@ from sympy import S
 from pycalphad import Database, Model, ReferenceState
 from pycalphad.core.utils import make_callable
 from pycalphad.tests.datasets import ALCRNI_TDB, FEMN_TDB, ALFE_TDB, \
-    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB
+    CRFE_BCC_MAGNETIC_TDB, VA_INTERACTION_TDB, CUMG_TDB, QUASI_BINARY_TDB
 from pycalphad.core.errors import DofError
 import pycalphad.variables as v
 import numpy as np
@@ -19,6 +19,7 @@ FEMN_DBF = Database(FEMN_TDB)
 CRFE_DBF = Database(CRFE_BCC_MAGNETIC_TDB)
 CUMG_DBF = Database(CUMG_TDB)
 VA_INTERACTION_DBF = Database(VA_INTERACTION_TDB)
+QUASI_BINARY_DBF = Database(QUASI_BINARY_TDB)
 
 def test_sympify_safety():
     "Parsing malformed strings throws exceptions instead of executing code."
@@ -164,6 +165,19 @@ def test_binary_xiong_twostate_einstein():
                        v.SiteFraction('LIQUID', 0, 'MN'): 0.2,
                        v.SiteFraction('LIQUID', 1, 'VA'): 1},
                  -86332.217, mode='sympy')
+
+
+def test_binary_quasichemical():
+    "Quasichemical model for binary solutions."
+    mod = Model(QUASI_BINARY_DBF, ['A', 'B'], 'QUASI')
+    aq = [x for x in mod.components if x.name == 'AQ'][0]
+    bq = [x for x in mod.components if x.name == 'BQ'][0]
+    aqb = [x for x in mod.components if x.name == 'AQB'][0]
+    check_energy(mod, {v.T: 1000, v.SiteFraction('QUASI', 0, aq): 4.00167E-01,
+                                  v.SiteFraction('QUASI', 0, bq): 1.68994E-04,
+                                  v.SiteFraction('QUASI', 0, aqb): 5.99664E-01},
+                 -21540.957, mode='sympy')
+
 
 # TERNARY TESTS
 def test_ternary_rkm_solution():
