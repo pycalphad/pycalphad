@@ -11,8 +11,7 @@ from pycalphad.core.constants import MIN_SITE_FRACTION
 from pycalphad.core.utils import unpack_components, get_pure_elements, wrap_symbol
 from pycalphad.core.constraints import is_multiphase_constraint
 import numpy as np
-from collections import OrderedDict
-import itertools
+from collections import OrderedDict, defaultdict
 
 # Maximum number of levels deep we check for symbols that are functions of
 # other symbols
@@ -163,14 +162,10 @@ class Model(object):
         self.nonvacant_elements = [x for x in self.pure_elements if x != 'VA']
 
         # Defines the mixing model to use between any two elements
-        self.binary_excess_models = {}
-        default_excess_model = 'REDLICH-KISTER'
+        self.binary_excess_models = defaultdict(lambda: 'REDLICH-KISTER')
         user_excess_model = phase.model_hints.get('excess_model', None)
         if (user_excess_model is not None) and (not isinstance(user_excess_model, dict)):
-            default_excess_model = user_excess_model
-        for pair in itertools.combinations(self.pure_elements, 2):
-            pair = frozenset([v.Species(pair[0]), v.Species(pair[1])])
-            self.binary_excess_models[pair] = default_excess_model
+            self.binary_excess_models = defaultdict(lambda: user_excess_model)
         if isinstance(user_excess_model, dict):
             for pair, excess_model in user_excess_model.items():
                 p1, p2 = pair
