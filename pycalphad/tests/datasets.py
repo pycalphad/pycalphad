@@ -4493,7 +4493,7 @@ PARAMETER G(BETA,B:B;0) 1 -10; 10000 N !
 $Parameter to check if interaction_test is working well 
 PARAMETER G(BETA,B:B,C;0) 1 -10; 10000 N !
 $Erroneous parameter! _array_validity should filter bad comps params
-PARAMETER G(BETA,B:D;0) 1 -10; 10000 N !
+PARAMETER G(BETA,B:D;0) 1 1e5; 10000 N !
 $Erroneous parameter! _array_validity should filter extra sublattice params
-PARAMETER G(BETA,B:B:C;0) 1 -10; 10000 N !
+PARAMETER G(BETA,B:B:C;0) 1 1e5; 10000 N !
 """

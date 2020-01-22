@@ -73,12 +73,16 @@ def test_detect_pure_vacancy_phases():
 
 def test_bad_constituents_not_in_model():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
-    mod = Model(dbf, ['A', 'B'], 'ALPHA')
-    assert v.SiteFraction('ALPHA', 0, 'B') not in mod.ast.free_symbols
+    modA = Model(dbf, ['A', 'B'], 'ALPHA')
+    modB = Model(dbf, ['B', 'C'], 'BETA')
+    assert v.SiteFraction('ALPHA', 0, 'B') not in modA.ast.free_symbols
+    assert v.SiteFraction('BETA', 1, 'D') not in modB.ast.free_symbols
+    assert v.SiteFraction('BETA', 2, 'C') not in modB.ast.free_symbols
 
 def test_bad_constituents_do_not_affect_equilibrium():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
     assert np.isclose(equilibrium(dbf, ['A', 'B'], ['ALPHA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('B'): 0.5}).GM.values.squeeze(), -10.0)
+    assert np.isclose(equilibrium(dbf, ['B', 'C'], ['BETA'], {v.P: 101325, v.T: 300, v.N: 1, v.X('C'): 0.001}).GM.values.squeeze(), -28, rtol=0.01)
 
 def test_interation_test_method():
     dbf = Database(TDB_PARAMETER_FILTERS_TEST)
