@@ -116,7 +116,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
         grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
         if len(parameters) > 0:
             param_grad_graphs = list(graph.diff(i) for i in parameters)
-            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in parameters]
+            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in wrt]
             pg = lambdify(inp, param_grad_graphs, **_get_lambidfy_options(grad_options))
             pgd = lambdify(inp, param_jac_graphs, **_get_lambidfy_options(hess_options))
         if include_grad:
