@@ -46,7 +46,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
                 param_grad_backend = 'lambda'
             else:
                 param_grad_backend = 'llvm'
-            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in parameters]
+            param_jac_graphs = [[i.diff(x) for i in param_grad_graphs] for x in wrt]
             pg = lambdify(inp, param_grad_graphs, backend=param_grad_backend, cse=cse)
             # Hessians are hard-coded to always use the lambda backend, for performance
             pgd = lambdify(inp, param_jac_graphs, backend='lambda', cse=cse)
