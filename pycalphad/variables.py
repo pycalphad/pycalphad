@@ -4,13 +4,12 @@ Classes and constants for representing thermodynamic variables.
 """
 
 import sys
-import copy
 # Python 2 vs 3 string types in isinstance
 if sys.version_info[0] >= 3:
     string_type = str
 else:
     string_type = basestring
-import numpy as np
+
 from sympy import Float, Symbol
 from pycalphad.io.grammar import parse_chemical_formula
 
@@ -262,305 +261,92 @@ class MassFraction(StateVariable):
             return 'w_{'+self.species.escaped_name+'}'
 
 
-class Composition():
-    """Convenience object to facilitiate operating in multicomponent composition spaces
+def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict):
+    """
+    Return a mapping of MoleFractions for a point composition.
 
     Parameters
     ----------
-    masses : Union[Dict[str, float], Database]
-        Element to mass dictionary or database to retrive the masses from.
-    composition : Dict[Union[v.MoleFraction, v.MassFraction], float]
-        Mapping of MoleFraction/MassFraction objects to values.
-    dependent_component: str
-        Pure element that is not specified in the composition, but known
-        because the sum of fractions must be one.
+    mass_fractions : Mapping[MassFraction, float]
 
-    Attributes
-    ----------
-    masses : Dict[str, float]
+    dependent_species : Union[Species, str]
+        Dependent species not appearing in the independent mass fractions.
 
-    Examples
-    --------
-    >>> from pycalphad import variables as v
-    >>> c = Composition({v.W('AL'): 0.1, v.W('CR'): 0.2}, 'NI', masses={'AL': 26.98, 'NI': 58.69, 'CR': 52.00})
-    >>> new_c = c.to_mole_fractions().to_mass_fractions()
-    >>> new_c is c
-    False
-    >>> new_c == c
-    True
+    pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
+        Either a mapping from pure elements to their mass, or a Database from
+        which they can be retrieved.
+
+    Returns
+    -------
+    Dict[MoleFraction, float]
 
     """
+    dependent_species = Species(dependent_species)
+    species_mass_fracs = {mf.species: frac for mf, frac in mass_fractions.items()}
+    all_species = set(species_mass_fracs.keys()) | {dependent_species}
+    # Check if the mass dict is a Database, which is the source of the mass_dict
+    from pycalphad import Database  # Imported here to avoid circular import
+    if isinstance(pure_element_mass_dict, Database):
+        pure_element_mass_dict = {el: refdict['mass'] for el, refdict in pure_element_mass_dict.refstates.items()}
 
-    def __init__(self, composition, dependent_component, masses=None):
-        # TODO: check degree of freedom (ncomps, n-1 independent compositions)
-        # TODO: convert any complex species into pure element composition
-        self.components = {dependent_component}
-        for xw_fraction in composition.keys():
-            self.components |= xw_fraction.species.constituents.keys()
-        if all([isinstance(k, MoleFraction) for k in composition.keys()]):
-            self._mode = MoleFraction
-        elif all([isinstance(k, MassFraction) for k in composition.keys()]):
-            self._mode = MassFraction
-        else:
-            raise ValueError(f'Mixed MoleFraction and MassFraction compositions not supported (got {composition}).')
-        if any(np.array(list(composition.values())) < 0):
-            raise ValueError(f'All composition fractions must be greater than zero (got {list(composition.values())}).')
-        if sum(composition.values()) > 1:
-            raise ValueError(f'Sum of composition fractions cannot be greater than 1 (got {sum(composition.values())}).')
-        if masses is None:
-            self.masses = None
-        else:
-            self.set_masses(masses)
-        self._composition = copy.deepcopy(composition)
-        self.dependent_component = dependent_component
+    species_mass_dict = {}
+    for species in all_species:
+        species_mass_dict[species] = sum([pure_element_mass_dict[pe]*natoms for pe, natoms in species.constituents.items()])
 
-    def set_masses(self, masses):
-        """Set the masses attribute"""
-        from pycalphad import Database  # Imported here to avoid circular import
-        if isinstance(masses, Database):
-            self.masses = {c: masses.refstates[c]['mass'] for c in self.components}
-        else:  # Assume masses is a dict mapping components to mass
-            self.masses = masses
+    # add dependent species
+    species_mass_fracs[dependent_species] = 1 - sum(species_mass_fracs.values())
+    # compute moles
+    species_moles = {species: mass_frac/species_mass_dict[species] for species, mass_frac in species_mass_fracs.items()}
+    # normalize
+    total_moles = sum(species_moles.values())
+    species_mole_fractions = {species: moles/total_moles for species, moles in species_moles.items()}
+    # remove dependent species
+    species_mole_fractions.pop(dependent_species)
+    return {MoleFraction(species): fraction for species, fraction in species_mole_fractions.items()}
 
-    def _check_masses(self):
-        if self.masses is None:
-            raise ValueError("The `masses` attribute must be set to convert between mass and mole fractions. Use the `Composition.set_masses` method.")
 
-    @property
-    def composition(self):
-        return self._composition
+def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict):
+    """
+    Return a mapping of MassFractions for a point composition.
 
-    @property
-    def mass_fractions(self):
-        if issubclass(self._mode, MassFraction):
-            return self._composition
-        else:
-            self._check_masses()
-            comp_names = {w.species.name for w in self._composition}
-            mass = {MassFraction(comp): self._composition[MoleFraction(comp)]*self.masses[comp] for comp in comp_names}
-            dep_comp_mass = (1-sum(self._composition.values()))*self.masses[self.dependent_component]
-            total_mass = sum(mass.values()) + dep_comp_mass
-            mass_fracs = {component: mass_amnt/total_mass for component, mass_amnt in mass.items()}
-            return mass_fracs
+    Parameters
+    ----------
+    mass_fractions : Mapping[MoleFraction, float]
 
-    @property
-    def mole_fractions(self):
-        if issubclass(self._mode, MoleFraction):
-            return self._composition
-        else:
-            self._check_masses()
-            comp_names = {w.species.name for w in self._composition}
-            moles = {MoleFraction(comp): self._composition[MassFraction(comp)]/self.masses[comp] for comp in comp_names}
-            dep_comp_moles = (1-sum(self._composition.values()))/self.masses[self.dependent_component]
-            total_moles = sum(moles.values()) + dep_comp_moles
-            mole_fracs = {component: mole_amnt/total_moles for component, mole_amnt in moles.items()}
-            return mole_fracs
+    dependent_species : Union[Species, str]
+        Dependent species not appearing in the independent mass fractions.
 
-    def to_mole_fractions(self, masses=None):
-        """Return a new Composition object converted to mole fractions"""
-        new_masses = masses if masses is not None else self.masses
-        return Composition(self.mole_fractions, self.dependent_component, masses=new_masses)
+    pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]
+        Either a mapping from pure elements to their mass, or a Database from
+        which they can be retrieved.
 
-    def to_mass_fractions(self, masses=None):
-        """Return a new Composition object converted to mass fractions"""
-        new_masses = masses if masses is not None else self.masses
-        return Composition(self.mass_fractions, self.dependent_component, masses=new_masses)
+    Returns
+    -------
+    Dict[MassFraction, float]
 
-    def set_dependent_component(self, component):
-        """Change the dependent component
+    """
+    dependent_species = Species(dependent_species)
+    species_mole_fracs = {mf.species: frac for mf, frac in mole_fractions.items()}
+    all_species = set(species_mole_fracs.keys()) | {dependent_species}
+    # Check if the mass dict is a Database, which is the source of the mass_dict
+    from pycalphad import Database  # Imported here to avoid circular import
+    if isinstance(pure_element_mass_dict, Database):
+        pure_element_mass_dict = {el: refdict['mass'] for el, refdict in pure_element_mass_dict.refstates.items()}
 
-        component : str
+    species_mass_dict = {}
+    for species in all_species:
+        species_mass_dict[species] = sum([pure_element_mass_dict[pe]*natoms for pe, natoms in species.constituents.items()])
 
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from pycalphad import variables as v
-        >>> c = v.Composition({v.X('B'): 0.5, v.X('C'): 0.3}, 'A')
-        >>> new_c = c.set_dependent_component('C')
-        >>> new_c is c
-        True
-        >>> np.isclose(c[v.X('A')], 0.2)
-        True
-        >>> np.isclose(c[v.X('B')], 0.5)
-        True
-        >>> c.get(v.X('C')) is None
-        True
-
-        """
-        if self.dependent_component != component:
-            self._composition[self._mode(self.dependent_component)] = (1-sum(self._composition.values()))
-            del self._composition[self._mode(component)]
-            self.dependent_component = component
-        return self
-
-    def mix(self, composition, amount):
-        """Linearly mix two Compositions to create a new composition.
-
-        Parameters
-        ----------
-        composition : Composition
-            Composition to endpoint to mix with.
-        amount : float
-            Fraction to mix between two compositions. Between 0 (don't add any
-            new), 1 (don't keep any old). ``amount=0.5`` would be halfway between.
-
-        Examples
-        --------
-        >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({v.X('A'): 0.25}, 'B')
-        >>> c2 = v.Composition({v.X('A'): 0.75}, 'B')
-        >>> c1.mix(c2, 0.0) == c1
-        True
-        >>> c1.mix(c2, 1.0) == c2
-        True
-        >>> c1.mix(c2, 0.5)[v.X('A')]
-        0.5
-        >>> c3 = v.Composition({v.X('B'): 0.25}, 'A')
-        >>> c1.mix(c2, 0.5)[v.X('A')]
-        0.5
-
-        """
-        if self.components != composition.components:
-            raise ValueError("Compositions to mix must have the same components "
-                             f"(got {sorted(self.components)} and {sorted(composition.components)})")
-        # Make the end_comp here with a new instance so we don't modify the original
-        end = self._normalize(composition)
-        interpolated = {}
-        for c in self.composition.keys():
-            interpolated[c] = self[c] + (end[c] - self[c])*amount
-        return Composition(interpolated, self.dependent_component, masses=self.masses)
-
-    def distance(self, composition):
-        """Compute the euclidean distance between two compositions"""
-        if self.components != composition.components:
-            raise ValueError("Compositions to mix must have the same components "
-                             f"(got {sorted(self.components)} and {sorted(composition.components)})")
-        # Make the end_comp here with a new instance so we don't modify the original
-        other = self._normalize(composition)
-        component_distances = []
-        for c in self.composition.keys():
-            component_distances.append((self[c] - other[c]))
-        return np.sqrt(np.sum(np.square(component_distances)))
-
-    def interpolate_composition(self, composition, num):
-        """Return the composition of a path between two compositions with ``num`` compositions.
-
-        Parameters
-        ----------
-        composition : Composition
-            Composition to endpoint to interpolate between.
-        num : int
-            Number of samples to generate.
-
-        Returns
-        -------
-        Dict[Union[MoleFraction, MassFraction], List[float]]
-
-        Examples
-        --------
-        >>> import numpy as np
-        >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({v.X('B'): 0.0}, 'A')
-        >>> c2 = v.Composition({v.X('B'): 1.0}, 'A')
-        >>> path = c1.interpolate_composition(c2, 5)
-        >>> np.all(np.isclose(path[v.X('B')], [0, 0.25, 0.5, 0.75, 1]))
-        True
-
-        """
-        c1 = self
-        c2 = composition
-        pth_l = []
-        for mix in np.linspace(0, 1, num):
-            pth_l.append(c1.mix(c2, mix))
-        # Unzip list of dict to dict of list
-        comp_keys = pth_l[0].composition.keys()
-        pth = {comp: [] for comp in comp_keys}
-        for comp_dict in pth_l:
-            for comp in comp_keys:
-                pth[comp].append(comp_dict[comp])
-        return pth
-
-    def __getitem__(self, item):
-        """Return a composition for an element
-
-        Alias for self.composition[item]
-
-        Parameters
-        ----------
-        item : Union[MoleFraction, MassFraction]
-
-        Returns
-        -------
-        float
-
-        """
-        return self.composition[item]
-
-    def get(self, item, default=None):
-        """Alias for self.composition.get(item)
-
-        Parameters
-        ----------
-        item : Union[MoleFraction, MassFraction]
-
-        Returns
-        -------
-        Union[float, Any]
-
-        """
-        return self.composition.get(item, default)
-
-    def __eq__(self, other):
-        """
-        Check that the compositions of two Composition objects are equal
-
-        Parameters
-        ----------
-        other : Composition
-
-        Returns
-        -------
-        bool
-
-        Examples
-        --------
-        >>> from pycalphad import variables as v
-        >>> c1 = v.Composition({v.X('A'): 0.25}, 'B')
-        >>> c2 = v.Composition({v.X('A'): 0.75}, 'B')
-        >>> c1 == c1
-        True
-        >>> c2 == c2
-        True
-        >>> c1 == c2
-        False
-
-        """
-        if not isinstance(other, Composition):
-            return False
-        if self.components != other.components:
-            return False
-        other = self._normalize(other)
-        return all([np.isclose(self[comp], other[comp]) for comp in self.composition.keys()])
-
-    def _normalize(self, other):
-        """Return a new object for other, normalized to this object's mode and dependent component.
-
-        Parameters
-        ----------
-        other : Composition
-
-        Returns
-        -------
-        Composition
-
-        """
-        if self.components != other.components:
-            raise ValueError("Composition to normalize must have the same components "
-                             f"(got {sorted(self.components)} and {sorted(other.components)})")
-        if issubclass(self._mode, MoleFraction):
-            return other.to_mole_fractions().set_dependent_component(self.dependent_component)
-        else:  # Assume mass fractions
-            return other.to_mass_fractions().set_dependent_component(self.dependent_component)
+    # add dependent species
+    species_mole_fracs[dependent_species] = 1 - sum(species_mole_fracs.values())
+    # compute mass
+    species_mass = {species: mole_frac*species_mass_dict[species] for species, mole_frac in species_mole_fracs.items()}
+    # normalize
+    total_mass = sum(species_mass.values())
+    species_mass_fractions = {species: mass/total_mass for species, mass in species_mass.items()}
+    # remove dependent species
+    species_mass_fractions.pop(dependent_species)
+    return {MassFraction(species): fraction for species, fraction in species_mass_fractions.items()}
 
 
 class ChemicalPotential(StateVariable):
