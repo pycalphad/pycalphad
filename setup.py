@@ -65,7 +65,7 @@ setup(
     license='MIT',
     long_description=read('README.rst'),
     url='https://pycalphad.org/',
-    install_requires=['matplotlib', 'pandas', 'xarray>=0.11.2', 'sympy==1.4', 'pyparsing', 'Cython>=0.24',
+    install_requires=['matplotlib', 'pandas', 'xarray>=0.11.2', 'sympy==1.5', 'pyparsing', 'Cython>=0.24',
                       'tinydb>=3.8', 'scipy', 'numpy>=1.13', 'ipopt', 'symengine==0.5.1'],
     classifiers=[
         # How mature is this project? Common values are
@@ -84,11 +84,10 @@ setup(
 
         # Specify the Python versions you support here. In particular, ensure
         # that you indicate whether you support Python 2, Python 3 or both.
-        'Programming Language :: Python :: 2',
-        'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3',
         'Programming Language :: Python :: 3.6',
-        'Programming Language :: Python :: 3.7'
+        'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
     ],
 
 )

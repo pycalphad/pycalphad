@@ -31,7 +31,7 @@ requirements:
     - pandas
     - pytest
     - xarray >=0.11.2
-    - sympy ==1.4
+    - sympy ==1.5
     - pyparsing
     - tinydb >=3.8
     - scipy
@@ -46,7 +46,7 @@ requirements:
     - matplotlib
     - pandas
     - xarray >=0.11.2
-    - sympy ==1.4
+    - sympy ==1.5
     - pyparsing
     - tinydb >=3.8
     - scipy

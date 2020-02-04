@@ -1,7 +1,6 @@
 """
 The utils module handles helper routines for equilibrium calculation.
 """
-from __future__ import division
 import pycalphad.variables as v
 from pycalphad.core.halton import halton
 from pycalphad.core.constants import MIN_SITE_FRACTION
@@ -12,10 +11,7 @@ import operator
 import functools
 import itertools
 import collections
-try:
-    from collections.abc import Iterable, Mapping
-except ImportError:
-    from collections import Iterable, Mapping
+from collections.abc import Iterable, Mapping
 
 try:
     # Only available in numpy 1.10 and newer
@@ -352,7 +348,7 @@ def filter_phases(dbf, comps, candidate_phases=None):
     disordered_phases = [dbf.phases[phase].model_hints.get('disordered_phase') for phase in candidate_phases]
     phases = [phase for phase in candidate_phases if
                 all_sublattices_active(comps, dbf.phases[phase]) and
-                (phase not in disordered_phases or (phase in disordered_phases and 
+                (phase not in disordered_phases or (phase in disordered_phases and
                 dbf.phases[phase].model_hints.get('ordered_phase') not in candidate_phases))]
     return sorted(phases)
 

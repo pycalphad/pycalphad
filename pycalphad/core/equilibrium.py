@@ -2,7 +2,6 @@
 The equilibrium module defines routines for interacting with
 calculated phase equilibria.
 """
-from __future__ import print_function
 import warnings
 import pycalphad.variables as v
 from pycalphad.core.utils import unpack_components, unpack_condition, unpack_phases, filter_phases, instantiate_models, get_state_variables
