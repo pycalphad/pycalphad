@@ -275,6 +275,9 @@ def get_mole_fractions(mass_fractions, dependent_species, pure_element_mass_dict
     Dict[MoleFraction, float]
 
     """
+    if not all(isinstance(mf, MassFraction) for mf in mass_fractions):
+        from pycalphad.core.errors import ConditionError
+        raise ConditionError("All mass_fractions must be instances of MassFraction (v.W). Got ", mass_fractions)
     dependent_species = Species(dependent_species)
     species_mass_fracs = {mf.species: frac for mf, frac in mass_fractions.items()}
     all_species = set(species_mass_fracs.keys()) | {dependent_species}
@@ -319,6 +322,9 @@ def get_mass_fractions(mole_fractions, dependent_species, pure_element_mass_dict
     Dict[MassFraction, float]
 
     """
+    if not all(isinstance(mf, MoleFraction) for mf in mole_fractions):
+        from pycalphad.core.errors import ConditionError
+        raise ConditionError("All mole_fractions must be instances of MoleFraction (v.X). Got ", mole_fractions)
     dependent_species = Species(dependent_species)
     species_mole_fracs = {mf.species: frac for mf, frac in mole_fractions.items()}
     all_species = set(species_mole_fracs.keys()) | {dependent_species}
