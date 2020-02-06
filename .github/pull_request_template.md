@@ -8,5 +8,5 @@ Below are a few things we ask you kindly to self-check before getting a review. 
 
 
 Checklist
-* [ ] The documentation examples have been regenerated if the Jupyter notebook in the `examples/` have changed (run `jupyter nbconvert --to rst --output-dir=docs/examples examples/*.ipynb` from the top level directory)
+* [ ] The documentation examples have been regenerated if the Jupyter notebooks in the `examples/` have changed. To regenerate the documentation examples, run `jupyter nbconvert --to rst --output-dir=docs/examples examples/*.ipynb` from the top level directory)
 
