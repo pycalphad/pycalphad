@@ -280,3 +280,4 @@ gamma phase. This is a first-order phase transition.
 
 .. image:: EquilibriumWithOrdering_files/EquilibriumWithOrdering_18_0.png
 
+
