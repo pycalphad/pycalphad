@@ -71,7 +71,7 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
     prxs = build_phase_records(dbf, species, phases, conds, models, output='GM',
                                parameters=parameters, build_gradients=True, build_hessians=True)
 
-    indep_comp = [key for key, value in conds.items() if isinstance(key, v.Composition) and len(np.atleast_1d(value)) > 1]
+    indep_comp = [key for key, value in conds.items() if isinstance(key, v.MoleFraction) and len(np.atleast_1d(value)) > 1]
     indep_pot = [key for key, value in conds.items() if (type(key) is v.StateVariable) and len(np.atleast_1d(value)) > 1]
     if (len(indep_comp) != 1) or (len(indep_pot) != 1):
         raise ValueError('Binary map requires exactly one composition and one potential coordinate')

@@ -27,7 +27,7 @@ def global_min_is_possible(conditions, state_variables):
     global_min = True
     for cond in conditions.keys():
         if cond in state_variables or \
-           isinstance(cond, v.Composition) or \
+           isinstance(cond, v.MoleFraction) or \
            isinstance(cond, v.ChemicalPotential) or \
            cond == v.N:
             continue

@@ -390,7 +390,7 @@ class Model(object):
         for statevar in sorted(conds.keys(), key=str):
             if not is_multiphase_constraint(statevar):
                 continue
-            if isinstance(statevar, v.Composition):
+            if isinstance(statevar, v.MoleFraction):
                 multiphase_constraints.append(Symbol('NP') * self.moles(statevar.species))
             elif statevar == v.N:
                 multiphase_constraints.append(Symbol('NP') * (sum(self.moles(spec) for spec in self.nonvacant_elements)))
