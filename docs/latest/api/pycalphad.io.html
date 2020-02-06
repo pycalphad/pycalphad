@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.8.1.post1+3.g3285447 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.8.1.post1+4.g2929ba8 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.1.post1+3.g3285447
+                0.8.1.post1+4.g2929ba8
               </div>
             
           
@@ -192,32 +192,69 @@ associated with structured thermodynamic/kinetic data.</p>
 <dt id="pycalphad.io.database.Database">
 <em class="property">class </em><code class="sig-prename descclassname">pycalphad.io.database.</code><code class="sig-name descname">Database</code><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database" title="Permalink to this definition">¶</a></dt>
 <dd><p>Bases: <code class="xref py py-class docutils literal notranslate"><span class="pre">object</span></code></p>
-<blockquote>
-<div><p>Structured thermodynamic and/or kinetic data.</p>
-<dl class="simple">
-<dt>elements<span class="classifier">list</span></dt><dd><p>List of elements in database.</p>
-</dd>
-<dt>species<span class="classifier">list</span></dt><dd><p>List of species in database.</p>
-</dd>
-<dt>phases<span class="classifier">dict</span></dt><dd><p>Phase objects indexed by their system-local name.</p>
-</dd>
-<dt>symbols<span class="classifier">dict</span></dt><dd><p>SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
-</dd>
-<dt>references<span class="classifier">dict</span></dt><dd><p>Reference objects indexed by their system-local identifier.</p>
+<p>Structured thermodynamic and/or kinetic data.</p>
+<dl class="attribute">
+<dt id="pycalphad.io.database.Database.elements">
+<code class="sig-name descname">elements</code><a class="headerlink" href="#pycalphad.io.database.Database.elements" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of elements in database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.io.database.Database.species">
+<code class="sig-name descname">species</code><a class="headerlink" href="#pycalphad.io.database.Database.species" title="Permalink to this definition">¶</a></dt>
+<dd><p>List of species in database.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>list</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.io.database.Database.phases">
+<code class="sig-name descname">phases</code><a class="headerlink" href="#pycalphad.io.database.Database.phases" title="Permalink to this definition">¶</a></dt>
+<dd><p>Phase objects indexed by their system-local name.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.io.database.Database.symbols">
+<code class="sig-name descname">symbols</code><a class="headerlink" href="#pycalphad.io.database.Database.symbols" title="Permalink to this definition">¶</a></dt>
+<dd><p>SymPy objects indexed by their name (FUNCTIONs in Thermo-Calc).</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.io.database.Database.references">
+<code class="sig-name descname">references</code><a class="headerlink" href="#pycalphad.io.database.Database.references" title="Permalink to this definition">¶</a></dt>
+<dd><p>Reference objects indexed by their system-local identifier.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Type</dt>
+<dd class="field-odd"><p>dict</p>
+</dd>
+</dl>
+</dd></dl>
+
+<p class="rubric">Examples</p>
 <div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="nb">open</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">))</span>
 <span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;crfeni_mie.tdb&#39;</span><span class="p">)</span>
-<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;$a complete TDB file as a string</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">f</span> <span class="o">=</span> <span class="n">StringIO</span><span class="p">(</span><span class="sa">u</span><span class="s1">&#39;$a complete TDB file as a string</span><span class="se">\n</span><span class="s1">&#39;</span><span class="p">)</span>
+<span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
 </pre></div>
 </div>
-</div></blockquote>
-<dl>
-<dt>‘)</dt><dd><div class="doctest highlight-default notranslate"><div class="highlight"><pre><span></span><span class="gp">&gt;&gt;&gt; </span><span class="n">mydb</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="n">f</span><span class="p">)</span>
-</pre></div>
-</div>
-</dd>
-</dl>
 <dl class="method">
 <dt id="pycalphad.io.database.Database.add_parameter">
 <code class="sig-name descname">add_parameter</code><span class="sig-paren">(</span><em class="sig-param">param_type</em>, <em class="sig-param">phase_name</em>, <em class="sig-param">constituent_array</em>, <em class="sig-param">param_order</em>, <em class="sig-param">param</em>, <em class="sig-param">ref=None</em>, <em class="sig-param">diffusing_species=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>

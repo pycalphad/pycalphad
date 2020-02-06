@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.8.1.post1+3.g3285447 documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8.1.post1+4.g2929ba8 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.1.post1+3.g3285447
+                0.8.1.post1+4.g2929ba8
               </div>
             
           
@@ -677,28 +677,45 @@ If not specified, randomly generated and saved to self.solution</p></li>
 
 </dd></dl>
 
-<dl class="class">
-<dt id="pycalphad.variables.Composition">
-<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">Composition</code><a class="reference internal" href="../_modules/pycalphad/variables.html#Composition"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.Composition" title="Permalink to this definition">¶</a></dt>
-<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
-<p>Compositions are symbols with built-in assumptions of being real
-and nonnegative.</p>
-<dl class="attribute">
-<dt id="pycalphad.variables.Composition.default_assumptions">
-<code class="sig-name descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.Composition.default_assumptions" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-<dl class="attribute">
-<dt id="pycalphad.variables.Composition.name">
-<code class="sig-name descname">name</code><a class="headerlink" href="#pycalphad.variables.Composition.name" title="Permalink to this definition">¶</a></dt>
-<dd></dd></dl>
-
-</dd></dl>
-
 <dl class="attribute">
 <dt id="pycalphad.variables.MU">
 <code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MU</code><a class="headerlink" href="#pycalphad.variables.MU" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.ChemicalPotential" title="pycalphad.variables.ChemicalPotential"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.ChemicalPotential</span></code></a></p>
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.MassFraction">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MassFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#MassFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MassFraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>Weight fractions are symbols with built-in assumptions of being real and nonnegative.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.MassFraction.default_assumptions">
+<code class="sig-name descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.MassFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.MassFraction.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pycalphad.variables.MassFraction.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+</dd></dl>
+
+<dl class="class">
+<dt id="pycalphad.variables.MoleFraction">
+<em class="property">class </em><code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">MoleFraction</code><a class="reference internal" href="../_modules/pycalphad/variables.html#MoleFraction"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.MoleFraction" title="Permalink to this definition">¶</a></dt>
+<dd><p>Bases: <a class="reference internal" href="#pycalphad.variables.StateVariable" title="pycalphad.variables.StateVariable"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.StateVariable</span></code></a></p>
+<p>MoleFractions are symbols with built-in assumptions of being real
+and nonnegative.</p>
+<dl class="attribute">
+<dt id="pycalphad.variables.MoleFraction.default_assumptions">
+<code class="sig-name descname">default_assumptions</code><em class="property"> = {}</em><a class="headerlink" href="#pycalphad.variables.MoleFraction.default_assumptions" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
+<dl class="attribute">
+<dt id="pycalphad.variables.MoleFraction.name">
+<code class="sig-name descname">name</code><a class="headerlink" href="#pycalphad.variables.MoleFraction.name" title="Permalink to this definition">¶</a></dt>
+<dd></dd></dl>
+
 </dd></dl>
 
 <dl class="class">
@@ -813,15 +830,65 @@ and nonnegative. The constructor handles formatting of the name.</p>
 </dd></dl>
 
 <dl class="attribute">
+<dt id="pycalphad.variables.W">
+<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">W</code><a class="headerlink" href="#pycalphad.variables.W" title="Permalink to this definition">¶</a></dt>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.MassFraction" title="pycalphad.variables.MassFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.MassFraction</span></code></a></p>
+</dd></dl>
+
+<dl class="attribute">
 <dt id="pycalphad.variables.X">
 <code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">X</code><a class="headerlink" href="#pycalphad.variables.X" title="Permalink to this definition">¶</a></dt>
-<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.Composition" title="pycalphad.variables.Composition"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.Composition</span></code></a></p>
+<dd><p>alias of <a class="reference internal" href="#pycalphad.variables.MoleFraction" title="pycalphad.variables.MoleFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.MoleFraction</span></code></a></p>
 </dd></dl>
 
 <dl class="attribute">
 <dt id="pycalphad.variables.Y">
 <code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">Y</code><a class="headerlink" href="#pycalphad.variables.Y" title="Permalink to this definition">¶</a></dt>
 <dd><p>alias of <a class="reference internal" href="#pycalphad.variables.SiteFraction" title="pycalphad.variables.SiteFraction"><code class="xref py py-class docutils literal notranslate"><span class="pre">pycalphad.variables.SiteFraction</span></code></a></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.variables.get_mass_fractions">
+<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">get_mass_fractions</code><span class="sig-paren">(</span><em class="sig-param">mole_fractions</em>, <em class="sig-param">dependent_species</em>, <em class="sig-param">pure_element_mass_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#get_mass_fractions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.get_mass_fractions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a mapping of MassFractions for a point composition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mass_fractions</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="#pycalphad.variables.MoleFraction" title="pycalphad.variables.MoleFraction"><em>MoleFraction</em></a><em>, </em><em>float</em><em>]</em>) – </p></li>
+<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><em>Species</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
+<li><p><strong>pure_element_mass_dict</strong> (<em>Union</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>, </em><em>pycalphad.Database</em><em>]</em>) – Either a mapping from pure elements to their mass, or a Database from
+which they can be retrieved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[<a class="reference internal" href="#pycalphad.variables.MassFraction" title="pycalphad.variables.MassFraction">MassFraction</a>, float]</p>
+</dd>
+</dl>
+</dd></dl>
+
+<dl class="function">
+<dt id="pycalphad.variables.get_mole_fractions">
+<code class="sig-prename descclassname">pycalphad.variables.</code><code class="sig-name descname">get_mole_fractions</code><span class="sig-paren">(</span><em class="sig-param">mass_fractions</em>, <em class="sig-param">dependent_species</em>, <em class="sig-param">pure_element_mass_dict</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/variables.html#get_mole_fractions"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.variables.get_mole_fractions" title="Permalink to this definition">¶</a></dt>
+<dd><p>Return a mapping of MoleFractions for a point composition.</p>
+<dl class="field-list simple">
+<dt class="field-odd">Parameters</dt>
+<dd class="field-odd"><ul class="simple">
+<li><p><strong>mass_fractions</strong> (<em>Mapping</em><em>[</em><a class="reference internal" href="#pycalphad.variables.MassFraction" title="pycalphad.variables.MassFraction"><em>MassFraction</em></a><em>, </em><em>float</em><em>]</em>) – </p></li>
+<li><p><strong>dependent_species</strong> (<em>Union</em><em>[</em><a class="reference internal" href="#pycalphad.variables.Species" title="pycalphad.variables.Species"><em>Species</em></a><em>, </em><em>str</em><em>]</em>) – Dependent species not appearing in the independent mass fractions.</p></li>
+<li><p><strong>pure_element_mass_dict</strong> (<em>Union</em><em>[</em><em>Mapping</em><em>[</em><em>str</em><em>, </em><em>float</em><em>]</em><em>, </em><em>pycalphad.Database</em><em>]</em>) – Either a mapping from pure elements to their mass, or a Database from
+which they can be retrieved.</p></li>
+</ul>
+</dd>
+<dt class="field-even">Returns</dt>
+<dd class="field-even"><p></p>
+</dd>
+<dt class="field-odd">Return type</dt>
+<dd class="field-odd"><p>Dict[<a class="reference internal" href="#pycalphad.variables.MoleFraction" title="pycalphad.variables.MoleFraction">MoleFraction</a>, float]</p>
+</dd>
+</dl>
 </dd></dl>
 
 <dl class="attribute">

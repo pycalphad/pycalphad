@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.plot.ternary &mdash; pycalphad 0.8.1.post1+3.g3285447 documentation</title>
+  <title>pycalphad.plot.ternary &mdash; pycalphad 0.8.1.post1+4.g2929ba8 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+3.g3285447
+                0.8.1.post1+4.g2929ba8
               </div>
             
           
@@ -181,10 +181,10 @@
 <span class="sd">    conds : dict</span>
 <span class="sd">        Maps StateVariables to values and/or iterables of values.</span>
 <span class="sd">        For ternplot only one changing composition and one potential coordinate each is supported.</span>
-<span class="sd">    x : Composition</span>
+<span class="sd">    x : v.MoleFraction</span>
 <span class="sd">        instance of a pycalphad.variables.composition to plot on the x-axis.</span>
 <span class="sd">        Must correspond to an independent condition.</span>
-<span class="sd">    y : Composition</span>
+<span class="sd">    y : v.MoleFraction</span>
 <span class="sd">        instance of a pycalphad.variables.composition to plot on the y-axis.</span>
 <span class="sd">        Must correspond to an independent condition.</span>
 <span class="sd">    eq_kwargs : optional</span>
@@ -201,7 +201,7 @@
 <span class="sd">    None yet.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="n">eq_kwargs</span> <span class="o">=</span> <span class="n">eq_kwargs</span> <span class="k">if</span> <span class="n">eq_kwargs</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span> <span class="k">else</span> <span class="nb">dict</span><span class="p">()</span>
-    <span class="n">indep_comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Composition</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
+    <span class="n">indep_comps</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">key</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
     <span class="n">indep_pots</span> <span class="o">=</span> <span class="p">[</span><span class="n">key</span> <span class="k">for</span> <span class="n">key</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="p">(</span><span class="nb">type</span><span class="p">(</span><span class="n">key</span><span class="p">)</span> <span class="ow">is</span> <span class="n">v</span><span class="o">.</span><span class="n">StateVariable</span><span class="p">)</span> <span class="ow">and</span> <span class="nb">len</span><span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">atleast_1d</span><span class="p">(</span><span class="n">value</span><span class="p">))</span> <span class="o">&gt;</span> <span class="mi">1</span><span class="p">]</span>
     <span class="k">if</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_comps</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">2</span><span class="p">)</span> <span class="ow">or</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">indep_pots</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">0</span><span class="p">):</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;ternplot() requires exactly two composition coordinates&#39;</span><span class="p">)</span>

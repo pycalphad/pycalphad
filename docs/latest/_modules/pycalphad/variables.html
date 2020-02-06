@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.variables &mdash; pycalphad 0.8.1.post1+3.g3285447 documentation</title>
+  <title>pycalphad.variables &mdash; pycalphad 0.8.1.post1+4.g2929ba8 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+3.g3285447
+                0.8.1.post1+4.g2929ba8
               </div>
             
           
@@ -323,9 +323,9 @@
         <span class="k">return</span> <span class="s1">&#39;f^{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \
             <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="nb">str</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">multiplicity</span><span class="p">)</span><span class="o">+</span><span class="s1">&#39;}&#39;</span></div>
 
-<div class="viewcode-block" id="Composition"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.Composition">[docs]</a><span class="k">class</span> <span class="nc">Composition</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
+<div class="viewcode-block" id="MoleFraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.MoleFraction">[docs]</a><span class="k">class</span> <span class="nc">MoleFraction</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Compositions are symbols with built-in assumptions of being real</span>
+<span class="sd">    MoleFractions are symbols with built-in assumptions of being real</span>
 <span class="sd">    and nonnegative.</span>
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span> <span class="c1">#pylint: disable=W0221</span>
@@ -344,7 +344,7 @@
             <span class="n">varname</span> <span class="o">=</span> <span class="s1">&#39;X_&#39;</span> <span class="o">+</span> <span class="n">phase_name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="c1"># not defined</span>
-            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Composition not defined for args: &#39;</span><span class="o">+</span><span class="n">args</span><span class="p">)</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;MoleFraction not defined for args: &#39;</span><span class="o">+</span><span class="n">args</span><span class="p">)</span>
 
         <span class="c1">#pylint: disable=E1121</span>
         <span class="n">new_self</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
@@ -366,6 +366,145 @@
                 <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
         <span class="k">else</span><span class="p">:</span>
             <span class="k">return</span> <span class="s1">&#39;x_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}&#39;</span></div>
+
+
+<div class="viewcode-block" id="MassFraction"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.MassFraction">[docs]</a><span class="k">class</span> <span class="nc">MassFraction</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Weight fractions are symbols with built-in assumptions of being real and nonnegative.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">def</span> <span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="o">*</span><span class="n">args</span><span class="p">):</span>  <span class="c1"># pylint: disable=W0221</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">varname</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">phase_name</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="n">species</span> <span class="o">=</span> <span class="kc">None</span>
+        <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">1</span><span class="p">:</span>
+            <span class="c1"># this is an overall composition variable</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">])</span>
+            <span class="n">varname</span> <span class="o">=</span> <span class="s1">&#39;W_&#39;</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">elif</span> <span class="nb">len</span><span class="p">(</span><span class="n">args</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span><span class="p">:</span>
+            <span class="c1"># this is a phase-specific composition variable</span>
+            <span class="n">phase_name</span> <span class="o">=</span> <span class="n">args</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+            <span class="n">species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">args</span><span class="p">[</span><span class="mi">1</span><span class="p">])</span>
+            <span class="n">varname</span> <span class="o">=</span> <span class="s1">&#39;W_&#39;</span> <span class="o">+</span> <span class="n">phase_name</span> <span class="o">+</span> <span class="s1">&#39;_&#39;</span> <span class="o">+</span> <span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="c1"># not defined</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Weight fraction not defined for args: &#39;</span><span class="o">+</span><span class="n">args</span><span class="p">)</span>
+
+        <span class="c1"># pylint: disable=E1121</span>
+        <span class="n">new_self</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="o">.</span><span class="fm">__new__</span><span class="p">(</span><span class="bp">cls</span><span class="p">,</span> <span class="n">varname</span><span class="p">,</span> <span class="n">nonnegative</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
+        <span class="n">new_self</span><span class="o">.</span><span class="n">phase_name</span> <span class="o">=</span> <span class="n">phase_name</span>
+        <span class="n">new_self</span><span class="o">.</span><span class="n">species</span> <span class="o">=</span> <span class="n">species</span>
+        <span class="k">return</span> <span class="n">new_self</span>
+
+    <span class="k">def</span> <span class="nf">__getnewargs__</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">,</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="p">,</span>
+
+    <span class="k">def</span> <span class="nf">_latex</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">printer</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+        <span class="s2">&quot;LaTeX representation.&quot;</span>
+        <span class="c1"># pylint: disable=E1101</span>
+        <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;w^{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;_&#39;</span><span class="p">,</span> <span class="s1">&#39;-&#39;</span><span class="p">)</span> <span class="o">+</span> \
+                <span class="s1">&#39;}_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}&#39;</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">return</span> <span class="s1">&#39;w_{&#39;</span><span class="o">+</span><span class="bp">self</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">escaped_name</span><span class="o">+</span><span class="s1">&#39;}&#39;</span></div>
+
+
+<div class="viewcode-block" id="get_mole_fractions"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.get_mole_fractions">[docs]</a><span class="k">def</span> <span class="nf">get_mole_fractions</span><span class="p">(</span><span class="n">mass_fractions</span><span class="p">,</span> <span class="n">dependent_species</span><span class="p">,</span> <span class="n">pure_element_mass_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a mapping of MoleFractions for a point composition.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mass_fractions : Mapping[MassFraction, float]</span>
+
+<span class="sd">    dependent_species : Union[Species, str]</span>
+<span class="sd">        Dependent species not appearing in the independent mass fractions.</span>
+
+<span class="sd">    pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]</span>
+<span class="sd">        Either a mapping from pure elements to their mass, or a Database from</span>
+<span class="sd">        which they can be retrieved.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict[MoleFraction, float]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">MassFraction</span><span class="p">)</span> <span class="k">for</span> <span class="n">mf</span> <span class="ow">in</span> <span class="n">mass_fractions</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="kn">import</span> <span class="n">ConditionError</span>
+        <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s2">&quot;All mass_fractions must be instances of MassFraction (v.W). Got &quot;</span><span class="p">,</span> <span class="n">mass_fractions</span><span class="p">)</span>
+    <span class="n">dependent_species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">dependent_species</span><span class="p">)</span>
+    <span class="n">species_mass_fracs</span> <span class="o">=</span> <span class="p">{</span><span class="n">mf</span><span class="o">.</span><span class="n">species</span><span class="p">:</span> <span class="n">frac</span> <span class="k">for</span> <span class="n">mf</span><span class="p">,</span> <span class="n">frac</span> <span class="ow">in</span> <span class="n">mass_fractions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">all_species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_mass_fracs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="p">{</span><span class="n">dependent_species</span><span class="p">}</span>
+    <span class="c1"># Check if the mass dict is a Database, which is the source of the mass_dict</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>  <span class="c1"># Imported here to avoid circular import</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pure_element_mass_dict</span><span class="p">,</span> <span class="n">Database</span><span class="p">):</span>
+        <span class="n">pure_element_mass_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">el</span><span class="p">:</span> <span class="n">refdict</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">refdict</span> <span class="ow">in</span> <span class="n">pure_element_mass_dict</span><span class="o">.</span><span class="n">refstates</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">species_mass_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">all_species</span><span class="p">:</span>
+        <span class="n">species_mass_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">pure_element_mass_dict</span><span class="p">[</span><span class="n">pe</span><span class="p">]</span><span class="o">*</span><span class="n">natoms</span> <span class="k">for</span> <span class="n">pe</span><span class="p">,</span> <span class="n">natoms</span> <span class="ow">in</span> <span class="n">species</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="c1"># add dependent species</span>
+    <span class="n">species_mass_fracs</span><span class="p">[</span><span class="n">dependent_species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">species_mass_fracs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="c1"># compute moles</span>
+    <span class="n">species_moles</span> <span class="o">=</span> <span class="p">{</span><span class="n">species</span><span class="p">:</span> <span class="n">mass_frac</span><span class="o">/</span><span class="n">species_mass_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">mass_frac</span> <span class="ow">in</span> <span class="n">species_mass_fracs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># normalize</span>
+    <span class="n">total_moles</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">species_moles</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">species_mole_fractions</span> <span class="o">=</span> <span class="p">{</span><span class="n">species</span><span class="p">:</span> <span class="n">moles</span><span class="o">/</span><span class="n">total_moles</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">moles</span> <span class="ow">in</span> <span class="n">species_moles</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># remove dependent species</span>
+    <span class="n">species_mole_fractions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">dependent_species</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">MoleFraction</span><span class="p">(</span><span class="n">species</span><span class="p">):</span> <span class="n">fraction</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">fraction</span> <span class="ow">in</span> <span class="n">species_mole_fractions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
+
+<div class="viewcode-block" id="get_mass_fractions"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.get_mass_fractions">[docs]</a><span class="k">def</span> <span class="nf">get_mass_fractions</span><span class="p">(</span><span class="n">mole_fractions</span><span class="p">,</span> <span class="n">dependent_species</span><span class="p">,</span> <span class="n">pure_element_mass_dict</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">    Return a mapping of MassFractions for a point composition.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    mass_fractions : Mapping[MoleFraction, float]</span>
+
+<span class="sd">    dependent_species : Union[Species, str]</span>
+<span class="sd">        Dependent species not appearing in the independent mass fractions.</span>
+
+<span class="sd">    pure_element_mass_dict : Union[Mapping[str, float], pycalphad.Database]</span>
+<span class="sd">        Either a mapping from pure elements to their mass, or a Database from</span>
+<span class="sd">        which they can be retrieved.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    Dict[MassFraction, float]</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="ow">not</span> <span class="nb">all</span><span class="p">(</span><span class="nb">isinstance</span><span class="p">(</span><span class="n">mf</span><span class="p">,</span> <span class="n">MoleFraction</span><span class="p">)</span> <span class="k">for</span> <span class="n">mf</span> <span class="ow">in</span> <span class="n">mole_fractions</span><span class="p">):</span>
+        <span class="kn">from</span> <span class="nn">pycalphad.core.errors</span> <span class="kn">import</span> <span class="n">ConditionError</span>
+        <span class="k">raise</span> <span class="n">ConditionError</span><span class="p">(</span><span class="s2">&quot;All mole_fractions must be instances of MoleFraction (v.X). Got &quot;</span><span class="p">,</span> <span class="n">mole_fractions</span><span class="p">)</span>
+    <span class="n">dependent_species</span> <span class="o">=</span> <span class="n">Species</span><span class="p">(</span><span class="n">dependent_species</span><span class="p">)</span>
+    <span class="n">species_mole_fracs</span> <span class="o">=</span> <span class="p">{</span><span class="n">mf</span><span class="o">.</span><span class="n">species</span><span class="p">:</span> <span class="n">frac</span> <span class="k">for</span> <span class="n">mf</span><span class="p">,</span> <span class="n">frac</span> <span class="ow">in</span> <span class="n">mole_fractions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="n">all_species</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">species_mole_fracs</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span> <span class="o">|</span> <span class="p">{</span><span class="n">dependent_species</span><span class="p">}</span>
+    <span class="c1"># Check if the mass dict is a Database, which is the source of the mass_dict</span>
+    <span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span>  <span class="c1"># Imported here to avoid circular import</span>
+    <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">pure_element_mass_dict</span><span class="p">,</span> <span class="n">Database</span><span class="p">):</span>
+        <span class="n">pure_element_mass_dict</span> <span class="o">=</span> <span class="p">{</span><span class="n">el</span><span class="p">:</span> <span class="n">refdict</span><span class="p">[</span><span class="s1">&#39;mass&#39;</span><span class="p">]</span> <span class="k">for</span> <span class="n">el</span><span class="p">,</span> <span class="n">refdict</span> <span class="ow">in</span> <span class="n">pure_element_mass_dict</span><span class="o">.</span><span class="n">refstates</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+
+    <span class="n">species_mass_dict</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="k">for</span> <span class="n">species</span> <span class="ow">in</span> <span class="n">all_species</span><span class="p">:</span>
+        <span class="n">species_mass_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">([</span><span class="n">pure_element_mass_dict</span><span class="p">[</span><span class="n">pe</span><span class="p">]</span><span class="o">*</span><span class="n">natoms</span> <span class="k">for</span> <span class="n">pe</span><span class="p">,</span> <span class="n">natoms</span> <span class="ow">in</span> <span class="n">species</span><span class="o">.</span><span class="n">constituents</span><span class="o">.</span><span class="n">items</span><span class="p">()])</span>
+
+    <span class="c1"># add dependent species</span>
+    <span class="n">species_mole_fracs</span><span class="p">[</span><span class="n">dependent_species</span><span class="p">]</span> <span class="o">=</span> <span class="mi">1</span> <span class="o">-</span> <span class="nb">sum</span><span class="p">(</span><span class="n">species_mole_fracs</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="c1"># compute mass</span>
+    <span class="n">species_mass</span> <span class="o">=</span> <span class="p">{</span><span class="n">species</span><span class="p">:</span> <span class="n">mole_frac</span><span class="o">*</span><span class="n">species_mass_dict</span><span class="p">[</span><span class="n">species</span><span class="p">]</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">mole_frac</span> <span class="ow">in</span> <span class="n">species_mole_fracs</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># normalize</span>
+    <span class="n">total_mass</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">species_mass</span><span class="o">.</span><span class="n">values</span><span class="p">())</span>
+    <span class="n">species_mass_fractions</span> <span class="o">=</span> <span class="p">{</span><span class="n">species</span><span class="p">:</span> <span class="n">mass</span><span class="o">/</span><span class="n">total_mass</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">mass</span> <span class="ow">in</span> <span class="n">species_mass</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span>
+    <span class="c1"># remove dependent species</span>
+    <span class="n">species_mass_fractions</span><span class="o">.</span><span class="n">pop</span><span class="p">(</span><span class="n">dependent_species</span><span class="p">)</span>
+    <span class="k">return</span> <span class="p">{</span><span class="n">MassFraction</span><span class="p">(</span><span class="n">species</span><span class="p">):</span> <span class="n">fraction</span> <span class="k">for</span> <span class="n">species</span><span class="p">,</span> <span class="n">fraction</span> <span class="ow">in</span> <span class="n">species_mass_fractions</span><span class="o">.</span><span class="n">items</span><span class="p">()}</span></div>
+
 
 <div class="viewcode-block" id="ChemicalPotential"><a class="viewcode-back" href="../../api/pycalphad.html#pycalphad.variables.ChemicalPotential">[docs]</a><span class="k">class</span> <span class="nc">ChemicalPotential</span><span class="p">(</span><span class="n">StateVariable</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -395,7 +534,8 @@
 <span class="n">volume</span> <span class="o">=</span> <span class="n">V</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="p">(</span><span class="s1">&#39;V&#39;</span><span class="p">)</span>
 <span class="n">moles</span> <span class="o">=</span> <span class="n">N</span> <span class="o">=</span> <span class="n">StateVariable</span><span class="p">(</span><span class="s1">&#39;N&#39;</span><span class="p">)</span>
 <span class="n">site_fraction</span> <span class="o">=</span> <span class="n">Y</span> <span class="o">=</span> <span class="n">SiteFraction</span>
-<span class="n">X</span> <span class="o">=</span> <span class="n">Composition</span>
+<span class="n">X</span> <span class="o">=</span> <span class="n">MoleFraction</span>
+<span class="n">W</span> <span class="o">=</span> <span class="n">MassFraction</span>
 <span class="n">MU</span> <span class="o">=</span> <span class="n">ChemicalPotential</span>
 <span class="n">si_gas_constant</span> <span class="o">=</span> <span class="n">R</span> <span class="o">=</span> <span class="n">Float</span><span class="p">(</span><span class="mf">8.3145</span><span class="p">)</span> <span class="c1"># ideal gas constant</span>
 

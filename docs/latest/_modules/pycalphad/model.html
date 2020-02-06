@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.1.post1+3.g3285447 documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.1.post1+4.g2929ba8 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+3.g3285447
+                0.8.1.post1+4.g2929ba8
               </div>
             
           
@@ -547,7 +547,7 @@
         <span class="k">for</span> <span class="n">statevar</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">conds</span><span class="o">.</span><span class="n">keys</span><span class="p">(),</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">):</span>
             <span class="k">if</span> <span class="ow">not</span> <span class="n">is_multiphase_constraint</span><span class="p">(</span><span class="n">statevar</span><span class="p">):</span>
                 <span class="k">continue</span>
-            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statevar</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">Composition</span><span class="p">):</span>
+            <span class="k">if</span> <span class="nb">isinstance</span><span class="p">(</span><span class="n">statevar</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">MoleFraction</span><span class="p">):</span>
                 <span class="n">multiphase_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">statevar</span><span class="o">.</span><span class="n">species</span><span class="p">))</span>
             <span class="k">elif</span> <span class="n">statevar</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span>
                 <span class="n">multiphase_constraints</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)</span> <span class="o">*</span> <span class="p">(</span><span class="nb">sum</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">moles</span><span class="p">(</span><span class="n">spec</span><span class="p">)</span> <span class="k">for</span> <span class="n">spec</span> <span class="ow">in</span> <span class="bp">self</span><span class="o">.</span><span class="n">nonvacant_elements</span><span class="p">)))</span>
