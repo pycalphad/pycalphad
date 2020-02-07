@@ -15,7 +15,7 @@ ternplot
 Here we well use the ternplot API to plot an isothermal section of the
 Al-Cu-Y system from the thermodynamic database found at the `NIST
 CALPHAD assessments <http://hdl.handle.net/11115/101>`__ assessed by
-Zhang et al. `Calphad 35
+Zhang et al. \ `Calphad 35
 (2011) <https://doi.org/10.1016/j.calphad.2011.09.008>`__. Note that we
 have commented out the Cu6Y phase in the TDB because it utilized the Cu2
 species. Species are not currently supported in pycalphad.
