@@ -8,7 +8,7 @@ activity of the liquid.
 Experimental activity results
 -----------------------------
 
-In order to make sure we are correct, we'll compare the values with
+In order to make sure we are correct, we’ll compare the values with
 experimental results. Experimental activities are digtized from Fig 18
 in A. Yazawa, Y.K. Lee, Thermodynamic Studies of the Liquid Aluminum
 Alloy Systems, Trans. Japan Inst. Met. 11 (1970) 411–418.
@@ -42,7 +42,7 @@ Calculate the reference state
 -----------------------------
 
 Because all chemical activities must be specified with a reference
-state, we're going to choose a reference state as the pure element at
+state, we’re going to choose a reference state as the pure element at
 the same temperature, consistent with the experimental data.
 
 .. code:: ipython3

@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.8.1.post1+5.gc5c9c99 documentation</title>
+  <title>Exploring calculate and equilibrium xarray Datasets &mdash; pycalphad 0.8.1.post1+6.g7f469c7 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.1.post1+5.gc5c9c99
+                0.8.1.post1+6.g7f469c7
               </div>
             
           
@@ -198,7 +198,7 @@ the values of the properties as a function of the different conditions.
 There are three key terms:</p>
 <ul class="simple">
 <li><p><code class="docutils literal notranslate"><span class="pre">Dimensions</span></code>: these are the conditions that are calculated over,
-e.g. pressure (P) and temperature (T). They are essentially labels.</p></li>
+e.g. pressure (P) and temperature (T). They are essentially labels.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Coordinates</span></code>: these are the actual <em>values</em> that are taken on by
 the dimensions.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Data</span> <span class="pre">variables</span></code>: these are the properties calculated by pycalphad,
@@ -332,12 +332,12 @@ invalidate Gibbs phase rule.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">Phase</span></code>: The string name of the phase in equilibrium at the
 conditions. There are as many as <code class="docutils literal notranslate"><span class="pre">len(vertex)</span></code> phases. Any time
 there are fewer phases in equilibrium than the indices described by
-<code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a
+<code class="docutils literal notranslate"><span class="pre">vertex</span></code>, the values of phase are paded by <code class="docutils literal notranslate"><span class="pre">''</span></code>, e.g. for a
 single phase region for FCC_A1, the values of Phase will be
 <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>. When more than one phase is present, it is
 important to note that they are not necessarily sorted.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">NP</span></code>: Phase fraction of each phase in equilibrium. When there is no
-other equilibrium phase (e.g. single phase <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then
+other equilibrium phase (e.g. single phase <code class="docutils literal notranslate"><span class="pre">['FCC_A1',</span> <span class="pre">'']</span></code>) then
 the value of <code class="docutils literal notranslate"><span class="pre">NP</span></code> will be <code class="docutils literal notranslate"><span class="pre">nan</span></code> for the absence of a phase,
 rather than 0.</p></li>
 <li><p><code class="docutils literal notranslate"><span class="pre">MU</span></code>: The chemical potentials of each component for the conditions
