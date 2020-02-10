@@ -43,6 +43,12 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_o
             grad = lambdify(inp, grad_graphs, backend=grad_backend, cse=cse)
         if include_hess:
             hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
+            hess_ops = sum(sum(count_ops(xy) for xy in x) for x in hess_graphs)
+            if hess_ops > BACKEND_OPS_THRESHOLD:
+                hess_backend = 'lambda'
+            else:
+                hess_backend = 'llvm'
+            print(f'Hess backend: {hess_backend} ({hess_ops} ops)')
             # Hessians are hard-coded to always use the lambda backend, for performance
-            hess = lambdify(inp, hess_graphs, backend='lambda', cse=cse)
+            hess = lambdify(inp, hess_graphs, backend=hess_backend, cse=cse)
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)
