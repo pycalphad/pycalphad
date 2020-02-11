@@ -8,6 +8,8 @@ import pycalphad.variables as v
 import ctypes
 
 cdef class FastFunction:
+    """``FastFunction`` provides a stable(-ish) interface that encapsulates SymEngine function pointers.
+    """
     def __cinit__(self, object func):
         if func is None:
             self.f_ptr = NULL
