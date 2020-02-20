@@ -53,4 +53,5 @@ install:
 build: false
 
 test_script:
+  - conda list
   - "python -c \"import pytest ; exit(pytest.main())\" -s -v pycalphad"
