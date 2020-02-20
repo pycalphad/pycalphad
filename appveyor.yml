@@ -46,7 +46,7 @@ install:
   - "conda config --add channels conda-forge"
   - "conda config --add channels pycalphad"
   # install pycalphad and dependencies
-  - "conda install --yes -n condaenv --quiet vc=14 pip setuptools pytest numpy pandas scipy sympy pyparsing matplotlib xarray 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine"
+  - "conda install --yes -n condaenv --quiet vc=14 pip setuptools pytest numpy pandas scipy sympy=1.5 pyparsing matplotlib xarray 'tinydb>=3.8' cython cyipopt libpython symengine python-symengine=0.6"
   # Hack to force compiler: https://github.com/pypa/pip/issues/18#issuecomment-73703672
   - "pip install --global-option build_ext --global-option --compiler=msvc --editable ."
 
