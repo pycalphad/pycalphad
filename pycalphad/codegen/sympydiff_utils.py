@@ -48,7 +48,9 @@ def _get_lambidfy_options(user_options):
 
 
 @cacheit
-def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_grad=False, include_hess=False, func_options=None, grad_options=None, hess_options=None):
+def build_functions(sympy_graph, variables, parameters=None, wrt=None,
+                    include_obj=True, include_grad=False, include_hess=False,
+                    func_options=None, grad_options=None, hess_options=None):
     """Build function, gradient, and Hessian callables of the sympy_graph.
 
     Parameters
@@ -66,12 +68,15 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_g
     wrt : Optional[List[sympy.core.symbol.Symbol]]
         Variables to differentiate *with respect to* for gradient and Hessian
         callables. If None, the default is to differentiate w.r.t. all variables.
+    include_obj : Optional[bool]
+        Whether to build the sympy_graph callable,
+        :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`
     include_grad : Optional[bool]
         Whether to build the gradient callable,
-        :math:`\\pmb{g} = \\nabla f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n}`
+        :math:`\\pmb{g}(x) = \\nabla f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n}`
     include_hess : Optional[bool]
         Whether to build the Hessian callable,
-        :math:`\mathbb{H} = \\nabla^2 f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n \\times n}`
+        :math:`\mathbb{H}(x) = \\nabla^2 f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n \\times n}`
     func_options : Optional[Dict[str, str]]
         Options to pass to ``lambdify`` when compiling the function.
     grad_options : Optional[Dict[str, str]]
