@@ -35,15 +35,18 @@ ConstraintFunctions = namedtuple('ConstraintFunctions', ['cons_func', 'cons_jac'
 
 LAMBDIFY_DEFAULT_BACKEND = 'llvm'
 LAMBDIFY_DEFAULT_CSE = True
+LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0
 
 
 def _get_lambidfy_options(user_options):
     default_options = {
         'backend': LAMBDIFY_DEFAULT_BACKEND,
-        'cse': LAMBDIFY_DEFAULT_CSE
+        'cse': LAMBDIFY_DEFAULT_CSE,
     }
     if user_options is not None:
         default_options.update(user_options)
+    if default_options['backend'] == 'llvm' and 'opt_level' not in default_options:
+        default_options['opt_level'] = LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL
     return default_options
 
 
