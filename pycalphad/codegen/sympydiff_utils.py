@@ -87,7 +87,6 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None, include_g
     -----
     Default options for compiling the function, gradient and Hessian are defined by ``_get_lambdify_options``.
 
-
     """
     if wrt is None:
         wrt = sympify(tuple(variables))
