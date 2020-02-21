@@ -1,25 +1,27 @@
 """
-This module defines functions compiling symbolic SymPy/SymEngine expressions
-into fast callable functions.
+This module defines functions for compiling symbolic SymPy or SymEngine
+expressions into fast callable functions.
 
 The SymEngine ``lambdify`` function is used to compile the functions using a
-particular backend, with or without common subexpressions eimination (CSE).
+particular backend, with or without common subexpression elimination (CSE).
 
-By default, the LLVM backend is used and common subexpression elimination is
-on, as defined by the module constants::
+By default, the LLVM backend is used with the ``opt_level=0`` option and common
+subexpression elimination is on, as defined by the module constants::
 
     LAMBDIFY_DEFAULT_BACKEND = 'llvm'
     LAMBDIFY_DEFAULT_CSE = True
+    LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0
 
 Note that as of February 2020, SymEngine only supports using ``'lambda'`` or
 ``'llvm'`` backends. The LLVM backend uses the LLVM compiler to compile the
 expressions, and is slower to build the callable functions than the Lambda
-backend, though in principle the LLVM runtime performance can is better as
+backend, though in principle the LLVM runtime performance can be better as
 LLVM can optimize the functions.
 
-Additionally, callables from the Lambda backend cannot be pickled, since
-SymEngine does not define how its object should be serialized. The following
-issues track this behavior:
+Callables produced with the Lambda backend cannot be pickled, since SymEngine
+does not define how its objects should be serialized. This is important to
+packages that may want to parallelize pycalphad calls and pickle the callable
+functions or PhaseRecords. The following issues track this behavior:
 
 * SymEngine: https://github.com/symengine/symengine/issues/1394
 * SymEngine.py: https://github.com/symengine/symengine.py/issues/294
@@ -61,16 +63,16 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     sympy_graph : sympy.core.expr.Expr
         SymPy expression to compile,
         :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`,
-        which will be called by ``sympy_graph(variables+parameters)``
+        which will corresponds to ``sympy_graph(variables+parameters)``
     variables : List[sympy.core.symbol.Symbol]
         Free variables in the sympy_graph. By convention these are usually all
-        StateVariables instances.
+        instances of StateVariables.
     parameters : Optional[List[sympy.core.symbol.Symbol]]
         Free variables in the sympy_graph. These are typically external
         parameters that are controlled by the user.
     wrt : Optional[List[sympy.core.symbol.Symbol]]
-        Variables to differentiate *with respect to* for gradient and Hessian
-        callables. If None, the default is to differentiate w.r.t. all variables.
+        Variables to differentiate *with respect to* for the gradient and
+        Hessian callables. If None, will fall back to ``variables``.
     include_obj : Optional[bool]
         Whether to build the sympy_graph callable,
         :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`
@@ -126,8 +128,8 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     Parameters
     ----------
     variables : List[sympy.core.symbol.Symbol]
-        Free variables in the constraint expressions. By convention these are usually all
-        StateVariables instances.
+        Free variables in the sympy_graph. By convention these are usually all
+        instances of StateVariables.
     constraints : List[sympy.core.expr.Expr]
         List of SymPy expression to compile
     parameters : Optional[List[sympy.core.symbol.Symbol]]
@@ -143,6 +145,10 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     Returns
     -------
     ConstraintFunctions
+
+    Notes
+    -----
+    Default options for compiling the function, gradient and Hessian are defined by ``_get_lambdify_options``.
 
     """
     if parameters is None:
