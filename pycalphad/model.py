@@ -97,7 +97,7 @@ class Model(object):
     contributions = [('ref', 'reference_energy'), ('idmix', 'ideal_mixing_energy'),
                      ('xsmix', 'excess_mixing_energy'), ('mag', 'magnetic_energy'),
                      ('2st', 'twostate_energy'), ('ein', 'einstein_energy'),
-                     ('ord', 'atomic_ordering_energy')]
+                     ('pitz', 'pitzer_energy'), ('ord', 'atomic_ordering_energy')]
     def __init__(self, dbe, comps, phase_name, parameters=None):
         self._dbe = dbe
         self._reference_model = None
@@ -890,9 +890,12 @@ class Model(object):
         anions = [x for x in phase_components if x.charge>0]
         cations = [x for x in phase_components if x.charge<0]
 
-        A_phi = 0  # Debye-Huckel limiting law slope
-        alpha_one = 0
-        alpha_two = 0
+        # TODO: This is user-configurable; need to add support
+        A_phi = -1.431259e-6*v.T**2 + 0.00142591*v.T + 1.409425*log(v.T) - 9.97653834928395 + \
+            571.5406/v.T - 23882.02/v.T**2  # Debye-Huckel limiting law slope
+        # TODO: This is user-configurable per binary interaction; need to add support
+        alpha_one = 2
+        alpha_two = 0.5
         # TODO: Should this be in mass units or mole units?
         Z_charge = sum(self.moles(spec) * abs(spec.charge) for spec in anions+cations)
         # TODO: Should this be in mass units or mole units?
