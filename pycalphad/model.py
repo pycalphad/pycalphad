@@ -876,6 +876,136 @@ class Model(object):
             result = 0
         return result / self._site_ratio_normalization
 
+    def pitzer_energy(self, dbe):
+        """
+        Return the energy based on the Pitzer model.
+        Reference: https://pubs.acs.org/doi/full/10.1021/acs.jced.7b00265
+        """
+        energy = S.Zero
+        phase = dbe.phases[self.phase_name]
+        param_search = dbe.search
+        if len(phase.constituents) > 1:
+            raise ValueError('Pitzer model specified with more than one sublattice')
+        phase_components = set(phase.constituents[0]).intersection(self.components)
+        anions = [x for x in phase_components if x.charge>0]
+        cations = [x for x in phase_components if x.charge<0]
+
+        A_phi = 0  # Debye-Huckel limiting law slope
+        alpha_one = 0
+        alpha_two = 0
+        # TODO: Should this be in mass units or mole units?
+        Z_charge = sum(self.moles(spec) * abs(spec.charge) for spec in anions+cations)
+        # TODO: Should this be in mass units or mole units?
+        I_strength = 0.5 * sum(self.moles(spec) * spec.charge**2 for spec in anions+cations)
+        b = 1.2  # kg**-0.5 mol**-0.5
+
+        # First part
+        energy += -4*A_phi*log(1 + b*(I_strength**0.5)) * (I_strength/b)
+        # Second part (cation-anion interactions)
+        # beta: cation-anion interaction
+        # alpha_1 and alpha_2: prefactors for series expressed in g(x)
+        beta_zero_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'BETA') &
+            (where('parameter_order') == 0) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        beta_zero_params = param_search(beta_zero_param_query)
+        for param in beta_zero_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 2:
+                # Only binary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            energy += comp_symbols[0] * comp_symbols[1] * 2 * param['parameter']
+
+        beta_one_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'BETA') &
+            (where('parameter_order') == 1) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        beta_one_params = param_search(beta_one_param_query)
+        for param in beta_one_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 2:
+                # Only binary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            x = alpha_one * I_strength**0.5
+            g = 2 * (1 - (1+x) * exp(-x)) / x**2
+            energy += comp_symbols[0] * comp_symbols[1] * 2 * param['parameter'] * g
+        beta_two_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'BETA') &
+            (where('parameter_order') == 2) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        beta_two_params = param_search(beta_two_param_query)
+        for param in beta_two_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 2:
+                # Only binary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            x = alpha_two * I_strength**0.5
+            g = 2 * (1 - (1+x) * exp(-x)) / x**2
+            energy += comp_symbols[0] * comp_symbols[1] * 2 * param['parameter'] * g
+
+        c_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'C') &
+            (where('parameter_order') == 0) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        c_params = param_search(c_param_query)
+        for param in c_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 2:
+                # Only binary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            # TODO: Is it okay if referencing species charge through SiteFraction only works for pure elements?
+            energy += comp_symbols[0] * comp_symbols[1] * Z_charge * param['parameter'] / \
+                      (2 * abs(comp_symbols[0].species.charge * comp_symbols[1].species.charge)**0.5)
+        # Third part: cation-cation interactions, anion-anion interactions
+        phi_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'PHI') &
+            (where('parameter_order') == 0) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        phi_params = param_search(phi_param_query)
+        for param in phi_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 2:
+                # Only binary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            energy += comp_symbols[0] * comp_symbols[1] * 2 * param['parameter']
+        # Fourth part: ternary ion interactions (cation-cation-anion, anion-anion-cation)
+        psi_param_query = (
+            (where('phase_name') == phase.name) &
+            (where('parameter_type') == 'PSI') &
+            (where('parameter_order') == 0) &
+            (where('constituent_array').test(self._array_validity))
+        )
+        psi_params = param_search(psi_param_query)
+        for param in psi_params:
+            constituents = param['constituent_array'][0]
+            if len(constituents) != 3:
+                # Only ternary interaction parameters used here
+                continue
+            comp_symbols = [v.SiteFraction(phase.name, 0, comp) for comp in constituents]
+            # TODO: Should this be in mass units or mole units?
+            energy += comp_symbols[0] * comp_symbols[1] * comp_symbols[2] * param['parameter']
+        return energy
+
     @staticmethod
     def mole_fraction(species_name, phase_name, constituent_array,
                       site_ratios):
