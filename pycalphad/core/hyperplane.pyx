@@ -25,6 +25,14 @@ cdef void prodsum(double[::1] chempots, double[:,::1] points, double[::1] result
 
 
 @cython.boundscheck(False)
+cdef double _min(double[::1] a) nogil:
+    cdef double result = 1e300
+    for i in range(a.shape[0]):
+        if a[i] < result:
+            result = a[i]
+    return result
+
+@cython.boundscheck(False)
 cdef int argmin(double[::1] a, double[::1] lowest) nogil:
     cdef int result = 0
     for i in range(a.shape[0]):
@@ -124,7 +132,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double[::1] candidate_potentials = np.empty(simplex_size)
     cdef double[::1] smallest_fractions = np.empty(simplex_size)
     cdef double[::1] tmp = np.empty(simplex_size)
-    cdef double[::1, :] f_contig_trial
+    cdef double[::1, :] f_contig_trial = np.empty((simplex_size, simplex_size), order='F')
     # Not sure how to create scalar memoryviews...
     cdef double[::1] lowest_df = np.empty(1)
     cdef bint tmp3
@@ -149,7 +157,7 @@ cpdef double hyperplane(double[:,::1] compositions,
                         trial_matrix[comp_idx, simplex_idx, trial_idx] = 1 # 1 mole-formula per formula unit of a phase
 
         for trial_idx in range(simplex_size):
-            f_contig_trial = np.asfortranarray(trial_matrix[:, :, trial_idx].copy())
+            f_contig_trial[:,:] = trial_matrix[:, :, trial_idx]
             for simplex_idx in range(fractions.shape[1]):
                 ici = included_composition_indices[simplex_idx]
                 if ici >= 0:
@@ -158,7 +166,8 @@ cpdef double hyperplane(double[:,::1] compositions,
                     # ici = -1, refers to N=1 condition
                     fractions[trial_idx, simplex_idx] = total_moles
             solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
-            smallest_fractions[trial_idx] = min(fractions[trial_idx, :])
+            smallest_fractions[trial_idx] = _min(fractions[trial_idx, :])
+
         # Choose simplex with the largest smallest-fraction
         saved_trial = argmax(smallest_fractions)
         if smallest_fractions[saved_trial] < -simplex_size:
@@ -167,20 +176,23 @@ cpdef double hyperplane(double[:,::1] compositions,
         candidate_simplex = trial_simplices[saved_trial, :]
         for i in range(candidate_simplex.shape[0]):
             idx = candidate_simplex[i]
-            ici = 0
-            for ici, chempot_idx in enumerate(free_chempot_indices):
+            for ici in range(free_chempot_indices.shape[0]):
+                chempot_idx = free_chempot_indices[ici]
                 candidate_tieline[i, ici] = compositions[idx, chempot_idx]
             candidate_potentials[i] = energies[idx]
-            for j in fixed_chempot_indices:
-                candidate_potentials[i] -= chemical_potentials[j] * compositions[idx, j]
+            for ici in range(fixed_chempot_indices.shape[0]):
+                chempot_idx = fixed_chempot_indices[ici]
+                candidate_potentials[i] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
         solve(candidate_tieline, candidate_potentials, int_tmp)
         if candidate_potentials[0] == -1e19:
             break
         driving_forces[:] = energies
-        for ici, chempot_idx in enumerate(free_chempot_indices):
+        for ici in range(free_chempot_indices.shape[0]):
+            chempot_idx = free_chempot_indices[ici]
             for idx in range(driving_forces.shape[0]):
                 driving_forces[idx] -= candidate_potentials[ici] * compositions[idx, chempot_idx]
-        for chempot_idx in fixed_chempot_indices:
+        for ici in range(fixed_chempot_indices.shape[0]):
+            chempot_idx = fixed_chempot_indices[ici]
             for idx in range(driving_forces.shape[0]):
                 driving_forces[idx] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
         best_guess_simplex[:] = candidate_simplex
@@ -201,7 +213,8 @@ cpdef double hyperplane(double[:,::1] compositions,
         idx = best_guess_simplex[i]
         out_energy += fractions[saved_trial, i] * energies[idx]
     result_fractions[:simplex_size] = fractions[saved_trial, :]
-    for ici, chempot_idx in enumerate(free_chempot_indices):
+    for ici in range(free_chempot_indices.shape[0]):
+        chempot_idx = free_chempot_indices[ici]
         chemical_potentials[chempot_idx] = candidate_potentials[ici]
     result_simplex[:simplex_size] = best_guess_simplex
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
