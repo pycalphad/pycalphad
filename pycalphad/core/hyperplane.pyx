@@ -52,7 +52,7 @@ cdef int argmax(double[::1] a) nogil:
             result = i
     return result
 
-
+@cython.boundscheck(False)
 cpdef double hyperplane(double[:,::1] compositions,
                         double[::1] energies,
                         double[::1] composition,
