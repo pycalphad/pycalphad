@@ -72,7 +72,7 @@ def _sympify_string(math_string):
             raise ValueError('Expression from TDB file not in whitelist: '
                              '{}'.format(expr_string))
 
-    return sympify(expr_string, locals=clashing_namespace)
+    return sympify(expr_string, locals=clashing_namespace, evaluate=False)
 
 def _parse_action(func):
     """
@@ -244,12 +244,7 @@ def _tdb_grammar(): #pylint: disable=R0914
         Suppress(White()) + Suppress(':') + constituent_array + \
         Suppress(':') + LineEnd()
     # PARAMETER
-    cmd_parameter = TCCommand('PARAMETER') + param_types + \
-        Suppress('(') + symbol_name + \
-        Optional(Suppress('&') + Word(alphas+'/-', min=1, max=2), default=None) + \
-        Suppress(',') + constituent_array + \
-        Optional(Suppress(';') + int_number, default=0) + \
-        Suppress(')') + func_expr.setParseAction(_make_piecewise_ast)
+    cmd_parameter = TCCommand('PARAMETER') + SkipTo(LineEnd())
     # Now combine the grammar together
     all_commands = cmd_element | \
                     cmd_species | \
@@ -355,7 +350,7 @@ def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
     targetdb.add_parameter(param_type, phase_name.upper(),
                            [[c.upper() for c in sorted(lx)]
                             for lx in constituent_array.asList()],
-                           param_order, param, ref, diffusing_species)
+                           param_order, param, ref, diffusing_species, force_insert=False)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """

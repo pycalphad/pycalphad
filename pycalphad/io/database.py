@@ -94,6 +94,7 @@ class Database(object): #pylint: disable=R0902
             obj.refstates = {}
             obj._structure_dict = {} # System-local phase names to global IDs
             obj._parameters = TinyDB(storage=MemoryStorage)
+            obj._parameter_queue = []
             obj.symbols = {}
             obj.references = {}
             # Note: No public typedefs here (from TDB files)
@@ -210,6 +211,7 @@ class Database(object): #pylint: disable=R0902
         try:
             dbf = Database()
             format_registry[fmt.lower()].read(dbf, fd)
+            dbf._parameter_queue_process()
         finally:
             # Close file descriptors created in this routine
             # Otherwise that's left up to the calling function
@@ -364,7 +366,7 @@ class Database(object): #pylint: disable=R0902
         self._structure_dict[local_name] = global_name
     def add_parameter(self, param_type, phase_name, #pylint: disable=R0913
                       constituent_array, param_order,
-                      param, ref=None, diffusing_species=None):
+                      param, ref=None, diffusing_species=None, force_insert=True):
         """
         Add a parameter.
 
@@ -384,6 +386,8 @@ class Database(object): #pylint: disable=R0902
             Reference for the parameter.
         diffusing_species : str, optional
             (If kinetic parameter) Diffusing species for this parameter.
+        force_insert : bool, optional
+            If True, inserts into the database immediately. False is a delayed insert (for performance).
 
         Examples
         --------
@@ -399,8 +403,11 @@ class Database(object): #pylint: disable=R0902
             'diffusing_species': Species(diffusing_species),
             'reference': ref
         }
-        param_id = self._parameters.insert(new_parameter)
-        return param_id
+        if force_insert:
+            self._parameters.insert(new_parameter)
+        else:
+            self._parameter_queue.append(new_parameter)
+
     def add_phase(self, phase_name, model_hints, sublattices):
         """
         Add a phase.
@@ -465,3 +472,13 @@ class Database(object): #pylint: disable=R0902
         >>>> db.search(where('eid') == eid)
         """
         return self._parameters.search(query)
+
+    def _parameter_queue_process(self):
+        """
+        Process the queue of parameters so they are added to the TinyDB in one transaction.
+        This avoids repeated (expensive) calls to insert().
+        """
+        result = self._parameters.insert_multiple(self._parameter_queue)
+        self._parameter_queue = []
+        return result
+
