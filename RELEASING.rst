@@ -50,6 +50,7 @@ Start with the commit checked out which was tagged with the new version.
 
 1. Generate the SHA256 hash of the build artifact (tarball) submitted to PyPI.
 2. Fork the conda-forge/pycalphad-feedstock repo.
-3. Update the version and sha256 strings in the recipe/meta.yaml file.
-4. Submit a pull request to the main pycalphad feedstock repo.
-5. Once the tests pass, merge the pull request.
+3. Update pycalphad version and sha256 strings in the ``recipe/meta.yaml`` file.
+4. If any of the dependencies changed since the last release, make sure to update the ``recipe/meta.yaml`` file.
+5. Submit a pull request to the main pycalphad feedstock repo.
+6. Once the tests pass, merge the pull request.

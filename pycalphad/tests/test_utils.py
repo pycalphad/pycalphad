@@ -11,6 +11,7 @@ from pycalphad.tests.datasets import ALNIPT_TDB, ALCRNI_TDB
 ALNIPT_DBF = Database(ALNIPT_TDB)
 ALCRNI_DBF = Database(ALCRNI_TDB)
 
+
 def test_filter_phases_removes_disordered_phases_from_order_disorder():
     """Databases with order-disorder models should have the disordered phases be filtered if candidate_phases kwarg is not passed to filter_phases.
     If candidate_phases kwarg is passed, disordered phases just are filtered if respective ordered phases are inactive"""
