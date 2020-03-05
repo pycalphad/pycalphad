@@ -211,7 +211,6 @@ class Database(object): #pylint: disable=R0902
         try:
             dbf = Database()
             format_registry[fmt.lower()].read(dbf, fd)
-            dbf._parameter_queue_process()
         finally:
             # Close file descriptors created in this routine
             # Otherwise that's left up to the calling function
@@ -473,7 +472,7 @@ class Database(object): #pylint: disable=R0902
         """
         return self._parameters.search(query)
 
-    def _parameter_queue_process(self):
+    def process_parameter_queue(self):
         """
         Process the queue of parameters so they are added to the TinyDB in one transaction.
         This avoids repeated (expensive) calls to insert().

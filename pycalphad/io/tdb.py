@@ -943,6 +943,7 @@ def read_tdb(dbf, fd):
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+    dbf.process_parameter_queue()
     del dbf.tdbtypedefs
 
 
