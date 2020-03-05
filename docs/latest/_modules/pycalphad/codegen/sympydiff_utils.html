@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8.1.post1+6.g7f469c7 documentation</title>
+  <title>pycalphad.codegen.sympydiff_utils &mdash; pycalphad 0.8.1.post1+7.g9f4aff4 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+6.g7f469c7
+                0.8.1.post1+7.g9f4aff4
               </div>
             
           
@@ -156,21 +156,105 @@
             
   <h1>Source code for pycalphad.codegen.sympydiff_utils</h1><div class="highlight"><pre>
 <span></span><span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">This module constructs gradient functions for Models.</span>
+<span class="sd">This module defines functions for compiling symbolic SymPy or SymEngine</span>
+<span class="sd">expressions into fast callable functions.</span>
+
+<span class="sd">The SymEngine ``lambdify`` function is used to compile the functions using a</span>
+<span class="sd">particular backend, with or without common subexpression elimination (CSE).</span>
+
+<span class="sd">By default, the LLVM backend is used with the ``opt_level=0`` option and common</span>
+<span class="sd">subexpression elimination is on, as defined by the module constants::</span>
+
+<span class="sd">    LAMBDIFY_DEFAULT_BACKEND = &#39;llvm&#39;</span>
+<span class="sd">    LAMBDIFY_DEFAULT_CSE = True</span>
+<span class="sd">    LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0</span>
+
+<span class="sd">Note that as of February 2020, SymEngine only supports using ``&#39;lambda&#39;`` or</span>
+<span class="sd">``&#39;llvm&#39;`` backends. The LLVM backend uses the LLVM compiler to compile the</span>
+<span class="sd">expressions, and is slower to build the callable functions than the Lambda</span>
+<span class="sd">backend, though in principle the LLVM runtime performance can be better as</span>
+<span class="sd">LLVM can optimize the functions.</span>
+
+<span class="sd">Callables produced with the Lambda backend cannot be pickled, since SymEngine</span>
+<span class="sd">does not define how its objects should be serialized. This is important to</span>
+<span class="sd">packages that may want to parallelize pycalphad calls and pickle the callable</span>
+<span class="sd">functions or PhaseRecords. The following issues track this behavior:</span>
+
+<span class="sd">* SymEngine: https://github.com/symengine/symengine/issues/1394</span>
+<span class="sd">* SymEngine.py: https://github.com/symengine/symengine.py/issues/294</span>
+
 <span class="sd">&quot;&quot;&quot;</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">cacheit</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">wrap_symbol_symengine</span>
-<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">count_ops</span>
+<span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
 
-
 <span class="n">BuildFunctionsResult</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;BuildFunctionsResult&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;func&#39;</span><span class="p">,</span> <span class="s1">&#39;grad&#39;</span><span class="p">,</span> <span class="s1">&#39;hess&#39;</span><span class="p">])</span>
+<span class="n">ConstraintFunctions</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ConstraintFunctions&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;cons_hess&#39;</span><span class="p">])</span>
 
-<span class="n">BACKEND_OPS_THRESHOLD</span> <span class="o">=</span> <span class="mi">50000</span>
+<span class="n">LAMBDIFY_DEFAULT_BACKEND</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
+<span class="n">LAMBDIFY_DEFAULT_CSE</span> <span class="o">=</span> <span class="kc">True</span>
+<span class="n">LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL</span> <span class="o">=</span> <span class="mi">0</span>
+
+
+<span class="k">def</span> <span class="nf">_get_lambidfy_options</span><span class="p">(</span><span class="n">user_options</span><span class="p">):</span>
+    <span class="n">default_options</span> <span class="o">=</span> <span class="p">{</span>
+        <span class="s1">&#39;backend&#39;</span><span class="p">:</span> <span class="n">LAMBDIFY_DEFAULT_BACKEND</span><span class="p">,</span>
+        <span class="s1">&#39;cse&#39;</span><span class="p">:</span> <span class="n">LAMBDIFY_DEFAULT_CSE</span><span class="p">,</span>
+    <span class="p">}</span>
+    <span class="k">if</span> <span class="n">user_options</span> <span class="ow">is</span> <span class="ow">not</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">default_options</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">user_options</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">default_options</span><span class="p">[</span><span class="s1">&#39;backend&#39;</span><span class="p">]</span> <span class="o">==</span> <span class="s1">&#39;llvm&#39;</span> <span class="ow">and</span> <span class="s1">&#39;opt_level&#39;</span> <span class="ow">not</span> <span class="ow">in</span> <span class="n">default_options</span><span class="p">:</span>
+        <span class="n">default_options</span><span class="p">[</span><span class="s1">&#39;opt_level&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="n">LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL</span>
+    <span class="k">return</span> <span class="n">default_options</span>
 
 
 <div class="viewcode-block" id="build_functions"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_functions">[docs]</a><span class="nd">@cacheit</span>
-<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
+<span class="k">def</span> <span class="nf">build_functions</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">wrt</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+                    <span class="n">include_obj</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">include_grad</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">include_hess</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
+                    <span class="n">func_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">grad_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hess_options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build function, gradient, and Hessian callables of the sympy_graph.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    sympy_graph : sympy.core.expr.Expr</span>
+<span class="sd">        SymPy expression to compile,</span>
+<span class="sd">        :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`,</span>
+<span class="sd">        which will corresponds to ``sympy_graph(variables+parameters)``</span>
+<span class="sd">    variables : List[sympy.core.symbol.Symbol]</span>
+<span class="sd">        Free variables in the sympy_graph. By convention these are usually all</span>
+<span class="sd">        instances of StateVariables.</span>
+<span class="sd">    parameters : Optional[List[sympy.core.symbol.Symbol]]</span>
+<span class="sd">        Free variables in the sympy_graph. These are typically external</span>
+<span class="sd">        parameters that are controlled by the user.</span>
+<span class="sd">    wrt : Optional[List[sympy.core.symbol.Symbol]]</span>
+<span class="sd">        Variables to differentiate *with respect to* for the gradient and</span>
+<span class="sd">        Hessian callables. If None, will fall back to ``variables``.</span>
+<span class="sd">    include_obj : Optional[bool]</span>
+<span class="sd">        Whether to build the sympy_graph callable,</span>
+<span class="sd">        :math:`f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}`</span>
+<span class="sd">    include_grad : Optional[bool]</span>
+<span class="sd">        Whether to build the gradient callable,</span>
+<span class="sd">        :math:`\\pmb{g}(x) = \\nabla f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n}`</span>
+<span class="sd">    include_hess : Optional[bool]</span>
+<span class="sd">        Whether to build the Hessian callable,</span>
+<span class="sd">        :math:`\mathbb{H}(x) = \\nabla^2 f(x) : \mathbb{R}^{n} \\rightarrow \mathbb{R}^{n \\times n}`</span>
+<span class="sd">    func_options : Optional[Dict[str, str]]</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling the function.</span>
+<span class="sd">    grad_options : Optional[Dict[str, str]]</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling the gradient.</span>
+<span class="sd">    hess_options : Optional[Dict[str, str]]</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling Hessian.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    BuildFunctionsResult</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Default options for compiling the function, gradient and Hessian are defined by ``_get_lambdify_options``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">wrt</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="n">wrt</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
@@ -182,27 +266,66 @@
     <span class="n">func</span><span class="p">,</span> <span class="n">grad</span><span class="p">,</span> <span class="n">hess</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
     <span class="n">inp</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">)</span>
     <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">sympy_graph</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">count_ops</span><span class="p">(</span><span class="n">graph</span><span class="p">)</span> <span class="o">&gt;</span> <span class="n">BACKEND_OPS_THRESHOLD</span><span class="p">:</span>
-        <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;lambda&#39;</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">backend</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
     <span class="c1"># TODO: did not replace zoo with oo</span>
-    <span class="k">if</span> <span class="n">include_obj</span><span class="p">:</span>
-        <span class="n">func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="n">backend</span><span class="o">=</span><span class="n">backend</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+    <span class="n">func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">func_options</span><span class="p">))</span>
     <span class="k">if</span> <span class="n">include_grad</span> <span class="ow">or</span> <span class="n">include_hess</span><span class="p">:</span>
         <span class="n">grad_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">graph</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span>
-        <span class="n">grad_ops</span> <span class="o">=</span> <span class="nb">sum</span><span class="p">(</span><span class="n">count_ops</span><span class="p">(</span><span class="n">x</span><span class="p">)</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
-        <span class="k">if</span> <span class="n">grad_ops</span> <span class="o">&gt;</span> <span class="n">BACKEND_OPS_THRESHOLD</span><span class="p">:</span>
-            <span class="n">grad_backend</span> <span class="o">=</span> <span class="s1">&#39;lambda&#39;</span>
-        <span class="k">else</span><span class="p">:</span>
-            <span class="n">grad_backend</span> <span class="o">=</span> <span class="s1">&#39;llvm&#39;</span>
         <span class="k">if</span> <span class="n">include_grad</span><span class="p">:</span>
-            <span class="n">grad</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="n">grad_backend</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+            <span class="n">grad</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">grad_options</span><span class="p">))</span>
         <span class="k">if</span> <span class="n">include_hess</span><span class="p">:</span>
             <span class="n">hess_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
-            <span class="c1"># Hessians are hard-coded to always use the lambda backend, for performance</span>
-            <span class="n">hess</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
+            <span class="n">hess</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">hess_options</span><span class="p">))</span>
     <span class="k">return</span> <span class="n">BuildFunctionsResult</span><span class="p">(</span><span class="n">func</span><span class="o">=</span><span class="n">func</span><span class="p">,</span> <span class="n">grad</span><span class="o">=</span><span class="n">grad</span><span class="p">,</span> <span class="n">hess</span><span class="o">=</span><span class="n">hess</span><span class="p">)</span></div>
+
+
+<div class="viewcode-block" id="build_constraint_functions"><a class="viewcode-back" href="../../../api/pycalphad.codegen.html#pycalphad.codegen.sympydiff_utils.build_constraint_functions">[docs]</a><span class="nd">@cacheit</span>
+<span class="k">def</span> <span class="nf">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">func_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">jac_options</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">hess_options</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="sd">&quot;&quot;&quot;Build callables functions for the constraints, constraint Jacobian, and constraint Hessian.</span>
+
+<span class="sd">    Parameters</span>
+<span class="sd">    ----------</span>
+<span class="sd">    variables : List[sympy.core.symbol.Symbol]</span>
+<span class="sd">        Free variables in the sympy_graph. By convention these are usually all</span>
+<span class="sd">        instances of StateVariables.</span>
+<span class="sd">    constraints : List[sympy.core.expr.Expr]</span>
+<span class="sd">        List of SymPy expression to compile</span>
+<span class="sd">    parameters : Optional[List[sympy.core.symbol.Symbol]]</span>
+<span class="sd">        Free variables in the sympy_graph. These are typically external</span>
+<span class="sd">        parameters that are controlled by the user.</span>
+<span class="sd">    func_options : None, optional</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling the function.</span>
+<span class="sd">    jac_options : Optional[Dict[str, str]]</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling the Jacobian.</span>
+<span class="sd">    hess_options : Optional[Dict[str, str]]</span>
+<span class="sd">        Options to pass to ``lambdify`` when compiling Hessian.</span>
+
+<span class="sd">    Returns</span>
+<span class="sd">    -------</span>
+<span class="sd">    ConstraintFunctions</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    Default options for compiling the function, gradient and Hessian are defined by ``_get_lambdify_options``.</span>
+
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">wrap_symbol_symengine</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
+    <span class="n">variables</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
+    <span class="n">wrt</span> <span class="o">=</span> <span class="n">variables</span>
+    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">constraint_func</span><span class="p">,</span> <span class="n">jacobian_func</span><span class="p">,</span> <span class="n">hessian_func</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
+    <span class="n">inp</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">)</span>
+    <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
+    <span class="n">constraint_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">func_options</span><span class="p">))</span>
+
+    <span class="n">grad_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">)</span>
+    <span class="n">jacobian_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">jac_options</span><span class="p">))</span>
+
+    <span class="n">hess_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
+    <span class="n">hessian_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="o">**</span><span class="n">_get_lambidfy_options</span><span class="p">(</span><span class="n">hess_options</span><span class="p">))</span>
+    <span class="k">return</span> <span class="n">ConstraintFunctions</span><span class="p">(</span><span class="n">cons_func</span><span class="o">=</span><span class="n">constraint_func</span><span class="p">,</span> <span class="n">cons_jac</span><span class="o">=</span><span class="n">jacobian_func</span><span class="p">,</span> <span class="n">cons_hess</span><span class="o">=</span><span class="n">hessian_func</span><span class="p">)</span></div>
 </pre></div>
 
            </div>

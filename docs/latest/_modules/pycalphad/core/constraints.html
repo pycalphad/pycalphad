@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.constraints &mdash; pycalphad 0.8.1.post1+6.g7f469c7 documentation</title>
+  <title>pycalphad.core.constraints &mdash; pycalphad 0.8.1.post1+7.g9f4aff4 documentation</title>
   
 
   
@@ -21,11 +21,11 @@
   
     
       <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
-        <script type="text/javascript" src="../../../_static/jquery.js"></script>
-        <script type="text/javascript" src="../../../_static/underscore.js"></script>
-        <script type="text/javascript" src="../../../_static/doctools.js"></script>
-        <script type="text/javascript" src="../../../_static/language_data.js"></script>
-        <script async="async" type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
     
     <script type="text/javascript" src="../../../_static/js/theme.js"></script>
 
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+6.g7f469c7
+                0.8.1.post1+7.g9f4aff4
               </div>
             
           
@@ -155,37 +155,10 @@
            <div itemprop="articleBody">
             
   <h1>Source code for pycalphad.core.constraints</h1><div class="highlight"><pre>
-<span></span><span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">sympify</span><span class="p">,</span> <span class="n">lambdify</span><span class="p">,</span> <span class="n">Symbol</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.cache</span> <span class="kn">import</span> <span class="n">cacheit</span>
-<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span></span><span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span>
 <span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">INTERNAL_CONSTRAINT_SCALING</span><span class="p">,</span> <span class="n">MULTIPHASE_CONSTRAINT_SCALING</span>
-<span class="kn">from</span> <span class="nn">pycalphad.core.utils</span> <span class="kn">import</span> <span class="n">wrap_symbol_symengine</span>
+<span class="kn">from</span> <span class="nn">pycalphad.codegen.sympydiff_utils</span> <span class="kn">import</span> <span class="n">build_constraint_functions</span>
 <span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
-
-
-<span class="n">ConstraintFunctions</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ConstraintFunctions&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;cons_hess&#39;</span><span class="p">])</span>
-
-
-<span class="nd">@cacheit</span>
-<span class="k">def</span> <span class="nf">_build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">constraints</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
-    <span class="k">if</span> <span class="n">parameters</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[]</span>
-    <span class="k">else</span><span class="p">:</span>
-        <span class="n">parameters</span> <span class="o">=</span> <span class="p">[</span><span class="n">wrap_symbol_symengine</span><span class="p">(</span><span class="n">p</span><span class="p">)</span> <span class="k">for</span> <span class="n">p</span> <span class="ow">in</span> <span class="n">parameters</span><span class="p">]</span>
-    <span class="n">variables</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">variables</span><span class="p">)</span>
-    <span class="n">wrt</span> <span class="o">=</span> <span class="n">variables</span>
-    <span class="n">parameters</span> <span class="o">=</span> <span class="nb">tuple</span><span class="p">(</span><span class="n">parameters</span><span class="p">)</span>
-    <span class="n">constraint__func</span><span class="p">,</span> <span class="n">jacobian_func</span><span class="p">,</span> <span class="n">hessian_func</span> <span class="o">=</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span><span class="p">,</span> <span class="kc">None</span>
-    <span class="n">inp</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="n">parameters</span><span class="p">)</span>
-    <span class="n">graph</span> <span class="o">=</span> <span class="n">sympify</span><span class="p">(</span><span class="n">constraints</span><span class="p">)</span>
-    <span class="n">constraint_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="p">[</span><span class="n">graph</span><span class="p">],</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
-    <span class="n">grad_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">c</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">graph</span><span class="p">)</span>
-    <span class="n">jacobian_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">grad_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
-
-    <span class="n">hess_graphs</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="nb">list</span><span class="p">(</span><span class="n">g</span><span class="o">.</span><span class="n">diff</span><span class="p">(</span><span class="n">w</span><span class="p">)</span> <span class="k">for</span> <span class="n">w</span> <span class="ow">in</span> <span class="n">wrt</span><span class="p">)</span> <span class="k">for</span> <span class="n">g</span> <span class="ow">in</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">grad_graphs</span><span class="p">)</span>
-    <span class="n">hessian_func</span> <span class="o">=</span> <span class="n">lambdify</span><span class="p">(</span><span class="n">inp</span><span class="p">,</span> <span class="n">hess_graphs</span><span class="p">,</span> <span class="n">backend</span><span class="o">=</span><span class="s1">&#39;lambda&#39;</span><span class="p">,</span> <span class="n">cse</span><span class="o">=</span><span class="n">cse</span><span class="p">)</span>
-    <span class="k">return</span> <span class="n">ConstraintFunctions</span><span class="p">(</span><span class="n">cons_func</span><span class="o">=</span><span class="n">constraint_func</span><span class="p">,</span> <span class="n">cons_jac</span><span class="o">=</span><span class="n">jacobian_func</span><span class="p">,</span> <span class="n">cons_hess</span><span class="o">=</span><span class="n">hessian_func</span><span class="p">)</span>
-
 
 <span class="n">ConstraintTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ConstraintTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">,</span>
                                                  <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">,</span>
@@ -205,15 +178,15 @@
     <span class="n">internal_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">INTERNAL_CONSTRAINT_SCALING</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">internal_constraints</span><span class="p">]</span>
     <span class="n">multiphase_constraints</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">get_multiphase_constraints</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span>
     <span class="n">multiphase_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">MULTIPHASE_CONSTRAINT_SCALING</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">multiphase_constraints</span><span class="p">]</span>
-    <span class="n">cf_output</span> <span class="o">=</span> <span class="n">_build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">internal_constraints</span><span class="p">,</span>
-                                            <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">cf_output</span> <span class="o">=</span> <span class="n">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">internal_constraints</span><span class="p">,</span>
+                                           <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
     <span class="n">internal_cons_func</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_func</span>
     <span class="n">internal_cons_jac</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_jac</span>
     <span class="n">internal_cons_hess</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_hess</span>
 
-    <span class="n">result_build</span> <span class="o">=</span> <span class="n">_build_constraint_functions</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="p">[</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)],</span>
-                                               <span class="n">multiphase_constraints</span><span class="p">,</span>
-                                               <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">result_build</span> <span class="o">=</span> <span class="n">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="p">[</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)],</span>
+                                              <span class="n">multiphase_constraints</span><span class="p">,</span>
+                                              <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
     <span class="n">multiphase_cons_func</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_func</span>
     <span class="n">multiphase_cons_jac</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_jac</span>
     <span class="n">multiphase_cons_hess</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_hess</span>
