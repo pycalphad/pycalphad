@@ -2,8 +2,11 @@
 Tests for code generation from SymPy/SymEngine objects.
 """
 
+import pickle
+import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
-from pycalphad import Database, Model
+from pycalphad import Database, Model, variables as v
+from pycalphad.codegen.callables import build_phase_records
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
 from pycalphad.tests.datasets import ALNIPT_TDB
 
@@ -51,3 +54,21 @@ def test_build_functions_options():
     assert isinstance(cfs_llvm.cons_func, LLVMDouble)
     assert isinstance(cfs_llvm.cons_jac, LLVMDouble)
     assert isinstance(cfs_llvm.cons_hess, LLVMDouble)
+
+
+def test_phase_records_are_picklable():
+    dof = np.array([300, 1.0])
+
+    mod = Model(ALNIPT_DBF, ['AL'], 'LIQUID')
+    prxs = build_phase_records(ALNIPT_DBF, [v.Species('AL')], ['LIQUID'], {v.T: 300}, {'LIQUID': mod}, build_gradients=True, build_hessians=True)
+    prx_liquid = prxs['LIQUID']
+
+    out = np.array([0.0])
+    prx_liquid.obj(out, dof)
+
+    prx_loaded = pickle.loads(pickle.dumps(prx_liquid))
+    out_unpickled = np.array([0.0])
+    prx_loaded.obj(out_unpickled, dof)
+
+    assert np.isclose(out_unpickled[0], -1037.653911)
+    assert np.all(out == out_unpickled)
