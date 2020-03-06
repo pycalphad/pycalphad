@@ -19,12 +19,9 @@ When releasing a new version of pycalphad:
    ``git merge develop`` (merge commits unnecessary for now)
 10. ``git stash``
 
-   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version. pycalphad should be signed with GPG key **3E69 6F32 5089 C0B3 3332  7A2D 52E6 1AB5 47C3 FD9B**.
-   If you are using a hardware token on Linux, you may need to ``killall -1 gpg-agent`` for it to be detected.
+   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version.
 
-   ``git show 0.2`` to ensure the correct commit was tagged and signed
-
-   ``git tag -v 0.2`` to verify the GPG signature
+   ``git show 0.2`` to ensure the correct commit was tagged.
 
    ``git push origin master --tags``
 
@@ -40,7 +37,6 @@ Uploading to PyPI
    **Make sure that the script correctly detected the new version exactly and not a dirty / revised state of the repo.**
 
    Assuming a correctly configured .pypirc:
-   ``gpg --output dist/pycalphad-0.2.tar.gz.asc --armor --detach-sig dist/pycalphad-0.2.tar.gz``
 
    ``twine upload -r pypi -u rotis dist/*``
 

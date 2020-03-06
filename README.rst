@@ -56,8 +56,8 @@ See LICENSE.txt for details.
 
 Required Dependencies:
 
-* Python 2.7+ or 3.5+
-* matplotlib, numpy, scipy, sympy, xarray, pyparsing, tinydb, cyipopt
+* Python 3.6+
+* matplotlib, numpy, scipy, sympy, symengine, xarray, pyparsing, tinydb, cyipopt
 
 Installation
 ------------

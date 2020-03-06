@@ -1,6 +1,19 @@
 What's New
 ==========
 
+0.8.2 (2020-03-07)
+------------------
+
+This is a minor release with bug fixes and performance improvements. Python 2.7 support is dropped as well as Python 3.5 and below. Python 3.6-3.8 are explictly supported.
+
+* ENH: Reading large databases via delayed parameter processing ( :issue:`266` )
+* FIX: Support PhaseRecord pickling, switch SymEngine backend to LLVM ( :issue:`264` )
+* DOC: Regenerate examples ( :issue:`263` )
+* DOC: Update examples ( :issue:`262` )
+* ENH: variables.MassFraction object implementation ( :issue:`254` )
+* MAINT: Update and pin to SymPy 1.5 ( :issue:`251` )
+* MAINT: Support Python 3.8, drop Python 2, <3.6 ( :issue:`257` )
+
 0.8.1 (2019-11-28)
 ------------------
 
