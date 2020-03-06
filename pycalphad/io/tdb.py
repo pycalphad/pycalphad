@@ -355,7 +355,7 @@ def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
     targetdb.add_parameter(param_type, phase_name.upper(),
                            [[c.upper() for c in sorted(lx)]
                             for lx in constituent_array.asList()],
-                           param_order, param, ref, diffusing_species)
+                           param_order, param, ref, diffusing_species, force_insert=False)
 
 def _unimplemented(*args, **kwargs): #pylint: disable=W0613
     """
@@ -943,6 +943,7 @@ def read_tdb(dbf, fd):
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+    dbf.process_parameter_queue()
     del dbf.tdbtypedefs
 
 
