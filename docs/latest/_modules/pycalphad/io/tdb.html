@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.1.post1+7.g9f4aff4 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.1.post1+8.g1945c55 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+7.g9f4aff4
+                0.8.1.post1+8.g1945c55
               </div>
             
           
@@ -512,7 +512,7 @@
     <span class="n">targetdb</span><span class="o">.</span><span class="n">add_parameter</span><span class="p">(</span><span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
                            <span class="p">[[</span><span class="n">c</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">lx</span><span class="p">)]</span>
                             <span class="k">for</span> <span class="n">lx</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="o">.</span><span class="n">asList</span><span class="p">()],</span>
-                           <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">)</span>
+                           <span class="n">param_order</span><span class="p">,</span> <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">False</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_unimplemented</span><span class="p">(</span><span class="o">*</span><span class="n">args</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span> <span class="c1">#pylint: disable=W0613</span>
     <span class="sd">&quot;&quot;&quot;</span>
@@ -1100,6 +1100,7 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
             <span class="k">raise</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">process_parameter_queue</span><span class="p">()</span>
     <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span></div>
 
 

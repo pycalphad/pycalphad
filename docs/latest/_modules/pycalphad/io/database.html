@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.database &mdash; pycalphad 0.8.1.post1+7.g9f4aff4 documentation</title>
+  <title>pycalphad.io.database &mdash; pycalphad 0.8.1.post1+8.g1945c55 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.1.post1+7.g9f4aff4
+                0.8.1.post1+8.g1945c55
               </div>
             
           
@@ -251,6 +251,7 @@
             <span class="n">obj</span><span class="o">.</span><span class="n">refstates</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">obj</span><span class="o">.</span><span class="n">_structure_dict</span> <span class="o">=</span> <span class="p">{}</span> <span class="c1"># System-local phase names to global IDs</span>
             <span class="n">obj</span><span class="o">.</span><span class="n">_parameters</span> <span class="o">=</span> <span class="n">TinyDB</span><span class="p">(</span><span class="n">storage</span><span class="o">=</span><span class="n">MemoryStorage</span><span class="p">)</span>
+            <span class="n">obj</span><span class="o">.</span><span class="n">_parameter_queue</span> <span class="o">=</span> <span class="p">[]</span>
             <span class="n">obj</span><span class="o">.</span><span class="n">symbols</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="n">obj</span><span class="o">.</span><span class="n">references</span> <span class="o">=</span> <span class="p">{}</span>
             <span class="c1"># Note: No public typedefs here (from TDB files)</span>
@@ -521,7 +522,7 @@
         <span class="bp">self</span><span class="o">.</span><span class="n">_structure_dict</span><span class="p">[</span><span class="n">local_name</span><span class="p">]</span> <span class="o">=</span> <span class="n">global_name</span></div>
 <div class="viewcode-block" id="Database.add_parameter"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_parameter">[docs]</a>    <span class="k">def</span> <span class="nf">add_parameter</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="c1">#pylint: disable=R0913</span>
                       <span class="n">constituent_array</span><span class="p">,</span> <span class="n">param_order</span><span class="p">,</span>
-                      <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+                      <span class="n">param</span><span class="p">,</span> <span class="n">ref</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">force_insert</span><span class="o">=</span><span class="kc">True</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a parameter.</span>
 
@@ -541,6 +542,8 @@
 <span class="sd">            Reference for the parameter.</span>
 <span class="sd">        diffusing_species : str, optional</span>
 <span class="sd">            (If kinetic parameter) Diffusing species for this parameter.</span>
+<span class="sd">        force_insert : bool, optional</span>
+<span class="sd">            If True, inserts into the database immediately. False is a delayed insert (for performance).</span>
 
 <span class="sd">        Examples</span>
 <span class="sd">        --------</span>
@@ -556,8 +559,11 @@
             <span class="s1">&#39;diffusing_species&#39;</span><span class="p">:</span> <span class="n">Species</span><span class="p">(</span><span class="n">diffusing_species</span><span class="p">),</span>
             <span class="s1">&#39;reference&#39;</span><span class="p">:</span> <span class="n">ref</span>
         <span class="p">}</span>
-        <span class="n">param_id</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">new_parameter</span><span class="p">)</span>
-        <span class="k">return</span> <span class="n">param_id</span></div>
+        <span class="k">if</span> <span class="n">force_insert</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert</span><span class="p">(</span><span class="n">new_parameter</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_queue</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">new_parameter</span><span class="p">)</span></div>
+
 <div class="viewcode-block" id="Database.add_phase"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.add_phase">[docs]</a>    <span class="k">def</span> <span class="nf">add_phase</span><span class="p">(</span><span class="bp">self</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">sublattices</span><span class="p">):</span>
         <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">        Add a phase.</span>
@@ -621,7 +627,17 @@
 <span class="sd">        &gt;&gt;&gt;&gt; eid = db.add_parameter(...) #TODO</span>
 <span class="sd">        &gt;&gt;&gt;&gt; db.search(where(&#39;eid&#39;) == eid)</span>
 <span class="sd">        &quot;&quot;&quot;</span>
-        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div></div>
+        <span class="k">return</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">search</span><span class="p">(</span><span class="n">query</span><span class="p">)</span></div>
+
+<div class="viewcode-block" id="Database.process_parameter_queue"><a class="viewcode-back" href="../../../api/pycalphad.io.html#pycalphad.io.database.Database.process_parameter_queue">[docs]</a>    <span class="k">def</span> <span class="nf">process_parameter_queue</span><span class="p">(</span><span class="bp">self</span><span class="p">):</span>
+        <span class="sd">&quot;&quot;&quot;</span>
+<span class="sd">        Process the queue of parameters so they are added to the TinyDB in one transaction.</span>
+<span class="sd">        This avoids repeated (expensive) calls to insert().</span>
+<span class="sd">        &quot;&quot;&quot;</span>
+        <span class="n">result</span> <span class="o">=</span> <span class="bp">self</span><span class="o">.</span><span class="n">_parameters</span><span class="o">.</span><span class="n">insert_multiple</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">_parameter_queue</span><span class="p">)</span>
+        <span class="bp">self</span><span class="o">.</span><span class="n">_parameter_queue</span> <span class="o">=</span> <span class="p">[]</span>
+        <span class="k">return</span> <span class="n">result</span></div></div>
+
 </pre></div>
 
            </div>

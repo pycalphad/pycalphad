@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io package &mdash; pycalphad 0.8.1.post1+7.g9f4aff4 documentation</title>
+  <title>pycalphad.io package &mdash; pycalphad 0.8.1.post1+8.g1945c55 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.1.post1+7.g9f4aff4
+                0.8.1.post1+8.g1945c55
               </div>
             
           
@@ -257,7 +257,7 @@ associated with structured thermodynamic/kinetic data.</p>
 </div>
 <dl class="method">
 <dt id="pycalphad.io.database.Database.add_parameter">
-<code class="sig-name descname">add_parameter</code><span class="sig-paren">(</span><em class="sig-param">param_type</em>, <em class="sig-param">phase_name</em>, <em class="sig-param">constituent_array</em>, <em class="sig-param">param_order</em>, <em class="sig-param">param</em>, <em class="sig-param">ref=None</em>, <em class="sig-param">diffusing_species=None</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
+<code class="sig-name descname">add_parameter</code><span class="sig-paren">(</span><em class="sig-param">param_type</em>, <em class="sig-param">phase_name</em>, <em class="sig-param">constituent_array</em>, <em class="sig-param">param_order</em>, <em class="sig-param">param</em>, <em class="sig-param">ref=None</em>, <em class="sig-param">diffusing_species=None</em>, <em class="sig-param">force_insert=True</em><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.add_parameter"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.add_parameter" title="Permalink to this definition">¶</a></dt>
 <dd><p>Add a parameter.</p>
 <dl class="field-list simple">
 <dt class="field-odd">Parameters</dt>
@@ -269,6 +269,7 @@ associated with structured thermodynamic/kinetic data.</p>
 <li><p><strong>param</strong> (<em>object</em>) – Abstract representation of the parameter, e.g., in SymPy format.</p></li>
 <li><p><strong>ref</strong> (<em>str</em><em>, </em><em>optional</em>) – Reference for the parameter.</p></li>
 <li><p><strong>diffusing_species</strong> (<em>str</em><em>, </em><em>optional</em>) – (If kinetic parameter) Diffusing species for this parameter.</p></li>
+<li><p><strong>force_insert</strong> (<em>bool</em><em>, </em><em>optional</em>) – If True, inserts into the database immediately. False is a delayed insert (for performance).</p></li>
 </ul>
 </dd>
 </dl>
@@ -369,6 +370,13 @@ This function is a wrapper for calling <cite>from_file</cite> with StringIO.</p>
 <dd class="field-odd"><p><a class="reference internal" href="#pycalphad.io.database.Database" title="pycalphad.io.database.Database">Database</a></p>
 </dd>
 </dl>
+</dd></dl>
+
+<dl class="method">
+<dt id="pycalphad.io.database.Database.process_parameter_queue">
+<code class="sig-name descname">process_parameter_queue</code><span class="sig-paren">(</span><span class="sig-paren">)</span><a class="reference internal" href="../_modules/pycalphad/io/database.html#Database.process_parameter_queue"><span class="viewcode-link">[source]</span></a><a class="headerlink" href="#pycalphad.io.database.Database.process_parameter_queue" title="Permalink to this definition">¶</a></dt>
+<dd><p>Process the queue of parameters so they are added to the TinyDB in one transaction.
+This avoids repeated (expensive) calls to insert().</p>
 </dd></dl>
 
 <dl class="method">
