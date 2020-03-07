@@ -13,3 +13,4 @@ Checklist
   * [ ] `setup.py`
   * [ ] `.travis.yml`
   * [ ] `appveyor.yml`
+  * [ ] `conda_recipe/meta.yaml`
