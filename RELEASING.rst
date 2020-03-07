@@ -19,7 +19,7 @@ When releasing a new version of pycalphad:
    ``git merge develop`` (merge commits unnecessary for now)
 10. ``git stash``
 
-   ``git tag -s 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version.
+   ``git tag 0.2 master -m "Version 0.2"`` Replace ``0.2`` with the new version.
 
    ``git show 0.2`` to ensure the correct commit was tagged.
 
