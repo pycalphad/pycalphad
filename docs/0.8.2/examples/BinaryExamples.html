@@ -1,0 +1,454 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>Plotting Isobaric Binary Phase Diagrams with binplot &mdash; pycalphad 0.8.2 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../" src="../_static/documentation_options.js"></script>
+        <script src="../_static/jquery.js"></script>
+        <script src="../_static/underscore.js"></script>
+        <script src="../_static/doctools.js"></script>
+        <script src="../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../genindex.html" />
+    <link rel="search" title="Search" href="../search.html" />
+    <link rel="next" title="Heat Capacity of Cementite (\(Fe_3C\))" href="CementiteAnalysis.html" />
+    <link rel="prev" title="Examples" href="index.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.2
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul class="current">
+<li class="toctree-l1"><a class="reference internal" href="../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1 current"><a class="reference internal" href="index.html">Examples</a><ul class="current">
+<li class="toctree-l2 current"><a class="current reference internal" href="#">Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></a><ul>
+<li class="toctree-l3"><a class="reference internal" href="#binplot">binplot</a></li>
+<li class="toctree-l3"><a class="reference internal" href="#tdb-files">TDB files</a><ul>
+<li class="toctree-l4"><a class="reference internal" href="#al-zn-s-mey-1993">Al-Zn (S. Mey, 1993)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#al-mg-y-zhong-2005">Al-Mg (Y. Zhong, 2005)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#al-ni-dupin-2001">Al-Ni (Dupin, 2001)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#al-fe-m-seiersten-1991">Al-Fe (M. Seiersten, 1991)</a></li>
+<li class="toctree-l4"><a class="reference internal" href="#nb-re-liu-2013">Nb-Re (Liu, 2013)</a></li>
+</ul>
+</li>
+</ul>
+</li>
+<li class="toctree-l2"><a class="reference internal" href="#calculating-energy-surfaces-of-binary-systems">Calculating Energy Surfaces of Binary Systems</a></li>
+<li class="toctree-l2"><a class="reference internal" href="CementiteAnalysis.html">Heat Capacity of Cementite (<span class="math notranslate nohighlight">\(Fe_3C\)</span>)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="EquilibriumWithOrdering.html">Equilibrium Properties and Partial Ordering (Al-Fe and Al-Ni)</a></li>
+<li class="toctree-l2"><a class="reference internal" href="TernaryExamples.html">Plotting Ternary Phase Diagrams and Using Triangular Axes</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ReferenceStateExamples.html">Calculations with Reference States</a></li>
+<li class="toctree-l2"><a class="reference internal" href="PlotActivity.html">Calculate and Plot Activity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="ViscosityModel.html">Custom Models in pycalphad: Viscosity</a></li>
+<li class="toctree-l2"><a class="reference internal" href="UsingCalculationResults.html">Exploring <code class="docutils literal notranslate"><span class="pre">calculate</span></code> and <code class="docutils literal notranslate"><span class="pre">equilibrium</span></code> xarray Datasets</a></li>
+</ul>
+</li>
+<li class="toctree-l1"><a class="reference internal" href="../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="index.html">Examples</a> &raquo;</li>
+        
+      <li>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code></li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+            
+            <a href="../_sources/examples/BinaryExamples.rst.txt" rel="nofollow"> View page source</a>
+          
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <div class="section" id="plotting-isobaric-binary-phase-diagrams-with-binplot">
+<h1>Plotting Isobaric Binary Phase Diagrams with <code class="docutils literal notranslate"><span class="pre">binplot</span></code><a class="headerlink" href="#plotting-isobaric-binary-phase-diagrams-with-binplot" title="Permalink to this headline">¶</a></h1>
+<p>These are a few examples of how to use Thermo-Calc TDB files to
+calculate isobaric binary phase diagrams. As long as the TDB file is
+present, each cell in these examples is self contained and can
+completely reproduce the figure shown.</p>
+<div class="section" id="binplot">
+<h2>binplot<a class="headerlink" href="#binplot" title="Permalink to this headline">¶</a></h2>
+<p>The phase diagrams are computed with <code class="docutils literal notranslate"><span class="pre">binplot</span></code>, which has four
+required arguments: 1. The Database object 2. A list of active
+components (vacancies (<code class="docutils literal notranslate"><span class="pre">VA</span></code>), which are present in many databases,
+must be included explictly). 3. A list of phases to consider in the
+calculation 4. A dictionary conditions to consider, with keys of
+pycalphad StateVariables and values of scalars, 1D arrays, or
+<code class="docutils literal notranslate"><span class="pre">(start,</span> <span class="pre">stop,</span> <span class="pre">step)</span></code> ranges</p>
+<p>Note that, at the time of writing, invariant reactions (three-phase
+‘regions’ on binary diagrams) are not yet automatically detected so they
+are not drawn on the diagram.</p>
+<p>Also note that the <a class="reference external" href="https://ipython.readthedocs.io/en/stable/interactive/magics.html">magic
+variable</a>
+<code class="docutils literal notranslate"><span class="pre">%matplotlib</span> <span class="pre">inline</span></code> should only be used in Jupyter notebooks.</p>
+</div>
+<div class="section" id="tdb-files">
+<h2>TDB files<a class="headerlink" href="#tdb-files" title="Permalink to this headline">¶</a></h2>
+<p>The TDB files should be located in the current working directory of the
+notebook. If you are running using a Jupyter notebook, the default
+working directory is the directory that that notebook is saved in.</p>
+<p>To check the working directory, run:</p>
+<div class="highlight-python notranslate"><div class="highlight"><pre><span></span><span class="kn">import</span> <span class="nn">os</span>
+<span class="nb">print</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">path</span><span class="o">.</span><span class="n">abspath</span><span class="p">(</span><span class="n">os</span><span class="o">.</span><span class="n">curdir</span><span class="p">))</span>
+</pre></div>
+</div>
+<p>TDB files can be found in the literature. The <a class="reference external" href="https://avdwgroup.engin.brown.edu">Thermodynamic DataBase
+DataBase</a> (TDBDB) has indexed many
+available databases and links to the original papers and/or TDB files
+where possible.</p>
+<div class="section" id="al-zn-s-mey-1993">
+<h3>Al-Zn (S. Mey, 1993)<a class="headerlink" href="#al-zn-s-mey-1993" title="Permalink to this headline">¶</a></h3>
+<p>The miscibility gap in the fcc phase is included in the Al-Zn diagram,
+shown below.</p>
+<p>The format for specifying a range of a state variable is (<em>start</em>,
+<em>stop</em>, <em>step</em>).</p>
+<ol class="upperalpha simple" start="19">
+<li><p>an Mey, Zeitschrift für Metallkunde 84(7) (1993) 451-455.</p></li>
+</ol>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+
+<span class="c1"># Load database and choose the phases that will be considered</span>
+<span class="n">db_alzn</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alzn_mey.tdb&#39;</span><span class="p">)</span>
+<span class="n">my_phases_alzn</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">]</span>
+
+<span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+<span class="c1"># Compute the phase diagram and plot it on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_alzn</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;ZN&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alzn</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;ZN&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.02</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_4_0.png" src="../_images/BinaryExamples_4_0.png" />
+</div>
+<div class="section" id="al-mg-y-zhong-2005">
+<h3>Al-Mg (Y. Zhong, 2005)<a class="headerlink" href="#al-mg-y-zhong-2005" title="Permalink to this headline">¶</a></h3>
+<p>Y. Zhong, M. Yang, Z.-K. Liu, CALPHAD 29 (2005) 303-311
+doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2005.08.004">10.1016/j.calphad.2005.08.004</a></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+
+<span class="c1"># Load database</span>
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;Al-Mg_Zhong.tdb&#39;</span><span class="p">)</span>
+<span class="c1"># Define the components</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;MG&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="c1"># Get all possible phases programmatically</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">()</span>
+
+<span class="c1"># Plot the phase diagram, if no axes are supplied, a new figure with axes will be created automatically</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">1000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;MG&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">)})</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_6_0.png" src="../_images/BinaryExamples_6_0.png" />
+</div>
+<div class="section" id="al-ni-dupin-2001">
+<h3>Al-Ni (Dupin, 2001)<a class="headerlink" href="#al-ni-dupin-2001" title="Permalink to this headline">¶</a></h3>
+<p>Components and conditions can also be stored as variables and passed to
+binplot.</p>
+<p>N. Dupin, I. Ansara, B. Sundman, CALPHAD 25(2) (2001) 279-298
+doi:<a class="reference external" href="https://doi.org/10.1016/S0364-5916(01)00049-9">10.1016/S0364-5916(01)00049-9</a></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+
+<span class="c1"># Load database</span>
+<span class="n">dbf</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;NI_AL_DUPIN_2001.TDB&#39;</span><span class="p">)</span>
+<span class="c1"># Set the components to consider, including vacanies (VA) explictly.</span>
+<span class="n">comps</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;NI&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span>
+<span class="c1"># Get all the phases in the database programatically</span>
+<span class="n">phases</span> <span class="o">=</span> <span class="nb">list</span><span class="p">(</span><span class="n">dbf</span><span class="o">.</span><span class="n">phases</span><span class="o">.</span><span class="n">keys</span><span class="p">())</span>
+<span class="c1"># Create the dictionary of conditions</span>
+<span class="n">conds</span> <span class="o">=</span> <span class="p">{</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">:</span> <span class="mi">1</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span> <span class="mi">101325</span><span class="p">,</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span>  <span class="c1"># (start, stop, step)</span>
+    <span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mf">1e-5</span><span class="p">,</span> <span class="mi">1</span><span class="p">,</span> <span class="mf">0.02</span><span class="p">),</span>   <span class="c1"># (start, stop, step)</span>
+<span class="p">}</span>
+
+<span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+<span class="c1"># Plot by passing in all the variables</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_8_0.png" src="../_images/BinaryExamples_8_0.png" />
+</div>
+<div class="section" id="al-fe-m-seiersten-1991">
+<h3>Al-Fe (M. Seiersten, 1991)<a class="headerlink" href="#al-fe-m-seiersten-1991" title="Permalink to this headline">¶</a></h3>
+<p>Removing tielines</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span>
+<span class="kn">import</span> <span class="nn">pycalphad.variables</span> <span class="k">as</span> <span class="nn">v</span>
+
+<span class="c1"># Load database and choose the phases that will be considered</span>
+<span class="n">db_alfe</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;alfe_sei.TDB&#39;</span><span class="p">)</span>
+<span class="n">my_phases_alfe</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;LIQUID&#39;</span><span class="p">,</span> <span class="s1">&#39;B2_BCC&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_A1&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_A3&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE2&#39;</span><span class="p">,</span> <span class="s1">&#39;AL2FE&#39;</span><span class="p">,</span> <span class="s1">&#39;AL13FE4&#39;</span><span class="p">,</span> <span class="s1">&#39;AL5FE4&#39;</span><span class="p">]</span>
+
+<span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+<span class="c1"># Plot the phase diagram on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
+<span class="c1"># Tielines are turned off by including `&#39;tielines&#39;: False` in the plotting keword argument</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_alfe</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;AL&#39;</span><span class="p">,</span> <span class="s1">&#39;FE&#39;</span><span class="p">,</span> <span class="s1">&#39;VA&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_alfe</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;AL&#39;</span><span class="p">):(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">300</span><span class="p">,</span> <span class="mi">2000</span><span class="p">,</span> <span class="mi">10</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">,</span> <span class="s1">&#39;tielines&#39;</span><span class="p">:</span> <span class="kc">False</span><span class="p">})</span>
+
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_10_0.png" src="../_images/BinaryExamples_10_0.png" />
+</div>
+<div class="section" id="nb-re-liu-2013">
+<h3>Nb-Re (Liu, 2013)<a class="headerlink" href="#nb-re-liu-2013" title="Permalink to this headline">¶</a></h3>
+<p>X.L. Liu, C.Z. Hargather, Z.-K. Liu, CALPHAD 41 (2013) 119-127
+doi:<a class="reference external" href="https://doi.org/10.1016/j.calphad.2013.02.006">10.1016/j.calphad.2013.02.006</a></p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">binplot</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+
+<span class="c1"># Load database and choose the phases that will be plotted</span>
+<span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
+<span class="n">my_phases_nbre</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;SIGMARENB&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_RENB&#39;</span><span class="p">]</span>
+
+<span class="c1"># Create a matplotlib Figure object and get the active Axes</span>
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">axes</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+<span class="c1"># Plot the phase diagram on the existing axes using the `plot_kwargs={&#39;ax&#39;: axes}` keyword argument</span>
+<span class="n">binplot</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">]</span> <span class="p">,</span> <span class="n">my_phases_nbre</span><span class="p">,</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">X</span><span class="p">(</span><span class="s1">&#39;RE&#39;</span><span class="p">):</span> <span class="p">(</span><span class="mi">0</span><span class="p">,</span><span class="mi">1</span><span class="p">,</span><span class="mf">0.01</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">:</span> <span class="p">(</span><span class="mi">1000</span><span class="p">,</span> <span class="mi">3500</span><span class="p">,</span> <span class="mi">20</span><span class="p">),</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">:</span><span class="mi">101325</span><span class="p">},</span> <span class="n">plot_kwargs</span><span class="o">=</span><span class="p">{</span><span class="s1">&#39;ax&#39;</span><span class="p">:</span> <span class="n">axes</span><span class="p">})</span>
+
+<span class="n">axes</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">(</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">)</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_12_0.png" src="../_images/BinaryExamples_12_0.png" />
+</div>
+</div>
+</div>
+<div class="section" id="calculating-energy-surfaces-of-binary-systems">
+<h1>Calculating Energy Surfaces of Binary Systems<a class="headerlink" href="#calculating-energy-surfaces-of-binary-systems" title="Permalink to this headline">¶</a></h1>
+<p>It is very common in CALPHAD modeling to directly examine the Gibbs
+energy surface of all the constituent phases in a system.</p>
+<p>Below we show how the Gibbs energy of all phases may be calculated as a
+function of composition at a given temperature (2800 K).</p>
+<p>Note that the chi phase has additional, internal degrees of freedom
+which allow it to take on multiple states for a given overall
+composition. Only the low-energy states are relevant to calculating the
+equilibrium phase diagram.</p>
+<div class="highlight-ipython3 notranslate"><div class="highlight"><pre><span></span><span class="o">%</span><span class="k">matplotlib</span> inline
+<span class="kn">import</span> <span class="nn">matplotlib.pyplot</span> <span class="k">as</span> <span class="nn">plt</span>
+<span class="kn">from</span> <span class="nn">pycalphad</span> <span class="kn">import</span> <span class="n">Database</span><span class="p">,</span> <span class="n">calculate</span><span class="p">,</span> <span class="n">variables</span> <span class="k">as</span> <span class="n">v</span>
+<span class="kn">from</span> <span class="nn">pycalphad.plot.utils</span> <span class="kn">import</span> <span class="n">phase_legend</span>
+<span class="kn">import</span> <span class="nn">numpy</span> <span class="k">as</span> <span class="nn">np</span>
+
+<span class="c1"># Load database and choose the phases that will be plotted</span>
+<span class="n">db_nbre</span> <span class="o">=</span> <span class="n">Database</span><span class="p">(</span><span class="s1">&#39;nbre_liu.tdb&#39;</span><span class="p">)</span>
+<span class="n">my_phases_nbre</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;CHI_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;SIGMARENB&#39;</span><span class="p">,</span> <span class="s1">&#39;FCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;LIQUID_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;BCC_RENB&#39;</span><span class="p">,</span> <span class="s1">&#39;HCP_RENB&#39;</span><span class="p">]</span>
+
+<span class="c1"># Get the colors that map phase names to colors in the legend</span>
+<span class="n">legend_handles</span><span class="p">,</span> <span class="n">color_dict</span> <span class="o">=</span> <span class="n">phase_legend</span><span class="p">(</span><span class="n">my_phases_nbre</span><span class="p">)</span>
+
+<span class="n">fig</span> <span class="o">=</span> <span class="n">plt</span><span class="o">.</span><span class="n">figure</span><span class="p">(</span><span class="n">figsize</span><span class="o">=</span><span class="p">(</span><span class="mi">9</span><span class="p">,</span><span class="mi">6</span><span class="p">))</span>
+<span class="n">ax</span> <span class="o">=</span> <span class="n">fig</span><span class="o">.</span><span class="n">gca</span><span class="p">()</span>
+
+<span class="c1"># Loop over phases, calculate the Gibbs energy, and scatter plot GM vs. X(RE)</span>
+<span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">my_phases_nbre</span><span class="p">:</span>
+    <span class="n">result</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">db_nbre</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;NB&#39;</span><span class="p">,</span> <span class="s1">&#39;RE&#39;</span><span class="p">],</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">P</span><span class="o">=</span><span class="mi">101325</span><span class="p">,</span> <span class="n">T</span><span class="o">=</span><span class="mi">2800</span><span class="p">,</span> <span class="n">output</span><span class="o">=</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
+    <span class="n">ax</span><span class="o">.</span><span class="n">scatter</span><span class="p">(</span><span class="n">result</span><span class="o">.</span><span class="n">X</span><span class="o">.</span><span class="n">sel</span><span class="p">(</span><span class="n">component</span><span class="o">=</span><span class="s1">&#39;RE&#39;</span><span class="p">),</span> <span class="n">result</span><span class="o">.</span><span class="n">GM</span><span class="p">,</span> <span class="n">marker</span><span class="o">=</span><span class="s1">&#39;.&#39;</span><span class="p">,</span> <span class="n">s</span><span class="o">=</span><span class="mi">5</span><span class="p">,</span> <span class="n">color</span><span class="o">=</span><span class="n">color_dict</span><span class="p">[</span><span class="n">phase_name</span><span class="p">])</span>
+
+<span class="c1"># Format the plot</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlabel</span><span class="p">(</span><span class="s1">&#39;X(RE)&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_ylabel</span><span class="p">(</span><span class="s1">&#39;GM&#39;</span><span class="p">)</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">set_xlim</span><span class="p">((</span><span class="mi">0</span><span class="p">,</span> <span class="mi">1</span><span class="p">))</span>
+<span class="n">ax</span><span class="o">.</span><span class="n">legend</span><span class="p">(</span><span class="n">handles</span><span class="o">=</span><span class="n">legend_handles</span><span class="p">,</span> <span class="n">loc</span><span class="o">=</span><span class="s1">&#39;center left&#39;</span><span class="p">,</span> <span class="n">bbox_to_anchor</span><span class="o">=</span><span class="p">(</span><span class="mi">1</span><span class="p">,</span> <span class="mf">0.6</span><span class="p">))</span>
+<span class="n">plt</span><span class="o">.</span><span class="n">show</span><span class="p">()</span>
+</pre></div>
+</div>
+<img alt="../_images/BinaryExamples_14_0.png" src="../_images/BinaryExamples_14_0.png" />
+</div>
+
+
+           </div>
+           
+          </div>
+          <footer>
+  
+    <div class="rst-footer-buttons" role="navigation" aria-label="footer navigation">
+      
+        <a href="CementiteAnalysis.html" class="btn btn-neutral float-right" title="Heat Capacity of Cementite (\(Fe_3C\))" accesskey="n" rel="next">Next <span class="fa fa-arrow-circle-right"></span></a>
+      
+      
+        <a href="index.html" class="btn btn-neutral float-left" title="Examples" accesskey="p" rel="prev"><span class="fa fa-arrow-circle-left"></span> Previous</a>
+      
+    </div>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
