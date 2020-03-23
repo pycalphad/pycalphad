@@ -3,7 +3,8 @@ The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
 from io import StringIO
-from tinydb import TinyDB
+import warnings
+from tinydb import TinyDB, where
 from tinydb.storages import MemoryStorage
 from datetime import datetime
 from collections import namedtuple
@@ -403,6 +404,13 @@ class Database(object): #pylint: disable=R0902
             'reference': ref
         }
         if force_insert:
+            match_search = (where('phase_name') == new_parameter['phase_name']) & \
+                           (where('constituent_array') == new_parameter['constituent_array']) & \
+                           (where('parameter_type') == new_parameter['parameter_type']) & \
+                           (where('parameter_order') == new_parameter['parameter_order'])
+            existing_matching_params = self._parameters.search(match_search)
+            if len(existing_matching_params) > 0:
+                warnings.warn(f'Parameters matching {new_parameter} already in the database')
             self._parameters.insert(new_parameter)
         else:
             self._parameter_queue.append(new_parameter)
@@ -477,7 +485,17 @@ class Database(object): #pylint: disable=R0902
         Process the queue of parameters so they are added to the TinyDB in one transaction.
         This avoids repeated (expensive) calls to insert().
         """
-        result = self._parameters.insert_multiple(self._parameter_queue)
+        for param in self._parameter_queue:
+            match_search = (where('phase_name') == param['phase_name']) & \
+                           (where('constituent_array') == param['constituent_array']) & \
+                           (where('parameter_type') == param['parameter_type']) & \
+                           (where('parameter_order') == param['parameter_order'])
+            existing_matching_params = self._parameters.search(match_search)
+            if len(existing_matching_params) > 0:
+                warnings.warn(f'Parameters matching {param} already in the database')
+            self._parameters.insert(param)
+        result = len(param)
+        #result = self._parameters.insert_multiple(self._parameter_queue)
         self._parameter_queue = []
         return result
 
