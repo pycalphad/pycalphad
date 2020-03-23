@@ -458,7 +458,7 @@ class TCPrinter(StrPrinter):
         if (len(intervals) > 1) and not Intersection(*intervals) is EmptySet:
             raise ValueError('Overlapping intervals cannot be represented: {}'.format(intervals))
         if not isinstance(Union(*intervals), Interval):
-            raise ValueError('Piecewise intervals must be continuous')
+            raise ValueError(f'Piecewise intervals must be continuous. Expected `type(Union(*intervals))` to be an `Interval`. Got `{type(Union(*intervals))} for intervals {intervals}` in expression `{expr}`')
         if not all([arg.cond.free_symbols == {v.T} for arg in filtered_args]):
             raise ValueError('Only temperature-dependent piecewise conditions are supported')
         # Sort expressions based on intervals
@@ -748,6 +748,9 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             # Non-piecewise exprs need to be wrapped to print
             # Otherwise TC's TDB parser will complain
             expr = Piecewise((expr, And(v.T >= 1, v.T < 10000)))
+        elif len([i for i in expr.args if not ((i.cond == S.true) and (i.expr == S.Zero))]) == 0:
+            # This expresion only has (0, True) intervals
+            expr = Piecewise((S.Zero, And(v.T >= 1, v.T < 10000)))
         expr = TCPrinter().doprint(expr).upper()
         if ';' not in expr:
             expr += '; N'
@@ -850,6 +853,9 @@ def write_tdb(dbf, fd, groupby='subsystem', if_incompatible='warn'):
             # Non-piecewise parameters need to be wrapped to print correctly
             # Otherwise TC's TDB parser will fail
             paramx = Piecewise((paramx, And(v.T >= 1, v.T < 10000)))
+        elif len([i for i in paramx.args if not ((i.cond == S.true) and (i.expr == S.Zero))]) == 0:
+            # This expresion only has (0, True) intervals
+            paramx = Piecewise((S.Zero, And(v.T >= 1, v.T < 10000)))
         exprx = TCPrinter().doprint(paramx).upper()
         if ';' not in exprx:
             exprx += '; N'
