@@ -3,7 +3,6 @@ The database module provides support for reading and writing data types
 associated with structured thermodynamic/kinetic data.
 """
 from io import StringIO
-import warnings
 from tinydb import TinyDB, where
 from tinydb.storages import MemoryStorage
 from datetime import datetime
@@ -404,13 +403,6 @@ class Database(object): #pylint: disable=R0902
             'reference': ref
         }
         if force_insert:
-            match_search = (where('phase_name') == new_parameter['phase_name']) & \
-                           (where('constituent_array') == new_parameter['constituent_array']) & \
-                           (where('parameter_type') == new_parameter['parameter_type']) & \
-                           (where('parameter_order') == new_parameter['parameter_order'])
-            existing_matching_params = self._parameters.search(match_search)
-            if len(existing_matching_params) > 0:
-                warnings.warn(f'Parameters matching {new_parameter} already in the database')
             self._parameters.insert(new_parameter)
         else:
             self._parameter_queue.append(new_parameter)
@@ -485,17 +477,53 @@ class Database(object): #pylint: disable=R0902
         Process the queue of parameters so they are added to the TinyDB in one transaction.
         This avoids repeated (expensive) calls to insert().
         """
-        for param in self._parameter_queue:
-            match_search = (where('phase_name') == param['phase_name']) & \
-                           (where('constituent_array') == param['constituent_array']) & \
-                           (where('parameter_type') == param['parameter_type']) & \
-                           (where('parameter_order') == param['parameter_order'])
-            existing_matching_params = self._parameters.search(match_search)
-            if len(existing_matching_params) > 0:
-                warnings.warn(f'Parameters matching {param} already in the database')
-            self._parameters.insert(param)
-        result = len(param)
-        #result = self._parameters.insert_multiple(self._parameter_queue)
+        result = self._parameters.insert_multiple(self._parameter_queue)
         self._parameter_queue = []
         return result
 
+
+    def duplicate_parameters_check(self):
+        """Return a list of duplicate parameters.
+
+        A duplicate parameter has matching:
+        * phase name
+        * constituent array
+        * parameter type
+        * parameter order
+        * diffusing species
+
+        Note that constituent arrays should be sorted alphabetically, i.e.
+        `L(LIQUID,FE,VA,W;0) == L(LIQUID,FE,W,VA;0)`. The duplicate parameters
+        reported here are always the canonical (sorted) version, but sometimes
+        a database file uses non-canonical versions that could be sources of
+        duplicates. If you can't find a reported duplicate that has mixing in a
+        sublattice, try switching the order of the constituents.
+
+        """
+        dupes = set()
+        for param in self._parameters.all():
+            phase_name = param['phase_name']
+            param_type = param['parameter_type']
+            constituent_array = param['constituent_array']
+            param_order = param['parameter_order']
+            diffus_species = param['diffusing_species']
+
+            if param_type == 'G' or param_type == 'L':
+                # The same parameter could be 'L' or 'G', depending on the constituent array.
+                match_search = (where('phase_name') == phase_name) & \
+                               (where('constituent_array') == constituent_array) & \
+                               ((where('parameter_type') == 'G') | (where('parameter_type') == 'L')) & \
+                               (where('parameter_order') == param_order) &\
+                               (where('diffusing_species') == diffus_species)
+            else:
+                match_search = (where('phase_name') == phase_name) & \
+                               (where('constituent_array') == constituent_array) & \
+                               (where('parameter_type') == param_type) & \
+                               (where('parameter_order') == param_order) &\
+                               (where('diffusing_species') == diffus_species)
+            if len(self._parameters.search(match_search)) > 1:
+                constituents = ':'.join([','.join(sorted([i.name.upper() for i in subl])) for subl in constituent_array])
+                ds = f'&{diffus_species.name.upper()}' if diffus_species != Species(None) else ''
+                param_fmt = f"{param_type}({phase_name}{ds},{constituents};{param_order})"
+                dupes.add(param_fmt)
+        return sorted(dupes)
