@@ -3958,30 +3958,30 @@ CUO_TDB = """
 $CuO
 $ -----------------------------------------------------------------------------
 $ 2008.12.5
-$ 
+$
 $ TDB file created by K.Hashimoto and T.Abe,
 $
-$ Particle Simulation and Thermodynamics Group, National Institute for 
+$ Particle Simulation and Thermodynamics Group, National Institute for
 $ Materials Science. 1-2-1 Sengen, Tsukuba, Ibaraki 305-0047, Japan
-$ 
+$
 $ e-mail: abe.taichi@nims.go.jp
 $
 $ Copyright (C) NIMS 2008
 $ -----------------------------------------------------------------------------
 $
-$ The parameter set is taken from 
+$ The parameter set is taken from
 $ Thermodynamic Reassessment of the Cu-O Phase Diagram
 $     L.Schramm, G.Behr, W.Loser, and K.Wetzig, J. Phase Equilibria and Diffusion, 26 (2005), 605-612.
 $
 $ -----------------------------------------------------------------------------
-$ For pure elements, A.Dinsdale, Calphad 15 (1991) 317-425.              
+$ For pure elements, A.Dinsdale, Calphad 15 (1991) 317-425.
 $
  ELEMENT /-   ELECTRON_GAS              0.0         0.0         0.0!
  ELEMENT VA   VACUUM                    0.0         0.0         0.0!
- ELEMENT CU   FCC_A1                    63.546      5004.064    33.1498! 
+ ELEMENT CU   FCC_A1                    63.546      5004.064    33.1498!
  ELEMENT O    1/2_MOLE_O2(G)            15.999      4341.0      102.52!
-$--------1---------2---------3---------4---------5---------6---------7---------8 
-$ Associates in the liquid, gas-O2, and ionic species 
+$--------1---------2---------3---------4---------5---------6---------7---------8
+$ Associates in the liquid, gas-O2, and ionic species
   SPECIES O2        O2!
   SPECIES O-2       O1/-2!
   SPECIES CU+1      CU1/+1!
@@ -4058,12 +4058,12 @@ $ Line compounds ----------------------------------------------------------
    CONSTITUENT CU2O  : CU : O :  !
    PARAMETER G(CU2O,CU:O;0) 298.15 -193230+360.057*T-66.26*T*LN(T)
                                    -0.00796*T**2 +374000*T**(-1);    6000 N ! $ 05Sch
-$ 
+$
  PHASE CUO  %  2 1 1 !
    CONSTITUENT CUO  : CU : O :  !
    PARAMETER G(CUO,CU:O;0) 298.15 -178002.39+275.159239*T-44.965711*T*LN(T)
                                -0.010809208*T**2 +1369987.3*T**(-1); 6000 N ! $ 05Sch
-$ 
+$
 $
 $CuO-NIMS
 
