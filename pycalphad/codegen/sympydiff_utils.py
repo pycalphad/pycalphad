@@ -109,7 +109,7 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     # case some differentiation would produce a complex infinity. The
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
-    inp = sympify([f.xreplace({zoo: oo}) for f in variables + parameters])
+    inp = sympify(variables + parameters)
     graph = sympify(sympy_graph).xreplace({zoo: oo})
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
@@ -165,7 +165,7 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     # case some differentiation would produce a complex infinity. The
     # replacement is assumed to be cheap enough that it's safer to replace the
     # complex values and pay the minor time penalty.
-    inp = sympify([f.xreplace({zoo: oo}) for f in variables + parameters])
+    inp = sympify(variables + parameters)
     graph = sympify([f.xreplace({zoo: oo}) for f in constraints])
     constraint_func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
 
