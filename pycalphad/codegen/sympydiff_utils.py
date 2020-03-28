@@ -41,15 +41,12 @@ LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0
 
 
 def _get_lambidfy_options(user_options):
-    default_options = {
-        'backend': LAMBDIFY_DEFAULT_BACKEND,
-        'cse': LAMBDIFY_DEFAULT_CSE,
-    }
-    if user_options is not None:
-        default_options.update(user_options)
-    if default_options['backend'] == 'llvm' and 'opt_level' not in default_options:
-        default_options['opt_level'] = LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL
-    return default_options
+    user_options = user_options if user_options is not None else {}
+    user_options.setdefault('cse', LAMBDIFY_DEFAULT_CSE)
+    user_options.setdefault('backend', LAMBDIFY_DEFAULT_BACKEND)
+    if user_options['backend'] == 'llvm':
+        user_options.setdefault('opt_level', LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL)
+    return user_options
 
 
 @cacheit
