@@ -80,7 +80,9 @@ def test_complex_infinity_can_build_callables_successfully():
     mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
     mod_vars = [v.N, v.P, v.T] + mod.site_fractions
 
-    # Test builds functions only
+    # Test builds functions only, since functions takes about 1 second to run.
+    # Both lambda and llvm backends take a few seconds to build the derivatives
+    # and are probably unnecessary to test.
     assert zoo in list(mod.GM.atoms())
     build_functions(mod.GM, mod_vars, include_obj=True, include_grad=False, include_hess=False)
 
