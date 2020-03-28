@@ -76,7 +76,7 @@ def test_phase_records_are_picklable():
 
 
 def test_complex_infinity_can_build_callables_successfully():
-    """Test that functions that contain complex infinity can be built with codegen."""
+    """Test that functions that containing complex infinity can be built with codegen."""
     mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
     mod_vars = [v.N, v.P, v.T] + mod.site_fractions
 
