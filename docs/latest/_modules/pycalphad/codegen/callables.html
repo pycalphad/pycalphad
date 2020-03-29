@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8.2+1.g3d8acaf documentation</title>
+  <title>pycalphad.codegen.callables &mdash; pycalphad 0.8.2+2.g6bcedd8 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.2+1.g3d8acaf
+                0.8.2+2.g6bcedd8
               </div>
             
           
@@ -248,10 +248,10 @@
     <span class="n">state_variables</span> <span class="o">=</span> <span class="n">get_state_variables</span><span class="p">(</span><span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">)</span>
     <span class="n">state_variables</span> <span class="o">|=</span> <span class="n">additional_statevars</span>
     <span class="k">if</span> <span class="n">state_variables</span> <span class="o">!=</span> <span class="p">{</span><span class="n">v</span><span class="o">.</span><span class="n">T</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">P</span><span class="p">,</span> <span class="n">v</span><span class="o">.</span><span class="n">N</span><span class="p">}:</span>
-        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;State variables in `build_callables` are not {{N, P, T}}, &quot;</span>
-                      <span class="s2">&quot;but </span><span class="si">{}</span><span class="s2">. Be sure you know what you are doing. &quot;</span>
-                      <span class="s2">&quot;State variables can be added with the `additional_statevars` &quot;</span>
-                      <span class="s2">&quot;argument.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state_variables</span><span class="p">))</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="s2">&quot;State variables in `build_callables` are not {{N, P, T}}, but </span><span class="si">{}</span><span class="s2">. This can lead to incorrectly &quot;</span>
+                      <span class="s2">&quot;calculated values if the state variables used to call the generated functions do not match the &quot;</span>
+                      <span class="s2">&quot;state variables used to create them. State variables can be added with the &quot;</span>
+                      <span class="s2">&quot;`additional_statevars` argument.&quot;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">state_variables</span><span class="p">))</span>
     <span class="n">state_variables</span> <span class="o">=</span> <span class="nb">sorted</span><span class="p">(</span><span class="n">state_variables</span><span class="p">,</span> <span class="n">key</span><span class="o">=</span><span class="nb">str</span><span class="p">)</span>
 
     <span class="k">for</span> <span class="n">name</span> <span class="ow">in</span> <span class="n">phases</span><span class="p">:</span>
