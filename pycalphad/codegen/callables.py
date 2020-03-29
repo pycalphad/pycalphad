@@ -91,10 +91,10 @@ def build_callables(dbf, comps, phases, models, parameter_symbols=None,
     state_variables = get_state_variables(models=models)
     state_variables |= additional_statevars
     if state_variables != {v.T, v.P, v.N}:
-        warnings.warn("State variables in `build_callables` are not {{N, P, T}}, "
-                      "but {}. Be sure you know what you are doing. "
-                      "State variables can be added with the `additional_statevars` "
-                      "argument.".format(state_variables))
+        warnings.warn("State variables in `build_callables` are not {{N, P, T}}, but {}. This can lead to incorrectly "
+                      "calculated values if the state variables used to call the generated functions do not match the "
+                      "state variables used to create them. State variables can be added with the "
+                      "`additional_statevars` argument.".format(state_variables))
     state_variables = sorted(state_variables, key=str)
 
     for name in phases:

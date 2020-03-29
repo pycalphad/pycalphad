@@ -5,14 +5,15 @@ Tests for code generation from SymPy/SymEngine objects.
 import pickle
 import numpy as np
 from symengine.lib.symengine_wrapper import LambdaDouble, LLVMDouble
+from symengine import zoo
 from pycalphad import Database, Model, variables as v
 from pycalphad.codegen.callables import build_phase_records
 from pycalphad.codegen.sympydiff_utils import build_functions, build_constraint_functions
-from pycalphad.tests.datasets import ALNIPT_TDB
+from pycalphad.tests.datasets import ALNIPT_TDB, C_FE_BROSHE_TDB
 
 
 ALNIPT_DBF = Database(ALNIPT_TDB)
-
+C_FE_DBF = Database(C_FE_BROSHE_TDB)
 
 def test_build_functions_options():
     """The correct SymEngine backend can be chosen for build_functions"""
@@ -72,3 +73,18 @@ def test_phase_records_are_picklable():
 
     assert np.isclose(out_unpickled[0], -1037.653911)
     assert np.all(out == out_unpickled)
+
+
+def test_complex_infinity_can_build_callables_successfully():
+    """Test that functions that containing complex infinity can be built with codegen."""
+    mod = Model(C_FE_DBF, ['C'], 'DIAMOND_A4')
+    mod_vars = [v.N, v.P, v.T] + mod.site_fractions
+
+    # Test builds functions only, since functions takes about 1 second to run.
+    # Both lambda and llvm backends take a few seconds to build the derivatives
+    # and are probably unnecessary to test.
+    assert zoo in list(mod.GM.atoms())
+    build_functions(mod.GM, mod_vars, include_obj=True, include_grad=False, include_hess=False)
+
+    int_cons = mod.get_internal_constraints()
+    build_constraint_functions(mod_vars, int_cons)

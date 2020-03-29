@@ -29,7 +29,7 @@ functions or PhaseRecords. The following issues track this behavior:
 """
 from pycalphad.core.cache import cacheit
 from pycalphad.core.utils import wrap_symbol_symengine
-from symengine import sympify, lambdify
+from symengine import sympify, lambdify, zoo, oo
 from collections import namedtuple
 
 BuildFunctionsResult = namedtuple('BuildFunctionsResult', ['func', 'grad', 'hess'])
@@ -41,15 +41,12 @@ LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL = 0
 
 
 def _get_lambidfy_options(user_options):
-    default_options = {
-        'backend': LAMBDIFY_DEFAULT_BACKEND,
-        'cse': LAMBDIFY_DEFAULT_CSE,
-    }
-    if user_options is not None:
-        default_options.update(user_options)
-    if default_options['backend'] == 'llvm' and 'opt_level' not in default_options:
-        default_options['opt_level'] = LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL
-    return default_options
+    user_options = user_options if user_options is not None else {}
+    user_options.setdefault('cse', LAMBDIFY_DEFAULT_CSE)
+    user_options.setdefault('backend', LAMBDIFY_DEFAULT_BACKEND)
+    if user_options['backend'] == 'llvm':
+        user_options.setdefault('opt_level', LAMBDIFY_DEFAULT_LLVM_OPT_LEVEL)
+    return user_options
 
 
 @cacheit
@@ -107,16 +104,20 @@ def build_functions(sympy_graph, variables, parameters=None, wrt=None,
     variables = tuple(variables)
     parameters = tuple(parameters)
     func, grad, hess = None, None, None
+    # Replace complex infinity (zoo) with real infinity because SymEngine
+    # cannot lambdify complex infinity. We also replace in the derivatives in
+    # case some differentiation would produce a complex infinity. The
+    # replacement is assumed to be cheap enough that it's safer to replace the
+    # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify(sympy_graph)
-    # TODO: did not replace zoo with oo
+    graph = sympify(sympy_graph).xreplace({zoo: oo})
     func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
     if include_grad or include_hess:
-        grad_graphs = list(graph.diff(w) for w in wrt)
+        grad_graphs = list(graph.diff(w).xreplace({zoo: oo}) for w in wrt)
         if include_grad:
             grad = lambdify(inp, grad_graphs, **_get_lambidfy_options(grad_options))
         if include_hess:
-            hess_graphs = list(list(g.diff(w) for w in wrt) for g in grad_graphs)
+            hess_graphs = list(list(g.diff(w).xreplace({zoo: oo}) for w in wrt) for g in grad_graphs)
             hess = lambdify(inp, hess_graphs, **_get_lambidfy_options(hess_options))
     return BuildFunctionsResult(func=func, grad=grad, hess=hess)
 
@@ -159,13 +160,18 @@ def build_constraint_functions(variables, constraints, parameters=None, func_opt
     wrt = variables
     parameters = tuple(parameters)
     constraint_func, jacobian_func, hessian_func = None, None, None
+    # Replace complex infinity (zoo) with real infinity because SymEngine
+    # cannot lambdify complex infinity. We also replace in the derivatives in
+    # case some differentiation would produce a complex infinity. The
+    # replacement is assumed to be cheap enough that it's safer to replace the
+    # complex values and pay the minor time penalty.
     inp = sympify(variables + parameters)
-    graph = sympify(constraints)
+    graph = sympify([f.xreplace({zoo: oo}) for f in constraints])
     constraint_func = lambdify(inp, [graph], **_get_lambidfy_options(func_options))
 
-    grad_graphs = list(list(c.diff(w) for w in wrt) for c in graph)
+    grad_graphs = list(list(c.diff(w).xreplace({zoo: oo}) for w in wrt) for c in graph)
     jacobian_func = lambdify(inp, grad_graphs, **_get_lambidfy_options(jac_options))
 
-    hess_graphs = list(list(list(g.diff(w) for w in wrt) for g in c) for c in grad_graphs)
+    hess_graphs = list(list(list(g.diff(w).xreplace({zoo: oo}) for w in wrt) for g in c) for c in grad_graphs)
     hessian_func = lambdify(inp, hess_graphs, **_get_lambidfy_options(hess_options))
     return ConstraintFunctions(cons_func=constraint_func, cons_jac=jacobian_func, cons_hess=hessian_func)
