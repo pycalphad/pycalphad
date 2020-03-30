@@ -396,10 +396,8 @@ _TDB_PROCESSOR = {
     'ADD_REFERENCES': _unimplemented,
     'LIST_OF_REFERENCES': _unimplemented,
     'TEMPERATURE_LIMITS': _unimplemented,
-    'PHASE': _process_phase,
-    'CONSTITUENT': \
-        lambda db, name, c: db.add_phase_constituents(
-            name.split(':')[0].upper(), c),
+    'PHASE': lambda db, name, typedefs, subls: db._phase_queue.append((db, name, typedefs, subls)),
+    'CONSTITUENT': lambda dbf, name, c: dbf._phase_constituents_queue.append((name, c)),
     'PARAMETER': _process_parameter
 }
 
@@ -929,6 +927,12 @@ def read_tdb(dbf, fd):
 
     # Temporary storage while we process type definitions
     dbf.tdbtypedefs = {}
+    # Temporary storage for phases and constituents to be added. Phases must be
+    # added last (in case typedefs are defined late), followed by the phase
+    # constituents. Both are lists of tuples, which are arguments to
+    # _process_phase and dbf.add_phase_constituents
+    dbf._phase_queue = []
+    dbf._phase_constituents_queue = []
 
     grammar = _tdb_grammar()
 
@@ -943,8 +947,18 @@ def read_tdb(dbf, fd):
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+
+    # Process phases
+    for ph_args in dbf._phase_queue:
+        _process_phase(*ph_args)
+    # Process constituents
+    for name, constituents in dbf._phase_constituents_queue:
+        dbf.add_phase_constituents(name.split(':')[0].upper(), constituents)
+    # Process parameters
     dbf.process_parameter_queue()
     del dbf.tdbtypedefs
+    del dbf._phase_queue
+    del dbf._phase_constituents_queue
 
 
 Database.register_format("tdb", read=read_tdb, write=write_tdb)
