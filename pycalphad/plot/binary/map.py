@@ -107,8 +107,8 @@ def map_binary(dbf, comps, phases, conds, eq_kwargs=None, calc_kwargs=None,
         Xmax_visited = 0.0
         hull_time = time.time()
         grid = calculate(dbf, comps, phases, fake_points=True, output='GM',
-                                     T=T, P=grid_conds[v.P], N=1,
-                                     model=models, parameters=parameters, to_xarray=False, **calc_kwargs)
+                         T=T, P=grid_conds[v.P], N=1, model=models,
+                         parameters=parameters, to_xarray=False, **calc_kwargs)
         hull = starting_point(eq_conds, statevars, prxs, grid)
         convex_hull_time += time.time() - hull_time
         convex_hulls_calculated += 1
