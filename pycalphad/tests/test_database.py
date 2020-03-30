@@ -558,3 +558,46 @@ def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
 def test_database_sympy_namespace_clash():
     """Symbols that clash with sympy special objects are replaced (gh-233)"""
     Database.from_string("""FUNCTION TEST 0.01 T*LN(CC)+FF; 6000 N TW !""", fmt='tdb')
+
+
+def test_tdb_order_disorder_model_hints_applied_correctly():
+    """Phases using the order/disorder model should have model_hints added to
+    both phases, regardless of the order by which the phases were specified.
+    Model hints should also be applied correctly if only one of the phases has
+    the order/disorder type defintion applied, since this is allowed by
+    commercial software.
+    """
+
+    # This test creates a starting template and then tries to add the phase and
+    # type definitions in any order. In this case, the BCC_A2 phase does not
+    # have the type definition while the BCC_B2 phase does.
+    TEMPLATE_TDB = """
+     ELEMENT VA   VACUUM                     .0000E+00   .0000E+00   .0000E+00!
+     ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+     ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
+     TYPE_DEFINITION % SEQ *!
+    """
+
+    PHASE_A2 = """
+     PHASE BCC_A2  %  2 1   3 !
+     CONST BCC_A2  :AL,NI : VA :  !
+     """
+
+    PHASE_B2 = """
+     PHASE BCC_B2  %C  3 .5 .5    3 !
+     CONST BCC_B2  :AL,NI : AL,NI : VA: !
+    """
+
+    TYPE_DEF_ORD = """
+     TYPE_DEFINITION C GES A_P_D BCC_B2 DIS_PART BCC_A2 !
+    """
+    import itertools
+    for (k1, v1), (k2, v2), (k3, v3) in itertools.permutations([('PHASE_A2 ', PHASE_A2), ('PHASE_B2 ', PHASE_B2), ('TYPE_DEF ', TYPE_DEF_ORD)] ):
+        print(k1 + k2 + k3)
+        dbf = Database(TEMPLATE_TDB + v1 + v2 + v3)
+        assert 'disordered_phase' in dbf.phases['BCC_A2'].model_hints
+        assert 'ordered_phase' in dbf.phases['BCC_A2'].model_hints
+        assert 'disordered_phase' in dbf.phases['BCC_B2'].model_hints
+        assert 'ordered_phase' in dbf.phases['BCC_B2'].model_hints
+        roundtrip_dbf = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
+        assert roundtrip_dbf == dbf
