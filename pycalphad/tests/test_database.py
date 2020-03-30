@@ -592,7 +592,7 @@ def test_tdb_order_disorder_model_hints_applied_correctly():
      TYPE_DEFINITION C GES A_P_D BCC_B2 DIS_PART BCC_A2 !
     """
     import itertools
-    for (k1, v1), (k2, v2), (k3, v3) in itertools.permutations([('PHASE_A2 ', PHASE_A2), ('PHASE_B2 ', PHASE_B2), ('TYPE_DEF ', TYPE_DEF_ORD)] ):
+    for (k1, v1), (k2, v2), (k3, v3) in itertools.permutations([('PHASE_A2 ', PHASE_A2), ('PHASE_B2 ', PHASE_B2), ('TYPE_DEF ', TYPE_DEF_ORD)]):
         print(k1 + k2 + k3)
         dbf = Database(TEMPLATE_TDB + v1 + v2 + v3)
         assert 'disordered_phase' in dbf.phases['BCC_A2'].model_hints
