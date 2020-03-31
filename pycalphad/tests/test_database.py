@@ -461,6 +461,8 @@ def test_comma_templims():
      TYPE-DEF % SEQ * !
      TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
      TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
+    $ The following type definitions are commented out because the ordered phases
+    $ are not required by this test and are not defined in this database.
     $ TYPE-DEF O GES AMEND_PHASE_DESCRIPTION B2_BCC DIS_PART A2_BCC !
     $ TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
      FUNCTION ZERO      298.15  0;                                         6000 N !
