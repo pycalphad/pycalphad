@@ -292,7 +292,8 @@ def _process_typedef(targetdb, typechar, line):
     if len(matching_phases) == 0:
         warnings.warn(f"The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.")
     if keyword == 'MAGNETIC':
-        # Magnetic model (IHJ model assumed by default)
+        # Magnetic model, both IHJ and Xiong models use these model hints when
+        # constructing Model instances, despite being prefixed `ihj_magnetic_`
         model_hints = {
             'ihj_magnetic_afm_factor': float(tokens[4]),
             'ihj_magnetic_structure_factor': float(tokens[5])
