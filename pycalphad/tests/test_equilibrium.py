@@ -209,8 +209,8 @@ def test_eq_ternary_inside_mass():
     eq = equilibrium(ALCOCRNI_DBF, ['AL', 'CO', 'CR', 'VA'], ['L12_FCC', 'BCC_B2', 'LIQUID'],
                      {v.T: 1523, v.X('AL'): 0.44455555555555554,
                       v.X('CO'): 0.22277777777777777, v.P: 101325}, verbose=True)
-    assert_allclose(eq.GM.values, -105871.20, atol=0.1)
-    assert_allclose(eq.MU.values.flatten(), [-104655.532294, -142591.644379,  -82905.085459], atol=0.1)
+    assert_allclose(eq.GM.values, -105871.52, atol=0.1)
+    assert_allclose(eq.MU.values.flatten(), [-104653.814416, -142595.497201,  -82905.765934], atol=0.1)
 
 
 def test_eq_ternary_edge_misc_gap():
