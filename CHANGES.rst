@@ -1,6 +1,14 @@
 What's New
 ==========
 
+0.8.3 (2020-03-31)
+------------------
+
+This is a minor bug fix release.
+
+* FIX: Improved ``model_hints`` construction when reading databases with out of order type definitions, fixes detecting disordered phases with ``filter_phases`` ( :issue:`269` )
+* FIX: Complex infinity in ``Model`` expressions are converted to real infinity so SymEngine can ``lambdify`` the expressions ( :issue:`267` )
+
 0.8.2 (2020-03-07)
 ------------------
 
