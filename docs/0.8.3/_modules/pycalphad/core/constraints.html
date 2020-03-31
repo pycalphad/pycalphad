@@ -1,0 +1,243 @@
+
+
+<!DOCTYPE html>
+<!--[if IE 8]><html class="no-js lt-ie9" lang="en" > <![endif]-->
+<!--[if gt IE 8]><!--> <html class="no-js" lang="en" > <!--<![endif]-->
+<head>
+  <meta charset="utf-8">
+  
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  
+  <title>pycalphad.core.constraints &mdash; pycalphad 0.8.3 documentation</title>
+  
+
+  
+  
+  
+  
+
+  
+  <script type="text/javascript" src="../../../_static/js/modernizr.min.js"></script>
+  
+    
+      <script type="text/javascript" id="documentation_options" data-url_root="../../../" src="../../../_static/documentation_options.js"></script>
+        <script src="../../../_static/jquery.js"></script>
+        <script src="../../../_static/underscore.js"></script>
+        <script src="../../../_static/doctools.js"></script>
+        <script src="../../../_static/language_data.js"></script>
+        <script async="async" src="https://cdnjs.cloudflare.com/ajax/libs/mathjax/2.7.5/latest.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    
+    <script type="text/javascript" src="../../../_static/js/theme.js"></script>
+
+    
+
+  
+  <link rel="stylesheet" href="../../../_static/css/theme.css" type="text/css" />
+  <link rel="stylesheet" href="../../../_static/pygments.css" type="text/css" />
+    <link rel="index" title="Index" href="../../../genindex.html" />
+    <link rel="search" title="Search" href="../../../search.html" /> 
+</head>
+
+<body class="wy-body-for-nav">
+
+   
+  <div class="wy-grid-for-nav">
+    
+    <nav data-toggle="wy-nav-shift" class="wy-nav-side">
+      <div class="wy-side-scroll">
+        <div class="wy-side-nav-search" >
+          
+
+          
+            <a href="../../../index.html" class="icon icon-home"> pycalphad
+          
+
+          
+            
+            <img src="../../../_static/pycalphad-logo-withtext.png" class="logo" alt="Logo"/>
+          
+          </a>
+
+          
+            
+            
+              <div class="version">
+                0.8.3
+              </div>
+            
+          
+
+          
+<div role="search">
+  <form id="rtd-search-form" class="wy-form" action="../../../search.html" method="get">
+    <input type="text" name="q" placeholder="Search docs" />
+    <input type="hidden" name="check_keywords" value="yes" />
+    <input type="hidden" name="area" value="default" />
+  </form>
+</div>
+
+          
+        </div>
+
+        <div class="wy-menu wy-menu-vertical" data-spy="affix" role="navigation" aria-label="main navigation">
+          
+            
+            
+              
+            
+            
+              <ul>
+<li class="toctree-l1"><a class="reference internal" href="../../../INSTALLING.html">Installation Instructions</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../examples/index.html">Examples</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../faq.html">FAQ</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../api/modules.html">API Documentation</a></li>
+<li class="toctree-l1"><a class="reference internal" href="../../../CHANGES.html">What’s New</a></li>
+</ul>
+
+            
+          
+        </div>
+      </div>
+    </nav>
+
+    <section data-toggle="wy-nav-shift" class="wy-nav-content-wrap">
+
+      
+      <nav class="wy-nav-top" aria-label="top navigation">
+        
+          <i data-toggle="wy-nav-top" class="fa fa-bars"></i>
+          <a href="../../../index.html">pycalphad</a>
+        
+      </nav>
+
+
+      <div class="wy-nav-content">
+        
+        <div class="rst-content">
+        
+          
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+<div role="navigation" aria-label="breadcrumbs navigation">
+
+  <ul class="wy-breadcrumbs">
+    
+      <li><a href="../../../index.html">Docs</a> &raquo;</li>
+        
+          <li><a href="../../index.html">Module code</a> &raquo;</li>
+        
+      <li>pycalphad.core.constraints</li>
+    
+    
+      <li class="wy-breadcrumbs-aside">
+        
+      </li>
+    
+  </ul>
+
+  
+  <hr/>
+</div>
+          <div role="main" class="document" itemscope="itemscope" itemtype="http://schema.org/Article">
+           <div itemprop="articleBody">
+            
+  <h1>Source code for pycalphad.core.constraints</h1><div class="highlight"><pre>
+<span></span><span class="kn">from</span> <span class="nn">symengine</span> <span class="kn">import</span> <span class="n">Symbol</span>
+<span class="kn">from</span> <span class="nn">pycalphad.core.constants</span> <span class="kn">import</span> <span class="n">INTERNAL_CONSTRAINT_SCALING</span><span class="p">,</span> <span class="n">MULTIPHASE_CONSTRAINT_SCALING</span>
+<span class="kn">from</span> <span class="nn">pycalphad.codegen.sympydiff_utils</span> <span class="kn">import</span> <span class="n">build_constraint_functions</span>
+<span class="kn">from</span> <span class="nn">collections</span> <span class="kn">import</span> <span class="n">namedtuple</span>
+
+<span class="n">ConstraintTuple</span> <span class="o">=</span> <span class="n">namedtuple</span><span class="p">(</span><span class="s1">&#39;ConstraintTuple&#39;</span><span class="p">,</span> <span class="p">[</span><span class="s1">&#39;internal_cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;internal_cons_hess&#39;</span><span class="p">,</span>
+                                                 <span class="s1">&#39;multiphase_cons_func&#39;</span><span class="p">,</span> <span class="s1">&#39;multiphase_cons_jac&#39;</span><span class="p">,</span> <span class="s1">&#39;multiphase_cons_hess&#39;</span><span class="p">,</span>
+                                                 <span class="s1">&#39;num_internal_cons&#39;</span><span class="p">,</span> <span class="s1">&#39;num_multiphase_cons&#39;</span><span class="p">])</span>
+
+
+<div class="viewcode-block" id="is_multiphase_constraint"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.constraints.is_multiphase_constraint">[docs]</a><span class="k">def</span> <span class="nf">is_multiphase_constraint</span><span class="p">(</span><span class="n">cond</span><span class="p">):</span>
+    <span class="n">cond</span> <span class="o">=</span> <span class="nb">str</span><span class="p">(</span><span class="n">cond</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">cond</span> <span class="o">==</span> <span class="s1">&#39;N&#39;</span> <span class="ow">or</span> <span class="n">cond</span><span class="o">.</span><span class="n">startswith</span><span class="p">(</span><span class="s1">&#39;X_&#39;</span><span class="p">):</span>
+        <span class="k">return</span> <span class="kc">True</span>
+    <span class="k">else</span><span class="p">:</span>
+        <span class="k">return</span> <span class="kc">False</span></div>
+
+
+<div class="viewcode-block" id="build_constraints"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.constraints.build_constraints">[docs]</a><span class="k">def</span> <span class="nf">build_constraints</span><span class="p">(</span><span class="n">mod</span><span class="p">,</span> <span class="n">variables</span><span class="p">,</span> <span class="n">conds</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">):</span>
+    <span class="n">internal_constraints</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">get_internal_constraints</span><span class="p">()</span>
+    <span class="n">internal_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">INTERNAL_CONSTRAINT_SCALING</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">internal_constraints</span><span class="p">]</span>
+    <span class="n">multiphase_constraints</span> <span class="o">=</span> <span class="n">mod</span><span class="o">.</span><span class="n">get_multiphase_constraints</span><span class="p">(</span><span class="n">conds</span><span class="p">)</span>
+    <span class="n">multiphase_constraints</span> <span class="o">=</span> <span class="p">[</span><span class="n">MULTIPHASE_CONSTRAINT_SCALING</span><span class="o">*</span><span class="n">x</span> <span class="k">for</span> <span class="n">x</span> <span class="ow">in</span> <span class="n">multiphase_constraints</span><span class="p">]</span>
+    <span class="n">cf_output</span> <span class="o">=</span> <span class="n">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span><span class="p">,</span> <span class="n">internal_constraints</span><span class="p">,</span>
+                                           <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">internal_cons_func</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_func</span>
+    <span class="n">internal_cons_jac</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_jac</span>
+    <span class="n">internal_cons_hess</span> <span class="o">=</span> <span class="n">cf_output</span><span class="o">.</span><span class="n">cons_hess</span>
+
+    <span class="n">result_build</span> <span class="o">=</span> <span class="n">build_constraint_functions</span><span class="p">(</span><span class="n">variables</span> <span class="o">+</span> <span class="p">[</span><span class="n">Symbol</span><span class="p">(</span><span class="s1">&#39;NP&#39;</span><span class="p">)],</span>
+                                              <span class="n">multiphase_constraints</span><span class="p">,</span>
+                                              <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">)</span>
+    <span class="n">multiphase_cons_func</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_func</span>
+    <span class="n">multiphase_cons_jac</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_jac</span>
+    <span class="n">multiphase_cons_hess</span> <span class="o">=</span> <span class="n">result_build</span><span class="o">.</span><span class="n">cons_hess</span>
+    <span class="k">return</span> <span class="n">ConstraintTuple</span><span class="p">(</span><span class="n">internal_cons_func</span><span class="o">=</span><span class="n">internal_cons_func</span><span class="p">,</span> <span class="n">internal_cons_jac</span><span class="o">=</span><span class="n">internal_cons_jac</span><span class="p">,</span>
+                           <span class="n">internal_cons_hess</span><span class="o">=</span><span class="n">internal_cons_hess</span><span class="p">,</span>
+                           <span class="n">multiphase_cons_func</span><span class="o">=</span><span class="n">multiphase_cons_func</span><span class="p">,</span> <span class="n">multiphase_cons_jac</span><span class="o">=</span><span class="n">multiphase_cons_jac</span><span class="p">,</span>
+                           <span class="n">multiphase_cons_hess</span><span class="o">=</span><span class="n">multiphase_cons_hess</span><span class="p">,</span>
+                           <span class="n">num_internal_cons</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">internal_constraints</span><span class="p">),</span> <span class="n">num_multiphase_cons</span><span class="o">=</span><span class="nb">len</span><span class="p">(</span><span class="n">multiphase_constraints</span><span class="p">))</span></div>
+
+
+<div class="viewcode-block" id="get_multiphase_constraint_rhs"><a class="viewcode-back" href="../../../api/pycalphad.core.html#pycalphad.core.constraints.get_multiphase_constraint_rhs">[docs]</a><span class="k">def</span> <span class="nf">get_multiphase_constraint_rhs</span><span class="p">(</span><span class="n">conds</span><span class="p">):</span>
+    <span class="k">return</span> <span class="p">[</span><span class="n">MULTIPHASE_CONSTRAINT_SCALING</span><span class="o">*</span><span class="nb">float</span><span class="p">(</span><span class="n">value</span><span class="p">)</span> <span class="k">for</span> <span class="n">cond</span><span class="p">,</span> <span class="n">value</span> <span class="ow">in</span> <span class="n">conds</span><span class="o">.</span><span class="n">items</span><span class="p">()</span> <span class="k">if</span> <span class="n">is_multiphase_constraint</span><span class="p">(</span><span class="n">cond</span><span class="p">)]</span></div>
+</pre></div>
+
+           </div>
+           
+          </div>
+          <footer>
+  
+
+  <hr/>
+
+  <div role="contentinfo">
+    <p>
+        &copy; Copyright 2015, pycalphad Development Team
+
+    </p>
+  </div>
+  Built with <a href="http://sphinx-doc.org/">Sphinx</a> using a <a href="https://github.com/rtfd/sphinx_rtd_theme">theme</a> provided by <a href="https://readthedocs.org">Read the Docs</a>. 
+
+</footer>
+
+        </div>
+      </div>
+
+    </section>
+
+  </div>
+  
+
+
+  <script type="text/javascript">
+      jQuery(function () {
+          SphinxRtdTheme.Navigation.enable(true);
+      });
+  </script>
+
+  
+  
+    
+   
+
+</body>
+</html>
