@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.2+2.g6bcedd8 documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.2+3.g25e4170 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.2+2.g6bcedd8
+                0.8.2+3.g25e4170
               </div>
             
           
@@ -428,37 +428,56 @@
 
 <span class="k">def</span> <span class="nf">_process_typedef</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
-<span class="sd">    Process the TYPE_DEFINITION command.</span>
+<span class="sd">    Process a TYPE_DEFINITION command.</span>
+
+<span class="sd">    Assumes all phases are entered into the database already and that the</span>
+<span class="sd">    database defines _typechar_map, which defines a map of typechar to the</span>
+<span class="sd">    phases that use it. Any phases that in the typechar dict for this will have</span>
+<span class="sd">    the model_hints updated based on this type definition, regardless of which</span>
+<span class="sd">    phase names may be defined in this TYPE_DEF line.</span>
+
 <span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">matching_phases</span> <span class="o">=</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_typechar_map</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
+    <span class="k">del</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">_typechar_map</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
     <span class="c1"># GES A_P_D BCC_A2 MAGNETIC  -1    0.4</span>
     <span class="n">tokens</span> <span class="o">=</span> <span class="n">line</span><span class="o">.</span><span class="n">replace</span><span class="p">(</span><span class="s1">&#39;,&#39;</span><span class="p">,</span> <span class="s1">&#39;&#39;</span><span class="p">)</span><span class="o">.</span><span class="n">split</span><span class="p">()</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">tokens</span><span class="p">)</span> <span class="o">&lt;</span> <span class="mi">4</span><span class="p">:</span>
         <span class="k">return</span>
     <span class="n">keyword</span> <span class="o">=</span> <span class="n">expand_keyword</span><span class="p">([</span><span class="s1">&#39;DISORDERED_PART&#39;</span><span class="p">,</span> <span class="s1">&#39;MAGNETIC&#39;</span><span class="p">],</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">())[</span><span class="mi">0</span><span class="p">]</span>
     <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">keyword</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown keyword: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Unknown type definition keyword: </span><span class="si">{}</span><span class="s1">&#39;</span><span class="o">.</span><span class="n">format</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">3</span><span class="p">]))</span>
+    <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">matching_phases</span><span class="p">)</span> <span class="o">==</span> <span class="mi">0</span><span class="p">:</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` in `TYPE_DEFINITION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">` is not used by any phase.&quot;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">&#39;MAGNETIC&#39;</span><span class="p">:</span>
-        <span class="c1"># magnetic model (IHJ model assumed by default)</span>
-        <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">:[</span><span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span> <span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">5</span><span class="p">])]</span>
+        <span class="c1"># Magnetic model, both IHJ and Xiong models use these model hints when</span>
+        <span class="c1"># constructing Model instances, despite being prefixed `ihj_magnetic_`</span>
+        <span class="n">model_hints</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]),</span>
+            <span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">:</span> <span class="nb">float</span><span class="p">(</span><span class="n">tokens</span><span class="p">[</span><span class="mi">5</span><span class="p">])</span>
         <span class="p">}</span>
+        <span class="k">for</span> <span class="n">phase_name</span> <span class="ow">in</span> <span class="n">matching_phases</span><span class="p">:</span>
+            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">model_hints</span><span class="p">)</span>
+
     <span class="c1"># GES A_P_D L12_FCC DIS_PART FCC_A1</span>
     <span class="k">if</span> <span class="n">keyword</span> <span class="o">==</span> <span class="s1">&#39;DISORDERED_PART&#39;</span><span class="p">:</span>
-        <span class="c1"># order-disorder model</span>
-        <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span> <span class="o">=</span> <span class="p">{</span>
-            <span class="s1">&#39;disordered_phase&#39;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">(),</span>
-            <span class="s1">&#39;ordered_phase&#39;</span><span class="p">:</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="c1"># order-disorder model: since we need to add model_hints to both the</span>
+        <span class="c1"># ordered and disorderd phase, we special case to update the phase</span>
+        <span class="c1"># names defined by the TYPE_DEF, rather than the updating the phases</span>
+        <span class="c1"># with matching typechars.</span>
+        <span class="n">ordered_phase</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">disordered_phase</span> <span class="o">=</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">4</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span>
+        <span class="n">hint</span> <span class="o">=</span> <span class="p">{</span>
+            <span class="s1">&#39;ordered_phase&#39;</span><span class="p">:</span> <span class="n">ordered_phase</span><span class="p">,</span>
+            <span class="s1">&#39;disordered_phase&#39;</span><span class="p">:</span> <span class="n">disordered_phase</span><span class="p">,</span>
         <span class="p">}</span>
-        <span class="k">if</span> <span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
-            <span class="c1"># Since TDB files do not enforce any kind of ordering</span>
-            <span class="c1"># on the specification of ordered and disordered phases,</span>
-            <span class="c1"># we need to handle the case of when either phase is specified</span>
-            <span class="c1"># first. In this case, we imagine the ordered phase is</span>
-            <span class="c1"># specified first. If the disordered phase is specified</span>
-            <span class="c1"># first, we will have to catch it in _process_phase().</span>
-            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">tokens</span><span class="p">[</span><span class="mi">2</span><span class="p">]</span><span class="o">.</span><span class="n">upper</span><span class="p">()]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span>
-                <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typechar</span><span class="p">]</span>
-            <span class="p">)</span>
+        <span class="k">if</span> <span class="n">ordered_phase</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">ordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">ordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
+        <span class="k">if</span> <span class="n">disordered_phase</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
+            <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">disordered_phase</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">(</span><span class="n">hint</span><span class="p">)</span>
+        <span class="k">else</span><span class="p">:</span>
+            <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The </span><span class="si">{</span><span class="n">disordered_phase</span><span class="si">}</span><span class="s2"> phase is not in the database, but is defined by: `TYPE_DEFINTION </span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2"> </span><span class="si">{</span><span class="n">line</span><span class="si">}</span><span class="s2">`&quot;</span><span class="p">)</span>
 
 
 <span class="n">phase_options</span> <span class="o">=</span> <span class="p">{</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">:</span> <span class="s1">&#39;Y&#39;</span><span class="p">,</span>
@@ -485,22 +504,11 @@
     <span class="k">for</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">inv_phase_options</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
         <span class="k">if</span> <span class="n">option</span> <span class="ow">in</span> <span class="n">options</span><span class="p">:</span>
             <span class="n">model_hints</span><span class="p">[</span><span class="n">inv_phase_options</span><span class="p">[</span><span class="n">option</span><span class="p">]]</span> <span class="o">=</span> <span class="kc">True</span>
-    <span class="k">for</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">typedefs</span><span class="p">):</span>
-        <span class="k">if</span> <span class="n">typedef</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-            <span class="k">if</span> <span class="s1">&#39;ihj_magnetic&#39;</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_afm_factor&#39;</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">]</span>
-                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ihj_magnetic_structure_factor&#39;</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ihj_magnetic&#39;</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
-            <span class="k">if</span> <span class="s1">&#39;ordered_phase&#39;</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">]</span><span class="o">.</span><span class="n">keys</span><span class="p">():</span>
-                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">]</span>
-                <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span> <span class="o">=</span> \
-                    <span class="n">targetdb</span><span class="o">.</span><span class="n">tdbtypedefs</span><span class="p">[</span><span class="n">typedef</span><span class="p">][</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span>
-                <span class="k">if</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]</span> <span class="ow">in</span> <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">:</span>
-                    <span class="n">targetdb</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]]</span>\
-                        <span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">update</span><span class="p">({</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">:</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;ordered_phase&#39;</span><span class="p">],</span>
-                                             <span class="s1">&#39;disordered_phase&#39;</span><span class="p">:</span> <span class="n">model_hints</span><span class="p">[</span><span class="s1">&#39;disordered_phase&#39;</span><span class="p">]})</span>
+
+    <span class="k">for</span> <span class="n">typedef_char</span> <span class="ow">in</span> <span class="nb">list</span><span class="p">(</span><span class="n">typedefs</span><span class="p">):</span>
+        <span class="n">targetdb</span><span class="o">.</span><span class="n">_typechar_map</span><span class="p">[</span><span class="n">typedef_char</span><span class="p">]</span><span class="o">.</span><span class="n">append</span><span class="p">(</span><span class="n">phase_name</span><span class="p">)</span>
+
+    <span class="c1"># Model hints are updated later based on the type definitions</span>
     <span class="n">targetdb</span><span class="o">.</span><span class="n">add_phase</span><span class="p">(</span><span class="n">phase_name</span><span class="p">,</span> <span class="n">model_hints</span><span class="p">,</span> <span class="n">subls</span><span class="p">)</span>
 
 <span class="k">def</span> <span class="nf">_process_parameter</span><span class="p">(</span><span class="n">targetdb</span><span class="p">,</span> <span class="n">param_type</span><span class="p">,</span> <span class="n">phase_name</span><span class="p">,</span> <span class="n">diffusing_species</span><span class="p">,</span>
@@ -542,7 +550,7 @@
 <span class="n">_TDB_PROCESSOR</span> <span class="o">=</span> <span class="p">{</span>
     <span class="s1">&#39;ELEMENT&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">ref_phase</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">:</span> <span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">elements</span><span class="o">.</span><span class="n">add</span><span class="p">(</span><span class="n">el</span><span class="p">),</span> <span class="n">_process_reference_state</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="n">ref_phase</span><span class="p">,</span> <span class="n">mass</span><span class="p">,</span> <span class="n">h</span><span class="p">,</span> <span class="n">s</span><span class="p">),</span> <span class="n">_process_species</span><span class="p">(</span><span class="n">db</span><span class="p">,</span> <span class="n">el</span><span class="p">,</span> <span class="p">[</span><span class="n">el</span><span class="p">,</span> <span class="mi">1</span><span class="p">],</span> <span class="mi">0</span><span class="p">)),</span>
     <span class="s1">&#39;SPECIES&#39;</span><span class="p">:</span> <span class="n">_process_species</span><span class="p">,</span>
-    <span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">:</span> <span class="n">_process_typedef</span><span class="p">,</span>
+    <span class="s1">&#39;TYPE_DEFINITION&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">:</span> <span class="n">db</span><span class="o">.</span><span class="n">_typedefs_queue</span><span class="o">.</span><span class="n">append</span><span class="p">((</span><span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">)),</span>
     <span class="s1">&#39;FUNCTION&#39;</span><span class="p">:</span> <span class="k">lambda</span> <span class="n">db</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">:</span> <span class="n">_setitem_raise_duplicates</span><span class="p">(</span><span class="n">db</span><span class="o">.</span><span class="n">symbols</span><span class="p">,</span> <span class="n">name</span><span class="p">,</span> <span class="n">sym</span><span class="p">),</span>
     <span class="s1">&#39;DEFINE_SYSTEM_DEFAULT&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
     <span class="s1">&#39;ASSESSED_SYSTEMS&#39;</span><span class="p">:</span> <span class="n">_unimplemented</span><span class="p">,</span>
@@ -1084,8 +1092,11 @@
     <span class="c1"># Now split by the command delimeter</span>
     <span class="n">commands</span> <span class="o">=</span> <span class="n">lines</span><span class="o">.</span><span class="n">split</span><span class="p">(</span><span class="s1">&#39;!&#39;</span><span class="p">)</span>
 
-    <span class="c1"># Temporary storage while we process type definitions</span>
-    <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span> <span class="o">=</span> <span class="p">{}</span>
+    <span class="c1"># Temporarily track which typedef characters were used by which phase</span>
+    <span class="c1"># before we process the type definitions</span>
+    <span class="c1"># Map {typedef character: [phases using that typedef]}</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span> <span class="o">=</span> <span class="n">defaultdict</span><span class="p">(</span><span class="nb">list</span><span class="p">)</span>
+    <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span> <span class="o">=</span> <span class="p">[]</span>  <span class="c1"># queue of type defintion lines to process</span>
 
     <span class="n">grammar</span> <span class="o">=</span> <span class="n">_tdb_grammar</span><span class="p">()</span>
 
@@ -1100,8 +1111,20 @@
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Failed while parsing: &quot;</span> <span class="o">+</span> <span class="n">command</span><span class="p">)</span>
             <span class="nb">print</span><span class="p">(</span><span class="s2">&quot;Tokens: &quot;</span> <span class="o">+</span> <span class="nb">str</span><span class="p">(</span><span class="n">tokens</span><span class="p">))</span>
             <span class="k">raise</span>
-    <span class="n">dbf</span><span class="o">.</span><span class="n">process_parameter_queue</span><span class="p">()</span>
-    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">tdbtypedefs</span></div>
+
+    <span class="c1"># Process type definitions last, updating model_hints for defined phases.</span>
+    <span class="k">for</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span><span class="p">:</span>
+        <span class="n">_process_typedef</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">line</span><span class="p">)</span>
+    <span class="c1"># Raise warnings if there are any remaining type characters that one or more</span>
+    <span class="c1"># phases expected to be defined</span>
+    <span class="k">for</span> <span class="n">typechar</span><span class="p">,</span> <span class="n">phases_expecting_typechar</span> <span class="ow">in</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span><span class="o">.</span><span class="n">items</span><span class="p">():</span>
+        <span class="n">warnings</span><span class="o">.</span><span class="n">warn</span><span class="p">(</span><span class="sa">f</span><span class="s2">&quot;The type definition character `</span><span class="si">{</span><span class="n">typechar</span><span class="si">}</span><span class="s2">` was defined in the following phases: &quot;</span>
+                      <span class="sa">f</span><span class="s2">&quot;</span><span class="si">{</span><span class="n">phases_expecting_typechar</span><span class="si">}</span><span class="s2">, but no corresponding TYPE_DEFINITION line was found in the TDB.&quot;</span><span class="p">)</span>
+    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typechar_map</span>
+    <span class="k">del</span> <span class="n">dbf</span><span class="o">.</span><span class="n">_typedefs_queue</span>
+
+    <span class="n">dbf</span><span class="o">.</span><span class="n">process_parameter_queue</span><span class="p">()</span></div>
+
 
 
 <span class="n">Database</span><span class="o">.</span><span class="n">register_format</span><span class="p">(</span><span class="s2">&quot;tdb&quot;</span><span class="p">,</span> <span class="n">read</span><span class="o">=</span><span class="n">read_tdb</span><span class="p">,</span> <span class="n">write</span><span class="o">=</span><span class="n">write_tdb</span><span class="p">)</span>
