@@ -238,7 +238,8 @@ def _tdb_grammar(): #pylint: disable=R0914
     # PHASE
     cmd_phase = TCCommand('PHASE') + symbol_name + \
         Suppress(White()) + CharsNotIn(' !', min=1) + Suppress(White()) + \
-        Suppress(int_number) + Group(OneOrMore(float_number)) + LineEnd()
+        Suppress(int_number) + Group(OneOrMore(float_number)) + \
+        Suppress(SkipTo(LineEnd()))
     # CONSTITUENT
     cmd_constituent = TCCommand('CONSTITUENT') + symbol_name + \
         Suppress(White()) + Suppress(':') + constituent_array + \
