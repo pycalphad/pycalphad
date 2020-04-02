@@ -326,8 +326,8 @@ def filter_phases(dbf, comps, candidate_phases=None):
     ----------
     dbf : Database
         Thermodynamic database containing the relevant parameters.
-    comps : list
-        Names of components to consider in the calculation.
+    comps : list of v.Species
+        Species to consider in the calculation.
     candidate_phases : list
         Names of phases to consider in the calculation, if not passed all phases from DBF will be considered
     Returns

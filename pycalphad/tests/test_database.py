@@ -462,7 +462,9 @@ def test_comma_templims():
      TYPE-DEF A GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -3 0.28 !
      TYPE-DEF B GES AMEND_PHASE_DESCRIPTION @ MAGNETIC -1 0.4 !
      TYPE-DEF O GES AMEND_PHASE_DESCRIPTION B2_BCC DIS_PART A2_BCC !
-     TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
+    $ The following type definition is commented out because the FCC_4SL phase
+    $ is not required by this test and are not defined in this database.
+    $ TYPE-DEF Y GES AMEND_PHASE_DESCRIPTION FCC_4SL DIS_PART A1_FCC !
      FUNCTION ZERO      298.15  0;                                         6000 N !
      FUNCTION UN_ASS    298.15  0;                                         6000 N !
      FUNCTION R         298.15  +8.31451;                                  6000 N !
@@ -558,3 +560,105 @@ def test_database_parameter_with_species_that_is_not_a_stoichiometric_formula():
 def test_database_sympy_namespace_clash():
     """Symbols that clash with sympy special objects are replaced (gh-233)"""
     Database.from_string("""FUNCTION TEST 0.01 T*LN(CC)+FF; 6000 N TW !""", fmt='tdb')
+
+
+def test_tdb_order_disorder_model_hints_applied_correctly():
+    """Phases using the order/disorder model should have model_hints added to
+    both phases, regardless of the order by which the phases were specified.
+    Model hints should also be applied correctly if only one of the phases has
+    the order/disorder type defintion applied, since this is allowed by
+    commercial software.
+    """
+
+    # This test creates a starting template and then tries to add the phase and
+    # type definitions in any order. In this case, the BCC_A2 phase does not
+    # have the type definition while the BCC_B2 phase does.
+    TEMPLATE_TDB = """
+     ELEMENT VA   VACUUM                     .0000E+00   .0000E+00   .0000E+00!
+     ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+     ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
+     TYPE_DEFINITION % SEQ *!
+    """
+
+    PHASE_A2 = """
+     PHASE BCC_A2  %  2 1   3 !
+     CONST BCC_A2  :AL,NI : VA :  !
+     """
+
+    PHASE_B2 = """
+     PHASE BCC_B2  %C  3 .5 .5    3 !
+     CONST BCC_B2  :AL,NI : AL,NI : VA: !
+    """
+
+    TYPE_DEF_ORD = """
+     TYPE_DEFINITION C GES A_P_D BCC_B2 DIS_PART BCC_A2 !
+    """
+    import itertools
+    for (k1, v1), (k2, v2), (k3, v3) in itertools.permutations([('PHASE_A2 ', PHASE_A2), ('PHASE_B2 ', PHASE_B2), ('TYPE_DEF ', TYPE_DEF_ORD)]):
+        print(k1 + k2 + k3)
+        dbf = Database(TEMPLATE_TDB + v1 + v2 + v3)
+        assert 'disordered_phase' in dbf.phases['BCC_A2'].model_hints
+        assert 'ordered_phase' in dbf.phases['BCC_A2'].model_hints
+        assert 'disordered_phase' in dbf.phases['BCC_B2'].model_hints
+        assert 'ordered_phase' in dbf.phases['BCC_B2'].model_hints
+        roundtrip_dbf = Database.from_string(dbf.to_string(fmt='tdb'), fmt='tdb')
+        assert roundtrip_dbf == dbf
+
+
+def test_database_applies_late_type_def():
+    """If type definitions are defined after phase defintions in the TDB, the
+    model_hints from the type definition should be correctly applied."""
+    dbf = Database("""
+     ELEMENT AL   FCC_A1                    2.6982E+01  4.5773E+03  2.8322E+01!
+     ELEMENT NI   FCC_A1                    5.8690E+01  4.7870E+03  2.9796E+01!
+     ELEMENT VA   VACUUM                     .0000E+00   .0000E+00   .0000E+00!
+     TYPE_DEFINITION % SEQ *!
+     DEFINE_SYSTEM_DEFAULT E 2 !
+     DEFAULT_COMMAND DEF_SYS_ELEMENT VA !
+
+     PHASE BCC_A2  %B  2 1   3 !
+     CONST BCC_A2  :AL,NI,VA : VA :  !
+
+    $ Note: type definition after PHASE definition
+     TYPE_DEFINITION B GES A_P_D @ MAGNETIC  -1.0 .40 !
+
+     FUNCTION GHSERAL    298.15
+        -7976.15+137.093038*T-24.3671976*T*LN(T)
+        -.001884662*T**2-8.77664E-07*T**3+74092*T**(-1);
+                         700.00  Y
+        -11276.24+223.048446*T-38.5844296*T*LN(T)
+        +.018531982*T**2-5.764227E-06*T**3+74092*T**(-1);
+                         933.60  Y
+        -11278.378+188.684153*T-31.748192*T*LN(T)
+        -1.231E+28*T**(-9);,,  N !
+     FUNCTION GHSERNI    298.14
+        -5179.159+117.854*T-22.096*T*LN(T)
+        -.0048407*T**2;
+                         1728.0  Y
+        -27840.655+279.135*T-43.1*T*LN(T)+1.12754E+31*T**(-9);,,  N   !
+
+     FUNCTION GBCCAL     298.15  +10083-4.813*T+GHSERAL;,,N !
+     FUNCTION GBCCNI     298.15  +8715.084-3.556*T+GHSERNI;,,,   N !
+
+     PARAMETER G(BCC_A2,AL:VA;0)  298.15  +GBCCAL;,,N 91DIN !
+       FUNC B2ALVA 295.15 10000-T;,,N !
+       FUNC LB2ALVA 298.15 150000;,,N !
+     PARAMETER L(BCC_A2,AL,VA:VA;0)  298.15  B2ALVA+LB2ALVA;,,N 99DUP !
+
+     PARAMETER G(BCC_A2,NI:VA;0)  298.15  +GBCCNI;,,N 91DIN !
+     PARAMETER TC(BCC_A2,NI:VA;0)  298.15  575;,,N 89DIN !
+     PARAMETER BMAGN(BCC_A2,NI:VA;0)  298.15  .85;,,N 89DIN !
+       FUNC B2NIVA 295.15 +162397.3-27.40575*T;,,N !
+       FUNC LB2NIVA 298.15 -64024.38+26.49419*T;,,N !
+     PARAMETER L(BCC_A2,NI,VA:VA;0)  298.15  B2NIVA+LB2NIVA;,,N 99DUP !
+
+       FUNC B2ALNI 295.15 -152397.3+26.40575*T;,,N !
+       FUNC LB2ALNI 298.15 -52440.88+11.30117*T;,,N !
+     PARAMETER L(BCC_A2,AL,NI:VA;0)  298.15  B2ALNI+LB2ALNI;,,N 99DUP!
+
+    """)
+
+    assert 'ihj_magnetic_afm_factor' in dbf.phases['BCC_A2'].model_hints
+    assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_afm_factor'] == -1.0
+    assert 'ihj_magnetic_structure_factor' in dbf.phases['BCC_A2'].model_hints
+    assert dbf.phases['BCC_A2'].model_hints['ihj_magnetic_structure_factor'] == 0.4

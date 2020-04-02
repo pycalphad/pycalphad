@@ -271,37 +271,56 @@ def _tdb_grammar(): #pylint: disable=R0914
 
 def _process_typedef(targetdb, typechar, line):
     """
-    Process the TYPE_DEFINITION command.
+    Process a TYPE_DEFINITION command.
+
+    Assumes all phases are entered into the database already and that the
+    database defines _typechar_map, which defines a map of typechar to the
+    phases that use it. Any phases that in the typechar dict for this will have
+    the model_hints updated based on this type definition, regardless of which
+    phase names may be defined in this TYPE_DEF line.
+
     """
+    matching_phases = targetdb._typechar_map[typechar]
+    del targetdb._typechar_map[typechar]
     # GES A_P_D BCC_A2 MAGNETIC  -1    0.4
     tokens = line.replace(',', '').split()
     if len(tokens) < 4:
         return
     keyword = expand_keyword(['DISORDERED_PART', 'MAGNETIC'], tokens[3].upper())[0]
     if len(keyword) == 0:
-        raise ValueError('Unknown keyword: {}'.format(tokens[3]))
+        raise ValueError('Unknown type definition keyword: {}'.format(tokens[3]))
+    if len(matching_phases) == 0:
+        warnings.warn(f"The type definition character `{typechar}` in `TYPE_DEFINITION {typechar} {line}` is not used by any phase.")
     if keyword == 'MAGNETIC':
-        # magnetic model (IHJ model assumed by default)
-        targetdb.tdbtypedefs[typechar] = {
-            'ihj_magnetic':[float(tokens[4]), float(tokens[5])]
+        # Magnetic model, both IHJ and Xiong models use these model hints when
+        # constructing Model instances, despite being prefixed `ihj_magnetic_`
+        model_hints = {
+            'ihj_magnetic_afm_factor': float(tokens[4]),
+            'ihj_magnetic_structure_factor': float(tokens[5])
         }
+        for phase_name in matching_phases:
+            targetdb.phases[phase_name].model_hints.update(model_hints)
+
     # GES A_P_D L12_FCC DIS_PART FCC_A1
     if keyword == 'DISORDERED_PART':
-        # order-disorder model
-        targetdb.tdbtypedefs[typechar] = {
-            'disordered_phase': tokens[4].upper(),
-            'ordered_phase': tokens[2].upper()
+        # order-disorder model: since we need to add model_hints to both the
+        # ordered and disorderd phase, we special case to update the phase
+        # names defined by the TYPE_DEF, rather than the updating the phases
+        # with matching typechars.
+        ordered_phase = tokens[2].upper()
+        disordered_phase = tokens[4].upper()
+        hint = {
+            'ordered_phase': ordered_phase,
+            'disordered_phase': disordered_phase,
         }
-        if tokens[2].upper() in targetdb.phases:
-            # Since TDB files do not enforce any kind of ordering
-            # on the specification of ordered and disordered phases,
-            # we need to handle the case of when either phase is specified
-            # first. In this case, we imagine the ordered phase is
-            # specified first. If the disordered phase is specified
-            # first, we will have to catch it in _process_phase().
-            targetdb.phases[tokens[2].upper()].model_hints.update(
-                targetdb.tdbtypedefs[typechar]
-            )
+        if ordered_phase in targetdb.phases:
+            targetdb.phases[ordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {ordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
+        if disordered_phase in targetdb.phases:
+            targetdb.phases[disordered_phase].model_hints.update(hint)
+        else:
+            raise ValueError(f"The {disordered_phase} phase is not in the database, but is defined by: `TYPE_DEFINTION {typechar} {line}`")
 
 
 phase_options = {'ionic_liquid_2SL': 'Y',
@@ -328,22 +347,11 @@ def _process_phase(targetdb, name, typedefs, subls):
     for option in inv_phase_options.keys():
         if option in options:
             model_hints[inv_phase_options[option]] = True
-    for typedef in list(typedefs):
-        if typedef in targetdb.tdbtypedefs.keys():
-            if 'ihj_magnetic' in targetdb.tdbtypedefs[typedef].keys():
-                model_hints['ihj_magnetic_afm_factor'] = \
-                    targetdb.tdbtypedefs[typedef]['ihj_magnetic'][0]
-                model_hints['ihj_magnetic_structure_factor'] = \
-                    targetdb.tdbtypedefs[typedef]['ihj_magnetic'][1]
-            if 'ordered_phase' in targetdb.tdbtypedefs[typedef].keys():
-                model_hints['ordered_phase'] = \
-                    targetdb.tdbtypedefs[typedef]['ordered_phase']
-                model_hints['disordered_phase'] = \
-                    targetdb.tdbtypedefs[typedef]['disordered_phase']
-                if model_hints['disordered_phase'] in targetdb.phases:
-                    targetdb.phases[model_hints['disordered_phase']]\
-                        .model_hints.update({'ordered_phase': model_hints['ordered_phase'],
-                                             'disordered_phase': model_hints['disordered_phase']})
+
+    for typedef_char in list(typedefs):
+        targetdb._typechar_map[typedef_char].append(phase_name)
+
+    # Model hints are updated later based on the type definitions
     targetdb.add_phase(phase_name, model_hints, subls)
 
 def _process_parameter(targetdb, param_type, phase_name, diffusing_species,
@@ -385,7 +393,7 @@ def _setitem_raise_duplicates(dictionary, key, value):
 _TDB_PROCESSOR = {
     'ELEMENT': lambda db, el, ref_phase, mass, h, s: (db.elements.add(el), _process_reference_state(db, el, ref_phase, mass, h, s), _process_species(db, el, [el, 1], 0)),
     'SPECIES': _process_species,
-    'TYPE_DEFINITION': _process_typedef,
+    'TYPE_DEFINITION': lambda db, typechar, line: db._typedefs_queue.append((typechar, line)),
     'FUNCTION': lambda db, name, sym: _setitem_raise_duplicates(db.symbols, name, sym),
     'DEFINE_SYSTEM_DEFAULT': _unimplemented,
     'ASSESSED_SYSTEMS': _unimplemented,
@@ -927,8 +935,11 @@ def read_tdb(dbf, fd):
     # Now split by the command delimeter
     commands = lines.split('!')
 
-    # Temporary storage while we process type definitions
-    dbf.tdbtypedefs = {}
+    # Temporarily track which typedef characters were used by which phase
+    # before we process the type definitions
+    # Map {typedef character: [phases using that typedef]}
+    dbf._typechar_map = defaultdict(list)
+    dbf._typedefs_queue = []  # queue of type defintion lines to process
 
     grammar = _tdb_grammar()
 
@@ -943,8 +954,20 @@ def read_tdb(dbf, fd):
             print("Failed while parsing: " + command)
             print("Tokens: " + str(tokens))
             raise
+
+    # Process type definitions last, updating model_hints for defined phases.
+    for typechar, line in dbf._typedefs_queue:
+        _process_typedef(dbf, typechar, line)
+    # Raise warnings if there are any remaining type characters that one or more
+    # phases expected to be defined
+    for typechar, phases_expecting_typechar in dbf._typechar_map.items():
+        warnings.warn(f"The type definition character `{typechar}` was defined in the following phases: "
+                      f"{phases_expecting_typechar}, but no corresponding TYPE_DEFINITION line was found in the TDB.")
+    del dbf._typechar_map
+    del dbf._typedefs_queue
+
     dbf.process_parameter_queue()
-    del dbf.tdbtypedefs
+
 
 
 Database.register_format("tdb", read=read_tdb, write=write_tdb)
