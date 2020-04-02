@@ -109,9 +109,12 @@ cpdef double hyperplane(double[:,::1] compositions,
     N: number of components
     P: N+1, max phases by gibbs phase rule that we can find in a point calculations
     """
+    # Scalars
     cdef int num_components = compositions.shape[1]
     cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
     cdef int simplex_size = num_components - num_fixed_chempots
+    cdef double[::1] lowest_df = np.empty(1)
+    # 1-D
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int[::1] included_composition_indices = \
         np.array(sorted(fixed_comp_indices) + [-1], dtype=np.int32)
@@ -120,21 +123,22 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int[::1] free_chempot_indices = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
                                                 dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
-    cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
-    cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
     cdef int[::1] int_tmp = np.empty(simplex_size, dtype=np.int32)
-    cdef double[::1] driving_forces = np.empty(compositions.shape[0])
-    for i in range(trial_simplices.shape[0]):
-        trial_simplices[i, :] = best_guess_simplex
-    cdef double[::1,:,:] trial_matrix = np.empty((simplex_size, simplex_size, simplex_size), order='F')
-    cdef double[::1,:] candidate_tieline = np.empty((simplex_size, simplex_size), order='F')
     cdef double[::1] candidate_energies = np.empty(simplex_size)
     cdef double[::1] candidate_potentials = np.empty(simplex_size)
     cdef double[::1] smallest_fractions = np.empty(simplex_size)
     cdef double[::1] tmp = np.empty(simplex_size)
+    cdef double[::1] driving_forces = np.empty(compositions.shape[0])
+    # 2-D
+    cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
+    cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
+    for i in range(trial_simplices.shape[0]):
+        trial_simplices[i, :] = best_guess_simplex
     cdef double[::1, :] f_contig_trial = np.empty((simplex_size, simplex_size), order='F')
-    # Not sure how to create scalar memoryviews...
-    cdef double[::1] lowest_df = np.empty(1)
+    cdef double[::1,:] candidate_tieline = np.empty((simplex_size, simplex_size), order='F')
+    # 3-D
+    cdef double[::1,:,:] trial_matrix = np.empty((simplex_size, simplex_size, simplex_size), order='F')
+
     cdef bint tmp3
     cdef int saved_trial = 0
     cdef int min_df
