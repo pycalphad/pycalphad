@@ -7,14 +7,15 @@ cimport scipy.linalg.cython_lapack as cython_lapack
 
 
 @cython.boundscheck(False)
-cdef void solve(double[::1, :] A, double[::1] x, int[::1] ipiv) nogil:
+cdef void solve(double[::1, :] A, double* x, int* ipiv) nogil:
     cdef int N = A.shape[0]
     cdef int info = 0
     cdef int NRHS = 1
-    cython_lapack.dgesv(&N, &NRHS, &A[0,0], &N, &ipiv[0], &x[0], &N, &info)
+    cython_lapack.dgesv(&N, &NRHS, &A[0,0], &N, ipiv, &x[0], &N, &info)
     # Special for our case: singular matrix results get set to a special value
     if info != 0:
-        x[:] = -1e19
+        for i in range(N):
+            x[i] = -1e19
 
 
 @cython.boundscheck(False)
@@ -25,15 +26,15 @@ cdef void prodsum(double[::1] chempots, double[:,::1] points, double[::1] result
 
 
 @cython.boundscheck(False)
-cdef double _min(double[::1] a) nogil:
+cdef double _min(double* a, int a_shape) nogil:
     cdef double result = 1e300
-    for i in range(a.shape[0]):
+    for i in range(a_shape):
         if a[i] < result:
             result = a[i]
     return result
 
 @cython.boundscheck(False)
-cdef int argmin(double[::1] a, double[::1] lowest) nogil:
+cdef int argmin(double[::1] a, double* lowest) nogil:
     cdef int result = 0
     for i in range(a.shape[0]):
         if a[i] < lowest[0]:
@@ -43,10 +44,10 @@ cdef int argmin(double[::1] a, double[::1] lowest) nogil:
 
 
 @cython.boundscheck(False)
-cdef int argmax(double[::1] a) nogil:
+cdef int argmax(double* a, int a_shape) nogil:
     cdef int result = 0
     cdef double highest = -1e30
-    for i in range(a.shape[0]):
+    for i in range(a_shape):
         if a[i] > highest:
             highest = a[i]
             result = i
@@ -113,7 +114,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int num_components = compositions.shape[1]
     cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
     cdef int simplex_size = num_components - num_fixed_chempots
-    cdef double[::1] lowest_df = np.empty(1)
+    cdef double lowest_df = 0
     # 1-D
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int[::1] included_composition_indices = \
@@ -123,15 +124,13 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int[::1] free_chempot_indices = np.array(sorted(set(range(num_components)) - set(fixed_chempot_indices)),
                                                 dtype=np.int32)
     cdef int[::1] candidate_simplex = best_guess_simplex
-    cdef int[::1] int_tmp = np.empty(simplex_size, dtype=np.int32)
-    cdef double[::1] candidate_energies = np.empty(simplex_size)
-    cdef double[::1] candidate_potentials = np.empty(simplex_size)
-    cdef double[::1] smallest_fractions = np.empty(simplex_size)
-    cdef double[::1] tmp = np.empty(simplex_size)
+    cdef int* int_tmp = <int*>malloc(simplex_size * sizeof(int)) # np.empty(simplex_size, dtype=np.int32)
+    cdef double* candidate_potentials = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
+    cdef double* smallest_fractions = <double*>malloc(simplex_size * sizeof(double)) # np.empty(simplex_size)
     cdef double[::1] driving_forces = np.empty(compositions.shape[0])
     # 2-D
     cdef int[:,::1] trial_simplices = np.empty((simplex_size, simplex_size), dtype=np.int32)
-    cdef double[:,::1] fractions = np.empty((simplex_size, simplex_size))
+    cdef double* fractions = <double*>malloc(simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size))
     for i in range(trial_simplices.shape[0]):
         trial_simplices[i, :] = best_guess_simplex
     cdef double[::1, :] f_contig_trial = np.empty((simplex_size, simplex_size), order='F')
@@ -162,18 +161,18 @@ cpdef double hyperplane(double[:,::1] compositions,
 
         for trial_idx in range(simplex_size):
             f_contig_trial[:,:] = trial_matrix[:, :, trial_idx]
-            for simplex_idx in range(fractions.shape[1]):
+            for simplex_idx in range(simplex_size):
                 ici = included_composition_indices[simplex_idx]
                 if ici >= 0:
-                    fractions[trial_idx, simplex_idx] = composition[ici]
+                    fractions[trial_idx*simplex_size + simplex_idx] = composition[ici]
                 else:
                     # ici = -1, refers to N=1 condition
-                    fractions[trial_idx, simplex_idx] = total_moles
-            solve(f_contig_trial, fractions[trial_idx, :], int_tmp)
-            smallest_fractions[trial_idx] = _min(fractions[trial_idx, :])
+                    fractions[trial_idx*simplex_size + simplex_idx] = total_moles
+            solve(f_contig_trial, &fractions[trial_idx*simplex_size], int_tmp)
+            smallest_fractions[trial_idx] = _min(&fractions[trial_idx*simplex_size], simplex_size)
 
         # Choose simplex with the largest smallest-fraction
-        saved_trial = argmax(smallest_fractions)
+        saved_trial = argmax(smallest_fractions, simplex_size)
         if smallest_fractions[saved_trial] < -simplex_size:
             break
         # Should be exactly one candidate simplex
@@ -206,17 +205,18 @@ cpdef double hyperplane(double[:,::1] compositions,
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,
         #     excepting edge cases
-        lowest_df[0] = 1e10
-        min_df = argmin(driving_forces, lowest_df)
+        lowest_df = 1e10
+        min_df = argmin(driving_forces, &lowest_df)
         for i in range(simplex_size):
             trial_simplices[i, i] = min_df
-        if lowest_df[0] > -1e-8:
+        if lowest_df > -1e-8:
             break
     out_energy = 0
-    for i in range(best_guess_simplex.shape[0]):
+    for i in range(simplex_size):
         idx = best_guess_simplex[i]
-        out_energy += fractions[saved_trial, i] * energies[idx]
-    result_fractions[:simplex_size] = fractions[saved_trial, :]
+        out_energy += fractions[saved_trial*simplex_size + i] * energies[idx]
+    for i in range(simplex_size):
+        result_fractions[i] = fractions[saved_trial*simplex_size + i]
     for ici in range(free_chempot_indices.shape[0]):
         chempot_idx = free_chempot_indices[ici]
         chemical_potentials[chempot_idx] = candidate_potentials[ici]
@@ -224,4 +224,12 @@ cpdef double hyperplane(double[:,::1] compositions,
     # Hack to enforce Gibbs phase rule, shape of result is comp+1, shape of hyperplane is comp
     result_fractions[simplex_size:] = 0.0
     result_simplex[simplex_size:] = 0
+
+    # 1-D
+    free(int_tmp)
+    free(candidate_potentials)
+    free(smallest_fractions)
+    # 2-D
+    free(fractions)
+
     return out_energy
