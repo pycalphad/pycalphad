@@ -65,7 +65,7 @@ cpdef double hyperplane(double[:,::1] compositions,
                         size_t[::1] fixed_chempot_indices,
                         size_t[::1] fixed_comp_indices,
                         double[::1] result_fractions,
-                        int[::1] result_simplex) except *:
+                        int[::1] result_simplex) nogil except *:
     """
     Find chemical potentials which approximate the tangent hyperplane
     at the given composition.
@@ -122,6 +122,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int fixed_index = 0
     cdef bint skip_index = False
     cdef double lowest_df = 0
+    cdef double out_energy = 0
     # 1-D
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int* included_composition_indices = <int*>malloc((fixed_comp_indices.shape[0] + 1) * sizeof(int))

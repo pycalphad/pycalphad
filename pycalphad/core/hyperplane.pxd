@@ -7,4 +7,4 @@ cpdef double hyperplane(double[:,::1] compositions,
                         size_t[::1] fixed_chempot_indices,
                         size_t[::1] fixed_comp_indices,
                         double[::1] result_fractions,
-                        int[::1] result_simplex) except *
+                        int[::1] result_simplex) nogil except *
