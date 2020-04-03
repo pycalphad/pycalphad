@@ -8,6 +8,7 @@ cimport scipy.linalg.cython_lapack as cython_lapack
 
 @cython.boundscheck(False)
 cdef void solve(double* A, int N, double* x, int* ipiv) nogil:
+    cdef int i
     cdef int info = 0
     cdef int NRHS = 1
     cython_lapack.dgesv(&N, &NRHS, A, &N, ipiv, x, &N, &info)
@@ -26,6 +27,7 @@ cdef void prodsum(double[::1] chempots, double[:,::1] points, double[::1] result
 
 @cython.boundscheck(False)
 cdef double _min(double* a, int a_shape) nogil:
+    cdef int i
     cdef double result = 1e300
     for i in range(a_shape):
         if a[i] < result:
@@ -34,6 +36,7 @@ cdef double _min(double* a, int a_shape) nogil:
 
 @cython.boundscheck(False)
 cdef int argmin(double* a, int a_shape, double* lowest) nogil:
+    cdef int i
     cdef int result = 0
     for i in range(a_shape):
         if a[i] < lowest[0]:
@@ -44,6 +47,7 @@ cdef int argmin(double* a, int a_shape, double* lowest) nogil:
 
 @cython.boundscheck(False)
 cdef int argmax(double* a, int a_shape) nogil:
+    cdef int i
     cdef int result = 0
     cdef double highest = -1e30
     for i in range(a_shape):
@@ -114,6 +118,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int num_components = compositions.shape[1]
     cdef int num_fixed_chempots = fixed_chempot_indices.shape[0]
     cdef int simplex_size = num_components - num_fixed_chempots
+    cdef int i, j
     cdef int fixed_index = 0
     cdef bint skip_index = False
     cdef double lowest_df = 0
