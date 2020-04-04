@@ -120,6 +120,12 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef int simplex_size = num_components - num_fixed_chempots
     cdef int i, j
     cdef int fixed_index = 0
+    cdef int saved_trial = 0
+    cdef int min_df
+    cdef int max_iterations = 1000
+    cdef int iterations = 0
+    cdef int idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
+    cdef bint tmp3
     cdef bint skip_index = False
     cdef double lowest_df = 0
     cdef double out_energy = 0
@@ -163,12 +169,6 @@ cpdef double hyperplane(double[:,::1] compositions,
     # 3-D
     cdef double* f_trial_matrix = <double*>malloc(simplex_size * simplex_size * simplex_size * sizeof(double)) # np.empty((simplex_size, simplex_size, simplex_size), order='F')
 
-    cdef bint tmp3
-    cdef int saved_trial = 0
-    cdef int min_df
-    cdef int max_iterations = 1000
-    cdef int iterations = 0
-    cdef int idx, ici, comp_idx, simplex_idx, trial_idx, chempot_idx
 
     while iterations < max_iterations:
         iterations += 1
