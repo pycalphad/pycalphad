@@ -124,6 +124,9 @@ cpdef double hyperplane(double[:,::1] compositions,
     cdef double lowest_df = 0
     cdef double out_energy = 0
     # 1-D
+    cdef int* remaining_point_indices = <int*>malloc(num_points * sizeof(int))
+    for i in range(num_points):
+        remaining_point_indices[i] = i
     # composition index of -1 indicates total number of moles, i.e., N=1 condition
     cdef int* included_composition_indices = <int*>malloc((fixed_comp_indices.shape[0] + 1) * sizeof(int))
     for i in range(fixed_comp_indices.shape[0]):
@@ -216,28 +219,40 @@ cpdef double hyperplane(double[:,::1] compositions,
             break
         # TODO: Only compute necessary driving forces
         for i in range(num_points):
-            driving_forces[i] = energies[i]
+            driving_forces[i] = energies[remaining_point_indices[i]]
         for ici in range(simplex_size):
             chempot_idx = free_chempot_indices[ici]
             for idx in range(num_points):
-                driving_forces[idx] -= candidate_potentials[ici] * compositions[idx, chempot_idx]
+                driving_forces[idx] -= candidate_potentials[ici] * compositions[remaining_point_indices[idx], chempot_idx]
         for ici in range(fixed_chempot_indices.shape[0]):
             chempot_idx = fixed_chempot_indices[ici]
             for idx in range(num_points):
-                driving_forces[idx] -= chemical_potentials[chempot_idx] * compositions[idx, chempot_idx]
+                driving_forces[idx] -= chemical_potentials[chempot_idx] * compositions[remaining_point_indices[idx], chempot_idx]
         for i in range(simplex_size):
             best_guess_simplex[i] = candidate_simplex[i]
         for i in range(simplex_size):
             for j in range(simplex_size):
                 trial_simplices[i*simplex_size + j] = best_guess_simplex[j]
+
+        # Only points below, or at, the candidate hyperplane can possibly be part of the solution
+        ici = 0
+        lowest_df = 1e10
+        min_df = -1
+        for i in range(num_points):
+            if driving_forces[i] < 1.0:
+                remaining_point_indices[ici] = remaining_point_indices[i]
+                if driving_forces[i] < lowest_df:
+                    lowest_df = driving_forces[i]
+                    min_df = ici
+                ici += 1
+        num_points = ici
+
         # Trial simplices will be the current simplex with each vertex
         #     replaced by the trial point
         # Exactly one of those simplices will contain a given test point,
         #     excepting edge cases
-        lowest_df = 1e10
-        min_df = argmin(driving_forces, num_points, &lowest_df)
         for i in range(simplex_size):
-            trial_simplices[i*simplex_size + i] = min_df
+            trial_simplices[i*simplex_size + i] = remaining_point_indices[min_df]
         if lowest_df > -1e-8:
             break
     out_energy = 0
@@ -256,6 +271,7 @@ cpdef double hyperplane(double[:,::1] compositions,
     result_simplex[simplex_size:] = 0
 
     # 1-D
+    free(remaining_point_indices)
     free(included_composition_indices)
     free(best_guess_simplex)
     free(free_chempot_indices)
