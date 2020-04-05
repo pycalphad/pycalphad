@@ -217,7 +217,6 @@ cpdef double hyperplane(double[:,::1] compositions,
         solve(f_candidate_tieline, simplex_size, candidate_potentials, int_tmp)
         if candidate_potentials[0] == -1e19:
             break
-        # TODO: Only compute necessary driving forces
         for i in range(num_points):
             driving_forces[i] = energies[remaining_point_indices[i]]
         for ici in range(simplex_size):
