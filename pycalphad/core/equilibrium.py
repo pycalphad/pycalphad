@@ -56,13 +56,11 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     output : str
         Equilibrium model property (e.g., CPM, HM, etc.) to compute.
         This must be defined as an attribute in the Model class of each phase.
-    data : Dataset, optional
+    data : Dataset
         Previous result of call to `equilibrium`.
         Should contain the equilibrium configurations at the conditions of interest.
         If the databases are not the same as in the original calculation,
-        the results may be meaningless. If None, `equilibrium` will be called.
-        Specifying this keyword argument can save the user some time if several properties
-        need to be calculated in succession.
+        the results may be meaningless.
     per_phase : bool, optional
         If True, compute and return the property for each phase present.
         If False, return the total system value, weighted by the phase fractions.
@@ -80,7 +78,9 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     Dataset of property as a function of equilibrium conditions
     """
     if data is None:
-        data = equilibrium(dbf, comps, phases, conditions, to_xarray=False)
+        raise ValueError('Required kwarg "data" is not specified')
+    if models is None:
+        raise ValueError('Required kwarg "models" is not specified')
     active_phases = unpack_phases(phases)
     conds = _adjust_conditions(conditions)
     indep_vars = ['N', 'P', 'T']
