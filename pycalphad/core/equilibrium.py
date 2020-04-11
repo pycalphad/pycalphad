@@ -31,7 +31,7 @@ def _adjust_conditions(conds):
     return new_conds
 
 
-def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, models=None,
+def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=False, callables=None, model=None,
                  parameters=None, **kwargs):
     """
     WARNING: API/calling convention not finalized.
@@ -66,7 +66,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         If False, return the total system value, weighted by the phase fractions.
     callables : dict
         Callable functions to compute 'output' for each phase.
-    models : a dict of phase names to Model
+    model : a dict of phase names to Model
         Model class to use for each phase.
     parameters : dict, optional
         Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.
@@ -79,8 +79,8 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     """
     if data is None:
         raise ValueError('Required kwarg "data" is not specified')
-    if models is None:
-        raise ValueError('Required kwarg "models" is not specified')
+    if model is None:
+        raise ValueError('Required kwarg "model" is not specified')
     active_phases = unpack_phases(phases)
     conds = _adjust_conditions(conditions)
     indep_vars = ['N', 'P', 'T']
@@ -103,7 +103,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
     # For each phase select all conditions where that phase exists
     # Perform the appropriate calculation and then write the result back
     for phase in active_phases:
-        dof = len(models[phase].site_fractions)
+        dof = len(model[phase].site_fractions)
         current_phase_indices = (data.Phase == phase)
         if ~np.any(current_phase_indices):
             continue
@@ -115,7 +115,7 @@ def _eqcalculate(dbf, comps, phases, conditions, output, data=None, per_phase=Fa
         if statevars.get('mode', None) is None:
             statevars['mode'] = 'numpy'
         calcres = calculate(dbf, comps, [phase], output=output, points=points, broadcast=False,
-                            callables=callables, parameters=parameters, model=models, **statevars)
+                            callables=callables, parameters=parameters, model=model, **statevars)
         result[output][np.nonzero(current_phase_indices)] = calcres[output].values
     if not per_phase:
         out = np.nansum(result[output] * data['NP'], axis=-1)
@@ -268,7 +268,7 @@ def equilibrium(dbf, comps, phases, conditions, output=None, model=None,
         else:
             per_phase = False
         eqcal = _eqcalculate(dbf, comps, active_phases, conditions, out,
-                             data=properties, per_phase=per_phase, models=models,
+                             data=properties, per_phase=per_phase, model=models,
                              callables=callables, parameters=parameters, **calc_opts)
         properties = properties.merge(eqcal, inplace=True, compat='equals')
     if to_xarray:
