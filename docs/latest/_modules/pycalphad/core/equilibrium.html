@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.8.3+1.g5c239f1 documentation</title>
+  <title>pycalphad.core.equilibrium &mdash; pycalphad 0.8.3+2.g7e167bf documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.3+1.g5c239f1
+                0.8.3+2.g7e167bf
               </div>
             
           
@@ -188,7 +188,7 @@
     <span class="k">return</span> <span class="n">new_conds</span>
 
 
-<span class="k">def</span> <span class="nf">_eqcalculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
+<span class="k">def</span> <span class="nf">_eqcalculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">output</span><span class="p">,</span> <span class="n">data</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span> <span class="n">callables</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span>
                  <span class="n">parameters</span><span class="o">=</span><span class="kc">None</span><span class="p">,</span> <span class="o">**</span><span class="n">kwargs</span><span class="p">):</span>
     <span class="sd">&quot;&quot;&quot;</span>
 <span class="sd">    WARNING: API/calling convention not finalized.</span>
@@ -223,7 +223,7 @@
 <span class="sd">        If False, return the total system value, weighted by the phase fractions.</span>
 <span class="sd">    callables : dict</span>
 <span class="sd">        Callable functions to compute &#39;output&#39; for each phase.</span>
-<span class="sd">    models : a dict of phase names to Model</span>
+<span class="sd">    model : a dict of phase names to Model</span>
 <span class="sd">        Model class to use for each phase.</span>
 <span class="sd">    parameters : dict, optional</span>
 <span class="sd">        Maps SymPy Symbol to numbers, for overriding the values of parameters in the Database.</span>
@@ -236,8 +236,8 @@
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="k">if</span> <span class="n">data</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
         <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Required kwarg &quot;data&quot; is not specified&#39;</span><span class="p">)</span>
-    <span class="k">if</span> <span class="n">models</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
-        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Required kwarg &quot;models&quot; is not specified&#39;</span><span class="p">)</span>
+    <span class="k">if</span> <span class="n">model</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
+        <span class="k">raise</span> <span class="ne">ValueError</span><span class="p">(</span><span class="s1">&#39;Required kwarg &quot;model&quot; is not specified&#39;</span><span class="p">)</span>
     <span class="n">active_phases</span> <span class="o">=</span> <span class="n">unpack_phases</span><span class="p">(</span><span class="n">phases</span><span class="p">)</span>
     <span class="n">conds</span> <span class="o">=</span> <span class="n">_adjust_conditions</span><span class="p">(</span><span class="n">conditions</span><span class="p">)</span>
     <span class="n">indep_vars</span> <span class="o">=</span> <span class="p">[</span><span class="s1">&#39;N&#39;</span><span class="p">,</span> <span class="s1">&#39;P&#39;</span><span class="p">,</span> <span class="s1">&#39;T&#39;</span><span class="p">]</span>
@@ -260,7 +260,7 @@
     <span class="c1"># For each phase select all conditions where that phase exists</span>
     <span class="c1"># Perform the appropriate calculation and then write the result back</span>
     <span class="k">for</span> <span class="n">phase</span> <span class="ow">in</span> <span class="n">active_phases</span><span class="p">:</span>
-        <span class="n">dof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">models</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">)</span>
+        <span class="n">dof</span> <span class="o">=</span> <span class="nb">len</span><span class="p">(</span><span class="n">model</span><span class="p">[</span><span class="n">phase</span><span class="p">]</span><span class="o">.</span><span class="n">site_fractions</span><span class="p">)</span>
         <span class="n">current_phase_indices</span> <span class="o">=</span> <span class="p">(</span><span class="n">data</span><span class="o">.</span><span class="n">Phase</span> <span class="o">==</span> <span class="n">phase</span><span class="p">)</span>
         <span class="k">if</span> <span class="o">~</span><span class="n">np</span><span class="o">.</span><span class="n">any</span><span class="p">(</span><span class="n">current_phase_indices</span><span class="p">):</span>
             <span class="k">continue</span>
@@ -272,7 +272,7 @@
         <span class="k">if</span> <span class="n">statevars</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;mode&#39;</span><span class="p">,</span> <span class="kc">None</span><span class="p">)</span> <span class="ow">is</span> <span class="kc">None</span><span class="p">:</span>
             <span class="n">statevars</span><span class="p">[</span><span class="s1">&#39;mode&#39;</span><span class="p">]</span> <span class="o">=</span> <span class="s1">&#39;numpy&#39;</span>
         <span class="n">calcres</span> <span class="o">=</span> <span class="n">calculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="p">[</span><span class="n">phase</span><span class="p">],</span> <span class="n">output</span><span class="o">=</span><span class="n">output</span><span class="p">,</span> <span class="n">points</span><span class="o">=</span><span class="n">points</span><span class="p">,</span> <span class="n">broadcast</span><span class="o">=</span><span class="kc">False</span><span class="p">,</span>
-                            <span class="n">callables</span><span class="o">=</span><span class="n">callables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span> <span class="o">**</span><span class="n">statevars</span><span class="p">)</span>
+                            <span class="n">callables</span><span class="o">=</span><span class="n">callables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">model</span><span class="p">,</span> <span class="o">**</span><span class="n">statevars</span><span class="p">)</span>
         <span class="n">result</span><span class="p">[</span><span class="n">output</span><span class="p">][</span><span class="n">np</span><span class="o">.</span><span class="n">nonzero</span><span class="p">(</span><span class="n">current_phase_indices</span><span class="p">)]</span> <span class="o">=</span> <span class="n">calcres</span><span class="p">[</span><span class="n">output</span><span class="p">]</span><span class="o">.</span><span class="n">values</span>
     <span class="k">if</span> <span class="ow">not</span> <span class="n">per_phase</span><span class="p">:</span>
         <span class="n">out</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">nansum</span><span class="p">(</span><span class="n">result</span><span class="p">[</span><span class="n">output</span><span class="p">]</span> <span class="o">*</span> <span class="n">data</span><span class="p">[</span><span class="s1">&#39;NP&#39;</span><span class="p">],</span> <span class="n">axis</span><span class="o">=-</span><span class="mi">1</span><span class="p">)</span>
@@ -425,7 +425,7 @@
         <span class="k">else</span><span class="p">:</span>
             <span class="n">per_phase</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="n">eqcal</span> <span class="o">=</span> <span class="n">_eqcalculate</span><span class="p">(</span><span class="n">dbf</span><span class="p">,</span> <span class="n">comps</span><span class="p">,</span> <span class="n">active_phases</span><span class="p">,</span> <span class="n">conditions</span><span class="p">,</span> <span class="n">out</span><span class="p">,</span>
-                             <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span> <span class="n">models</span><span class="o">=</span><span class="n">models</span><span class="p">,</span>
+                             <span class="n">data</span><span class="o">=</span><span class="n">properties</span><span class="p">,</span> <span class="n">per_phase</span><span class="o">=</span><span class="n">per_phase</span><span class="p">,</span> <span class="n">model</span><span class="o">=</span><span class="n">models</span><span class="p">,</span>
                              <span class="n">callables</span><span class="o">=</span><span class="n">callables</span><span class="p">,</span> <span class="n">parameters</span><span class="o">=</span><span class="n">parameters</span><span class="p">,</span> <span class="o">**</span><span class="n">calc_opts</span><span class="p">)</span>
         <span class="n">properties</span> <span class="o">=</span> <span class="n">properties</span><span class="o">.</span><span class="n">merge</span><span class="p">(</span><span class="n">eqcal</span><span class="p">,</span> <span class="n">inplace</span><span class="o">=</span><span class="kc">True</span><span class="p">,</span> <span class="n">compat</span><span class="o">=</span><span class="s1">&#39;equals&#39;</span><span class="p">)</span>
     <span class="k">if</span> <span class="n">to_xarray</span><span class="p">:</span>
