@@ -1,4 +1,5 @@
 from scipy.optimize import minimize, Bounds, NonlinearConstraint, BFGS, SR1
+import nlopt
 import ipopt
 ipopt.setLoggingLevel(50)
 import numpy as np
@@ -256,4 +257,64 @@ class SciPySolver(SolverBase):
             print(result['v'])
             print(x)
             print('Status:', result['status'], result['message'])
+        return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
+
+class NLoptSolver(SolverBase):
+    def __init__(self, verbose=False, infeasibility_threshold=1e-4, **ipopt_options):
+        self.verbose = verbose
+
+    def solve(self, prob):
+        """
+        Solve a non-linear problem
+
+        Parameters
+        ----------
+        prob : pycalphad.core.problem.Problem
+
+        Returns
+        -------
+        SolverResult
+
+        """
+        cur_conds = prob.conditions
+
+        opt = nlopt.opt(nlopt.LD_SLSQP, prob.num_vars)
+        def f(x, grad):
+            if grad.size > 0:
+                grad[:] = prob.gradient(x)
+            return prob.objective(x)
+
+        def c(result, x, grad):
+            if grad.size > 0:
+                grad[:,:] = prob.jacobian(x)
+            result[:] = prob.constraints(x) - np.array(prob.cl)
+
+        opt.set_min_objective(f)
+        opt.set_lower_bounds(prob.xl)
+        opt.set_upper_bounds(prob.xu)
+
+        tol = 1e-6 * np.array(prob.cl)
+        tol[tol < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+        opt.add_equality_mconstraint(c, tol)
+        opt.set_xtol_abs(MIN_SITE_FRACTION/2)
+        initial_x0 = np.array(prob.x0)
+        initial_x0[initial_x0 <= MIN_SITE_FRACTION] = MIN_SITE_FRACTION+1e-18
+
+        try:
+            xopt = opt.optimize(initial_x0)
+        except (RuntimeError, ValueError, MemoryError, nlopt.RoundoffLimited) as e:
+            if self.verbose:
+                print('Calculation Failed: ', cur_conds, e)
+            xopt = np.nan * np.array(initial_x0)
+
+        result = opt.last_optimize_result()
+        x = xopt
+        chemical_potentials = prob.chemical_potentials(x)
+        if result < 0:
+            converged = False
+        else:
+            converged = True
+        if self.verbose:
+            print('Chemical Potentials', chemical_potentials)
+            print(x)
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
