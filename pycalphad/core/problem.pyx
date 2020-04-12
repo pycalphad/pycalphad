@@ -315,7 +315,7 @@ cdef class Problem:
         # Fourth: Chemical potential constraints
         if len(self.fixed_chempot_indices) > 0:
             raise NotImplementedError('Chemical potential Hessian not implemented yet')
-        result = np.array(hess)[np.tril_indices(hess.shape[0])]
+        result = np.array(hess)#[np.tril_indices(hess.shape[0])]
         return result
 
     def mass_gradient(self, x_in):
