@@ -81,8 +81,9 @@ cdef class Problem:
         self.num_constraints = num_constraints
         self.xl = np.r_[np.full(self.num_vars - self.num_phases, MIN_SITE_FRACTION),
                         np.full(self.num_phases, MIN_PHASE_FRACTION)]
-        self.xu = np.r_[np.ones(self.num_vars - self.num_phases)*2e19,
-                        np.ones(self.num_phases)*2e19]
+        self.xu = np.r_[np.ones(self.num_vars - self.num_phases),
+                        np.ones(self.num_phases)]
+        self.xu[:len(state_variables)] = 2e19
         self.x0 = np.zeros(self.num_vars)
         for var_idx in range(len(state_variables)):
             self.x0[var_idx] = comp_sets[0].dof[var_idx]

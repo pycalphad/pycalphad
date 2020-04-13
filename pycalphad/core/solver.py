@@ -302,18 +302,21 @@ class NLoptSolver(SolverBase):
 
         try:
             xopt = opt.optimize(initial_x0)
-        except (RuntimeError, ValueError, MemoryError, nlopt.RoundoffLimited) as e:
+        except nlopt.RoundoffLimited:
+            print('Roundoff Limited')
+        except (RuntimeError, ValueError, MemoryError) as e:
             if self.verbose:
-                print('Calculation Failed: ', cur_conds, e)
+                print('Calculation Failed: ', cur_conds, e, opt.last_optimize_result())
             xopt = np.nan * np.array(initial_x0)
 
         result = opt.last_optimize_result()
         x = xopt
-        chemical_potentials = prob.chemical_potentials(x)
         if result < 0:
             converged = False
+            chemical_potentials = np.full(len(prob.nonvacant_elements), np.nan)
         else:
             converged = True
+            chemical_potentials = prob.chemical_potentials(x)
         if self.verbose:
             print('Chemical Potentials', chemical_potentials)
             print(x)
