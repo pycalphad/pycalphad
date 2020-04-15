@@ -550,6 +550,15 @@ class Model(object):
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
+                    if (
+                        phase.model_hints.get('ionic_liquid_2SL', False) and  # This is an ionic 2SL
+                        len(param['constituent_array']) == 1 and  # There's only one sublattice
+                        len(param['constituent_array'][0]) == 1 and  # That sublattice has one constituent
+                        param['constituent_array'][0][0].charge == 0  # The constituent is neutral
+                    ):
+                        # This is a neutral anion species in what would be the second sublattice.
+                        # Set the sublattice index to 1 for the purpose of site fractions.
+                        subl_index = 1
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
