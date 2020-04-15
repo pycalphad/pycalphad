@@ -424,7 +424,13 @@ class Model(object):
         This species must also be an active species
         """
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
@@ -438,7 +444,13 @@ class Model(object):
         Check that the current array contains only active species.
         """
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             valid = set(sublattice).issubset(self.components) \
                 or sublattice[0] == v.Species('*')
@@ -453,7 +465,13 @@ class Model(object):
         """
         result = False
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             # check if all elements involved are also active
             valid = set(sublattice).issubset(self.components) \
