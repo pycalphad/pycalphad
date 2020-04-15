@@ -618,10 +618,12 @@ class Model(object):
                 # Special normalization rules for parameters apply under this model
                 # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
                 # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
-                if not any([m.species.charge < 0 for m in mixing_term.free_symbols]):
+                anions_present = any([m.species.charge < 0 for m in mixing_term.free_symbols])
+                if not anions_present:
                     pair_rule = {}
                     # Cation site fractions must always appear with vacancy site fractions
                     va_subls = [(v.Species('VA') in phase.constituents[idx]) for idx in range(len(phase.constituents))]
+                    # The last index that contains a vacancy
                     va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
                     va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
                     if va_present and (max(len(c) for c in param['constituent_array']) == 1):
