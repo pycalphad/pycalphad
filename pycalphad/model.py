@@ -132,10 +132,6 @@ class Model(object):
                     else:
                         raise ValueError('Two-sublattice ionic liquid specified with more than two sublattices')
                     self.site_ratios[subl_idx] += self.site_ratios[idx] * v.SiteFraction(self.phase_name, idx, v.Species('VA'))
-        if phase.model_hints.get('ionic_liquid_2SL', False):
-            self._ratio_ionic_sub = {Symbol('P'): self.site_ratios[0], Symbol('Q'): self.site_ratios[1]}
-            self.site_ratios = (Symbol('P'), Symbol('Q'))
-            # temporarily make
         self.site_ratios = tuple(self.site_ratios)
 
         # Verify that this phase is still possible to build
@@ -263,8 +259,6 @@ class Model(object):
     @property
     def ast(self):
         "Return the full abstract syntax tree of the model."
-        if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-            return Add(*list(self.models.values())).subs(self._ratio_ionic_sub)
         return Add(*list(self.models.values()))
 
     @property
@@ -495,11 +489,6 @@ class Model(object):
         Calculates the normalization factor based on the number of sites
         in each sublattice.
         """
-        if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
-            P = self.site_ratios[0]
-            Q = self.site_ratios[1]
-            y_Va = v.Y(self.phase_name, 1, v.Species('VA'))
-            return P+Q*(1 - y_Va)
         site_ratio_normalization = S.Zero
         # Calculate normalization factor
         for idx, sublattice in enumerate(self.constituents):
