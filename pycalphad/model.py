@@ -564,11 +564,12 @@ class Model(object):
                     if (
                         phase.model_hints.get('ionic_liquid_2SL', False) and  # This is an ionic 2SL
                         len(param['constituent_array']) == 1 and  # There's only one sublattice
-                        len(param['constituent_array'][0]) == 1 and  # That sublattice has one constituent
-                        param['constituent_array'][0][0].charge == 0  # The constituent is neutral
+                        all(const.charge == 0 for const in param['constituent_array'][0])  # All constituents are neutral
                     ):
-                        # This is a neutral anion species in what would be the second sublattice.
-                        # Set the sublattice index to 1 for the purpose of site fractions.
+                        # The constituent array is all neutral anion species in what would be the
+                        # second sublattice. TDB syntax allows for specifying neutral species with
+                        # one sublattice model. Set the sublattice index to 1 for the purpose of
+                        # site fractions.
                         subl_index = 1
                     comp_symbols = \
                         [
