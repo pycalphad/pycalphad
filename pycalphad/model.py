@@ -576,6 +576,20 @@ class Model(object):
                             v.SiteFraction(phase.name, subl_index, comp)
                             for comp in comps
                         ]
+                    if phase.model_hints.get('ionic_liquid_2SL', False):  # This is an ionic 2SL
+                        # We need to special case sorting for this model, it is not alphabetically sorted.
+                        # The model should be (C)(A, Va, B) for cations (C), anions (A), vacancies (Va)
+                        # and neutrals (B). Thus the second sublattice should be sorted by species with
+                        # charge, then by vacancies, if present, then by neutrals.
+                        # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
+                        # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
+                        # assume that things are already in sorted order alphabetically, so we just need
+                        # to rearrange by charged first, Va, then netural
+                        charged_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge != 0 and sitefrac.species.number_of_atoms > 0]
+                        va_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species == v.Species('VA')]
+                        neutral_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge == 0 and sitefrac.species.number_of_atoms > 0]
+                        comp_symbols = charged_symbols + va_symbols + neutral_symbols
+
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
