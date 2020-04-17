@@ -88,6 +88,21 @@ class Model(object):
     Examples
     --------
     None yet.
+
+    Notes
+    -----
+    The two sublattice ionic liquid model has several special cases compared to
+    typical models within the compound energy formalism. A few key differences
+    arise. First, variable site ratios (modulated by vacancy site fractions)
+    are used to charge balance the phase. Second, endmembers for neutral
+    species and interactions among only neutral species should be specified
+    using only one sublattice (dropping the cation sublattice). For
+    understanding the special cases used throughout this class, users are
+    referred to:
+    Sundman, "Modification of the two-sublattice model for liquids",
+    Calphad 15(2) (1991) 109-119 https://doi.org/d3jppb
+
+
     """
     # We only use the contributions attribute in build_phase.
     # Users should not access it later since subclasses can override build_phase
@@ -566,14 +581,20 @@ class Model(object):
                             for comp in comps
                         ]
                     if phase.model_hints.get('ionic_liquid_2SL', False):  # This is an ionic 2SL
-                        # We need to special case sorting for this model, it is not alphabetically sorted.
-                        # The model should be (C)(A, Va, B) for cations (C), anions (A), vacancies (Va)
-                        # and neutrals (B). Thus the second sublattice should be sorted by species with
-                        # charge, then by vacancies, if present, then by neutrals.
-                        # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
-                        # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
-                        # assume that things are already in sorted order alphabetically, so we just need
-                        # to rearrange by charged first, Va, then netural
+                        # We need to special case sorting for this model, because the constituents
+                        # should not be alphabetically sorted. The model should be (C)(A, Va, B)
+                        # for cations (C), anions (A), vacancies (Va) and neutrals (B). Thus the
+                        # second sublattice should be sorted by species with charge, then by
+                        # vacancies, if present, then by neutrals. Hint: in Thermo-Calc, using
+                        # `set-start-constitution` for a phase will prompt you to enter site
+                        # fractions for species in the order they are sorted internally within
+                        # Thermo-Calc. This can be used to verify sorting behavior.
+
+                        # Assume that the constituent array is already in sorted order
+                        # alphabetically, so we need to rearrange the species first by charged
+                        # species, then VA, then netural species. Since the cation sublattice
+                        # should only have charged species by definition, this is equivalent to
+                        # a no-op for the first sublattice.
                         charged_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge != 0 and sitefrac.species.number_of_atoms > 0]
                         va_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species == v.Species('VA')]
                         neutral_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge == 0 and sitefrac.species.number_of_atoms > 0]
@@ -631,8 +652,8 @@ class Model(object):
                         simultaneous=True)
             if phase.model_hints.get('ionic_liquid_2SL', False):
                 # Special normalization rules for parameters apply under this model
-                # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
-                # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
+                # If there are no anions present in the anion sublattice (only VA and neutral
+                # species), then the energy has an additional Q*y(VA) term
                 anions_present = any([m.species.charge < 0 for m in mixing_term.free_symbols])
                 if not anions_present:
                     pair_rule = {}
