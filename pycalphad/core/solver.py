@@ -169,3 +169,265 @@ class InteriorPointSolver(SolverBase):
             print(x)
             print('Status:', info['status'], info['status_msg'])
         return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
+
+
+class SundmanSolver(SolverBase):
+    def __init__(self, verbose=False, **options):
+        self.verbose = verbose
+
+    def solve(self, prob):
+        """
+        Solve a non-linear problem
+
+        Parameters
+        ----------
+        prob : pycalphad.core.problem.Problem
+
+        Returns
+        -------
+        SolverResult
+
+        """
+        cur_conds = prob.conditions
+        print(cur_conds)
+        compsets = prob.composition_sets
+        state_variables = compsets[0].phase_record.state_variables
+        print('state_variables', state_variables)
+        num_statevars = len(state_variables)
+        num_components = len(prob.nonvacant_elements)
+        chemical_potentials = prob.chemical_potentials(prob.x0)
+        prescribed_elemental_amounts = np.zeros(num_components)
+        # TODO: This breaks with anything except closed systems; also assumes N=1
+        total_prescribed_amounts = sum(cur_conds.get('X_'+str(el), 0) for el in prob.nonvacant_elements)
+        for el_idx in range(num_components):
+            el = prob.nonvacant_elements[el_idx]
+            # Assumes N=1
+            prescribed_elemental_amounts[el_idx] = cur_conds.get('X_'+str(el), 1-total_prescribed_amounts)
+        phase_amt = np.array([compset.NP for compset in compsets])
+
+        dof = [np.array(compset.dof) for compset in compsets]
+        print('dof', dof)
+
+        free_chemical_potential_indices = np.array(sorted(set(range(num_components)) - set(prob.fixed_chempot_indices)))
+        fixed_chemical_potential_indices = np.array(prob.fixed_chempot_indices)
+        free_stable_compset_indices = np.array(list(range(len(compsets))))
+        fixed_statevar_indices = []
+        for statevar_idx, statevar in enumerate(state_variables):
+            if str(statevar) in [str(k) for k in cur_conds.keys()]:
+                fixed_statevar_indices.append(statevar_idx)
+        free_statevar_indices = np.array(sorted(set(range(num_components)) - set(fixed_statevar_indices)))
+        print('free_chemical_potential_indices', free_chemical_potential_indices)
+        print('fixed_chemical_potential_indices', fixed_chemical_potential_indices)
+        print('free_stable_compset_indices', free_stable_compset_indices)
+        print('fixed_statevar_indices', fixed_statevar_indices)
+        print('free_statevar_indices', free_statevar_indices)
+        print('phase_amt', phase_amt)
+        delta_statevars = np.zeros(num_statevars)
+        for iteration in range(20):
+            true_delta_y = [None, None]
+            true_delta_y_rhs_debug = [None, None]
+            current_elemental_amounts = np.zeros_like(chemical_potentials)
+            # FIRST STEP: Update phase internal degrees of freedom
+            for idx, compset in enumerate(compsets):
+                # TODO: Use better dof storage
+                x = dof[idx]
+                # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
+                phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+                                         compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+                hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
+                                     num_statevars + compset.phase_record.phase_dof))
+                cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
+                                         num_statevars + compset.phase_record.phase_dof))
+                compset.phase_record.hess(hess_tmp, x)
+                phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess_tmp[
+                                                                                                 num_statevars:,
+                                                                                                 num_statevars:]
+                compset.phase_record.internal_cons_jac(cons_jac_tmp, x)
+                phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
+                                                                                                 num_statevars:]
+                phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
+                                                                                                 num_statevars:].T
+
+                # Compute right-hand side of Eq. 41, Sundman 2015
+                rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
+                grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+                compset.phase_record.grad(grad_tmp, x)
+                rhs[:compset.phase_record.phase_dof] = -grad_tmp[num_statevars:]
+                rhs[:compset.phase_record.phase_dof] -= np.dot(hess_tmp[num_statevars:, :num_statevars],
+                                                               delta_statevars)
+                mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
+                for comp_idx in range(num_components):
+                    compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
+                rhs[:compset.phase_record.phase_dof] += mass_jac_tmp.T[num_statevars:].dot(chemical_potentials)
+                soln = np.linalg.solve(phase_matrix, rhs)
+                delta_y = soln[:compset.phase_record.phase_dof]
+                old_y = np.array(x[num_statevars:])
+                new_y = old_y + delta_y
+                new_y[new_y < 1e-15] = 1e-15
+                new_y[new_y > 1] = 1
+                x[num_statevars:] = new_y
+                true_delta_y[idx] = new_y - old_y
+
+                masses_tmp = np.zeros((num_components, 1))
+                for comp_idx in range(num_components):
+                    compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                    if phase_amt[idx] > 0:
+                        current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
+                # print(compset.phase_record.phase_name, idx, new_y)
+            # STEP STEP: Update potentials and phase amounts, according to conditions
+            num_stable_phases = free_stable_compset_indices.shape[0]
+            num_free_variables = free_chemical_potential_indices.shape[0] + num_stable_phases + \
+                                 free_statevar_indices.shape[0]
+            equilibrium_matrix = np.zeros((num_stable_phases + num_components, num_free_variables))
+            equilibrium_rhs = np.zeros(num_stable_phases + num_components)
+            if (num_stable_phases + num_components) != num_free_variables:
+                raise ValueError('Conditions do not obey Gibbs Phase Rule')
+            total_mass_debug = np.zeros((num_components, len(compsets)))
+            for stable_idx in range(free_stable_compset_indices.shape[0]):
+                idx = free_stable_compset_indices[stable_idx]
+                compset = compsets[idx]
+                # TODO: Use better dof storage
+                # Calculate key phase quantities starting here
+                x = dof[idx]
+                # print('x', x)
+                energy_tmp = np.zeros((1, 1))
+                compset.phase_record.obj(energy_tmp[:, 0], x)
+                masses_tmp = np.zeros((num_components, 1))
+                mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
+                for comp_idx in range(num_components):
+                    compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
+                    compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                total_mass_debug[:, idx] += phase_amt[idx] * masses_tmp[:, 0]
+                # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
+                phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
+                                         compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
+                hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
+                                     num_statevars + compset.phase_record.phase_dof))
+                cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
+                                         num_statevars + compset.phase_record.phase_dof))
+                compset.phase_record.hess(hess_tmp, x)
+                grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+                compset.phase_record.grad(grad_tmp, x)
+                phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess_tmp[
+                                                                                                 num_statevars:,
+                                                                                                 num_statevars:]
+                compset.phase_record.internal_cons_jac(cons_jac_tmp, x)
+                phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
+                                                                                                 num_statevars:]
+                phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
+                                                                                                 num_statevars:].T
+                e_matrix = np.linalg.inv(phase_matrix)[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof]
+                # Eq. 44
+                c_G = -np.dot(e_matrix, grad_tmp[num_statevars:])
+                c_statevars = -np.dot(e_matrix, hess_tmp[num_statevars:, :num_statevars])
+                c_component = np.dot(mass_jac_tmp[:, num_statevars:], e_matrix)
+                # Calculations of key quantities complete
+                true_delta_y_rhs_debug[idx] = c_G + np.dot(c_statevars, delta_statevars) + np.dot(c_component.T,
+                                                                                                  chemical_potentials)
+
+                # KEY STEPS for filling equilibrium matrix
+                # 1. Contribute to the row corresponding to this composition set
+                # 1a. Loop through potential conditions to fill out each column
+                # 2. Contribute to the rows of all components
+                # 2a. Loop through potential conditions to fill out each column
+                # 3. Contribute to RHS of each component row
+                # 4. Add energies to RHS of each stable composition set
+                # 5. Subtract contribution from RHS due to any fixed chemical potentials
+                # 6. Subtract fixed chemical potentials from each component RHS
+
+                # 1a. This phase row: free chemical potentials
+                free_variable_column_offset = 0
+                for i in range(free_chemical_potential_indices.shape[0]):
+                    chempot_idx = free_chemical_potential_indices[i]
+                    equilibrium_matrix[stable_idx, free_variable_column_offset + i] = masses_tmp[chempot_idx, 0]
+                free_variable_column_offset += free_chemical_potential_indices.shape[0]
+                # 1a. This phase row: free stable composition sets = zero contribution
+                free_variable_column_offset += free_stable_compset_indices.shape[0]
+                # 1a. This phase row: free state variables
+                for i in range(free_statevar_indices.shape[0]):
+                    statevar_idx = free_statevar_indices[i]
+                    equilibrium_matrix[stable_idx, free_variable_column_offset + i] = -grad_tmp[statevar_idx]
+                # 2. Contribute to the row of all components
+                component_row_offset = num_stable_phases
+                for component_idx in range(num_components):
+                    free_variable_column_offset = 0
+                    # 2a. This component row: free chemical potentials
+                    for i in range(free_chemical_potential_indices.shape[0]):
+                        chempot_idx = free_chemical_potential_indices[i]
+                        equilibrium_matrix[component_row_offset + component_idx, free_variable_column_offset + i] += \
+                            phase_amt[idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
+                                                    c_component[chempot_idx, :])
+                    free_variable_column_offset += free_chemical_potential_indices.shape[0]
+                    # 2a. This component row: free stable composition sets
+                    for i in range(free_stable_compset_indices.shape[0]):
+                        compset_idx = free_stable_compset_indices[i]
+                        # Only fill this out if the current idx is equal to a free composition set
+                        if compset_idx == idx:
+                            equilibrium_matrix[component_row_offset + component_idx, free_variable_column_offset + i] = \
+                            masses_tmp[component_idx, 0]
+                    free_variable_column_offset += free_stable_compset_indices.shape[0]
+                    # 2a. This component row: free state variables
+                    for i in range(free_statevar_indices.shape[0]):
+                        statevar_idx = free_statevar_indices[i]
+                        equilibrium_matrix[component_row_offset + component_idx, free_variable_column_offset + i] += \
+                            phase_amt[idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
+                                                    c_statevars[:, statevar_idx])
+                    # 3.
+                    equilibrium_rhs[component_row_offset + component_idx] += -phase_amt[idx] * np.dot(
+                        mass_jac_tmp[component_idx, num_statevars:], c_G)
+                # 4.
+                equilibrium_rhs[idx] = energy_tmp[0, 0]
+                # 5. Subtract fixed chemical potentials from each phase RHS
+                for i in range(fixed_chemical_potential_indices.shape[0]):
+                    chempot_idx = fixed_chemical_potential_indices[i]
+                    equilibrium_rhs[idx] -= masses_tmp[chempot_idx, :] * chemical_potentials[chempot_idx]
+                    # 6. Subtract fixed chemical potentials from each component RHS
+                    for component_idx in range(num_components):
+                        equilibrium_rhs[component_row_offset + component_idx] -= phase_amt[idx] * chemical_potentials[
+                            chempot_idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
+                                                  c_component[chempot_idx, :])
+
+            # Add mass residual to component row RHS
+            component_row_offset = num_stable_phases
+            print('current_elemental_amounts', current_elemental_amounts)
+            print('prescribed_elemental_amounts', prescribed_elemental_amounts)
+            for component_idx in range(num_components):
+                equilibrium_rhs[component_row_offset + component_idx] -= current_elemental_amounts[component_idx] - prescribed_elemental_amounts[component_idx]
+            equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs)[0]
+            soln_index_offset = 0
+            for i in range(free_chemical_potential_indices.shape[0]):
+                chempot_idx = free_chemical_potential_indices[i]
+                chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
+            soln_index_offset += free_chemical_potential_indices.shape[0]
+            for i in range(free_stable_compset_indices.shape[0]):
+                compset_idx = free_stable_compset_indices[i]
+                phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
+            # TODO: This is not the right way to deal with changing phases
+            #phase_amt[phase_amt < 0] = 0
+            #phase_amt[phase_amt > 1] = 1
+            soln_index_offset += free_stable_compset_indices.shape[0]
+            delta_statevars[:] = 0
+            for i in range(free_statevar_indices.shape[0]):
+                statevar_idx = free_statevar_indices[i]
+                delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
+            for idx in range(len(dof)):
+                dof[idx][:num_statevars] += delta_statevars
+            free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
+            #for idx in range(len(compsets)):
+            #    print(idx, 'delta y LHS', true_delta_y[idx])
+            #    print(idx, 'delta y RHS', true_delta_y_rhs_debug[idx])
+            print('NP', phase_amt, 'MU', chemical_potentials, 'statevars', dof[0][:num_statevars])
+            print('Total Mass', np.dot(total_mass_debug, phase_amt))
+
+        x = dof[0]
+        for cs_dof in dof[1:]:
+            x = np.r_[x, cs_dof[num_statevars:]]
+        x = np.r_[x, phase_amt]
+        print('Result x', x)
+        chemical_potentials = prob.chemical_potentials(x)
+
+        converged = True
+        if self.verbose:
+            print('Chemical Potentials', chemical_potentials)
+            print(x)
+        return SolverResult(converged=converged, x=x, chemical_potentials=chemical_potentials)
