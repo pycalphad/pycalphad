@@ -215,7 +215,7 @@ class SundmanSolver(SolverBase):
         for statevar_idx, statevar in enumerate(state_variables):
             if str(statevar) in [str(k) for k in cur_conds.keys()]:
                 fixed_statevar_indices.append(statevar_idx)
-        free_statevar_indices = np.array(sorted(set(range(num_components)) - set(fixed_statevar_indices)))
+        free_statevar_indices = np.array(sorted(set(range(num_statevars)) - set(fixed_statevar_indices)))
         print('free_chemical_potential_indices', free_chemical_potential_indices)
         print('fixed_chemical_potential_indices', fixed_chemical_potential_indices)
         print('free_stable_compset_indices', free_stable_compset_indices)
@@ -223,9 +223,7 @@ class SundmanSolver(SolverBase):
         print('free_statevar_indices', free_statevar_indices)
         print('phase_amt', phase_amt)
         delta_statevars = np.zeros(num_statevars)
-        for iteration in range(20):
-            true_delta_y = [None, None]
-            true_delta_y_rhs_debug = [None, None]
+        for iteration in range(50):
             current_elemental_amounts = np.zeros_like(chemical_potentials)
             # FIRST STEP: Update phase internal degrees of freedom
             for idx, compset in enumerate(compsets):
@@ -266,7 +264,6 @@ class SundmanSolver(SolverBase):
                 new_y[new_y < 1e-15] = 1e-15
                 new_y[new_y > 1] = 1
                 x[num_statevars:] = new_y
-                true_delta_y[idx] = new_y - old_y
 
                 masses_tmp = np.zeros((num_components, 1))
                 for comp_idx in range(num_components):
@@ -322,8 +319,6 @@ class SundmanSolver(SolverBase):
                 c_statevars = -np.dot(e_matrix, hess_tmp[num_statevars:, :num_statevars])
                 c_component = np.dot(mass_jac_tmp[:, num_statevars:], e_matrix)
                 # Calculations of key quantities complete
-                true_delta_y_rhs_debug[idx] = c_G + np.dot(c_statevars, delta_statevars) + np.dot(c_component.T,
-                                                                                                  chemical_potentials)
 
                 # KEY STEPS for filling equilibrium matrix
                 # 1. Contribute to the row corresponding to this composition set
@@ -402,9 +397,7 @@ class SundmanSolver(SolverBase):
             for i in range(free_stable_compset_indices.shape[0]):
                 compset_idx = free_stable_compset_indices[i]
                 phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-            # TODO: This is not the right way to deal with changing phases
-            #phase_amt[phase_amt < 0] = 0
-            #phase_amt[phase_amt > 1] = 1
+
             soln_index_offset += free_stable_compset_indices.shape[0]
             delta_statevars[:] = 0
             for i in range(free_statevar_indices.shape[0]):
@@ -413,6 +406,9 @@ class SundmanSolver(SolverBase):
             for idx in range(len(dof)):
                 dof[idx][:num_statevars] += delta_statevars
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
+            # TODO: This is not the right way to deal with changing phases
+            phase_amt[phase_amt < 0] = 0
+            phase_amt[phase_amt > 1] = 1
             #for idx in range(len(compsets)):
             #    print(idx, 'delta y LHS', true_delta_y[idx])
             #    print(idx, 'delta y RHS', true_delta_y_rhs_debug[idx])
