@@ -217,7 +217,7 @@ def _compute_phase_values(components, statevar_dict,
     if isinstance(phase_compositions, (float, int)):
         phase_compositions = broadcast_to(phase_output, points.shape[:-1] + (len(pure_elements),))
     phase_output = np.asarray(phase_output, dtype=np.float)
-    if parameter_array_length == 0:
+    if parameter_array_length <= 1:
         phase_output.shape = points.shape[:-1]
     else:
         phase_output.shape = points.shape[:-1] + (parameter_array_length,)
@@ -225,7 +225,7 @@ def _compute_phase_values(components, statevar_dict,
     phase_compositions.shape = points.shape[:-1] + (len(pure_elements),)
     if fake_points:
         output_shape = points.shape[:-2] + (max_tieline_vertices,)
-        if parameter_array_length > 0:
+        if parameter_array_length > 1:
             output_shape = output_shape + (parameter_array_length,)
         phase_output = np.concatenate((broadcast_to(largest_energy, output_shape), phase_output), axis=-1)
         phase_names = np.concatenate((broadcast_to('_FAKE_', points.shape[:-2] + (max_tieline_vertices,)),
@@ -261,7 +261,7 @@ def _compute_phase_values(components, statevar_dict,
         output_columns = [str(x) for x in statevar_dict.keys()] + ['points']
     else:
         output_columns = ['points']
-    if parameter_array_length > 0:
+    if parameter_array_length > 1:
         parameter_column = ['parameters']
     else:
         parameter_column = []
