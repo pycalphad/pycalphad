@@ -232,7 +232,7 @@ class SundmanSolver(SolverBase):
         print('prescribed_system_amount', prescribed_system_amount)
         print('phase_amt', phase_amt)
         delta_statevars = np.zeros(num_statevars)
-        for iteration in range(50):
+        for iteration in range(20):
             current_elemental_amounts = np.zeros_like(chemical_potentials)
             # FIRST STEP: Update phase internal degrees of freedom
             for idx, compset in enumerate(compsets):
@@ -397,7 +397,7 @@ class SundmanSolver(SolverBase):
                         compset_idx = free_stable_compset_indices[i]
                         # Only fill this out if the current idx is equal to a free composition set
                         if compset_idx == idx:
-                            equilibrium_matrix[system_amount_index, free_variable_column_offset + i] = \
+                            equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
                                 masses_tmp[component_idx, 0]
                     free_variable_column_offset += free_stable_compset_indices.shape[0]
                     # 2a. This component row: free state variables
