@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.3+2.g7e167bf documentation</title>
+  <title>pycalphad.io.tdb &mdash; pycalphad 0.8.3+3.g023f957 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.3+2.g7e167bf
+                0.8.3+3.g023f957
               </div>
             
           
@@ -395,7 +395,8 @@
     <span class="c1"># PHASE</span>
     <span class="n">cmd_phase</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;PHASE&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">CharsNotIn</span><span class="p">(</span><span class="s1">&#39; !&#39;</span><span class="p">,</span> <span class="nb">min</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> \
-        <span class="n">Suppress</span><span class="p">(</span><span class="n">int_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">))</span> <span class="o">+</span> <span class="n">LineEnd</span><span class="p">()</span>
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">int_number</span><span class="p">)</span> <span class="o">+</span> <span class="n">Group</span><span class="p">(</span><span class="n">OneOrMore</span><span class="p">(</span><span class="n">float_number</span><span class="p">))</span> <span class="o">+</span> \
+        <span class="n">Suppress</span><span class="p">(</span><span class="n">SkipTo</span><span class="p">(</span><span class="n">LineEnd</span><span class="p">()))</span>
     <span class="c1"># CONSTITUENT</span>
     <span class="n">cmd_constituent</span> <span class="o">=</span> <span class="n">TCCommand</span><span class="p">(</span><span class="s1">&#39;CONSTITUENT&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">symbol_name</span> <span class="o">+</span> \
         <span class="n">Suppress</span><span class="p">(</span><span class="n">White</span><span class="p">())</span> <span class="o">+</span> <span class="n">Suppress</span><span class="p">(</span><span class="s1">&#39;:&#39;</span><span class="p">)</span> <span class="o">+</span> <span class="n">constituent_array</span> <span class="o">+</span> \

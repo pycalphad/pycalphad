@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad package &mdash; pycalphad 0.8.3+2.g7e167bf documentation</title>
+  <title>pycalphad package &mdash; pycalphad 0.8.3+3.g023f957 documentation</title>
   
 
   
@@ -64,7 +64,7 @@
             
             
               <div class="version">
-                0.8.3+2.g7e167bf
+                0.8.3+3.g023f957
               </div>
             
           
@@ -267,6 +267,17 @@ This will overwrite parameters specified in the database</p></li>
 
 <p class="rubric">Examples</p>
 <p>None yet.</p>
+<p class="rubric">Notes</p>
+<p>The two sublattice ionic liquid model has several special cases compared to
+typical models within the compound energy formalism. A few key differences
+arise. First, variable site ratios (modulated by vacancy site fractions)
+are used to charge balance the phase. Second, endmembers for neutral
+species and interactions among only neutral species should be specified
+using only one sublattice (dropping the cation sublattice). For
+understanding the special cases used throughout this class, users are
+referred to:
+Sundman, “Modification of the two-sublattice model for liquids”,
+Calphad 15(2) (1991) 109-119 <a class="reference external" href="https://doi.org/d3jppb">https://doi.org/d3jppb</a></p>
 <dl class="py method">
 <dt id="pycalphad.model.Model.CPM">
 <em class="property">property </em><code class="sig-name descname">CPM</code><a class="headerlink" href="#pycalphad.model.Model.CPM" title="Permalink to this definition">¶</a></dt>

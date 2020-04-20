@@ -8,7 +8,7 @@
   
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   
-  <title>pycalphad.model &mdash; pycalphad 0.8.3+2.g7e167bf documentation</title>
+  <title>pycalphad.model &mdash; pycalphad 0.8.3+3.g023f957 documentation</title>
   
 
   
@@ -62,7 +62,7 @@
             
             
               <div class="version">
-                0.8.3+2.g7e167bf
+                0.8.3+3.g023f957
               </div>
             
           
@@ -245,6 +245,21 @@
 <span class="sd">    Examples</span>
 <span class="sd">    --------</span>
 <span class="sd">    None yet.</span>
+
+<span class="sd">    Notes</span>
+<span class="sd">    -----</span>
+<span class="sd">    The two sublattice ionic liquid model has several special cases compared to</span>
+<span class="sd">    typical models within the compound energy formalism. A few key differences</span>
+<span class="sd">    arise. First, variable site ratios (modulated by vacancy site fractions)</span>
+<span class="sd">    are used to charge balance the phase. Second, endmembers for neutral</span>
+<span class="sd">    species and interactions among only neutral species should be specified</span>
+<span class="sd">    using only one sublattice (dropping the cation sublattice). For</span>
+<span class="sd">    understanding the special cases used throughout this class, users are</span>
+<span class="sd">    referred to:</span>
+<span class="sd">    Sundman, &quot;Modification of the two-sublattice model for liquids&quot;,</span>
+<span class="sd">    Calphad 15(2) (1991) 109-119 https://doi.org/d3jppb</span>
+
+
 <span class="sd">    &quot;&quot;&quot;</span>
     <span class="c1"># We only use the contributions attribute in build_phase.</span>
     <span class="c1"># Users should not access it later since subclasses can override build_phase</span>
@@ -581,7 +596,13 @@
 <span class="sd">        This species must also be an active species</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
+            <span class="c1"># species can be specified in the anion sublattice without any</span>
+            <span class="c1"># species in the cation sublattice.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
             <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span> <span class="o">!=</span> <span class="mi">1</span><span class="p">:</span>
                 <span class="k">return</span> <span class="kc">False</span>
@@ -595,7 +616,13 @@
 <span class="sd">        Check that the current array contains only active species.</span>
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
+            <span class="c1"># species can be specified in the anion sublattice without any</span>
+            <span class="c1"># species in the cation sublattice.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
             <span class="n">valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> \
                 <span class="ow">or</span> <span class="n">sublattice</span><span class="p">[</span><span class="mi">0</span><span class="p">]</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;*&#39;</span><span class="p">)</span>
@@ -610,7 +637,13 @@
 <span class="sd">        &quot;&quot;&quot;</span>
         <span class="n">result</span> <span class="o">=</span> <span class="kc">False</span>
         <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">constituent_array</span><span class="p">)</span> <span class="o">!=</span> <span class="nb">len</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">constituents</span><span class="p">):</span>
-            <span class="k">return</span> <span class="kc">False</span>
+            <span class="c1"># Allow an exception for the ionic liquid model, where neutral</span>
+            <span class="c1"># species can be specified in the anion sublattice without any</span>
+            <span class="c1"># species in the cation sublattice.</span>
+            <span class="k">if</span> <span class="bp">self</span><span class="o">.</span><span class="n">_dbe</span><span class="o">.</span><span class="n">phases</span><span class="p">[</span><span class="bp">self</span><span class="o">.</span><span class="n">phase_name</span><span class="p">]</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
+                <span class="k">pass</span>
+            <span class="k">else</span><span class="p">:</span>
+                <span class="k">return</span> <span class="kc">False</span>
         <span class="k">for</span> <span class="n">sublattice</span> <span class="ow">in</span> <span class="n">constituent_array</span><span class="p">:</span>
             <span class="c1"># check if all elements involved are also active</span>
             <span class="n">valid</span> <span class="o">=</span> <span class="nb">set</span><span class="p">(</span><span class="n">sublattice</span><span class="p">)</span><span class="o">.</span><span class="n">issubset</span><span class="p">(</span><span class="bp">self</span><span class="o">.</span><span class="n">components</span><span class="p">)</span> \
@@ -689,11 +722,41 @@
                         <span class="p">]</span>
                     <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Add</span><span class="p">(</span><span class="o">*</span><span class="n">comp_symbols</span><span class="p">)</span>
                 <span class="k">else</span><span class="p">:</span>
+                    <span class="k">if</span> <span class="p">(</span>
+                        <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">)</span> <span class="ow">and</span>  <span class="c1"># This is an ionic 2SL</span>
+                        <span class="nb">len</span><span class="p">(</span><span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span> <span class="ow">and</span>  <span class="c1"># There&#39;s only one sublattice</span>
+                        <span class="nb">all</span><span class="p">(</span><span class="n">const</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">const</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">][</span><span class="mi">0</span><span class="p">])</span>  <span class="c1"># All constituents are neutral</span>
+                    <span class="p">):</span>
+                        <span class="c1"># The constituent array is all neutral anion species in what would be the</span>
+                        <span class="c1"># second sublattice. TDB syntax allows for specifying neutral species with</span>
+                        <span class="c1"># one sublattice model. Set the sublattice index to 1 for the purpose of</span>
+                        <span class="c1"># site fractions.</span>
+                        <span class="n">subl_index</span> <span class="o">=</span> <span class="mi">1</span>
                     <span class="n">comp_symbols</span> <span class="o">=</span> \
                         <span class="p">[</span>
                             <span class="n">v</span><span class="o">.</span><span class="n">SiteFraction</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">name</span><span class="p">,</span> <span class="n">subl_index</span><span class="p">,</span> <span class="n">comp</span><span class="p">)</span>
                             <span class="k">for</span> <span class="n">comp</span> <span class="ow">in</span> <span class="n">comps</span>
                         <span class="p">]</span>
+                    <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>  <span class="c1"># This is an ionic 2SL</span>
+                        <span class="c1"># We need to special case sorting for this model, because the constituents</span>
+                        <span class="c1"># should not be alphabetically sorted. The model should be (C)(A, Va, B)</span>
+                        <span class="c1"># for cations (C), anions (A), vacancies (Va) and neutrals (B). Thus the</span>
+                        <span class="c1"># second sublattice should be sorted by species with charge, then by</span>
+                        <span class="c1"># vacancies, if present, then by neutrals. Hint: in Thermo-Calc, using</span>
+                        <span class="c1"># `set-start-constitution` for a phase will prompt you to enter site</span>
+                        <span class="c1"># fractions for species in the order they are sorted internally within</span>
+                        <span class="c1"># Thermo-Calc. This can be used to verify sorting behavior.</span>
+
+                        <span class="c1"># Assume that the constituent array is already in sorted order</span>
+                        <span class="c1"># alphabetically, so we need to rearrange the species first by charged</span>
+                        <span class="c1"># species, then VA, then netural species. Since the cation sublattice</span>
+                        <span class="c1"># should only have charged species by definition, this is equivalent to</span>
+                        <span class="c1"># a no-op for the first sublattice.</span>
+                        <span class="n">charged_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sitefrac</span> <span class="k">for</span> <span class="n">sitefrac</span> <span class="ow">in</span> <span class="n">comp_symbols</span> <span class="k">if</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">!=</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+                        <span class="n">va_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sitefrac</span> <span class="k">for</span> <span class="n">sitefrac</span> <span class="ow">in</span> <span class="n">comp_symbols</span> <span class="k">if</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span> <span class="o">==</span> <span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)]</span>
+                        <span class="n">neutral_symbols</span> <span class="o">=</span> <span class="p">[</span><span class="n">sitefrac</span> <span class="k">for</span> <span class="n">sitefrac</span> <span class="ow">in</span> <span class="n">comp_symbols</span> <span class="k">if</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">==</span> <span class="mi">0</span> <span class="ow">and</span> <span class="n">sitefrac</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">number_of_atoms</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">]</span>
+                        <span class="n">comp_symbols</span> <span class="o">=</span> <span class="n">charged_symbols</span> <span class="o">+</span> <span class="n">va_symbols</span> <span class="o">+</span> <span class="n">neutral_symbols</span>
+
                     <span class="n">mixing_term</span> <span class="o">*=</span> <span class="n">Mul</span><span class="p">(</span><span class="o">*</span><span class="n">comp_symbols</span><span class="p">)</span>
                 <span class="c1"># is this a higher-order interaction parameter?</span>
                 <span class="k">if</span> <span class="nb">len</span><span class="p">(</span><span class="n">comps</span><span class="p">)</span> <span class="o">==</span> <span class="mi">2</span> <span class="ow">and</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;parameter_order&#39;</span><span class="p">]</span> <span class="o">&gt;</span> <span class="mi">0</span><span class="p">:</span>
@@ -746,12 +809,14 @@
                         <span class="n">simultaneous</span><span class="o">=</span><span class="kc">True</span><span class="p">)</span>
             <span class="k">if</span> <span class="n">phase</span><span class="o">.</span><span class="n">model_hints</span><span class="o">.</span><span class="n">get</span><span class="p">(</span><span class="s1">&#39;ionic_liquid_2SL&#39;</span><span class="p">,</span> <span class="kc">False</span><span class="p">):</span>
                 <span class="c1"># Special normalization rules for parameters apply under this model</span>
-                <span class="c1"># Reference: Bo Sundman, &quot;Modification of the two-sublattice model for liquids&quot;,</span>
-                <span class="c1"># Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916</span>
-                <span class="k">if</span> <span class="ow">not</span> <span class="nb">any</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">]):</span>
+                <span class="c1"># If there are no anions present in the anion sublattice (only VA and neutral</span>
+                <span class="c1"># species), then the energy has an additional Q*y(VA) term</span>
+                <span class="n">anions_present</span> <span class="o">=</span> <span class="nb">any</span><span class="p">([</span><span class="n">m</span><span class="o">.</span><span class="n">species</span><span class="o">.</span><span class="n">charge</span> <span class="o">&lt;</span> <span class="mi">0</span> <span class="k">for</span> <span class="n">m</span> <span class="ow">in</span> <span class="n">mixing_term</span><span class="o">.</span><span class="n">free_symbols</span><span class="p">])</span>
+                <span class="k">if</span> <span class="ow">not</span> <span class="n">anions_present</span><span class="p">:</span>
                     <span class="n">pair_rule</span> <span class="o">=</span> <span class="p">{}</span>
                     <span class="c1"># Cation site fractions must always appear with vacancy site fractions</span>
                     <span class="n">va_subls</span> <span class="o">=</span> <span class="p">[(</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">[</span><span class="n">idx</span><span class="p">])</span> <span class="k">for</span> <span class="n">idx</span> <span class="ow">in</span> <span class="nb">range</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">))]</span>
+                    <span class="c1"># The last index that contains a vacancy</span>
                     <span class="n">va_subl_idx</span> <span class="o">=</span> <span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">phase</span><span class="o">.</span><span class="n">constituents</span><span class="p">)</span> <span class="o">-</span> <span class="mi">1</span><span class="p">)</span> <span class="o">-</span> <span class="n">va_subls</span><span class="p">[::</span><span class="o">-</span><span class="mi">1</span><span class="p">]</span><span class="o">.</span><span class="n">index</span><span class="p">(</span><span class="kc">True</span><span class="p">)</span>
                     <span class="n">va_present</span> <span class="o">=</span> <span class="nb">any</span><span class="p">((</span><span class="n">v</span><span class="o">.</span><span class="n">Species</span><span class="p">(</span><span class="s1">&#39;VA&#39;</span><span class="p">)</span> <span class="ow">in</span> <span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">])</span>
                     <span class="k">if</span> <span class="n">va_present</span> <span class="ow">and</span> <span class="p">(</span><span class="nb">max</span><span class="p">(</span><span class="nb">len</span><span class="p">(</span><span class="n">c</span><span class="p">)</span> <span class="k">for</span> <span class="n">c</span> <span class="ow">in</span> <span class="n">param</span><span class="p">[</span><span class="s1">&#39;constituent_array&#39;</span><span class="p">])</span> <span class="o">==</span> <span class="mi">1</span><span class="p">):</span>
