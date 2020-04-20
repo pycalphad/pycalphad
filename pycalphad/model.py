@@ -88,6 +88,21 @@ class Model(object):
     Examples
     --------
     None yet.
+
+    Notes
+    -----
+    The two sublattice ionic liquid model has several special cases compared to
+    typical models within the compound energy formalism. A few key differences
+    arise. First, variable site ratios (modulated by vacancy site fractions)
+    are used to charge balance the phase. Second, endmembers for neutral
+    species and interactions among only neutral species should be specified
+    using only one sublattice (dropping the cation sublattice). For
+    understanding the special cases used throughout this class, users are
+    referred to:
+    Sundman, "Modification of the two-sublattice model for liquids",
+    Calphad 15(2) (1991) 109-119 https://doi.org/d3jppb
+
+
     """
     # We only use the contributions attribute in build_phase.
     # Users should not access it later since subclasses can override build_phase
@@ -424,7 +439,13 @@ class Model(object):
         This species must also be an active species
         """
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             if len(sublattice) != 1:
                 return False
@@ -438,7 +459,13 @@ class Model(object):
         Check that the current array contains only active species.
         """
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             valid = set(sublattice).issubset(self.components) \
                 or sublattice[0] == v.Species('*')
@@ -453,7 +480,13 @@ class Model(object):
         """
         result = False
         if len(constituent_array) != len(self.constituents):
-            return False
+            # Allow an exception for the ionic liquid model, where neutral
+            # species can be specified in the anion sublattice without any
+            # species in the cation sublattice.
+            if self._dbe.phases[self.phase_name].model_hints.get('ionic_liquid_2SL', False):
+                pass
+            else:
+                return False
         for sublattice in constituent_array:
             # check if all elements involved are also active
             valid = set(sublattice).issubset(self.components) \
@@ -532,11 +565,41 @@ class Model(object):
                         ]
                     mixing_term *= Add(*comp_symbols)
                 else:
+                    if (
+                        phase.model_hints.get('ionic_liquid_2SL', False) and  # This is an ionic 2SL
+                        len(param['constituent_array']) == 1 and  # There's only one sublattice
+                        all(const.charge == 0 for const in param['constituent_array'][0])  # All constituents are neutral
+                    ):
+                        # The constituent array is all neutral anion species in what would be the
+                        # second sublattice. TDB syntax allows for specifying neutral species with
+                        # one sublattice model. Set the sublattice index to 1 for the purpose of
+                        # site fractions.
+                        subl_index = 1
                     comp_symbols = \
                         [
                             v.SiteFraction(phase.name, subl_index, comp)
                             for comp in comps
                         ]
+                    if phase.model_hints.get('ionic_liquid_2SL', False):  # This is an ionic 2SL
+                        # We need to special case sorting for this model, because the constituents
+                        # should not be alphabetically sorted. The model should be (C)(A, Va, B)
+                        # for cations (C), anions (A), vacancies (Va) and neutrals (B). Thus the
+                        # second sublattice should be sorted by species with charge, then by
+                        # vacancies, if present, then by neutrals. Hint: in Thermo-Calc, using
+                        # `set-start-constitution` for a phase will prompt you to enter site
+                        # fractions for species in the order they are sorted internally within
+                        # Thermo-Calc. This can be used to verify sorting behavior.
+
+                        # Assume that the constituent array is already in sorted order
+                        # alphabetically, so we need to rearrange the species first by charged
+                        # species, then VA, then netural species. Since the cation sublattice
+                        # should only have charged species by definition, this is equivalent to
+                        # a no-op for the first sublattice.
+                        charged_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge != 0 and sitefrac.species.number_of_atoms > 0]
+                        va_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species == v.Species('VA')]
+                        neutral_symbols = [sitefrac for sitefrac in comp_symbols if sitefrac.species.charge == 0 and sitefrac.species.number_of_atoms > 0]
+                        comp_symbols = charged_symbols + va_symbols + neutral_symbols
+
                     mixing_term *= Mul(*comp_symbols)
                 # is this a higher-order interaction parameter?
                 if len(comps) == 2 and param['parameter_order'] > 0:
@@ -589,12 +652,14 @@ class Model(object):
                         simultaneous=True)
             if phase.model_hints.get('ionic_liquid_2SL', False):
                 # Special normalization rules for parameters apply under this model
-                # Reference: Bo Sundman, "Modification of the two-sublattice model for liquids",
-                # Calphad, Volume 15, Issue 2, 1991, Pages 109-119, ISSN 0364-5916
-                if not any([m.species.charge < 0 for m in mixing_term.free_symbols]):
+                # If there are no anions present in the anion sublattice (only VA and neutral
+                # species), then the energy has an additional Q*y(VA) term
+                anions_present = any([m.species.charge < 0 for m in mixing_term.free_symbols])
+                if not anions_present:
                     pair_rule = {}
                     # Cation site fractions must always appear with vacancy site fractions
                     va_subls = [(v.Species('VA') in phase.constituents[idx]) for idx in range(len(phase.constituents))]
+                    # The last index that contains a vacancy
                     va_subl_idx = (len(phase.constituents) - 1) - va_subls[::-1].index(True)
                     va_present = any((v.Species('VA') in c) for c in param['constituent_array'])
                     if va_present and (max(len(c) for c in param['constituent_array']) == 1):
