@@ -238,6 +238,9 @@ class SundmanSolver(SolverBase):
             current_elemental_amounts = np.zeros_like(chemical_potentials)
             all_phase_energies = np.zeros((len(compsets), 1))
             all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
+            largest_statevar_change = 0
+            largest_internal_dof_change = 0
+            largest_phase_amt_change = 0
             # FIRST STEP: Update phase internal degrees of freedom
             for idx, compset in enumerate(compsets):
                 # TODO: Use better dof storage
@@ -273,6 +276,7 @@ class SundmanSolver(SolverBase):
                 if not freeze_phase_internal_dof:
                     soln = np.linalg.solve(phase_matrix, rhs)
                     delta_y = soln[:compset.phase_record.phase_dof]
+                    largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(delta_y)))
                     old_y = np.array(x[num_statevars:])
                     new_y = old_y + delta_y
                     new_y[new_y < 1e-15] = 1e-15
@@ -451,21 +455,29 @@ class SundmanSolver(SolverBase):
             soln_index_offset = 0
             for i in range(free_chemical_potential_indices.shape[0]):
                 chempot_idx = free_chemical_potential_indices[i]
+                chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
+                percent_chempot_change = abs(chempot_change / chemical_potentials[chempot_idx])
                 chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
+                largest_statevar_change = max(largest_statevar_change, percent_chempot_change)
             soln_index_offset += free_chemical_potential_indices.shape[0]
             for i in range(free_stable_compset_indices.shape[0]):
                 compset_idx = free_stable_compset_indices[i]
+                phase_amt_change = float(phase_amt[compset_idx])
                 phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
+                phase_amt[compset_idx] = np.minimum(1.0, phase_amt[compset_idx])
+                phase_amt[compset_idx] = np.maximum(0.0, phase_amt[compset_idx])
+                phase_amt_change = phase_amt[compset_idx] - phase_amt_change
+                largest_phase_amt_change = max(largest_phase_amt_change, phase_amt_change)
                 print('Updating phase_amt for compset ', compset_idx, ' by ', equilibrium_soln[soln_index_offset + i])
-
-            phase_amt[phase_amt < 0] = 0
-            phase_amt[phase_amt > 1] = 1
 
             soln_index_offset += free_stable_compset_indices.shape[0]
             delta_statevars[:] = 0
             for i in range(free_statevar_indices.shape[0]):
                 statevar_idx = free_statevar_indices[i]
                 delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
+            percent_statevar_changes = np.abs(delta_statevars / dof[0][:num_statevars])
+            percent_statevar_changes[np.isnan(percent_statevar_changes)] = 0
+            largest_statevar_change = max(largest_statevar_change, np.max(percent_statevar_changes))
             for idx in range(len(dof)):
                 dof[idx][:num_statevars] += delta_statevars
 
@@ -474,19 +486,32 @@ class SundmanSolver(SolverBase):
             #
             system_is_feasible = mass_residual < 1e-9
             print('system_is_feasible', system_is_feasible)
+            print('largest_internal_dof_change', largest_internal_dof_change)
+            print('largest_phase_amt_change', largest_phase_amt_change)
+            print('largest_statevar_change', largest_statevar_change)
             if system_is_feasible:
                 freeze_phase_internal_dof = False
+                print('freeze_phase_internal_dof = False', freeze_phase_internal_dof)
                 iterations_since_phase_change = 0
                 free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
                 # Check driving forces for metastable phases
                 for idx in range(len(compsets)):
                     all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
                 print('Driving Forces: ', all_phase_energies[:, 0])
-                minimum_driving_force_to_add = 1e-3
-                compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > minimum_driving_force_to_add)[0])
-                if len(compsets_to_add) > 0:
+                compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > -1e-5)[0])
+                current_free_stable_compset_indices = free_stable_compset_indices
+                new_free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
+                if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) != 0:
                     freeze_phase_internal_dof = True
-                free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
+                    print('freeze_phase_internal_dof = True', freeze_phase_internal_dof)
+                else:
+                    # feasible system, and no phases to add or remove
+                    if (largest_internal_dof_change < 1e-6) and (largest_phase_amt_change < 1e-10) and \
+                        (largest_statevar_change < 1e-3):
+                        converged = True
+                        print('CONVERGED')
+                        break
+                free_stable_compset_indices = new_free_stable_compset_indices
             else:
                 iterations_since_phase_change += 1
             print('free_stable_compset_indices', free_stable_compset_indices)
@@ -498,8 +523,8 @@ class SundmanSolver(SolverBase):
             x = np.r_[x, cs_dof[num_statevars:]]
         x = np.r_[x, phase_amt]
         print('Result x', x)
-        chemical_potentials = prob.chemical_potentials(x)
 
+        # TODO: Do not force convergence
         converged = True
         if self.verbose:
             print('Chemical Potentials', chemical_potentials)
