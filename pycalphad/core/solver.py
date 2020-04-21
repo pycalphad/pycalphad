@@ -233,6 +233,7 @@ class SundmanSolver(SolverBase):
         print('phase_amt', phase_amt)
         delta_statevars = np.zeros(num_statevars)
         iterations_since_phase_change = 0
+        freeze_phase_internal_dof = False
         for iteration in range(100):
             current_elemental_amounts = np.zeros_like(chemical_potentials)
             all_phase_energies = np.zeros((len(compsets), 1))
@@ -269,13 +270,14 @@ class SundmanSolver(SolverBase):
                 for comp_idx in range(num_components):
                     compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
                 rhs[:compset.phase_record.phase_dof] += mass_jac_tmp.T[num_statevars:].dot(chemical_potentials)
-                soln = np.linalg.solve(phase_matrix, rhs)
-                delta_y = soln[:compset.phase_record.phase_dof]
-                old_y = np.array(x[num_statevars:])
-                new_y = old_y + delta_y
-                new_y[new_y < 1e-15] = 1e-15
-                new_y[new_y > 1] = 1
-                x[num_statevars:] = new_y
+                if not freeze_phase_internal_dof:
+                    soln = np.linalg.solve(phase_matrix, rhs)
+                    delta_y = soln[:compset.phase_record.phase_dof]
+                    old_y = np.array(x[num_statevars:])
+                    new_y = old_y + delta_y
+                    new_y[new_y < 1e-15] = 1e-15
+                    new_y[new_y > 1] = 1
+                    x[num_statevars:] = new_y
 
                 masses_tmp = np.zeros((num_components, 1))
                 for comp_idx in range(num_components):
@@ -473,6 +475,7 @@ class SundmanSolver(SolverBase):
             system_is_feasible = mass_residual < 1e-9
             print('system_is_feasible', system_is_feasible)
             if system_is_feasible:
+                freeze_phase_internal_dof = False
                 iterations_since_phase_change = 0
                 free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
                 # Check driving forces for metastable phases
@@ -481,12 +484,9 @@ class SundmanSolver(SolverBase):
                 print('Driving Forces: ', all_phase_energies[:, 0])
                 minimum_driving_force_to_add = 1e-3
                 compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > minimum_driving_force_to_add)[0])
+                if len(compsets_to_add) > 0:
+                    freeze_phase_internal_dof = True
                 free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
-            elif iterations_since_phase_change > 10:
-                # System is not converging; try removing unstable phases
-                iterations_since_phase_change = 0
-                print('Unstable Phase Check')
-                free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
             else:
                 iterations_since_phase_change += 1
             print('free_stable_compset_indices', free_stable_compset_indices)
