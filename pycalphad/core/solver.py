@@ -232,8 +232,11 @@ class SundmanSolver(SolverBase):
         print('prescribed_system_amount', prescribed_system_amount)
         print('phase_amt', phase_amt)
         delta_statevars = np.zeros(num_statevars)
-        for iteration in range(20):
+        iterations_since_phase_change = 0
+        for iteration in range(100):
             current_elemental_amounts = np.zeros_like(chemical_potentials)
+            all_phase_energies = np.zeros((len(compsets), 1))
+            all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
             # FIRST STEP: Update phase internal degrees of freedom
             for idx, compset in enumerate(compsets):
                 # TODO: Use better dof storage
@@ -277,8 +280,10 @@ class SundmanSolver(SolverBase):
                 masses_tmp = np.zeros((num_components, 1))
                 for comp_idx in range(num_components):
                     compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
+                    all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
                     if phase_amt[idx] > 0:
                         current_elemental_amounts[comp_idx] += phase_amt[idx] * masses_tmp[comp_idx, 0]
+                compset.phase_record.obj(all_phase_energies[idx, :], x)
                 # print(compset.phase_record.phase_name, idx, new_y)
             # SECOND STEP: Update potentials and phase amounts, according to conditions
             num_stable_phases = free_stable_compset_indices.shape[0]
@@ -427,6 +432,7 @@ class SundmanSolver(SolverBase):
                                                   c_component[chempot_idx, :])
 
             # Add mass residual to fixed component row RHS, plus N=1 row
+            mass_residual = 0.0
             component_row_offset = num_stable_phases
             system_amount_index = component_row_offset + num_fixed_components
             current_system_amount = float(phase_amt.sum())
@@ -435,10 +441,10 @@ class SundmanSolver(SolverBase):
             print('current_elemental_amounts', current_elemental_amounts)
             for fixed_component_idx in range(num_fixed_components):
                 component_idx = prescribed_element_indices[fixed_component_idx]
+                mass_residual += abs(current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx])
                 equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
+            mass_residual += abs(current_system_amount - prescribed_system_amount)
             equilibrium_rhs[system_amount_index] -= current_system_amount - prescribed_system_amount
-            print('equilibrium_matrix', equilibrium_matrix)
-            print('equilibrium_rhs', equilibrium_rhs)
             equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs)[0]
             soln_index_offset = 0
             for i in range(free_chemical_potential_indices.shape[0]):
@@ -448,6 +454,10 @@ class SundmanSolver(SolverBase):
             for i in range(free_stable_compset_indices.shape[0]):
                 compset_idx = free_stable_compset_indices[i]
                 phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
+                print('Updating phase_amt for compset ', compset_idx, ' by ', equilibrium_soln[soln_index_offset + i])
+
+            phase_amt[phase_amt < 0] = 0
+            phase_amt[phase_amt > 1] = 1
 
             soln_index_offset += free_stable_compset_indices.shape[0]
             delta_statevars[:] = 0
@@ -456,13 +466,31 @@ class SundmanSolver(SolverBase):
                 delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
             for idx in range(len(dof)):
                 dof[idx][:num_statevars] += delta_statevars
-            free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
-            # TODO: This is not the right way to deal with changing phases
-            phase_amt[phase_amt < 0] = 0
-            phase_amt[phase_amt > 1] = 1
-            #for idx in range(len(compsets)):
-            #    print(idx, 'delta y LHS', true_delta_y[idx])
-            #    print(idx, 'delta y RHS', true_delta_y_rhs_debug[idx])
+
+            # Wait for mass balance to be satisfied before changing phases
+            # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
+            #
+            system_is_feasible = mass_residual < 1e-9
+            print('system_is_feasible', system_is_feasible)
+            if system_is_feasible:
+                iterations_since_phase_change = 0
+                free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
+                # Check driving forces for metastable phases
+                for idx in range(len(compsets)):
+                    all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
+                print('Driving Forces: ', all_phase_energies[:, 0])
+                minimum_driving_force_to_add = 1e-3
+                compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > minimum_driving_force_to_add)[0])
+                free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
+            elif iterations_since_phase_change > 10:
+                # System is not converging; try removing unstable phases
+                iterations_since_phase_change = 0
+                print('Unstable Phase Check')
+                free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
+            else:
+                iterations_since_phase_change += 1
+            print('free_stable_compset_indices', free_stable_compset_indices)
+
             print('NP', phase_amt, 'MU', chemical_potentials, 'statevars', dof[0][:num_statevars])
 
         x = dof[0]

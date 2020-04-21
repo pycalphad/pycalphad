@@ -294,7 +294,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
         # Remove duplicate phases -- we will add them back later
-        remove_degenerate_phases(composition_sets, [], 0.5, 100, verbose)
+        remove_degenerate_phases(composition_sets, [], 1e-3, 100, verbose)
         iterations = 0
         history = []
         while (iterations < 10) and (not iter_solver.ignore_convergence):
