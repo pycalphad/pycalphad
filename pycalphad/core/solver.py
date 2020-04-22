@@ -279,7 +279,7 @@ class SundmanSolver(SolverBase):
                     largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(delta_y)))
                     old_y = np.array(x[num_statevars:])
                     new_y = old_y + delta_y
-                    new_y[new_y < 1e-15] = 1e-15
+                    new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
                     new_y[new_y > 1] = 1
                     x[num_statevars:] = new_y
 
@@ -450,7 +450,9 @@ class SundmanSolver(SolverBase):
                 equilibrium_rhs[component_row_offset + fixed_component_idx] -= current_elemental_amounts[component_idx] - prescribed_elemental_amounts[fixed_component_idx]
             mass_residual += abs(current_system_amount - prescribed_system_amount)
             equilibrium_rhs[system_amount_index] -= current_system_amount - prescribed_system_amount
-            equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs)[0]
+            equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs)
+            print('equilibrium_soln singular values', equilibrium_soln[3])
+            equilibrium_soln = equilibrium_soln[0]
             soln_index_offset = 0
             for i in range(free_chemical_potential_indices.shape[0]):
                 chempot_idx = free_chemical_potential_indices[i]
