@@ -399,17 +399,16 @@ class SundmanSolver(SolverBase):
                     # 2a. This component row: free chemical potentials
                     for i in range(free_chemical_potential_indices.shape[0]):
                         chempot_idx = free_chemical_potential_indices[i]
-                        equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
-                            phase_amt[idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
-                                                    c_component[chempot_idx, :])
+                        #equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
+                        #    phase_amt[idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
+                        #                            c_component[chempot_idx, :])
                     free_variable_column_offset += free_chemical_potential_indices.shape[0]
                     # 2a. This component row: free stable composition sets
                     for i in range(free_stable_compset_indices.shape[0]):
                         compset_idx = free_stable_compset_indices[i]
                         # Only fill this out if the current idx is equal to a free composition set
                         if compset_idx == idx:
-                            equilibrium_matrix[system_amount_index, free_variable_column_offset + i] += \
-                                masses_tmp[component_idx, 0]
+                            equilibrium_matrix[system_amount_index, free_variable_column_offset + i] = 1
                     free_variable_column_offset += free_stable_compset_indices.shape[0]
                     # 2a. This component row: free state variables
                     for i in range(free_statevar_indices.shape[0]):
@@ -432,10 +431,10 @@ class SundmanSolver(SolverBase):
                         equilibrium_rhs[component_row_offset + fixed_component_idx] -= phase_amt[idx] * chemical_potentials[
                             chempot_idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
                                                   c_component[chempot_idx, :])
-                    for component_idx in range(num_components):
-                        equilibrium_rhs[system_amount_index] -= phase_amt[idx] * chemical_potentials[
-                            chempot_idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
-                                                  c_component[chempot_idx, :])
+                    #for component_idx in range(num_components):
+                    #    equilibrium_rhs[system_amount_index] -= phase_amt[idx] * chemical_potentials[
+                    #        chempot_idx] * np.dot(mass_jac_tmp[component_idx, num_statevars:],
+                    #                             c_component[chempot_idx, :])
 
             # Add mass residual to fixed component row RHS, plus N=1 row
             mass_residual = 0.0
@@ -484,7 +483,7 @@ class SundmanSolver(SolverBase):
             # Wait for mass balance to be satisfied before changing phases
             # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
             #
-            system_is_feasible = mass_residual < 1e-9
+            system_is_feasible = mass_residual < 1e-10
             print('system_is_feasible', system_is_feasible)
             print('largest_internal_dof_change', largest_internal_dof_change)
             print('largest_phase_amt_change', largest_phase_amt_change)
@@ -506,7 +505,7 @@ class SundmanSolver(SolverBase):
                     print('freeze_phase_internal_dof = True', freeze_phase_internal_dof)
                 else:
                     # feasible system, and no phases to add or remove
-                    if (largest_internal_dof_change < 1e-6) and (largest_phase_amt_change < 1e-10) and \
+                    if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change < 1e-10) and \
                         (largest_statevar_change < 1e-3):
                         converged = True
                         print('CONVERGED')
