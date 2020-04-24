@@ -240,8 +240,7 @@ def find_solution(compsets, free_stable_compset_indices,
                                                                                fixed_component_idx]
         mass_residual += abs(current_system_amount - prescribed_system_amount)
         equilibrium_rhs[system_amount_index] -= current_system_amount - prescribed_system_amount
-        equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs)
-        print('equilibrium_soln singular values', equilibrium_soln[3])
+        equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=None)
         equilibrium_soln = equilibrium_soln[0]
         soln_index_offset = 0
         for i in range(free_chemical_potential_indices.shape[0]):

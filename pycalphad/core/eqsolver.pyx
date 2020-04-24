@@ -7,7 +7,7 @@ cdef extern from "_isnan.h":
     bint isnan (double) nogil
 import scipy.spatial
 from pycalphad.core.problem cimport Problem
-from pycalphad.core.solver import InteriorPointSolver
+from pycalphad.core.solver import SundmanSolver
 from pycalphad.core.composition_set cimport CompositionSet
 from pycalphad.core.phase_rec cimport PhaseRecord
 from pycalphad.core.constants import *
@@ -226,7 +226,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
     cdef np.ndarray[ndim=1, dtype=np.float64_t] p_y, l_constraints, step, chemical_potentials
     cdef np.ndarray[ndim=1, dtype=np.float64_t] site_fracs, l_multipliers, phase_fracs
     cdef np.ndarray[ndim=2, dtype=np.float64_t] constraint_jac
-    iter_solver = solver if solver is not None else InteriorPointSolver(verbose=verbose)
+    iter_solver = solver if solver is not None else SundmanSolver(verbose=verbose)
     for key, value in phase_records.items():
         if not isinstance(phase_records[key], PhaseRecord):
             phase_records[key] = PhaseRecord(comps, value.state_variables, value.variables,
@@ -294,7 +294,7 @@ def _solve_eq_at_conditions(comps, properties, phase_records, grid, conds_keys, 
         chemical_potentials = prop_MU_values[it.multi_index]
         energy = prop_GM_values[it.multi_index]
         # Remove duplicate phases -- we will add them back later
-        #remove_degenerate_phases(composition_sets, [], 1e-4, 100, verbose)
+        remove_degenerate_phases(composition_sets, [], 1e-2, 100, verbose)
         iterations = 0
         history = []
         while (iterations < 10) and (not iter_solver.ignore_convergence):
