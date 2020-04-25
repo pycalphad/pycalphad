@@ -241,6 +241,19 @@ def extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars
         dof[idx][:num_statevars] += delta_statevars
 
 
+def check_convergence_and_change_phases(current_free_stable_compset_indices, driving_forces,
+                                        largest_internal_dof_change, largest_phase_amt_change, largest_statevar_change):
+    compsets_to_add = set(np.nonzero(driving_forces[:, 0] > -1e-5)[0])
+    new_free_stable_compset_indices = np.array(sorted(set(current_free_stable_compset_indices) | compsets_to_add))
+    converged = False
+    if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) == 0:
+        # feasible system, and no phases to add or remove
+        if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change[0, 0] < 1e-10) and \
+                (largest_statevar_change[0, 0] < 1e-3):
+            converged = True
+    return converged, new_free_stable_compset_indices
+
+
 def find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
@@ -250,7 +263,6 @@ def find_solution(compsets, free_stable_compset_indices,
     dof = [np.array(compset.dof) for compset in compsets]
     chemical_potentials = np.array(initial_chemical_potentials)
     delta_statevars = np.zeros(num_statevars)
-    iterations_since_phase_change = 0
 
     for iteration in range(100):
         current_elemental_amounts = np.zeros_like(chemical_potentials)
@@ -316,27 +328,16 @@ def find_solution(compsets, free_stable_compset_indices,
         #
         system_is_feasible = mass_residual < 1e-10
         if system_is_feasible:
-            freeze_phase_internal_dof = False
-            iterations_since_phase_change = 0
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
             # Check driving forces for metastable phases
             for idx in range(len(compsets)):
                 all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
-            compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > -1e-5)[0])
-            current_free_stable_compset_indices = free_stable_compset_indices
-            new_free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
-            if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) != 0:
-                freeze_phase_internal_dof = True
-            else:
-                # feasible system, and no phases to add or remove
-                if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change[0, 0] < 1e-10) and \
-                        (largest_statevar_change[0, 0] < 1e-3):
-                    converged = True
-                    print('CONVERGED')
-                    break
+            converged, new_free_stable_compset_indices = \
+                check_convergence_and_change_phases(free_stable_compset_indices, all_phase_energies,
+                                                    largest_internal_dof_change, largest_phase_amt_change,
+                                                    largest_statevar_change)
             free_stable_compset_indices = new_free_stable_compset_indices
-        else:
-            iterations_since_phase_change += 1
+
         print('free_stable_compset_indices', free_stable_compset_indices)
         print('NP', phase_amt, 'MU', chemical_potentials, 'statevars', dof[0][:num_statevars])
 
