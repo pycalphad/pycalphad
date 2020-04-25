@@ -2,6 +2,44 @@ import numpy as np
 from pycalphad.core.constants import MIN_SITE_FRACTION
 
 
+def compute_phase_matrix(phase_matrix, hess, compset, num_statevars, phase_dof):
+    "Compute the LHS of Eq. 41, Sundman 2015."
+    cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
+                             num_statevars + compset.phase_record.phase_dof))
+    compset.phase_record.internal_cons_jac(cons_jac_tmp, phase_dof)
+    phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess[
+                                                                                     num_statevars:,
+                                                                                     num_statevars:]
+
+    phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
+                                                                                     num_statevars:]
+    phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
+                                                                                     num_statevars:].T
+
+
+def compute_phase_system(phase_matrix, phase_rhs, compset, delta_statevars, chemical_potentials, phase_dof):
+    "Compute the system of equations in Eq. 41, Sundman 2015."
+    num_statevars = delta_statevars.shape[0]
+    num_components = chemical_potentials.shape[0]
+    grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+    mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
+    hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
+                         num_statevars + compset.phase_record.phase_dof))
+
+    compset.phase_record.hess(hess_tmp, phase_dof)
+    compset.phase_record.grad(grad_tmp, phase_dof)
+
+    for comp_idx in range(num_components):
+        compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], phase_dof, comp_idx)
+
+    compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, phase_dof)
+
+    # Compute right-hand side of Eq. 41, Sundman 2015
+    phase_rhs[:compset.phase_record.phase_dof] = -grad_tmp[num_statevars:]
+    phase_rhs[:compset.phase_record.phase_dof] -= np.dot(hess_tmp[num_statevars:, :num_statevars],
+                                                         delta_statevars)
+    phase_rhs[:compset.phase_record.phase_dof] += mass_jac_tmp.T[num_statevars:].dot(chemical_potentials)
+
 def find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
@@ -19,7 +57,7 @@ def find_solution(compsets, free_stable_compset_indices,
     #print('phase_amt', phase_amt)
     delta_statevars = np.zeros(num_statevars)
     iterations_since_phase_change = 0
-    freeze_phase_internal_dof = False
+
     for iteration in range(100):
         current_elemental_amounts = np.zeros_like(chemical_potentials)
         all_phase_energies = np.zeros((len(compsets), 1))
@@ -31,45 +69,22 @@ def find_solution(compsets, free_stable_compset_indices,
         for idx, compset in enumerate(compsets):
             # TODO: Use better dof storage
             x = dof[idx]
+            masses_tmp = np.zeros((num_components, 1))
             # Compute phase matrix (LHS of Eq. 41, Sundman 2015)
             phase_matrix = np.zeros((compset.phase_record.phase_dof + compset.phase_record.num_internal_cons,
                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
-            hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
-                                 num_statevars + compset.phase_record.phase_dof))
-            cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
-                                     num_statevars + compset.phase_record.phase_dof))
-            compset.phase_record.hess(hess_tmp, x)
-            phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess_tmp[
-                                                                                             num_statevars:,
-                                                                                             num_statevars:]
-            compset.phase_record.internal_cons_jac(cons_jac_tmp, x)
-            phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
-                                                                                             num_statevars:]
-            phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
-                                                                                             num_statevars:].T
-
-            # Compute right-hand side of Eq. 41, Sundman 2015
             rhs = np.zeros(compset.phase_record.phase_dof + compset.phase_record.num_internal_cons)
-            grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
-            compset.phase_record.grad(grad_tmp, x)
-            rhs[:compset.phase_record.phase_dof] = -grad_tmp[num_statevars:]
-            rhs[:compset.phase_record.phase_dof] -= np.dot(hess_tmp[num_statevars:, :num_statevars],
-                                                           delta_statevars)
-            mass_jac_tmp = np.zeros((num_components, num_statevars + compset.phase_record.phase_dof))
-            for comp_idx in range(num_components):
-                compset.phase_record.mass_grad(mass_jac_tmp[comp_idx, :], x, comp_idx)
-            rhs[:compset.phase_record.phase_dof] += mass_jac_tmp.T[num_statevars:].dot(chemical_potentials)
-            if not freeze_phase_internal_dof:
-                soln = np.linalg.solve(phase_matrix, rhs)
-                delta_y = soln[:compset.phase_record.phase_dof]
-                largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(delta_y)))
-                old_y = np.array(x[num_statevars:])
-                new_y = old_y + delta_y
-                new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
-                new_y[new_y > 1] = 1
-                x[num_statevars:] = new_y
+            compute_phase_system(phase_matrix, rhs, compset, delta_statevars, chemical_potentials, x)
 
-            masses_tmp = np.zeros((num_components, 1))
+            soln = np.linalg.solve(phase_matrix, rhs)
+            delta_y = soln[:compset.phase_record.phase_dof]
+            largest_internal_dof_change = max(largest_internal_dof_change, np.max(np.abs(delta_y)))
+            old_y = np.array(x[num_statevars:])
+            new_y = old_y + delta_y
+            new_y[new_y < MIN_SITE_FRACTION] = MIN_SITE_FRACTION
+            new_y[new_y > 1] = 1
+            x[num_statevars:] = new_y
+
             for comp_idx in range(num_components):
                 compset.phase_record.mass_obj(masses_tmp[comp_idx, :], x, comp_idx)
                 all_phase_amounts[idx, comp_idx] = masses_tmp[comp_idx, 0]
@@ -105,19 +120,10 @@ def find_solution(compsets, free_stable_compset_indices,
                                      compset.phase_record.phase_dof + compset.phase_record.num_internal_cons))
             hess_tmp = np.zeros((num_statevars + compset.phase_record.phase_dof,
                                  num_statevars + compset.phase_record.phase_dof))
-            cons_jac_tmp = np.zeros((compset.phase_record.num_internal_cons,
-                                     num_statevars + compset.phase_record.phase_dof))
-            compset.phase_record.hess(hess_tmp, x)
             grad_tmp = np.zeros(num_statevars + compset.phase_record.phase_dof)
+            compset.phase_record.hess(hess_tmp, x)
             compset.phase_record.grad(grad_tmp, x)
-            phase_matrix[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof] = hess_tmp[
-                                                                                             num_statevars:,
-                                                                                             num_statevars:]
-            compset.phase_record.internal_cons_jac(cons_jac_tmp, x)
-            phase_matrix[compset.phase_record.phase_dof:, :compset.phase_record.phase_dof] = cons_jac_tmp[:,
-                                                                                             num_statevars:]
-            phase_matrix[:compset.phase_record.phase_dof, compset.phase_record.phase_dof:] = cons_jac_tmp[:,
-                                                                                             num_statevars:].T
+            compute_phase_matrix(phase_matrix, hess_tmp, compset, num_statevars, x)
             e_matrix = np.linalg.inv(phase_matrix)[:compset.phase_record.phase_dof, :compset.phase_record.phase_dof]
             # Eq. 44
             c_G = -np.dot(e_matrix, grad_tmp[num_statevars:])
