@@ -325,7 +325,7 @@ def find_solution(compsets, free_stable_compset_indices,
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
-        #
+
         system_is_feasible = mass_residual < 1e-10
         if system_is_feasible:
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
@@ -337,9 +337,6 @@ def find_solution(compsets, free_stable_compset_indices,
                                                     largest_internal_dof_change, largest_phase_amt_change,
                                                     largest_statevar_change)
             free_stable_compset_indices = new_free_stable_compset_indices
-
-        print('free_stable_compset_indices', free_stable_compset_indices)
-        print('NP', phase_amt, 'MU', chemical_potentials, 'statevars', dof[0][:num_statevars])
 
     x = dof[0]
     for cs_dof in dof[1:]:

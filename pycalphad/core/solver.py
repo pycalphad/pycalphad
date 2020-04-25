@@ -190,10 +190,8 @@ class SundmanSolver(SolverBase):
 
         """
         cur_conds = prob.conditions
-        print(cur_conds)
         compsets = prob.composition_sets
         state_variables = compsets[0].phase_record.state_variables
-        print('state_variables', state_variables)
         num_statevars = len(state_variables)
         num_components = len(prob.nonvacant_elements)
         chemical_potentials = prob.chemical_potentials(prob.x0)
@@ -223,7 +221,6 @@ class SundmanSolver(SolverBase):
                   chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
                   prescribed_element_indices, prescribed_elemental_amounts,
                   free_statevar_indices, fixed_statevar_indices)
-        print('Result x', x)
 
         # TODO: Do not force convergence
         converged = True
