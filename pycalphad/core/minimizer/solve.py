@@ -207,6 +207,40 @@ def fill_equilibrium_system(equilibrium_matrix, equilibrium_rhs, compsets, chemi
     return mass_residual
 
 
+def extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
+                                 free_chemical_potential_indices, free_statevar_indices,
+                                 free_stable_compset_indices, equilibrium_soln,
+                                 largest_statevar_change, largest_phase_amt_change, dof):
+    num_statevars = delta_statevars.shape[0]
+    soln_index_offset = 0
+    for i in range(free_chemical_potential_indices.shape[0]):
+        chempot_idx = free_chemical_potential_indices[i]
+        chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
+        percent_chempot_change = abs(chempot_change / chemical_potentials[chempot_idx])
+        chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
+        largest_statevar_change[0] = max(largest_statevar_change[0], percent_chempot_change)
+    soln_index_offset += free_chemical_potential_indices.shape[0]
+    for i in range(free_stable_compset_indices.shape[0]):
+        compset_idx = free_stable_compset_indices[i]
+        phase_amt_change = float(phase_amt[compset_idx])
+        phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
+        phase_amt[compset_idx] = np.minimum(1.0, phase_amt[compset_idx])
+        phase_amt[compset_idx] = np.maximum(0.0, phase_amt[compset_idx])
+        phase_amt_change = phase_amt[compset_idx] - phase_amt_change
+        largest_phase_amt_change[0] = max(largest_phase_amt_change[0], phase_amt_change)
+
+    soln_index_offset += free_stable_compset_indices.shape[0]
+    delta_statevars[:] = 0
+    for i in range(free_statevar_indices.shape[0]):
+        statevar_idx = free_statevar_indices[i]
+        delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
+    percent_statevar_changes = np.abs(delta_statevars / dof[0][:num_statevars])
+    percent_statevar_changes[np.isnan(percent_statevar_changes)] = 0
+    largest_statevar_change[0] = max(largest_statevar_change[0], np.max(percent_statevar_changes))
+    for idx in range(len(dof)):
+        dof[idx][:num_statevars] += delta_statevars
+
+
 def find_solution(compsets, free_stable_compset_indices,
                   num_statevars, num_components, prescribed_system_amount,
                   initial_chemical_potentials, free_chemical_potential_indices, fixed_chemical_potential_indices,
@@ -222,9 +256,9 @@ def find_solution(compsets, free_stable_compset_indices,
         current_elemental_amounts = np.zeros_like(chemical_potentials)
         all_phase_energies = np.zeros((len(compsets), 1))
         all_phase_amounts = np.zeros((len(compsets), len(chemical_potentials)))
-        largest_statevar_change = 0
+        largest_statevar_change = np.zeros((1, 1))
         largest_internal_dof_change = 0
-        largest_phase_amt_change = 0
+        largest_phase_amt_change = np.zeros((1, 1))
         # FIRST STEP: Update phase internal degrees of freedom
         for idx, compset in enumerate(compsets):
             # TODO: Use better dof storage
@@ -271,62 +305,32 @@ def find_solution(compsets, free_stable_compset_indices,
 
         equilibrium_soln = np.linalg.lstsq(equilibrium_matrix, equilibrium_rhs, rcond=None)
         equilibrium_soln = equilibrium_soln[0]
-        soln_index_offset = 0
-        for i in range(free_chemical_potential_indices.shape[0]):
-            chempot_idx = free_chemical_potential_indices[i]
-            chempot_change = equilibrium_soln[soln_index_offset + i] - chemical_potentials[chempot_idx]
-            percent_chempot_change = abs(chempot_change / chemical_potentials[chempot_idx])
-            chemical_potentials[chempot_idx] = equilibrium_soln[soln_index_offset + i]
-            largest_statevar_change = max(largest_statevar_change, percent_chempot_change)
-        soln_index_offset += free_chemical_potential_indices.shape[0]
-        for i in range(free_stable_compset_indices.shape[0]):
-            compset_idx = free_stable_compset_indices[i]
-            phase_amt_change = float(phase_amt[compset_idx])
-            phase_amt[compset_idx] += equilibrium_soln[soln_index_offset + i]
-            phase_amt[compset_idx] = np.minimum(1.0, phase_amt[compset_idx])
-            phase_amt[compset_idx] = np.maximum(0.0, phase_amt[compset_idx])
-            phase_amt_change = phase_amt[compset_idx] - phase_amt_change
-            largest_phase_amt_change = max(largest_phase_amt_change, phase_amt_change)
-            print('Updating phase_amt for compset ', compset_idx, ' by ', equilibrium_soln[soln_index_offset + i])
 
-        soln_index_offset += free_stable_compset_indices.shape[0]
-        delta_statevars[:] = 0
-        for i in range(free_statevar_indices.shape[0]):
-            statevar_idx = free_statevar_indices[i]
-            delta_statevars[statevar_idx] = equilibrium_soln[soln_index_offset + i]
-        percent_statevar_changes = np.abs(delta_statevars / dof[0][:num_statevars])
-        percent_statevar_changes[np.isnan(percent_statevar_changes)] = 0
-        largest_statevar_change = max(largest_statevar_change, np.max(percent_statevar_changes))
-        for idx in range(len(dof)):
-            dof[idx][:num_statevars] += delta_statevars
+        extract_equilibrium_solution(chemical_potentials, phase_amt, delta_statevars,
+                                     free_chemical_potential_indices, free_statevar_indices,
+                                     free_stable_compset_indices, equilibrium_soln,
+                                     largest_statevar_change[0], largest_phase_amt_change[0], dof)
 
         # Wait for mass balance to be satisfied before changing phases
         # Phases that "want" to be removed will keep having their phase_amt set to zero, so mass balance is unaffected
         #
         system_is_feasible = mass_residual < 1e-10
-        print('system_is_feasible', system_is_feasible)
-        print('largest_internal_dof_change', largest_internal_dof_change)
-        print('largest_phase_amt_change', largest_phase_amt_change)
-        print('largest_statevar_change', largest_statevar_change)
         if system_is_feasible:
             freeze_phase_internal_dof = False
-            print('freeze_phase_internal_dof = False', freeze_phase_internal_dof)
             iterations_since_phase_change = 0
             free_stable_compset_indices = np.nonzero(phase_amt > MIN_SITE_FRACTION)[0]
             # Check driving forces for metastable phases
             for idx in range(len(compsets)):
                 all_phase_energies[idx, 0] -= np.dot(chemical_potentials, all_phase_amounts[idx, :])
-            print('Driving Forces: ', all_phase_energies[:, 0])
             compsets_to_add = set(np.nonzero(all_phase_energies[:, 0] > -1e-5)[0])
             current_free_stable_compset_indices = free_stable_compset_indices
             new_free_stable_compset_indices = np.array(sorted(set(free_stable_compset_indices) | compsets_to_add))
             if len(set(current_free_stable_compset_indices) - set(new_free_stable_compset_indices)) != 0:
                 freeze_phase_internal_dof = True
-                print('freeze_phase_internal_dof = True', freeze_phase_internal_dof)
             else:
                 # feasible system, and no phases to add or remove
-                if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change < 1e-10) and \
-                        (largest_statevar_change < 1e-3):
+                if (largest_internal_dof_change < 1e-13) and (largest_phase_amt_change[0, 0] < 1e-10) and \
+                        (largest_statevar_change[0, 0] < 1e-3):
                     converged = True
                     print('CONVERGED')
                     break
@@ -334,7 +338,6 @@ def find_solution(compsets, free_stable_compset_indices,
         else:
             iterations_since_phase_change += 1
         print('free_stable_compset_indices', free_stable_compset_indices)
-
         print('NP', phase_amt, 'MU', chemical_potentials, 'statevars', dof[0][:num_statevars])
 
     x = dof[0]
